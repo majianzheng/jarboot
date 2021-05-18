@@ -1,0 +1,20 @@
+server:
+  port: 9399
+  servlet:
+    context-path: /
+spring:
+  application:
+    name: jarboot-service
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  web:
+    resources:
+      static-locations: file:${user.home}/jar-boot/static
+  jmx:
+    default-domain: jarboot-service
+  jms:
+    pub-sub-domain: true
+logging:
+  file:
+    path: ${user.home}/jar-boot/logs

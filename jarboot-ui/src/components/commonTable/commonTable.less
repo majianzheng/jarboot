@@ -1,0 +1,55 @@
+.commonTable {
+    padding: 0;
+    .ant-table-container {
+        border: 1px solid #f0f0f0 !important;
+        background: white;
+        overflow-y: auto !important;
+    }
+
+    .ant-table-body {
+        overflow-y: auto !important;
+    }
+
+    .ant-table-container .ant-table-thead > tr > th,
+    .ant-table-container .ant-table-tbody > tr > td {
+        height: 30px;
+        padding: 0 5px !important;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        background: inherit;
+    }
+
+    .ant-table-container .ant-table-thead > tr > th {
+        font-size: 15px;
+        font-weight: bold;
+        height: 35px;
+    }
+
+    .toolBar {
+        border: 1px solid #ddd;
+        border-bottom: none;
+        button {
+            display: inline-flex;
+            align-items: center;
+            height: 100%;
+            padding: 0 10px;
+            background-color: inherit;
+            border: none;
+            outline: none;
+        }
+        button:hover {
+            background: #e6e6e6;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: inherit;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+    /*--------------表格内的下拉框------------*/
+    .ant-select-selection {
+        border: none;
+    }
+}
