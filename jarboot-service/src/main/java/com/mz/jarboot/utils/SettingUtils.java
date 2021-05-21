@@ -1,8 +1,9 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.constant.ResultCodeConst;
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.*;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,14 +25,65 @@ public class SettingUtils {
     private static final String CACHE_FILE_NAME_KEY = "cache.file";
     private static final int MAX_TIMEOUT = 3000;
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
+    private static String rootPath = PropertyFileUtils.getCurrentSetting(CommonConst.ROOT_PATH_KEY);
 
+    /**
+     * 判断是否Windows系统
+     * @return 是否Windows
+     */
     public static boolean isWindows() {
         String os = System.getProperty("os.name");
         return StringUtils.isNotEmpty(os) && os.startsWith("Windows");
     }
 
+    /**
+     * 判断是否为MacOS系统
+     * @return 是否MacOS系统
+     */
+    public static boolean isMacOS() {
+        String os = System.getProperty("os.name");
+        return StringUtils.isNotEmpty(os) && os.startsWith("Mac");
+    }
+
+    /**
+     * 获取服务的jar包路径
+     * @param server 服务名
+     * @return jar包路径
+     */
+    public static String getJarPath(String server) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(rootPath).append(File.separator).append(CommonConst.SERVICES_DIR).
+                append(File.separator).append(server);
+        File dir = new File(builder.toString());
+        if (!dir.isDirectory() || !dir.exists()) {
+            logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
+            WebSocketManager.getInstance().noticeWarn("未找到服务" + server + "的可执行jar包路径");
+        }
+        String[] extensions = {"jar"};
+        Collection<File> jarList = FileUtils.listFiles(dir, extensions, false);
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
+            logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
+            WebSocketManager.getInstance().noticeWarn("未找到服务" + server + "的可执行jar包");
+        }
+        if (jarList.size() > 1) {
+            WebSocketManager.getInstance().noticeError("在服务目录找到了多个jar包！可能会导致服务不可用，请先清理该目录！留下一个可用的jar包文件！");
+        }
+        if (jarList.iterator().hasNext()) {
+            File jarFile = jarList.iterator().next();
+            return jarFile.getPath();
+        }
+        return "";
+    }
+
+    public static String getServerSettingFilePath(String server) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(rootPath).append(File.separator).append(CommonConst.SERVICES_DIR).
+                append(File.separator).append(server).append(File.separator).append(server).append(".ini");
+        return builder.toString();
+    }
+
     public static String getCacheFilePath() {
-        String path = System.getProperty(SettingConst.WORKSPACE_HOME);
+        String path = System.getProperty(CommonConst.WORKSPACE_HOME);
         StringBuilder builder = new StringBuilder();
         String cacheFileName = PropertyFileUtils.getCurrentSetting(CACHE_FILE_NAME_KEY);
         builder.append(path).append(File.separator).

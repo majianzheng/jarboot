@@ -26,7 +26,7 @@ export default class WsManager {
                 return;
             }
         }
-        let url = `ws://${window.location.hostname}:9399/jarboot-service/ws`;
+        let url = `ws://${window.location.hostname}:9899/jarboot-service/ws`;
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager._onMessage;
         WsManager.websocket.onopen = () => console.log("连接Websocket服务器成功！");

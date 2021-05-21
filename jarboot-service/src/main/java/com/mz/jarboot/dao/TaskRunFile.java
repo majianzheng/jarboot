@@ -1,6 +1,6 @@
 package com.mz.jarboot.dao;
 
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -21,11 +21,11 @@ class TaskRunFile implements Serializable {
             taskRunInfo.setPid(pid);
         }
         switch (status) {
-            case SettingConst.STATUS_RUNNING:
+            case CommonConst.STATUS_RUNNING:
                 taskRunInfo.setStartedTime(new Date());
                 break;
-            case SettingConst.STATUS_STARTING:
-            case SettingConst.STATUS_STOPPING:
+            case CommonConst.STATUS_STARTING:
+            case CommonConst.STATUS_STOPPING:
                 taskRunInfo.setActionTime(new Date());
                 break;
             default:
@@ -46,8 +46,8 @@ class TaskRunFile implements Serializable {
             if (null != actionTime) {
                 actionTimeStamp = actionTime.getTime();
             }
-            if (StringUtils.equals(SettingConst.STATUS_STARTING, status) ||
-                    StringUtils.equals(SettingConst.STATUS_STOPPING, status)) {
+            if (StringUtils.equals(CommonConst.STATUS_STARTING, status) ||
+                    StringUtils.equals(CommonConst.STATUS_STOPPING, status)) {
                 return ((System.currentTimeMillis() - actionTimeStamp) < 30000);
             }
         }
@@ -58,7 +58,7 @@ class TaskRunFile implements Serializable {
         if (null != taskRunInfo) {
             return taskRunInfo.getStatus();
         }
-        return SettingConst.STATUS_STOPPED;
+        return CommonConst.STATUS_STOPPED;
     }
     public Date getTaskStartTime(String name) {
         TaskRunInfo taskRunInfo = taskRunMap.get(name);

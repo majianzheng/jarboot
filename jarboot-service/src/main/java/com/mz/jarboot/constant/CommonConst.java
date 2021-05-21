@@ -1,12 +1,12 @@
 package com.mz.jarboot.constant;
 
-public class SettingConst {
+
+public class CommonConst {
     public static final String WORKSPACE_HOME= "workspace.home";
 
     public static final String PROP_FILE_EXT = "properties";
     public static final String ROOT_PATH_KEY = "root-path";
     public static final String DEBUG_MODE_KEY = "debug-mode";
-    public static final String START_PRIORITY_KEY = "start-priority";
     public static final String ROOT_DIR_KEY = "root-dir-name";
 
     //Web服务目录名称
@@ -18,19 +18,15 @@ public class SettingConst {
     public static final String STATUS_STARTING = "正在启动";
     public static final String STATUS_STOPPING = "正在停止";
 
-    public static final String JVM_STARTED_TAG = "JVM running";
-
     public static final String NOTICE_INFO = "NOTICE_INFO";
     public static final String NOTICE_WARN = "NOTICE_WARN";
     public static final String NOTICE_ERROR = "NOTICE_ERROR";
 
     public static final int INVALID_PID = -1;
 
-    //ebr-setting的启动参数
-    public static final String ARG_UNINSTALL = "-uninstall";
     public static final String ARG_KILL_ALL = "-killAllServer";
     public static final String ARG_START_ALL = "-startAllServer";
     public static final String ARG_IGNORE_LOCK = "-ignoreLock";
 
-    private SettingConst(){}
+    private CommonConst(){}
 }

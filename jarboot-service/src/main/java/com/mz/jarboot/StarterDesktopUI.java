@@ -1,7 +1,7 @@
 package com.mz.jarboot;
 
 import com.mz.jarboot.utils.PropertyFileUtils;
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class StarterDesktopUI {
         File cacheFile = new File(SettingUtils.getCacheFilePath());
         this.isFirstSetup = (!cacheFile.exists() || !cacheFile.isFile());
         this.settingProperties = PropertyFileUtils.getCurrentSettings();
-        String debugMode = settingProperties.getProperty(SettingConst.DEBUG_MODE_KEY);
+        String debugMode = settingProperties.getProperty(CommonConst.DEBUG_MODE_KEY);
         if (StringUtils.equals("true", debugMode)) {
             this.isDebugMode = true;
         }
@@ -58,7 +58,7 @@ public class StarterDesktopUI {
         String path = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
         path = StringUtils.removeStart(path, "/");
         path = path.replace("file:/", "");
-        String root = PropertyFileUtils.getCurrentSetting(SettingConst.ROOT_DIR_KEY);
+        String root = PropertyFileUtils.getCurrentSetting(CommonConst.ROOT_DIR_KEY);
         int p = path.lastIndexOf(root);
         if (-1 != p) {
             int p1 = p + root.length();
@@ -66,7 +66,7 @@ public class StarterDesktopUI {
             if (File.separatorChar == '\\') {
                 path = path.replace("/", "\\\\");
             }
-            PropertyFileUtils.setCurrentSetting(SettingConst.ROOT_PATH_KEY, path);
+            PropertyFileUtils.setCurrentSetting(CommonConst.ROOT_PATH_KEY, path);
         }
     }
 

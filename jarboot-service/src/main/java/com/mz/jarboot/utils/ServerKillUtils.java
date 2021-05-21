@@ -1,6 +1,6 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +19,9 @@ public class ServerKillUtils {
      */
     public void killAllIncludeSelf() {
         //获取安装根目录
-        String rootPath = PropertyFileUtils.getCurrentSetting(SettingConst.ROOT_PATH_KEY);
+        String rootPath = PropertyFileUtils.getCurrentSetting(CommonConst.ROOT_PATH_KEY);
         //先扫描所有服务启动的jar包
-        String servicesDirPath = rootPath + File.separator + SettingConst.SERVICES_DIR;
+        String servicesDirPath = rootPath + File.separator + CommonConst.SERVICES_DIR;
         List<String> jarNameList = this.getAllExecJar(servicesDirPath);
         //杀死所有的服务jar包
         this.killServerByJar(jarNameList);
@@ -31,7 +31,7 @@ public class ServerKillUtils {
         if (CollectionUtils.isEmpty(jarNameList)) {
             return;
         }
-        jarNameList.forEach(jar -> TaskUtils.getInstance().killJavaByName(jar, null));
+        jarNameList.forEach(jar -> TaskUtils.killJavaByName(jar, null));
     }
 
     private List<String> getAllExecJar(String servicesDirPath) {

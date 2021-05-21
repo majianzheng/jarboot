@@ -14,19 +14,11 @@ import java.util.List;
 @Api(tags="系统配置")
 @RequestMapping(value = "/jarboot-service", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
-public class JarBootController {
+public class ServerMgrController {
     @Autowired
     private SettingService settingService;
     @Autowired
     private ServerMgrService serverMgrService;
-
-    @ApiOperation(value = "获取日志文件列表", httpMethod = "GET")
-    @RequestMapping(value="/getLogFiles")
-    @ResponseBody
-    public ResponseForList<FileContentDTO> getLogFiles() {
-        List<FileContentDTO> results = settingService.getLogFiles();
-        return new ResponseForList<>(results, results.size());
-    }
 
     @ApiOperation(value = "获取服务列表", httpMethod = "GET")
     @RequestMapping(value="/getServerList")
@@ -80,14 +72,5 @@ public class JarBootController {
     public ResponseSimple oneClickStop() {
         serverMgrService.oneClickStop();
         return new ResponseSimple();
-    }
-
-    @ApiOperation(value = "获取文件内容", httpMethod = "GET")
-    @RequestMapping(value="/getFileContent")
-    @ResponseBody
-    public ResponseForObject<String> getFileContent(@RequestParam(name = "path") String path) {
-        ResponseForObject<String> resp = new ResponseForObject<>();
-        resp.setResult(settingService.getFileContent(path));
-        return resp;
     }
 }

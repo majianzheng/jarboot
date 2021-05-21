@@ -2,7 +2,7 @@ package com.mz.jarboot.dao;
 
 import com.mz.jarboot.constant.ResultCodeConst;
 import com.mz.jarboot.exception.MzException;
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public class TaskRunDao {
         }
     }
     private String getCacheFilePath() {
-        String path = System.getProperty(SettingConst.WORKSPACE_HOME);
+        String path = System.getProperty(CommonConst.WORKSPACE_HOME);
         StringBuilder builder = new StringBuilder();
         builder.append(path).append(File.separatorChar).append(File.separatorChar).append("taskRun.temp");
         return builder.toString();

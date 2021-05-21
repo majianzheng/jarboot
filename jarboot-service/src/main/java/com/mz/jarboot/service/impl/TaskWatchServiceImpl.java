@@ -1,22 +1,23 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.constant.SettingConst;
+import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
+import com.mz.jarboot.event.ContextEventPub;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -31,11 +32,12 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private TaskRunDao taskRunDao;
     @Value("${root-path:}")
     private String rootPath;
-    //AQS队列，监控到目录变化则放入队列
+    //阻塞队列，监控到目录变化则放入队列
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
     @PostConstruct
     public void init() {
+        ContextEventPub.getInstance().setContext(this.ctx);
         //路径监控生产者
         taskExecutor.execute(this::initPathMonitor);
         //路径监控消费者
@@ -61,12 +63,28 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 }
             }
         });
+
+        List<VirtualMachineDescriptor> list = VirtualMachine.list();
+        list.forEach(vmd -> {
+            logger.info(vmd.displayName());
+            if (vmd.displayName().contains("print-web")) {
+                try {
+
+                    VirtualMachine vm = VirtualMachine.attach(vmd.id());
+                    vm.loadAgent("E:\\opensource\\jarboot\\jarboot-agent\\target\\jarboot-agent.jar", "127.0.0.1:9899");
+                    logger.info("》》》attached 成功！id:{}", vmd.id());
+                    vm.detach();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void initPathMonitor() {
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             //初始化路径监控
-            String servicesPath = this.rootPath + File.separator + SettingConst.SERVICES_DIR;
+            String servicesPath = this.rootPath + File.separator + CommonConst.SERVICES_DIR;
             final Path monitorPath = Paths.get(servicesPath);
             //给path路径加上文件观察服务
             monitorPath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
@@ -83,7 +101,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     private void pathWatchMonitor(WatchService watchService) throws InterruptedException {
-        while (true) {
+        for (;;) {
             final WatchKey key = watchService.take();
             for (WatchEvent<?> watchEvent : key.pollEvents()) {
                 handlePathEvent(watchEvent);
@@ -105,7 +123,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             //创建或修改文件
-            if (SettingConst.STATUS_RUNNING.equals(taskRunDao.getTaskStatus(service))) {
+            if (CommonConst.STATUS_RUNNING.equals(taskRunDao.getTaskStatus(service))) {
                 modifiedServiceQueue.put(service);
             }
         }

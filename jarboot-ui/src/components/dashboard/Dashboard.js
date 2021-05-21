@@ -133,48 +133,15 @@ export default class Dashboard extends React.Component {
     }
 
     _updateServerStatus(msgBody, status, pid = '') {
-        switch (msgBody.serverType) {
-            case JarBootConst.SERVER_TYPE_WEB:
-                this._updateWebServerRow(msgBody.server, status, pid)
-                break;
-            case JarBootConst.SERVER_TYPE_CORE:
-                let coreServer = {...this.state.coreServer};
-                coreServer.status = status;
-                coreServer.pid = pid;
-                this.setState({coreServer, current: msgBody.server});
-                break;
-            case JarBootConst.SERVER_TYPE_EXT:
-                this._updateBasicServerRow(msgBody.server, status, pid)
-                break;
-            default:
-                break;
-        }
-    }
-
-    _updateWebServerRow(server, status, pid = '') {
         let {data} = this.state;
         data = data.map(value => {
-            if (value.name === server) {
+            if (value.name === msgBody.server) {
                 value.status = status;
                 value.pid = pid;
             }
             return value;
         });
-        this.setState({data, current: server});
-    }
-    _updateBasicServerRow(server, status, pid = '') {
-        let {basicServer} = this.state;
-        if (!basicServer || basicServer.length <= 0) {
-            return;
-        }
-        basicServer = basicServer.map(value => {
-            if (value.name === server) {
-                value.status = status;
-                value.pid = pid;
-            }
-            return value;
-        });
-        this.setState({basicServer, current: server});
+        this.setState({data, current: msgBody.server});
     }
 
     _getTbProps() {
@@ -186,12 +153,12 @@ export default class Dashboard extends React.Component {
                     key: 'name',
                     ellipsis: true,
                 },
-                {
-                    title: 'PID',
-                    dataIndex: 'pid',
-                    key: 'pid',
-                    ellipsis: true,
-                },
+                // {
+                //     title: 'PID',
+                //     dataIndex: 'pid',
+                //     key: 'pid',
+                //     ellipsis: true,
+                // },
                 // {
                 //     title: '端口',
                 //     dataIndex: 'port',
@@ -203,6 +170,7 @@ export default class Dashboard extends React.Component {
                     dataIndex: 'status',
                     key: 'status',
                     ellipsis: true,
+                    width: 120,
                     render: text => this._translateStatus(text),
                 },
             ],
@@ -440,10 +408,10 @@ export default class Dashboard extends React.Component {
                 <Button loading={this.state.oneClickLoading} onClick={this.oneClickStop}>一键停止</Button>
             </Space>
             <div style={{display: 'flex'}}>
-                <div style={{flex: 'inherit', width: '30%'}}>
+                <div style={{flex: 'inherit', width: '28%'}}>
                     <CommonTable bordered tableOption={tableOption} tableButtons={this._getTbBtnProps()} height={this.height}/>
                 </div>
-                <div style={{flex: 'auto'}}>
+                <div style={{flex: 'inherit', width: '72%'}}>
                     <Card title={outTitle} size={"small"}
                           extra={<Button type={"link"} onClick={() => this._clearDisplay(this.state.current)}>清空</Button>}>
                         <div className={styles.outPanel}>

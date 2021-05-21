@@ -1,5 +1,5 @@
 server:
-  port: 9399
+  port: 9899
   servlet:
     context-path: /
 spring:
@@ -10,11 +10,11 @@ spring:
     time-zone: Asia/Shanghai
   web:
     resources:
-      static-locations: file:${user.home}/jar-boot/static
+      static-locations: file:${user.home}/jarboot/static
   jmx:
     default-domain: jarboot-service
   jms:
     pub-sub-domain: true
 logging:
   file:
-    path: ${user.home}/jar-boot/logs
+    path: ${user.home}/jarboot/logs

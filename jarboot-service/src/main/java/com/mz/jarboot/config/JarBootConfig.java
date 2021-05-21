@@ -1,6 +1,6 @@
 package com.mz.jarboot.config;
 
-import com.mz.jarboot.ws.WebSocketConnManager;
+import com.mz.jarboot.ws.WebSocketManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
@@ -28,7 +28,7 @@ public class JarBootConfig {
         return new ThreadPoolExecutor(8, 32,
                 32L, TimeUnit.SECONDS, taskBlockingQueue, (Runnable r, ThreadPoolExecutor executor) -> {
             //线程池忙碌拒绝策略
-            WebSocketConnManager.getInstance().noticeWarn("服务器忙碌中，请稍后再试！");
+            WebSocketManager.getInstance().noticeWarn("服务器忙碌中，请稍后再试！");
         });
     }
 }

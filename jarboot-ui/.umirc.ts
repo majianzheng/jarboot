@@ -10,7 +10,7 @@ export default defineConfig({
   fastRefresh: {},
   proxy: {
     '/jarboot-service': {
-      'target': 'http://localhost:9399/jarboot-service/',
+      'target': 'http://localhost:9899/jarboot-service/',
       'changeOrigin': true,
       'pathRewrite': {'^/jarboot-service': ''}
     }

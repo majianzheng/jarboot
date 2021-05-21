@@ -1,22 +1,20 @@
 package com.mz.jarboot.ws;
 
-import com.alibaba.fastjson.JSON;
-import com.mz.jarboot.constant.SettingConst;
-import com.mz.jarboot.dto.MessageBodyDTO;
-
+import com.alibaba.fastjson.JSONObject;
+import com.mz.jarboot.constant.CommonConst;
 import javax.websocket.Session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class WebSocketConnManager {
-    private static volatile WebSocketConnManager instance = null;
+public class WebSocketManager {
+    private static volatile WebSocketManager instance = null;
     private final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
-    private WebSocketConnManager(){};
-    public static WebSocketConnManager getInstance() {
+    private WebSocketManager(){};
+    public static WebSocketManager getInstance() {
         if (null == instance) {
-            synchronized (WebSocketConnManager.class) {
+            synchronized (WebSocketManager.class) {
                 if (null == instance) {
-                    instance = new WebSocketConnManager();
+                    instance = new WebSocketManager();
                 }
             }
         }
@@ -54,30 +52,28 @@ public class WebSocketConnManager {
         this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
     }
     public void noticeInfo(String text) {
-        this.notice(text, SettingConst.NOTICE_INFO);
+        this.notice(text, CommonConst.NOTICE_INFO);
     }
     public void noticeWarn(String text) {
-        this.notice(text, SettingConst.NOTICE_WARN);
+        this.notice(text, CommonConst.NOTICE_WARN);
     }
     public void noticeError(String text) {
-        this.notice(text, SettingConst.NOTICE_ERROR);
+        this.notice(text, CommonConst.NOTICE_ERROR);
     }
 
     private void notice(String text, String type) {
-        String msg = formatMsg("", type, text);
+        String msg = formatMsg(null, type, text);
         if (!sessionMap.isEmpty()) {
-            //当有人用网页访问时，只在网页界面提示
             this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
         }
     }
 
     private String formatMsg(String server, String msgType, String text) {
-        MessageBodyDTO msgBody = new MessageBodyDTO();
-        msgBody.setServer(server);
-        msgBody.setServerType("WEB");
-        msgBody.setMsgType(msgType);
-        msgBody.setText(text);
-        return JSON.toJSONString(msgBody);
+        JSONObject json = new JSONObject();
+        json.put("server", server);
+        json.put("msgType", msgType);
+        json.put("text", text);
+        return json.toJSONString();
     }
     private void sendTextMessage(final Session session, String msg) {
         MsgSendUtils.sendText(session, msg);

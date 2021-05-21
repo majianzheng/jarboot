@@ -3,6 +3,10 @@ package com.mz.jarboot.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mz.jarboot.constant.ResultCodeConst;
 
+/**
+ * http响应通用包装对象
+ * @author majianzheng
+ */
 public abstract class BaseResponse {
 	/**默认成功*/
 	protected int resultCode = ResultCodeConst.SUCCESS;
