@@ -42,7 +42,7 @@ public final class WebSocketClient {
     public static void main(String[] args) throws Exception {
         WebSocketClient client = new WebSocketClient("ws://127.0.0.1:9899/jarboot-service/ws");
         client.connect();
-        client.sendText("你好");
+        client.sendText(new TextWebSocketFrame("你好"));
         System.in.read();
         client.disconnect();
     }
