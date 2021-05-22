@@ -23,6 +23,10 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * 服务管理
+ * @author majianzheng
+ */
 @Service
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -39,7 +43,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public List<ProcDetailDTO> getWebServerList() {
         List<ProcDetailDTO> serverList = new ArrayList<>();
-        File[] serviceDirs = getWebServerDirs();
+        File[] serviceDirs = getServerDirs();
         for (File f : serviceDirs) {
             String server = f.getName();
             if (webServerFilter(f)) {
@@ -62,7 +66,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     private List<String> getServerNameList() {
-        File[] serviceDirs = getWebServerDirs();
+        File[] serviceDirs = getServerDirs();
         List<String> allWebServerList = new ArrayList<>();
         for (File f : serviceDirs) {
             String server = f.getName();
@@ -119,7 +123,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.stopServer(allWebServerList);
     }
 
-    private File[] getWebServerDirs() {
+    private File[] getServerDirs() {
         String servicesPath = this.rootPath + File.separator + CommonConst.SERVICES_DIR;
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {

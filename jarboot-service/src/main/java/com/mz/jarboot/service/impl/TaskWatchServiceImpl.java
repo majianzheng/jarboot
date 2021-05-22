@@ -6,8 +6,8 @@ import com.mz.jarboot.event.ContextEventPub;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
+//import com.sun.tools.attach.VirtualMachine;
+//import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -64,21 +67,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
         });
 
-        List<VirtualMachineDescriptor> list = VirtualMachine.list();
-        list.forEach(vmd -> {
-            logger.info(vmd.displayName());
-            if (vmd.displayName().contains("print-web")) {
-                try {
-
-                    VirtualMachine vm = VirtualMachine.attach(vmd.id());
-                    vm.loadAgent("E:\\opensource\\jarboot\\jarboot-agent\\target\\jarboot-agent.jar", "127.0.0.1:9899");
-                    logger.info("》》》attached 成功！id:{}", vmd.id());
-                    vm.detach();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     private void initPathMonitor() {

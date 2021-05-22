@@ -20,14 +20,20 @@ import java.util.*;
 
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
-    private static final String SETTING_CONF_FILE = "jarboot.properties";
+    private static String settingConfFile = null;
 
-    public static Properties getProperties(String file) {
-        String configFilePath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + file;
-        File configFile = FileUtils.getFile(configFilePath);
+    private static String getConfigPath() {
+        if (null == settingConfFile) {
+            settingConfFile = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + "jarboot.properties";
+        }
+        return settingConfFile;
+    }
+
+    private static Properties getProperties(String filePath) {
+        File configFile = FileUtils.getFile(filePath);
         return getProperties(configFile);
     }
-    public static Properties getProperties(File file) {
+    private static Properties getProperties(File file) {
         Properties properties = new Properties();
         if (null == file || !file.isFile() || !file.exists()) {
             return properties;
@@ -41,25 +47,10 @@ public class PropertyFileUtils {
     }
 
     public static void setCurrentSetting(String key, String value) {
-        String configFilePath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + SETTING_CONF_FILE;
-        File configFile = FileUtils.getFile(configFilePath);
+        File configFile = FileUtils.getFile(getConfigPath());
         if (configFile.exists() && configFile.isFile()) {
             Map<String, String> propMap = new HashMap<>();
             propMap.put(key, value);
-            writeProperty(configFile, propMap);
-        }
-    }
-
-    public static void setCurrentSetting(String file, String key, String value) {
-        Map<String, String> propMap = new HashMap<>();
-        propMap.put(key, value);
-        setCurrentSetting(file, propMap);
-    }
-
-    private static void setCurrentSetting(String file, Map<String, String> propMap) {
-        String configFilePath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + file;
-        File configFile = FileUtils.getFile(configFilePath);
-        if (configFile.exists() && configFile.isFile()) {
             writeProperty(configFile, propMap);
         }
     }
@@ -69,7 +60,7 @@ public class PropertyFileUtils {
      * @return 属性值
      */
     public static Properties getCurrentSettings() {
-        return getProperties(SETTING_CONF_FILE);
+        return getProperties(getConfigPath());
     }
 
     /**
@@ -106,29 +97,6 @@ public class PropertyFileUtils {
             setting.setJarUpdateWatch(false);
         }
         return setting;
-    }
-
-    /**
-     * 实时获取.properties配置文件的配置信息
-     * @param key 属性名
-     * @return 属性值
-     */
-    public static String getCurrentSetting(String file, String key) {
-        Properties properties = getProperties(file);
-        return properties.getProperty(key);
-    }
-
-    public static String getCurrentSetting(File file, String key) {
-        if (null == file || !file.exists() || !file.isFile()) {
-            return "";
-        }
-        Properties properties = new Properties();
-        try (FileInputStream fis = FileUtils.openInputStream(file)) {
-            properties.load(fis);
-        } catch (Exception e) {
-            //ignore
-        }
-        return properties.getProperty(key);
     }
     
 

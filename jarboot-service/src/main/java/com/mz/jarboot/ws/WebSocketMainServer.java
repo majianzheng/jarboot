@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 
 @ServerEndpoint("/jarboot-service/ws")
 @RestController
@@ -18,7 +19,6 @@ public class WebSocketMainServer {
      * 连接建立成功调用的方法*/
     @OnOpen
     public void onOpen(Session session) {
-        logger.info("连接建立成功！{}", session.getId());
         WebSocketManager.getInstance().addNewConnect(session);
     }
 

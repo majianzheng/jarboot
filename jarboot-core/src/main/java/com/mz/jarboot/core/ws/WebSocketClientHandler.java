@@ -13,25 +13,34 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
+    private MessageHandler messageHandler;
 
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public void setMessageHandler(MessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
+    }
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
     }
 
-    public ChannelFuture handshakeFuture() {
+    ChannelFuture handshakeFuture() {
         return handshakeFuture;
     }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        System.out.println("handlerAdded");
         handshakeFuture = ctx.newPromise();
+        if (null != messageHandler) {
+            messageHandler.onOpen(ctx.channel());
+        }
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        System.out.println("channelActive");
         handshaker.handshake(ctx.channel());
     }
 
@@ -42,15 +51,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("channelRead0");
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             try {
                 handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-                System.out.println("WebSocket Client connected!");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                System.out.println("WebSocket Client failed to connect");
                 handshakeFuture.setFailure(e);
 
             }
@@ -66,19 +72,21 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            System.out.println("WebSocket Client received message: " + textFrame.text());
+            if (null != messageHandler) {
+                messageHandler.onText(textFrame.text(), ch);
+            }
 
         } else if (frame instanceof BinaryWebSocketFrame) {
             //字节码
             BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
-            System.out.println("WebSocket Client received binaryFrame message: " + binaryFrame.content().toString());
-
-        } else if (frame instanceof PongWebSocketFrame) {
-            System.out.println("WebSocket Client received pong");
+            if (null != messageHandler) {
+                messageHandler.onBinary(binaryFrame.content().array(), ch);
+            }
 
         } else if (frame instanceof CloseWebSocketFrame) {
-            System.out.println("WebSocket Client received closing");
-
+            if (null != messageHandler) {
+                messageHandler.onClose(ch);
+            }
             ch.close();
         }
     }
@@ -88,6 +96,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         cause.printStackTrace();
         if (!handshakeFuture.isDone()) {
             handshakeFuture.setFailure(cause);
+        }
+        if (null != messageHandler) {
+            messageHandler.onError(ctx.channel());
         }
         ctx.close();
     }

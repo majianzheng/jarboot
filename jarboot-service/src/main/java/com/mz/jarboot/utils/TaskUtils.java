@@ -1,14 +1,20 @@
 package com.mz.jarboot.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+
+import javax.websocket.Session;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -16,6 +22,9 @@ import java.util.*;
  * @author majianzheng
  */
 public class TaskUtils {
+    private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
+    private static final Map<String, ServerSettingDTO> aliveServer = new ConcurrentHashMap<>(64);
+    private static final Map<String, Session> onlineServer = new ConcurrentHashMap<>(64);
     /**
      * 检查服务进程是否存活
      * @param server 服务名
@@ -30,6 +39,17 @@ public class TaskUtils {
      * @param server 服务名
      */
     public static void killServer(String server) {
+        //先尝试向目标进程发送停止命令
+        sendCommand(server, "exit", "");
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            //ignore
+            Thread.currentThread().interrupt();
+        }
+        if (onlineServer.containsKey(server)) {
+            logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
+        }
         String name = getJarWithServerName(server);
         killJavaByName(name, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
     }
@@ -49,9 +69,10 @@ public class TaskUtils {
         if (StringUtils.isEmpty(jvm)) {
             jvm = PropertyFileUtils.getCurrentSetting("jvm-arg");
         }
+        String agentArgs = SettingUtils.getAgentStartOption(server);
         String cmd = (null == jvm) ?
-                String.format("java -jar %s", jar) :
-                String.format("java -jar %s %s", jvm, jar);
+                String.format("java %s -jar %s", agentArgs, jar) :
+                String.format("java %s -jar %s %s", agentArgs, jvm, jar);
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
             cmd = String.format("%s %s", cmd, startArg);
@@ -70,6 +91,44 @@ public class TaskUtils {
             return CommonConst.INVALID_PID;
         }
         return pidList.get(0);
+    }
+
+    public static void addAliveServer(String server, ServerSettingDTO setting) {
+        aliveServer.put(server, setting);
+    }
+
+    public static void removeAliveServer(String server) {
+        aliveServer.remove(server);
+    }
+
+    public static ServerSettingDTO getAliveServerSetting(String server) {
+        return aliveServer.getOrDefault(server, null);
+    }
+
+    public static void addOnlineServer(String server, Session session) {
+        onlineServer.put(server, session);
+    }
+
+    public static void removeOnlineServer(String server) {
+        onlineServer.remove(server);
+    }
+
+    public static Session getOnlineServerSession(String server) {
+        return onlineServer.getOrDefault(server, null);
+    }
+
+    private static void sendCommand(String server, String cmd, String param) {
+        Session session = getOnlineServerSession(server);
+        if (null != session) {
+            JSONObject json = new JSONObject();
+            json.put("cmd", cmd);
+            json.put("param", param);
+            try {
+                session.getBasicRemote().sendText(json.toJSONString());
+            } catch (IOException e) {
+                //ignore
+            }
+        }
     }
 
     //得到jar的上级目录和自己: demo-service/demo.jar

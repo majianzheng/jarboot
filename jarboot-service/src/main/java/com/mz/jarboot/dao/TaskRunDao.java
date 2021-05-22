@@ -52,33 +52,22 @@ public class TaskRunDao {
         return cache;
     }
     private void update(TaskRunFile cache) {
-        ObjectOutputStream oo = null;
-        try {
-            File cacheFile = FileUtils.getFile(this.getCacheFilePath());
+        File cacheFile = FileUtils.getFile(this.getCacheFilePath());
+        try (ObjectOutputStream oo = new ObjectOutputStream(new FileOutputStream(cacheFile));){
             if (cacheFile.isDirectory()) {
                 FileUtils.deleteDirectory(cacheFile);
             }
-            //先更新到文件
-            oo = new ObjectOutputStream(new FileOutputStream(cacheFile));
             oo.writeObject(cache);
             //再更新到内存
             this.taskRunFile = cache;
         } catch (Exception e) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新缓存文件失败！", e);
-        } finally {
-            if (null != oo) {
-                try {
-                    oo.close();
-                } catch (IOException e) {
-                    //ignore
-                }
-            }
         }
     }
     private String getCacheFilePath() {
         String path = System.getProperty(CommonConst.WORKSPACE_HOME);
         StringBuilder builder = new StringBuilder();
-        builder.append(path).append(File.separatorChar).append(File.separatorChar).append("taskRun.temp");
+        builder.append(path).append(File.separatorChar).append("taskRun.temp");
         return builder.toString();
     }
 }

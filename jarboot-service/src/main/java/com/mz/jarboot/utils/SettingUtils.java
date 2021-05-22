@@ -1,7 +1,9 @@
 package com.mz.jarboot.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.constant.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.event.ContextEventPub;
 import com.mz.jarboot.exception.MzException;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
@@ -16,23 +18,85 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.*;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.CodeSource;
+import java.util.*;
 
 public class SettingUtils {
     private static final String CACHE_FILE_NAME_KEY = "cache.file";
     private static final int MAX_TIMEOUT = 3000;
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static String rootPath = PropertyFileUtils.getCurrentSetting(CommonConst.ROOT_PATH_KEY);
+    private static final String OS_NAME = "os.name";
+    private static final String AGENT_JAR_NAME = "jarboot-agent.jar";
 
+    private static String rootPath = null;
+    private static Method attach;
+    private static Method loadAgent;
+    private static Method detach;
+    private static String agentJar;
+    static {
+        //尝试获取JAVA_HOME环境变量和当前运行环境，以获取jdk的tools.jar的位置，通过反射加载其中的VM类
+        String jdkHome = System.getenv("JAVA_HOME");
+        String toolsJarFilePath = null;
+        File tools;
+        if (StringUtils.isNotEmpty(jdkHome)) {
+            toolsJarFilePath = jdkHome + File.separator + "lib" + File.separator + "tools.jar";
+            tools = new File(toolsJarFilePath);
+            if (!tools.exists()) {
+                toolsJarFilePath = null;
+            }
+        }
+        if (null == toolsJarFilePath) {
+            String path = System.getProperty("java.home");
+            int p = path.indexOf(File.separator + "jre");
+            if (-1 != p) {
+                //当前在jre路径，则切换到上级的jdk路径
+                path = path.substring(0, p);
+            }
+            toolsJarFilePath = (path + File.separator + "lib" + File.separator + "tools.jar");
+        }
+        tools = new File(toolsJarFilePath);
+        if (!tools.exists()) {
+            logger.info("Can not find tools.jar, make sure you are using a jdk not a jre.");
+            System.exit(-1);
+        }
+        logger.info("toolsJarFilePath: {}", toolsJarFilePath);
+        try {
+            ClassLoader classLoader = new URLClassLoader(new URL[]{tools.toURI().toURL()});
+            Class<?> cls = classLoader.loadClass("com.sun.tools.attach.VirtualMachine");
+            attach = cls.getMethod("attach", String.class);
+            loadAgent = cls.getMethod("loadAgent", String.class, String.class);
+            detach = cls.getMethod("detach");
+        } catch (Exception e) {
+            //加载jdk的tools.jar失败
+            logger.info("Load tools.jar failed, make sure you are using a jdk not a jre.", e);
+            System.exit(-1);
+        }
+        CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
+        try {
+            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            File jarFile = new File(agentJarFile.getParentFile(), AGENT_JAR_NAME);
+            //先尝试从当前路径下获取jar的位置
+            if (jarFile.exists()) {
+                agentJar = jarFile.getPath();
+            } else {
+                agentJar = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + AGENT_JAR_NAME;
+                jarFile = new File(agentJar);
+                if (!jarFile.exists()) {
+                    throw new MzException(ResultCodeConst.NOT_EXIST, "从用户路径下未发现" + agentJar);
+                }
+            }
+        } catch (Exception e) {
+            //查找jarboot-agent.jar失败
+            logger.info("Can not find jarboot-agent.jar.", e);
+            System.exit(-1);
+        }
+    }
     /**
      * 判断是否Windows系统
      * @return 是否Windows
      */
     public static boolean isWindows() {
-        String os = System.getProperty("os.name");
+        String os = System.getProperty(OS_NAME);
         return StringUtils.isNotEmpty(os) && os.startsWith("Windows");
     }
 
@@ -41,8 +105,62 @@ public class SettingUtils {
      * @return 是否MacOS系统
      */
     public static boolean isMacOS() {
-        String os = System.getProperty("os.name");
+        String os = System.getProperty(OS_NAME);
         return StringUtils.isNotEmpty(os) && os.startsWith("Mac");
+    }
+
+    public static void initTargetVM(String server, int pid) {
+        Object vm = attachVM(pid);
+        try {
+            loadAgentToVM(vm, agentJar, getAgentArgs(server));
+        } finally {
+            if (null != vm) {
+                detachVM(vm);
+            }
+        }
+    }
+
+    public static String getRootPath() {
+        if (StringUtils.isEmpty(rootPath)) {
+            rootPath = ContextEventPub.getInstance().getContext().getEnvironment().getProperty(CommonConst.ROOT_PATH_KEY);
+        }
+        return rootPath;
+    }
+
+    public static String getAgentStartOption(String server) {
+        return "-javaagent:" + agentJar + "=" + getAgentArgs(server);
+    }
+
+    private static String getAgentArgs(String server) {
+        JSONObject json = new JSONObject();
+        json.put("host", "127.0.0.1:9899");
+        json.put("server", server);
+        byte[] bytes = Base64.getEncoder().encode(json.toJSONString().getBytes());
+        return new String(bytes);
+    }
+
+    private static Object attachVM(int pid) {
+        try {
+            return attach.invoke(null, String.valueOf(pid));
+        } catch (Exception e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+    }
+
+    private static void loadAgentToVM(Object vm, String path, String args) {
+        try {
+            loadAgent.invoke(vm, path, args);
+        } catch (Exception e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+    }
+
+    private static void detachVM(Object vm) {
+        try {
+            detach.invoke(vm);
+        } catch (Exception e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
     }
 
     /**
@@ -52,7 +170,7 @@ public class SettingUtils {
      */
     public static String getJarPath(String server) {
         StringBuilder builder = new StringBuilder();
-        builder.append(rootPath).append(File.separator).append(CommonConst.SERVICES_DIR).
+        builder.append(getRootPath()).append(File.separator).append(CommonConst.SERVICES_DIR).
                 append(File.separator).append(server);
         File dir = new File(builder.toString());
         if (!dir.isDirectory() || !dir.exists()) {
@@ -77,7 +195,7 @@ public class SettingUtils {
 
     public static String getServerSettingFilePath(String server) {
         StringBuilder builder = new StringBuilder();
-        builder.append(rootPath).append(File.separator).append(CommonConst.SERVICES_DIR).
+        builder.append(getRootPath()).append(File.separator).append(CommonConst.SERVICES_DIR).
                 append(File.separator).append(server).append(File.separator).append(server).append(".ini");
         return builder.toString();
     }

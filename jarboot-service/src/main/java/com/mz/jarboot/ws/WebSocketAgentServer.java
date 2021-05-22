@@ -1,22 +1,28 @@
 package com.mz.jarboot.ws;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.mz.jarboot.utils.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint("/jarboot-agent/ws")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
-
+    private static final Map<String, String> sessionIdToServer = new ConcurrentHashMap<>(64);
     /**
      * 连接建立成功调用的方法*/
     @OnOpen
     public void onOpen(Session session) {
-
+        //do nothing
+        logger.info("Agent连接成功！");
     }
 
     /**
@@ -24,7 +30,11 @@ public class WebSocketAgentServer {
      */
     @OnClose
     public void onClose( Session session) {
-
+        String server = sessionIdToServer.getOrDefault(session.getId(), null);
+        logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
+        if (null != server) {
+            TaskUtils.removeAliveServer(server);
+        }
     }
 
     /**
@@ -33,12 +43,26 @@ public class WebSocketAgentServer {
      * @param message 客户端发送过来的消息*/
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
-        // Do nothing
+        onTextMessage(new String(message), session);
     }
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        // Do nothing
+        JSONObject json = JSON.parseObject(message);
+        String event = json.getString("event");
+        String body = json.getString("body");
+        logger.info(message);
+        switch (event) {
+            case "online":
+                TaskUtils.addOnlineServer(body, session);
+                break;
+            case "offline":
+                TaskUtils.removeAliveServer(body);
+                break;
+            default:
+                //do nothing
+                break;
+        }
     }
 
     /**
@@ -48,7 +72,7 @@ public class WebSocketAgentServer {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-
+        onClose(session);
         logger.error(error.getMessage(), error);
     }
 }

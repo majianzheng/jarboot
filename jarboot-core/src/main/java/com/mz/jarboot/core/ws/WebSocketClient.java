@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.ws;
 
+import com.mz.jarboot.core.server.JarbootBootstrap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -11,12 +12,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
-import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-
 import javax.net.ssl.SSLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,46 +24,32 @@ public final class WebSocketClient {
     private URI uri;
     private EventLoopGroup group;
     private Channel channel;
+    private WebSocketClientHandler handler;
     public WebSocketClient(String url) {
         try {
             this.uri = new URI(url);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            //ignore
         }
     }
 
     public void sendText(String text) {
+        JarbootBootstrap.ps.println("发送消息：" + text);
         if (null != channel) {
-            channel.writeAndFlush(text);
+            channel.writeAndFlush(new TextWebSocketFrame(text));
+        } else {
+            JarbootBootstrap.ps.println("发送消息失败！channel为null.");
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        WebSocketClient client = new WebSocketClient("ws://127.0.0.1:9899/jarboot-service/ws");
-        client.connect();
-        client.sendText(new TextWebSocketFrame("你好"));
-        System.in.read();
-        client.disconnect();
-    }
-    public void connect() {
+    public boolean connect(MessageHandler messageHandler) {
         String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
         final String host = uri.getHost() == null ? "127.0.0.1" : uri.getHost();
-        final int port;
-        if (uri.getPort() == -1) {
-            if ("ws".equalsIgnoreCase(scheme)) {
-                port = 80;
-            } else if ("wss".equalsIgnoreCase(scheme)) {
-                port = 443;
-            } else {
-                port = -1;
-            }
-        } else {
-            port = uri.getPort();
-        }
+        final int port = parsePort(scheme);
 
         if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            System.err.println("Only WS(S) is supported.");
-            return;
+            System.err.println("Only WS(S) is supported.");  //NOSONAR
+            return false;
         }
 
         final boolean ssl = "wss".equalsIgnoreCase(scheme);
@@ -73,7 +58,7 @@ public final class WebSocketClient {
             try {
                 sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
             } catch (SSLException e) {
-                return;
+                return false;
             }
         } else {
             sslCtx = null;
@@ -81,9 +66,9 @@ public final class WebSocketClient {
 
         group = new NioEventLoopGroup();
         try {
-            final WebSocketClientHandler handler = new WebSocketClientHandler(WebSocketClientHandshakerFactory
+            handler = new WebSocketClientHandler(WebSocketClientHandshakerFactory
                     .newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders()));
-
+            handler.setMessageHandler(messageHandler);
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
                 @Override
@@ -99,11 +84,31 @@ public final class WebSocketClient {
             channel = b.connect(uri.getHost(), port).sync().channel();
             handler.handshakeFuture().sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            //ignore
+            Thread.currentThread().interrupt();
         }
+        return channel.isActive();
+    }
+
+    private int parsePort(String scheme) {
+        final int port;
+        if (uri.getPort() == -1) {
+            if ("ws".equalsIgnoreCase(scheme)) {
+                port = 80;
+            } else if ("wss".equalsIgnoreCase(scheme)) {
+                port = 443;
+            } else {
+                port = -1;
+            }
+        } else {
+            port = uri.getPort();
+        }
+        return port;
     }
 
     public void disconnect() {
+        channel.writeAndFlush(new CloseWebSocketFrame(WebSocketCloseStatus.NORMAL_CLOSURE));
+        channel.disconnect();
         this.group.shutdownGracefully();
     }
 }
