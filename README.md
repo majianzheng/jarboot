@@ -1,4 +1,4 @@
-# Jarboot <span style="color:red">&#10084;</span>
+# Jarboot ❤️
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
 

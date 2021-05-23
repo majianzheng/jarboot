@@ -65,6 +65,12 @@
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.9.2</version>
 		</dependency>
+        <dependency>
+            <groupId>com.mz.jarboot</groupId>
+            <artifactId>jarboot-common</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
 	</dependencies>
 
 	<build>

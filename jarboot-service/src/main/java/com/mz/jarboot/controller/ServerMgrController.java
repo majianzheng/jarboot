@@ -24,7 +24,7 @@ public class ServerMgrController {
     @RequestMapping(value="/getServerList")
     @ResponseBody
     public ResponseForList<ProcDetailDTO> getWebServerList() {
-        List<ProcDetailDTO> results = serverMgrService.getWebServerList();
+        List<ProcDetailDTO> results = serverMgrService.getServerList();
         return new ResponseForList<>(results, results.size());
     }
 

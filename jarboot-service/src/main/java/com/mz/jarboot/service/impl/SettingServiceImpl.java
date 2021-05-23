@@ -2,8 +2,11 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.constant.ResultCodeConst;
 import com.mz.jarboot.dto.FileContentDTO;
+import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.exception.MzException;
 import com.mz.jarboot.service.SettingService;
+import com.mz.jarboot.utils.PropertyFileUtils;
+import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class SettingServiceImpl implements SettingService {
@@ -23,6 +24,41 @@ public class SettingServiceImpl implements SettingService {
 
     @Value("${debug-mode:false}")
     private Boolean debugMode;
+
+    @Override
+    public ServerSettingDTO getServerSetting(String server) {
+        return PropertyFileUtils.getServerSetting(server);
+    }
+
+    @Override
+    public void submitServerSetting(String server, ServerSettingDTO setting) {
+        String path = SettingUtils.getServerSettingFilePath(server);
+        File file = new File(path);
+        if (file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            }
+        }
+        Map<String, String> prop = new HashMap<>();
+        if (null != setting.getJvm()) {
+            prop.put("jvm", setting.getJvm());
+        }
+        if (null != setting.getArgs()) {
+            prop.put("args", setting.getArgs());
+        }
+        if (null != setting.getPriority()) {
+            prop.put("priority", setting.getPriority().toString());
+        }
+        if (null != setting.getDaemon()) {
+            prop.put("daemon", setting.getDaemon().toString());
+        }
+        if (null != setting.getJarUpdateWatch()) {
+            prop.put("jarUpdateWatch", setting.getJarUpdateWatch().toString());
+        }
+        PropertyFileUtils.writeProperty(file, prop);
+    }
 
     /**
      * 获取日志文件列表

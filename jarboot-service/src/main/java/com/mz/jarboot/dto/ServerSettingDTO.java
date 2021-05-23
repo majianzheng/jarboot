@@ -9,7 +9,6 @@ import java.io.Serializable;
 public class ServerSettingDTO implements Serializable {
     /**
      * 服务名，即jar文件的上级目录的名称
-     * 不用于传输
      */
     private transient String server;
     /**

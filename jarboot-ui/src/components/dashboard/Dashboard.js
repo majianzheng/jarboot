@@ -255,7 +255,7 @@ export default class Dashboard extends React.Component {
 
     refreshWebServerList = () => {
         this.setState({loading: true});
-        SettingService.getWebServerList(resp => {
+        SettingService.getServerList(resp => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
@@ -273,7 +273,7 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.startWebServer(this.state.selectedRowKeys, resp => {
+        SettingService.startServer(this.state.selectedRowKeys, resp => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
@@ -292,7 +292,7 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.stopWebServer(this.state.selectedRowKeys, resp => {
+        SettingService.stopServer(this.state.selectedRowKeys, resp => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
@@ -307,7 +307,7 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.restartWebServer(this.state.selectedRowKeys, resp => {
+        SettingService.restartServer(this.state.selectedRowKeys, resp => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);

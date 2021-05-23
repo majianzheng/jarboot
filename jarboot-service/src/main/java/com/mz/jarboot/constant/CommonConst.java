@@ -9,7 +9,7 @@ public class CommonConst {
     public static final String DEBUG_MODE_KEY = "debug-mode";
     public static final String ROOT_DIR_KEY = "root-dir-name";
 
-    //Web服务目录名称
+    //服务目录名称
     public static final String SERVICES_DIR = "services";
 
     //运行状态
@@ -23,6 +23,8 @@ public class CommonConst {
     public static final String NOTICE_ERROR = "NOTICE_ERROR";
 
     public static final int INVALID_PID = -1;
+
+    public static final int MAX_WAIT_EXIT_TIME = 3000;
 
     public static final String ARG_KILL_ALL = "-killAllServer";
     public static final String ARG_START_ALL = "-startAllServer";

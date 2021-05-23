@@ -9,7 +9,7 @@ public interface ServerMgrService {
      * 获取服务列表
      * @return 服务列表
      */
-    List<ProcDetailDTO> getWebServerList();
+    List<ProcDetailDTO> getServerList();
 
     /**
      * 一键重启，杀死所有服务进程，根据依赖重启

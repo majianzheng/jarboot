@@ -16,10 +16,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
 import java.util.*;
+import java.util.List;
 
 public class SettingUtils {
     private static final String CACHE_FILE_NAME_KEY = "cache.file";
@@ -32,6 +34,11 @@ public class SettingUtils {
     private static Method attach;
     private static Method loadAgent;
     private static Method detach;
+    private static Method listVM;
+
+    private static Method getVMId;
+    private static Method getVMName;
+
     private static String agentJar;
     static {
         //尝试获取JAVA_HOME环境变量和当前运行环境，以获取jdk的tools.jar的位置，通过反射加载其中的VM类
@@ -66,6 +73,11 @@ public class SettingUtils {
             attach = cls.getMethod("attach", String.class);
             loadAgent = cls.getMethod("loadAgent", String.class, String.class);
             detach = cls.getMethod("detach");
+            listVM = cls.getMethod("list");
+
+            cls = classLoader.loadClass("com.sun.tools.attach.VirtualMachineDescriptor");
+            getVMId = cls.getMethod("id");
+            getVMName = cls.getMethod("displayName");
         } catch (Exception e) {
             //加载jdk的tools.jar失败
             logger.info("Load tools.jar failed, make sure you are using a jdk not a jre.", e);
@@ -155,6 +167,26 @@ public class SettingUtils {
         }
     }
 
+    public static Map<Integer, String> listVM() {
+        Map<Integer, String> vmMap = new HashMap<>();
+        try {
+            List<?> list = (List<?>) listVM.invoke(null);
+            list.forEach(vmd -> {
+                try {
+                    String id = (String) getVMId.invoke(vmd);
+                    String name = (String) getVMName.invoke(vmd);
+
+                    vmMap.put(NumberUtils.toInt(id), name);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+        return vmMap;
+    }
+
     private static void detachVM(Object vm) {
         try {
             detach.invoke(vm);
@@ -162,6 +194,7 @@ public class SettingUtils {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
         }
     }
+
 
     /**
      * 获取服务的jar包路径

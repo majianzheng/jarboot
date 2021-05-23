@@ -1,11 +1,11 @@
 package com.mz.jarboot.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -40,18 +40,35 @@ public class TaskUtils {
      */
     public static void killServer(String server) {
         //先尝试向目标进程发送停止命令
-        sendCommand(server, "exit", "");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            //ignore
-            Thread.currentThread().interrupt();
+        sendCommand(server, CommandConst.EXIT_CMD, "");
+
+        final Session session = onlineServer.getOrDefault(server, null);
+        if (null != session) {
+            synchronized (session) {
+                try {
+                    long b = System.currentTimeMillis();
+                    logger.info("等待目标进程的退出事件");
+                    //等目标进程发送offline信息时执行notify唤醒当前线程
+                    session.wait(CommonConst.MAX_WAIT_EXIT_TIME);
+                    logger.info("等待目标进程退出完成,耗时:{} ms", System.currentTimeMillis() - b);
+                } catch (InterruptedException e) {
+                    //ignore
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
-        if (onlineServer.containsKey(server)) {
-            logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
+        //检查有没有成功退出，若失败，则执行强制杀死系统命令
+        if (isAlive(server)) {
+            if (onlineServer.containsKey(server)) {
+                logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
+                WebSocketManager.getInstance().noticeWarn("服务" + server +
+                        "未等到退出消息，将执行强制退出命令！");
+            }
+            String name = getJarWithServerName(server);
+            killJavaByName(name, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
+            onlineServer.remove(server);
         }
-        String name = getJarWithServerName(server);
-        killJavaByName(name, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
+
     }
 
     /**
@@ -105,11 +122,19 @@ public class TaskUtils {
         return aliveServer.getOrDefault(server, null);
     }
 
-    public static void addOnlineServer(String server, Session session) {
+    public static void onServerOnline(String server, Session session) {
         onlineServer.put(server, session);
     }
 
-    public static void removeOnlineServer(String server) {
+    public static void onServerOffline(String server) {
+        final Session session = onlineServer.getOrDefault(server, null);
+        if (null == session) {
+            return;
+        }
+        logger.info("目标进程已退出，唤醒killServer方法的执行线程");
+        synchronized (session) {
+            session.notify();
+        }
         onlineServer.remove(server);
     }
 
@@ -120,12 +145,16 @@ public class TaskUtils {
     private static void sendCommand(String server, String cmd, String param) {
         Session session = getOnlineServerSession(server);
         if (null != session) {
+            if (!session.isOpen()) {
+                onServerOffline(server);
+                return;
+            }
             JSONObject json = new JSONObject();
             json.put("cmd", cmd);
             json.put("param", param);
             try {
                 session.getBasicRemote().sendText(json.toJSONString());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 //ignore
             }
         }
@@ -277,77 +306,34 @@ public class TaskUtils {
         if (StringUtils.isEmpty(jar)) {
             return pidList;
         }
-        Runtime runtime = Runtime.getRuntime();
-        Process p;
-        String cmd = SettingUtils.isWindows() ? ("cmd /c jps -l |findstr " + jar) : ("jps -l |grep " + jar);
-        //查找进程号
-        try {
-            p = runtime.exec(cmd);
-        } catch (IOException e) {
-            return pidList;
-        }
-        try (InputStream inputStream = p.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))){
-            String line;
-            while((line = reader.readLine()) != null){
-                line = line.trim();
-                String[] s = line.split(" ");
-                int pid = NumberUtils.toInt(s[0], -1);
-                if (pid > 0) {
-                    pidList.add(pid);
-                }
+        Map<Integer, String> vms = SettingUtils.listVM();
+        vms.forEach((pid, name) -> {
+            if (name.contains(jar)) {
+                pidList.add(pid);
             }
-        } catch (Exception e) {
-            WebSocketManager.getInstance().noticeWarn(e.getMessage());
-        }
-        try {
-            p.destroy();
-        } catch (Exception e) {
-            //ignore
-        }
+        });
         return pidList;
     }
 
-    public static Map<String, String> findJavaProcess() {
-        Map<String, String> pidCmdMap = new HashMap<>();
-        Runtime runtime = Runtime.getRuntime();
-        String cmd = SettingUtils.isWindows() ? ("cmd /c jps -l") : ("jps -l");
-        Process p;
-        try {
-            p = runtime.exec(cmd);
-        } catch (IOException e) {
-            return pidCmdMap;
-        }
-        try (InputStream inputStream = p.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))){
-            String line;
-            while((line = reader.readLine()) != null){
-                parseJpsOutLine(pidCmdMap, line);
+    public static Map<String, Integer> findJavaProcess() {
+        Map<String, Integer> pidCmdMap = new HashMap<>();
+        Map<Integer, String> vms = SettingUtils.listVM();
+        vms.forEach((pid, name) -> {
+            logger.info("pid:{}, name:{}", pid, name);
+            final int p = name.lastIndexOf(File.separatorChar);
+            if (p < 1) {
+                return;
             }
-        } catch (Exception e) {
-            WebSocketManager.getInstance().noticeWarn(e.getMessage());
-        }
-        p.destroy();
+            int b = name.lastIndexOf(File.separatorChar, p - 1);
+            if (b < 0) {
+                b = 0;
+            } else {
+                ++b;
+            }
+            String serverName = name.substring(b, p);
+            pidCmdMap.put(serverName, pid);
+        });
         return pidCmdMap;
-    }
-
-    private static void parseJpsOutLine(Map<String, String> pidCmdMap, String line) {
-        line = line.trim();
-        String[] s = line.split(" ");
-        if (s.length < 2) {
-            return;
-        }
-        String command = s[1];
-        int p1 = command.lastIndexOf(File.separatorChar);
-        if (-1 == p1) {
-            return;
-        }
-        command = command.substring(0, p1);
-        p1 = command.lastIndexOf(File.separatorChar);
-        if (-1 != p1) {
-            command = command.substring(p1 + 1);
-            pidCmdMap.put(command, s[0]);
-        }
     }
 
     private static void killByPid(List<Integer> pid, PushMsgCallback callback) {

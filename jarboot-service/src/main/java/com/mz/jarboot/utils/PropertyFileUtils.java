@@ -105,7 +105,7 @@ public class PropertyFileUtils {
      * @param file 属性文件
      * @param props 属性
      */
-    private static void writeProperty(File file, Map<String, String> props) {
+    public static void writeProperty(File file, Map<String, String> props) {
         if (null == file || MapUtils.isEmpty(props)) {
             return;
         }

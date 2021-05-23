@@ -3,6 +3,7 @@ package com.mz.jarboot.ws;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.utils.TaskUtils;
+import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,8 +32,10 @@ public class WebSocketAgentServer {
     @OnClose
     public void onClose( Session session) {
         String server = sessionIdToServer.getOrDefault(session.getId(), null);
-        logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
         if (null != server) {
+            logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
+            sessionIdToServer.remove(session.getId());
+            TaskUtils.onServerOffline(server);
             TaskUtils.removeAliveServer(server);
         }
     }
@@ -54,9 +57,11 @@ public class WebSocketAgentServer {
         logger.info(message);
         switch (event) {
             case "online":
-                TaskUtils.addOnlineServer(body, session);
+                sessionIdToServer.put(session.getId(), body);
+                TaskUtils.onServerOnline(body, session);
                 break;
             case "offline":
+                TaskUtils.onServerOffline(body);
                 TaskUtils.removeAliveServer(body);
                 break;
             default:

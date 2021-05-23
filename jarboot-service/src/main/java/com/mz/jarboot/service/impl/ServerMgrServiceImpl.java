@@ -41,12 +41,12 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private ExecutorService taskExecutor;
 
     @Override
-    public List<ProcDetailDTO> getWebServerList() {
+    public List<ProcDetailDTO> getServerList() {
         List<ProcDetailDTO> serverList = new ArrayList<>();
         File[] serviceDirs = getServerDirs();
         for (File f : serviceDirs) {
             String server = f.getName();
-            if (webServerFilter(f)) {
+            if (existJar(f)) {
                 ProcDetailDTO p = new ProcDetailDTO();
                 p.setName(server);
                 p.setPath(f.getAbsolutePath());
@@ -56,7 +56,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         updateServerInfo(serverList);
         return serverList;
     }
-    private boolean webServerFilter(File dir) {
+    private boolean existJar(File dir) {
         if (!dir.isDirectory()) {
             return false;
         }
@@ -70,7 +70,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         List<String> allWebServerList = new ArrayList<>();
         for (File f : serviceDirs) {
             String server = f.getName();
-            if (webServerFilter(f)) {
+            if (existJar(f)) {
                 allWebServerList.add(server);
             }
         }
@@ -340,11 +340,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     private void updateServerInfo(List<ProcDetailDTO> server) {
-        Map<String, String> pidCmdMap = TaskUtils.findJavaProcess();
+        Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();
         server.forEach(item -> {
-            String pid = pidCmdMap.get(item.getName());
+            Integer pid = pidCmdMap.getOrDefault(item.getName(), -1);
             String status = taskRunDao.getTaskStatus(item.getName());
-            if (StringUtils.isEmpty(pid)) {
+            if (null == pid || CommonConst.INVALID_PID == pid) {
                 item.setStatus(CommonConst.STATUS_STOPPED);
                 return;
             }

@@ -1,21 +1,18 @@
 package com.mz.jarboot.dto;
 
 public class ProcDetailDTO {
-    private String pid;
+    private Integer pid;
     private String port;
     private String cmd;
     private String status;
     private String name;
     private String path;
-    private String type;
-    private Boolean daemon;
-    private Boolean pathMonitor;
 
-    public String getPid() {
+    public Integer getPid() {
         return pid;
     }
 
-    public void setPid(String pid) {
+    public void setPid(Integer pid) {
         this.pid = pid;
     }
 
@@ -49,30 +46,6 @@ public class ProcDetailDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Boolean getDaemon() {
-        return daemon;
-    }
-
-    public void setDaemon(Boolean daemon) {
-        this.daemon = daemon;
-    }
-
-    public Boolean getPathMonitor() {
-        return pathMonitor;
-    }
-
-    public void setPathMonitor(Boolean pathMonitor) {
-        this.pathMonitor = pathMonitor;
     }
 
     public String getPath() {

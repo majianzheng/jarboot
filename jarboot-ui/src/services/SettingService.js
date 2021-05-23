@@ -3,6 +3,7 @@ import ErrorUtil from "../common/ErrorUtil";
 import CommonNotice from "../common/CommonNotice";
 
 const urlBase = "/jarboot-service";
+const settingUrl = "/jarboot-setting";
 
 export default class SettingService {
     /**
@@ -10,7 +11,7 @@ export default class SettingService {
      * @param callback
      * @param errorCallBack
      */
-    static getWebServerList(callback, errorCallBack) {
+    static getServerList(callback, errorCallBack) {
         Request.get(`${urlBase}/getServerList`, {}).then(callback).catch(errorCallBack);
     }
 
@@ -20,7 +21,7 @@ export default class SettingService {
      * @param callback
      * @param errorCallBack
      */
-    static startWebServer(param, callback, errorCallBack) {
+    static startServer(param, callback, errorCallBack) {
         Request.post(`${urlBase}/startServer`, param).then(callback).catch(errorCallBack);
     }
 
@@ -30,7 +31,7 @@ export default class SettingService {
      * @param callback
      * @param errorCallBack
      */
-    static stopWebServer(param, callback, errorCallBack) {
+    static stopServer(param, callback, errorCallBack) {
         Request.post(`${urlBase}/stopServer`, param).then(callback).catch(errorCallBack);
     }
 
@@ -40,7 +41,7 @@ export default class SettingService {
      * @param callback
      * @param errorCallBack
      */
-    static restartWebServer(param, callback, errorCallBack) {
+    static restartServer(param, callback, errorCallBack) {
         Request.post(`${urlBase}/restartServer`, param).then(callback).catch(errorCallBack);
     }
 
@@ -90,5 +91,30 @@ export default class SettingService {
         }).catch(error => {
             CommonNotice.error(ErrorUtil.formatErrResp(error));
         });
+    }
+
+    /**
+     * 获取服务配置
+     * @param server
+     * @returns {Promise<any>}
+     */
+    static getServerSetting(server) {
+        return Request.get(`${settingUrl}/getServerSetting`, {});
+    }
+
+    /**
+     * 提交服务配置
+     * @param server 服务名
+     * @param setting 配置信息
+     */
+    static submitServerSetting(server, setting) {
+        Request.get(`${settingUrl}/submitServerSetting?server=${server}`, setting
+        ).then(resp => {
+            if (resp.resultCode === 0) {
+                CommonNotice.info('请求成功');
+            } else {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+            }
+        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     }
 }

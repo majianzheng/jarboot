@@ -1,22 +1,35 @@
 package com.mz.jarboot.core.msg;
 
+import com.alibaba.fastjson.JSON;
+import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.core.constant.JarbootCoreConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HandleMsgRecv {
+    private static final Logger logger = LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
     private String host;
     public HandleMsgRecv(String host) {
         this.host = host;
     }
-    public void onMsgRecv(MsgRecv recv) {
-        System.out.println("收到命令：" + recv.getCmd());
+    public void onMsgRecv(String msg) {
+        logger.debug("收到消息：{}", msg);
+        MsgRecv recv;
+        try {
+            recv = JSON.parseObject(msg, MsgRecv.class);
+        } catch (Exception e) {
+            logger.warn("收到的消息格式错误", e);
+            return;
+        }
+        logger.debug("开始执行命令：{}", recv.getCmd());
         switch (recv.getCmd()) {
-            case JarbootCoreConstant.EXIT_CMD:
+            case CommandConst.EXIT_CMD:
                 this.handleExit();
                 break;
-            case JarbootCoreConstant.GET_MEM_INFO_CMD:
+            case CommandConst.GET_MEM_INFO_CMD:
                 this.handleMemory();
                 break;
-            case JarbootCoreConstant.THREAD_CMD:
+            case CommandConst.THREAD_CMD:
                 this.handleThread();
                 break;
             default:
@@ -25,6 +38,7 @@ public class HandleMsgRecv {
         }
     }
     private void handleExit() {
+        logger.debug("执行exit");
         System.exit(0);
     }
     private void handleMemory() {

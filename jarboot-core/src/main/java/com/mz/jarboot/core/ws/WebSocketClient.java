@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.ws;
 
-import com.mz.jarboot.core.server.JarbootBootstrap;
+import com.mz.jarboot.core.constant.JarbootCoreConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -16,11 +16,16 @@ import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public final class WebSocketClient {
+    private static final Logger logger = LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
     private URI uri;
     private EventLoopGroup group;
     private Channel channel;
@@ -34,11 +39,11 @@ public final class WebSocketClient {
     }
 
     public void sendText(String text) {
-        JarbootBootstrap.ps.println("发送消息：" + text);
+        logger.debug("发送消息：" + text);
         if (null != channel) {
             channel.writeAndFlush(new TextWebSocketFrame(text));
         } else {
-            JarbootBootstrap.ps.println("发送消息失败！channel为null.");
+            logger.info("发送消息失败！channel为null.");
         }
     }
 

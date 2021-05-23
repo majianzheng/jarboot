@@ -13,6 +13,7 @@
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
 		<module>jarboot-service</module>
+		<module>common</module>
 	</modules>
 	<properties>
 		<java.version>1.8</java.version>

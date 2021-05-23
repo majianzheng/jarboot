@@ -8,6 +8,8 @@ import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
 //import com.sun.tools.attach.VirtualMachine;
 //import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +68,10 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 }
             }
         });
-
+        List<VirtualMachineDescriptor> list = VirtualMachine.list();
+        list.forEach(vmd -> {
+            logger.info("虚拟机：{}, {}", vmd.displayName(), vmd.provider().name());
+        });
     }
 
     private void initPathMonitor() {
