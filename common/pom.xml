@@ -11,10 +11,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jarboot-common</artifactId>
+    <name>common</name>
+    <description>common utils and os</description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
-
+    <build>
+        <finalName>jarboot-common</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

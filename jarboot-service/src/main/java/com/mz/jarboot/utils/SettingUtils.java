@@ -1,10 +1,11 @@
 package com.mz.jarboot.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.constant.ResultCodeConst;
+import com.mz.jarboot.common.VMUtils;
+import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.event.ContextEventPub;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,12 +17,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
 import java.util.*;
-import java.util.List;
 
 public class SettingUtils {
     private static final String CACHE_FILE_NAME_KEY = "cache.file";
@@ -29,60 +28,9 @@ public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
     private static final String OS_NAME = "os.name";
     private static final String AGENT_JAR_NAME = "jarboot-agent.jar";
-
     private static String rootPath = null;
-    private static Method attach;
-    private static Method loadAgent;
-    private static Method detach;
-    private static Method listVM;
-
-    private static Method getVMId;
-    private static Method getVMName;
-
     private static String agentJar;
     static {
-        //尝试获取JAVA_HOME环境变量和当前运行环境，以获取jdk的tools.jar的位置，通过反射加载其中的VM类
-        String jdkHome = System.getenv("JAVA_HOME");
-        String toolsJarFilePath = null;
-        File tools;
-        if (StringUtils.isNotEmpty(jdkHome)) {
-            toolsJarFilePath = jdkHome + File.separator + "lib" + File.separator + "tools.jar";
-            tools = new File(toolsJarFilePath);
-            if (!tools.exists()) {
-                toolsJarFilePath = null;
-            }
-        }
-        if (null == toolsJarFilePath) {
-            String path = System.getProperty("java.home");
-            int p = path.indexOf(File.separator + "jre");
-            if (-1 != p) {
-                //当前在jre路径，则切换到上级的jdk路径
-                path = path.substring(0, p);
-            }
-            toolsJarFilePath = (path + File.separator + "lib" + File.separator + "tools.jar");
-        }
-        tools = new File(toolsJarFilePath);
-        if (!tools.exists()) {
-            logger.info("Can not find tools.jar, make sure you are using a jdk not a jre.");
-            System.exit(-1);
-        }
-        logger.info("toolsJarFilePath: {}", toolsJarFilePath);
-        try {
-            ClassLoader classLoader = new URLClassLoader(new URL[]{tools.toURI().toURL()});
-            Class<?> cls = classLoader.loadClass("com.sun.tools.attach.VirtualMachine");
-            attach = cls.getMethod("attach", String.class);
-            loadAgent = cls.getMethod("loadAgent", String.class, String.class);
-            detach = cls.getMethod("detach");
-            listVM = cls.getMethod("list");
-
-            cls = classLoader.loadClass("com.sun.tools.attach.VirtualMachineDescriptor");
-            getVMId = cls.getMethod("id");
-            getVMName = cls.getMethod("displayName");
-        } catch (Exception e) {
-            //加载jdk的tools.jar失败
-            logger.info("Load tools.jar failed, make sure you are using a jdk not a jre.", e);
-            System.exit(-1);
-        }
         CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
@@ -122,19 +70,27 @@ public class SettingUtils {
     }
 
     public static void initTargetVM(String server, int pid) {
-        Object vm = attachVM(pid);
+        Object vm = null;
         try {
-            loadAgentToVM(vm, agentJar, getAgentArgs(server));
+            vm = VMUtils.getInstance().attachVM(pid);
+        } catch (Exception e) {
+            //ignore
+            return;
+        }
+        try {
+            VMUtils.getInstance().loadAgentToVM(vm, agentJar, getAgentArgs(server));
+        } catch (Exception e) {
+            //ignore
         } finally {
             if (null != vm) {
-                detachVM(vm);
+                VMUtils.getInstance().detachVM(vm);
             }
         }
     }
 
     public static String getRootPath() {
         if (StringUtils.isEmpty(rootPath)) {
-            rootPath = ContextEventPub.getInstance().getContext().getEnvironment().getProperty(CommonConst.ROOT_PATH_KEY);
+            rootPath = ApplicationContextUtils.getEnv(CommonConst.ROOT_PATH_KEY);
         }
         return rootPath;
     }
@@ -149,50 +105,6 @@ public class SettingUtils {
         json.put("server", server);
         byte[] bytes = Base64.getEncoder().encode(json.toJSONString().getBytes());
         return new String(bytes);
-    }
-
-    private static Object attachVM(int pid) {
-        try {
-            return attach.invoke(null, String.valueOf(pid));
-        } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-    }
-
-    private static void loadAgentToVM(Object vm, String path, String args) {
-        try {
-            loadAgent.invoke(vm, path, args);
-        } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-    }
-
-    public static Map<Integer, String> listVM() {
-        Map<Integer, String> vmMap = new HashMap<>();
-        try {
-            List<?> list = (List<?>) listVM.invoke(null);
-            list.forEach(vmd -> {
-                try {
-                    String id = (String) getVMId.invoke(vmd);
-                    String name = (String) getVMName.invoke(vmd);
-
-                    vmMap.put(NumberUtils.toInt(id), name);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-        return vmMap;
-    }
-
-    private static void detachVM(Object vm) {
-        try {
-            detach.invoke(vm);
-        } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
     }
 
 
@@ -320,7 +232,6 @@ public class SettingUtils {
     /**
      * 打开浏览器界面
      * @param url 地址
-     * @throws Exception 异常
      */
     public static void browse1(String url) {
         String osName = System.getProperty("os.name", "");// 获取操作系统的名字
@@ -381,9 +292,6 @@ public class SettingUtils {
         }
     }
 
-    /**
-     * @title 使用默认浏览器打开
-     */
     public static void browse2(String url) {
         Desktop desktop = Desktop.getDesktop();
         if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {

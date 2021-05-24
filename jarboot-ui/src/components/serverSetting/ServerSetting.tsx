@@ -6,6 +6,7 @@ import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 // @ts-ignore
 import ErrorUtil from '../../common/ErrorUtil';
+import styles from './index.less';
 
 export default class ServerSetting extends React.PureComponent {
 
@@ -26,14 +27,21 @@ export default class ServerSetting extends React.PureComponent {
             this.setState({data: resp.result, current});
         }, (errorMsg: any) => console.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
+    private _onSelect = (event: any) => {
+        const current = event.target.title;
+        this.setState({current});
+    };
     render() {
         return <div style={{display: 'flex'}}>
-            <div style={{flex: 'inherit', width: '28%', height: '500px', overflowY: 'auto'}}>
+            <div style={{flex: 'inherit', width: '26%', height: '88vh', overflowY: 'auto'}}>
                 <List size="large"
                       header={<div>服务列表</div>}
                       bordered
                       dataSource={this.state.data}
-                      renderItem={(item: any) => <List.Item>{item.name}</List.Item>}/>
+                      renderItem={(item: any) => <List.Item
+                          title={item.name}
+                          className={item.name === this.state.current ? styles.taskItemSelected : styles.taskItem}
+                          onClick={this._onSelect}>{item.name}</List.Item>}/>
             </div>
             <div style={{flex: 'inherit', width: '72%'}}>
                 <div style={{width: '80%'}}>

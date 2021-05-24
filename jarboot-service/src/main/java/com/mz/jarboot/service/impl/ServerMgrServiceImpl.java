@@ -1,12 +1,13 @@
 package com.mz.jarboot.service.impl;
 
 import com.google.common.base.Stopwatch;
-import com.mz.jarboot.constant.ResultCodeConst;
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.event.TaskEvent;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.ServerMgrService;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -216,7 +217,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         //开始启动进程
         TaskUtils.startServer(server, setting);
         //记录启动结束时间
-        long end = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+        long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
         int pid = TaskUtils.getServerPid(server);
         //服务是否启动成功
         if (CommonConst.INVALID_PID == pid) {
@@ -225,7 +226,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().sendStartErrorMessage(server);
         } else {
             WebSocketManager.getInstance().sendOutMessage(server,
-                    START_TIME_CONST + end + "毫秒");
+                    START_TIME_CONST + costTime + "毫秒");
             this.sendStartedMessage(server, pid);
         }
     }
@@ -288,31 +289,21 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPING, CommonConst.INVALID_PID);
         WebSocketManager.getInstance().sendStopMessage(server, false);
 
+        //记录开始时间
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
         TaskUtils.killServer(server);
-        //等待2s中
-        boolean stopped = false;
-        for (int i = 0; i < 15; ++i) {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                stopped = true;
-            }
-            //停止成功
-            if (TaskUtils.isAlive(server)) {
-                TaskUtils.killServer(server);
-            } else {
-                stopped = true;
-                break;
-            }
-        }
+
+        //耗时
+        long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
         //停止成功
-        if (stopped) {
-            this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
-            WebSocketManager.getInstance().sendStopMessage(server, true);
-        } else {
+        if (AgentManager.getInstance().isOnline(server)) {
             this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_RUNNING, CommonConst.INVALID_PID);
             WebSocketManager.getInstance().sendStopErrorMessage(server);
+            WebSocketManager.getInstance().sendOutMessage(server, "停止成功！耗时：" + costTime + "毫秒");
+        } else {
+            this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
+            WebSocketManager.getInstance().sendStopMessage(server, true);
         }
     }
 

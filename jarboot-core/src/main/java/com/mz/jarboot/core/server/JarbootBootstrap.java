@@ -7,13 +7,15 @@ import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.classic.Logger;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.constant.JarbootCoreConstant;
-import com.mz.jarboot.core.msg.HandleMsgRecv;
+import com.mz.jarboot.core.msg.CommandHandler;
+import com.mz.jarboot.core.msg.ResponseBuilder;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -25,7 +27,7 @@ public class JarbootBootstrap {
     private static JarbootBootstrap bootstrap;
     private TransformerManager transformerManager;
     private WebSocketClient client;
-    private HandleMsgRecv handler;
+    private CommandHandler handler;
     private String host;
     private String serverName;
     private boolean online = false;
@@ -47,14 +49,12 @@ public class JarbootBootstrap {
         String url = String.format("ws://%s/jarboot-agent/ws", host);
         logger.debug("initClient>>>" + url);
         client = new WebSocketClient(url);
-        handler = new HandleMsgRecv(host);
+        handler = new CommandHandler(host);
         boolean isOk = client.connect(new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
                 online = true;
                 logger.debug("连接成功>>>");
-                //通知主控服务上线
-                channel.writeAndFlush(new TextWebSocketFrame(formatSendMsg("online", serverName)));
             }
 
             @Override
@@ -69,9 +69,11 @@ public class JarbootBootstrap {
 
             @Override
             public void onClose(Channel channel) {
-                online = false;
+                if (online) {
+                    online = false;
+                    //启动尝试重连机制
+                }
                 logger.debug("连接关闭>>>");
-                client.sendText(formatSendMsg("offline", serverName));
             }
 
             @Override
@@ -81,14 +83,13 @@ public class JarbootBootstrap {
             }
         });
         logger.debug("连接结果>>>" + isOk);
-        client.sendText(formatSendMsg("online", serverName));
+        client.sendText(genOnlineResponse(serverName));
     }
 
-    private String formatSendMsg(String event, String body) {
-        JSONObject object = new JSONObject();
-        object.put("event", event);
-        object.put("body", body);
-        return object.toJSONString();
+    private String genOnlineResponse(String body) {
+        CommandResponse resp = new ResponseBuilder().setType(CommandConst.ONLINE_TYPE
+        ).setBody(body).getResponse();
+        return JSON.toJSONString(resp);
     }
 
     public boolean isOnline() {
@@ -112,6 +113,10 @@ public class JarbootBootstrap {
         }
         return bootstrap;
     }
+
+    /**
+     * 自定义日志，防止与目标进程记录到同一文件中
+     */
     private static void initLogback() {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         PatternLayoutEncoder ple = new PatternLayoutEncoder();
@@ -120,16 +125,15 @@ public class JarbootBootstrap {
         ple.setContext(lc);
         ple.start();
         FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
-        String log = System.getProperty("user.home") + File.separator + "jarboot" + File.separator +
-                "core.log";
+        String log = System.getProperty("user.home") + File.separator + "jarboot" + File.separator + "logs" +
+                File.separator + "core.log";
         fileAppender.setFile(log);
         fileAppender.setEncoder(ple);
         fileAppender.setContext(lc);
         fileAppender.start();
 
+        //模块中所有日志均使用该名字获取
         logger = (Logger) LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
         logger.addAppender(fileAppender);
-        // log something
-        logger.debug("init log success.");
     }
 }

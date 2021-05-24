@@ -30,7 +30,7 @@ export default class Index extends React.PureComponent {
                                routes={[{path: "first", breadcrumbName: "服务管理"},]}/>
                 </TabPane>
                 <TabPane key={'1'} tab={"Arthas"}>
-                    开发中...
+                    <iframe src={"/jarboot-service/arthas"} style={{width: '100%', height: '90vh'}} frameBorder={0}/>
                 </TabPane>
                 <TabPane key={'2'} tab={"服务设置"}>
                     <ServerSetting/>

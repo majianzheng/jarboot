@@ -1,7 +1,10 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.ResponseForObject;
+import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.dto.*;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.SettingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

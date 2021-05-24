@@ -1,22 +1,22 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.service.ServerMgrService;
-import com.mz.jarboot.service.SettingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @Api(tags="系统配置")
 @RequestMapping(value = "/jarboot-service", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
 public class ServerMgrController {
-    @Autowired
-    private SettingService settingService;
     @Autowired
     private ServerMgrService serverMgrService;
 
@@ -72,5 +72,15 @@ public class ServerMgrController {
     public ResponseSimple oneClickStop() {
         serverMgrService.oneClickStop();
         return new ResponseSimple();
+    }
+
+    @ApiOperation(value = "代理arthas", httpMethod = "GET")
+    @RequestMapping(value="/arthas")
+    public void redirectToArthas(HttpServletResponse response) {
+        try {
+            response.sendRedirect("http://127.0.0.1:3658");
+        } catch (IOException e) {
+            //ignore
+        }
     }
 }

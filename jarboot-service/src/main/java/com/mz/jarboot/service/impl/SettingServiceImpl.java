@@ -1,14 +1,16 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.constant.ResultCodeConst;
+import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.dto.FileContentDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.SettingService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,9 @@ import java.util.*;
 
 @Service
 public class SettingServiceImpl implements SettingService {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     @Value("${root-path:}")
     private String ebrRootPath;
-
-    @Value("${debug-mode:false}")
-    private Boolean debugMode;
 
     @Override
     public ServerSettingDTO getServerSetting(String server) {
@@ -34,9 +34,12 @@ public class SettingServiceImpl implements SettingService {
     public void submitServerSetting(String server, ServerSettingDTO setting) {
         String path = SettingUtils.getServerSettingFilePath(server);
         File file = new File(path);
-        if (file.exists()) {
+        if (!file.exists()) {
             try {
-                file.createNewFile();
+                boolean rlt = file.createNewFile();
+                if (!rlt) {
+                    logger.debug("Config file({}) is already exist.", path);
+                }
             } catch (IOException e) {
                 throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
             }

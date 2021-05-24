@@ -99,7 +99,7 @@ export default class SettingService {
      * @returns {Promise<any>}
      */
     static getServerSetting(server) {
-        return Request.get(`${settingUrl}/getServerSetting`, {});
+        return Request.get(`${settingUrl}/getServerSetting`, {server});
     }
 
     /**
@@ -108,7 +108,7 @@ export default class SettingService {
      * @param setting 配置信息
      */
     static submitServerSetting(server, setting) {
-        Request.get(`${settingUrl}/submitServerSetting?server=${server}`, setting
+        Request.post(`${settingUrl}/submitServerSetting?server=${server}`, setting
         ).then(resp => {
             if (resp.resultCode === 0) {
                 CommonNotice.info('请求成功');

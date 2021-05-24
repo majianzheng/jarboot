@@ -24,7 +24,9 @@ public class CommonConst {
 
     public static final int INVALID_PID = -1;
 
-    public static final int MAX_WAIT_EXIT_TIME = 3000;
+    //等待目标进程退出的最大时间，毫秒
+    public static final int MAX_WAIT_EXIT_TIME = 5000;
+    public static final int MAX_RESPONSE_TIME = 30; //秒
 
     public static final String ARG_KILL_ALL = "-killAllServer";
     public static final String ARG_START_ALL = "-startAllServer";

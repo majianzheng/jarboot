@@ -6,7 +6,7 @@ package com.mz.jarboot.core.constant;
  */
 public class JarbootCoreConstant {
 
-    public static final String LOG_NAME = "core";
+    public static final String LOG_NAME = "jarboot-core";
 
     private JarbootCoreConstant(){}
 }

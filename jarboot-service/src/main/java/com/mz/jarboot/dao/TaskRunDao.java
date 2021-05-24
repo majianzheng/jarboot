@@ -1,7 +1,7 @@
 package com.mz.jarboot.dao;
 
-import com.mz.jarboot.constant.ResultCodeConst;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

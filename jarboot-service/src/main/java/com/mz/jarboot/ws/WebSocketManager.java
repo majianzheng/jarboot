@@ -3,6 +3,7 @@ package com.mz.jarboot.ws;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.constant.CommonConst;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,6 +77,15 @@ public class WebSocketManager {
         return json.toJSONString();
     }
     private void sendTextMessage(final Session session, String msg) {
-        MsgSendUtils.sendText(session, msg);
+        if (!session.isOpen()) {
+            return;
+        }
+        synchronized (session) {
+            try {
+                session.getBasicRemote().sendText(msg);
+            } catch (IOException e) {
+                //ignore
+            }
+        }
     }
 }

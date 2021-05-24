@@ -2,14 +2,11 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
-import com.mz.jarboot.event.ContextEventPub;
+import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
-//import com.sun.tools.attach.VirtualMachine;
-//import com.sun.tools.attach.VirtualMachineDescriptor;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.mz.jarboot.utils.PropertyFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +16,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -42,7 +36,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
     @PostConstruct
     public void init() {
-        ContextEventPub.getInstance().setContext(this.ctx);
         //路径监控生产者
         taskExecutor.execute(this::initPathMonitor);
         //路径监控消费者
@@ -67,10 +60,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                     break;
                 }
             }
-        });
-        List<VirtualMachineDescriptor> list = VirtualMachine.list();
-        list.forEach(vmd -> {
-            logger.info("虚拟机：{}, {}", vmd.displayName(), vmd.provider().name());
         });
     }
 
@@ -116,7 +105,13 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             //创建或修改文件
-            if (CommonConst.STATUS_RUNNING.equals(taskRunDao.getTaskStatus(service))) {
+            if (!CommonConst.STATUS_RUNNING.equals(taskRunDao.getTaskStatus(service))) {
+                //当前不处于正在运行的状态
+                return;
+            }
+            ServerSettingDTO setting = PropertyFileUtils.getServerSetting(service);
+            if (setting.getJarUpdateWatch()) {
+                //启用了路径监控配置
                 modifiedServiceQueue.put(service);
             }
         }

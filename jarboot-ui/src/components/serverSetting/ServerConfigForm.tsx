@@ -1,5 +1,11 @@
 import * as React from "react";
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
+import {memo, useEffect} from "react";
+// @ts-ignore
+import SettingService from "../../services/SettingService";
+import CommonNotice from "@/common/CommonNotice";
+// @ts-ignore
+import ErrorUtil from "../../common/ErrorUtil";
 
 const layout = {
     labelCol: {span: 8},
@@ -9,26 +15,30 @@ const tailLayout = {
     wrapperCol: {offset: 8, span: 16},
 };
 
-const ServerConfigForm: any = (props: any) => {
+const ServerConfigForm: any = memo((props: any) => {
     const [form] = Form.useForm();
-
-    const onFinish = (values: any) => {
-        console.log(values);
-    };
-
     const onReset = () => {
-        form.resetFields();
+        //form.resetFields();
+        console.log(props);
+        SettingService.getServerSetting(props.server
+        ).then((resp: any) => {
+            if (0 !== resp.resultCode) {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                return;
+            }
+            form.setFieldsValue(resp.result);
+        }).catch((error: any) => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     };
 
-    const onFill = () => {
-        form.setFieldsValue({
-            note: 'Hello world!',
-            gender: 'male',
-        });
-    };
+    useEffect(() => {
+        onReset();
+    });
 
+    const onSubmit = (data: any) => {
+        SettingService.submitServerSetting(props.server, data);
+    };
     return (
-        <Form {...layout} form={form} name="control-hooks" onFinish={onFinish}>
+        <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
             <Form.Item name="jvm" label={"VM options"} rules={[{required: false}]}>
                 <Input/>
             </Form.Item>
@@ -38,10 +48,10 @@ const ServerConfigForm: any = (props: any) => {
             <Form.Item name="priority" label="Priority" rules={[{required: false}]}>
                 <InputNumber min={1} max={9999} defaultValue={1}/>
             </Form.Item>
-            <Form.Item name="daemon" label="daemon" rules={[{required: false}]}>
+            <Form.Item name="daemon" label="daemon" rules={[{required: false}]} valuePropName={"checked"}>
                 <Switch defaultChecked/>
             </Form.Item>
-            <Form.Item name="jarUpdateWatch" label="jar Watch" rules={[{required: false}]}>
+            <Form.Item name="jarUpdateWatch" label="jar Watch" rules={[{required: false}]} valuePropName={"checked"}>
                 <Switch defaultChecked/>
             </Form.Item>
             <Form.Item {...tailLayout}>
@@ -54,5 +64,5 @@ const ServerConfigForm: any = (props: any) => {
             </Form.Item>
         </Form>
     );
-};
+});
 export default ServerConfigForm;

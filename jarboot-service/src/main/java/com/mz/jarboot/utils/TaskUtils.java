@@ -1,7 +1,7 @@
 package com.mz.jarboot.utils;
 
-import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.VMUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -9,12 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-
-import javax.websocket.Session;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -23,8 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
-    private static final Map<String, ServerSettingDTO> aliveServer = new ConcurrentHashMap<>(64);
-    private static final Map<String, Session> onlineServer = new ConcurrentHashMap<>(64);
     /**
      * 检查服务进程是否存活
      * @param server 服务名
@@ -40,33 +35,17 @@ public class TaskUtils {
      */
     public static void killServer(String server) {
         //先尝试向目标进程发送停止命令
-        sendCommand(server, CommandConst.EXIT_CMD, "");
+        boolean isOk = AgentManager.getInstance().killClient(server);
 
-        final Session session = onlineServer.getOrDefault(server, null);
-        if (null != session) {
-            synchronized (session) {
-                try {
-                    long b = System.currentTimeMillis();
-                    logger.info("等待目标进程的退出事件");
-                    //等目标进程发送offline信息时执行notify唤醒当前线程
-                    session.wait(CommonConst.MAX_WAIT_EXIT_TIME);
-                    logger.info("等待目标进程退出完成,耗时:{} ms", System.currentTimeMillis() - b);
-                } catch (InterruptedException e) {
-                    //ignore
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
-        if (isAlive(server)) {
-            if (onlineServer.containsKey(server)) {
+        if (!isOk && isAlive(server)) {
+            if (AgentManager.getInstance().isOnline(server)) {
                 logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
                 WebSocketManager.getInstance().noticeWarn("服务" + server +
                         "未等到退出消息，将执行强制退出命令！");
             }
             String name = getJarWithServerName(server);
             killJavaByName(name, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
-            onlineServer.remove(server);
         }
 
     }
@@ -110,70 +89,14 @@ public class TaskUtils {
         return pidList.get(0);
     }
 
-    public static void addAliveServer(String server, ServerSettingDTO setting) {
-        aliveServer.put(server, setting);
-    }
-
-    public static void removeAliveServer(String server) {
-        aliveServer.remove(server);
-    }
-
-    public static ServerSettingDTO getAliveServerSetting(String server) {
-        return aliveServer.getOrDefault(server, null);
-    }
-
-    public static void onServerOnline(String server, Session session) {
-        onlineServer.put(server, session);
-    }
-
-    public static void onServerOffline(String server) {
-        final Session session = onlineServer.getOrDefault(server, null);
-        if (null == session) {
-            return;
-        }
-        logger.info("目标进程已退出，唤醒killServer方法的执行线程");
-        synchronized (session) {
-            session.notify();
-        }
-        onlineServer.remove(server);
-    }
-
-    public static Session getOnlineServerSession(String server) {
-        return onlineServer.getOrDefault(server, null);
-    }
-
-    private static void sendCommand(String server, String cmd, String param) {
-        Session session = getOnlineServerSession(server);
-        if (null != session) {
-            if (!session.isOpen()) {
-                onServerOffline(server);
-                return;
-            }
-            JSONObject json = new JSONObject();
-            json.put("cmd", cmd);
-            json.put("param", param);
-            try {
-                session.getBasicRemote().sendText(json.toJSONString());
-            } catch (Exception e) {
-                //ignore
-            }
-        }
-    }
-
     //得到jar的上级目录和自己: demo-service/demo.jar
-    //用于jps -l的输出中找出对应的服务，避免误杀或误判
     private static String getJarWithServerName(String server) {
         String jar = SettingUtils.getJarPath(server);
         int p = jar.lastIndexOf(File.separatorChar);
         if (-1 != p) {
             jar = jar.substring(p + 1);
         }
-        if (File.separatorChar == '\\') {
-            jar = server + "\\\\" + jar;
-        } else {
-            jar = server + File.separatorChar + jar;
-        }
-        return jar;
+        return server + File.separatorChar + jar;
     }
 
     public interface PushMsgCallback {
@@ -264,7 +187,7 @@ public class TaskUtils {
                     if (interval > 6000) {
                         break;
                     }
-                    Thread.sleep(100);
+                    Thread.sleep(200);
                 } else {
                     //可用
                     len = inputStream.read(buffer);
@@ -306,7 +229,7 @@ public class TaskUtils {
         if (StringUtils.isEmpty(jar)) {
             return pidList;
         }
-        Map<Integer, String> vms = SettingUtils.listVM();
+        Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
             if (name.contains(jar)) {
                 pidList.add(pid);
@@ -317,9 +240,8 @@ public class TaskUtils {
 
     public static Map<String, Integer> findJavaProcess() {
         Map<String, Integer> pidCmdMap = new HashMap<>();
-        Map<Integer, String> vms = SettingUtils.listVM();
+        Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
-            logger.info("pid:{}, name:{}", pid, name);
             final int p = name.lastIndexOf(File.separatorChar);
             if (p < 1) {
                 return;

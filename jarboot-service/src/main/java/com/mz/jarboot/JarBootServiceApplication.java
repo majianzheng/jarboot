@@ -1,8 +1,10 @@
 package com.mz.jarboot;
 
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.event.ApplicationContextUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import java.io.File;
@@ -18,7 +20,8 @@ public class JarBootServiceApplication {
 		String wsHome = userHome + File.separator + "jarboot";
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
 
-		SpringApplication.run(JarBootServiceApplication.class, args);
+		ApplicationContext context = SpringApplication.run(JarBootServiceApplication.class, args);
+		ApplicationContextUtils.setContext(context);
 	}
 
 }

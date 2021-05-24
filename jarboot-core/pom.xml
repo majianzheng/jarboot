@@ -51,21 +51,13 @@
         <dependency>
             <groupId>com.mz.jarboot</groupId>
             <artifactId>jarboot-common</artifactId>
-            <version>1.0.0</version>
+            <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>jarboot-core-original</finalName>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/java</directory>
-                <includes>
-                    <include>**/*.xml</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

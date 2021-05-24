@@ -3,19 +3,29 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<artifactId>jarboot-all</artifactId>
+		<groupId>com.mz.jarboot</groupId>
+		<version>${revision}</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.mz.jarboot</groupId>
 	<artifactId>jarboot-service</artifactId>
-	<version>1.0.0</version>
 	<name>jarboot-service</name>
 	<description>jarboot server</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<spring.version>2.4.5</spring.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-parent</artifactId>
+				<version>${spring.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -25,30 +35,14 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
-			<version>1.2.73</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
@@ -68,8 +62,8 @@
         <dependency>
             <groupId>com.mz.jarboot</groupId>
             <artifactId>jarboot-common</artifactId>
-            <version>1.0.0</version>
             <scope>compile</scope>
+			<version>${revision}</version>
         </dependency>
 	</dependencies>
 
@@ -78,6 +72,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring.version}</version>
 			</plugin>
 		</plugins>
 	</build>

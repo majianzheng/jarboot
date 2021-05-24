@@ -1,9 +1,9 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.constant.ResultCodeConst;
+import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
-import com.mz.jarboot.exception.MzException;
+import com.mz.jarboot.common.MzException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
@@ -112,22 +112,27 @@ public class PropertyFileUtils {
         if (!file.isFile() || !file.exists()) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, "配置文件不存在：" + file.getPath());
         }
-        List<String> lines = null;
+        List<String> lines = new ArrayList<>();
         try {
             lines = FileUtils.readLines(file, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             logger.info(e.getMessage(), e);
         }
-        if (CollectionUtils.isEmpty(lines)) {
-            return;
+        Map<String, String> copy = new HashMap<>(props);
+        if (CollectionUtils.isNotEmpty(lines)) {
+            for (int i = 0; i < lines.size(); ++i) {
+                String line = lines.get(i);
+                try {
+                    line = parsePropLine(line, copy);
+                    lines.set(i, line);
+                } catch (MzException e) {
+                    //do nothing
+                }
+            }
         }
-        for (int i = 0; i < lines.size(); ++i) {
-            String line = lines.get(i);
-            try {
-                line = parsePropLine(line, props);
-                lines.set(i, line);
-            } catch (MzException e) {
-                //do nothing
+        if (!copy.isEmpty()) {
+            for (Map.Entry<String, String> entry : copy.entrySet()) {
+                lines.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
             }
         }
         try {
@@ -175,19 +180,12 @@ public class PropertyFileUtils {
             throw new MzException();
         }
         String key = StringUtils.trim(spliced[0]);
-        String value = props.get(key);
-        if (null != value) {
-            line = key + '=' + value;
-            return line;
-        }
-        if (spliced.length < 2) {
-            throw new MzException();
-        }
-        value = StringUtils.trim(spliced[1]);
-        if (StringUtils.isEmpty(value)) {
+        String value = props.getOrDefault(key, null);
+        if (null == value) {
             throw new MzException();
         }
         line = key + '=' + value;
+        props.remove(key);
         return line;
     }
 

@@ -1,13 +1,12 @@
 package com.mz.jarboot.ws;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.utils.TaskUtils;
-import javafx.concurrent.Task;
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.CommandResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.util.Map;
@@ -35,8 +34,7 @@ public class WebSocketAgentServer {
         if (null != server) {
             logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
             sessionIdToServer.remove(session.getId());
-            TaskUtils.onServerOffline(server);
-            TaskUtils.removeAliveServer(server);
+            AgentManager.getInstance().offline(server);
         }
     }
 
@@ -51,18 +49,20 @@ public class WebSocketAgentServer {
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        JSONObject json = JSON.parseObject(message);
-        String event = json.getString("event");
-        String body = json.getString("body");
+        CommandResponse resp = JSON.parseObject(message, CommandResponse.class);
+        String type = resp.getType();
+        String body = resp.getBody();
         logger.info(message);
-        switch (event) {
-            case "online":
+        switch (type) {
+            case CommandConst.ONLINE_TYPE:
                 sessionIdToServer.put(session.getId(), body);
-                TaskUtils.onServerOnline(body, session);
+                AgentManager.getInstance().online(body, session);
                 break;
-            case "offline":
-                TaskUtils.onServerOffline(body);
-                TaskUtils.removeAliveServer(body);
+            case CommandConst.ACK_TYPE:
+                String server = sessionIdToServer.getOrDefault(session.getId(), null);
+                if (null != server) {
+                    AgentManager.getInstance().onAck(server, resp);
+                }
                 break;
             default:
                 //do nothing

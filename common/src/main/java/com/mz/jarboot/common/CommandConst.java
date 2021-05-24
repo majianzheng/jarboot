@@ -20,4 +20,8 @@ public class CommandConst {
      * 查看线程调用栈，传入参数为线程id
      */
     public static final String THREAD_STACK_CMD = "stack";
+
+    public static final String ACK_TYPE = "ack";
+
+    public static final String ONLINE_TYPE = "online";
 }
