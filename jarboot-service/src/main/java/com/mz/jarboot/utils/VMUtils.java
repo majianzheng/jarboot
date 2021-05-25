@@ -1,7 +1,12 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.utils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,13 +16,14 @@ import java.util.List;
 import java.util.Map;
 
 public class VMUtils {
-    private static Method attach;
-    private static Method loadAgent;
-    private static Method detach;
-    private static Method listVM;
-    private static Method getVMId;
-    private static Method getVMName;
-    private static volatile VMUtils instance = null;
+    private static final Logger logger = LoggerFactory.getLogger(VMUtils.class);
+    private Method attach;
+    private Method loadAgent;
+    private Method detach;
+    private Method listVM;
+    private Method getVMId;
+    private Method getVMName;
+    private static volatile VMUtils instance = null; //NOSONAR
     public static VMUtils getInstance() {
         if (null == instance) {
             synchronized (VMUtils.class) {
@@ -28,12 +34,23 @@ public class VMUtils {
         }
         return instance;
     }
-    public Object attachVM(int pid) throws Exception {
-        return attach.invoke(null, String.valueOf(pid));
+    public Object attachVM(int pid) {
+        try {
+            return attach.invoke(null, String.valueOf(pid));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn(e.getMessage(), e);
+        }
+        return null;
     }
 
-    public void loadAgentToVM(Object vm, String path, String args) throws Exception {
-        loadAgent.invoke(vm, path, args);
+    public boolean loadAgentToVM(Object vm, String path, String args) {
+        try {
+            loadAgent.invoke(vm, path, args);
+            return true;
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn(e.getMessage(), e);
+        }
+        return false;
     }
 
     public Map<Integer, String> listVM() {
@@ -42,7 +59,7 @@ public class VMUtils {
         try {
             list = (List<?>) listVM.invoke(null);
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
             return vmMap;
         }
 
@@ -53,7 +70,7 @@ public class VMUtils {
 
                 vmMap.put(Integer.parseInt(id), name);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
         });
         return vmMap;
@@ -63,7 +80,7 @@ public class VMUtils {
         try {
             detach.invoke(vm);
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -78,12 +95,12 @@ public class VMUtils {
         } catch (ClassNotFoundException e) {
             //ignore
         }
-
-        try {
+        URLClassLoader classLoader = null;
+        try {// NOSONAR
             if (null == vmClass || null == vmdClass) {
                 //当前可能是用jre在运行，尝试加载tools.jar
                 URL url = getVMToolsUrl();
-                ClassLoader classLoader = new URLClassLoader(new URL[]{url});
+                classLoader = new URLClassLoader(new URL[]{url});
                 vmClass = classLoader.loadClass(vmClassName);
                 vmdClass = classLoader.loadClass(vmdClassName);
             }
@@ -96,6 +113,14 @@ public class VMUtils {
         } catch (Exception e) {
             //加载jdk的tools.jar失败
             throw new IllegalStateException("Load tools.jar failed, make sure you are using a jdk not a jre.", e);
+        } finally {
+            if (null != classLoader) {
+                try {
+                    classLoader.close();
+                } catch (IOException e) {
+                    //ignore
+                }
+            }
         }
     }
 
@@ -133,6 +158,7 @@ public class VMUtils {
             init();
         } catch (Exception e) {
             //未成功加载到tools.jar，运行的可能是在jre上
+            logger.error(e.getMessage(), e);
             System.exit(-1);
         }
     }

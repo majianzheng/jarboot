@@ -1,11 +1,10 @@
 package com.mz.jarboot.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.common.VMUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,24 +12,30 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
 import java.util.*;
 
 public class SettingUtils {
-    private static final String CACHE_FILE_NAME_KEY = "cache.file";
     private static final int MAX_TIMEOUT = 3000;
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
     private static final String OS_NAME = "os.name";
     private static final String AGENT_JAR_NAME = "jarboot-agent.jar";
-    private static String rootPath = null;
+    private static GlobalSettingDTO globalSetting = null;
+    private static final String BOOT_INI = "boot.ini";
+    private static final String GLOBAL_SETTING_FILE = "global-setting.conf";
     private static String agentJar;
     static {
+        //jarboot-agent.jar的路径获取
+        initAgentJarPath();
+        //初始化路径配置，先查找
+        initGlobalSetting();
+        //进行默认配置
+        initDefaultSetting();
+    }
+    private static void initAgentJarPath() {
         CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
@@ -47,9 +52,80 @@ public class SettingUtils {
             }
         } catch (Exception e) {
             //查找jarboot-agent.jar失败
-            logger.info("Can not find jarboot-agent.jar.", e);
+            logger.error("Can not find jarboot-agent.jar.", e);
             System.exit(-1);
         }
+    }
+    private static void initGlobalSetting() {
+        String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
+        File file = FileUtils.getFile(conf);
+        if (file.isDirectory()) {
+            logger.error("存在与配置文件相同的文件夹名称！");
+            return;
+        }
+        if (!file.exists()) {
+            //不存在配置文件
+            return;
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            globalSetting = (GlobalSettingDTO) ois.readObject();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+    private static void initDefaultSetting() {
+        if (null == globalSetting) {
+            globalSetting = new GlobalSettingDTO();
+        }
+        String servicesPath = globalSetting.getServicesPath();
+        if (StringUtils.isEmpty(servicesPath)) {
+            servicesPath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + "services";
+            globalSetting.setServicesPath(servicesPath);
+        }
+    }
+
+    public static GlobalSettingDTO getGlobalSetting() {
+        return globalSetting;
+    }
+
+    public static void updateGlobalSetting(GlobalSettingDTO setting) {
+        String servicesPath = setting.getServicesPath();
+        if (StringUtils.isEmpty(servicesPath)) {
+            setting.setServicesPath(globalSetting.getServicesPath());
+        } else {
+            File dir = new File(servicesPath);
+            if (!dir.isDirectory() || !dir.exists()) {
+                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
+            }
+        }
+
+        String arthasHome = setting.getArthasHome();
+        if (StringUtils.isEmpty(arthasHome)) {
+            setting.setArthasHome(globalSetting.getArthasHome());
+        } else {
+            File dir = new File(arthasHome);
+            if (!dir.isDirectory() || !dir.exists()) {
+                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
+            }
+        }
+
+        String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
+        File file = FileUtils.getFile(conf);
+        try (ObjectOutputStream oo = new ObjectOutputStream(new FileOutputStream(file))){
+            if (file.isDirectory()) {
+                FileUtils.deleteDirectory(file);
+            }
+            oo.writeObject(file);
+            //再更新到内存
+            globalSetting = setting;
+        } catch (Exception e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
+        }
+    }
+
+
+    public static String getServicesPath() {
+        return globalSetting.getServicesPath();
     }
     /**
      * 判断是否Windows系统
@@ -70,7 +146,7 @@ public class SettingUtils {
     }
 
     public static void initTargetVM(String server, int pid) {
-        Object vm = null;
+        Object vm;
         try {
             vm = VMUtils.getInstance().attachVM(pid);
         } catch (Exception e) {
@@ -88,13 +164,6 @@ public class SettingUtils {
         }
     }
 
-    public static String getRootPath() {
-        if (StringUtils.isEmpty(rootPath)) {
-            rootPath = ApplicationContextUtils.getEnv(CommonConst.ROOT_PATH_KEY);
-        }
-        return rootPath;
-    }
-
     public static String getAgentStartOption(String server) {
         return "-javaagent:" + agentJar + "=" + getAgentArgs(server);
     }
@@ -107,6 +176,9 @@ public class SettingUtils {
         return new String(bytes);
     }
 
+    public static String getDefaultJvmArg() {
+        return globalSetting.getDefaultJvmArg();
+    }
 
     /**
      * 获取服务的jar包路径
@@ -114,10 +186,7 @@ public class SettingUtils {
      * @return jar包路径
      */
     public static String getJarPath(String server) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(getRootPath()).append(File.separator).append(CommonConst.SERVICES_DIR).
-                append(File.separator).append(server);
-        File dir = new File(builder.toString());
+        File dir = new File(getServerPath(server));
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
             WebSocketManager.getInstance().noticeWarn("未找到服务" + server + "的可执行jar包路径");
@@ -138,19 +207,13 @@ public class SettingUtils {
         return "";
     }
 
-    public static String getServerSettingFilePath(String server) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(getRootPath()).append(File.separator).append(CommonConst.SERVICES_DIR).
-                append(File.separator).append(server).append(File.separator).append(server).append(".ini");
-        return builder.toString();
+    public static String getServerPath(String server) {
+        return globalSetting.getServicesPath() + File.separator + server;
     }
 
-    public static String getCacheFilePath() {
-        String path = System.getProperty(CommonConst.WORKSPACE_HOME);
+    public static String getServerSettingFilePath(String server) {
         StringBuilder builder = new StringBuilder();
-        String cacheFileName = PropertyFileUtils.getCurrentSetting(CACHE_FILE_NAME_KEY);
-        builder.append(path).append(File.separator).
-                append(File.separator).append(cacheFileName);
+        builder.append(globalSetting.getServicesPath()).append(File.separator).append(server).append(File.separator).append(BOOT_INI);
         return builder.toString();
     }
 
@@ -192,7 +255,7 @@ public class SettingUtils {
         if (inetAddress.isLoopbackAddress()) {
             throw new MzException(ResultCodeConst.INVALID_PARAM, "请填写真实IP地址或域名，而不是环路地址：" + host);
         }
-        Enumeration<NetworkInterface> ifs = null;
+        Enumeration<NetworkInterface> ifs;
         try {
             ifs = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
@@ -234,7 +297,7 @@ public class SettingUtils {
      * @param url 地址
      */
     public static void browse1(String url) {
-        String osName = System.getProperty("os.name", "");// 获取操作系统的名字
+        String osName = System.getProperty(OS_NAME, "");// 获取操作系统的名字
         if (osName.startsWith("Windows")) {// windows
             browseInWindows(url);
             return;
@@ -259,7 +322,10 @@ public class SettingUtils {
                     browser = browsers[count];
                 }
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        } catch (IOException e) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
         }
         if (browser == null) {
@@ -283,7 +349,7 @@ public class SettingUtils {
             cmd = chromePath + " " + url;
         } else {
             cmd = "rundll32 url.dll,FileProtocolHandler " + url;
-            logger.warn("警告", "检查到未安装Chrome浏览器，界面显示效果可能会受影响！");
+            logger.warn("检查到未安装Chrome浏览器，界面显示效果可能会受影响！");
         }
         try {
             Runtime.getRuntime().exec(cmd);

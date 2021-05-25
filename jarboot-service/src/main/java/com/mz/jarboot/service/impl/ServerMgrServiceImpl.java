@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import java.io.*;
@@ -32,8 +31,6 @@ import java.util.concurrent.*;
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String START_TIME_CONST = "启动耗时：";
-    @Value("${root-path:}")
-    private String rootPath;
 
     @Autowired
     private TaskRunDao taskRunDao;
@@ -42,15 +39,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private ExecutorService taskExecutor;
 
     @Override
-    public List<ProcDetailDTO> getServerList() {
-        List<ProcDetailDTO> serverList = new ArrayList<>();
+    public List<ServerRunningDTO> getServerList() {
+        List<ServerRunningDTO> serverList = new ArrayList<>();
         File[] serviceDirs = getServerDirs();
         for (File f : serviceDirs) {
             String server = f.getName();
             if (existJar(f)) {
-                ProcDetailDTO p = new ProcDetailDTO();
+                ServerRunningDTO p = new ServerRunningDTO();
                 p.setName(server);
-                p.setPath(f.getAbsolutePath());
                 serverList.add(p);
             }
         }
@@ -125,7 +121,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     private File[] getServerDirs() {
-        String servicesPath = this.rootPath + File.separator + CommonConst.SERVICES_DIR;
+        String servicesPath = SettingUtils.getServicesPath();
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
@@ -330,7 +326,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         WebSocketManager.getInstance().sendStartedMessage(server, pid);
     }
 
-    private void updateServerInfo(List<ProcDetailDTO> server) {
+    private void updateServerInfo(List<ServerRunningDTO> server) {
         Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();
         server.forEach(item -> {
             Integer pid = pidCmdMap.getOrDefault(item.getName(), -1);
@@ -342,7 +338,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             item.setPid(pid);
             //未发现ip和端口配置时的运行中的判定
             Date actionTime = taskRunDao.getActionTime(item.getName());
-            //点击开始超过60秒，或ebr-setting重启过时，存在pid则判定为已经启动
+            //点击开始超过60秒，或jarboot重启过时，存在pid则判定为已经启动
             if (null == actionTime || ((System.currentTimeMillis() - actionTime.getTime()) > 60000)) {
                 item.setStatus(CommonConst.STATUS_RUNNING);
                 return;

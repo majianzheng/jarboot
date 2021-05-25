@@ -26,9 +26,8 @@ public class JarBootConfig {
     public ExecutorService createExecutorService() {
         BlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(128);
         return new ThreadPoolExecutor(8, 32,
-                32L, TimeUnit.SECONDS, taskBlockingQueue, (Runnable r, ThreadPoolExecutor executor) -> {
+                32L, TimeUnit.SECONDS, taskBlockingQueue, (Runnable r, ThreadPoolExecutor executor) ->
             //线程池忙碌拒绝策略
-            WebSocketManager.getInstance().noticeWarn("服务器忙碌中，请稍后再试！");
-        });
+            WebSocketManager.getInstance().noticeWarn("服务器忙碌中，请稍后再试！"));
     }
 }

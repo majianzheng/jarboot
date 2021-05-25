@@ -1,7 +1,6 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.ResultCodeConst;
-import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
 import org.apache.commons.collections.CollectionUtils;
@@ -20,15 +19,6 @@ import java.util.*;
 
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
-    private static String settingConfFile = null;
-
-    private static String getConfigPath() {
-        if (null == settingConfFile) {
-            settingConfFile = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + "jarboot.properties";
-        }
-        return settingConfFile;
-    }
-
     private static Properties getProperties(String filePath) {
         File configFile = FileUtils.getFile(filePath);
         return getProperties(configFile);
@@ -46,33 +36,6 @@ public class PropertyFileUtils {
         return properties;
     }
 
-    public static void setCurrentSetting(String key, String value) {
-        File configFile = FileUtils.getFile(getConfigPath());
-        if (configFile.exists() && configFile.isFile()) {
-            Map<String, String> propMap = new HashMap<>();
-            propMap.put(key, value);
-            writeProperty(configFile, propMap);
-        }
-    }
-
-    /**
-     * 实时获取ebr-setting.properties配置文件的配置信息
-     * @return 属性值
-     */
-    public static Properties getCurrentSettings() {
-        return getProperties(getConfigPath());
-    }
-
-    /**
-     * 实时获取jarboot.properties配置文件的配置信息
-     * @param key 属性名
-     * @return 属性值
-     */
-    public static String getCurrentSetting(String key) {
-        Properties properties = getCurrentSettings();
-        return properties.getProperty(key);
-    }
-
     public static ServerSettingDTO getServerSetting(String server) {
         ServerSettingDTO setting = new ServerSettingDTO(server);
         String path = SettingUtils.getServerSettingFilePath(server);
@@ -80,6 +43,9 @@ public class PropertyFileUtils {
         if (properties.isEmpty()) {
             return setting;
         }
+        String jar = properties.getProperty("jar", "");
+        setting.setJar(jar);
+
         String jvm = properties.getProperty("jvm", "");
         setting.setJvm(jvm);
         String args = properties.getProperty("args", "");

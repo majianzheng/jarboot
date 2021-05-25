@@ -1,12 +1,12 @@
 import * as React from "react";
 import styles from "./index.less";
-import {Button, Card, Tag, Space, Select} from "antd";
+import {Button, Card, Tag, Space, AutoComplete, Input} from "antd";
 import PropTypes from "prop-types";
 import CommonTable from "../commonTable/CommonTable";
 import SettingService from "../../services/SettingService";
 import CommonNotice from '../../common/CommonNotice';
 import StringUtil from "../../common/StringUtil";
-import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled,
+import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, EnterOutlined, LoadingOutlined,
     PoweroffOutlined, ReloadOutlined} from '@ant-design/icons';
 import Console from "../console/Console";
 import {JarBootConst} from '../../common/JarBootConst';
@@ -23,7 +23,7 @@ export default class Dashboard extends React.Component {
         routes: PropTypes.array,
         visible: PropTypes.bool,
     };
-    state = {tip: '', loading: false, data: [], selectedRowKeys: [], selectRows: [], current: '', basicServer: [], oneClickLoading: false};
+    state = {command: '', executing: false, loading: false, data: [], selectedRowKeys: [], selectRows: [], current: '', oneClickLoading: false};
     allServerOut = [];
     fd = null;
     methodMap = new Map();
@@ -107,8 +107,10 @@ export default class Dashboard extends React.Component {
                 handler.finishLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTED, msgBody.text)
                 break;
-            case JarBootConst.MSG_TYPE_NOTICE:
-                this._notice(msgBody.text, msgBody.serverType);
+            case JarBootConst.NOTICE_ERROR:
+            case JarBootConst.NOTICE_WARN:
+            case JarBootConst.NOTICE_INFO:
+                this._notice(msgBody.text, msgBody.msgType);
                 break;
             default:
                 handler.appendLine(msgBody.text);
@@ -265,7 +267,7 @@ export default class Dashboard extends React.Component {
           this._initAllServerOut(resp.result);
         }, errorMsg => console.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
-    startWebServer = () => {
+    startServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
             CommonNotice.info("请选择一个服务执行");
             return;
@@ -284,7 +286,7 @@ export default class Dashboard extends React.Component {
       const handler = this.methodMap.get(server);
       handler && handler.clear()
     };
-    stopWebServer = () => {
+    stopServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
             CommonNotice.info("请选择一个服务执行");
             return;
@@ -299,7 +301,7 @@ export default class Dashboard extends React.Component {
             }
         }, errorMsg => CommonNotice.error(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
-    restartWebServer = () => {
+    restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
             CommonNotice.info("请选择一个服务执行");
             return;
@@ -320,19 +322,19 @@ export default class Dashboard extends React.Component {
                 name: '启动',
                 key: 'start ',
                 icon: <CaretRightFilled style={{color: 'green', fontSize: '18px'}}/>,
-                onClick: this.startWebServer,
+                onClick: this.startServer,
             },
             {
                 name: '停止',
                 key: 'stop',
                 icon: <PoweroffOutlined style={{color: 'red', fontSize: '18px'}}/>,
-                onClick: this.stopWebServer,
+                onClick: this.stopServer,
             },
             {
                 name: '重启',
                 key: 'reset',
                 icon: <ReloadOutlined style={{color: '#1890ff', fontSize: '18px'}}/>,
-                onClick: this.restartWebServer,
+                onClick: this.restartServer,
             },
             {
                 name: '刷新',
@@ -391,15 +393,33 @@ export default class Dashboard extends React.Component {
         }
         return tag;
     }
+    _onExecCommand = () => {
+        this.setState({executing: true});
+        const handler = this.methodMap.get(this.state.current);
+        handler.appendLine(`>${this.state.command}`);
+        SettingService.sendCommand(this.state.current, this.state.command, () => {
+            this.setState({executing: false});
+            handler.finishLoading();
+        });
+    };
     render() {
         let tableOption = this._getTbProps();
         tableOption.scroll = { y: this.height};
-        let outTitle = (<><span>输出 - </span>
-                <Select placeholder={"选择服务查看输出"} value={this.state.current}
-                        style={{width: 300}}
-                        onChange={value => this.setState({current: value})}>
-                    {this.allServerOut.map(d => (<Select.Option key={d} value={d}>{d}</Select.Option>))}
-                </Select></>);
+        let outTitle = (<>
+            <AutoComplete placeholder={"输入命令执行"}
+                          disabled={this.state.executing}
+                          open={false}
+                          value={this.state.command}
+                          onChange={command => this.setState({command})}
+                          options={[
+                              {label: "jvm", value: "jvm"},
+                              {label: "thread", value: "thread"},
+                          ]}
+                          children={<Input onPressEnter={this._onExecCommand}
+                                           addonAfter={this.state.executing ? <LoadingOutlined/> :
+                                               <EnterOutlined onClick={this._onExecCommand}/>}/>}
+                          style={{width: '90%'}}/>
+        </>);
 
         return (<div>
             <Space size={'middle'}>
@@ -415,6 +435,8 @@ export default class Dashboard extends React.Component {
                     <Card title={outTitle} size={"small"}
                           extra={<Button type={"link"} onClick={() => this._clearDisplay(this.state.current)}>清空</Button>}>
                         <div className={styles.outPanel}>
+                            <Console key={'-1'} visible={this.state.current === ""}
+                                     method={this.methodMap.get("")}/>
                             {this.allServerOut.map(value => (
                                 <Console key={value} visible={this.state.current === value}
                                          method={this.methodMap.get(value)}/>

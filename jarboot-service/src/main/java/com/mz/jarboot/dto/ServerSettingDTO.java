@@ -12,6 +12,11 @@ public class ServerSettingDTO implements Serializable {
      */
     private transient String server;
     /**
+     * 启动的主类MainClass所在的jar文件
+     * 若为空，则空目录下找第一个jar文件
+     */
+    private String jar;
+    /**
      * 自定义的JVM参数
      */
     private String jvm;
@@ -58,6 +63,14 @@ public class ServerSettingDTO implements Serializable {
 
     public void setServer(String server) {
         this.server = server;
+    }
+
+    public String getJar() {
+        return jar;
+    }
+
+    public void setJar(String jar) {
+        this.jar = jar;
     }
 
     public String getJvm() {

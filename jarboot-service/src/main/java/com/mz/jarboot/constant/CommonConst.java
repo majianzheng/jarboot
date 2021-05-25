@@ -4,11 +4,6 @@ package com.mz.jarboot.constant;
 public class CommonConst {
     public static final String WORKSPACE_HOME= "workspace.home";
 
-    public static final String PROP_FILE_EXT = "properties";
-    public static final String ROOT_PATH_KEY = "root-path";
-    public static final String DEBUG_MODE_KEY = "debug-mode";
-    public static final String ROOT_DIR_KEY = "root-dir-name";
-
     //服务目录名称
     public static final String SERVICES_DIR = "services";
 

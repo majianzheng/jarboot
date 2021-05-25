@@ -1,4 +1,4 @@
-package com.mz.jarboot.core.msg;
+package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.common.CommandResponse;
 
@@ -7,7 +7,7 @@ import com.mz.jarboot.common.CommandResponse;
  * @author jianzhengma
  */
 public class ResponseBuilder {
-    private CommandResponse response = new CommandResponse();
+    private final CommandResponse response = new CommandResponse();
 
     public CommandResponse getResponse() {
         return response;
@@ -22,6 +22,10 @@ public class ResponseBuilder {
     }
     public ResponseBuilder setBody(String body) {
         response.setBody(body);
+        return this;
+    }
+    public ResponseBuilder setResultMsg(String msg) {
+        response.setResultMsg(msg);
         return this;
     }
 }

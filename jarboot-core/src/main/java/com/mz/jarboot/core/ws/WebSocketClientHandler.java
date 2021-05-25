@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.ws;
 
+import com.mz.jarboot.core.constant.JarbootCoreConstant;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -8,9 +9,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
-
+    private static final Logger logger = LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
     private MessageHandler messageHandler;
@@ -46,11 +49,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        System.out.println("WebSocket Client 链接失败!");
+        logger.warn("WebSocket Client 链接失败!");
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, Object msg) {
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             try {

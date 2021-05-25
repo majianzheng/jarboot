@@ -70,7 +70,7 @@ export default class Request {
    */
   static get(
     url: string,
-    params: Map<string, object>) {
+    params: any) {
     return this.request
       .get(url, {
         params: params,
@@ -84,7 +84,7 @@ export default class Request {
    */
   static post(
     url: string,
-    params: Map<string, object>) {
+    params: any) {
     return this.request
       .post(url, {
         data: params,

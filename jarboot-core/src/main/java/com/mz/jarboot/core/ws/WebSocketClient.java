@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -39,7 +38,6 @@ public final class WebSocketClient {
     }
 
     public void sendText(String text) {
-        logger.debug("发送消息：" + text);
         if (null != channel) {
             channel.writeAndFlush(new TextWebSocketFrame(text));
         } else {

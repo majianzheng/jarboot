@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketManager {
-    private static volatile WebSocketManager instance = null;
+    private static volatile WebSocketManager instance = null;// NOSONAR
     private final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
-    private WebSocketManager(){};
+    private WebSocketManager(){}
     public static WebSocketManager getInstance() {
         if (null == instance) {
             synchronized (WebSocketManager.class) {
@@ -80,7 +80,7 @@ public class WebSocketManager {
         if (!session.isOpen()) {
             return;
         }
-        synchronized (session) {
+        synchronized (session) {// NOSONAR
             try {
                 session.getBasicRemote().sendText(msg);
             } catch (IOException e) {

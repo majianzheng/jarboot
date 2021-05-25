@@ -18,15 +18,15 @@ public class SwaggerConfig {
 		 return new Docket(DocumentationType.SWAGGER_2)
 				 .apiInfo(apiInfo())
 				 .select()
-				 .apis(RequestHandlerSelectors.basePackage("com.supcon.ebr.setting"))
+				 .apis(RequestHandlerSelectors.basePackage("com.mz.jarboot"))
 				 .paths(PathSelectors.any()).build();
 	 }
 	 private ApiInfo apiInfo() {
 		 return new ApiInfoBuilder()
-				 .title("setting服务API")
+				 .title("Jarboot服务API")
 	             .description("")
 		         .termsOfServiceUrl("")
-		         .version("1.5")
+		         .version("1.0.0")
 		         .build();
 	}
 }

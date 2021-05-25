@@ -1,7 +1,6 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.VMUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -63,7 +62,7 @@ public class TaskUtils {
         }
         String jvm = setting.getJvm();
         if (StringUtils.isEmpty(jvm)) {
-            jvm = PropertyFileUtils.getCurrentSetting("jvm-arg");
+            jvm = SettingUtils.getDefaultJvmArg();
         }
         String agentArgs = SettingUtils.getAgentStartOption(server);
         String cmd = (null == jvm) ?
@@ -170,12 +169,12 @@ public class TaskUtils {
         pidList.add(Integer.parseInt(builder.toString()));
     }
 
-    private static void startTask(String command, PushMsgCallback callback) {
+    public static Process startTask(String command, PushMsgCallback callback) {
         Process process;
         try {
             process = Runtime.getRuntime().exec(command);
         } catch (IOException e) {
-            return;
+            return null;
         }
         try (InputStream inputStream = process.getInputStream()){
             long timestamp = System.currentTimeMillis();
@@ -196,9 +195,13 @@ public class TaskUtils {
                     timestamp = System.currentTimeMillis();
                 }
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            callback.sendMessage(e.getLocalizedMessage());
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
             callback.sendMessage(e.getLocalizedMessage());
         }
+        return process;
     }
 
     public static void killByName(String name, PushMsgCallback callback) {
@@ -276,7 +279,10 @@ public class TaskUtils {
             p = Runtime.getRuntime().exec(cmd + pid);
             p.waitFor();
             callback.sendMessage("强制终止进程，pid:" + pid);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            WebSocketManager.getInstance().noticeWarn(e.getMessage());
+        } catch (IOException e) {
             WebSocketManager.getInstance().noticeWarn(e.getMessage());
         } finally {
             if (null != p) {

@@ -1,6 +1,6 @@
 package com.mz.jarboot.service;
 
-import com.mz.jarboot.dto.ProcDetailDTO;
+import com.mz.jarboot.dto.ServerRunningDTO;
 import java.util.List;
 
 public interface ServerMgrService {
@@ -9,7 +9,7 @@ public interface ServerMgrService {
      * 获取服务列表
      * @return 服务列表
      */
-    List<ProcDetailDTO> getServerList();
+    List<ServerRunningDTO> getServerList();
 
     /**
      * 一键重启，杀死所有服务进程，根据依赖重启

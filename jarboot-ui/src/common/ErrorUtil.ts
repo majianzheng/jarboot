@@ -11,8 +11,8 @@ export default class ErrorUtil {
    *   错误码,转换为十六进制表示,若为负数,直接转为正数表示
    * @param resp
    */
-  static formatErrResp(resp) {
-    let resultCode = '';
+  public static formatErrResp(resp: any) {
+    let resultCode: number|string = 0;
     let resultMsg = '';
     if (StringUtil.isNotNull(resp.resultCode)) {
       //服务器返回的resp
@@ -20,7 +20,9 @@ export default class ErrorUtil {
       if (resultCode >= 0) {
         resultCode = '0x' + resultCode.toString(16).toUpperCase();
       } else {
-        resultCode = '0x' + (parseInt(resultCode, 10) >>> 0).toString(16).toUpperCase();
+          if (typeof resultCode === "string") {
+              resultCode = '0x' + (parseInt(resultCode, 10) >>> 0).toString(16).toUpperCase();
+          }
       }
       resultMsg = resp.resultMsg;
     } else if (StringUtil.isNotNull(resp.status)) {

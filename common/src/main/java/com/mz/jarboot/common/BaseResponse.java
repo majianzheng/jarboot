@@ -1,7 +1,5 @@
 package com.mz.jarboot.common;
 
-import com.mz.jarboot.common.ResultCodeConst;
-
 /**
  * http响应通用包装对象
  * @author majianzheng
@@ -11,8 +9,8 @@ public abstract class BaseResponse {
 	protected int resultCode = ResultCodeConst.SUCCESS;
 	protected String resultMsg;
 	protected Long total;
-	
-	public BaseResponse() {
+
+	protected BaseResponse() {
 		
 	}
 	

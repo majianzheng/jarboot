@@ -11,8 +11,8 @@ import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.constant.JarbootCoreConstant;
-import com.mz.jarboot.core.msg.CommandHandler;
-import com.mz.jarboot.core.msg.ResponseBuilder;
+import com.mz.jarboot.core.cmd.CommandHandler;
+import com.mz.jarboot.core.cmd.ResponseBuilder;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
@@ -26,7 +26,6 @@ public class JarbootBootstrap {
     private static Logger logger;
     private static JarbootBootstrap bootstrap;
     private TransformerManager transformerManager;
-    private WebSocketClient client;
     private CommandHandler handler;
     private String host;
     private String serverName;
@@ -42,14 +41,14 @@ public class JarbootBootstrap {
         JSONObject json = JSON.parseObject(s);
         host = json.getString("host");
         serverName = json.getString("server");
-        logger.info("获取参数>>>" + host + ", server: " + serverName);
+        logger.info("获取参数>>>{}, server:{}", host, serverName);
         this.initClient();
     }
     private void initClient() {
         String url = String.format("ws://%s/jarboot-agent/ws", host);
-        logger.debug("initClient>>>" + url);
-        client = new WebSocketClient(url);
-        handler = new CommandHandler(host);
+        logger.debug("initClient {}", url);
+        WebSocketClient client = new WebSocketClient(url);
+        handler = new CommandHandler(String.format("http://%s/jarboot-service/ack?server=%s", host, serverName), client);
         boolean isOk = client.connect(new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
@@ -59,12 +58,12 @@ public class JarbootBootstrap {
 
             @Override
             public void onText(String text, Channel channel) {
-                handler.onMsgRecv(text);
+                handler.execute(text);
             }
 
             @Override
             public void onBinary(byte[] bytes, Channel channel) {
-                handler.onMsgRecv(new String(bytes));
+                handler.execute(new String(bytes));
             }
 
             @Override
@@ -82,7 +81,7 @@ public class JarbootBootstrap {
                 onClose(channel);
             }
         });
-        logger.debug("连接结果>>>" + isOk);
+        logger.debug("连接结果>>>{}", isOk);
         client.sendText(genOnlineResponse(serverName));
     }
 
@@ -96,11 +95,11 @@ public class JarbootBootstrap {
         return online;
     }
 
-    public synchronized static JarbootBootstrap getInstance(Instrumentation inst, String args) {
+    public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args) {
         //主入口
         initLogback();
 
-        logger.debug("getInstance>>>" + args);
+        logger.debug("getInstance{}", args);
         if (bootstrap != null) {
             return bootstrap;
         }

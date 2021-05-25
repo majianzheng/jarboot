@@ -1,10 +1,8 @@
 import * as React from "react";
 import { List } from 'antd';
-import ServerConfigForm from "@/components/serverSetting/ServerConfigForm";
-// @ts-ignore
+import ServerConfig from "@/components/setting/ServerConfig";
 import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
-// @ts-ignore
 import ErrorUtil from '../../common/ErrorUtil';
 import styles from './index.less';
 
@@ -45,7 +43,7 @@ export default class ServerSetting extends React.PureComponent {
             </div>
             <div style={{flex: 'inherit', width: '72%'}}>
                 <div style={{width: '80%'}}>
-                    <ServerConfigForm server={this.state.current}/>
+                    <ServerConfig server={this.state.current}/>
                 </div>
             </div>
         </div>

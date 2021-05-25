@@ -3,6 +3,7 @@ package com.mz.jarboot.base;
 import com.alibaba.fastjson.JSON;
 import com.mz.jarboot.common.Command;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 
@@ -34,14 +35,10 @@ public final class AgentClient {
         return this.state;
     }
 
-    public CommandResponse sendCommand(String cmd, String param, boolean ack) {
+    public CommandResponse sendCommand(Command command) {
         CommandResponse resp = new CommandResponse();
-        Command command = new Command();
-        command.setCmd(cmd);
-        command.setParam(param);
-        command.setAck(ack);
         sendText(JSON.toJSONString(command));
-        if (ack) {
+        if (Boolean.TRUE.equals(command.getAck())) {
             try {
                 resp = respQueue.poll(CommonConst.MAX_RESPONSE_TIME, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
@@ -51,19 +48,26 @@ public final class AgentClient {
             if (null == resp) {
                 resp = new CommandResponse();
                 resp.setResultCode(ResultCodeConst.TIME_OUT);
-                resp.setResultMsg("执行超时，" + cmd);
+                resp.setResultMsg("执行超时，" + command.getCmd());
             }
         }
         return resp;
     }
 
     public void sendCommand(String cmd, String param) {
-        sendCommand(cmd, param, false);
+        Command command = new Command();
+        command.setCmd(cmd);
+        command.setParam(param);
+        command.setAck(false);
+        sendCommand(command);
     }
 
     public void onAck(CommandResponse resp) {
         respQueue.clear();//清空未处理等消息
-        respQueue.offer(resp);
+        if (!respQueue.offer(resp)) {
+            respQueue.clear();
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "offer failed.");
+        }
     }
 
     private void sendText(String text) {

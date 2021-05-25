@@ -64,6 +64,12 @@ public class WebSocketAgentServer {
                     AgentManager.getInstance().onAck(server, resp);
                 }
                 break;
+            case CommandConst.CONSOLE_TYPE:
+                String s = sessionIdToServer.getOrDefault(session.getId(), null);
+                if (null != s) {
+                    WebSocketManager.getInstance().sendOutMessage(s, resp.getBody());
+                }
+                break;
             default:
                 //do nothing
                 break;

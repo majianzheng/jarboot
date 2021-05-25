@@ -5,15 +5,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 
+/**
+ * 向浏览器推送消息
+ * @author majianzheng
+ */
 @ServerEndpoint("/jarboot-service/ws")
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
-
-//    @Autowired
-//    private ServerMgrService serverMgrService;
 
     /**
      * 连接建立成功调用的方法*/
@@ -36,13 +36,12 @@ public class WebSocketMainServer {
      * @param message 客户端发送过来的消息*/
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
-        // Do nothing
-        logger.info("手动二进制消息：{}", new String(message));
+        //do nothing
     }
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        logger.info("手动文本消息：{}", message);
+        //do nothing
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.mz.jarboot.controller;
 
-import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.dto.*;
@@ -12,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Api(tags="系统配置")
 @RequestMapping(value = "/jarboot-setting", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
@@ -22,7 +19,7 @@ public class SettingController {
     private SettingService settingService;
 
     @ApiOperation(value = "获取服务配置", httpMethod = "GET")
-    @RequestMapping(value="/getServerSetting")
+    @GetMapping(value="/getServerSetting")
     @ResponseBody
     public ResponseForObject<ServerSettingDTO> getServerSetting(String server) {
         try {
@@ -34,7 +31,7 @@ public class SettingController {
     }
 
     @ApiOperation(value = "提交服务配置", httpMethod = "POST")
-    @RequestMapping(value="/submitServerSetting")
+    @PostMapping(value="/submitServerSetting")
     @ResponseBody
     public ResponseSimple submitServerSetting(@RequestParam String server,
                                               @RequestBody ServerSettingDTO setting) {
@@ -46,20 +43,27 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "获取日志文件列表", httpMethod = "GET")
-    @RequestMapping(value="/getLogFiles")
+    @ApiOperation(value = "获取全局配置", httpMethod = "GET")
+    @GetMapping(value="/getGlobalSetting")
     @ResponseBody
-    public ResponseForList<FileContentDTO> getLogFiles() {
-        List<FileContentDTO> results = settingService.getLogFiles();
-        return new ResponseForList<>(results, results.size());
+    public ResponseForObject<GlobalSettingDTO> getGlobalSetting() {
+        try {
+            GlobalSettingDTO results = settingService.getGlobalSetting();
+            return new ResponseForObject<>(results);
+        } catch (MzException e) {
+            return new ResponseForObject<>(e);
+        }
     }
 
-    @ApiOperation(value = "获取文件内容", httpMethod = "GET")
-    @RequestMapping(value="/getFileContent")
+    @ApiOperation(value = "提交全局配置", httpMethod = "POST")
+    @PostMapping(value="/submitGlobalSetting")
     @ResponseBody
-    public ResponseForObject<String> getFileContent(@RequestParam(name = "path") String path) {
-        ResponseForObject<String> resp = new ResponseForObject<>();
-        resp.setResult(settingService.getFileContent(path));
-        return resp;
+    public ResponseSimple submitGlobalSetting(@RequestBody GlobalSettingDTO setting) {
+        try {
+            settingService.submitGlobalSetting(setting);
+            return new ResponseSimple();
+        } catch (MzException e) {
+            return new ResponseSimple(e);
+        }
     }
 }

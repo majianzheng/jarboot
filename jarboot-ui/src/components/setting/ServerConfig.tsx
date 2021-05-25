@@ -1,10 +1,8 @@
 import * as React from "react";
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
 import {memo, useEffect} from "react";
-// @ts-ignore
 import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
-// @ts-ignore
 import ErrorUtil from "../../common/ErrorUtil";
 
 const layout = {
@@ -15,7 +13,7 @@ const tailLayout = {
     wrapperCol: {offset: 8, span: 16},
 };
 
-const ServerConfigForm: any = memo((props: any) => {
+const ServerConfig: any = memo((props: any) => {
     const [form] = Form.useForm();
     const onReset = () => {
         //form.resetFields();
@@ -39,6 +37,9 @@ const ServerConfigForm: any = memo((props: any) => {
     };
     return (
         <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
+            <Form.Item name="jar" label={"jar"} rules={[{required: false}]}>
+                <Input placeholder={"指定Main Class所在的jar，为空则默认第一个"}/>
+            </Form.Item>
             <Form.Item name="jvm" label={"VM options"} rules={[{required: false}]}>
                 <Input/>
             </Form.Item>
@@ -65,4 +66,4 @@ const ServerConfigForm: any = memo((props: any) => {
         </Form>
     );
 });
-export default ServerConfigForm;
+export default ServerConfig;

@@ -3,20 +3,24 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
 import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.PropertyFileUtils;
+import com.mz.jarboot.utils.SettingUtils;
+import com.mz.jarboot.utils.TaskUtils;
+import com.mz.jarboot.ws.WebSocketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -29,8 +33,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunDao taskRunDao;
-    @Value("${root-path:}")
-    private String rootPath;
+
     //阻塞队列，监控到目录变化则放入队列
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
@@ -66,7 +69,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private void initPathMonitor() {
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             //初始化路径监控
-            String servicesPath = this.rootPath + File.separator + CommonConst.SERVICES_DIR;
+            String servicesPath = SettingUtils.getServicesPath();
             final Path monitorPath = Paths.get(servicesPath);
             //给path路径加上文件观察服务
             monitorPath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
@@ -110,7 +113,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 return;
             }
             ServerSettingDTO setting = PropertyFileUtils.getServerSetting(service);
-            if (setting.getJarUpdateWatch()) {
+            if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(service);
             }
@@ -128,7 +131,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      */
     @Override
     public void enablePathWatch(Boolean enabled) {
-
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -138,7 +141,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      */
     @Override
     public void addDaemonService(String serviceName) {
-
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -148,6 +151,36 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      */
     @Override
     public void removeDaemonService(String serviceName) {
+        throw new UnsupportedOperationException();
+    }
 
+    @EventListener
+    public void onAgentOfflineEvent(AgentOfflineEvent event) {
+        String server = event.getServer();
+        //检查进程是否存活
+        if (TaskUtils.isAlive(server)) {
+            //检查是否处于中间状态
+            String status = taskRunDao.getTaskStatus(server);
+            if (CommonConst.STATUS_STARTING.equals(status) || CommonConst.STATUS_STOPPING.equals(status)) {
+                //处于中间状态，此时不做干预，守护只针对正在运行的进程
+                return;
+            }
+        }
+
+        //获取是否开启了守护
+        ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
+        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
+        String s = sdf.format(new Date(event.getOfflineTime()));
+        if (Boolean.TRUE.equals(setting.getDaemon())) {
+            WebSocketManager.getInstance().noticeWarn(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s));
+            List<String> list = new ArrayList<>();
+            list.add(server);
+            TaskEvent ev = new TaskEvent();
+            ev.setEventType(TaskEventEnum.DAEMON_START);
+            ev.setServices(list);
+            ctx.publishEvent(ev);
+        } else {
+            WebSocketManager.getInstance().noticeWarn(String.format("服务%s于%s异常退出，请检查服务状态！", server, s));
+        }
     }
 }

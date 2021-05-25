@@ -4,7 +4,7 @@ class StringUtil {
      * @param {*} object
      * @return {Boolean} isString
      */
-    static isString(object) {
+    public static isString(object: any) {
         return (object instanceof String || typeof object === 'string' || (this.isNotNull(object) && object.constructor === String));
     };
 
@@ -13,8 +13,8 @@ class StringUtil {
      * @param {String} str
      *
      */
-    static isEmpty(str) {
-        return !!(this.isNull(str) || (this.isString(str) && str.trim() === ""));
+    public static isEmpty(str: string) {
+        return (this.isNull(str) || (this.isString(str) && str.trim() === ""));
     }
 
     /**
@@ -22,7 +22,7 @@ class StringUtil {
      * @param {String} str
      *
      */
-    static isNotEmpty(str) {
+    public static isNotEmpty(str: string) {
         return !this.isEmpty(str);
     }
 
@@ -32,11 +32,11 @@ class StringUtil {
      * @param positive
      * @return {Boolean} isNumber
      */
-    static isInt(str, positive = true) {
+    public static isInt(str: string, positive = true) {
         let exp = "^[0-9]*$";
-        if (positive === true) {
+        if (positive) {
             exp = "^\\d+$";
-        } else if (positive === false) {
+        } else if (!positive) {
             exp = "^((-\\d+)|(0+))$";
         }
         let reg = new RegExp(exp);
@@ -50,11 +50,11 @@ class StringUtil {
      * @param {Boolean} positive 是否为正数,true验证非负浮点,false验证非正浮点
      * @return {Boolean}
      */
-    static isFloat(str, positive = true) {
+    public static isFloat(str: string, positive = true) {
         let exp = "^(-?\\d+)(\\.\\d+)?$";
-        if (positive === true) {
+        if (positive) {
             exp = "^\\d+(\\.\\d+)?$";
-        } else if (positive === false) {
+        } else if (!positive) {
             exp = "^((-\\d+(\\.\\d+)?)|(0+(\\.0+)?))$";
         }
         const reg = new RegExp(exp);
@@ -67,7 +67,7 @@ class StringUtil {
      * @param {Boolean} positive 是否为正数,true验证非负浮点,false验证非正浮点
      * @return {Boolean}
      */
-    static isNumber(str, positive = true) {
+    public static isNumber(str: string, positive = true) {
         //先验证是否为整数
         let valid = this.isInt(str, positive);
         //若不为整数,再验证是否为浮点数
@@ -82,7 +82,7 @@ class StringUtil {
      * @param {String} str
      * @return {Boolean}
      */
-    static isNumberUnsigned(str) {
+    public static isNumberUnsigned(str: string) {
         let valid = this.isNumber(str, true);
         if (valid === false) {
             valid = this.isNumber(str, false);
@@ -93,14 +93,14 @@ class StringUtil {
     /**
      * 判断是否为null或undefined
      */
-    static isNull(obj) {
+    public static isNull(obj: any) {
         return obj === null || obj === undefined;
     }
 
     /**
      * 判断是否不为null和undefined
      */
-    static isNotNull(obj) {
+    public static isNotNull(obj: any) {
         if (obj != null && obj != undefined) {
             return true;
         }
@@ -111,7 +111,7 @@ class StringUtil {
      * 将值转换为boolean
      * 仅当值为1或true或"true"或"TRUE"时,返回true
      */
-    static toBoolean(val) {
+    public static toBoolean(val: any) {
         return !!(this.isNotEmpty(val) && (val === 1 || val === "1" || val === true || val === "true" || val === "TRUE"));
     }
 
@@ -119,7 +119,7 @@ class StringUtil {
      * 数组转为字符串,形式如: "1","2","3"
      *
      */
-    static arrayToString(arr, spliter = ",") {
+    public static arrayToString(arr: any, spliter = ",") {
         let str = "";
         if (this.isNotNull(arr)) {
             for (let i = 0; i < arr.length; i++) {
@@ -136,7 +136,7 @@ class StringUtil {
      * 判断是否为JSON字符串
      * @param {String} str
      */
-    static isJsonStr(str) {
+    public static isJsonStr(str: any) {
         try {
             if (typeof JSON.parse(str) == "object") {
                 return true;

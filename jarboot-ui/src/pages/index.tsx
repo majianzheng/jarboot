@@ -1,10 +1,9 @@
 import * as React from "react";
-// @ts-ignore
-import Dashboard from "@/components/dashboard/Dashboard";
-import ServerSetting from "@/components/serverSetting/ServerSetting";
 import {Tabs, ConfigProvider, Select} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
+import {GlobalSetting, ServerSetting, Dashboard} from "@/components";
+import ArthasAdapterView from "@/pages/arthas/ArthasAdapterView";
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh': zh_CN, 'en': en_GB};
@@ -30,14 +29,17 @@ export default class Index extends React.PureComponent {
                                routes={[{path: "first", breadcrumbName: "服务管理"},]}/>
                 </TabPane>
                 <TabPane key={'1'} tab={"Arthas"}>
-                    <iframe src={"/jarboot-service/arthas"} style={{width: '100%', height: '90vh'}} frameBorder={0}/>
+                    <ArthasAdapterView/>
                 </TabPane>
                 <TabPane key={'2'} tab={"服务设置"}>
                     <ServerSetting/>
                 </TabPane>
                 <TabPane key={'3'} tab={"全局配置"}>
-                    开发中...
+                    <div style={{width: '66%'}}>
+                        <GlobalSetting/>
+                    </div>
                 </TabPane>
-            </Tabs></ConfigProvider>;
+            </Tabs>
+        </ConfigProvider>;
     }
 }
