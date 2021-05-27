@@ -2,19 +2,22 @@
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
 
+[![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
+[![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
+
 <code>Jarboot</code> 是一个管理、监控及调试一系列Java进程的工具
 
 在测试环境、每日构建的集成测试环境，可以把一系列编译输出等jar文件放入指定等目录，由<code>Jarboot</code>提供友好的浏览器ui界面和http接口，统一管理它的启动、停止及状态的监控。界面同时集成了<code>Arthas</code><sup id="a1">[[1]](#f1)</sup> 调试工具（开发中），支持远程通过<code>Jarboot</code>的界面对目标进程调试。
 
 ## 技术背景及目标
-<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码目前仅用于和<code>Jarboot</code> 的服务保持连接，以确定其状态，以及Java进程的优雅退出，后续会陆续加入与<code>Arthas</code>类似的功能，如监控线程状态、获取线程栈信息等。但它的功能定位与<code>Arthas</code>不同，虽然使用了同样的技术（agent和asm），<code>Jarboot</code> 更偏向于面向开发、测试、集成等，Arthas主要面向开发、运维。
+<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，后续会陆续加入与<code>Arthas</code>类似的命令系统，如监控线程状态、获取线程栈信息等。但它的功能定位与<code>Arthas</code>不同，虽然使用了同样的技术（agent和asm），<code>Jarboot</code> 更偏向于面向开发、测试、集成等，Arthas主要面向开发、运维。
 
 - 🌈浏览器界面管理，一键启、停服务(已实现)
 - 🔥支持启动、停止优先级配置<sup id="a2">[[2]](#f2)</sup>（已实现）
 - ⭐️支持进程守护，开启后若服务异常退出则自动启动并通知（已实现）
 - ☀️支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[3]](#f3)</sup>（已实现）
 - ❤️远程调试、查看进程信息（已实现通过Arthas调试，在全局配置里配置Arthas路径或设置ARTHAS_HOME环境变量）
-- 调试命令执行（开发中）
+- 🚀调试命令执行（开发中）
 
 采用<code>前后端分离</code>架构，前端界面采用<code>React</code>技术，脚手架使用<code>Umi</code>，组件库使用Umi内置等<code>antd</code>。后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
