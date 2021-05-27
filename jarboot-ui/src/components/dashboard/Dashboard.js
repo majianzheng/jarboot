@@ -3,7 +3,7 @@ import styles from "./index.less";
 import {Button, Card, Tag, Space, AutoComplete, Input} from "antd";
 import PropTypes from "prop-types";
 import CommonTable from "../commonTable/CommonTable";
-import SettingService from "../../services/SettingService";
+import ServerMgrService from "../../services/ServerMgrService";
 import CommonNotice from '../../common/CommonNotice';
 import StringUtil from "../../common/StringUtil";
 import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, EnterOutlined, LoadingOutlined,
@@ -12,6 +12,7 @@ import Console from "../console/Console";
 import {JarBootConst} from '../../common/JarBootConst';
 import WsManager from "./WsManager";
 import ErrorUtil from '../../common/ErrorUtil';
+import Logger from "../../common/Logger";
 
 export default class Dashboard extends React.Component {
     static defaultProps = {
@@ -51,20 +52,20 @@ export default class Dashboard extends React.Component {
 
     _onWebSocketMessage = data => {
         if (StringUtil.isEmpty(data)) {
-            console.log(`接受到空数据！`);
+            Logger.log(`接受到空数据！`);
             return;
         }
         let msgBody = null;
         try {
             msgBody = JSON.parse(data);
         } catch (error) {
-            console.warn(error);
-            console.log(data);
+            Logger.warn(error);
+            Logger.log(data);
             CommonNotice.error(`解析消息失败！`);
             return;
         }
         if (this.methodMap.size <= 0) {
-            console.log("this.methodMap 为空！");
+            Logger.log("this.methodMap 为空！");
             return;
         }
         const handler = this.methodMap.get(msgBody.server);
@@ -73,39 +74,44 @@ export default class Dashboard extends React.Component {
                 handler.appendLine(msgBody.text);
                 break;
             case JarBootConst.MSG_TYPE_START:
-                console.log(`启动中${msgBody.server}...`);
+                Logger.log(`启动中${msgBody.server}...`);
                 handler.startLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
-                console.log(`停止中${msgBody.server}...`);
+                Logger.log(`停止中${msgBody.server}...`);
                 handler.startLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
-                console.log(`启动失败${msgBody.server}`);
+                Logger.log(`启动失败${msgBody.server}`);
                 CommonNotice.error(`启动服务${msgBody.server}失败！`);
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
-                console.log(`启动成功${msgBody.server}`);
+                Logger.log(`启动成功${msgBody.server}`);
                 handler.finishLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTED, msgBody.text)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
-                console.log(`停止失败${msgBody.server}`);
+                Logger.log(`停止失败${msgBody.server}`);
                 CommonNotice.error(`停止服务${msgBody.server}失败！`);
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
-                console.log(`停止成功${msgBody.server}`);
+                Logger.log(`停止成功${msgBody.server}`);
                 handler.finishLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
-                console.log(`重启成功${msgBody.server}`);
+                Logger.log(`重启成功${msgBody.server}`);
                 handler.finishLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTED, msgBody.text)
+                break;
+            case JarBootConst.MSG_TYPE_CMD_FINISH:
+                handler.appendLine(msgBody.text);
+                this.setState({executing: false});
+                handler.finishLoading();
                 break;
             case JarBootConst.NOTICE_ERROR:
             case JarBootConst.NOTICE_WARN:
@@ -230,8 +236,6 @@ export default class Dashboard extends React.Component {
                     selectedRowKeys: [record.name],
                     selectRows: [record],
                     current: record.name,
-                }, () => {
-                    //TODO 切换配置，并保存
                 });
             },
             onDoubleClick: event => {
@@ -257,7 +261,7 @@ export default class Dashboard extends React.Component {
 
     refreshWebServerList = () => {
         this.setState({loading: true});
-        SettingService.getServerList(resp => {
+        ServerMgrService.getServerList(resp => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
@@ -265,7 +269,13 @@ export default class Dashboard extends React.Component {
             }
             this.setState({data: resp.result});
           this._initAllServerOut(resp.result);
-        }, errorMsg => console.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        }, errorMsg => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
+    };
+    _finishCallback = resp => {
+        this.setState({loading: false});
+        if (resp.resultCode < 0) {
+            CommonNotice.error(resp.resultMsg);
+        }
     };
     startServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
@@ -275,12 +285,8 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.startServer(this.state.selectedRowKeys, resp => {
-            this.setState({loading: false});
-            if (resp.resultCode < 0) {
-                CommonNotice.error(resp.resultMsg);
-            }
-        }, errorMsg => console.log(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback,
+                errorMsg => Logger.log(ErrorUtil.formatErrResp(errorMsg)));
     };
     _clearDisplay = server => {
       const handler = this.methodMap.get(server);
@@ -294,12 +300,8 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.stopServer(this.state.selectedRowKeys, resp => {
-            this.setState({loading: false});
-            if (resp.resultCode < 0) {
-                CommonNotice.error(resp.resultMsg);
-            }
-        }, errorMsg => CommonNotice.error(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback,
+                errorMsg => CommonNotice.error(ErrorUtil.formatErrResp(errorMsg)));
     };
     restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
@@ -309,12 +311,8 @@ export default class Dashboard extends React.Component {
         this.setState({out: "", loading: true});
         this.initWebsocket();
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        SettingService.restartServer(this.state.selectedRowKeys, resp => {
-            this.setState({loading: false});
-            if (resp.resultCode < 0) {
-                CommonNotice.error(resp.resultMsg);
-            }
-        }, errorMsg => CommonNotice.error(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback,
+                errorMsg => CommonNotice.error(ErrorUtil.formatErrResp(errorMsg)));
     };
     _getTbBtnProps = () => {
         return [
@@ -348,17 +346,17 @@ export default class Dashboard extends React.Component {
     oneClickRestart = () => {
         this.initWebsocket();
         this._disableOnClickButton();
-        SettingService.oneClickRestart();
+        ServerMgrService.oneClickRestart();
     };
     oneClickStart = () => {
         this.initWebsocket();
         this._disableOnClickButton();
-        SettingService.oneClickStart();
+        ServerMgrService.oneClickStart();
     };
     oneClickStop = () => {
         this.initWebsocket();
         this._disableOnClickButton();
-        SettingService.oneClickStop();
+        ServerMgrService.oneClickStop();
     };
     _disableOnClickButton() {
         if (this.state.oneClickLoading) {
@@ -397,10 +395,13 @@ export default class Dashboard extends React.Component {
         this.setState({executing: true});
         const handler = this.methodMap.get(this.state.current);
         handler.appendLine(`>${this.state.command}`);
-        SettingService.sendCommand(this.state.current, this.state.command, () => {
-            this.setState({executing: false});
-            handler.finishLoading();
-        });
+        //格式：cmd 服务名 命令
+        const text = `cmd ${this.state.current} ${this.state.command}`;
+        WsManager.sendMessage(text);
+        // ServerMgrService.sendCommand(this.state.current, this.state.command, () => {
+        //     this.setState({executing: false});
+        //     handler.finishLoading();
+        // });
     };
     render() {
         let tableOption = this._getTbProps();

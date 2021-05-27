@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -95,12 +94,11 @@ public class VMUtils {
         } catch (ClassNotFoundException e) {
             //ignore
         }
-        URLClassLoader classLoader = null;
         try {// NOSONAR
             if (null == vmClass || null == vmdClass) {
                 //当前可能是用jre在运行，尝试加载tools.jar
                 URL url = getVMToolsUrl();
-                classLoader = new URLClassLoader(new URL[]{url});
+                URLClassLoader classLoader = new URLClassLoader(new URL[]{url});// NOSONAR
                 vmClass = classLoader.loadClass(vmClassName);
                 vmdClass = classLoader.loadClass(vmdClassName);
             }
@@ -113,14 +111,6 @@ public class VMUtils {
         } catch (Exception e) {
             //加载jdk的tools.jar失败
             throw new IllegalStateException("Load tools.jar failed, make sure you are using a jdk not a jre.", e);
-        } finally {
-            if (null != classLoader) {
-                try {
-                    classLoader.close();
-                } catch (IOException e) {
-                    //ignore
-                }
-            }
         }
     }
 

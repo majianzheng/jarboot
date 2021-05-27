@@ -17,8 +17,4 @@ export default class ArthasAdapterService {
     public static getCurrentRunning() {
         return Request.get(`${urlBase}/getCurrentRunning`, {});
     }
-
-    public static stopCurrentArthasInstance() {
-        return Request.get(`${urlBase}/stopCurrentArthasInstance`, {});
-    }
 }

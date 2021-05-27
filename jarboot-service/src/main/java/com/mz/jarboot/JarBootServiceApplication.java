@@ -2,6 +2,7 @@ package com.mz.jarboot;
 
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.service.TaskWatchService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -22,6 +23,7 @@ public class JarBootServiceApplication {
 
 		ApplicationContext context = SpringApplication.run(JarBootServiceApplication.class, args);
 		ApplicationContextUtils.setContext(context);
+		TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
+		taskWatchService.init();
 	}
-
 }

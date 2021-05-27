@@ -1,5 +1,6 @@
 package com.mz.jarboot.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
@@ -15,6 +16,7 @@ import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 
@@ -60,16 +62,22 @@ public class SettingUtils {
         String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
         File file = FileUtils.getFile(conf);
         if (file.isDirectory()) {
-            logger.error("存在与配置文件相同的文件夹名称！");
-            return;
+            try {
+                FileUtils.deleteDirectory(file);
+            } catch (IOException e) {
+                logger.error("存在与配置文件相同的文件夹名称，删除失败！");
+                return;
+            }
         }
+
         if (!file.exists()) {
             //不存在配置文件
             return;
         }
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            globalSetting = (GlobalSettingDTO) ois.readObject();
-        } catch (Exception e) {
+        try {
+            String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+            globalSetting = JSON.parseObject(content, GlobalSettingDTO.class);
+        } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
     }
@@ -105,17 +113,17 @@ public class SettingUtils {
         } else {
             File dir = new File(arthasHome);
             if (!dir.isDirectory() || !dir.exists()) {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
+                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", arthasHome));
             }
         }
 
         String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
         File file = FileUtils.getFile(conf);
-        try (ObjectOutputStream oo = new ObjectOutputStream(new FileOutputStream(file))){
+        try {
             if (file.isDirectory()) {
                 FileUtils.deleteDirectory(file);
             }
-            oo.writeObject(file);
+            FileUtils.writeStringToFile(file, JSON.toJSONString(setting), StandardCharsets.UTF_8);
             //再更新到内存
             globalSetting = setting;
         } catch (Exception e) {
@@ -145,30 +153,15 @@ public class SettingUtils {
         return StringUtils.isNotEmpty(os) && os.startsWith("Mac");
     }
 
-    public static void initTargetVM(String server, int pid) {
-        Object vm;
-        try {
-            vm = VMUtils.getInstance().attachVM(pid);
-        } catch (Exception e) {
-            //ignore
-            return;
-        }
-        try {
-            VMUtils.getInstance().loadAgentToVM(vm, agentJar, getAgentArgs(server));
-        } catch (Exception e) {
-            //ignore
-        } finally {
-            if (null != vm) {
-                VMUtils.getInstance().detachVM(vm);
-            }
-        }
-    }
-
     public static String getAgentStartOption(String server) {
         return "-javaagent:" + agentJar + "=" + getAgentArgs(server);
     }
 
-    private static String getAgentArgs(String server) {
+    public static String getAgentJar() {
+        return agentJar;
+    }
+
+    public static String getAgentArgs(String server) {
         JSONObject json = new JSONObject();
         json.put("host", "127.0.0.1:9899");
         json.put("server", server);

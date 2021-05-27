@@ -1,3 +1,6 @@
+import CommonNotice from "@/common/CommonNotice";
+import ErrorUtil from "@/common/ErrorUtil";
+
 class JarBootConst {
     public static MSG_TYPE_START = "START";
     public static MSG_TYPE_STOP = "STOP";
@@ -7,11 +10,7 @@ class JarBootConst {
     public static MSG_TYPE_START_ERROR = "START_ERROR";
     public static MSG_TYPE_STOP_ERROR = "STOP_ERROR";
     public static MSG_TYPE_OUT = "OUT";
-    private static MSG_TYPE_NOTICE = "NOTICE";
-
-    public static SERVER_TYPE_WEB = "WEB";
-    public static SERVER_TYPE_CORE = "CORE";
-    public static SERVER_TYPE_EXT = "EXT";
+    private static MSG_TYPE_CMD_FINISH = "CMD_ACK";
 
     //进程状态
     public static STATUS_STARTED = '正在运行';
@@ -30,4 +29,13 @@ interface MessageBody {
     msgType: string;
     text: string;
 }
-export {JarBootConst, MessageBody};
+
+const requestFinishCallback = (resp: any) => {
+    if (resp.resultCode === 0) {
+        CommonNotice.info('请求成功');
+    } else {
+        CommonNotice.error(ErrorUtil.formatErrResp(resp));
+    }
+};
+
+export {JarBootConst, MessageBody, requestFinishCallback};

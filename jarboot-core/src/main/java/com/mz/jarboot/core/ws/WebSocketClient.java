@@ -89,8 +89,16 @@ public final class WebSocketClient {
         } catch (InterruptedException e) {
             //ignore
             Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            //ignore
         }
-        return channel.isActive();
+        if (null == channel) {
+            logger.error("channel is null");
+        } else {
+            logger.debug("isActive:{}, isOpen:{}", channel.isActive(), channel.isOpen());
+        }
+
+        return null != channel && channel.isActive() && channel.isOpen();
     }
 
     private int parsePort(String scheme) {
@@ -110,8 +118,16 @@ public final class WebSocketClient {
     }
 
     public void disconnect() {
-        channel.writeAndFlush(new CloseWebSocketFrame(WebSocketCloseStatus.NORMAL_CLOSURE));
-        channel.disconnect();
-        this.group.shutdownGracefully();
+        try {
+            channel.writeAndFlush(new CloseWebSocketFrame(WebSocketCloseStatus.NORMAL_CLOSURE));
+            channel.disconnect();
+        } catch (Exception e) {
+            //ignore
+        }
+        try {
+            this.group.shutdownGracefully();
+        } catch (Exception e) {
+            //ignore
+        }
     }
 }

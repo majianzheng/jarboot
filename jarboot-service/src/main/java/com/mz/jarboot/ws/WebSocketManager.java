@@ -69,14 +69,19 @@ public class WebSocketManager {
         }
     }
 
-    private String formatMsg(String server, String msgType, String text) {
+    public static void sendMsg(final Session session, String server, String msgType, String text) {
+        String msg = formatMsg(server, msgType, text);
+        sendTextMessage(session, msg);
+    }
+
+    private static String formatMsg(String server, String msgType, String text) {
         JSONObject json = new JSONObject();
         json.put("server", server);
         json.put("msgType", msgType);
         json.put("text", text);
         return json.toJSONString();
     }
-    private void sendTextMessage(final Session session, String msg) {
+    private static void sendTextMessage(final Session session, String msg) {
         if (!session.isOpen()) {
             return;
         }

@@ -1,4 +1,3 @@
-import * as React from "react";
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
 import {memo, useEffect} from "react";
 import SettingService from "../../services/SettingService";
@@ -16,8 +15,6 @@ const tailLayout = {
 const ServerConfig: any = memo((props: any) => {
     const [form] = Form.useForm();
     const onReset = () => {
-        //form.resetFields();
-        console.log(props);
         SettingService.getServerSetting(props.server
         ).then((resp: any) => {
             if (0 !== resp.resultCode) {

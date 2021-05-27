@@ -1,9 +1,9 @@
-import * as React from "react";
 import {Form, Input, Button, InputNumber} from 'antd';
-import {memo} from "react";
+import React, {memo, useEffect} from "react";
 import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "../../common/ErrorUtil";
+import Logger from "@/common/Logger";
 
 const layout = {
     labelCol: {span: 8},
@@ -15,9 +15,9 @@ const tailLayout = {
 
 const GlobalSetting: any = memo((props: any) => {
     const [form] = Form.useForm();
+
     const onReset = () => {
-        //form.resetFields();
-        console.log(props);
+        Logger.log(props);
         SettingService.getGlobalSetting().then((resp: any) => {
             if (0 !== resp.resultCode) {
                 CommonNotice.error(ErrorUtil.formatErrResp(resp));
@@ -26,7 +26,7 @@ const GlobalSetting: any = memo((props: any) => {
             form.setFieldsValue(resp.result);
         }).catch((error: any) => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     };
-
+    useEffect(() => onReset());
     const onSubmit = (data: any) => {
         SettingService.submitGlobalSetting(data);
     };

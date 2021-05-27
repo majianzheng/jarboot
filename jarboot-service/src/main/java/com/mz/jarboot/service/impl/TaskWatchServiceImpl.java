@@ -1,7 +1,11 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
+import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
@@ -10,14 +14,15 @@ import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
+import com.mz.jarboot.utils.VMUtils;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
@@ -33,12 +38,17 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunDao taskRunDao;
+    private boolean initialized = false;
 
     //阻塞队列，监控到目录变化则放入队列
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
-    @PostConstruct
+    @Override
     public void init() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         //路径监控生产者
         taskExecutor.execute(this::initPathMonitor);
         //路径监控消费者
@@ -64,6 +74,27 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 }
             }
         });
+
+        //attach已经处于启动的进程
+        List<ServerRunningDTO> runningServers = taskRunDao.getServerList();
+        if (CollectionUtils.isEmpty(runningServers)) {
+            return;
+        }
+        runningServers.forEach(this::attachToRunningServer);
+    }
+
+    /**
+     * attach到服务
+     *
+     * @param server 服务
+     */
+    @Override
+    public void attachServer(String server) {
+        int pid = TaskUtils.getServerPid(server);
+        if (CommonConst.INVALID_PID == pid) {
+            throw new MzException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
+        }
+        this.attach(server, pid);
     }
 
     private void initPathMonitor() {
@@ -124,47 +155,57 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
     }
 
-    /**
-     * 是否启用路径监控
-     *
-     * @param enabled 是否启用
-     */
-    @Override
-    public void enablePathWatch(Boolean enabled) {
-        throw new UnsupportedOperationException();
+    private void attach(String server, int pid) {
+        Object vm;
+        try {
+            vm = VMUtils.getInstance().attachVM(pid);
+        } catch (Exception e) {
+            //ignore
+            return;
+        }
+        try {
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server));
+        } catch (Exception e) {
+            //ignore
+        } finally {
+            if (null != vm) {
+                VMUtils.getInstance().detachVM(vm);
+            }
+        }
     }
 
-    /**
-     * 添加要守护的服务
-     *
-     * @param serviceName 服务名
-     */
-    @Override
-    public void addDaemonService(String serviceName) {
-        throw new UnsupportedOperationException();
-    }
+    private void attachToRunningServer(ServerRunningDTO server) {
+        if (null == server.getPid()) {
+            return;
+        }
+        int pid = server.getPid();
+        if (CommonConst.INVALID_PID == pid) {
+            return;
+        }
 
-    /**
-     * 移除要守护的服务
-     *
-     * @param serviceName 服务名
-     */
-    @Override
-    public void removeDaemonService(String serviceName) {
-        throw new UnsupportedOperationException();
+        if (AgentManager.getInstance().isOnline(server.getName())) {
+            //已经是在线状态
+            return;
+        }
+
+        this.attach(server.getName(), pid);
     }
 
     @EventListener
     public void onAgentOfflineEvent(AgentOfflineEvent event) {
         String server = event.getServer();
         //检查进程是否存活
-        if (TaskUtils.isAlive(server)) {
+        int pid = TaskUtils.getServerPid(server);
+        if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
             String status = taskRunDao.getTaskStatus(server);
-            if (CommonConst.STATUS_STARTING.equals(status) || CommonConst.STATUS_STOPPING.equals(status)) {
-                //处于中间状态，此时不做干预，守护只针对正在运行的进程
+            if (CommonConst.STATUS_STOPPING.equals(status)) {
+                //处于停止中状态，此时不做干预，守护只针对正在运行的进程
                 return;
             }
+            //尝试重新初始化代理客户端
+            attach(server, pid);
+            return;
         }
 
         //获取是否开启了守护

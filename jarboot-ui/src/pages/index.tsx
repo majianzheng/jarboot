@@ -10,6 +10,12 @@ const localeMap: any = {'zh': zh_CN, 'en': en_GB};
 
 export default class Index extends React.PureComponent {
     state = {locale: 'zh'};
+    componentDidMount() {
+        console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color:yellow');
+        console.log(`%c(灬°ω°灬) `, 'color:yellow');
+        console.log(`%c（づ￣3￣）づ╭❤～`, 'color:yellow');
+    }
+
     private _onLocaleChange = (locale: string) => {
         this.setState({locale});
     };

@@ -2,24 +2,19 @@ package com.mz.jarboot.service.impl;
 
 import com.google.common.base.Stopwatch;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dao.TaskRunDao;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.event.TaskEvent;
-import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.ServerMgrService;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -40,38 +35,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
     @Override
     public List<ServerRunningDTO> getServerList() {
-        List<ServerRunningDTO> serverList = new ArrayList<>();
-        File[] serviceDirs = getServerDirs();
-        for (File f : serviceDirs) {
-            String server = f.getName();
-            if (existJar(f)) {
-                ServerRunningDTO p = new ServerRunningDTO();
-                p.setName(server);
-                serverList.add(p);
-            }
-        }
-        updateServerInfo(serverList);
-        return serverList;
-    }
-    private boolean existJar(File dir) {
-        if (!dir.isDirectory()) {
-            return false;
-        }
-        String[] extensions = {"jar"};
-        Collection<File> execJar =  FileUtils.listFiles(dir, extensions, false);
-        return 1 == execJar.size();
-    }
-
-    private List<String> getServerNameList() {
-        File[] serviceDirs = getServerDirs();
-        List<String> allWebServerList = new ArrayList<>();
-        for (File f : serviceDirs) {
-            String server = f.getName();
-            if (existJar(f)) {
-                allWebServerList.add(server);
-            }
-        }
-        return allWebServerList;
+        return taskRunDao.getServerList();
     }
 
     /**
@@ -84,7 +48,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             return;
         }
         //获取所有的服务
-        List<String> allWebServerList = getServerNameList();
+        List<String> allWebServerList = taskRunDao.getServerNameList();
         //同步控制，保证所有的都杀死后再重启
         if (CollectionUtils.isNotEmpty(allWebServerList)) {
             //启动服务
@@ -101,7 +65,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().noticeError("一键启动，当前有正在启动或关闭的服务在执行中，请稍后再试");
             return;
         }
-        List<String> allWebServerList = getServerNameList();
+        List<String> allWebServerList = taskRunDao.getServerNameList();
         //启动服务
         this.startServer(allWebServerList);
     }
@@ -115,22 +79,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().noticeError("一键停止，当前有正在启动或关闭的服务在执行中，请稍后再试");
             return;
         }
-        List<String> allWebServerList = getServerNameList();
+        List<String> allWebServerList = taskRunDao.getServerNameList();
         //启动服务
         this.stopServer(allWebServerList);
-    }
-
-    private File[] getServerDirs() {
-        String servicesPath = SettingUtils.getServicesPath();
-        File servicesDir = new File(servicesPath);
-        if (!servicesDir.isDirectory() || !servicesDir.exists()) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
-        }
-        File[] serviceDirs = servicesDir.listFiles((dir, name) -> !StringUtils.equals("lib", name));
-        if (null == serviceDirs || serviceDirs.length < 1) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
-        }
-        return serviceDirs;
     }
 
     /**
@@ -324,27 +275,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_RUNNING, pid);
 
         WebSocketManager.getInstance().sendStartedMessage(server, pid);
-    }
-
-    private void updateServerInfo(List<ServerRunningDTO> server) {
-        Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();
-        server.forEach(item -> {
-            Integer pid = pidCmdMap.getOrDefault(item.getName(), -1);
-            String status = taskRunDao.getTaskStatus(item.getName());
-            if (null == pid || CommonConst.INVALID_PID == pid) {
-                item.setStatus(CommonConst.STATUS_STOPPED);
-                return;
-            }
-            item.setPid(pid);
-            //未发现ip和端口配置时的运行中的判定
-            Date actionTime = taskRunDao.getActionTime(item.getName());
-            //点击开始超过60秒，或jarboot重启过时，存在pid则判定为已经启动
-            if (null == actionTime || ((System.currentTimeMillis() - actionTime.getTime()) > 60000)) {
-                item.setStatus(CommonConst.STATUS_RUNNING);
-                return;
-            }
-            item.setStatus(status);
-        });
     }
 
     @EventListener

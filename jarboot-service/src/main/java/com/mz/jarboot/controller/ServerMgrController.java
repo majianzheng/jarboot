@@ -77,29 +77,12 @@ public class ServerMgrController {
     @PostMapping(value="/sendCommand")
     @ResponseBody
     public CommandResponse sendCommand(@RequestParam String server,
-                                       @RequestBody Command command) {
+                                       @RequestParam String command) {
         //检查是否attached
         CommandResponse resp = AgentManager.getInstance().sendCommandSync(server, command);
         if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
             WebSocketManager.getInstance().sendOutMessage(server, resp.getResultMsg());
         }
         return resp;
-    }
-
-    @ApiOperation(hidden = true, value = "agent的应答", httpMethod = "POST")
-    @PostMapping(value="/ack")
-    @ResponseBody
-    public ResponseSimple ack(@RequestParam String server, @RequestBody CommandResponse resp) {
-        switch (resp.getType()) {
-            case CommandConst.ACK_TYPE:
-                AgentManager.getInstance().onAck(server, resp);
-                break;
-            case CommandConst.CONSOLE_TYPE:
-                WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
-                break;
-            default:
-                break;
-        }
-        return new ResponseSimple();
     }
 }

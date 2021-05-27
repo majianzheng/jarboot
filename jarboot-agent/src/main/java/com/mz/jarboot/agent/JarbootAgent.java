@@ -50,9 +50,29 @@ public class JarbootAgent {// NOSONAR
         return jarbootClassLoader;
     }
 
+    private static void clientCheckAndInit() {
+        try {
+            Class<?> bootClass = jarbootClassLoader.loadClass(JARBOOT_CLASS);
+            //获取实例
+            Object inst = bootClass.getMethod(GET_INSTANCE).invoke(null);
+            boolean isOnline = (boolean)bootClass.getMethod("isOnline").invoke(inst);
+            if (isOnline) {
+                ps.println("Agent客户端已经处于在线状态");
+            } else {
+                ps.println("Agent客户端不在线，开始重新连接中...");
+                bootClass.getMethod("initClient").invoke(inst);
+                ps.println("Agent客户端重新连接完成！");
+            }
+        } catch (Exception e) {
+            e.printStackTrace(ps);
+        }
+    }
+
     private static synchronized void main(String args, final Instrumentation inst) {
         if (INITED) {
             ps.println("jarboot Agent is already started!");
+            //检查是否在线
+            clientCheckAndInit();
             return;
         }
         ps.println("jarboot Agent start...");

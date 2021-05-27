@@ -1,5 +1,7 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.service.ArthasAdapterService;
 import io.swagger.annotations.Api;
@@ -22,33 +24,37 @@ public class ArthasAdapterController {
     @ApiOperation(value = "检查是否安装类Arthas", httpMethod = "GET")
     @GetMapping (value="/checkArthasInstalled")
     @ResponseBody
-    public ResponseSimple checkArthasInstalled() {
-        arthasAdapterService.checkArthasInstalled();
-        return new ResponseSimple();
+    public ResponseForObject<Boolean> checkArthasInstalled() {
+        try {
+            boolean isInstalled = arthasAdapterService.checkArthasInstalled();
+            return new ResponseForObject<>(isInstalled);
+        } catch (MzException e) {
+            return new ResponseForObject<>(e.getErrorCode(), e.getMessage());
+        }
     }
 
     @ApiOperation(value = "使用Arthas调试目标服务进程", httpMethod = "GET")
     @GetMapping(value="/attachToServer")
     @ResponseBody
     public ResponseSimple attachToServer(String server) {
-        arthasAdapterService.attachToServer(server);
-        return new ResponseSimple();
+        try {
+            arthasAdapterService.attachToServer(server);
+            return new ResponseSimple();
+        } catch (MzException e) {
+            return new ResponseSimple(e.getErrorCode(), e.getMessage());
+        }
     }
 
     @ApiOperation(value = "获取当前使用Arthas调试的目标服务", httpMethod = "GET")
     @GetMapping(value="/getCurrentRunning")
     @ResponseBody
-    public ResponseSimple getCurrentRunning() {
-        arthasAdapterService.getCurrentRunning();
-        return new ResponseSimple();
-    }
-
-    @ApiOperation(value = "停止Arthas调试", httpMethod = "GET")
-    @GetMapping(value="/stopCurrentArthasInstance")
-    @ResponseBody
-    public ResponseSimple stopCurrentArthasInstance() {
-        arthasAdapterService.stopCurrentArthasInstance();
-        return new ResponseSimple();
+    public ResponseForObject<String> getCurrentRunning() {
+        try {
+            String current = arthasAdapterService.getCurrentRunning();
+            return new ResponseForObject<>(current);
+        } catch (MzException e) {
+            return new ResponseForObject<>(e.getErrorCode(), e.getMessage());
+        }
     }
 
     @ApiOperation(hidden = true, value = "代理arthas界面", httpMethod = "GET")

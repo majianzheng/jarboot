@@ -35,31 +35,25 @@ public final class AgentClient {
         return this.state;
     }
 
-    public CommandResponse sendCommand(Command command) {
+    public CommandResponse sendCommandSync(String command) {
         CommandResponse resp = new CommandResponse();
-        sendText(JSON.toJSONString(command));
-        if (Boolean.TRUE.equals(command.getAck())) {
-            try {
-                resp = respQueue.poll(CommonConst.MAX_RESPONSE_TIME, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                //ignore
-                Thread.currentThread().interrupt();
-            }
-            if (null == resp) {
-                resp = new CommandResponse();
-                resp.setResultCode(ResultCodeConst.TIME_OUT);
-                resp.setResultMsg("执行超时，" + command.getCmd());
-            }
+        sendText(command);
+        try {
+            resp = respQueue.poll(CommonConst.MAX_RESPONSE_TIME, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            //ignore
+            Thread.currentThread().interrupt();
+        }
+        if (null == resp) {
+            resp = new CommandResponse();
+            resp.setResultCode(ResultCodeConst.TIME_OUT);
+            resp.setResultMsg("执行超时");
         }
         return resp;
     }
 
-    public void sendCommand(String cmd, String param) {
-        Command command = new Command();
-        command.setCmd(cmd);
-        command.setParam(param);
-        command.setAck(false);
-        sendCommand(command);
+    public void sendCommand(String command) {
+        sendText(command);
     }
 
     public void onAck(CommandResponse resp) {

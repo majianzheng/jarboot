@@ -2,20 +2,13 @@ package com.mz.jarboot.service;
 
 public interface TaskWatchService {
     /**
-     * 是否启用路径监控
-     * @param enabled 是否启用
+     * 初始化监控
      */
-    void enablePathWatch(Boolean enabled);
+    void init();
 
     /**
-     * 添加要守护的服务
-     * @param serviceName 服务名
+     * attach到服务
+     * @param server 服务
      */
-    void addDaemonService(String serviceName);
-
-    /**
-     * 移除要守护的服务
-     * @param serviceName 服务名
-     */
-    void removeDaemonService(String serviceName);
+    void attachServer(String server);
 }

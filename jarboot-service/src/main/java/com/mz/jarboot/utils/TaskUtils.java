@@ -89,7 +89,7 @@ public class TaskUtils {
     }
 
     //得到jar的上级目录和自己: demo-service/demo.jar
-    private static String getJarWithServerName(String server) {
+    public static String getJarWithServerName(String server) {
         String jar = SettingUtils.getJarPath(server);
         int p = jar.lastIndexOf(File.separatorChar);
         if (-1 != p) {
@@ -169,12 +169,12 @@ public class TaskUtils {
         pidList.add(Integer.parseInt(builder.toString()));
     }
 
-    public static Process startTask(String command, PushMsgCallback callback) {
+    public static void startTask(String command, PushMsgCallback callback) {
         Process process;
         try {
             process = Runtime.getRuntime().exec(command);
         } catch (IOException e) {
-            return null;
+            return;
         }
         try (InputStream inputStream = process.getInputStream()){
             long timestamp = System.currentTimeMillis();
@@ -183,6 +183,7 @@ public class TaskUtils {
             for (;;) {
                 if (0 == inputStream.available()) {
                     long interval = Math.abs(System.currentTimeMillis() - timestamp);
+                    //超过一定时间进程没有输出信息时，认为启动完成
                     if (interval > 6000) {
                         break;
                     }
@@ -201,7 +202,6 @@ public class TaskUtils {
         } catch (IOException e) {
             callback.sendMessage(e.getLocalizedMessage());
         }
-        return process;
     }
 
     public static void killByName(String name, PushMsgCallback callback) {
@@ -223,7 +223,7 @@ public class TaskUtils {
         pidList.forEach( pid -> killByPid(pid, callback));
     }
 
-    private static boolean checkAliveByJar(String jar) {
+    public static boolean checkAliveByJar(String jar) {
         return !CollectionUtils.isEmpty(getJavaPidByName(jar));
     }
 

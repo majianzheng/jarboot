@@ -1,10 +1,11 @@
 import * as React from "react";
 import { List } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
-import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from '../../common/ErrorUtil';
 import styles from './index.less';
+import ServerMgrService from "@/services/ServerMgrService";
+import Logger from "@/common/Logger";
 
 export default class ServerSetting extends React.PureComponent {
 
@@ -14,7 +15,7 @@ export default class ServerSetting extends React.PureComponent {
     }
 
     private _query = () => {
-        SettingService.getServerList((resp: any) => {
+        ServerMgrService.getServerList((resp: any) => {
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
                 return;
@@ -23,7 +24,7 @@ export default class ServerSetting extends React.PureComponent {
             if (resp.result.length > 0)
                 current = resp.result[0].name;
             this.setState({data: resp.result, current});
-        }, (errorMsg: any) => console.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        }, (errorMsg: any) => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
     private _onSelect = (event: any) => {
         const current = event.target.title;

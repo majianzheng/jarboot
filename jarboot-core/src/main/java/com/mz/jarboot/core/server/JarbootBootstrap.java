@@ -11,7 +11,7 @@ import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.constant.JarbootCoreConstant;
-import com.mz.jarboot.core.cmd.CommandHandler;
+import com.mz.jarboot.core.cmd.CommandDispatch;
 import com.mz.jarboot.core.cmd.ResponseBuilder;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
@@ -25,10 +25,11 @@ import java.util.Base64;
 public class JarbootBootstrap {
     private static Logger logger;
     private static JarbootBootstrap bootstrap;
-    private TransformerManager transformerManager;
-    private CommandHandler handler;
+    private TransformerManager transformerManager; //NOSONAR
+    private CommandDispatch handler;
     private String host;
     private String serverName;
+    private WebSocketClient client;
     private boolean online = false;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
@@ -44,15 +45,23 @@ public class JarbootBootstrap {
         logger.info("获取参数>>>{}, server:{}", host, serverName);
         this.initClient();
     }
-    private void initClient() {
+    public void initClient() {
+        if (online) {
+            logger.warn("当前已经处于在线状态，不需要重新连接");
+            return;
+        }
+        if (null != client) {
+            //已经不在线，清理资源重新连接
+            logger.info("已离线，正在重新初始化客户端...");
+            client.disconnect();
+        }
         String url = String.format("ws://%s/jarboot-agent/ws", host);
         logger.debug("initClient {}", url);
-        WebSocketClient client = new WebSocketClient(url);
-        handler = new CommandHandler(String.format("http://%s/jarboot-service/ack?server=%s", host, serverName), client);
+        client = new WebSocketClient(url);
+        handler = new CommandDispatch(String.format("http://%s/api/agent/response?server=%s", host, serverName), client);
         boolean isOk = client.connect(new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
-                online = true;
                 logger.debug("连接成功>>>");
             }
 
@@ -82,6 +91,7 @@ public class JarbootBootstrap {
             }
         });
         logger.debug("连接结果>>>{}", isOk);
+        online = isOk;
         client.sendText(genOnlineResponse(serverName));
     }
 

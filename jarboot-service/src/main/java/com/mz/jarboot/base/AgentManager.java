@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class AgentManager {
-    private static volatile AgentManager instance = null;
+    private static volatile AgentManager instance = null; //NOSONAR
     private final Map<String, AgentClient> clientMap = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AgentManager(){}
@@ -77,7 +77,7 @@ public class AgentManager {
         synchronized (client) {// NOSONAR
             Stopwatch stopwatch = Stopwatch.createStarted();
             client.setState(ClientState.EXITING);
-            sendCommand(server, CommandConst.EXIT_CMD, null);
+            sendCommand(server, CommandConst.EXIT_CMD);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
                 client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
@@ -97,14 +97,14 @@ public class AgentManager {
         return true;
     }
 
-    public void sendCommand(String server, String cmd, String param) {
+    public void sendCommand(String server, String command) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null != client) {
-            client.sendCommand(cmd, param);
+            client.sendCommand(command);
         }
     }
 
-    public CommandResponse sendCommandSync(String server, Command command) {
+    public CommandResponse sendCommandSync(String server, String command) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
@@ -112,7 +112,7 @@ public class AgentManager {
             resp.setResultMsg("目标进程已经处于失联状态");
             return resp;
         }
-        return client.sendCommand(command);
+        return client.sendCommandSync(command);
     }
 
     public void onAck(String server, CommandResponse resp) {

@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
 
 public class StarterDesktopUI {
     private static final Logger logger = LoggerFactory.getLogger(StarterDesktopUI.class);
-
+    private static final String APP_TITLE = "启动管理系统";
     private TrayIcon trayIcon;
     private JFrame mainFrame;
     private boolean autoOpenMainPage = true;
@@ -22,7 +22,7 @@ public class StarterDesktopUI {
     }
 
     private void initUI() {
-        mainFrame = new JFrame("启动管理系统");
+        mainFrame = new JFrame(APP_TITLE);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setSize(300, 220);
         JPanel panel = new JPanel();
@@ -52,11 +52,11 @@ public class StarterDesktopUI {
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
         }
-        imageIcon = new ImageIcon(imageData, "启动管理系统");
+        imageIcon = new ImageIcon(imageData, APP_TITLE);
         mainFrame.setIconImage(imageIcon.getImage());
         trayIcon = new TrayIcon(imageIcon.getImage());
         trayIcon.setImageAutoSize(true);
-        trayIcon.setToolTip("启动管理系统");
+        trayIcon.setToolTip(APP_TITLE);
         popupMenu = new PopupMenu();
         //添加右键菜单
         MenuItem exit = new MenuItem("退出");
@@ -109,7 +109,7 @@ public class StarterDesktopUI {
             }
         });
         //show.addActionListener(e -> showEbrManagePage());
-        about.addActionListener(e -> this.info("关于", "启动管理系统"));
+        about.addActionListener(e -> this.info("关于", APP_TITLE));
     }
 
     public void setMainViewVisible(boolean visible) {

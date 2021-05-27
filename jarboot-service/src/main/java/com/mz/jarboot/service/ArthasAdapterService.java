@@ -22,9 +22,4 @@ public interface ArthasAdapterService {
      * @return 服务名
      */
     String getCurrentRunning();
-
-    /**
-     * 停止当前正在调试的Arthas实例
-     */
-    void stopCurrentArthasInstance();
 }

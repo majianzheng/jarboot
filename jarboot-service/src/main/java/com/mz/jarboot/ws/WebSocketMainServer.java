@@ -1,5 +1,9 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.ResultCodeConst;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,7 +45,31 @@ public class WebSocketMainServer {
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        //do nothing
+        logger.info(message);
+        if (StringUtils.isEmpty(message)) {
+            return;
+        }
+        int p = message.indexOf(' ');
+        if (-1 == p || p > (message.length() - 2)) {
+            return;
+        }
+        String msgType = message.substring(0, p);
+        String msgBody = message.substring(p + 1);
+        logger.info("msgType:{}, msgBody:{}", msgType, msgBody);
+        if ("cmd".equals(msgType)) {
+            p = msgBody.indexOf(' ');
+            if (-1 == p) {
+                return;
+            }
+            String server = msgBody.substring(0, p);
+            String command = msgBody.substring(p + 1);
+            CommandResponse resp = AgentManager.getInstance().sendCommandSync(server, command);
+            if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
+                WebSocketManager.sendMsg(session, server, "CMD_ACK", resp.getResultMsg());
+            } else {
+                WebSocketManager.sendMsg(session, server, "CMD_ACK", resp.getBody());
+            }
+        }
     }
 
     /**

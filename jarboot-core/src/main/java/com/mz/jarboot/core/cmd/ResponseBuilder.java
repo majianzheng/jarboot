@@ -28,4 +28,9 @@ public class ResponseBuilder {
         response.setResultMsg(msg);
         return this;
     }
+
+    public ResponseBuilder setResultCode(int resultCode) {
+        response.setResultCode(resultCode);
+        return this;
+    }
 }
