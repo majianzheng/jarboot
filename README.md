@@ -20,7 +20,7 @@
 
 模块|描述
 :-|:-
-jarboot-common|公共代理工具类实现
+jarboot-common|公共工具类实现
 jarboot-agent|agent的jar启动或运行中注入目标进程
 jarboot-core|在目标进程中执行的代码，使用<code>Netty</code>与主控服务交互
 jarboot-service|主控服务：核心业务逻辑实现，提供http和WebSocket
