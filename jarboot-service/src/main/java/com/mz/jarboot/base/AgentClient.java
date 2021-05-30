@@ -1,12 +1,7 @@
 package com.mz.jarboot.base;
 
-import com.alibaba.fastjson.JSON;
-import com.mz.jarboot.common.Command;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.MzException;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.constant.CommonConst;
-
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -35,9 +30,17 @@ public final class AgentClient {
         return this.state;
     }
 
-    public CommandResponse sendCommandSync(String command) {
+    /**
+     * 同步方式执行命令
+     * @param command 命令
+     * @return 命令结果
+     */
+    public CommandResponse sendInternalCommand(String command) {
         CommandResponse resp = new CommandResponse();
-        sendText(command);
+        CommandRequest request = new CommandRequest();
+        request.setCommandType(CommandType.INTERNAL);
+        request.setCommandLine(command);
+        sendText(request.toRaw());
         try {
             resp = respQueue.poll(CommonConst.MAX_RESPONSE_TIME, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -46,14 +49,17 @@ public final class AgentClient {
         }
         if (null == resp) {
             resp = new CommandResponse();
-            resp.setResultCode(ResultCodeConst.TIME_OUT);
-            resp.setResultMsg("执行超时");
+            resp.setSuccess(false);
+            resp.setBody("执行超时");
         }
         return resp;
     }
 
     public void sendCommand(String command) {
-        sendText(command);
+        CommandRequest request = new CommandRequest();
+        request.setCommandType(CommandType.USER_PUBLIC);
+        request.setCommandLine(command);
+        sendText(request.toRaw());
     }
 
     public void onAck(CommandResponse resp) {

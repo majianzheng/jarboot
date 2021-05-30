@@ -7,12 +7,11 @@ import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.classic.Logger;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.core.advisor.TransformerManager;
-import com.mz.jarboot.core.constant.JarbootCoreConstant;
+import com.mz.jarboot.core.basic.EnvironmentContext;
+import com.mz.jarboot.core.basic.SingletonCoreFactory;
+import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatch;
-import com.mz.jarboot.core.cmd.ResponseBuilder;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
@@ -43,6 +42,8 @@ public class JarbootBootstrap {
         host = json.getString("host");
         serverName = json.getString("server");
         logger.info("获取参数>>>{}, server:{}", host, serverName);
+        EnvironmentContext.setHost(host);
+        EnvironmentContext.setServer(serverName);
         this.initClient();
     }
     public void initClient() {
@@ -55,11 +56,9 @@ public class JarbootBootstrap {
             logger.info("已离线，正在重新初始化客户端...");
             client.disconnect();
         }
-        String url = String.format("ws://%s/jarboot-agent/ws", host);
-        logger.debug("initClient {}", url);
-        client = new WebSocketClient(url);
-        handler = new CommandDispatch(String.format("http://%s/api/agent/response?server=%s", host, serverName), client);
-        boolean isOk = client.connect(new MessageHandler() {
+        handler = new CommandDispatch();
+        logger.info("创建客户端实例》》》》》》");
+        client = SingletonCoreFactory.getInstance().createSingletonClient(new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
                 logger.debug("连接成功>>>");
@@ -90,15 +89,11 @@ public class JarbootBootstrap {
                 onClose(channel);
             }
         });
-        logger.debug("连接结果>>>{}", isOk);
-        online = isOk;
-        client.sendText(genOnlineResponse(serverName));
-    }
-
-    private String genOnlineResponse(String body) {
-        CommandResponse resp = new ResponseBuilder().setType(CommandConst.ONLINE_TYPE
-        ).setBody(body).getResponse();
-        return JSON.toJSONString(resp);
+        logger.info("initClient {}", client);
+        if (null != client) {
+            online = true;
+            logger.info("上线成功！");
+        }
     }
 
     public boolean isOnline() {
@@ -142,7 +137,7 @@ public class JarbootBootstrap {
         fileAppender.start();
 
         //模块中所有日志均使用该名字获取
-        logger = (Logger) LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
+        logger = (Logger) LoggerFactory.getLogger(CoreConstant.LOG_NAME);
         logger.addAppender(fileAppender);
     }
 }

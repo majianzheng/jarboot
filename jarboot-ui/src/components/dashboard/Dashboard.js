@@ -108,8 +108,7 @@ export default class Dashboard extends React.Component {
                 handler.finishLoading();
                 this._updateServerStatus(msgBody, JarBootConst.STATUS_STARTED, msgBody.text)
                 break;
-            case JarBootConst.MSG_TYPE_CMD_FINISH:
-                handler.appendLine(msgBody.text);
+            case JarBootConst.MSG_TYPE_CMD_COMPLETE:
                 this.setState({executing: false});
                 handler.finishLoading();
                 break;
@@ -228,20 +227,12 @@ export default class Dashboard extends React.Component {
     }
     _onRow(record) {
         return {
-            onClick: event => {
-                if (this.props.onRowClick) {
-                    this.props.onRowClick(event);
-                }
+            onClick: () => {
                 this.setState({
                     selectedRowKeys: [record.name],
                     selectRows: [record],
                     current: record.name,
                 });
-            },
-            onDoubleClick: event => {
-                if (this.props.onRowDbClick) {
-                    this.props.onRowDbClick(event);
-                }
             },
         };
     }

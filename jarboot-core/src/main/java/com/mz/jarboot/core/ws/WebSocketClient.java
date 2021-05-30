@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.ws;
 
-import com.mz.jarboot.core.constant.JarbootCoreConstant;
+import com.mz.jarboot.core.constant.CoreConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -24,7 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public final class WebSocketClient {
-    private static final Logger logger = LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private URI uri;
     private EventLoopGroup group;
     private Channel channel;
@@ -120,6 +120,10 @@ public final class WebSocketClient {
     public void disconnect() {
         try {
             channel.writeAndFlush(new CloseWebSocketFrame(WebSocketCloseStatus.NORMAL_CLOSURE));
+        } catch (Exception e) {
+            //ignore
+        }
+        try {
             channel.disconnect();
         } catch (Exception e) {
             //ignore

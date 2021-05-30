@@ -52,6 +52,10 @@ public class WebSocketManager {
         String msg = formatMsg(server, "STOP_ERROR", "");
         this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
     }
+    public void commandComplete(String server, String cmd) {
+        String msg = formatMsg(server, "CMD_COMPLETE", cmd);
+        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+    }
     public void noticeInfo(String text) {
         this.notice(text, CommonConst.NOTICE_INFO);
     }

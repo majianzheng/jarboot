@@ -9,25 +9,19 @@ import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Method;
-import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 
 public class SettingUtils {
-    private static final int MAX_TIMEOUT = 3000;
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static final String OS_NAME = "os.name";
-    private static final String AGENT_JAR_NAME = "jarboot-agent.jar";
     private static GlobalSettingDTO globalSetting = null;
     private static final String BOOT_INI = "boot.ini";
     private static final String GLOBAL_SETTING_FILE = "global-setting.conf";
+    private static final String DEFAULT_SERVICES_ROOT_NAME = "services";
     private static String agentJar;
     static {
         //jarboot-agent.jar的路径获取
@@ -35,18 +29,20 @@ public class SettingUtils {
         //初始化路径配置，先查找
         initGlobalSetting();
         //进行默认配置
-        initDefaultSetting();
+        initDefaultServicesRootPath();
     }
+
     private static void initAgentJarPath() {
         CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
         try {
-            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            File jarFile = new File(agentJarFile.getParentFile(), AGENT_JAR_NAME);
+            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            File jarFile = new File(curJar.getParentFile(), CommonConst.AGENT_JAR_NAME);
+
             //先尝试从当前路径下获取jar的位置
             if (jarFile.exists()) {
                 agentJar = jarFile.getPath();
             } else {
-                agentJar = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + AGENT_JAR_NAME;
+                agentJar = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + CommonConst.AGENT_JAR_NAME;
                 jarFile = new File(agentJar);
                 if (!jarFile.exists()) {
                     throw new MzException(ResultCodeConst.NOT_EXIST, "从用户路径下未发现" + agentJar);
@@ -81,14 +77,32 @@ public class SettingUtils {
             logger.error(e.getMessage(), e);
         }
     }
-    private static void initDefaultSetting() {
+    private static void initDefaultServicesRootPath() {
         if (null == globalSetting) {
             globalSetting = new GlobalSettingDTO();
         }
         String servicesPath = globalSetting.getServicesPath();
-        if (StringUtils.isEmpty(servicesPath)) {
-            servicesPath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + "services";
+        if (StringUtils.isNotEmpty(servicesPath)) {
+            File dir = new File(servicesPath);
+            if (dir.exists() && dir.isDirectory()) {
+                return;
+            }
+            logger.warn("配置的services({})路径不存在，将使用默认的约定路径。", servicesPath);
+        }
+        CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
+        try {
+            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            String curJarFilePath = curJar.getPath();
+            if (curJarFilePath.endsWith(".jar")) {
+                //真实环境中使用当前文件所在的位置
+                servicesPath = curJar.getParent() + File.separator + DEFAULT_SERVICES_ROOT_NAME;
+            } else {
+                //开发环境中，使用用户目录下的位置
+                servicesPath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + DEFAULT_SERVICES_ROOT_NAME;
+            }
             globalSetting.setServicesPath(servicesPath);
+        } catch (Exception e) {
+            //ignore
         }
     }
 
@@ -98,9 +112,7 @@ public class SettingUtils {
 
     public static void updateGlobalSetting(GlobalSettingDTO setting) {
         String servicesPath = setting.getServicesPath();
-        if (StringUtils.isEmpty(servicesPath)) {
-            setting.setServicesPath(globalSetting.getServicesPath());
-        } else {
+        if (StringUtils.isNotEmpty(servicesPath)) {
             File dir = new File(servicesPath);
             if (!dir.isDirectory() || !dir.exists()) {
                 throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
@@ -108,9 +120,7 @@ public class SettingUtils {
         }
 
         String arthasHome = setting.getArthasHome();
-        if (StringUtils.isEmpty(arthasHome)) {
-            setting.setArthasHome(globalSetting.getArthasHome());
-        } else {
+        if (StringUtils.isNotEmpty(arthasHome)) {
             File dir = new File(arthasHome);
             if (!dir.isDirectory() || !dir.exists()) {
                 throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", arthasHome));
@@ -134,23 +144,6 @@ public class SettingUtils {
 
     public static String getServicesPath() {
         return globalSetting.getServicesPath();
-    }
-    /**
-     * 判断是否Windows系统
-     * @return 是否Windows
-     */
-    public static boolean isWindows() {
-        String os = System.getProperty(OS_NAME);
-        return StringUtils.isNotEmpty(os) && os.startsWith("Windows");
-    }
-
-    /**
-     * 判断是否为MacOS系统
-     * @return 是否MacOS系统
-     */
-    public static boolean isMacOS() {
-        String os = System.getProperty(OS_NAME);
-        return StringUtils.isNotEmpty(os) && os.startsWith("Mac");
     }
 
     public static String getAgentStartOption(String server) {
@@ -201,203 +194,13 @@ public class SettingUtils {
     }
 
     public static String getServerPath(String server) {
-        return globalSetting.getServicesPath() + File.separator + server;
+        return getServicesPath() + File.separator + server;
     }
 
     public static String getServerSettingFilePath(String server) {
         StringBuilder builder = new StringBuilder();
-        builder.append(globalSetting.getServicesPath()).append(File.separator).append(server).append(File.separator).append(BOOT_INI);
+        builder.append(getServicesPath()).append(File.separator).append(server).append(File.separator).append(BOOT_INI);
         return builder.toString();
-    }
-
-    /**
-     * 检查host是否能ping通
-     * @param host host地址
-     * @return 是否ping通
-     */
-    public static boolean hostReachable(String host) {
-        if (StringUtils.isEmpty(host)) {
-            return false;
-        }
-        try {
-            return InetAddress.getByName(host).isReachable(MAX_TIMEOUT);
-        } catch (Exception e) {
-            //ignore
-        }
-        return false;
-    }
-
-    /**
-     * 检查host是否是本地的
-     * @param host host地址
-     * @return 是否本地
-     */
-    public static boolean hostLocal(String host) {
-        if (StringUtils.isEmpty(host)) {
-            return false;
-        }
-        InetAddress inetAddress = null;
-        try {
-            inetAddress = InetAddress.getByName(host);
-        } catch (Exception e) {
-            //ignore
-        }
-        if (null == inetAddress) {
-            return false;
-        }
-        if (inetAddress.isLoopbackAddress()) {
-            throw new MzException(ResultCodeConst.INVALID_PARAM, "请填写真实IP地址或域名，而不是环路地址：" + host);
-        }
-        Enumeration<NetworkInterface> ifs;
-        try {
-            ifs = NetworkInterface.getNetworkInterfaces();
-        } catch (SocketException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-        while (ifs.hasMoreElements()) {
-            Enumeration<InetAddress> addrs = ifs.nextElement().getInetAddresses();
-            while (addrs.hasMoreElements()) {
-                InetAddress addr = addrs.nextElement();
-                if (inetAddress.equals(addr)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static boolean isHostConnectable(String host, String port) {
-        int p = NumberUtils.toInt(port, -1);
-        if (-1 == p) {
-            return false;
-        }
-        Socket socket = new Socket();
-        try {
-            socket.connect(new InetSocketAddress(host, p));
-        } catch (Exception e) {
-            return false;
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                //ignore
-            }
-        }
-        return true;
-    }
-    /**
-     * 打开浏览器界面
-     * @param url 地址
-     */
-    public static void browse1(String url) {
-        String osName = System.getProperty(OS_NAME, "");// 获取操作系统的名字
-        if (osName.startsWith("Windows")) {// windows
-            browseInWindows(url);
-            return;
-        }
-        if (osName.startsWith("Mac OS")) {// Mac
-            try {
-                Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
-                Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
-                openURL.invoke(null, url);
-            } catch (Exception e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-            return;
-        }
-        // Unix or Linux
-        String[] browsers = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
-        String browser = null;
-        try {
-            for (int count = 0; count < browsers.length && browser == null; count++) { // 执行代码，在brower有值后跳出，
-                // 这里是如果进程创建成功了，==0是表示正常结束。
-                if (Runtime.getRuntime().exec(new String[]{"which", browsers[count]}).waitFor() == 0) {
-                    browser = browsers[count];
-                }
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        } catch (IOException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-        if (browser == null) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "未找到任何可用的浏览器");
-        } else {// 这个值在上面已经成功的得到了一个进程。
-            try {
-                Runtime.getRuntime().exec(new String[]{browser, url});
-            } catch (IOException e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
-    }
-
-    private static void browseInWindows(String url) {
-        //检查是否安装了Chrome
-        String chromePath = FileUtils.getUserDirectoryPath() +
-                "\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-        File file = new File(chromePath);
-        String cmd;
-        if (file.exists() && file.isFile()) {
-            cmd = chromePath + " " + url;
-        } else {
-            cmd = "rundll32 url.dll,FileProtocolHandler " + url;
-            logger.warn("检查到未安装Chrome浏览器，界面显示效果可能会受影响！");
-        }
-        try {
-            Runtime.getRuntime().exec(cmd);
-        } catch (IOException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-        }
-    }
-
-    public static void browse2(String url) {
-        Desktop desktop = Desktop.getDesktop();
-        if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {
-            URI uri = null;
-            try {
-                uri = new URI(url);
-                desktop.browse(uri);
-            } catch (Exception e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
-    }
-
-    public static Map<String, String> readRegistryNode(String nodePath) {
-        Map<String, String> regMap = new HashMap<>();
-        try {
-            Process process = Runtime.getRuntime().exec("reg query " + nodePath);
-            process.getOutputStream().close();
-            InputStreamReader isr = new InputStreamReader(process.getInputStream());
-            String line = null;
-            BufferedReader ir = new BufferedReader(isr);
-            while ((line = ir.readLine()) != null) {
-                //连续空格替换单空格
-                line = line.trim();
-                line = line.replaceAll("\\s{2,}", " ");
-                String[] arr = line.split(" ");
-                if(arr.length != 3){
-                    continue;
-                }
-                regMap.put(arr[0], arr[2]);
-            }
-            process.destroy();
-        } catch (IOException e) {
-            logger.error("错误, 读取注册表失败！" + nodePath, e);
-        }
-        return regMap;
-    }
-
-    /**
-     * 读取注册表
-     * @param nodePath 路径
-     * @param key 主键
-     * @return 值
-     */
-    public static String readRegistryValue(String nodePath, String key) {
-        Map<String, String> regMap = readRegistryNode(nodePath);
-        return regMap.get(key);
     }
 
     private SettingUtils() {

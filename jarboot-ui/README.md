@@ -20,10 +20,9 @@ $ yarn start
 $ yarn build
 ```
 
-将构建好的html、csss和js文件放入如下目录
+将构建好的html、css和js文件从<code>dist</code>目录拷贝到如下<code>static</code>目录
 ```bash
-root path
-${user.home}/jarboot
+jarboot
 ├─logs
 ├─services
 │  ├─demo1-service

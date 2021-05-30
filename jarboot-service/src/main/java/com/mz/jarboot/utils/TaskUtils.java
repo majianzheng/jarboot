@@ -1,6 +1,7 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -111,7 +112,7 @@ public class TaskUtils {
         Runtime runtime = Runtime.getRuntime();
         List<Integer> pidList = new ArrayList<>();
         Process p;
-        String cmd = SettingUtils.isWindows() ? "cmd /c tasklist |findstr " : "ps -u$USER | grep ";
+        String cmd = OSUtils.isWindows() ? "cmd /c tasklist |findstr " : "ps -u$USER | grep ";
         cmd += name;
         try {
             p = runtime.exec(cmd);
@@ -146,7 +147,7 @@ public class TaskUtils {
                 break;
             }
         }
-        if (SettingUtils.isMacOS()) {
+        if (OSUtils.isMac()) {
             //MacOS取第二段数字部分
             index = line.indexOf(' ', index);
         }
@@ -187,7 +188,7 @@ public class TaskUtils {
                     if (interval > 6000) {
                         break;
                     }
-                    Thread.sleep(200);
+                    Thread.sleep(200);//NOSONAR
                 } else {
                     //可用
                     len = inputStream.read(buffer);
@@ -273,7 +274,7 @@ public class TaskUtils {
     }
 
     private static void killByPid(String pid, PushMsgCallback callback) {
-        String cmd = SettingUtils.isWindows() ? "taskkill /F /pid " : "kill -9 ";
+        String cmd = OSUtils.isWindows() ? "taskkill /F /pid " : "kill -9 ";
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd + pid);

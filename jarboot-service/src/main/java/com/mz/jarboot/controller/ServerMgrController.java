@@ -4,7 +4,6 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.service.ServerMgrService;
-import com.mz.jarboot.ws.WebSocketManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +75,9 @@ public class ServerMgrController {
     @ApiOperation(value = "执行命令", httpMethod = "POST")
     @PostMapping(value="/sendCommand")
     @ResponseBody
-    public CommandResponse sendCommand(@RequestParam String server,
+    public ResponseSimple sendCommand(@RequestParam String server,
                                        @RequestParam String command) {
-        //检查是否attached
-        CommandResponse resp = AgentManager.getInstance().sendCommandSync(server, command);
-        if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
-            WebSocketManager.getInstance().sendOutMessage(server, resp.getResultMsg());
-        }
-        return resp;
+        AgentManager.getInstance().sendCommand(server, command);
+        return new ResponseSimple();
     }
 }

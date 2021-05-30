@@ -27,5 +27,7 @@ public class CommonConst {
     public static final String ARG_START_ALL = "-startAllServer";
     public static final String ARG_IGNORE_LOCK = "-ignoreLock";
 
+    public static final String AGENT_JAR_NAME = "jarboot-agent.jar";
+
     private CommonConst(){}
 }

@@ -1,19 +1,84 @@
 package com.mz.jarboot.common;
 
 import javax.net.ServerSocketFactory;
-import java.net.InetAddress;
-import java.net.ServerSocket;
+import java.net.*;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 
 public class NetworkUtils {
     public static final int PORT_RANGE_MIN = 1024;
-
+    private static final int MAX_TIMEOUT = 3000;
     public static final int PORT_RANGE_MAX = 65535;
 
     private static final Random random = new Random(System.currentTimeMillis());
 
     private NetworkUtils() {
+    }
+
+    /**
+     * 检查host是否能ping通
+     * @param host host地址
+     * @return 是否ping通
+     */
+    public static boolean hostReachable(String host) {
+        if (null == host || host.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            return InetAddress.getByName(host).isReachable(MAX_TIMEOUT);
+        } catch (Exception e) {
+            //ignore
+        }
+        return false;
+    }
+
+    /**
+     * 检查host是否是本地的
+     * @param host host地址
+     * @return 是否本地
+     */
+    public static boolean hostLocal(String host) {
+        if (null == host || host.trim().isEmpty()) {
+            return false;
+        }
+        InetAddress inetAddress = null;
+        try {
+            inetAddress = InetAddress.getByName(host);
+        } catch (Exception e) {
+            //ignore
+        }
+        if (null == inetAddress) {
+            return false;
+        }
+        if (inetAddress.isLoopbackAddress()) {
+            throw new MzException(ResultCodeConst.INVALID_PARAM, "请填写真实IP地址或域名，而不是环路地址：" + host);
+        }
+        Enumeration<NetworkInterface> ifs;
+        try {
+            ifs = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+        while (ifs.hasMoreElements()) {
+            Enumeration<InetAddress> addrs = ifs.nextElement().getInetAddresses();
+            while (addrs.hasMoreElements()) {
+                InetAddress addr = addrs.nextElement();
+                if (inetAddress.equals(addr)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isHostConnectable(String host, int port) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(host, port));
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     public static int findProcessByListenPort(int port) {//NOSONAR
@@ -25,10 +90,8 @@ public class NetworkUtils {
                     if (line.contains("LISTENING")) {
                         // TCP 0.0.0.0:49168 0.0.0.0:0 LISTENING 476
                         String[] strings = line.trim().split("\\s+");
-                        if (strings.length == 5) {
-                            if (strings[1].endsWith(":" + port)) {
-                                return Integer.parseInt(strings[4]);
-                            }
+                        if (strings.length == 5 && strings[1].endsWith(":" + port)) {
+                            return Integer.parseInt(strings[4]);
                         }
                     }
                 }

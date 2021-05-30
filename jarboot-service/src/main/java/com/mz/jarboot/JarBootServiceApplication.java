@@ -10,6 +10,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import java.io.File;
 
+/**
+ * Spring boot main function.
+ * @author jianzhengma
+ */
 @SpringBootApplication
 @PropertySource(value={"classpath:jarboot.properties", "file:${workspace.home}/jarboot.properties"}, ignoreResourceNotFound=true)
 @ComponentScan(basePackages= {"com.mz.jarboot.service", "com.mz.jarboot.config","com.mz.jarboot.dao","com.mz.jarboot.controller", "com.mz.jarboot.ws"})
@@ -20,6 +24,9 @@ public class JarBootServiceApplication {
 		String userHome = System.getProperty("user.home");
 		String wsHome = userHome + File.separator + "jarboot";
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
+
+		//启动过渡及环境检查
+		CheckBeforeStart.check();
 
 		ApplicationContext context = SpringApplication.run(JarBootServiceApplication.class, args);
 		ApplicationContextUtils.setContext(context);

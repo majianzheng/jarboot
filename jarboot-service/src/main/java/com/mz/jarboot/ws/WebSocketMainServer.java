@@ -1,8 +1,6 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResultCodeConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +61,7 @@ public class WebSocketMainServer {
             }
             String server = msgBody.substring(0, p);
             String command = msgBody.substring(p + 1);
-            CommandResponse resp = AgentManager.getInstance().sendCommandSync(server, command);
-            if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
-                WebSocketManager.sendMsg(session, server, "CMD_ACK", resp.getResultMsg());
-            } else {
-                WebSocketManager.sendMsg(session, server, "CMD_ACK", resp.getBody());
-            }
+            AgentManager.getInstance().sendCommand(server, command);
         }
     }
 

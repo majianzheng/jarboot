@@ -35,16 +35,16 @@ const ServerConfig: any = memo((props: any) => {
     return (
         <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
             <Form.Item name="jar" label={"jar"} rules={[{required: false}]}>
-                <Input placeholder={"指定Main Class所在的jar，为空则默认第一个"}/>
+                <Input placeholder={"指定Main Class所在的jar，为空则默认第一个"} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="jvm" label={"VM options"} rules={[{required: false}]}>
-                <Input/>
+                <Input autoComplete="off"/>
             </Form.Item>
             <Form.Item name="args" label="Main args" rules={[{required: false}]}>
-                <Input/>
+                <Input autoComplete="off"/>
             </Form.Item>
             <Form.Item name="priority" label="Priority" rules={[{required: false}]}>
-                <InputNumber min={1} max={9999} defaultValue={1}/>
+                <InputNumber min={1} max={9999} defaultValue={1} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="daemon" label="daemon" rules={[{required: false}]} valuePropName={"checked"}>
                 <Switch defaultChecked/>

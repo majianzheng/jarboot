@@ -1,9 +1,10 @@
 import * as React from "react";
-import {Tabs, ConfigProvider, Select} from "antd";
+import {Tabs, ConfigProvider, Select, Avatar, Dropdown, Menu} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
 import {GlobalSetting, ServerSetting, Dashboard} from "@/components";
 import ArthasAdapterView from "@/pages/arthas/ArthasAdapterView";
+import {UserOutlined} from '@ant-design/icons';
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh': zh_CN, 'en': en_GB};
@@ -20,12 +21,22 @@ export default class Index extends React.PureComponent {
         this.setState({locale});
     };
     render() {
-        const localeSelect = <Select value={this.state.locale}
-                                     style={{width: 130}}
-                                     onChange={this._onLocaleChange}>
-            <Select.Option value={'zh'} key={"zh"}>中文</Select.Option>
-            <Select.Option value={'en'} key={"en"}>English</Select.Option>
-        </Select>;
+        const localeSelect = <>
+            <Select value={this.state.locale}
+                    style={{width: 130, marginRight: 8}}
+                    onChange={this._onLocaleChange}>
+                <Select.Option value={'zh'} key={"zh"}>中文</Select.Option>
+                <Select.Option value={'en'} key={"en"}>English</Select.Option>
+            </Select>
+            <Dropdown overlay={<Menu>
+                <Menu.Item>
+                    登录
+                </Menu.Item>
+                <Menu.Item>
+                    登出
+                </Menu.Item>
+            </Menu>}><Avatar icon={<UserOutlined/>}/></Dropdown>
+        </>;
         return <ConfigProvider locale={localeMap[this.state.locale]}>
             <Tabs defaultActiveKey={'0'} size={'large'}
                   tabBarExtraContent={localeSelect}

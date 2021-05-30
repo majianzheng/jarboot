@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.ws;
 
-import com.mz.jarboot.core.constant.JarbootCoreConstant;
+import com.mz.jarboot.core.constant.CoreConstant;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
-    private static final Logger logger = LoggerFactory.getLogger(JarbootCoreConstant.LOG_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
     private MessageHandler messageHandler;

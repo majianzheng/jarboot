@@ -1,6 +1,17 @@
 package com.mz.jarboot.common;
 
+import org.apache.commons.io.FileUtils;
+
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class OSUtils {
     private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
@@ -45,10 +56,8 @@ public class OSUtils {
 
     public static boolean isCygwinOrMinGW() {
         if (isWindows()) {
-            if ((System.getenv("MSYSTEM") != null && System.getenv("MSYSTEM").startsWith("MINGW"))
-                    || "/bin/bash".equals(System.getenv("SHELL"))) {
-                return true;
-            }
+            return (System.getenv("MSYSTEM") != null && System.getenv("MSYSTEM").startsWith("MINGW"))
+                    || "/bin/bash".equals(System.getenv("SHELL"));
         }
         return false;
     }
@@ -65,7 +74,125 @@ public class OSUtils {
         return "aarch_64".equals(arch);
     }
 
-    private static String normalizeArch(String value) {
+    /**
+     * 读取注册表
+     * @param nodePath 路径
+     * @param key 主键
+     * @return 值
+     */
+    public static String readRegistryValue(String nodePath, String key) {
+        Map<String, String> regMap = readRegistryNode(nodePath);
+        return regMap.get(key);
+    }
+
+    /**
+     * 读取注册表路径
+     * @param nodePath 路径
+     * @return 路径下的配置
+     */
+    public static Map<String, String> readRegistryNode(String nodePath) {
+        Map<String, String> regMap = new HashMap<>();
+        try {
+            Process process = Runtime.getRuntime().exec("reg query " + nodePath);
+            process.getOutputStream().close();
+            InputStreamReader isr = new InputStreamReader(process.getInputStream());
+            String line;
+            BufferedReader ir = new BufferedReader(isr);
+            while ((line = ir.readLine()) != null) {
+                //连续空格替换单空格
+                line = line.trim();
+                line = line.replaceAll("\\s{2,}", " ");
+                String[] arr = line.split(" ");
+                if(arr.length != 3){
+                    continue;
+                }
+                regMap.put(arr[0], arr[2]);
+            }
+            process.destroy();
+        } catch (IOException e) {
+            //ignore
+        }
+        return regMap;
+    }
+
+    /**
+     * 打开浏览器界面
+     * @param url 地址
+     */
+    public static void browse(String url) {
+        if (OSUtils.isWindows()) {// windows
+            browseInWindows(url);
+            return;
+        }
+        if (OSUtils.isMac()) {// Mac
+            try {
+                Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
+                Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
+                openURL.invoke(null, url);
+            } catch (Exception e) {
+                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            }
+            return;
+        }
+        // Unix or Linux
+        String[] browsers = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
+        String browser = null;
+        try {
+            for (int count = 0; count < browsers.length && browser == null; count++) { // 执行代码，在brower有值后跳出，
+                // 这里是如果进程创建成功了，==0是表示正常结束。
+                if (Runtime.getRuntime().exec(new String[]{"which", browsers[count]}).waitFor() == 0) {
+                    browser = browsers[count];
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        } catch (IOException e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+        if (browser == null) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "未找到任何可用的浏览器");
+        } else {// 这个值在上面已经成功的得到了一个进程。
+            try {
+                Runtime.getRuntime().exec(new String[]{browser, url});
+            } catch (IOException e) {
+                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            }
+        }
+    }
+
+    private static void browseInWindows(String url) {
+        //检查是否安装了Chrome
+        String chromePath = FileUtils.getUserDirectoryPath() +
+                "\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+        File file = new File(chromePath);
+        String cmd;
+        if (file.exists() && file.isFile()) {
+            cmd = chromePath + " " + url;
+        } else {
+            cmd = "rundll32 url.dll,FileProtocolHandler " + url;
+        }
+        try {
+            Runtime.getRuntime().exec(cmd);
+        } catch (IOException e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+    }
+
+    public static void browse2(String url) {
+        Desktop desktop = Desktop.getDesktop();
+        if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {
+            URI uri;
+            try {
+                uri = new URI(url);
+                desktop.browse(uri);
+            } catch (Exception e) {
+                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            }
+        }
+    }
+
+    private static String normalizeArch(String value) {// NOSONAR
         value = normalize(value);
         if (value.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
             return "x86_64";

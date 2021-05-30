@@ -23,6 +23,7 @@ public class VMUtils {
     private Method getVMId;
     private Method getVMName;
     private static volatile VMUtils instance = null; //NOSONAR
+    private boolean initialized = false;
     public static VMUtils getInstance() {
         if (null == instance) {
             synchronized (VMUtils.class) {
@@ -33,6 +34,9 @@ public class VMUtils {
         }
         return instance;
     }
+    public boolean isInitialized() {
+        return initialized;
+    }
     public Object attachVM(int pid) {
         try {
             return attach.invoke(null, String.valueOf(pid));
@@ -42,14 +46,12 @@ public class VMUtils {
         return null;
     }
 
-    public boolean loadAgentToVM(Object vm, String path, String args) {
+    public void loadAgentToVM(Object vm, String path, String args) {
         try {
             loadAgent.invoke(vm, path, args);
-            return true;
         } catch (IllegalAccessException | InvocationTargetException e) {
             logger.warn(e.getMessage(), e);
         }
-        return false;
     }
 
     public Map<Integer, String> listVM() {
@@ -146,10 +148,10 @@ public class VMUtils {
     private VMUtils() {
         try {
             init();
+            initialized = true;
         } catch (Exception e) {
             //未成功加载到tools.jar，运行的可能是在jre上
             logger.error(e.getMessage(), e);
-            System.exit(-1);
         }
     }
 }

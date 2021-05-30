@@ -4,9 +4,14 @@ public class CommandConst {
     /**
      * 命令类型，定义
      */
-    public static final String CONSOLE_TYPE = "console"; //终端消息
-    public static final String ACK_TYPE = "ack"; //响应命令的ack
-    public static final String ONLINE_TYPE = "online"; //agent上线
+    public static final char CONSOLE_TYPE = 'c'; //终端消息
+    public static final char ACK_TYPE = 'k'; //响应命令的ack
+    public static final char ONLINE_TYPE = 'o'; //agent上线
+    public static final char COMPLETE_TYPE = 'F'; //终端消息
+
+    public static final char USER_COMMAND = 'u';
+    public static final char INTERNAL_COMMAND = 'i';
+    public static final char NONE_COMMAND = 'N';
 
     //支持的命令
 

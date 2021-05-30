@@ -1,16 +1,14 @@
 package com.mz.jarboot.base;
 
 import com.google.common.base.Stopwatch;
-import com.mz.jarboot.common.Command;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.ws.WebSocketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.websocket.Session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +44,7 @@ public class AgentManager {
         synchronized (client) {// NOSONAR
             if (ClientState.EXITING.equals(client.getState())) {
                 //发送了退出执行，唤醒killClient线程
-                client.notify();
+                client.notify(); //NOSONAR
                 clientMap.remove(server);
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
@@ -77,10 +75,10 @@ public class AgentManager {
         synchronized (client) {// NOSONAR
             Stopwatch stopwatch = Stopwatch.createStarted();
             client.setState(ClientState.EXITING);
-            sendCommand(server, CommandConst.EXIT_CMD);
+            sendInternalCommand(server, CommandConst.EXIT_CMD);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
+                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);//NOSONAR
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
@@ -92,6 +90,7 @@ public class AgentManager {
                 return false;
             } else {
                 client.setState(ClientState.OFFLINE);
+                WebSocketManager.getInstance().sendOutMessage(server, "进程优雅退出成功！");
             }
         }
         return true;
@@ -104,15 +103,14 @@ public class AgentManager {
         }
     }
 
-    public CommandResponse sendCommandSync(String server, String command) {
+    public CommandResponse sendInternalCommand(String server, String command) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
-            resp.setResultCode(ResultCodeConst.VALIDATE_FAILED);
-            resp.setResultMsg("目标进程已经处于失联状态");
+            resp.setSuccess(false);
             return resp;
         }
-        return client.sendCommandSync(command);
+        return client.sendInternalCommand(command);
     }
 
     public void onAck(String server, CommandResponse resp) {

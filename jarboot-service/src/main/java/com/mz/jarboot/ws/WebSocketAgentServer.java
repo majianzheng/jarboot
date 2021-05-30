@@ -1,28 +1,37 @@
 package com.mz.jarboot.ws;
 
-import com.alibaba.fastjson.JSON;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.ResponseType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 @ServerEndpoint("/jarboot-agent/ws")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
-    private static final Map<String, String> sessionIdToServer = new ConcurrentHashMap<>(64);
+    private static final String SERVER_PARAM_KEY = "server";
+
+    private String getServer(Session session) {
+        List<String> params = session.getRequestParameterMap().getOrDefault(SERVER_PARAM_KEY, null);
+        if (null == params || params.isEmpty()) {
+            return null;
+        }
+        return params.get(0);
+    }
     /**
      * 连接建立成功调用的方法*/
     @OnOpen
     public void onOpen(Session session) {
-        //do nothing
-        logger.info("Agent连接成功！");
+        String server = getServer(session);
+        logger.info("客户端{} Agent连接成功!", server);
+        if (null != server) {
+            AgentManager.getInstance().online(server, session);
+        }
     }
 
     /**
@@ -30,10 +39,9 @@ public class WebSocketAgentServer {
      */
     @OnClose
     public void onClose( Session session) {
-        String server = sessionIdToServer.getOrDefault(session.getId(), null);
+        String server = getServer(session);
         if (null != server) {
             logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
-            sessionIdToServer.remove(session.getId());
             AgentManager.getInstance().offline(server);
         }
     }
@@ -49,26 +57,27 @@ public class WebSocketAgentServer {
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        CommandResponse resp = JSON.parseObject(message, CommandResponse.class);
-        String type = resp.getType();
-        String body = resp.getBody();
-        logger.info(message);
+        logger.info("agent msg:{}", message);
+        String server = getServer(session);
+        if (null == server) {
+            logger.warn("server is null.");
+            return;
+        }
+        CommandResponse resp = CommandResponse.createFromRaw(message);
+        ResponseType type = resp.getResponseType();
+        logger.info("type:{}", type);
         switch (type) {
-            case CommandConst.ONLINE_TYPE:
-                sessionIdToServer.put(session.getId(), body);
-                AgentManager.getInstance().online(body, session);
+            case ACK:
+                AgentManager.getInstance().onAck(server, resp);
                 break;
-            case CommandConst.ACK_TYPE:
-                String server = sessionIdToServer.getOrDefault(session.getId(), null);
-                if (null != server) {
-                    AgentManager.getInstance().onAck(server, resp);
-                }
+            case CONSOLE:
+                WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
                 break;
-            case CommandConst.CONSOLE_TYPE:
-                String s = sessionIdToServer.getOrDefault(session.getId(), null);
-                if (null != s) {
-                    WebSocketManager.getInstance().sendOutMessage(s, resp.getBody());
+            case COMPLETE:
+                if (Boolean.FALSE.equals(resp.getSuccess())) {
+                    WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
                 }
+                WebSocketManager.getInstance().commandComplete(server, resp.getCmd());
                 break;
             default:
                 //do nothing

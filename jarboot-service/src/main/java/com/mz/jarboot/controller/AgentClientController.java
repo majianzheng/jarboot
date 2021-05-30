@@ -1,9 +1,9 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.ws.WebSocketManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,13 +18,18 @@ public class AgentClientController {
     @ApiOperation(hidden = true, value = "agent的推送消息", httpMethod = "POST")
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple ack(@RequestParam String server, @RequestBody CommandResponse resp) {
-        switch (resp.getType()) {
-            case CommandConst.ACK_TYPE:
+    public ResponseSimple ack(@RequestParam String server, @RequestBody String raw) {
+        CommandResponse resp = CommandResponse.createFromRaw(raw);
+        ResponseType type = resp.getResponseType();
+        switch (type) {
+            case ACK:
                 AgentManager.getInstance().onAck(server, resp);
                 break;
-            case CommandConst.CONSOLE_TYPE:
+            case CONSOLE:
                 WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
+                break;
+            case COMPLETE:
+                WebSocketManager.getInstance().commandComplete(server, resp.getCmd());
                 break;
             default:
                 break;
