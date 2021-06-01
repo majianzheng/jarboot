@@ -10,7 +10,7 @@ spring:
     time-zone: Asia/Shanghai
   web:
     resources:
-      static-locations: file:${user.home}/jarboot/static
+      static-locations: file:${JARBOOT_HOME}/static
   jmx:
     default-domain: jarboot-service
   jms:

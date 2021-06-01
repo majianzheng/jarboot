@@ -101,4 +101,23 @@ export default class ServerMgrService {
             CommonNotice.error(ErrorUtil.formatErrResp(error));
         });
     }
+
+    public static cancelCommand(server: any, callback: any) {
+        if (null === server || server.length < 1) {
+            CommonNotice.info(`请先选择发送指令的服务，当前未选中任何服务！`);
+            return;
+        }
+        let form = new FormData();
+        form.append("server", server);
+        Request.post(`${urlBase}/cancelCommand`, form
+        ).then(resp => {
+            callback && callback();
+            if (resp.resultCode !== 0) {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+            }
+        }).catch(error => {
+            callback && callback();
+            CommonNotice.error(ErrorUtil.formatErrResp(error));
+        });
+    }
 }

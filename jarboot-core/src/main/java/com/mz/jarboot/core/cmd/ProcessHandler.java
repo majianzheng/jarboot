@@ -1,7 +1,6 @@
 package com.mz.jarboot.core.cmd;
 
 /**
- * inactive to the ui.
  * @author majianzheng
  */
 public interface ProcessHandler {
@@ -10,15 +9,15 @@ public interface ProcessHandler {
 
     boolean isEnded();
 
-    void ack(String cmd, String message);
+    void ack(String message);
 
-    void console(String cmd, String text);
+    void console(String text);
 
-    void cancel(String cmd);
+    void cancel();
 
-    void end(String cmd);
+    void end();
 
-    void end(String cmd, boolean success);
+    void end(boolean success);
 
-    void end(String cmd, boolean success, String message);
+    void end(boolean success, String message);
 }

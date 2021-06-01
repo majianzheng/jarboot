@@ -28,7 +28,7 @@ public class SingletonCoreFactory {
         if (null != client) {
             return client;
         }
-        String url = String.format("ws://%s/jarboot-agent/ws?server=%s",
+        String url = String.format("ws://%s/jarboot-agent/ws/%s",
                 EnvironmentContext.getHost(), EnvironmentContext.getServer());
         logger.debug("initClient {}", url);
         client = new WebSocketClient(url);

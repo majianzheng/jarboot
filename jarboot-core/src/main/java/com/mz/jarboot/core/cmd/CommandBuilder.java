@@ -1,8 +1,10 @@
 package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.common.CommandType;
+import com.mz.jarboot.core.cmd.impl.CancelCommandImpl;
 import com.mz.jarboot.core.cmd.impl.ExitCommandImpl;
 import com.mz.jarboot.core.cmd.impl.JvmCommandImpl;
+import com.mz.jarboot.core.cmd.impl.TraceCommandImpl;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,32 +23,40 @@ public class CommandBuilder {
     private static Map<String, Class<? extends Command>> internalCommandMap = new HashMap<>();
     static {
         commandMap.put("jvm", JvmCommandImpl.class);
+        commandMap.put("trace", TraceCommandImpl.class);
+        //初始化内部命令实现
         internalCommandMap.put("exit", ExitCommandImpl.class);
+        internalCommandMap.put("cancel", CancelCommandImpl.class);
     }
     private CommandBuilder(){}
     public static Command build(CommandType type, String commandLine) {
         int p = commandLine.indexOf(' ');
-        String cmd;
+        String name;
         String args;
         if (-1 == p) {
-            cmd = commandLine;
+            name = commandLine;
             args = "";
         } else {
-            cmd = commandLine.substring(0, p);
+            name = commandLine.substring(0, p);
             args = commandLine.substring(p + 1);
         }
-        cmd = cmd.toLowerCase();
-        logger.info("type:{}, cmd:{}, args:{}", type, cmd, args);
+        name = name.toLowerCase();
+        logger.info("type:{}, cmd:{}, args:{}", type, name, args);
         Class<? extends Command> cls = (CommandType.INTERNAL.equals(type)) ?
-                internalCommandMap.getOrDefault(cmd, null) :
-                commandMap.getOrDefault(cmd, null);
+                internalCommandMap.getOrDefault(name, null) :
+                commandMap.getOrDefault(name, null);
         if (null == cls) {
-            logger.info("can not find class. {}", cmd);
+            logger.info("can not find class. {}", name);
             return null;
         }
         try {
-            Constructor<? extends Command> constructor = cls.getConstructor(String.class, String.class);
-            return constructor.newInstance(cmd, args);
+            Constructor<? extends Command> constructor = cls.getConstructor();
+            Command command = constructor.newInstance();
+            command.setName(name);
+            if (null != args && !args.isEmpty()) {
+                command.setArgs(args);
+            }
+            return command;
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
         }

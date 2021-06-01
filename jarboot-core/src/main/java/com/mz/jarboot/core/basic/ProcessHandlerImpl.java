@@ -18,6 +18,10 @@ public class ProcessHandlerImpl implements ProcessHandler {
     private static RespStreamStrategy respStreamStrategy = new RespStreamStrategy();
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private AtomicBoolean ended = new AtomicBoolean(false);
+    private String command;
+    public ProcessHandlerImpl(String name) {
+        this.command = name;
+    }
     @Override
     public boolean isCancel() {
         return canceled.get();
@@ -29,53 +33,52 @@ public class ProcessHandlerImpl implements ProcessHandler {
     }
 
     @Override
-    public void ack(String cmd, String message) {
+    public void ack(String message) {
         logger.info("ack>>{}", message);
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.ACK);
         resp.setBody(message);
-        resp.setCmd(cmd);
+        resp.setCmd(command);
         logger.info("write>>");
         respStreamStrategy.write(resp);
     }
 
     @Override
-    public void console(String cmd, String text) {
-        logger.info("console>>{}, {}", cmd, text);
+    public void console(String text) {
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.CONSOLE);
         resp.setBody(text);
-        resp.setCmd(cmd);
-        logger.info("write>>");
+        resp.setCmd(command);
         respStreamStrategy.write(resp);
     }
 
     @Override
-    public void cancel(String cmd) {
+    public void cancel() {
         canceled.set(true);
+        end();
     }
 
     @Override
-    public void end(String cmd) {
-        end(cmd, true, null);
+    public void end() {
+        end(true, null);
     }
 
     @Override
-    public void end(String cmd, boolean success) {
-        end(cmd, success, null);
+    public void end(boolean success) {
+        end(success, null);
     }
 
     @Override
-    public void end(String cmd, boolean success, String message) {
-        logger.info("end>>{}, {}", cmd, success);
+    public void end(boolean success, String message) {
+        logger.info("end>>{}, {}", command, success);
         ended.set(true);
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(success);
         resp.setResponseType(ResponseType.COMPLETE);
         resp.setBody(message);
-        resp.setCmd(cmd);
+        resp.setCmd(command);
         respStreamStrategy.write(resp);
     }
 }

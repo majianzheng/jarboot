@@ -80,4 +80,12 @@ public class ServerMgrController {
         AgentManager.getInstance().sendCommand(server, command);
         return new ResponseSimple();
     }
+
+    @ApiOperation(value = "执行命令", httpMethod = "POST")
+    @PostMapping(value="/cancelCommand")
+    @ResponseBody
+    public ResponseSimple cancelCommand(@RequestParam String server) {
+        AgentManager.getInstance().sendInternalCommand(server, "cancel");
+        return new ResponseSimple();
+    }
 }

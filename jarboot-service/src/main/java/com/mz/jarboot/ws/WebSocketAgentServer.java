@@ -7,43 +7,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.util.List;
 
-@ServerEndpoint("/jarboot-agent/ws")
+@ServerEndpoint("/jarboot-agent/ws/{server}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
-    private static final String SERVER_PARAM_KEY = "server";
 
-    private String getServer(Session session) {
-        List<String> params = session.getRequestParameterMap().getOrDefault(SERVER_PARAM_KEY, null);
-        if (null == params || params.isEmpty()) {
-            return null;
-        }
-        return params.get(0);
-    }
     /**
      * 连接建立成功调用的方法*/
     @OnOpen
-    public void onOpen(Session session) {
-        String server = getServer(session);
+    public void onOpen(Session session, @PathParam("server") String server) {
         logger.info("客户端{} Agent连接成功!", server);
-        if (null != server) {
-            AgentManager.getInstance().online(server, session);
-        }
+        AgentManager.getInstance().online(server, session);
     }
 
     /**
      * 连接关闭调用的方法
      */
     @OnClose
-    public void onClose( Session session) {
-        String server = getServer(session);
-        if (null != server) {
-            logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
-            AgentManager.getInstance().offline(server);
-        }
+    public void onClose( Session session, @PathParam("server") String server) {
+        logger.info("目标进程断开连接, {}, server:{}", session.getId(), server);
+        AgentManager.getInstance().offline(server);
     }
 
     /**
@@ -51,18 +37,13 @@ public class WebSocketAgentServer {
      *
      * @param message 客户端发送过来的消息*/
     @OnMessage
-    public void onBinaryMessage(byte[] message, Session session) {
-        onTextMessage(new String(message), session);
+    public void onBinaryMessage(byte[] message, Session session, @PathParam("server") String server) {
+        onTextMessage(new String(message), session, server);
     }
 
     @OnMessage
-    public void onTextMessage(String message, Session session) {
+    public void onTextMessage(String message, Session session, @PathParam("server") String server) {
         logger.info("agent msg:{}", message);
-        String server = getServer(session);
-        if (null == server) {
-            logger.warn("server is null.");
-            return;
-        }
         CommandResponse resp = CommandResponse.createFromRaw(message);
         ResponseType type = resp.getResponseType();
         logger.info("type:{}", type);
@@ -91,8 +72,8 @@ public class WebSocketAgentServer {
      * @param error 错误
      */
     @OnError
-    public void onError(Session session, Throwable error) {
-        onClose(session);
+    public void onError(Session session, Throwable error, @PathParam("server") String server) {
+        onClose(session, server);
         logger.error(error.getMessage(), error);
     }
 }

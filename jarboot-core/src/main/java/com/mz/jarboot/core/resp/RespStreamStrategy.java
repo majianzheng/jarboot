@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.resp;
 
-import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.CmdProtocol;
 import com.mz.jarboot.core.constant.CoreConstant;
 
 /**
@@ -12,7 +12,7 @@ public class RespStreamStrategy {
     private ResponseStream http = new HttpResponseStreamImpl();
     private ResponseStream socket = new SocketResponseStreamImpl();
 
-    public void write(CommandResponse resp) {
+    public void write(CmdProtocol resp) {
         String raw = resp.toRaw();
         if (raw.length() < CoreConstant.SOCKET_MAX_SEND) {
             socket.write(raw);

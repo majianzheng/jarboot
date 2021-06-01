@@ -11,6 +11,7 @@
 	<artifactId>jarboot-service</artifactId>
 	<name>jarboot-service</name>
 	<description>jarboot server</description>
+	<packaging>jar</packaging>
 	<properties>
 		<java.version>1.8</java.version>
 		<spring.version>2.4.5</spring.version>
@@ -68,6 +69,13 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${spring.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -7,7 +7,7 @@ import ServerMgrService from "../../services/ServerMgrService";
 import CommonNotice from '../../common/CommonNotice';
 import StringUtil from "../../common/StringUtil";
 import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, EnterOutlined, LoadingOutlined,
-    PoweroffOutlined, ReloadOutlined} from '@ant-design/icons';
+    PoweroffOutlined, ReloadOutlined, CloseCircleOutlined} from '@ant-design/icons';
 import Console from "../console/Console";
 import {JarBootConst} from '../../common/JarBootConst';
 import WsManager from "./WsManager";
@@ -69,6 +69,10 @@ export default class Dashboard extends React.Component {
             return;
         }
         const handler = this.methodMap.get(msgBody.server);
+        if (!handler) {
+            Logger.warn(`handler为空，${msgBody.server}`);
+            return;
+        }
         switch (msgBody.msgType) {
             case JarBootConst.MSG_TYPE_OUT:
                 handler.appendLine(msgBody.text);
@@ -386,31 +390,31 @@ export default class Dashboard extends React.Component {
         this.setState({executing: true});
         const handler = this.methodMap.get(this.state.current);
         handler.appendLine(`>${this.state.command}`);
-        //格式：cmd 服务名 命令
-        const text = `cmd ${this.state.current} ${this.state.command}`;
-        WsManager.sendMessage(text);
+        const msg = {server: this.state.current, body: this.state.command, func: 1};
+        WsManager.sendMessage(JSON.stringify(msg));
         // ServerMgrService.sendCommand(this.state.current, this.state.command, () => {
         //     this.setState({executing: false});
         //     handler.finishLoading();
         // });
     };
+    _onCancelCommand = () => {
+        const msg = {server: this.state.current, body: this.state.command, func: 2};
+        WsManager.sendMessage(JSON.stringify(msg));
+    };
     render() {
         let tableOption = this._getTbProps();
         tableOption.scroll = { y: this.height};
         let outTitle = (<>
-            <AutoComplete placeholder={"输入命令执行"}
-                          disabled={this.state.executing}
-                          open={false}
-                          value={this.state.command}
-                          onChange={command => this.setState({command})}
-                          options={[
-                              {label: "jvm", value: "jvm"},
-                              {label: "thread", value: "thread"},
-                          ]}
-                          children={<Input onPressEnter={this._onExecCommand}
-                                           addonAfter={this.state.executing ? <LoadingOutlined/> :
-                                               <EnterOutlined onClick={this._onExecCommand}/>}/>}
-                          style={{width: '90%'}}/>
+            <Input onPressEnter={this._onExecCommand}
+                   disabled={this.state.executing}
+                   placeholder={"输入命令执行"}
+                   style={{width: '98%'}}
+                   onChange={event => this.setState({command: event.target.value})}
+                   value={this.state.command}
+                   suffix={this.state.executing && <LoadingOutlined/>}
+                   addonAfter={this.state.executing ?
+                       <CloseCircleOutlined onClick={this._onCancelCommand}/> :
+                       <EnterOutlined onClick={this._onExecCommand}/>}/>
         </>);
 
         return (<div>

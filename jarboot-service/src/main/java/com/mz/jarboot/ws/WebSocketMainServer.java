@@ -1,5 +1,7 @@
 package com.mz.jarboot.ws;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.base.AgentManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,6 +18,8 @@ import javax.websocket.server.ServerEndpoint;
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
+    private static final int CMD_FUNC = 1;
+    private static final int CANCEL_FUNC = 2;
 
     /**
      * 连接建立成功调用的方法*/
@@ -47,21 +51,20 @@ public class WebSocketMainServer {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        int p = message.indexOf(' ');
-        if (-1 == p || p > (message.length() - 2)) {
-            return;
-        }
-        String msgType = message.substring(0, p);
-        String msgBody = message.substring(p + 1);
-        logger.info("msgType:{}, msgBody:{}", msgType, msgBody);
-        if ("cmd".equals(msgType)) {
-            p = msgBody.indexOf(' ');
-            if (-1 == p) {
-                return;
-            }
-            String server = msgBody.substring(0, p);
-            String command = msgBody.substring(p + 1);
-            AgentManager.getInstance().sendCommand(server, command);
+        JSONObject json = JSON.parseObject(message);
+        String server = json.getString("server");
+        int func = json.getIntValue("func");
+        String body = json.getString("body");
+        logger.info("server:{}, msgType:{}, msgBody:{}", server, func, body);
+        switch (func) {
+            case CMD_FUNC:
+                AgentManager.getInstance().sendCommand(server, body);
+                break;
+            case CANCEL_FUNC:
+                AgentManager.getInstance().sendInternalCommand(server, "cancel");
+                break;
+            default:
+                break;
         }
     }
 

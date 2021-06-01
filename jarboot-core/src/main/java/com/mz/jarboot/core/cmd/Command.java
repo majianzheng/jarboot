@@ -6,13 +6,21 @@ package com.mz.jarboot.core.cmd;
  */
 public abstract class Command {
     protected String name = "";
+    protected String args = "";
     public abstract boolean isRunning();
+
+    public final void setName(String name) {
+        this.name = name;
+    }
+    public final void setArgs(String args) {
+        this.args = args;
+    }
     //命令名称
-    public String name() {return name;}
+    public String getName() {return name;}
 
     //命令参数
-    public String args() {
-        return null;
+    public String getArgs() {
+        return args;
     }
 
     public abstract void cancel();
