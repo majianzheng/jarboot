@@ -1,6 +1,5 @@
 package com.mz.jarboot.controller;
 
-import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.service.ServerMgrService;
@@ -69,23 +68,6 @@ public class ServerMgrController {
     @ResponseBody
     public ResponseSimple oneClickStop() {
         serverMgrService.oneClickStop();
-        return new ResponseSimple();
-    }
-
-    @ApiOperation(value = "执行命令", httpMethod = "POST")
-    @PostMapping(value="/sendCommand")
-    @ResponseBody
-    public ResponseSimple sendCommand(@RequestParam String server,
-                                       @RequestParam String command) {
-        AgentManager.getInstance().sendCommand(server, command);
-        return new ResponseSimple();
-    }
-
-    @ApiOperation(value = "执行命令", httpMethod = "POST")
-    @PostMapping(value="/cancelCommand")
-    @ResponseBody
-    public ResponseSimple cancelCommand(@RequestParam String server) {
-        AgentManager.getInstance().sendInternalCommand(server, "cancel");
         return new ResponseSimple();
     }
 }

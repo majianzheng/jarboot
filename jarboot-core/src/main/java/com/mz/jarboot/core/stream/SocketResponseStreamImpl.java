@@ -1,4 +1,4 @@
-package com.mz.jarboot.core.resp;
+package com.mz.jarboot.core.stream;
 
 import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.ws.WebSocketClient;

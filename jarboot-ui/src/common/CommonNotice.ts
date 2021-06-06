@@ -21,7 +21,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static info(msg: string, description = '') {
+  static info(msg: string|any, description: any = '') {
     notification['info']({
       message: msg,
       description: description,
@@ -33,7 +33,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static error = (msg: string, description = '') => {
+  static error = (msg: string|any, description: any = '') => {
     notification['error']({
       message: msg,
       description: description,
@@ -45,7 +45,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static warn = (msg: string, description = '') => {
+  static warn = (msg: string|any, description: any = '') => {
     notification['warn']({
       message: msg,
       description: description,

@@ -11,7 +11,7 @@ import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.cmd.CommandDispatch;
+import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
@@ -24,15 +24,13 @@ import java.util.Base64;
 public class JarbootBootstrap {
     private static Logger logger;
     private static JarbootBootstrap bootstrap;
-    private TransformerManager transformerManager; //NOSONAR
-    private CommandDispatch handler;
+    private CommandDispatcher dispatcher;
     private String host;
     private String serverName;
     private WebSocketClient client;
     private boolean online = false;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
-        transformerManager = new TransformerManager(inst);
         if (null == args || args.isEmpty()) {
             return;
         }
@@ -42,8 +40,8 @@ public class JarbootBootstrap {
         host = json.getString("host");
         serverName = json.getString("server");
         logger.info("获取参数>>>{}, server:{}", host, serverName);
-        EnvironmentContext.setHost(host);
-        EnvironmentContext.setServer(serverName);
+        EnvironmentContext.init(serverName, host, new TransformerManager(inst));
+        dispatcher = new CommandDispatcher();
         this.initClient();
     }
     public void initClient() {
@@ -51,13 +49,14 @@ public class JarbootBootstrap {
             logger.warn("当前已经处于在线状态，不需要重新连接");
             return;
         }
+
         if (null != client) {
             //已经不在线，清理资源重新连接
             logger.info("已离线，正在重新初始化客户端...");
             client.disconnect();
         }
-        handler = new CommandDispatch();
         logger.info("创建客户端实例》》》》》》");
+        EnvironmentContext.cleanSession();
         client = SingletonCoreFactory.getInstance().createSingletonClient(new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
@@ -66,20 +65,20 @@ public class JarbootBootstrap {
 
             @Override
             public void onText(String text, Channel channel) {
-                handler.execute(text);
+                dispatcher.execute(text);
             }
 
             @Override
             public void onBinary(byte[] bytes, Channel channel) {
-                handler.execute(new String(bytes));
+                dispatcher.execute(new String(bytes));
             }
 
             @Override
             public void onClose(Channel channel) {
                 if (online) {
                     online = false;
-                    //启动尝试重连机制
                 }
+                EnvironmentContext.cleanSession();
                 logger.debug("连接关闭>>>");
             }
 

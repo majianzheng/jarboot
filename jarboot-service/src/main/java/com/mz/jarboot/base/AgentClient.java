@@ -35,11 +35,12 @@ public final class AgentClient {
      * @param command 命令
      * @return 命令结果
      */
-    public CommandResponse sendInternalCommand(String command) {
+    public CommandResponse sendInternalCommand(String command, String sessionId) {
         CommandResponse resp = new CommandResponse();
         CommandRequest request = new CommandRequest();
         request.setCommandType(CommandType.INTERNAL);
         request.setCommandLine(command);
+        request.setSessionId(sessionId);
         sendText(request.toRaw());
         try {
             resp = respQueue.poll(CommonConst.MAX_RESPONSE_TIME, TimeUnit.SECONDS);
@@ -55,10 +56,11 @@ public final class AgentClient {
         return resp;
     }
 
-    public void sendCommand(String command) {
+    public void sendCommand(String command, String sessionId) {
         CommandRequest request = new CommandRequest();
         request.setCommandType(CommandType.USER_PUBLIC);
         request.setCommandLine(command);
+        request.setSessionId(sessionId);
         sendText(request.toRaw());
     }
 

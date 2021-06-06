@@ -2,7 +2,6 @@ package com.mz.jarboot.ws;
 
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +15,13 @@ public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
 
     /**
-     * 连接建立成功调用的方法*/
+     * 连接建立成功调用的方法
+     */
     @OnOpen
     public void onOpen(Session session, @PathParam("server") String server) {
         logger.info("客户端{} Agent连接成功!", server);
         AgentManager.getInstance().online(server, session);
+        WebSocketManager.getInstance().sendConsole(server, "服务" + server + "上线成功！");
     }
 
     /**
@@ -45,25 +46,7 @@ public class WebSocketAgentServer {
     public void onTextMessage(String message, Session session, @PathParam("server") String server) {
         logger.info("agent msg:{}", message);
         CommandResponse resp = CommandResponse.createFromRaw(message);
-        ResponseType type = resp.getResponseType();
-        logger.info("type:{}", type);
-        switch (type) {
-            case ACK:
-                AgentManager.getInstance().onAck(server, resp);
-                break;
-            case CONSOLE:
-                WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
-                break;
-            case COMPLETE:
-                if (Boolean.FALSE.equals(resp.getSuccess())) {
-                    WebSocketManager.getInstance().sendOutMessage(server, resp.getBody());
-                }
-                WebSocketManager.getInstance().commandComplete(server, resp.getCmd());
-                break;
-            default:
-                //do nothing
-                break;
-        }
+        AgentManager.getInstance().handleAgentResponse(server, resp);
     }
 
     /**

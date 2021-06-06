@@ -75,49 +75,4 @@ export default class ServerMgrService {
             CommonNotice.error(ErrorUtil.formatErrResp(error));
         });
     }
-
-    public static sendCommand(server: any, command: any, callback: any) {
-        command = command.trim();
-        if (command.length < 1) {
-            return;
-        }
-        if (null === server || server.length < 1) {
-            CommonNotice.info(`请先选择发送指令的服务，当前未选中任何服务！`);
-            return;
-        }
-        let form = new FormData();
-        form.append("server", server);
-        form.append("command", command);
-        Request.post(`${urlBase}/sendCommand`, form
-        ).then(resp => {
-            callback && callback();
-            if (resp.resultCode === 0) {
-                CommonNotice.info(`命令${command}执行成功 ${resp.body}`);
-            } else {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
-            }
-        }).catch(error => {
-            callback && callback();
-            CommonNotice.error(ErrorUtil.formatErrResp(error));
-        });
-    }
-
-    public static cancelCommand(server: any, callback: any) {
-        if (null === server || server.length < 1) {
-            CommonNotice.info(`请先选择发送指令的服务，当前未选中任何服务！`);
-            return;
-        }
-        let form = new FormData();
-        form.append("server", server);
-        Request.post(`${urlBase}/cancelCommand`, form
-        ).then(resp => {
-            callback && callback();
-            if (resp.resultCode !== 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
-            }
-        }).catch(error => {
-            callback && callback();
-            CommonNotice.error(ErrorUtil.formatErrResp(error));
-        });
-    }
 }

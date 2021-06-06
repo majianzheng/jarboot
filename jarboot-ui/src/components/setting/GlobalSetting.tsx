@@ -3,18 +3,19 @@ import React, {memo, useEffect} from "react";
 import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "../../common/ErrorUtil";
+import { useIntl } from 'umi';
 
 const layout = {
     labelCol: {span: 8},
     wrapperCol: {span: 16},
 };
 const tailLayout = {
-    wrapperCol: {offset: 8, span: 16},
+    wrapperCol: {offset: 12, span: 12},
 };
 
 const GlobalSetting: any = memo(() => {
     const [form] = Form.useForm();
-
+    const intl = useIntl();
     const onReset = () => {
         SettingService.getGlobalSetting().then((resp: any) => {
             if (0 !== resp.resultCode) {
@@ -28,26 +29,35 @@ const GlobalSetting: any = memo(() => {
     const onSubmit = (data: any) => {
         SettingService.submitGlobalSetting(data);
     };
+
     return (
-        <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
-            <Form.Item name="servicesPath" label={"Root path"} rules={[{required: false}]}>
+        <Form {...layout} form={form} name="global-setting-forms" onFinish={onSubmit}>
+            <Form.Item name="servicesPath"
+                       label={intl.formatMessage({id: 'SERVERS_PATH'})}
+                       rules={[{required: false}]}>
                 <Input placeholder={"services directory"} autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="defaultJvmArg" label={"Default VM options"} rules={[{required: false}]}>
+            <Form.Item name="defaultJvmArg"
+                       label={intl.formatMessage({id: 'DEFAULT_VM_OPT'})}
+                       rules={[{required: false}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="maxStartTime" label="Max start time" rules={[{required: false}]}>
+            <Form.Item name="maxStartTime"
+                       label={intl.formatMessage({id: 'MAX_START_TIME'})}
+                       rules={[{required: false}]}>
                 <InputNumber min={3000} max={60000} defaultValue={30000} autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="arthasHome" label={"Arthas home"} rules={[{required: false}]}>
+            <Form.Item name="arthasHome"
+                       label={"Arthas home"}
+                       rules={[{required: false}]}>
                 <Input placeholder={"Arthas installed home path"} autoComplete="off"/>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>
-                    Submit
+                    {intl.formatMessage({id: 'SUBMIT_BTN'})}
                 </Button>
                 <Button htmlType="button" onClick={onReset}>
-                    Reset
+                    {intl.formatMessage({id: 'RESET_BTN'})}
                 </Button>
             </Form.Item>
         </Form>

@@ -18,6 +18,9 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<revision>1.0.0</revision>
+		<spring.version>2.4.5</spring.version>
+		<asm.version>7.1</asm.version>
+		<netty.version>4.1.59.Final</netty.version>
 	</properties>
 	<dependencies>
 		<dependency>

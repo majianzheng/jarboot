@@ -3,6 +3,7 @@ package com.mz.jarboot.ws;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.CommandConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public class WebSocketMainServer {
      */
     @OnClose
     public void onClose( Session session) {
+        AgentManager.getInstance().releaseAgentSession(session.getId());
         WebSocketManager.getInstance().delConnect(session.getId());
     }
 
@@ -43,6 +45,7 @@ public class WebSocketMainServer {
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
         //do nothing
+        //后面传输文件时可能会用到
     }
 
     @OnMessage
@@ -58,10 +61,10 @@ public class WebSocketMainServer {
         logger.info("server:{}, msgType:{}, msgBody:{}", server, func, body);
         switch (func) {
             case CMD_FUNC:
-                AgentManager.getInstance().sendCommand(server, body);
+                AgentManager.getInstance().sendCommand(server, body, session.getId());
                 break;
             case CANCEL_FUNC:
-                AgentManager.getInstance().sendInternalCommand(server, "cancel");
+                AgentManager.getInstance().sendInternalCommand(server, CommandConst.CANCEL_CMD, session.getId());
                 break;
             default:
                 break;
@@ -75,6 +78,7 @@ public class WebSocketMainServer {
      */
     @OnError
     public void onError(Session session, Throwable error) {
+        AgentManager.getInstance().releaseAgentSession(session.getId());
         WebSocketManager.getInstance().delConnect(session.getId());
         logger.error(error.getMessage(), error);
     }

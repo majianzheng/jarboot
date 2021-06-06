@@ -4,7 +4,7 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dao.TaskRunDao;
+import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.AgentOfflineEvent;
@@ -14,7 +14,6 @@ import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.utils.VMUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     @Autowired
     private ExecutorService taskExecutor;
     @Autowired
-    private TaskRunDao taskRunDao;
+    private TaskRunCache taskRunCache;
     private boolean initialized = false;
 
     //阻塞队列，监控到目录变化则放入队列
@@ -76,7 +75,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         });
 
         //attach已经处于启动的进程
-        List<ServerRunningDTO> runningServers = taskRunDao.getServerList();
+        List<ServerRunningDTO> runningServers = taskRunCache.getServerList();
         if (CollectionUtils.isEmpty(runningServers)) {
             return;
         }
@@ -94,7 +93,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (CommonConst.INVALID_PID == pid) {
             throw new MzException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
         }
-        this.attach(server, pid);
+        TaskUtils.attach(server, pid);
     }
 
     private void initPathMonitor() {
@@ -139,7 +138,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             //创建或修改文件
-            if (!CommonConst.STATUS_RUNNING.equals(taskRunDao.getTaskStatus(service))) {
+            if (!CommonConst.STATUS_RUNNING.equals(taskRunCache.getTaskStatus(service))) {
                 //当前不处于正在运行的状态
                 return;
             }
@@ -152,25 +151,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         //删除事件
         if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
             logger.info("触发了删除事件，忽略执行，文件：{}", watchEvent.context());
-        }
-    }
-
-    private void attach(String server, int pid) {
-        Object vm;
-        try {
-            vm = VMUtils.getInstance().attachVM(pid);
-        } catch (Exception e) {
-            //ignore
-            return;
-        }
-        try {
-            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server));
-        } catch (Exception e) {
-            //ignore
-        } finally {
-            if (null != vm) {
-                VMUtils.getInstance().detachVM(vm);
-            }
         }
     }
 
@@ -188,7 +168,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             return;
         }
 
-        this.attach(server.getName(), pid);
+        TaskUtils.attach(server.getName(), pid);
     }
 
     @EventListener
@@ -198,13 +178,13 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         int pid = TaskUtils.getServerPid(server);
         if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
-            String status = taskRunDao.getTaskStatus(server);
+            String status = taskRunCache.getTaskStatus(server);
             if (CommonConst.STATUS_STOPPING.equals(status)) {
                 //处于停止中状态，此时不做干预，守护只针对正在运行的进程
                 return;
             }
             //尝试重新初始化代理客户端
-            attach(server, pid);
+            TaskUtils.attach(server, pid);
             return;
         }
 

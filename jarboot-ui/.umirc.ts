@@ -4,11 +4,21 @@ export default defineConfig({
     nodeModulesTransform: {
         type: 'none',
     },
+    title: 'Jarboot',
     routes: [
         {path: '/', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
+        {path: '/arthas', component: '@/pages/arthas/ArthasAdapterView'},
     ],
     fastRefresh: {},
+    inlineLimit: 100000,
+    locale: {
+        default: 'zh-CN',
+        antd: true,
+        title: true,
+        baseNavigator: true,
+        baseSeparator: '-',
+    },
     proxy: {
         '/jarboot-service': {
             'target': 'http://localhost:9899/jarboot-service/',

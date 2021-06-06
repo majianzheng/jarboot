@@ -8,9 +8,8 @@ public class CommandResponse implements CmdProtocol {
     private static final char SUCCESS_FLAG = '1';
     private Boolean success;
     private ResponseType responseType = ResponseType.UNKNOWN;
-    private String cmd;
     private String body;
-    private CommandType commandType = CommandType.UNKNOWN;  //是否同步
+    private String sessionId;
 
     /**
      * Convert to the raw data used network transmission.
@@ -18,29 +17,22 @@ public class CommandResponse implements CmdProtocol {
      */
     @Override
     public String toRaw() {
-        //格式: 前4个字符是控制位，+ 命令名 + 空格 + 数据体
-        //控制位 0 响应类型 1 指令类型，2 是否成功、3保留填-
+        //格式: 前3个字符是控制位 + 数据体
+        //控制位 0 响应类型、1 是否成功、2保留填-
         char rt = this.getResponseTypeChar();
-        char ct = getCommandTypeChar();
         return new StringBuilder() //响应类型
                 .append(rt)
-                .append(ct) //命令类型
                 .append(Boolean.TRUE.equals(success) ? SUCCESS_FLAG : '0')//是否成功标志
                 .append('-') //保留位
-                .append(cmd) //命令
-                .append(' ') //空格
                 .append(body)
+                .append(' ') //最后填充sessionId
+                .append(sessionId)
                 .toString();
     }
     @Override
     public void fromRaw(String raw) {
         this.success = false;
         //反向解析出类实例
-        int p = raw.indexOf(' ');
-        if (p < 6) {
-            this.body = "回复的数据格式错误";
-            return;
-        }
         //获取响应类型
         switch (raw.charAt(0)) {
             case CommandConst.ACK_TYPE:
@@ -59,21 +51,16 @@ public class CommandResponse implements CmdProtocol {
                 this.setResponseType(ResponseType.UNKNOWN);
                 break;
         }
-        //获取命令类型
-        switch (raw.charAt(1)) {
-            case CommandConst.USER_COMMAND:
-                this.setCommandType(CommandType.USER_PUBLIC);
-                break;
-            case CommandConst.INTERNAL_COMMAND:
-                this.setCommandType(CommandType.INTERNAL);
-                break;
-            default:
-                this.setCommandType(CommandType.UNKNOWN);
-                break;
+
+        this.success = SUCCESS_FLAG == raw.charAt(1);
+
+        int l = raw.lastIndexOf(' ');
+        if (-1 == l) {
+            this.success = false;
+            this.body = "协议错误，未发现sessionId";
         }
-        this.success = SUCCESS_FLAG == raw.charAt(2);
-        this.cmd = raw.substring(5, p);
-        this.body = raw.substring(p + 1);
+        this.body = raw.substring(3, l);
+        this.sessionId = raw.substring(l + 1);
     }
 
     public static CommandResponse createFromRaw(String raw) {
@@ -113,14 +100,6 @@ public class CommandResponse implements CmdProtocol {
         this.success = success;
     }
 
-    public String getCmd() {
-        return cmd;
-    }
-
-    public void setCmd(String cmd) {
-        this.cmd = cmd;
-    }
-
     public String getBody() {
         return body;
     }
@@ -129,12 +108,11 @@ public class CommandResponse implements CmdProtocol {
         this.body = body;
     }
 
-    @Override
-    public CommandType getCommandType() {
-        return commandType;
+    public String getSessionId() {
+        return sessionId;
     }
 
-    public void setCommandType(CommandType commandType) {
-        this.commandType = commandType;
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 }

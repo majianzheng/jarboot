@@ -45,7 +45,7 @@ public class TaskUtils {
                         "未等到退出消息，将执行强制退出命令！");
             }
             String name = getJarWithServerName(server);
-            killJavaByName(name, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
+            killJavaByName(name, text -> WebSocketManager.getInstance().sendConsole(server, text));
         }
 
     }
@@ -65,15 +65,14 @@ public class TaskUtils {
         if (StringUtils.isEmpty(jvm)) {
             jvm = SettingUtils.getDefaultJvmArg();
         }
-        String agentArgs = SettingUtils.getAgentStartOption(server);
         String cmd = (null == jvm) ?
-                String.format("java %s -jar %s", agentArgs, jar) :
-                String.format("java %s -jar %s %s", agentArgs, jvm, jar);
+                String.format("java -jar %s", jar) :
+                String.format("java -jar %s %s", jvm, jar);
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
             cmd = String.format("%s %s", cmd, startArg);
         }
-        startTask(cmd, text -> WebSocketManager.getInstance().sendOutMessage(server, text));
+        startTask(cmd, text -> WebSocketManager.getInstance().sendConsole(server, text));
     }
 
     /**
@@ -87,6 +86,30 @@ public class TaskUtils {
             return CommonConst.INVALID_PID;
         }
         return pidList.get(0);
+    }
+
+    /**
+     * 通过agent机制附加到目标进程
+     * @param server 服务名
+     * @param pid pid
+     */
+    public static void attach(String server, int pid) {
+        Object vm;
+        try {
+            vm = VMUtils.getInstance().attachVM(pid);
+        } catch (Exception e) {
+            //ignore
+            return;
+        }
+        try {
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server));
+        } catch (Exception e) {
+            //ignore
+        } finally {
+            if (null != vm) {
+                VMUtils.getInstance().detachVM(vm);
+            }
+        }
     }
 
     //得到jar的上级目录和自己: demo-service/demo.jar

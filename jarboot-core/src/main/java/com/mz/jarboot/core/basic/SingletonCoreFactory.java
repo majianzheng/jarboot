@@ -5,6 +5,8 @@ import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 /**
  * Singleton core factory for create socket client, thread pool, strategy instance.
@@ -14,6 +16,7 @@ public class SingletonCoreFactory {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static volatile SingletonCoreFactory instance = null; //NOSONAR
     private WebSocketClient client = null;
+    private TemplateEngine engine = null;
     public static SingletonCoreFactory getInstance() {
         if (null == instance) {
             synchronized (SingletonCoreFactory.class) {
@@ -41,6 +44,17 @@ public class SingletonCoreFactory {
         }
         logger.info("createSingletonClient>>>>");
         return client;
+    }
+
+    public TemplateEngine createTemplateEngine() {
+        if (null != engine) {
+            return engine;
+        }
+        engine = new TemplateEngine();
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setCharacterEncoding("UTF-8");
+        engine.setTemplateResolver(resolver);
+        return engine;
     }
 
     public WebSocketClient getSingletonClient() {

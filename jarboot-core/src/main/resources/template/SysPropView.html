@@ -1,0 +1,15 @@
+<div>
+    <table border="1">
+        <caption style="caption-side: top; font-size: 20px; color: snow">System property</caption>
+        <tbody>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+        <tr th:each="item : ${props.entrySet()}">
+            <td th:text="${item.key}"></td>
+            <td th:text="${item.value}" style="min-width: 50px"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

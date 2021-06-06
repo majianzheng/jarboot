@@ -3,10 +3,26 @@ package com.mz.jarboot.common;
 public class CommandRequest implements CmdProtocol {
     private CommandType commandType = CommandType.UNKNOWN;
     private String commandLine = "";
+    private String sessionId;
+
+    private char getCommandTypeChar() {
+        if (null == this.getCommandType()) {
+            return CommandConst.NONE_COMMAND;
+        }
+        switch (this.getCommandType()) {
+            case USER_PUBLIC:
+                return CommandConst.USER_COMMAND;
+            case INTERNAL:
+                return CommandConst.INTERNAL_COMMAND;
+            default:
+                break;
+        }
+        return '-';
+    }
 
     @Override
     public String toRaw() {
-        return this.getCommandTypeChar() + this.commandLine;
+        return this.getCommandTypeChar() + sessionId + ' ' + this.commandLine;
     }
 
     @Override
@@ -25,10 +41,15 @@ public class CommandRequest implements CmdProtocol {
                 commandType = CommandType.UNKNOWN;
                 break;
         }
-        commandLine = raw.substring(1);
+        //从第二个字符到第一个空格，为sessionId
+        int p = raw.indexOf(' ');
+        if (p < 2) {
+            throw new MzException("协议错误，缺少sessionId参数！");
+        }
+        sessionId = raw.substring(1, p);
+        commandLine = raw.substring(p + 1);
     }
 
-    @Override
     public CommandType getCommandType() {
         return commandType;
     }
@@ -43,5 +64,13 @@ public class CommandRequest implements CmdProtocol {
 
     public void setCommandLine(String commandLine) {
         this.commandLine = commandLine;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 }

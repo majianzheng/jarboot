@@ -13,15 +13,15 @@ class JarBootConst {
     private static MSG_TYPE_CMD_COMPLETE = "CMD_COMPLETE";
 
     //进程状态
-    public static STATUS_STARTED = '正在运行';
-    public static STATUS_STOPPED = '已停止';
-    public static STATUS_STARTING = '正在启动';
-    public static STATUS_STOPPING = '正在停止';
+    public static STATUS_STARTED = 'RUNNING';
+    public static STATUS_STOPPED = 'STOPPED';
+    public static STATUS_STARTING = 'STARTING';
+    public static STATUS_STOPPING = 'STOPPING';
     public static STATUS_START_ERROR = '启动失败';
 
-    public static NOTICE_INFO = "NOTICE_INFO";
-    public static NOTICE_WARN = "NOTICE_WARN";
-    public static NOTICE_ERROR = "NOTICE_ERROR";
+    public static NOTICE_INFO = 0;
+    public static NOTICE_WARN = 1;
+    public static NOTICE_ERROR = 2;
 }
 interface MessageBody {
     server: string;

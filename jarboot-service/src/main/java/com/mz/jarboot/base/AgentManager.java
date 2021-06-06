@@ -3,10 +3,12 @@ package com.mz.jarboot.base;
 import com.google.common.base.Stopwatch;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
@@ -40,6 +42,7 @@ public class AgentManager {
         if (null == client) {
             return;
         }
+        WebSocketManager.getInstance().sendConsole(server, "服务" + server + "下线！");
         logger.info("目标进程已退出，唤醒killServer方法的执行线程");
         synchronized (client) {// NOSONAR
             if (ClientState.EXITING.equals(client.getState())) {
@@ -75,7 +78,7 @@ public class AgentManager {
         synchronized (client) {// NOSONAR
             Stopwatch stopwatch = Stopwatch.createStarted();
             client.setState(ClientState.EXITING);
-            sendInternalCommand(server, CommandConst.EXIT_CMD);
+            sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
                 client.wait(CommonConst.MAX_WAIT_EXIT_TIME);//NOSONAR
@@ -90,27 +93,59 @@ public class AgentManager {
                 return false;
             } else {
                 client.setState(ClientState.OFFLINE);
-                WebSocketManager.getInstance().sendOutMessage(server, "进程优雅退出成功！");
+                WebSocketManager.getInstance().sendConsole(server, "进程优雅退出成功！");
             }
         }
         return true;
     }
 
-    public void sendCommand(String server, String command) {
+    public void sendCommand(String server, String command, String sessionId) {
+        if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
+            return;
+        }
         AgentClient client = clientMap.getOrDefault(server, null);
-        if (null != client) {
-            client.sendCommand(command);
+        if (null == client) {
+            WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令");
+            WebSocketManager.getInstance().commandComplete(server, command);
+        } else {
+            client.sendCommand(command, sessionId);
         }
     }
 
-    public CommandResponse sendInternalCommand(String server, String command) {
+    public CommandResponse sendInternalCommand(String server, String command, String sessionId) {
+        if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
+            return new CommandResponse();
+        }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
             return resp;
         }
-        return client.sendInternalCommand(command);
+        return client.sendInternalCommand(command, sessionId);
+    }
+
+    public void handleAgentResponse(String server, CommandResponse resp) {
+        ResponseType type = resp.getResponseType();
+        logger.info("type:{}", type);
+        String sessionId = resp.getSessionId();
+        switch (type) {
+            case ACK:
+                AgentManager.getInstance().onAck(server, resp);
+                break;
+            case CONSOLE:
+                WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                break;
+            case COMPLETE:
+                if (Boolean.FALSE.equals(resp.getSuccess())) {
+                    WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                }
+                WebSocketManager.getInstance().commandComplete(server, sessionId);
+                break;
+            default:
+                //do nothing
+                break;
+        }
     }
 
     public void onAck(String server, CommandResponse resp) {
@@ -118,5 +153,10 @@ public class AgentManager {
         if (null != client) {
             client.onAck(resp);
         }
+    }
+
+    public void releaseAgentSession(String sessionId) {
+        //向所有在线的agent客户端发送会话失效命令
+        clientMap.forEach((k, v) -> sendInternalCommand(k, CommandConst.CANCEL_CMD, sessionId));
     }
 }

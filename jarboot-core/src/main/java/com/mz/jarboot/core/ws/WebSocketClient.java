@@ -33,7 +33,7 @@ public final class WebSocketClient {
         try {
             this.uri = new URI(url);
         } catch (URISyntaxException e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -51,7 +51,7 @@ public final class WebSocketClient {
         final int port = parsePort(scheme);
 
         if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            System.err.println("Only WS(S) is supported.");  //NOSONAR
+            logger.error("Only WS(S) is supported.");
             return false;
         }
 
@@ -61,6 +61,7 @@ public final class WebSocketClient {
             try {
                 sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
             } catch (SSLException e) {
+                logger.error(e.getMessage(), e);
                 return false;
             }
         } else {
@@ -87,18 +88,15 @@ public final class WebSocketClient {
             channel = b.connect(uri.getHost(), port).sync().channel();
             handler.handshakeFuture().sync();
         } catch (InterruptedException e) {
-            //ignore
+            logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         }
         if (null == channel) {
             logger.error("channel is null");
-        } else {
-            logger.debug("isActive:{}, isOpen:{}", channel.isActive(), channel.isOpen());
         }
-
-        return null != channel && channel.isActive() && channel.isOpen();
+        return null != channel && channel.isOpen();
     }
 
     private int parsePort(String scheme) {

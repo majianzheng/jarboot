@@ -1,4 +1,4 @@
-package com.mz.jarboot.core.resp;
+package com.mz.jarboot.core.stream;
 
 import com.alibaba.fastjson.JSON;
 import com.mz.jarboot.common.ResponseSimple;

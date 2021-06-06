@@ -5,19 +5,18 @@
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
 [![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
 
-<code>Jarboot</code> 是一个管理、监控及调试一系列Java进程的工具
+<code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及调试一系列的Java进程。
 
-在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令以获取目标服务进程的更多信息。界面同时集成了<code>Arthas</code><sup id="a1">[[1]](#f1)</sup> 调试工具，支持通过<code>Jarboot</code>的界面对目标进程调试。
+在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
 
 ## 技术背景及目标
 <code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。但它的功能定位与<code>Arthas</code>不同，<code>Jarboot</code> 更偏向于面向开发、测试、每日构建等。
 
-- 🌈   浏览器界面管理，一键启、停服务
-- 🔥   支持启动、停止优先级配置<sup id="a2">[[2]](#f2)</sup>
+- 🌈   浏览器界面管理，一键启、停服务进程，不必挨个手动执行
+- 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
 - ⭐️支持进程守护，开启后若服务异常退出则自动启动并通知
-- ☀️支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[3]](#f3)</sup>
-- ❤️调试、查看进程信息（已实现通过Arthas调试，在【全局配置】界面里配置Arthas路径或设置<code>ARTHAS_HOME</code>环境变量）
-- 🚀   调试命令执行（开发中）
+- ☀️支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[2]](#f2)</sup>
+- 🚀   调试命令执行，同时调试多个进程，界面更友好
 
 采用<code>前后端分离</code>架构，前端界面采用<code>React</code>技术，脚手架使用<code>Umi</code>，组件库使用Umi内置等<code>antd</code>。后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
@@ -25,11 +24,11 @@
 :-|:-
 jarboot-common|公共工具类实现
 jarboot-agent|agent的jar启动或运行中注入目标进程
-jarboot-core|在目标进程中执行的代码，使用<code>Netty</code>与主控服务交互
+jarboot-core|在目标进程中执行的代码，与主控服务点对点的交互
 jarboot-service|主控服务：核心业务逻辑实现，提供http和WebSocket
 jarboot-ui|前端ui界面，使用<code>React</code>实现
 
-## 使用方法
+## 编译构建
 1. 编译java和前端项目
 ```
 //切换到代码根目录，编译Java代码
@@ -75,7 +74,43 @@ java -jar jarboot-service.jar
 
 4. 浏览器访问<http://127.0.0.1:9899>
 
+## 命令列表
+- bytes 查看类的字节码，用法：
+  ```
+  bytes java.lang.String
+  ```
+  
+- dashboard 当前系统的实时数据面板，点击按钮取消
+  ```
+  dashboard 
+  ```
+  
+- jvm 查看进程JVM属性信息
+  ```
+  jvm
+  ````
+  
+- monitor 方法执行监控
+  ```
+  monitor -c 6 com.demo.Test test
+  ```
+  
+- thread 查看当前线程信息，查看线程的堆栈
+  ```
+  查看所有
+  thread
+  查看指定线程堆栈
+  thread 1000
+  查看当前最忙的前N个线程并打印堆栈
+  thread -n 3
+  ```
+- sysprop 查看进程系统属性信息
+  ```
+  sysprop
+  sysprop user.home
+  ```
+  
+- 更多强大的指令在持续开发中...
 ---
-<span id="f1">1[](#a1)</span>: 淘宝的一个非常强大的Java调试工具。<br>
-<span id="f2">2[](#a2)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反，默认为1。<br>
-<span id="f3">3[](#a3)</span>: 开发中可以由<code>gitlab runner</code>、<code>Jenkins</code>等工具自动构建后通过脚本拷贝到Jarboot指定的目录下，Jarboot监控到文件的更新会自动重启服务，目录监控实现了<code>防抖设计</code>（在一定时间内的多次更新只会触发一次重启）。
+<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反，默认为1。<br>
+<span id="f2">2[](#a2)</span>: 开发中可以由<code>gitlab runner</code>、<code>Jenkins</code>等工具自动构建后通过脚本拷贝到Jarboot指定的目录下，Jarboot监控到文件的更新会自动重启服务，目录监控实现了<code>防抖设计</code>（在一定时间内的多次更新只会触发一次重启）。

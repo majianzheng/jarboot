@@ -5,6 +5,8 @@ package com.mz.jarboot.core.constant;
  * @author majianzheng
  */
 public class CoreConstant {
+    public static final String EMPTY_STRING = "";
+    public static final String NULL_STRING = "null";
     public static final String LOG_NAME = "jarboot-core";
 
     //使用websocket发送的最大字节阈值

@@ -1,11 +1,18 @@
 import * as React from "react";
-import { List } from 'antd';
+import { Col, Row, Menu } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from '../../common/ErrorUtil';
 import styles from './index.less';
 import ServerMgrService from "@/services/ServerMgrService";
 import Logger from "@/common/Logger";
+import {memo} from "react";
+import { useIntl } from 'umi';
+
+const ServerListHeader: any = memo(() => {
+    const intl = useIntl();
+    return <div>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>;
+});
 
 export default class ServerSetting extends React.PureComponent {
 
@@ -20,33 +27,34 @@ export default class ServerSetting extends React.PureComponent {
                 CommonNotice.error(resp.resultMsg);
                 return;
             }
-            let current = "";
-            if (resp.result.length > 0)
-                current = resp.result[0].name;
-            this.setState({data: resp.result, current});
+            this.setState({data: resp.result});
         }, (errorMsg: any) => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
     private _onSelect = (event: any) => {
-        const current = event.target.title;
+        const current = event.key;
         this.setState({current});
     };
     render() {
-        return <div style={{display: 'flex'}}>
-            <div style={{flex: 'inherit', width: '26%', height: '88vh', overflowY: 'auto'}}>
-                <List size="large"
-                      header={<div>服务列表</div>}
-                      bordered
-                      dataSource={this.state.data}
-                      renderItem={(item: any) => <List.Item
-                          title={item.name}
-                          className={item.name === this.state.current ? styles.taskItemSelected : styles.taskItem}
-                          onClick={this._onSelect}>{item.name}</List.Item>}/>
-            </div>
-            <div style={{flex: 'inherit', width: '72%'}}>
-                <div style={{width: '80%'}}>
+        return <Row>
+            <Col span={6} className={styles.pageContainer}>
+                <Menu
+                    onClick={this._onSelect}
+                    defaultSelectedKeys={[this.state.data[0]]}
+                    mode="inline"
+                >
+                    <Menu.ItemGroup title={<ServerListHeader/>}>
+                        <Menu.Divider/>
+                        {this.state.data.map((item: any) => {
+                            return <Menu.Item key={item.name}>{item.name}</Menu.Item>
+                        })}
+                    </Menu.ItemGroup>
+                </Menu>
+            </Col>
+            <Col span={18} className={styles.pageContainer}>
+                <div style={{margin: '0 30px 0 5px', width: '80%'}}>
                     <ServerConfig server={this.state.current}/>
                 </div>
-            </div>
-        </div>
+            </Col>
+        </Row>
     }
 }

@@ -1,15 +1,14 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.Command;
-import com.mz.jarboot.core.cmd.ProcessHandler;
+import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.cmd.model.JvmModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.management.RuntimeMXBean;
+import java.lang.management.*;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * show the jvm detail
@@ -17,68 +16,121 @@ import java.lang.management.RuntimeMXBean;
  */
 public class JvmCommandImpl extends Command {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private ProcessHandler handler = null;
+    private CommandSession handler = null;
+    private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+    private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+    private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
+    private final Collection<GarbageCollectorMXBean> garbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
+    private final Collection<MemoryManagerMXBean> memoryManagerMXBeans = ManagementFactory.getMemoryManagerMXBeans();
+    private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+    private final OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+    private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    private JvmModel model = new JvmModel();
 
-    private void println(String text) {
-        if (null != handler) {
-            handler.console(text);
+    private void appendRuntime() {
+        model.appendRuntimeInfo("MACHINE-NAME", runtimeMXBean.getName())
+                .appendRuntimeInfo("JVM-START-TIME", runtimeMXBean.getStartTime())
+                .appendRuntimeInfo("MANAGEMENT-SPEC-VERSION", runtimeMXBean.getManagementSpecVersion())
+                .appendRuntimeInfo("SPEC-NAME", runtimeMXBean.getSpecName())
+                .appendRuntimeInfo("SPEC-VENDOR", runtimeMXBean.getSpecVersion())
+                .appendRuntimeInfo("VM-NAME", runtimeMXBean.getVmName())
+                .appendRuntimeInfo("VM-VENDOR", runtimeMXBean.getVmVendor())
+                .appendRuntimeInfo("VM-VERSION", runtimeMXBean.getVmVersion())
+                .appendRuntimeInfo("INPUT-ARGUMENTS", runtimeMXBean.getInputArguments())
+                .appendRuntimeInfo("CLASS-PATH", runtimeMXBean.getClassPath())
+                .appendRuntimeInfo("BOOT-CLASS-PATH", runtimeMXBean.getBootClassPath())
+                .appendRuntimeInfo("LIBRARY-PATH", runtimeMXBean.getLibraryPath())
+                ;
+    }
+
+    private void appendClassLoading() {
+        model.appendClassLoadingInfo("LOADED-CLASS-COUNT", classLoadingMXBean.getLoadedClassCount())
+        .appendClassLoadingInfo("TOTAL-LOADED-CLASS-COUNT", classLoadingMXBean.getTotalLoadedClassCount())
+        .appendClassLoadingInfo("UNLOADED-CLASS-COUNT", classLoadingMXBean.getUnloadedClassCount())
+        .appendClassLoadingInfo("IS-VERBOSE", classLoadingMXBean.isVerbose());
+    }
+
+    private void addCompilation() {
+        if (compilationMXBean == null) {
+            return;
+        }
+        model.appendCompilationInfo("NAME", compilationMXBean.getName());
+        if (compilationMXBean.isCompilationTimeMonitoringSupported()) {
+            model.appendCompilationInfo("TOTAL-COMPILE-TIME", compilationMXBean.getTotalCompilationTime() + "(ms)");
         }
     }
 
-    private void printSplit() {
-        println("---------------------------------------------------");
-    }
-
-    private void showRuntime() {
-        RuntimeMXBean mxb = ManagementFactory.getRuntimeMXBean();
-        println("\nRUNTIME");
-        printSplit();
-        println("MACHINE-NAME:" + mxb.getName());
-        println("JVM-START-TIME: " + mxb.getStartTime());
-        println("MANAGEMENT-SPEC-VERSION: " + mxb.getManagementSpecVersion());
-        println("SPEC-NAME: " + mxb.getSpecName());
-        println("SPEC-VENDOR: " + mxb.getSpecVendor());
-        println("SPEC-VERSION: " + mxb.getSpecVersion());
-        println("VM-NAME: " + mxb.getVmName());
-        println("VM-VENDOR: " + mxb.getVmVendor());
-        println("VM-VERSION: " + mxb.getVmVersion());
-        println("INPUT-ARGUMENTS: " + mxb.getInputArguments());
-        println("CLASS-PATH: " + mxb.getClassPath());
-        println("BOOT-CLASS-PATH: " + mxb.getBootClassPath());
-        println("LIBRARY-PATH: " + mxb.getLibraryPath());
-    }
-
-    private void showSystemDetail() {
-        println("\nOPERATING-SYSTEM");
-        printSplit();
+    private void appendSystemDetail() {
         OperatingSystemMXBean osb = ManagementFactory.getOperatingSystemMXBean();
-        println("OS: " + osb.getName()); //Windows 10
-        println("ARCH: " + osb.getArch()); //amd 64
-        println("PROCESSORS-COUNT: " + osb.getAvailableProcessors()); //4
-        println("VERSION: " + osb.getVersion()); //10.0
-        println("LOAD-AVERAGE: " + osb.getSystemLoadAverage()); //-1.0
+        model.appendSystemInfo("OS", osb.getName())
+                .appendSystemInfo("ARCH", osb.getArch())
+                .appendSystemInfo("PROCESSORS-COUNT", osb.getAvailableProcessors())
+                .appendSystemInfo("VERSION", osb.getVersion())
+                .appendSystemInfo("LOAD-AVERAGE", osb.getSystemLoadAverage())
+                ;
     }
-    private void showHeap() {
-        println("\nMEMORY");
-        printSplit();
-        MemoryMXBean mxb = ManagementFactory.getMemoryMXBean();
-        //Heap
-        println("Max:" + mxb.getHeapMemoryUsage().getMax() / 1024 / 1024 + "MB");    //Max
-        println("Init:" + mxb.getHeapMemoryUsage().getInit() / 1024 / 1024 + "MB");  //Init
-        println("Committed:" + mxb.getHeapMemoryUsage().getCommitted() / 1024 / 1024 + "MB");   //Committed
-        println("Used:" + mxb.getHeapMemoryUsage().getUsed() / 1024 / 1024 + "MB");  //Used:7MB
-        println(mxb.getHeapMemoryUsage().toString());    //init = 132120576(129024K) used = 8076528(7887K) committed = 126877696(123904K) max = 1862270976(1818624K)
 
-        //Non heap
-        println("Max:" + mxb.getNonHeapMemoryUsage().getMax() / 1024 / 1024 + "MB");    //Max:0MB
-        println("Init:" + mxb.getNonHeapMemoryUsage().getInit() / 1024 / 1024 + "MB");  //Init:2MB
-        println("Committed:" + mxb.getNonHeapMemoryUsage().getCommitted() / 1024 / 1024 + "MB");   //Committed:8MB
-        println("Used:" + mxb.getNonHeapMemoryUsage().getUsed() / 1024 / 1024 + "MB");  //Used:7MB
-        println(mxb.getNonHeapMemoryUsage().toString());    //init = 2555904(2496K) used = 7802056(7619K) committed = 9109504(8896K) max = -1(-1K)
+    private void addGarbageCollectors() {
+        for (GarbageCollectorMXBean gcMXBean : garbageCollectorMXBeans) {
+            model.appendGarbageCollectorItem(gcMXBean.getName(), gcMXBean.getCollectionCount(), gcMXBean.getCollectionTime());
+        }
     }
+
+    private void addMemoryManagers() {
+        for (final MemoryManagerMXBean memoryManagerMXBean : memoryManagerMXBeans) {
+            if (memoryManagerMXBean.isValid()) {
+                final String name = memoryManagerMXBean.isValid()
+                        ? memoryManagerMXBean.getName()
+                        : memoryManagerMXBean.getName() + "(Invalid)";
+                model.appendMemoryMgrInfo(name, memoryManagerMXBean.getMemoryPoolNames());
+            }
+        }
+    }
+
+    private void appendMemory() {
+        MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+        MemoryUsage nonHeapMemoryUsage = memoryMXBean.getNonHeapMemoryUsage();
+
+        model.appendMemoryInfo("HEAP-MEMORY-USAGE", heapMemoryUsage)
+                .appendMemoryInfo("NO-HEAP-MEMORY-USAGE", nonHeapMemoryUsage);
+        int pendingFinalizationCount = memoryMXBean.getObjectPendingFinalizationCount();
+        model.setPendingFinalizationCount(pendingFinalizationCount);
+    }
+
+    private void appendThread() {
+        model.appendThreadInfo("COUNT", threadMXBean.getThreadCount())
+                .appendThreadInfo("DAEMON-COUNT", threadMXBean.getDaemonThreadCount())
+                .appendThreadInfo("PEAK-COUNT", threadMXBean.getPeakThreadCount())
+                .appendThreadInfo("STARTED-COUNT", threadMXBean.getTotalStartedThreadCount())
+                .appendThreadInfo("DEADLOCK-COUNT", getDeadlockedThreadsCount(threadMXBean));
+    }
+    private int getDeadlockedThreadsCount(ThreadMXBean threads) {
+        final long[] ids = threads.findDeadlockedThreads();
+        if (ids == null) {
+            return 0;
+        } else {
+            return ids.length;
+        }
+    }
+
+    private void addFileDescriptor() {
+        model.appendFileDescInfo("MAX-FILE-DESCRIPTOR-COUNT", invokeFileDescriptor(operatingSystemMXBean, "getMaxFileDescriptorCount"));
+        model.appendFileDescInfo("OPEN-FILE-DESCRIPTOR-COUNT", invokeFileDescriptor(operatingSystemMXBean, "getOpenFileDescriptorCount"));
+    }
+
+    private long invokeFileDescriptor(OperatingSystemMXBean os, String name) {
+        try {
+            final Method method = os.getClass().getDeclaredMethod(name);
+            method.setAccessible(true); //NOSONAR
+            return (Long) method.invoke(os);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     @Override
     public boolean isRunning() {
-        return null != handler && !handler.isEnded();
+        return null != handler && handler.isRunning();
     }
 
     @Override
@@ -92,13 +144,23 @@ public class JvmCommandImpl extends Command {
     }
 
     @Override
-    public void run(ProcessHandler handler) {
+    public void run(CommandSession handler) {
         this.handler = handler;
+
         logger.info("jvm 开始执行》》》》{}", name);
-        showRuntime();
-        showSystemDetail();
-        showHeap();
-        //没有监控直接结束
+        appendRuntime();
+        appendClassLoading();
+        addCompilation();
+        addGarbageCollectors();
+        appendSystemDetail();
+        appendMemory();
+        appendThread();
+        addMemoryManagers();
+        addFileDescriptor();
+
+        handler.appendResult(model);
+
+        //一次性类型命令直接结束
         complete();
     }
 

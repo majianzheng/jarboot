@@ -81,6 +81,10 @@ export default class Console extends React.Component {
         this.isStartLoading = false;
     };
     appendLine = line => {
+        if (StringUtil.isEmpty(line)) {
+            //忽略空字符串
+            return;
+        }
         if (!this.isStartLoading) {
             this.startLoading();
         }

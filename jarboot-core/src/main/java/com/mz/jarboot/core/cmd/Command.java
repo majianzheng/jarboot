@@ -1,5 +1,7 @@
 package com.mz.jarboot.core.cmd;
 
+import com.mz.jarboot.core.session.CommandSession;
+
 /**
  * The command abstract class which defined the common behave.
  * @author majianzheng
@@ -7,6 +9,7 @@ package com.mz.jarboot.core.cmd;
 public abstract class Command {
     protected String name = "";
     protected String args = "";
+    protected String sessionId = "null";
     public abstract boolean isRunning();
 
     public final void setName(String name) {
@@ -23,9 +26,17 @@ public abstract class Command {
         return args;
     }
 
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public abstract void cancel();
 
-    public abstract void run(ProcessHandler handler);
+    public abstract void run(CommandSession handler);
 
     public abstract void complete();
 }

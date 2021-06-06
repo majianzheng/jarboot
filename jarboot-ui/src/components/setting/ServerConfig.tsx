@@ -3,17 +3,20 @@ import {memo, useEffect} from "react";
 import SettingService from "../../services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "../../common/ErrorUtil";
+import { useIntl } from 'umi';
+import StringUtil from "@/common/StringUtil";
 
 const layout = {
     labelCol: {span: 8},
     wrapperCol: {span: 16},
 };
 const tailLayout = {
-    wrapperCol: {offset: 8, span: 16},
+    wrapperCol: {offset: 12, span: 12},
 };
 
 const ServerConfig: any = memo((props: any) => {
     const [form] = Form.useForm();
+    const intl = useIntl();
     const onReset = () => {
         SettingService.getServerSetting(props.server
         ).then((resp: any) => {
@@ -30,34 +33,50 @@ const ServerConfig: any = memo((props: any) => {
     });
 
     const onSubmit = (data: any) => {
+        if (StringUtil.isEmpty(props.server)) {
+            CommonNotice.info('请先选择服务');
+            return;
+        }
         SettingService.submitServerSetting(props.server, data);
     };
     return (
         <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
-            <Form.Item name="jar" label={"jar"} rules={[{required: false}]}>
+            <Form.Item name="jar"
+                       label={intl.formatMessage({id: 'JAR_LABEL'})}
+                       rules={[{required: false}]}>
                 <Input placeholder={"指定Main Class所在的jar，为空则默认第一个"} autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="jvm" label={"VM options"} rules={[{required: false}]}>
+            <Form.Item name="jvm"
+                       label={intl.formatMessage({id: 'JVM_OPT_LABEL'})}
+                       rules={[{required: false}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="args" label="Main args" rules={[{required: false}]}>
+            <Form.Item name="args"
+                       label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
+                       rules={[{required: false}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="priority" label="Priority" rules={[{required: false}]}>
+            <Form.Item name="priority"
+                       label={intl.formatMessage({id: 'PRIORITY_LABEL'})}
+                       rules={[{required: false}]}>
                 <InputNumber min={1} max={9999} defaultValue={1} autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="daemon" label="daemon" rules={[{required: false}]} valuePropName={"checked"}>
+            <Form.Item name="daemon"
+                       label={intl.formatMessage({id: 'DAEMON_LABEL'})}
+                       rules={[{required: false}]} valuePropName={"checked"}>
                 <Switch defaultChecked/>
             </Form.Item>
-            <Form.Item name="jarUpdateWatch" label="jar Watch" rules={[{required: false}]} valuePropName={"checked"}>
+            <Form.Item name="jarUpdateWatch"
+                       label={intl.formatMessage({id: 'JAR_UPDATE_WATCH_LABEL'})}
+                       rules={[{required: false}]} valuePropName={"checked"}>
                 <Switch defaultChecked/>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>
-                    Submit
+                    {intl.formatMessage({id: 'SUBMIT_BTN'})}
                 </Button>
                 <Button htmlType="button" onClick={onReset}>
-                    Reset
+                    {intl.formatMessage({id: 'RESET_BTN'})}
                 </Button>
             </Form.Item>
         </Form>

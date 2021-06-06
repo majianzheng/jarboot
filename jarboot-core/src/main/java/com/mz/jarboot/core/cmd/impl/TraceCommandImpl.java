@@ -1,13 +1,13 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.Command;
-import com.mz.jarboot.core.cmd.ProcessHandler;
+import com.mz.jarboot.core.session.CommandSession;
 
 public class TraceCommandImpl extends Command {
-    private ProcessHandler handler;
+    private CommandSession handler;
     @Override
     public boolean isRunning() {
-        return null != handler && !handler.isEnded() && !handler.isCancel();
+        return null != handler && handler.isRunning();
     }
 
     @Override
@@ -18,7 +18,7 @@ public class TraceCommandImpl extends Command {
     }
 
     @Override
-    public void run(ProcessHandler handler) {
+    public void run(CommandSession handler) {
         this.handler = handler;
         handler.console("开发中");
     }

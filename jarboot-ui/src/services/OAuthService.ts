@@ -7,7 +7,7 @@ const urlBase = "/api/auth";
 //暂未实现
 export default class OAuthService {
     /**
-     * 获取服务列表
+     * 获取当前用户
      */
     public static getCurrentUser() {
         let token = localStorage.getItem("token");
@@ -18,7 +18,7 @@ export default class OAuthService {
     }
 
     /**
-     * 获取服务列表
+     * 登录
      * @param userName
      * @param password
      */

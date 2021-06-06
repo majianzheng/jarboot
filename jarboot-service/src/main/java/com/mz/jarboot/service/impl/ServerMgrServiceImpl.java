@@ -3,10 +3,11 @@ package com.mz.jarboot.service.impl;
 import com.google.common.base.Stopwatch;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dao.TaskRunDao;
+import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.service.ServerMgrService;
+import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
@@ -28,14 +29,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private static final String START_TIME_CONST = "启动耗时：";
 
     @Autowired
-    private TaskRunDao taskRunDao;
+    private TaskRunCache taskRunCache;
 
     @Autowired
     private ExecutorService taskExecutor;
 
     @Override
     public List<ServerRunningDTO> getServerList() {
-        return taskRunDao.getServerList();
+        return taskRunCache.getServerList();
     }
 
     /**
@@ -43,12 +44,12 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickRestart() {
-        if (this.taskRunDao.hasNotFinished()) {
+        if (this.taskRunCache.hasNotFinished()) {
             WebSocketManager.getInstance().noticeError("一键重启，当前有正在启动或关闭的服务在执行中，请稍后再试");
             return;
         }
         //获取所有的服务
-        List<String> allWebServerList = taskRunDao.getServerNameList();
+        List<String> allWebServerList = taskRunCache.getServerNameList();
         //同步控制，保证所有的都杀死后再重启
         if (CollectionUtils.isNotEmpty(allWebServerList)) {
             //启动服务
@@ -61,11 +62,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickStart() {
-        if (this.taskRunDao.hasNotFinished()) {
+        if (this.taskRunCache.hasNotFinished()) {
             WebSocketManager.getInstance().noticeError("一键启动，当前有正在启动或关闭的服务在执行中，请稍后再试");
             return;
         }
-        List<String> allWebServerList = taskRunDao.getServerNameList();
+        List<String> allWebServerList = taskRunCache.getServerNameList();
         //启动服务
         this.startServer(allWebServerList);
     }
@@ -75,11 +76,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickStop() {
-        if (this.taskRunDao.hasNotFinished()) {
+        if (this.taskRunCache.hasNotFinished()) {
             WebSocketManager.getInstance().noticeError("一键停止，当前有正在启动或关闭的服务在执行中，请稍后再试");
             return;
         }
-        List<String> allWebServerList = taskRunDao.getServerNameList();
+        List<String> allWebServerList = taskRunCache.getServerNameList();
         //启动服务
         this.stopServer(allWebServerList);
     }
@@ -150,14 +151,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = setting.getServer();
         if (TaskUtils.isAlive(server)) {
             //已经启动
-            this.sendStartedMessage(server, this.taskRunDao.getTaskPid(server));
+            this.sendStartedMessage(server, this.taskRunCache.getTaskPid(server));
             WebSocketManager.getInstance().noticeInfo("服务" + server + "已经是启动状态");
             return;
         }
 
         //设定启动中，并发送前端让其转圈圈
-        this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STARTING, CommonConst.INVALID_PID);
-        WebSocketManager.getInstance().sendStartMessage(server);
+        this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_STARTING, CommonConst.INVALID_PID);
+        WebSocketManager.getInstance().publishStatus(server, TaskStatus.START);
 
         //记录开始时间
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -169,10 +170,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         //服务是否启动成功
         if (CommonConst.INVALID_PID == pid) {
             //启动失败
-            this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
-            WebSocketManager.getInstance().sendStartErrorMessage(server);
+            this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
         } else {
-            WebSocketManager.getInstance().sendOutMessage(server,
+            TaskUtils.attach(server, pid);
+            WebSocketManager.getInstance().sendConsole(server,
                     START_TIME_CONST + costTime + "毫秒");
             this.sendStartedMessage(server, pid);
         }
@@ -233,8 +235,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
     private void stopSingleServer(String server) {
         //发送停止中消息
-        this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPING, CommonConst.INVALID_PID);
-        WebSocketManager.getInstance().sendStopMessage(server, false);
+        this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_STOPPING, CommonConst.INVALID_PID);
+        WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP);
 
         //记录开始时间
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -245,12 +247,12 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
         //停止成功
         if (AgentManager.getInstance().isOnline(server)) {
-            this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_RUNNING, CommonConst.INVALID_PID);
-            WebSocketManager.getInstance().sendStopErrorMessage(server);
-            WebSocketManager.getInstance().sendOutMessage(server, "停止成功！耗时：" + costTime + "毫秒");
+            this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_RUNNING, CommonConst.INVALID_PID);
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
         } else {
-            this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
-            WebSocketManager.getInstance().sendStopMessage(server, true);
+            WebSocketManager.getInstance().sendConsole(server, "停止成功！耗时：" + costTime + "毫秒");
+            this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_STOPPED, CommonConst.INVALID_PID);
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
         }
     }
 
@@ -272,9 +274,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
 
     private void sendStartedMessage(String server, int pid) {
-        this.taskRunDao.setTaskInfo(server, CommonConst.STATUS_RUNNING, pid);
+        this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_RUNNING, pid);
 
-        WebSocketManager.getInstance().sendStartedMessage(server, pid);
+        WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
     }
 
     @EventListener
