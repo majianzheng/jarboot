@@ -2,7 +2,10 @@ package com.mz.jarboot.core.advisor;
 
 /**
  * 通知监听接口
+ * @author jianzhengma
+ * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public interface AdviceListener {
 
     long id();

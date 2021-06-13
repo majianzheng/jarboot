@@ -6,6 +6,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 以下代码，有一部分摘自开源项目Arthas
+ */
 public class ExecNativeCmd {
     private ExecNativeCmd() {
     }

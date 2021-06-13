@@ -23,6 +23,10 @@ import javax.net.ssl.SSLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * WebSocket 客户端实现
+ * @author jianzhengma
+ */
 public final class WebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private URI uri;

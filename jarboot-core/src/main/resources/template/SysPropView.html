@@ -7,8 +7,8 @@
             <th>Value</th>
         </tr>
         <tr th:each="item : ${props.entrySet()}">
-            <td th:text="${item.key}"></td>
-            <td th:text="${item.value}" style="min-width: 50px"></td>
+            <td th:utext="${item.key}"></td>
+            <td th:utext="${item.value}" style="min-width: 50px"></td>
         </tr>
         </tbody>
     </table>

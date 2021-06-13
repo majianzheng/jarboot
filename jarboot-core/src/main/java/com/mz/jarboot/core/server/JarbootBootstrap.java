@@ -5,43 +5,82 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.classic.Logger;
+import com.alibaba.bytekit.asm.instrument.InstrumentConfig;
+import com.alibaba.bytekit.asm.instrument.InstrumentParseResult;
+import com.alibaba.bytekit.asm.instrument.InstrumentTransformer;
+import com.alibaba.bytekit.asm.matcher.SimpleClassMatcher;
+import com.alibaba.bytekit.utils.AsmUtils;
+import com.alibaba.bytekit.utils.IOUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
+import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
 import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.jar.JarFile;
 
+/**
+ * attach 启动入口，为减轻对程序对侵入，将程序作为客户端，由服务端反向连接
+ * @author jianzhengma
+ */
+@SuppressWarnings("all")
 public class JarbootBootstrap {
+    private static final String SPY_JAR = "jarboot-spy.jar";
     private static Logger logger;
     private static JarbootBootstrap bootstrap;
     private CommandDispatcher dispatcher;
     private String host;
     private String serverName;
     private WebSocketClient client;
+    private Instrumentation instrumentation;
+    private InstrumentTransformer classLoaderInstrumentTransformer;
+    private static String jarbootHome = "./";
     private boolean online = false;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
         if (null == args || args.isEmpty()) {
             return;
         }
-        //解析args，获取目标服务端口
+        CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
+        try {
+            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            jarbootHome = curJar.getParent();
+        } catch (URISyntaxException e) {
+            //ignore
+        }
+        this.instrumentation = inst;
+
+        //1.initSpy()
+        initSpy();
+
+        //2.解析args，获取目标服务端口
         String s = new String(Base64.getDecoder().decode(args));
         JSONObject json = JSON.parseObject(s);
         host = json.getString("host");
         serverName = json.getString("server");
         logger.info("获取参数>>>{}, server:{}", host, serverName);
-        EnvironmentContext.init(serverName, host, new TransformerManager(inst));
+        //3.环境初始化
+        EnvironmentContext.init(serverName, host, inst);
+        enhanceClassLoader();
+        //4.命令派发器
         dispatcher = new CommandDispatcher();
+        //5.客户端初始化
         this.initClient();
     }
     public void initClient() {
@@ -55,7 +94,7 @@ public class JarbootBootstrap {
             logger.info("已离线，正在重新初始化客户端...");
             client.disconnect();
         }
-        logger.info("创建客户端实例》》》》》》");
+        logger.info("创建客户端实>>>");
         EnvironmentContext.cleanSession();
         client = SingletonCoreFactory.getInstance().createSingletonClient(new MessageHandler() {
             @Override
@@ -88,7 +127,7 @@ public class JarbootBootstrap {
                 onClose(channel);
             }
         });
-        logger.info("initClient {}", client);
+        logger.info("initClient finished.");
         if (null != client) {
             online = true;
             logger.info("上线成功！");
@@ -115,6 +154,73 @@ public class JarbootBootstrap {
             throw new IllegalStateException("Jarboot must be initialized before!");
         }
         return bootstrap;
+    }
+
+    private void initSpy() {
+        // 将Spy添加到BootstrapClassLoader
+        ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
+        Class<?> cls = null;
+        if (parent != null) {
+            try {
+                cls = parent.loadClass("java.jarboot.SpyAPI");
+            } catch (Throwable e) {
+                // ignore
+            }
+        }
+        if (null == cls) {
+            logger.warn("加载SpyAPI失败, 使用jar包加载>>");
+            try {
+                CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
+                if (codeSource != null) {
+                    File arthasCoreJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+                    File spyJarFile = new File(arthasCoreJarFile.getParentFile(), SPY_JAR);
+                    instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(spyJarFile));
+                } else {
+                    logger.error("can not find {}", SPY_JAR);
+                }
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+            }
+        }
+
+        //初始化
+        try {
+            SpyAPI.init();
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    void enhanceClassLoader() {
+        Set<String> loaders = new HashSet<String>();
+        // 增强 ClassLoader#loadClsss ，解决一些ClassLoader加载不到 SpyAPI的问题
+        byte[] classBytes = new byte[0];
+        try {
+            classBytes = IOUtils.getBytes(JarbootBootstrap.class.getClassLoader()
+                    .getResourceAsStream(ClassLoader_Instrument.class.getName().replace('.', '/') + ".class"));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return;
+        }
+
+        SimpleClassMatcher matcher = new SimpleClassMatcher(loaders);
+        InstrumentConfig instrumentConfig = new InstrumentConfig(AsmUtils.toClassNode(classBytes), matcher);
+
+        InstrumentParseResult instrumentParseResult = new InstrumentParseResult();
+        instrumentParseResult.addInstrumentConfig(instrumentConfig);
+        classLoaderInstrumentTransformer = new InstrumentTransformer(instrumentParseResult);
+        instrumentation.addTransformer(classLoaderInstrumentTransformer, true);
+
+        if (loaders.size() == 1 && loaders.contains(ClassLoader.class.getName())) {
+            // 如果只增强 java.lang.ClassLoader，可以减少查找过程
+            try {
+                instrumentation.retransformClasses(ClassLoader.class);
+            } catch (UnmodifiableClassException e) {
+                logger.error(e.getMessage(), e);
+            }
+        } else {
+            InstrumentationUtils.trigerRetransformClasses(instrumentation, loaders);
+        }
     }
 
     /**

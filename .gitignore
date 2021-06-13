@@ -2,6 +2,7 @@
 .DS_Store
 .mvn
 *.iml
+*.log
 .idea
 .vscode
 target

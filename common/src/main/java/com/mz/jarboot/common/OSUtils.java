@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * 以下代码，有一部分摘自开源项目Arthas
+ */
+@SuppressWarnings("all")
 public class OSUtils {
     private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
     private static final String OPERATING_SYSTEM_ARCH = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
@@ -192,7 +196,7 @@ public class OSUtils {
         }
     }
 
-    private static String normalizeArch(String value) {// NOSONAR
+    private static String normalizeArch(String value) {
         value = normalize(value);
         if (value.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
             return "x86_64";

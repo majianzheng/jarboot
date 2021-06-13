@@ -26,9 +26,9 @@ public class ResultStreamDistributor {
     }
 
     public void appendResult(ResultModel model) {
-        ResultView resultView = resultViewResolver.getResultView(model);
+        ResultView resultView = resultViewResolver.getResultView(model); //NOSONAR
         if (resultView == null) {
-            logger.info("获取视图解析失败！");
+            logger.info("获取视图解析失败！{}, {}", model.getName(), model.getClass());
             return;
         }
         String text = resultView.render(model);

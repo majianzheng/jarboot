@@ -43,9 +43,9 @@ const Help: any = memo(() => {
                 <Menu.ItemGroup title={intl.formatMessage({id: 'COMMAND_LIST'})}>
                     <Menu.Divider/>
                     <Menu.Item key="bytes">bytes</Menu.Item>
-                    <Menu.Item key="dashboard">dashboard</Menu.Item>
+                    {/*<Menu.Item key="dashboard">dashboard</Menu.Item>*/}
                     <Menu.Item key="jvm">jvm</Menu.Item>
-                    <Menu.Item key="monitor">monitor</Menu.Item>
+                    <Menu.Item key="trace">monitor</Menu.Item>
                     <Menu.Item key="thread">thread</Menu.Item>
                     <Menu.Item key="sysprop">sysprop</Menu.Item>
                 </Menu.ItemGroup>

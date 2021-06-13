@@ -3,13 +3,14 @@ import StringUtil from "@/common/StringUtil";
 import {MSG_EVENT} from "@/common/EventConst";
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
+import { message } from 'antd';
 
 interface MsgData {
     event: number,
     server: string,
     body: any
 }
-
+let msg: any = null;
 class WsManager {
     private static websocket: any = null;
     private static fd: any = null;
@@ -90,6 +91,8 @@ class WsManager {
 
     private static _onOpen = () => {
         Logger.log("连接Websocket服务器成功！");
+        msg && msg();
+        msg = null;
         if (null !== WsManager.fd) {
             //连接成功，取消重连机制
             clearInterval(WsManager.fd);
@@ -112,6 +115,7 @@ class WsManager {
         if (null !== WsManager.fd) {
             return;
         }
+        msg = message.loading('reconnecting...', 0);
         WsManager.fd = setInterval(() => {
             if (null === WsManager.fd) {
                 //已经进入连onOpen

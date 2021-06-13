@@ -4,8 +4,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">RUNTIME</caption>
         <tbody>
         <tr th:each="item : ${runtimeInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}"></td>
         </tr>
         </tbody>
     </table>
@@ -13,8 +13,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">CLASS-LOADING</caption>
         <tbody>
         <tr th:each="item : ${classLoadingInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}"></td>
         </tr>
         </tbody>
     </table>
@@ -22,8 +22,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">COMPILATION</caption>
         <tbody>
         <tr th:each="item : ${compilation}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}" style="min-width: 50px"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}" style="min-width: 50px"></td>
         </tr>
         </tbody>
     </table>
@@ -36,9 +36,9 @@
             <th>collectionTime (ms)</th>
         </tr>
         <tr th:each="item : ${garbageCollectorsInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.collectionCount}"></td>
-            <td th:text="${item.collectionTime}"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.collectionCount}"></td>
+            <td th:utext="${item.collectionTime}"></td>
         </tr>
         </tbody>
     </table>
@@ -46,8 +46,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">MEMORY-MANAGERS</caption>
         <tbody>
         <tr th:each="item : ${memoryMgrInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}" style="min-width: 50px"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}" style="min-width: 50px"></td>
         </tr>
         </tbody>
     </table>
@@ -55,17 +55,17 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">MEMORY</caption>
         <tbody>
         <tr th:each="item : ${memoryInfo}">
-            <td th:text="${item.name}"></td>
+            <td th:utext="${item.name}"></td>
             <td>
-                <span th:text="'init : ' + ${item.value.init}"></span><br/>
-                <span th:text="'used : ' + ${item.value.used}"></span><br/>
-                <span th:text="'committed : ' + ${item.value.committed}"></span><br/>
-                <span th:text="'max : ' + ${item.value.max}"></span>
+                <span th:utext="'init : ' + ${item.value.init}"></span><br/>
+                <span th:utext="'used : ' + ${item.value.used}"></span><br/>
+                <span th:utext="'committed : ' + ${item.value.committed}"></span><br/>
+                <span th:utext="'max : ' + ${item.value.max}"></span>
             </td>
         </tr>
         <tr th:if="${pendingFinalizationCount} > 0">
             <td>PENDING-FINALIZE-COUNT</td>
-            <td th:text="${pendingFinalizationCount}"></td>
+            <td th:utext="${pendingFinalizationCount}"></td>
         </tr>
         </tbody>
     </table>
@@ -74,8 +74,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">OPERATING-SYSTEM</caption>
         <tbody>
         <tr th:each="item : ${operatingSystemInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}"></td>
         </tr>
         </tbody>
     </table>
@@ -83,8 +83,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">THREAD</caption>
         <tbody>
         <tr th:each="item : ${threadInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}" style="min-width: 50px"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}" style="min-width: 50px"></td>
         </tr>
         </tbody>
     </table>
@@ -92,8 +92,8 @@
         <caption style="caption-side: top; font-size: 20px; color: snow">FILE-DESCRIPTOR</caption>
         <tbody>
         <tr th:each="item : ${fileDescInfo}">
-            <td th:text="${item.name}"></td>
-            <td th:text="${item.value}" style="min-width: 50px"></td>
+            <td th:utext="${item.name}"></td>
+            <td th:utext="${item.value}" style="min-width: 50px"></td>
         </tr>
         </tbody>
     </table>

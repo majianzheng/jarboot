@@ -106,7 +106,7 @@ public class AgentManager {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令");
-            WebSocketManager.getInstance().commandComplete(server, command);
+            WebSocketManager.getInstance().commandComplete(server, sessionId);
         } else {
             client.sendCommand(command, sessionId);
         }

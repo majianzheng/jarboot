@@ -12,6 +12,10 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Netty nio处理类
+ * @author jianzhengma
+ */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final WebSocketClientHandshaker handshaker;

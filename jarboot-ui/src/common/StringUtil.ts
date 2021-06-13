@@ -13,7 +13,10 @@ class StringUtil {
      * @param {String} str
      *
      */
-    public static isEmpty(str: string) {
+    public static isEmpty(str: string|undefined|null) {
+        if (null == str) {
+            return true;
+        }
         return (this.isNull(str) || (this.isString(str) && str.trim() === ""));
     }
 
@@ -22,7 +25,7 @@ class StringUtil {
      * @param {String} str
      *
      */
-    public static isNotEmpty(str: string) {
+    public static isNotEmpty(str: string|undefined|null) {
         return !this.isEmpty(str);
     }
 

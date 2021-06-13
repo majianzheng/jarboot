@@ -3,32 +3,33 @@ package com.mz.jarboot.agent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 
-public class JarbootAgent {// NOSONAR
+@SuppressWarnings("all")
+public class JarbootAgent {
     private static final String JARBOOT_CORE_JAR = "jarboot-core.jar";
     private static final String JARBOOT_CLASS = "com.mz.jarboot.core.server.JarbootBootstrap";
     private static final String GET_INSTANCE = "getInstance";
-    private static volatile boolean INITED = false; // NOSONAR
 
-    private static PrintStream ps = System.err; // NOSONAR
+    private static PrintStream ps = System.err;
 
     static {
         try {
             File logDir = new File(System.getProperty("user.home") + File.separator +
                     "jarboot" + File.separator + "logs"  + File.separator);
             if (!logDir.exists()) {
-                logDir.mkdir(); // NOSONAR
+                logDir.mkdir();
             }
             File log = new File(logDir, "jarboot-agent.log");
             if (!log.exists()) {
-                log.createNewFile(); // NOSONAR
+                log.createNewFile();
             }
             ps = new PrintStream(new FileOutputStream(log, false));
-        } catch (Throwable e) { // NOSONAR
+        } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
@@ -55,7 +56,7 @@ public class JarbootAgent {// NOSONAR
             Class<?> bootClass = jarbootClassLoader.loadClass(JARBOOT_CLASS);
             //获取实例
             Object inst = bootClass.getMethod(GET_INSTANCE).invoke(null);
-            boolean isOnline = (boolean)bootClass.getMethod("isOnline").invoke(inst);
+            boolean isOnline = (Boolean) bootClass.getMethod("isOnline").invoke(inst);
             if (isOnline) {
                 ps.println("Agent客户端已经处于在线状态");
             } else {
@@ -69,12 +70,19 @@ public class JarbootAgent {// NOSONAR
     }
 
     private static synchronized void main(String args, final Instrumentation inst) {
-        if (INITED) {
-            ps.println("jarboot Agent is already started!");
-            //检查是否在线
-            clientCheckAndInit();
-            return;
+        try {
+            Class.forName("java.jarboot.SpyAPI");
+            if (SpyAPI.isInited()) {
+                ps.println("Jarboot Agent is already started, skip attach and check client.");
+                //检查是否在线
+                clientCheckAndInit();
+                ps.flush();
+                return;
+            }
+        } catch (Exception e) {
+            // ignore
         }
+
         ps.println("jarboot Agent start...");
 
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
@@ -99,13 +107,12 @@ public class JarbootAgent {// NOSONAR
 
             bind(classLoader, inst, args);
             //初始化成功
-            INITED = true;
             ps.println("jarboot Agent ready.");
-        } catch (Throwable e) {// NOSONAR
+        } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
-    private static void bind(ClassLoader classLoader, Instrumentation inst, String args) throws Exception {// NOSONAR
+    private static void bind(ClassLoader classLoader, Instrumentation inst, String args) throws Exception {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
         bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class).invoke(null, inst, args);
     }

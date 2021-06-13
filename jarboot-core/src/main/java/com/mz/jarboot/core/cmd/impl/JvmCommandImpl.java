@@ -1,11 +1,7 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.Command;
-import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.JvmModel;
-import com.mz.jarboot.core.constant.CoreConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.lang.management.*;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -15,8 +11,6 @@ import java.util.*;
  * @author jianzhengma
  */
 public class JvmCommandImpl extends Command {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private CommandSession handler = null;
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
     private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
@@ -130,7 +124,7 @@ public class JvmCommandImpl extends Command {
 
     @Override
     public boolean isRunning() {
-        return null != handler && handler.isRunning();
+        return null != session && session.isRunning();
     }
 
     @Override
@@ -144,10 +138,7 @@ public class JvmCommandImpl extends Command {
     }
 
     @Override
-    public void run(CommandSession handler) {
-        this.handler = handler;
-
-        logger.info("jvm 开始执行》》》》{}", name);
+    public void run() {
         appendRuntime();
         appendClassLoading();
         addCompilation();
@@ -158,7 +149,7 @@ public class JvmCommandImpl extends Command {
         addMemoryManagers();
         addFileDescriptor();
 
-        handler.appendResult(model);
+        session.appendResult(model);
 
         //一次性类型命令直接结束
         complete();
@@ -166,8 +157,8 @@ public class JvmCommandImpl extends Command {
 
     @Override
     public void complete() {
-        if (null != handler) {
-            handler.end();
+        if (null != session) {
+            session.end();
         }
     }
 }

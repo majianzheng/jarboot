@@ -13,6 +13,12 @@
     <name>jarboot-agent</name>
 
     <dependencies>
+        <dependency>
+            <groupId>com.mz.jarboot</groupId>
+            <artifactId>jarboot-spy</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -20,17 +26,44 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Agent-Class>com.mz.jarboot.agent.JarbootAgent</Agent-Class>
-                            <Premain-Class>com.mz.jarboot.agent.JarbootAgent</Premain-Class>
-                            <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                        </manifestEntries>
-                    </archive>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <encoding>UTF-8</encoding>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifestEntries>
+                                    <Premain-Class>com.mz.jarboot.agent.JarbootAgent</Premain-Class>
+                                    <Agent-Class>com.mz.jarboot.agent.JarbootAgent</Agent-Class>
+                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                    <Specification-Title>${project.name}</Specification-Title>
+                                    <Specification-Version>${project.version}</Specification-Version>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

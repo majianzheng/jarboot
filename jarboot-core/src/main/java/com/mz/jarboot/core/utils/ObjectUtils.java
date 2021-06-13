@@ -4,6 +4,11 @@ package com.mz.jarboot.core.utils;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+/**
+ * @author jianzhengma
+ * 以下代码来自开源项目Arthas
+ */
+@SuppressWarnings("all")
 public abstract class ObjectUtils {
     private static final int INITIAL_HASH = 7;
     private static final int MULTIPLIER = 31;
@@ -15,6 +20,10 @@ public abstract class ObjectUtils {
     private static final String ARRAY_ELEMENT_SEPARATOR = ", ";
 
     public ObjectUtils() {
+    }
+
+    public static boolean isLambdaClass(Class<?> clazz) {
+        return clazz.getName().contains("$$Lambda$");
     }
 
     public static boolean isCheckedException(Throwable ex) {

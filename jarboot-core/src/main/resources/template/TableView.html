@@ -1,0 +1,13 @@
+<div>
+  <table border="1">
+    <caption style="caption-side: top; font-size: 20px; color: snow" th:utext="${title}"></caption>
+    <tbody>
+    <tr>
+      <th th:each="header : ${headers}"><span th:utext="${header}"></span></th>
+    </tr>
+    <tr th:each="row : ${rows}">
+      <td th:each="item : ${row}"><span th:utext="${item}"></span></td>
+    </tr>
+    </tbody>
+  </table>
+</div>

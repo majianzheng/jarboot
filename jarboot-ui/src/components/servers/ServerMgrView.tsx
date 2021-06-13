@@ -8,7 +8,7 @@ import CommonNotice from '@/common/CommonNotice';
 import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, EnterOutlined, LoadingOutlined,
     PoweroffOutlined, ReloadOutlined, CloseCircleOutlined} from '@ant-design/icons';
 // @ts-ignore
-import Console from "../console/Console";
+import Console from "@/components/console/Console";
 import {JarBootConst} from '@/common/JarBootConst';
 import {MsgData, WsManager} from "@/common/WsManager";
 import ErrorUtil from '@/common/ErrorUtil';
@@ -18,6 +18,7 @@ import StringUtil from "@/common/StringUtil";
 import { useIntl } from 'umi';
 import {memo} from "react";
 import {formatMsg} from "@/common/IntlFormat";
+import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
 
 interface ServerRunning {
     name: string,
@@ -45,10 +46,12 @@ const OneClickButtons: any = memo((props: any) => {
     </Space>;
 });
 
+const pubsub: PublishSubmit = new ServerPubsubImpl();
+
 export default class ServerMgrView extends React.Component {
     state = {command: '', executing: false, loading: false, data: [], selectedRowKeys: [], selectRows: [], current: '', oneClickLoading: false};
     allServerOut: any = [];
-    methodMap = new Map();
+    //methodMap = new Map();
     height = window.innerHeight - 120;
     componentDidMount() {
         this.refreshWebServerList();
@@ -67,20 +70,15 @@ export default class ServerMgrView extends React.Component {
     private _serverStatusChange = (data: MsgData) => {
         const server = data.server;
         const status = data.body;
-        const handler = this.methodMap.get(server);
-        if (!handler) {
-            Logger.warn(`handler为空，${server}`);
-            return;
-        }
         switch (status) {
             case JarBootConst.MSG_TYPE_START:
                 Logger.log(`启动中${server}...`);
-                handler.startLoading();
+                pubsub.publish(server, 'startLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
                 Logger.log(`停止中${server}...`);
-                handler.startLoading();
+                pubsub.publish(server, 'startLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
@@ -90,7 +88,7 @@ export default class ServerMgrView extends React.Component {
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
                 Logger.log(`启动成功${server}`);
-                handler.finishLoading();
+                pubsub.publish(server, 'finishLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
@@ -100,12 +98,12 @@ export default class ServerMgrView extends React.Component {
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
                 Logger.log(`停止成功${server}`);
-                handler.finishLoading();
+                pubsub.publish(server, 'finishLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
                 Logger.log(`重启成功${server}`);
-                handler.finishLoading();
+                pubsub.publish(server, 'finishLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             default:
@@ -114,22 +112,12 @@ export default class ServerMgrView extends React.Component {
     };
 
     private _console = (data: MsgData) => {
-        const handler = this.methodMap.get(data.server);
-        if (!handler) {
-            Logger.warn(`handler为空，${data.server}`);
-            return;
-        }
-        handler.appendLine(data.body);
+        pubsub.publish(data.server, 'appendLine', data.body);
     }
 
     private _commandComplete = (data: MsgData) => {
-        const handler = this.methodMap.get(data.server);
-        if (!handler) {
-            Logger.warn(`handler为空，${data.server}`);
-            return;
-        }
         this.setState({executing: false});
-        handler.finishLoading();
+        pubsub.publish(data.server, 'finishLoading');
     }
 
     private _updateServerStatus(server: string, status: string) {
@@ -228,12 +216,7 @@ export default class ServerMgrView extends React.Component {
         if (servers && servers.length > 0) {
             allList = allList.concat(servers.map(value => value.name));
         }
-          allList.forEach(value => {
-            if (!this.methodMap.has(value)) {
-              this.methodMap.set(value, {});
-            }
-          });
-          this.allServerOut = allList;
+        this.allServerOut = allList;
     }
 
     private refreshWebServerList = () => {
@@ -268,8 +251,7 @@ export default class ServerMgrView extends React.Component {
     };
 
     private _clearDisplay = (server: string) => {
-      const handler = this.methodMap.get(server);
-      handler && handler.clear()
+        pubsub.publish(server, 'clear');
     };
 
     private stopServer = () => {
@@ -376,8 +358,7 @@ export default class ServerMgrView extends React.Component {
         }
 
         this.setState({executing: true});
-        const handler = this.methodMap.get(server);
-        handler.appendLine(`>${this.state.command}`);
+        pubsub.publish(server, 'appendLine', `>${this.state.command}`);
         const msg = {server, body: this.state.command, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
     };
@@ -399,6 +380,10 @@ export default class ServerMgrView extends React.Component {
             <Input onPressEnter={this._onExecCommand}
                    disabled={this.state.executing}
                    placeholder={"command..."}
+                   autoComplete={"off"}
+                   autoCorrect="off"
+                   autoCapitalize="off"
+                   spellCheck="false"
                    style={{width: '100%'}}
                    onChange={event => this.setState({command: event.target.value})}
                    value={this.state.command}
@@ -422,10 +407,12 @@ export default class ServerMgrView extends React.Component {
                           extra={<Button type={"link"} onClick={() => this._clearDisplay(this.state.current)}>{formatMsg('CLEAR')}</Button>}>
                         <div className={styles.outPanel}>
                             <Console key={'-1'} visible={this.state.current === ""}
-                                     method={this.methodMap.get("")}/>
+                                     server={''}
+                                     pubsub={pubsub}/>
                             {this.allServerOut.map((value: any) => (
                                 <Console key={value} visible={this.state.current === value}
-                                         method={this.methodMap.get(value)}/>
+                                         server={value}
+                                         pubsub={pubsub}/>
                             ))}
                         </div>
                     </Card>

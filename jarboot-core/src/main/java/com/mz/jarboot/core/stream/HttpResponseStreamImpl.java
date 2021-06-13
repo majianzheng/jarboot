@@ -11,12 +11,17 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 大数据量传输通过http协议，使用WebSocket会增加额外的拆包、组包实现增加业务复杂性
+ * 快慢个几毫秒眼睛也分辨不出来
+ * @author jianzhengma
+ */
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final String API = "api/agent/response?server";
     private String url;
     public HttpResponseStreamImpl() {
-        url = String.format("http://%s/api/agent/response?server=%s",
-                EnvironmentContext.getHost(), EnvironmentContext.getServer());
+        url = String.format("http://%s/%s=%s", EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
     }
     @Override
     public void write(String data) {

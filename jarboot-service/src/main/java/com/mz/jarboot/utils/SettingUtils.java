@@ -55,7 +55,7 @@ public class SettingUtils {
         }
     }
     private static void initGlobalSetting() {
-        String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
+        String conf = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + GLOBAL_SETTING_FILE;
         File file = FileUtils.getFile(conf);
         if (file.isDirectory()) {
             try {
@@ -89,21 +89,8 @@ public class SettingUtils {
             }
             logger.warn("配置的services({})路径不存在，将使用默认的约定路径。", servicesPath);
         }
-        CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
-        try {
-            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            String curJarFilePath = curJar.getPath();
-            if (curJarFilePath.endsWith(".jar")) {
-                //真实环境中使用当前文件所在的位置
-                servicesPath = curJar.getParent() + File.separator + DEFAULT_SERVICES_ROOT_NAME;
-            } else {
-                //开发环境中，使用用户目录下的位置
-                servicesPath = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + DEFAULT_SERVICES_ROOT_NAME;
-            }
-            globalSetting.setServicesPath(servicesPath);
-        } catch (Exception e) {
-            //ignore
-        }
+        servicesPath = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + DEFAULT_SERVICES_ROOT_NAME;
+        globalSetting.setServicesPath(servicesPath);
     }
 
     public static GlobalSettingDTO getGlobalSetting() {
@@ -127,7 +114,7 @@ public class SettingUtils {
             }
         }
 
-        String conf = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + GLOBAL_SETTING_FILE;
+        String conf = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + GLOBAL_SETTING_FILE;
         File file = FileUtils.getFile(conf);
         try {
             if (file.isDirectory()) {

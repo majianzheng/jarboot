@@ -22,7 +22,7 @@ public class CommandDispatcher {
             CommandSession session = EnvironmentContext.registerSession(request.getSessionId());
 
             CommandType type = request.getCommandType();
-            Command command = CommandBuilder.build(request);
+            Command command = CommandBuilder.build(request, session);
 
             if (null == command) {
                 logger.warn("解析命令错误！");
@@ -32,10 +32,10 @@ public class CommandDispatcher {
             logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());
             switch (type) {
                 case USER_PUBLIC:
-                    EnvironmentContext.runCommand(session, command);
+                    EnvironmentContext.runCommand(command);
                     break;
                 case INTERNAL:
-                    command.run(session);
+                    command.run();
                     break;
                 default:
                     //ignore

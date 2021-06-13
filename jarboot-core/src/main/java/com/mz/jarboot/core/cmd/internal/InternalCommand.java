@@ -1,7 +1,6 @@
 package com.mz.jarboot.core.cmd.internal;
 
 import com.mz.jarboot.core.cmd.Command;
-import com.mz.jarboot.core.session.CommandSession;
 
 /**
  * 内部命令体系，用于jarboot-service与agent之间交互的专用通道，即时任务，无状态控制
@@ -19,7 +18,7 @@ public abstract class InternalCommand extends Command {
     }
 
     @Override
-    public abstract void run(CommandSession handler);
+    public abstract void run();
 
 
     @Override

@@ -16,7 +16,7 @@
 - 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
 - ⭐️支持进程守护，开启后若服务异常退出则自动启动并通知
 - ☀️支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[2]](#f2)</sup>
-- 🚀   调试命令执行，同时调试多个进程，界面更友好
+- 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
 
 采用<code>前后端分离</code>架构，前端界面采用<code>React</code>技术，脚手架使用<code>Umi</code>，组件库使用Umi内置等<code>antd</code>。后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
@@ -30,17 +30,16 @@ jarboot-ui|前端ui界面，使用<code>React</code>实现
 
 ## 编译构建
 1. 编译java和前端项目
-```
-//切换到代码根目录，编译Java代码
-mvn clean install
-
+```bash
 cd jarboot-ui
-
 //首次时需要先安装依赖，执行yarn或npm install
 yarn
 
 //执行编译，yarn buld或npm run build，开发模式可执行yarn start或npm run start
 yarn build
+
+//切换到代码根目录，编译Java代码
+mvn clean install
 ```
 
 2. 约定的目录结构，编译的输出放入如下的目录结构
@@ -48,11 +47,9 @@ yarn build
 ```bash
 jarboot                             //当前工作流目录
 ├─logs                              //日志默认记录在用户目录下的jarboot文件夹中
-│
+├─jarboot-spy.jar
 ├─jarboot-agent.jar                 //必要的文件不可少
-│
 ├─jarboot-core.jar                  //注入目标服务的核心实现
-│
 ├─jarboot-service.jar               //Web服务HTTP接口及WebSocket及主要业务实现
 │
 ├─services                          //约定的管理其他jar文件的默认根目录(可配置)
@@ -69,7 +66,7 @@ jarboot                             //当前工作流目录
 
 3. 启动<code>jarboot-service.jar</code>主控服务
 ```
-java -jar jarboot-service.jar
+./boot.sh
 ```
 
 4. 浏览器访问<http://127.0.0.1:9899>
@@ -90,9 +87,9 @@ java -jar jarboot-service.jar
   jvm
   ````
   
-- monitor 方法执行监控
+- trace 方法执行监控
   ```
-  monitor -c 6 com.demo.Test test
+  trace com.demo.Test test
   ```
   
 - thread 查看当前线程信息，查看线程的堆栈

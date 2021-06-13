@@ -10,6 +10,10 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * 以下代码来自开源项目Arthas
+ */
+@SuppressWarnings("all")
 public abstract class StringUtils {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

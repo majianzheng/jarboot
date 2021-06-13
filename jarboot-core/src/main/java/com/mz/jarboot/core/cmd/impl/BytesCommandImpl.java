@@ -1,18 +1,19 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.alibaba.deps.org.objectweb.asm.ClassReader;
+import com.alibaba.deps.org.objectweb.asm.tree.AbstractInsnNode;
+import com.alibaba.deps.org.objectweb.asm.tree.ClassNode;
+import com.alibaba.deps.org.objectweb.asm.tree.InsnList;
+import com.alibaba.deps.org.objectweb.asm.tree.MethodNode;
+import com.alibaba.deps.org.objectweb.asm.util.Printer;
+import com.alibaba.deps.org.objectweb.asm.util.Textifier;
+import com.alibaba.deps.org.objectweb.asm.util.TraceMethodVisitor;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.Command;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.cmd.annotation.Argument;
+import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.StringUtils;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.util.Printer;
-import org.objectweb.asm.util.Textifier;
-import org.objectweb.asm.util.TraceMethodVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
@@ -27,11 +28,18 @@ public class BytesCommandImpl extends Command {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static Printer printer = new Textifier();
     private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);
-    private CommandSession handler = null;
+
+    private String classPattern;
+
+    @Argument(argName = "class-pattern", index = 0)
+    @Description("Class name pattern, use either '.' or '/' as separator")
+    public void setClassPattern(String classPattern) {
+        this.classPattern = classPattern;
+    }
 
     @Override
     public boolean isRunning() {
-        return null != handler && handler.isRunning();
+        return null != session && session.isRunning();
     }
 
     @Override
@@ -45,24 +53,30 @@ public class BytesCommandImpl extends Command {
     }
 
     @Override
-    public void run(CommandSession handler) {
-        this.handler = handler;
-
+    public void run() {
         logger.info("bytes 开始执行>>{}", name);
-        if (StringUtils.isEmpty(this.args)) {
+        if (StringUtils.isEmpty(this.classPattern)) {
             //未指定要打印的类
-            handler.console("用法: bytes className");
+            session.console("用法: bytes className");
             complete();
             return;
         }
-        Class<?> cls;
-        try {
-            cls = Class.forName(this.args);
-        } catch (ClassNotFoundException e) {
-            handler.console("没有找到类," + this.args);
+        Class<?> cls = null;
+        Class[] classes = EnvironmentContext.getInstrumentation().getAllLoadedClasses();
+        for (Class<?> c : classes) {
+            if (c.getName().equals(this.classPattern)) {
+                cls = c;
+                break;
+            }
+        }
+        if (null == cls) {
+            session.console("没有找到类," + this.classPattern);
             complete();
             return;
         }
+        //打印classloader
+        session.console("ClassLoader: " + cls.getClassLoader().toString());
+        session.console("------");
         EnvironmentContext.getTransformerManager()
                 .addOnceTransformer(cls, (loader, className, classBeingRedefined,
                                           protectionDomain, classfileBuffer) -> {
@@ -76,14 +90,14 @@ public class BytesCommandImpl extends Command {
                         final List<MethodNode> methods = classNode.methods;
                         for (MethodNode m : methods) {
                             InsnList inList = m.instructions;
-                            handler.console(m.name);
+                            session.console(m.name);
                             for (int i = 0; i < inList.size(); i++) {
-                                handler.console(nodeToString(inList.get(i)));
+                                session.console(nodeToString(inList.get(i)));
                             }
                         }
                     } catch (Exception e) {
                         logger.warn(e.getMessage(), e);
-                        handler.console("解析类失败，" + e.getMessage());
+                        session.console("解析类失败，" + e.getMessage());
                     }
                     complete();
                     return null;
@@ -102,8 +116,8 @@ public class BytesCommandImpl extends Command {
 
     @Override
     public void complete() {
-        if (null != handler) {
-            handler.end();
+        if (null != session) {
+            session.end();
         }
     }
 }

@@ -3,7 +3,7 @@ package com.mz.jarboot.constant;
 
 public class CommonConst {
     public static final String WORKSPACE_HOME= "workspace.home"; //用户工作目录
-    public static final String JARBOOT_HOME= "JARBOOT_HOME"; //当前执行目录
+    public static final String JARBOOT_HOME= "jarboot.home"; //当前执行目录
 
     //服务目录名称
     public static final String SERVICES_DIR = "services";
