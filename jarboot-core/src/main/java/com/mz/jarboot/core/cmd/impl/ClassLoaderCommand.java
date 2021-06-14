@@ -38,7 +38,7 @@ import java.util.Map.Entry;
         "  classloader -a -c 327a647b\n" +
         "  classloader -c 659e0bfd --load demo.MathGame\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "classloader")
-public class ClassLoaderCommandImpl extends Command {
+public class ClassLoaderCommand extends Command {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private boolean isTree = false;
     private String hashCode;
@@ -107,7 +107,7 @@ public class ClassLoaderCommandImpl extends Command {
 
     @Override
     public void cancel() {
-
+        session.cancel();
     }
 
     @Override
@@ -165,7 +165,7 @@ public class ClassLoaderCommandImpl extends Command {
 
     @Override
     public void complete() {
-
+        //do nothing
     }
 
     /**
@@ -176,7 +176,7 @@ public class ClassLoaderCommandImpl extends Command {
     private void processClassLoaderStats(Instrumentation inst) {
         RowAffect affect = new RowAffect();
         List<ClassLoaderInfo> classLoaderInfos = getAllClassLoaderInfo(inst);
-        Map<String, ClassLoaderStat> classLoaderStats = new HashMap<String, ClassLoaderStat>();
+        Map<String, ClassLoaderStat> classLoaderStats = new HashMap<>();
         for (ClassLoaderInfo info: classLoaderInfos) {
             String name = info.classLoader == null ? "BootstrapClassLoader" : info.classLoader.getClass().getName();
             ClassLoaderStat stat = classLoaderStats.get(name);
@@ -190,7 +190,7 @@ public class ClassLoaderCommandImpl extends Command {
 
         // sort the map by value
         TreeMap<String, ClassLoaderStat> sorted =
-                new TreeMap<String, ClassLoaderStat>(new ValueComparator(classLoaderStats));
+                new TreeMap<>(new ValueComparator(classLoaderStats));
         sorted.putAll(classLoaderStats);
         session.appendResult(new ClassLoaderModel().setClassLoaderStats(sorted));
 
@@ -204,7 +204,7 @@ public class ClassLoaderCommandImpl extends Command {
         List<ClassLoaderInfo> classLoaderInfos = includeReflectionClassLoader ? getAllClassLoaderInfo(inst) :
                 getAllClassLoaderInfo(inst, new SunReflectionClassLoaderFilter());
 
-        List<ClassLoaderVO> classLoaderVOs = new ArrayList<ClassLoaderVO>(classLoaderInfos.size());
+        List<ClassLoaderVO> classLoaderVOs = new ArrayList<>(classLoaderInfos.size());
         for (ClassLoaderInfo classLoaderInfo : classLoaderInfos) {
             ClassLoaderVO classLoaderVO = ClassUtils.createClassLoaderVO(classLoaderInfo.classLoader);
             classLoaderVO.setLoadedCount(classLoaderInfo.loadedClassCount());
@@ -254,7 +254,7 @@ public class ClassLoaderCommandImpl extends Command {
                     resources.add(url.toString());
                     rowCount++;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.warn("get resource failed, resource: {}", resource, e);
             }
         }
@@ -306,15 +306,10 @@ public class ClassLoaderCommandImpl extends Command {
             hashCodeInt = Integer.valueOf(hashCode, 16);
         }
 
-        SortedSet<Class<?>> bootstrapClassSet = new TreeSet<Class<?>>(new Comparator<Class>() {
-            @Override
-            public int compare(Class o1, Class o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        SortedSet<Class<?>> bootstrapClassSet = new TreeSet<>((Comparator<Class>) (o1, o2) -> o1.getName().compareTo(o2.getName()));
 
         Class[] allLoadedClasses = inst.getAllLoadedClasses();
-        Map<ClassLoader, SortedSet<Class<?>>> classLoaderClassMap = new HashMap<ClassLoader, SortedSet<Class<?>>>();
+        Map<ClassLoader, SortedSet<Class<?>>> classLoaderClassMap = new HashMap<>();
         for (Class clazz : allLoadedClasses) {
             ClassLoader classLoader = clazz.getClassLoader();
             // Class loaded by BootstrapClassLoader
@@ -331,12 +326,7 @@ public class ClassLoaderCommandImpl extends Command {
 
             SortedSet<Class<?>> classSet = classLoaderClassMap.get(classLoader);
             if (classSet == null) {
-                classSet = new TreeSet<Class<?>>(new Comparator<Class<?>>() {
-                    @Override
-                    public int compare(Class<?> o1, Class<?> o2) {
-                        return o1.getName().compareTo(o2.getName());
-                    }
-                });
+                classSet = new TreeSet<>((o1, o2) -> o1.getName().compareTo(o2.getName()));
                 classLoaderClassMap.put(classLoader, classSet);
             }
             classSet.add(clazz);
@@ -359,13 +349,10 @@ public class ClassLoaderCommandImpl extends Command {
 
     private void processClassSet(final ClassLoaderVO classLoaderVO, Collection<Class<?>> classes, int pageSize, final RowAffect affect) {
         //分批输出classNames, Ctrl+C可以中断执行
-        ResultUtils.processClassNames(classes, pageSize, new ResultUtils.PaginationHandler<List<String>>() {
-            @Override
-            public boolean handle(List<String> classNames, int segment) {
-                session.appendResult(new ClassLoaderModel().setClassSet(new ClassSetVO(classLoaderVO, classNames, segment)));
-                affect.rCnt(classNames.size());
-                return !checkInterrupted();
-            }
+        ResultUtils.processClassNames(classes, pageSize, (classNames, segment) -> {
+            session.appendResult(new ClassLoaderModel().setClassSet(new ClassSetVO(classLoaderVO, classNames, segment)));
+            affect.rCnt(classNames.size());
+            return !checkInterrupted();
         });
     }
 
@@ -382,7 +369,7 @@ public class ClassLoaderCommandImpl extends Command {
     }
 
     private static List<String> getClassLoaderUrls(ClassLoader classLoader) {
-        List<String> urlStrs = new ArrayList<String>();
+        List<String> urlStrs = new ArrayList<>();
         if (classLoader instanceof URLClassLoader) {
             URLClassLoader cl = (URLClassLoader) classLoader;
             URL[] urls = cl.getURLs();
@@ -397,8 +384,8 @@ public class ClassLoaderCommandImpl extends Command {
 
     // 以树状列出ClassLoader的继承结构
     private static List<ClassLoaderVO> processClassLoaderTree(List<ClassLoaderVO> classLoaders) {
-        List<ClassLoaderVO> rootClassLoaders = new ArrayList<ClassLoaderVO>();
-        List<ClassLoaderVO> parentNotNullClassLoaders = new ArrayList<ClassLoaderVO>();
+        List<ClassLoaderVO> rootClassLoaders = new ArrayList<>();
+        List<ClassLoaderVO> parentNotNullClassLoaders = new ArrayList<>();
         for (ClassLoaderVO classLoaderVO : classLoaders) {
             if (classLoaderVO.getParent() == null) {
                 rootClassLoaders.add(classLoaderVO);
@@ -423,7 +410,7 @@ public class ClassLoaderCommandImpl extends Command {
     }
 
     private static Set<ClassLoader> getAllClassLoaders(Instrumentation inst, Filter... filters) {
-        Set<ClassLoader> classLoaderSet = new HashSet<ClassLoader>();
+        Set<ClassLoader> classLoaderSet = new HashSet<>();
 
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             ClassLoader classLoader = clazz.getClassLoader();
@@ -440,7 +427,7 @@ public class ClassLoaderCommandImpl extends Command {
         // 这里认为class.getClassLoader()返回是null的是由BootstrapClassLoader加载的，特殊处理
         ClassLoaderInfo bootstrapInfo = new ClassLoaderInfo(null);
 
-        Map<ClassLoader, ClassLoaderInfo> loaderInfos = new HashMap<ClassLoader, ClassLoaderInfo>();
+        Map<ClassLoader, ClassLoaderInfo> loaderInfos = new HashMap<>();
 
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             ClassLoader classLoader = clazz.getClassLoader();
@@ -469,9 +456,9 @@ public class ClassLoaderCommandImpl extends Command {
 
         // 排序时，把用户自己定的ClassLoader排在最前面，以sun.
         // 开头的放后面，因为sun.reflect.DelegatingClassLoader的实例太多
-        List<ClassLoaderInfo> sunClassLoaderList = new ArrayList<ClassLoaderInfo>();
+        List<ClassLoaderInfo> sunClassLoaderList = new ArrayList<>();
 
-        List<ClassLoaderInfo> otherClassLoaderList = new ArrayList<ClassLoaderInfo>();
+        List<ClassLoaderInfo> otherClassLoaderList = new ArrayList<>();
 
         for (Entry<ClassLoader, ClassLoaderInfo> entry : loaderInfos.entrySet()) {
             ClassLoader classLoader = entry.getKey();
@@ -485,7 +472,7 @@ public class ClassLoaderCommandImpl extends Command {
         Collections.sort(sunClassLoaderList);
         Collections.sort(otherClassLoaderList);
 
-        List<ClassLoaderInfo> result = new ArrayList<ClassLoaderInfo>();
+        List<ClassLoaderInfo> result = new ArrayList<>();
         result.add(bootstrapInfo);
         result.addAll(otherClassLoaderList);
         result.addAll(sunClassLoaderList);

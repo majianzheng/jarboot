@@ -27,11 +27,18 @@ public class CommandBuilder {
     private static final Map<String, Class<? extends Command>> commandMap = new ConcurrentHashMap<>();
     private static final Map<String, Class<? extends Command>> internalCommandMap = new ConcurrentHashMap<>();
     static {
-        commandMap.put("bytes", BytesCommandImpl.class);
-        commandMap.put("jvm", JvmCommandImpl.class);
-        commandMap.put("trace", TraceCommandImpl.class);
+        commandMap.put("bytes", BytesCommand.class);
+        commandMap.put("jvm", JvmCommand.class);
         commandMap.put("sysprop", SysPropCommandImpl.class);
-        commandMap.put("thread", ThreadCommandImpl.class);
+
+        commandMap.put("jad", JadCommand.class);
+        commandMap.put("classloader", ClassLoaderCommand.class);
+
+        //资源监控类
+        commandMap.put("dashboard", DashboardCommand.class);
+        commandMap.put("thread", ThreadCommand.class);
+        commandMap.put("watch", WatchCommand.class);
+        commandMap.put("trace", TraceCommandImpl.class);
         //初始化内部命令实现
         internalCommandMap.put(CommandConst.EXIT_CMD, ExitCommandImpl.class);
         internalCommandMap.put(CommandConst.CANCEL_CMD, CancelCommandImpl.class);

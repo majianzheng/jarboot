@@ -4,7 +4,7 @@ import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
 
 interface ConsoleProps {
-    visible: boolean;
+    visible?: boolean;
     content?: string;
     pubsub?: PublishSubmit;
     server: string;
@@ -89,7 +89,7 @@ const Console = (props: ConsoleProps) => {
         try {
             codeDom?.removeChild(loading);
         } catch (error) {
-            Logger.error(error);
+            //ignore
         }
         isStartLoading = false;
     };
@@ -151,7 +151,7 @@ const Console = (props: ConsoleProps) => {
         return p;
     };
 
-    let style = {display: props.visible ? 'block' : 'none'};
+    let style = {display: false === props.visible ? 'none' : 'block'};
     return (<>
             <code id={id} style={style} className={styles.console}>
             </code>

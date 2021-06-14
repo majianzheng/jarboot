@@ -4,6 +4,7 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,8 +42,8 @@ public class TaskUtils {
         if (!isOk && isAlive(server)) {
             if (AgentManager.getInstance().isOnline(server)) {
                 logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
-                WebSocketManager.getInstance().noticeWarn("服务" + server +
-                        "未等到退出消息，将执行强制退出命令！");
+                WebSocketManager.getInstance().notice("服务" + server +
+                        "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
             String name = getJarWithServerName(server);
             killJavaByName(name, text -> WebSocketManager.getInstance().sendConsole(server, text));
@@ -149,7 +150,7 @@ public class TaskUtils {
                 parseLinePid(pidList, line);
             }
         } catch (Exception e) {
-            WebSocketManager.getInstance().noticeWarn(e.getMessage());
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         }
         p.destroy();
 
@@ -305,9 +306,9 @@ public class TaskUtils {
             callback.sendMessage("强制终止进程，pid:" + pid);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            WebSocketManager.getInstance().noticeWarn(e.getMessage());
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         } catch (IOException e) {
-            WebSocketManager.getInstance().noticeWarn(e.getMessage());
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         } finally {
             if (null != p) {
                 try {

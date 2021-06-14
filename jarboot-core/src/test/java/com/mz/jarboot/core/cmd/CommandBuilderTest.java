@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.common.CommandRequest;
-import com.mz.jarboot.core.cmd.impl.ThreadCommandImpl;
+import com.mz.jarboot.core.cmd.impl.ThreadCommand;
 import com.mz.jarboot.core.cmd.impl.TraceCommandImpl;
 import com.mz.jarboot.core.server.LogTest;
 import com.mz.jarboot.core.session.CommandSession;
@@ -38,11 +38,11 @@ public class CommandBuilderTest {
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
-        assertThat(cmd instanceof ThreadCommandImpl).isTrue();
-        ThreadCommandImpl thread = (ThreadCommandImpl)cmd;
+        assertThat(cmd instanceof ThreadCommand).isTrue();
+        ThreadCommand thread = (ThreadCommand)cmd;
         assertEquals("thread", thread.getName());
         try {
-            Field field = ThreadCommandImpl.class.getDeclaredField("id");
+            Field field = ThreadCommand.class.getDeclaredField("id");
             field.setAccessible(true);
             assertEquals(1L, field.get(thread));
         } catch (Exception e) {

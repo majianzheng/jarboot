@@ -24,7 +24,7 @@ import java.util.List;
  * show the jvm detail
  * @author jianzhengma
  */
-public class BytesCommandImpl extends Command {
+public class BytesCommand extends Command {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static Printer printer = new Textifier();
     private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);

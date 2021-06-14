@@ -1,8 +1,8 @@
 package com.mz.jarboot.ws;
 
-import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsMsgEventEnum;
 import com.mz.jarboot.task.TaskStatus;
 import javax.websocket.Session;
@@ -52,6 +52,24 @@ public class WebSocketManager {
         }
     }
 
+    public void renderJson(String server, String text) {
+        String msg = formatMsg(server, WsMsgEventEnum.RENDER_JSON, text);
+        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+    }
+
+    public void renderJson(String server, String text, String sessionId) {
+        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
+            //广播session的id
+            renderJson(server, text);
+            return;
+        }
+        Session session = this.sessionMap.getOrDefault(sessionId, null);
+        if (null != session) {
+            String msg = formatMsg(server, WsMsgEventEnum.RENDER_JSON, text);
+            sendTextMessage(session, msg);
+        }
+    }
+
     public void publishStatus(String server, TaskStatus status) {
         //发布状态变化
         String msg = formatMsg(server, WsMsgEventEnum.SERVER_STATUS, status.name());
@@ -76,34 +94,32 @@ public class WebSocketManager {
         }
     }
 
-    public void noticeInfo(String text) {
-        this.notice(text, CommonConst.NOTICE_INFO);
-    }
-
-    public void noticeWarn(String text) {
-        this.notice(text, CommonConst.NOTICE_WARN);
-    }
-
-    public void noticeError(String text) {
-        this.notice(text, CommonConst.NOTICE_ERROR);
-    }
-
-    private void notice(String text, int type) {
-        JSONObject json = new JSONObject();
-        json.put("level", type);
-        json.put("msg", text);
-        String msg = formatMsg(null, WsMsgEventEnum.NOTICE, json);
+    public void notice(String text, NoticeEnum level) {
+        WsMsgEventEnum type = null;
+        switch (level) {
+            case INFO:
+                type = WsMsgEventEnum.NOTICE_INFO;
+                break;
+            case WARN:
+                type = WsMsgEventEnum.NOTICE_WARN;
+                break;
+            case ERROR:
+                type = WsMsgEventEnum.NOTICE_ERROR;
+                break;
+            default:
+                return;
+        }
+        String msg = formatMsg("", type, text);
         if (!sessionMap.isEmpty()) {
             this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
         }
     }
 
-    private static String formatMsg(String server, WsMsgEventEnum event, Object body) {
-        JSONObject json = new JSONObject();
-        json.put("server", server);
-        json.put("event", event.ordinal());
-        json.put("body", body);
-        return json.toJSONString();
+    private static String formatMsg(String server, WsMsgEventEnum event, String body) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(server).append(CommonConst.PROTOCOL_SPLIT)
+                .append(event.ordinal()).append(CommonConst.PROTOCOL_SPLIT).append(body);
+        return sb.toString();
     }
     private static void sendTextMessage(final Session session, String msg) {
         if (!session.isOpen()) {

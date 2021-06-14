@@ -4,6 +4,7 @@ public enum ResponseType {
     ONLINE,
     ACK,
     CONSOLE,
+    JSON_RESULT,
     COMPLETE,
     UNKNOWN
 }

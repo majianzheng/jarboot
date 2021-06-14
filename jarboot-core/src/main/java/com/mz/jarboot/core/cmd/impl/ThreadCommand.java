@@ -34,7 +34,7 @@ import java.util.*;
         "  thread -i 2000\n" +
         "  thread --state BLOCKED\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "thread")
-public class ThreadCommandImpl extends Command {
+public class ThreadCommand extends Command {
     private static Set<String> states = null;
     private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     private long id = -1;
@@ -48,7 +48,7 @@ public class ThreadCommandImpl extends Command {
     private boolean all = false;
 
     static {
-        states = new HashSet<String>(State.values().length);
+        states = new HashSet<>(State.values().length);
         for (State state : State.values()) {
             states.add(state.name());
         }
@@ -135,7 +135,7 @@ public class ThreadCommandImpl extends Command {
         List<ThreadVO> threads = ThreadUtil.getThreads();
 
         // 统计各种线程状态
-        Map<State, Integer> stateCountMap = new LinkedHashMap<State, Integer>();
+        Map<State, Integer> stateCountMap = new LinkedHashMap<>();
         for (State s : State.values()) {
             stateCountMap.put(s, 0);
         }
@@ -147,7 +147,7 @@ public class ThreadCommandImpl extends Command {
         }
 
         boolean includeInternalThreads = true;
-        Collection<ThreadVO> resultThreads = new ArrayList<ThreadVO>();
+        Collection<ThreadVO> resultThreads = new ArrayList<>();
         if (!StringUtils.isEmpty(this.state)) {
             this.state = this.state.toUpperCase();
             if (states.contains(this.state)) {
@@ -199,7 +199,7 @@ public class ThreadCommandImpl extends Command {
             topNThreads = threadStats;
         }
 
-        List<Long> tids = new ArrayList<Long>(topNThreads.size());
+        List<Long> tids = new ArrayList<>(topNThreads.size());
         for (ThreadVO thread : topNThreads) {
             if (thread.getId() > 0) {
                 tids.add(thread.getId());
@@ -212,7 +212,7 @@ public class ThreadCommandImpl extends Command {
         }
 
         //threadInfo with cpuUsage
-        List<BusyThreadInfo> busyThreadInfos = new ArrayList<BusyThreadInfo>(topNThreads.size());
+        List<BusyThreadInfo> busyThreadInfos = new ArrayList<>(topNThreads.size());
         for (ThreadVO thread : topNThreads) {
             ThreadInfo threadInfo = findThreadInfoById(threadInfos, thread.getId());
             BusyThreadInfo busyThread = new BusyThreadInfo(thread, threadInfo);

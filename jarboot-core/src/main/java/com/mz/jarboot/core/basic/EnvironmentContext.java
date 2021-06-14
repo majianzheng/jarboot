@@ -2,13 +2,18 @@ package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.view.ResultViewResolver;
+import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,7 +31,9 @@ public class EnvironmentContext {
     private static ConcurrentMap<String, Command> runningCommandMap = new ConcurrentHashMap<>();
     private static ExecutorService executorService;
     private static ScheduledExecutorService scheduledExecutorService;
+    private static String jarbootHome = "./";
     private static AtomicLong threadCount = new AtomicLong();
+    private static ResultViewResolver resultViewResolver;
     private EnvironmentContext() {}
 
     public static void init(String server, String host, Instrumentation inst) {
@@ -34,6 +41,7 @@ public class EnvironmentContext {
         EnvironmentContext.host = host;
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
+        EnvironmentContext.resultViewResolver = new ResultViewResolver();
         executorService = new ThreadPoolExecutor(1, 4, 30,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(64),
@@ -50,7 +58,19 @@ public class EnvironmentContext {
                 return t;
             }
         });
+        CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
+        try {
+            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            jarbootHome = curJar.getParent();
+        } catch (URISyntaxException e) {
+            //ignore
+        }
     }
+
+    public static String getJarbootHome() {
+        return jarbootHome;
+    }
+
     public static void cleanSession() {
         if (!sessionMap.isEmpty()) {
             sessionMap.forEach((k, v) -> v.cancel());
@@ -96,6 +116,10 @@ public class EnvironmentContext {
             sessionMap.put(sessionId, session);
         }
         return session;
+    }
+
+    public static ResultViewResolver getResultViewResolver() {
+        return resultViewResolver;
     }
 
     /**

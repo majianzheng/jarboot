@@ -6,6 +6,7 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.dto.GlobalSettingDTO;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -162,16 +163,18 @@ public class SettingUtils {
         File dir = new File(getServerPath(server));
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
-            WebSocketManager.getInstance().noticeWarn("未找到服务" + server + "的可执行jar包路径");
+            WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包路径", NoticeEnum.WARN);
         }
         String[] extensions = {"jar"};
         Collection<File> jarList = FileUtils.listFiles(dir, extensions, false);
         if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
-            WebSocketManager.getInstance().noticeWarn("未找到服务" + server + "的可执行jar包");
+            WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
         }
         if (jarList.size() > 1) {
-            WebSocketManager.getInstance().noticeError("在服务目录找到了多个jar包！可能会导致服务不可用，请先清理该目录！留下一个可用的jar包文件！");
+            WebSocketManager.getInstance()
+                    .notice("在服务目录找到了多个jar包！可能会导致服务不可用，请先清理该目录！留下一个可用的jar包文件！"
+                            , NoticeEnum.WARN);
         }
         if (jarList.iterator().hasNext()) {
             File jarFile = jarList.iterator().next();

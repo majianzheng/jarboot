@@ -9,9 +9,9 @@ export default {
     HELP_DOC: 'Help',
 
     //服务管理
-    ONE_KEY_START: 'One click start',
-    ONE_KEY_STOP: 'One click stop',
-    ONE_KEY_RESTART: 'One click restart',
+    ONE_KEY_START: 'Start All',
+    ONE_KEY_STOP: 'Stop All',
+    ONE_KEY_RESTART: 'Restart All',
     NAME: 'Name',
     STATUS: 'Status',
     CLEAR: 'Clear',

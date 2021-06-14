@@ -10,7 +10,9 @@ class JarBootConst {
     public static MSG_TYPE_START_ERROR = "START_ERROR";
     public static MSG_TYPE_STOP_ERROR = "STOP_ERROR";
     public static MSG_TYPE_OUT = "OUT";
-    private static MSG_TYPE_CMD_COMPLETE = "CMD_COMPLETE";
+    public static MSG_TYPE_CMD_COMPLETE = "CMD_COMPLETE";
+
+    public static PROTOCOL_SPLIT = '\r';
 
     //进程状态
     public static STATUS_STARTED = 'RUNNING';

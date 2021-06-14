@@ -4,6 +4,7 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
@@ -193,7 +194,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
         String s = sdf.format(new Date(event.getOfflineTime()));
         if (Boolean.TRUE.equals(setting.getDaemon())) {
-            WebSocketManager.getInstance().noticeWarn(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s));
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
+                    , NoticeEnum.WARN);
             List<String> list = new ArrayList<>();
             list.add(server);
             TaskEvent ev = new TaskEvent();
@@ -201,7 +203,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             ev.setServices(list);
             ctx.publishEvent(ev);
         } else {
-            WebSocketManager.getInstance().noticeWarn(String.format("服务%s于%s异常退出，请检查服务状态！", server, s));
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
+                    , NoticeEnum.WARN);
         }
     }
 }

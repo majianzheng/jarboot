@@ -1,6 +1,10 @@
 package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.ResultModel;
+import com.mz.jarboot.core.constant.CoreConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public class ResultViewResolver {
+    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private Map<Class<?>, ResultView<? extends ResultModel>> resultViewMap = new ConcurrentHashMap<>();
 
     public ResultViewResolver() {
@@ -21,14 +26,38 @@ public class ResultViewResolver {
      * 需要调用此方法初始化注册ResultView
      */
     private void initResultViews() {
+        registerView(RowAffectView.class);
 
         //基本命令
         registerView(JvmView.class);
         registerView(SysPropView.class);
 
-        registerView(EnhancerView.class);
-        registerView(TraceView.class);
+        //klass
+        registerView(ClassLoaderView.class);
+        registerView(DumpClassView.class);
+        //registerView(GetStaticView.class);
+        registerView(JadView.class);
+//        registerView(MemoryCompilerView.class);
+//        registerView(OgnlView.class);
+//        registerView(RedefineView.class);
+//        registerView(RetransformView.class);
+//        registerView(SearchClassView.class);
+//        registerView(SearchMethodView.class)
+
+
+        //监控
+        registerView(DashboardView.class);
+        registerView(JvmView.class);
+        //registerView(MBeanView.class);
+        //registerView(PerfCounterView.class);
         registerView(ThreadView.class);
+        //registerView(ProfilerView.class);
+        registerView(EnhancerView.class);
+        //registerView(MonitorView.class);
+        //registerView(StackView.class);
+        //registerView(TimeTunnelView.class);
+        registerView(TraceView.class);
+        registerView(WatchView.class);
     }
 
     public ResultView getResultView(ResultModel model) {
@@ -72,7 +101,9 @@ public class ResultViewResolver {
             if (method.getName().equals("render")) {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 1
+                        && parameterTypes[0] != ResultModel.class
                         && ResultModel.class.isAssignableFrom(parameterTypes[0])) {
+                    logger.info("key:{}, value:{}", parameterTypes[0], viewClass);
                     return parameterTypes[0];
                 }
             }

@@ -5,6 +5,7 @@ import com.mz.jarboot.common.NetworkUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerRunningDTO;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.service.ArthasAdapterService;
 import com.mz.jarboot.service.ServerMgrService;
 import com.mz.jarboot.utils.SettingUtils;
@@ -53,7 +54,7 @@ public class ArthasAdapterServiceImpl implements ArthasAdapterService {
         String arthasBoot = SettingUtils.getGlobalSetting().getArthasHome() + File.separator + ARTHAS_BOOT_JAR;
 
         String cmd = String.format("java -jar \"%s\" %d", arthasBoot, pid);
-        TaskUtils.startTask(cmd, outLine -> WebSocketManager.getInstance().noticeInfo(outLine));
+        TaskUtils.startTask(cmd, outLine -> WebSocketManager.getInstance().notice(outLine, NoticeEnum.INFO));
     }
 
     @Override

@@ -50,19 +50,11 @@ public class JarbootBootstrap {
     private WebSocketClient client;
     private Instrumentation instrumentation;
     private InstrumentTransformer classLoaderInstrumentTransformer;
-    private static String jarbootHome = "./";
     private boolean online = false;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
         if (null == args || args.isEmpty()) {
             return;
-        }
-        CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
-        try {
-            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            jarbootHome = curJar.getParent();
-        } catch (URISyntaxException e) {
-            //ignore
         }
         this.instrumentation = inst;
 

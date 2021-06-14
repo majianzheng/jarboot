@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.model;
 
-import com.mz.jarboot.core.cmd.impl.ClassLoaderCommandImpl;
+import com.mz.jarboot.core.cmd.impl.ClassLoaderCommand;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class ClassLoaderModel extends ResultModel {
     private List<ClassLoaderVO> classLoaders;
     private Boolean tree;
 
-    private Map<String, ClassLoaderCommandImpl.ClassLoaderStat> classLoaderStats;
+    private Map<String, ClassLoaderCommand.ClassLoaderStat> classLoaderStats;
 
     private Collection<ClassLoaderVO> matchedClassLoaders;
     private String classLoaderClass;
@@ -87,11 +87,11 @@ public class ClassLoaderModel extends ResultModel {
         return this;
     }
 
-    public Map<String, ClassLoaderCommandImpl.ClassLoaderStat> getClassLoaderStats() {
+    public Map<String, ClassLoaderCommand.ClassLoaderStat> getClassLoaderStats() {
         return classLoaderStats;
     }
 
-    public ClassLoaderModel setClassLoaderStats(Map<String, ClassLoaderCommandImpl.ClassLoaderStat> classLoaderStats) {
+    public ClassLoaderModel setClassLoaderStats(Map<String, ClassLoaderCommand.ClassLoaderStat> classLoaderStats) {
         this.classLoaderStats = classLoaderStats;
         return this;
     }

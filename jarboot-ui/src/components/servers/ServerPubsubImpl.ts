@@ -11,7 +11,6 @@ export class ServerPubsubImpl implements PublishSubmit {
     public publish(namespace: string, event: string, data?: any): void {
         const key = this.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
-        console.info(namespace, event, data);
         if (sets?.size) {
             Promise.resolve(sets).then((sets) => {
                 sets.forEach(handler => handler && handler(data));

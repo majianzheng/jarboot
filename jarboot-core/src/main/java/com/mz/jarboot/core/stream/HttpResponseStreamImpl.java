@@ -19,10 +19,14 @@ import java.util.concurrent.TimeUnit;
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final String API = "api/agent/response?server";
-    private String url;
-    public HttpResponseStreamImpl() {
-        url = String.format("http://%s/%s=%s", EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
-    }
+    private static final String url =String.format("http://%s/%s=%s",
+            EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
+    private static final OkHttpClient httpClient = new OkHttpClient.Builder()
+            .connectTimeout(30L, TimeUnit.SECONDS)
+            .readTimeout(30L, TimeUnit.SECONDS)
+            .writeTimeout(30L, TimeUnit.SECONDS)
+            .followRedirects(false)
+            .build();
     @Override
     public void write(String data) {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), data);
@@ -34,12 +38,7 @@ public class HttpResponseStreamImpl implements ResponseStream {
         requestBuilder.addHeader("Accept", "application/json");
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
-        OkHttpClient httpClient = new OkHttpClient.Builder()
-                .connectTimeout(30L, TimeUnit.SECONDS)
-                .readTimeout(30L, TimeUnit.SECONDS)
-                .writeTimeout(30L, TimeUnit.SECONDS)
-                .followRedirects(false)
-                .build();
+
         Call call = httpClient.newCall(request);
         try {
             ResponseBody response = call.execute().body();

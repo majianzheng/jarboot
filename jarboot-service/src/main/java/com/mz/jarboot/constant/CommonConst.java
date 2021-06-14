@@ -5,8 +5,8 @@ public class CommonConst {
     public static final String WORKSPACE_HOME= "workspace.home"; //用户工作目录
     public static final String JARBOOT_HOME= "jarboot.home"; //当前执行目录
 
-    //服务目录名称
-    public static final String SERVICES_DIR = "services";
+    //协议分隔符
+    public static final char PROTOCOL_SPLIT = '\r';
 
     //运行状态
     public static final String STATUS_RUNNING = "RUNNING";

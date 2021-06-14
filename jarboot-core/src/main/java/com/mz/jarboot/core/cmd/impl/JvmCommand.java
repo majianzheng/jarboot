@@ -10,7 +10,7 @@ import java.util.*;
  * show the jvm detail
  * @author jianzhengma
  */
-public class JvmCommandImpl extends Command {
+public class JvmCommand extends Command {
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
     private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();

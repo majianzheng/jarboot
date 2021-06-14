@@ -3,6 +3,7 @@ package com.mz.jarboot.service.impl;
 import com.google.common.base.Stopwatch;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.event.TaskEvent;
@@ -45,7 +46,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public void oneClickRestart() {
         if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().noticeError("一键重启，当前有正在启动或关闭的服务在执行中，请稍后再试");
+            WebSocketManager.getInstance().notice("一键重启，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
             return;
         }
         //获取所有的服务
@@ -63,7 +64,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public void oneClickStart() {
         if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().noticeError("一键启动，当前有正在启动或关闭的服务在执行中，请稍后再试");
+            WebSocketManager.getInstance().notice("一键启动，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
             return;
         }
         List<String> allWebServerList = taskRunCache.getServerNameList();
@@ -77,7 +78,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public void oneClickStop() {
         if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().noticeError("一键停止，当前有正在启动或关闭的服务在执行中，请稍后再试");
+            WebSocketManager.getInstance().notice("一键停止，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
             return;
         }
         List<String> allWebServerList = taskRunCache.getServerNameList();
@@ -152,7 +153,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         if (TaskUtils.isAlive(server)) {
             //已经启动
             this.sendStartedMessage(server, this.taskRunCache.getTaskPid(server));
-            WebSocketManager.getInstance().noticeInfo("服务" + server + "已经是启动状态");
+            WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
 

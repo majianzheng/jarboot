@@ -4,6 +4,7 @@ public class CommandConst {
 
     //控制位定义
     public static final char CONSOLE_TYPE = 'c'; //终端消息
+    public static final char JSONRESULT_TYPE = 'j'; //终端消息
     public static final char ACK_TYPE = 'k'; //响应命令的ack
     public static final char ONLINE_TYPE = 'o'; //agent上线
     public static final char COMPLETE_TYPE = 'F'; //命令完成消息

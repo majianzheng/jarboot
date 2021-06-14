@@ -24,11 +24,11 @@ const SettingDoc: any = memo(() => {
                         <Text keyboard>{intl.formatMessage({id: 'MAX_START_TIME'})}</Text>
                         {intl.formatMessage({id: 'SETTING_P4'})}
                     </li>
-                    <li>
-                        <Text keyboard>Arthas Home</Text>
-                        {intl.formatMessage({id: 'SETTING_P5'})}
-                        http://127.0.0.1/jarboot-arthas/arthas/
-                    </li>
+                    {/*<li>*/}
+                    {/*    <Text keyboard>Arthas Home</Text>*/}
+                    {/*    {intl.formatMessage({id: 'SETTING_P5'})}*/}
+                    {/*    http://127.0.0.1/jarboot-arthas/arthas/*/}
+                    {/*</li>*/}
                 </ul>
             </Paragraph>
             <Paragraph>

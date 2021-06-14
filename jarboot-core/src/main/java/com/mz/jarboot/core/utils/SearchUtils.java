@@ -14,8 +14,8 @@ import java.util.Set;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
-@SuppressWarnings("all")
 public class SearchUtils {
+    private SearchUtils() {}
 
     /**
      * 根据类名匹配，搜索已经被JVM加载的类
@@ -29,7 +29,7 @@ public class SearchUtils {
         if (classNameMatcher == null) {
             return Collections.emptySet();
         }
-        final Set<Class<?>> matches = new HashSet<Class<?>>();
+        final Set<Class<?>> matches = new HashSet<>();
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             if (classNameMatcher.matching(clazz.getName())) {
                 matches.add(clazz);
@@ -76,7 +76,7 @@ public class SearchUtils {
             return matchedClasses;
         }
 
-        Set<Class<?>> result = new HashSet<Class<?>>();
+        Set<Class<?>> result = new HashSet<>();
         if (matchedClasses != null) {
             for (Class<?> c : matchedClasses) {
                 if (Integer.toHexString(c.getClassLoader().hashCode()).equals(code)) {
@@ -105,7 +105,7 @@ public class SearchUtils {
      * @return 匹配的子类集合
      */
     public static Set<Class<?>> searchSubClass(Instrumentation inst, Set<Class<?>> classSet) {
-        final Set<Class<?>> matches = new HashSet<Class<?>>();
+        final Set<Class<?>> matches = new HashSet<>();
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             for (Class<?> superClass : classSet) {
                 if (superClass.isAssignableFrom(clazz)) {
@@ -126,12 +126,11 @@ public class SearchUtils {
      * @return 匹配的类的集合
      */
     public static Set<Class<?>> searchInnerClass(Instrumentation inst, Class<?> c) {
-        final Set<Class<?>> matches = new HashSet<Class<?>>();
+        final Set<Class<?>> matches = new HashSet<>();
         for (Class<?> clazz : inst.getInitiatedClasses(c.getClassLoader())) {
-            if (c.getClassLoader() != null && clazz.getClassLoader() != null && c.getClassLoader().equals(clazz.getClassLoader())) {
-                if (clazz.getName().startsWith(c.getName())) {
-                    matches.add(clazz);
-                }
+            if (c.getClassLoader() != null && clazz.getClassLoader() != null &&
+                    c.getClassLoader().equals(clazz.getClassLoader()) && clazz.getName().startsWith(c.getName())) {
+                matches.add(clazz);
             }
         }
         return matches;

@@ -114,12 +114,14 @@ public class AgentManager {
 
     public CommandResponse sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
+            WebSocketManager.getInstance().commandComplete(server, sessionId);
             return new CommandResponse();
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
+            WebSocketManager.getInstance().commandComplete(server, sessionId);
             return resp;
         }
         return client.sendInternalCommand(command, sessionId);
@@ -127,7 +129,6 @@ public class AgentManager {
 
     public void handleAgentResponse(String server, CommandResponse resp) {
         ResponseType type = resp.getResponseType();
-        logger.info("type:{}", type);
         String sessionId = resp.getSessionId();
         switch (type) {
             case ACK:
@@ -135,6 +136,9 @@ public class AgentManager {
                 break;
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                break;
+            case JSON_RESULT:
+                WebSocketManager.getInstance().renderJson(server, resp.getBody(), sessionId);
                 break;
             case COMPLETE:
                 if (Boolean.FALSE.equals(resp.getSuccess())) {

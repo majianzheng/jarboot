@@ -2,7 +2,6 @@ package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.MethodNode;
 import com.mz.jarboot.core.cmd.model.ThreadNode;
-import com.mz.jarboot.core.cmd.model.TraceModel;
 import com.mz.jarboot.core.cmd.model.TraceNode;
 import com.mz.jarboot.core.cmd.model.ThrowNode;
 import com.mz.jarboot.core.utils.DateUtils;
@@ -15,7 +14,7 @@ import static java.lang.String.format;
  * Term view for TraceModel
  * @author majianzheng
  */
-public class TraceView implements ResultView<TraceModel> {
+public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.TraceModel> {
     private static final String STEP_FIRST_CHAR = "`---";
     private static final String STEP_NORMAL_CHAR = "+---";
     private static final String STEP_HAS_BOARD = "|   ";
@@ -27,11 +26,11 @@ public class TraceView implements ResultView<TraceModel> {
     private MethodNode maxCostNode;
 
     @Override
-    public String render(TraceModel result) {
+    public String render(com.mz.jarboot.core.cmd.model.TraceModel result) {
         return drawTree(result.getRoot());
     }
 
-    public String drawTree(TraceNode root) {
+    public String drawTree(com.mz.jarboot.core.cmd.model.TraceNode root) {
 
         //reset status
         maxCostNode = null;
@@ -39,24 +38,19 @@ public class TraceView implements ResultView<TraceModel> {
 
         final StringBuilder treeSB = new StringBuilder(2048);
 
-        recursive(0, true, "", root, new Callback() {
-
-            @Override
-            public void callback(int deep, boolean isLast, String prefix, TraceNode node) {
-                treeSB.append(prefix).append(isLast ? STEP_FIRST_CHAR : STEP_NORMAL_CHAR);
-                renderNode(treeSB, node);
-                if (!StringUtils.isBlank(node.getMark())) {
-                    treeSB.append(" [").append(node.getMark()).append(node.marks() > 1 ? "," + node.marks() : "").append("]");
-                }
-                treeSB.append("\n");
+        recursive(0, true, "", root, (deep, isLast, prefix, node) -> {
+            treeSB.append(prefix).append(isLast ? STEP_FIRST_CHAR : STEP_NORMAL_CHAR);
+            renderNode(treeSB, node);
+            if (!StringUtils.isBlank(node.getMark())) {
+                treeSB.append(" [").append(node.getMark()).append(node.marks() > 1 ? "," + node.marks() : "").append("]");
             }
-
+            treeSB.append("\n");
         });
 
         return treeSB.toString();
     }
 
-    private void renderNode(StringBuilder sb, TraceNode node) {
+    private void renderNode(StringBuilder sb, com.mz.jarboot.core.cmd.model.TraceNode node) {
         //render cost: [0.366865ms]
         if (isPrintCost && node instanceof MethodNode) {
             MethodNode methodNode = (MethodNode) node;
@@ -126,7 +120,8 @@ public class TraceView implements ResultView<TraceModel> {
     /**
      * 递归遍历
      */
-    private void recursive(int deep, boolean isLast, String prefix, TraceNode node, Callback callback) {
+    private void recursive(int deep, boolean isLast, String prefix,
+                           com.mz.jarboot.core.cmd.model.TraceNode node, Callback callback) {
         callback.callback(deep, isLast, prefix, node);
         if (!isLeaf(node)) {
             List<TraceNode> children = node.getChildren();
@@ -152,7 +147,7 @@ public class TraceView implements ResultView<TraceModel> {
      * 查找耗时最大的节点，便于后续高亮展示
      * @param node
      */
-    private void findMaxCostNode(TraceNode node) {
+    private void findMaxCostNode(com.mz.jarboot.core.cmd.model.TraceNode node) {
         if (node instanceof MethodNode && !isRoot(node) && !isRoot(node.parent())) {
             MethodNode aNode = (MethodNode) node;
             if (maxCostNode == null || maxCostNode.getTotalCost() < aNode.getTotalCost()) {
@@ -160,9 +155,9 @@ public class TraceView implements ResultView<TraceModel> {
             }
         }
         if (!isLeaf(node)) {
-            List<TraceNode> children = node.getChildren();
+            List<com.mz.jarboot.core.cmd.model.TraceNode> children = node.getChildren();
             if (children != null) {
-                for (TraceNode n: children) {
+                for (com.mz.jarboot.core.cmd.model.TraceNode n: children) {
                     findMaxCostNode(n);
                 }
             }

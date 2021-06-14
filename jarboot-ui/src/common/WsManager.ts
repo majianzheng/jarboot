@@ -41,7 +41,9 @@ class WsManager {
     }
 
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager._notice);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_INFO, WsManager._noticeInfo);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_WARN, WsManager._noticeWarn);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_ERROR, WsManager._noticeError);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
                 WebSocket.CONNECTING === WsManager.websocket.readyState) {
@@ -56,32 +58,37 @@ class WsManager {
         WsManager.websocket.onerror = WsManager._onError;
     }
 
-    private static _notice = (data: MsgData) => {
-        const level = data.body?.level;
-        const msg = data.body?.msg;
-        switch (level) {
-            case JarBootConst.NOTICE_INFO:
-                CommonNotice.info("提示", msg);
-                break;
-            case JarBootConst.NOTICE_WARN:
-                CommonNotice.warn("警告", msg);
-                break;
-            case JarBootConst.NOTICE_ERROR:
-                CommonNotice.error("错误", msg);
-                break;
-            default:
-                Logger.warn(`未知的通知类型：${level}, ${msg}`);
-                break;
-        }
+    private static _noticeInfo = (data: MsgData) => {
+        CommonNotice.info("提示", data.body);
+    };
+    private static _noticeWarn = (data: MsgData) => {
+        CommonNotice.warn("警告", data.body);
+    };
+    private static _noticeError = (data: MsgData) => {
+        CommonNotice.error("错误", data.body);
     };
 
     private static _onMessage = (event: any) => {
-        if (!StringUtil.isString(event.data)) {
+        if (!StringUtil.isString(event?.data)) {
             //二进制数据
             return;
         }
+        const resp: string = event.data;
         try {
-            const data: MsgData = JSON.parse(event.data);
+            let i = resp.indexOf(JarBootConst.PROTOCOL_SPLIT);
+            if (-1 === i) {
+                Logger.warn(`协议错误，${resp}`);
+                return;
+            }
+            const server = 0 === i ? '' : resp.substring(0, i);
+            let k = resp.indexOf(JarBootConst.PROTOCOL_SPLIT, i + 1);
+            if (-1 === k) {
+                Logger.warn(`协议错误，获取事件类型失败，${resp}`);
+                return;
+            }
+            const event = parseInt(resp.substring(i + 1, k));
+            const body = resp.substring(k + 1);
+            let data: MsgData = {event, body, server};
             const handler = WsManager._messageHandler.get(data.event);
             handler && handler(data);
         } catch (e) {

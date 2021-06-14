@@ -14,7 +14,7 @@ public final class ResultCodeConst {
 	public static final int NOT_EXIST = -9005;
 	/**参数为空*/
 	public static final int EMPTY_PARAM = -9006;
-	/**超市*/
+	/**超时*/
 	public static final int TIME_OUT = -9998;
 	/**内部错误**/
 	public static final int INTERNAL_ERROR = -9999;

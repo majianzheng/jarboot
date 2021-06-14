@@ -1,6 +1,10 @@
 package com.mz.jarboot.common;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 import javax.net.ServerSocketFactory;
+import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
 import java.util.List;
@@ -13,6 +17,12 @@ public class NetworkUtils {
     public static final int PORT_RANGE_MIN = 1024;
     private static final int MAX_TIMEOUT = 3000;
     public static final int PORT_RANGE_MAX = 65535;
+    private static final String QOS_HOST = "localhost";
+    private static final int QOS_PORT = 12201;
+    private static final String QOS_RESPONSE_START_LINE = "pandora>[QOS Response]";
+    private static final int INTERNAL_SERVER_ERROR = 500;
+    private static final int CONNECT_TIMEOUT = 10000;
+    private static final int READ_TIMEOUT = 3000;
 
     private static final Random random = new Random(System.currentTimeMillis());
 
@@ -55,7 +65,7 @@ public class NetworkUtils {
             return false;
         }
         if (inetAddress.isLoopbackAddress()) {
-            throw new MzException(ResultCodeConst.INVALID_PARAM, "请填写真实IP地址或域名，而不是环路地址：" + host);
+            throw new MzException(ResultCodeConst.INVALID_PARAM, "请输入真实IP地址或域名，而不是环路地址：" + host);
         }
         Enumeration<NetworkInterface> ifs;
         try {
@@ -64,9 +74,9 @@ public class NetworkUtils {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
         }
         while (ifs.hasMoreElements()) {
-            Enumeration<InetAddress> addrs = ifs.nextElement().getInetAddresses();
-            while (addrs.hasMoreElements()) {
-                InetAddress addr = addrs.nextElement();
+            Enumeration<InetAddress> address = ifs.nextElement().getInetAddresses();
+            while (address.hasMoreElements()) {
+                InetAddress addr = address.nextElement();
                 if (inetAddress.equals(addr)) {
                     return true;
                 }
@@ -82,6 +92,123 @@ public class NetworkUtils {
             return false;
         }
         return true;
+    }
+
+    /**
+     * This implementation is based on Apache HttpClient.
+     * @param urlString the requested url
+     * @return the response string of given url
+     */
+    public static Response request(String urlString) {
+        HttpURLConnection urlConnection = null;
+        URL url;
+        try {
+            url = new URL(urlString);
+            urlConnection = (HttpURLConnection)url.openConnection();
+            urlConnection.setConnectTimeout(CONNECT_TIMEOUT);
+            urlConnection.setReadTimeout(READ_TIMEOUT);
+            // prefer json to text
+            urlConnection.setRequestProperty("Accept", "application/json,text/plain;q=0.2");
+        } catch (Exception e) {
+            return new Response(e.getMessage(), false);
+        }
+
+        try (InputStream in = urlConnection.getInputStream();
+             InputStreamReader isr = new InputStreamReader(in);
+             BufferedReader br = new BufferedReader(isr)){
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            int statusCode = urlConnection.getResponseCode();
+            String result = sb.toString().trim();
+            if (statusCode == INTERNAL_SERVER_ERROR) {
+                JSONObject errorObj = JSON.parseObject(result);
+                if (errorObj.containsKey("errorMsg")) {
+                    return new Response(errorObj.getString("errorMsg"), false);
+                }
+                return new Response(result, false);
+            }
+            return new Response(result);
+        } catch (IOException e) {
+            return new Response(e.getMessage(), false);
+        } finally {
+            urlConnection.disconnect();
+        }
+    }
+
+    /**
+     * Only use this method when tomcat monitor version <= 1.0.1
+     * This will send http request to pandora qos port 12201,
+     * and display the response.
+     * Note that pandora qos response is not fully HTTP compatible under version 2.1.0,
+     * so we filtered some of the content and only display useful content.
+     * @param path the path relative to http://localhost:12201
+     *             e.g. /pandora/ls
+     *             For commands that requires arguments, use the following format
+     *             e.g. /pandora/find?arg0=RPCProtocolService
+     *             Note that the parameter name is never used in pandora qos,
+     *             so the name(e.g. arg0) is irrelevant.
+     * @return the qos response in string format
+     */
+    public static Response requestViaSocket(String path) {
+        BufferedReader br = null;
+        try (Socket s = new Socket(QOS_HOST, QOS_PORT);){
+            PrintWriter pw = new PrintWriter(s.getOutputStream());
+            pw.println("GET " + path + " HTTP/1.1");
+            pw.println("Host: " + QOS_HOST + ":" + QOS_PORT);
+            pw.println("");
+            pw.flush();
+            br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            boolean start = false;
+            while ((line = br.readLine()) != null) {
+                if (start) {
+                    sb.append(line).append("\n");
+                }
+                if (line.equals(QOS_RESPONSE_START_LINE)) {
+                    start = true;
+                }
+            }
+            String result = sb.toString().trim();
+            return new Response(result);
+        } catch (Exception e) {
+            return new Response(e.getMessage(), false);
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    public static class Response {
+
+        private boolean success;
+        private String content;
+
+        public Response(String content, boolean success) {
+            this.success = success;
+            this.content = content;
+        }
+
+        public Response(String content) {
+            this.content = content;
+            this.success = true;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getContent() {
+            return content;
+        }
     }
 
     public static int findProcessByListenPort(int port) {//NOSONAR
@@ -106,7 +233,7 @@ public class NetworkUtils {
                     return Integer.parseInt(pid);
                 }
             }
-        } catch (Throwable e) {//NOSONAR
+        } catch (Exception e) {
             // ignore
         }
 
@@ -116,7 +243,7 @@ public class NetworkUtils {
     public static boolean isTcpPortAvailable(int port) {
         try {
             ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(port, 1,
-                    InetAddress.getByName("localhost"));
+                    InetAddress.getByName(QOS_HOST));
             serverSocket.close();
             return true;
         } catch (Exception ex) {
