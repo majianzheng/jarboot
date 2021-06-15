@@ -7,12 +7,21 @@ import styles from "@/pages/index.less";
 import SettingDoc from "@/pages/help/SettingDoc";
 import BytesDoc from "@/pages/help/BytesDoc";
 import JvmDoc from "@/pages/help/JvmDoc";
+import JadDoc from "@/pages/help/JadDoc";
+import DashboardDoc from "@/pages/help/DashboardDoc";
+import GoGithubDoc from "@/pages/help/GoGithubDoc";
 
 const pageMap: any = {
     'quick-start': <QuickStartDoc/>,
     'setting': <SettingDoc/>,
     'bytes': <BytesDoc/>,
     'jvm': <JvmDoc/>,
+    'jad': <JadDoc/>,
+    'dashboard': <DashboardDoc/>,
+    'watch': <GoGithubDoc/>,
+    'trace': <GoGithubDoc/>,
+    'thread': <GoGithubDoc/>,
+    'sysprop': <GoGithubDoc/>,
 };
 
 const Help: any = memo(() => {
@@ -43,9 +52,11 @@ const Help: any = memo(() => {
                 <Menu.ItemGroup title={intl.formatMessage({id: 'COMMAND_LIST'})}>
                     <Menu.Divider/>
                     <Menu.Item key="bytes">bytes</Menu.Item>
-                    {/*<Menu.Item key="dashboard">dashboard</Menu.Item>*/}
+                    <Menu.Item key="dashboard">dashboard</Menu.Item>
+                    <Menu.Item key="jad">jad</Menu.Item>
                     <Menu.Item key="jvm">jvm</Menu.Item>
-                    <Menu.Item key="trace">monitor</Menu.Item>
+                    <Menu.Item key="watch">watch</Menu.Item>
+                    <Menu.Item key="trace">trace</Menu.Item>
                     <Menu.Item key="thread">thread</Menu.Item>
                     <Menu.Item key="sysprop">sysprop</Menu.Item>
                 </Menu.ItemGroup>

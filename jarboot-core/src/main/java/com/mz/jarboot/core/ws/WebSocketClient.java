@@ -103,6 +103,10 @@ public final class WebSocketClient {
         return null != channel && channel.isOpen();
     }
 
+    public boolean isOpen() {
+        return null != channel && channel.isOpen();
+    }
+
     private int parsePort(String scheme) {
         final int port;
         if (uri.getPort() == -1) {

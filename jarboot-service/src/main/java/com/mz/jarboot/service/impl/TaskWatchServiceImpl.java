@@ -76,11 +76,15 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         });
 
         //attach已经处于启动的进程
+        taskExecutor.execute(this::attachRunningServer);
+    }
+
+    private void attachRunningServer() {
         List<ServerRunningDTO> runningServers = taskRunCache.getServerList();
         if (CollectionUtils.isEmpty(runningServers)) {
             return;
         }
-        runningServers.forEach(this::attachToRunningServer);
+        runningServers.forEach(this::doAttachRunningServer);
     }
 
     /**
@@ -155,7 +159,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
     }
 
-    private void attachToRunningServer(ServerRunningDTO server) {
+    private void doAttachRunningServer(ServerRunningDTO server) {
         if (null == server.getPid()) {
             return;
         }
@@ -168,7 +172,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             //已经是在线状态
             return;
         }
-
         TaskUtils.attach(server.getName(), pid);
     }
 

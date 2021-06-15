@@ -37,6 +37,7 @@ public class EnvironmentContext {
     private EnvironmentContext() {}
 
     public static void init(String server, String host, Instrumentation inst) {
+        //此时日志还未初始化，在此方法内禁止打印日志信息
         EnvironmentContext.server = server;
         EnvironmentContext.host = host;
         EnvironmentContext.instrumentation = inst;

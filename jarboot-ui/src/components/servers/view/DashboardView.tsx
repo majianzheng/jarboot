@@ -4,24 +4,26 @@ import CommonTable from "../../commonTable/CommonTable";
 import {Progress, Row, Col, Descriptions} from "antd";
 import StringUtil from "@/common/StringUtil";
 import styles from "../index.less";
+import {JarBootConst} from "@/common/JarBootConst";
 
 const progressValueFormat = (percent: number|undefined) => <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
 const mu = 1024 * 1024;
 
 const cpuColorFormat = (cpu: number) => {
     let color;
-    if (cpu < 10) {
+    if (cpu <= 5) {
         color = 'green';
-    } else if (cpu >= 10 && cpu <= 20) {
+    } else if (cpu > 5 && cpu <= 15) {
         color = 'magenta';
     } else {
         color = 'red';
     }
     return <span style={{color}}>{cpu}</span>;
 };
+const upHeight = (JarBootConst.PANEL_HEIGHT * 0.6);
+const downHeight = (JarBootConst.PANEL_HEIGHT * 0.4);
 
 const DashboardView = memo((props: any) => {
-    const height = 320;
 
     const renderState = (state: any) => {
         if (StringUtil.isEmpty(state)) {
@@ -120,7 +122,7 @@ const DashboardView = memo((props: any) => {
             //rowKey: 'id',
             size: 'small',
             showHeader: true,
-            scroll: height,
+            scroll: upHeight,
         };
     };
 
@@ -131,7 +133,6 @@ const DashboardView = memo((props: any) => {
         for (let key in memoryInfo) {
             if (memoryInfo.hasOwnProperty(key)) {
                 const m = memoryInfo[key];
-                console.log(key, m);
                 if (!(m instanceof Array) || m.length <= 0) {
                     continue;
                 }
@@ -213,21 +214,21 @@ const DashboardView = memo((props: any) => {
             rowKey: 'id',
             size: 'small',
             showHeader: true,
-            scroll: height,
+            scroll: downHeight,
         };
     };
 
     let thrTableOption: any = getThreadTableProps();
-    thrTableOption.scroll = { y: height};
+    thrTableOption.scroll = { y: upHeight};
     let memTableOption: any = getMemoryTableProps();
-    memTableOption.scroll = { y: height};
+    memTableOption.scroll = { y: downHeight};
     const runtimeInfo = props?.data?.runtimeInfo;
     return <>
         <div className={styles.smallTable}>
-            <CommonTable bordered tableOption={thrTableOption} height={height}/>
+            <CommonTable bordered tableOption={thrTableOption} height={upHeight}/>
             <Row>
                 <Col span={16}>
-                    <CommonTable bordered tableOption={memTableOption} height={height}/>
+                    <CommonTable bordered tableOption={memTableOption} height={downHeight}/>
                 </Col>
                 <Col span={8} style={{overflowY: "auto"}}>
                     <Descriptions size={'small'} column={1} bordered>

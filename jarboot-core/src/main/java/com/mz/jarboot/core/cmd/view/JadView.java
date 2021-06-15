@@ -10,6 +10,9 @@ public class JadView implements ResultView<com.mz.jarboot.core.cmd.model.JadMode
 
     @Override
     public String render(com.mz.jarboot.core.cmd.model.JadModel result) {
+        //mappings = result.getMappings();
+        //todo fastjson的bug，map的key为数值时转化错误，未加引号，导致前端解析失败，暂不传输mappings，后续解决
+        result.setMappings(null);
         return JSON.toJSONString(result, SerializerFeature.DisableCircularReferenceDetect);
     }
 

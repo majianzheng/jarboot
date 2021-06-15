@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Button, Spin, Tag, Space} from "antd";
+import {Spin, Tag} from "antd";
 import ServerMgrService from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
 import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled,
@@ -9,13 +9,12 @@ import {MsgData, WsManager} from "@/common/WsManager";
 import ErrorUtil from '@/common/ErrorUtil';
 import Logger from "@/common/Logger";
 import {MSG_EVENT} from "@/common/EventConst";
-import { useIntl } from 'umi';
-import {memo} from "react";
 import {formatMsg} from "@/common/IntlFormat";
 import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
 // @ts-ignore
 import CommonTable from "../commonTable/CommonTable";
 import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
+import OneClickButtons from "@/components/servers/OneClickButtons";
 
 interface ServerRunning {
     name: string,
@@ -23,29 +22,9 @@ interface ServerRunning {
     pid: number
 }
 
-const OneClickButtons: any = memo((props: any) => {
-    const intl = useIntl();
-
-    return <Space size={'middle'} style={{margin: "-20px 0 10px 20px"}}>
-        <Button type={'primary'}
-                loading={props.oneClickLoading}
-                onClick={props.oneClickRestart}>
-            {intl.formatMessage({id: 'ONE_KEY_RESTART'})}
-        </Button>
-        <Button loading={props.oneClickLoading}
-                onClick={props.oneClickStart}>
-            {intl.formatMessage({id: 'ONE_KEY_START'})}
-        </Button>
-        <Button loading={props.oneClickLoading}
-                onClick={props.oneClickStop}>
-            {intl.formatMessage({id: 'ONE_KEY_STOP'})}
-        </Button>
-    </Space>;
-});
-
 const pubsub: PublishSubmit = new ServerPubsubImpl();
 
-export default class ServerMgrView extends React.Component {
+export default class ServerMgrView extends React.PureComponent {
     state = {loading: false, data: [], selectedRowKeys: [], selectRows: [], current: '', oneClickLoading: false};
     allServerOut: any = [];
     height = window.innerHeight - 120;
@@ -154,7 +133,7 @@ export default class ServerMgrView extends React.Component {
                     key: 'status',
                     ellipsis: true,
                     width: 120,
-                    render: (text: string) => this._translateStatus(text),
+                    render: (text: string) => ServerMgrView.translateStatus(text),
                 },
             ],
             loading: this.state.loading,
@@ -168,7 +147,7 @@ export default class ServerMgrView extends React.Component {
             scroll: this.height,
         };
     }
-    private _translateStatus(status: string) {
+    private static translateStatus(status: string) {
         let tag;
         const s = formatMsg(status);
         switch (status) {

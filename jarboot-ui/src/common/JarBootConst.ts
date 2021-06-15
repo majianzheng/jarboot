@@ -24,6 +24,8 @@ class JarBootConst {
     public static NOTICE_INFO = 0;
     public static NOTICE_WARN = 1;
     public static NOTICE_ERROR = 2;
+
+    public static PANEL_HEIGHT = (window.innerHeight - 150);
 }
 interface MessageBody {
     server: string;

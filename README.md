@@ -5,109 +5,168 @@
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
 [![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
 
-<code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及调试一系列的Java进程。
+<code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
 
-在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
+In the test environment and daily built integrated environment, a series of jar files such as compilation output can be put into the agreed directory. <code>Jarboot</code> provides a friendly browser UI interface and HTTP interface to manage its start, stop and status monitoring, and execute commands to debug the target process.
 
-## 技术背景及目标
-<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。但它的功能定位与<code>Arthas</code>不同，<code>Jarboot</code> 更偏向于面向开发、测试、每日构建等。
+[中文说明/Chinese Documentation](README_CN.md)
 
-- 🌈   浏览器界面管理，一键启、停服务进程，不必挨个手动执行
-- 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
-- ⭐️支持进程守护，开启后若服务异常退出则自动启动并通知
-- ☀️支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[2]](#f2)</sup>
-- 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
+![dashboard](doc/overview.png)
 
-采用<code>前后端分离</code>架构，前端界面采用<code>React</code>技术，脚手架使用<code>Umi</code>，组件库使用Umi内置等<code>antd</code>。后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
+## Background and objectives
+<code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc. But its functional orientation is different from that of <code>Arthas</code>. <code>Jarboot</code> is more oriented to development, testing, daily building, etc.
 
-模块|描述
-:-|:-
-jarboot-common|公共工具类实现
-jarboot-agent|agent的jar启动或运行中注入目标进程
-jarboot-core|在目标进程中执行的代码，与主控服务点对点的交互
-jarboot-service|主控服务：核心业务逻辑实现，提供http和WebSocket
-jarboot-ui|前端ui界面，使用<code>React</code>实现
+- 🌈 Browser interface management, one click start, stop, do not have to manually execute one by one.
+- 🔥 Support start and stop priority configuration<sup id="a2">[[1]](#f1)</sup>, and default parallel start.
+- ⭐ Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
+- ☀️ Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
+- 🚀 Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 
-## 编译构建
-1. 编译java和前端项目
+It adopts <code>front-end and back-end separation architecture</code>, front-end interface adopts <code>React</code> technology, scaffold uses <code>Umi</code>, component library uses <code>Umi</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+
+## Install or build
+1. Build ui and Java code, or download the zip package.
 ```bash
 cd jarboot-ui
-//首次时需要先安装依赖，执行yarn或npm install
+//First time, execute yarn or npm install
 yarn
 
-//执行编译，yarn buld或npm run build，开发模式可执行yarn start或npm run start
+//execute compile, yarn buld or npm run build, execute yarn start or npm run start at development mode.
 yarn build
 
-//切换到代码根目录，编译Java代码
+//Switch to the code root directory and compile the Java code
 mvn clean install
 ```
 
-2. 约定的目录结构，编译的输出放入如下的目录结构
+2. Directory structure after installation.
 
 ```bash
-jarboot                             //当前工作流目录
-├─logs                              //日志默认记录在用户目录下的jarboot文件夹中
+jarboot                             //Current working directory
+├─logs                              //logs
 ├─jarboot-spy.jar
-├─jarboot-agent.jar                 //必要的文件不可少
-├─jarboot-core.jar                  //注入目标服务的核心实现
-├─jarboot-service.jar               //Web服务HTTP接口及WebSocket及主要业务实现
+├─jarboot-agent.jar                 
+├─jarboot-core.jar                  
+├─jarboot-service.jar               //Web service
 │
-├─services                          //约定的管理其他jar文件的默认根目录(可配置)
-│  ├─demo1-service                  //服务名为目录, 目录下存放启动的jar文件及其依赖
-│  │   └─demo1-service.jar          //启动的jar文件, 若有多个则需要在[服务配置]界面配置启动的jar文件, 否则可能会随机选择一个
-│  └─demo2-service                  //同上, 根目录下可放置很多个服务目录
+├─services                          //Default root directory which managing other jar files (configurable)
+│  ├─demo1-service                  //The service name is directory, which stores the jar files and their dependencies.
+│  │   └─demo1-service.jar          //The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
+│  └─demo2-service                  
 │      └─demo2-service.jar
-└─static                            //前端界面资源位置, jarboot-ui模块的编译打包的输出
-   ├─index.html                     //打包后的html文件
-   ├─umi.css                        //打包后的css文件
-   └─umi.js                         //打包后的js文件
+└─static                            //Front end interface resource location
+   ├─index.html                     
+   ├─umi.css                        
+   └─umi.js                         
 ```
-后端服务启动会指定一个管理其他启动jar文件的根路径（默认为当前路径下的services，可在【服务配置】界面配置），在此根目录下创建每个服务目录，创建的 ***目录名字为服务名*** ，在创建的目录下放入jar包文件，详细可见上面的目录结构约定。
+Back end service startup specifies a root path to manage other startup jar files (Default is services in current path, you can config it in [Setting])，Create each service directory under this root directory,created ***Directory name is the name of service*** .Put the jar package file in the created directory. See the directory structure convention above for details.
 
-3. 启动<code>jarboot-service.jar</code>主控服务
+3. Start <code>jarboot-service.jar</code>
 ```
 ./boot.sh
 ```
 
-4. 浏览器访问<http://127.0.0.1:9899>
+4. Browser access <http://127.0.0.1:9899>
 
-## 命令列表
-- bytes 查看类的字节码，用法：
-  ```
-  bytes java.lang.String
-  ```
+## Command list
+- bytes View the class bytes，Usage：
+```bash
+$ bytes com.mz.jarboot.demo.DemoServerApplication
+ClassLoader: org.springframework.boot.loader.LaunchedURLClassLoader@31221be2
+------
+getUser
+L0
+LINENUMBER 27 L0
+
+...
+
+ILOAD 1
+ILOAD 2
+IADD
+IRETURN
+L8
+```
   
-- dashboard 当前系统的实时数据面板，点击按钮取消
-  ```
-  dashboard 
-  ```
+- dashboard This is the real time statistics dashboard for the current system，click x cancel.
+
+![dashboard](doc/dashboard.png)
   
-- jvm 查看进程JVM属性信息
-  ```
-  jvm
-  ````
+- jad Decompile the specified classes.
+```bash
+$ jad [-c] java.lang.String
+````
+![dashboard](doc/jad.png)
+
+- jvm Check the current JVM’s info
+```bash
+$ jvm
+````
   
-- trace 方法执行监控
-  ```
-  trace com.demo.Test test
-  ```
+- trace method calling path, and output the time cost for each node in the path.
+```bash
+$ trace com.mz.jarboot.demo.DemoServerApplication add 
+Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
+`---ts=2021-06-15 23:34:20;thread_name=http-nio-9900-exec-3;id=13;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@4690b489
+    `---[0.053485ms] com.mz.jarboot.demo.DemoServerApplication:add()
+```
   
-- thread 查看当前线程信息，查看线程的堆栈
-  ```
-  查看所有
-  thread
-  查看指定线程堆栈
-  thread 1000
-  查看当前最忙的前N个线程并打印堆栈
-  thread -n 3
-  ```
-- sysprop 查看进程系统属性信息
-  ```
-  sysprop
-  sysprop user.home
-  ```
+- watch methods in data aspect including return values, exceptions and parameters
+    
+Watch the first parameter and thrown exception of `test.arthas.TestWatch#doGet` only if it throws exception.
+
+```bash
+$ watch test.arthas.TestWatch doGet {params[0], throwExp} -e
+Press Ctrl+C to abort.
+Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
+ts=2018-09-18 10:26:28;result=@ArrayList[
+    @RequestFacade[org.apache.catalina.connector.RequestFacade@79f922b2],
+    @NullPointerException[java.lang.NullPointerException],
+]
+```
   
-- 更多强大的指令在持续开发中...
+- thread Check the basic info and stack trace of the target thread.
+```bash
+$ thread -n 3
+"as-command-execute-daemon" Id=29 cpuUsage=75% RUNNABLE
+    at sun.management.ThreadImpl.dumpThreads0(Native Method)
+    at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:440)
+    at com.taobao.arthas.core.command.monitor200.ThreadCommand$1.action(ThreadCommand.java:58)
+    at com.taobao.arthas.core.command.handler.AbstractCommandHandler.execute(AbstractCommandHandler.java:238)
+    at com.taobao.arthas.core.command.handler.DefaultCommandHandler.handleCommand(DefaultCommandHandler.java:67)
+    at com.taobao.arthas.core.server.ArthasServer$4.run(ArthasServer.java:276)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+    at java.lang.Thread.run(Thread.java:745)
+
+    Number of locked synchronizers = 1
+    - java.util.concurrent.ThreadPoolExecutor$Worker@6cd0b6f8
+
+"as-session-expire-daemon" Id=25 cpuUsage=24% TIMED_WAITING
+    at java.lang.Thread.sleep(Native Method)
+    at com.taobao.arthas.core.server.DefaultSessionManager$2.run(DefaultSessionManager.java:85)
+
+"Reference Handler" Id=2 cpuUsage=0% WAITING on java.lang.ref.Reference$Lock@69ba0f27
+    at java.lang.Object.wait(Native Method)
+    -  waiting on java.lang.ref.Reference$Lock@69ba0f27
+    at java.lang.Object.wait(Object.java:503)
+    at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+```
+- sysprop Examine the system properties from the target JVM
+```bash
+$ sysprop
+sysprop user.home
+```
+  
+- More powerful command in continuous development...
+
+#### Projects
+
+* [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
+* [Arthas](https://github.com/alibaba/arthas) Some command is developed on the source of <code>Arthas</code>.
+
+### 仓库镜像
+
+* [码云Jarboot](https://gitee.com/majz0908/jarboot)
+
 ---
-<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反，默认为1。<br>
-<span id="f2">2[](#a2)</span>: 开发中可以由<code>gitlab runner</code>、<code>Jenkins</code>等工具自动构建后通过脚本拷贝到Jarboot指定的目录下，Jarboot监控到文件的更新会自动重启服务，目录监控实现了<code>防抖设计</code>（在一定时间内的多次更新只会触发一次重启）。
+<span id="f1">1[](#a1)</span>: You can configure the priority level, starting from the integer value of 1. The more you start first, the reverse is the order of stop. The default value is 1。<br>
+<span id="f2">2[](#a2)</span>: In development, it can be built automatically by tools such as gitlab runner, Jenkins, etc. and copied to the directory specified by Jarboot through script. Updates monitored by Jarboot will restart the service automatically. Directory monitoring implements anti-shake design (multiple updates within a certain period of time will trigger only one restart)。

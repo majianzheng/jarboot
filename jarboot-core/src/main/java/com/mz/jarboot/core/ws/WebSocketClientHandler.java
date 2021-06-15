@@ -53,7 +53,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        logger.warn("WebSocket Client 链接失败!");
+        logger.warn("WebSocket Client 连接失败!");
     }
 
     @Override

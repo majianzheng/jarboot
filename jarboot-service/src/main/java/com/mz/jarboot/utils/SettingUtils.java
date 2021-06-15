@@ -43,7 +43,7 @@ public class SettingUtils {
             if (jarFile.exists()) {
                 agentJar = jarFile.getPath();
             } else {
-                agentJar = System.getProperty(CommonConst.WORKSPACE_HOME) + File.separator + CommonConst.AGENT_JAR_NAME;
+                agentJar = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.AGENT_JAR_NAME;
                 jarFile = new File(agentJar);
                 if (!jarFile.exists()) {
                     throw new MzException(ResultCodeConst.NOT_EXIST, "从用户路径下未发现" + agentJar);

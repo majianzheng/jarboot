@@ -77,4 +77,7 @@ export default {
     USAGE_DEMO: '使用参考',
     JVM_DESC: '查看当前JVM信息',
     BYTES_DESC: '查看指定类的字节码',
+    JAD_DESC: '反编译指定已加载类的源码',
+    DASHBOARD_DESC: `当前系统的实时数据面板，点击 x 退出。\n
+当运行在Ali-tomcat时，会显示当前tomcat的实时信息，如HTTP请求的qps, rt, 错误数, 线程池信息等等。`,
 };

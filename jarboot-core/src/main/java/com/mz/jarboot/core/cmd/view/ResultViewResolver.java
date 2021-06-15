@@ -1,9 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.ResultModel;
-import com.mz.jarboot.core.constant.CoreConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -15,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public class ResultViewResolver {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private Map<Class<?>, ResultView<? extends ResultModel>> resultViewMap = new ConcurrentHashMap<>();
 
     public ResultViewResolver() {
@@ -103,7 +99,6 @@ public class ResultViewResolver {
                 if (parameterTypes.length == 1
                         && parameterTypes[0] != ResultModel.class
                         && ResultModel.class.isAssignableFrom(parameterTypes[0])) {
-                    logger.info("key:{}, value:{}", parameterTypes[0], viewClass);
                     return parameterTypes[0];
                 }
             }

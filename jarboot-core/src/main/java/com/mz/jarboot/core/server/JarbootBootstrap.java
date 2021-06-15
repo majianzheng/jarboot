@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.net.URISyntaxException;
 import java.security.CodeSource;
 import java.util.Base64;
 import java.util.HashSet;
@@ -51,6 +50,7 @@ public class JarbootBootstrap {
     private Instrumentation instrumentation;
     private InstrumentTransformer classLoaderInstrumentTransformer;
     private boolean online = false;
+    private MessageHandler messageHandler;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
         if (null == args || args.isEmpty()) {
@@ -58,37 +58,32 @@ public class JarbootBootstrap {
         }
         this.instrumentation = inst;
 
-        //1.initSpy()
-        initSpy();
-
-        //2.解析args，获取目标服务端口
+        //1.解析args，获取目标服务端口
         String s = new String(Base64.getDecoder().decode(args));
         JSONObject json = JSON.parseObject(s);
         host = json.getString("host");
         serverName = json.getString("server");
-        logger.info("获取参数>>>{}, server:{}", host, serverName);
-        //3.环境初始化
+
+        //2.环境初始化
         EnvironmentContext.init(serverName, host, inst);
+        initLogback(); //初始化日志模块
+        logger.info("获取参数>>>{}, server:{}, args:{}", host, serverName, args);
+
+        //3.initSpy()
+        initSpy();
+
         enhanceClassLoader();
         //4.命令派发器
         dispatcher = new CommandDispatcher();
-        //5.客户端初始化
+
+        //5.初始化WebSocket的handler
+        this.initMessageHandler();
+
+        //6.客户端初始化
         this.initClient();
     }
-    public void initClient() {
-        if (online) {
-            logger.warn("当前已经处于在线状态，不需要重新连接");
-            return;
-        }
-
-        if (null != client) {
-            //已经不在线，清理资源重新连接
-            logger.info("已离线，正在重新初始化客户端...");
-            client.disconnect();
-        }
-        logger.info("创建客户端实>>>");
-        EnvironmentContext.cleanSession();
-        client = SingletonCoreFactory.getInstance().createSingletonClient(new MessageHandler() {
+    private void initMessageHandler() {
+        this.messageHandler = new MessageHandler() {
             @Override
             public void onOpen(Channel channel) {
                 logger.debug("连接成功>>>");
@@ -118,11 +113,39 @@ public class JarbootBootstrap {
                 logger.error("连接异常>>>");
                 onClose(channel);
             }
-        });
-        logger.info("initClient finished.");
-        if (null != client) {
+        };
+    }
+    public void initClient() {
+        if (online) {
+            logger.warn("当前已经处于在线状态，不需要重新连接");
+            return;
+        }
+
+        if (null != client && !client.isOpen()) {
+            //已经不在线，清理资源重新连接
+            logger.info("已离线，正在重新初始化客户端...");
+            client.disconnect();
+        }
+
+        EnvironmentContext.cleanSession();
+
+        client = SingletonCoreFactory.getInstance().createSingletonClient(this.messageHandler);
+        if (null == client) {
+            online = false;
+            logger.error("连接失败！");
+            return;
+        }
+        if (client.isOpen()) {
             online = true;
-            logger.info("上线成功！");
+        } else {
+            logger.info("尝试重新连接中..");
+            if (client.connect(this.messageHandler)) {
+                online = true;
+                logger.info("尝试重新连接成功！");
+            } else {
+                online = false;
+                logger.error("尝试重新连接失败！");
+            }
         }
     }
 
@@ -132,9 +155,6 @@ public class JarbootBootstrap {
 
     public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args) {
         //主入口
-        initLogback();
-
-        logger.debug("getInstance{}", args);
         if (bootstrap != null) {
             return bootstrap;
         }
@@ -160,12 +180,11 @@ public class JarbootBootstrap {
             }
         }
         if (null == cls) {
-            logger.warn("加载SpyAPI失败, 使用jar包加载>>");
             try {
                 CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
                 if (codeSource != null) {
-                    File arthasCoreJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                    File spyJarFile = new File(arthasCoreJarFile.getParentFile(), SPY_JAR);
+                    File coreJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+                    File spyJarFile = new File(coreJarFile.getParentFile(), SPY_JAR);
                     instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(spyJarFile));
                 } else {
                     logger.error("can not find {}", SPY_JAR);
@@ -222,12 +241,15 @@ public class JarbootBootstrap {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         PatternLayoutEncoder ple = new PatternLayoutEncoder();
 
-        ple.setPattern("%date %level [%thread] %logger{10} [%file:%line] %msg%n");
+        ple.setPattern("%date %level [%thread] " +
+                "[%file:%line] %msg%n");
         ple.setContext(lc);
         ple.start();
         FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
-        String log = System.getProperty("user.home") + File.separator + "jarboot" + File.separator + "logs" +
-                File.separator + "core.log";
+        StringBuilder sb = new StringBuilder();
+        sb.append(EnvironmentContext.getJarbootHome()).append(File.separator).append("logs").append(File.separator)
+                .append("jarboot-").append(EnvironmentContext.getServer()).append(".log");
+        String log =sb.toString();
         fileAppender.setFile(log);
         fileAppender.setEncoder(ple);
         fileAppender.setContext(lc);

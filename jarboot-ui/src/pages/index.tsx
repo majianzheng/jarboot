@@ -82,7 +82,7 @@ const UserMenu: any = memo((props: any) => {
             <Menu.Divider/>
             <Menu.Item key="quick-start">
                 <LoginOutlined />
-                鉴权功能暂未实现
+                鉴权待实现
             </Menu.Item>
         </Menu>
     </>;

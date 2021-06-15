@@ -77,4 +77,7 @@ export default {
     USAGE_DEMO: 'Use reference',
     JVM_DESC: 'View current JVM information',
     BYTES_DESC: 'View the bytecode of the specified class',
+    JAD_DESC: 'Decompile the specified classes.',
+    DASHBOARD_DESC: `This is the real time statistics dashboard for the current system, click x to exit.\n
+When running in Apache Tomcat Alibaba edition, the dashboard will also present the real time statistics of the tomcat, including QPS, RT, error counts, and thread pool, etc.`,
 };
