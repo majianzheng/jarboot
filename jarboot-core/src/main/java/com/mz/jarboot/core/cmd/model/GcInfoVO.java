@@ -2,7 +2,8 @@ package com.mz.jarboot.core.cmd.model;
 
 /**
  * GC info of dashboard
- * @author gongdewei 2020/4/23
+ * @author majianzheng
+ * 以下代码基于开源项目Arthas适配修改
  */
 public class GcInfoVO {
     private String name;

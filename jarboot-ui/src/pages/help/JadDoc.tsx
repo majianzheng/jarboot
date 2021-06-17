@@ -1,22 +1,8 @@
 import React, {memo} from "react";
 import {BackTop, Typography} from "antd";
 import {useIntl} from "umi";
-import {UnControlled as CodeMirror} from "react-codemirror2";
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/material.css';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/xml/xml.js';
-import 'codemirror/mode/python/python.js';
-import 'codemirror/mode/perl/perl.js';
-import 'codemirror/mode/clike/clike.js';
-import 'codemirror/addon/display/fullscreen.css';
-import 'codemirror/addon/display/fullscreen.js';
-import 'codemirror/addon/fold/foldgutter.css';
-import 'codemirror/addon/fold/foldcode.js';
-import 'codemirror/addon/fold/foldgutter.js';
-import 'codemirror/addon/fold/brace-fold.js';
-import 'codemirror/addon/fold/comment-fold.js';
-import 'codemirror/addon/selection/active-line';
+import {JarBootConst} from "@/common/JarBootConst";
+import {CodeEditor} from "@/components";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -71,20 +57,9 @@ public class DemoServerApplication {
             <Paragraph>
                 <Text>{intl.formatMessage({id: 'JAD_DESC'})}</Text>
                 <Title level={2}>{intl.formatMessage({id: 'USAGE_DEMO'})}</Title>
-                <CodeMirror
-                    value={code}
-                    options={{
-                        mode: "text/x-java",
-                        theme: 'material',
-                        lineNumbers: true,
-                        readOnly: true,
-                        styleActiveLine: true,
-                        lineWrapping: true,
-                        foldGutter: true,
-                        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-                        fullScreen: false,
-                    }}
-                />
+                <CodeEditor height={JarBootConst.PANEL_HEIGHT}
+                            readOnly={true}
+                            source={code}/>
             </Paragraph>
         </Typography>
         <BackTop/>

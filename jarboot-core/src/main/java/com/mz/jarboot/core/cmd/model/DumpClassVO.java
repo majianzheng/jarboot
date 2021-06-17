@@ -2,7 +2,8 @@ package com.mz.jarboot.core.cmd.model;
 
 /**
  * Dumped class VO
- * @author gongdewei 2020/7/9
+ * @author majianzheng
+ * 以下代码基于开源项目Arthas适配修改
  */
 public class DumpClassVO extends ClassVO {
     private String location;

@@ -61,6 +61,7 @@ public class CommandResponse implements CmdProtocol {
         if (-1 == l) {
             this.success = false;
             this.body = "协议错误，未发现sessionId";
+            return;
         }
         this.body = raw.substring(3, l);
         this.sessionId = raw.substring(l + 1);

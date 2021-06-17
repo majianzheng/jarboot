@@ -5,7 +5,8 @@ import java.util.Map;
 
 /**
  * Model of 'dashboard' command
- * @author gongdewei 2020/4/22
+ * @author majianzheng
+ * 以下代码基于开源项目Arthas适配修改
  */
 public class DashboardModel extends ResultModel {
     private List<ThreadVO> threads;

@@ -7,8 +7,8 @@ import java.util.zip.ZipFile;
 
 /**
  *
- * @author hengyunabc 2018-11-06
- *
+ * @author majianzheng
+ * 以下代码，有一部分摘自开源项目Arthas
  */
 public class IOUtils {
 

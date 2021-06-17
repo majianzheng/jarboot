@@ -20,11 +20,11 @@ In the test environment and daily built integrated environment, a series of jar 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc. But its functional orientation is different from that of <code>Arthas</code>. <code>Jarboot</code> is more oriented to development, testing, daily building, etc.
 
-- 🌈 Browser interface management, one click start, stop, do not have to manually execute one by one.
-- 🔥 Support start and stop priority configuration<sup id="a2">[[1]](#f1)</sup>, and default parallel start.
-- ⭐ Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
-- ☀️ Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
-- 🚀 Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
+- 🌈   Browser interface management, one click start, stop, do not have to manually execute one by one.
+- 🔥   Support start and stop priority configuration<sup id="a2">[[1]](#f1)</sup>, and default parallel start.
+- ⭐   Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
+- ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
+- 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 
 It adopts <code>front-end and back-end separation architecture</code>, front-end interface adopts <code>React</code> technology, scaffold uses <code>Umi</code>, component library uses <code>Umi</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 

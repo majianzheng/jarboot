@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd.view;
 
 /**
  * 命令行控件<br/>
- * Created by vlinux on 15/5/7.
+ * 以下代码基于开源项目Arthas适配修改
  */
 public interface View {
 
