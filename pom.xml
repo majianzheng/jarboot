@@ -197,10 +197,7 @@
 
 	<profiles>
 		<profile>
-			<id>ossrh</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
+			<id>release</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -256,17 +253,6 @@
 								</goals>
 							</execution>
 						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.7</version>
-						<extensions>true</extensions>
-						<configuration>
-							<serverId>ossrh</serverId>
-							<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
-						</configuration>
 					</plugin>
 				</plugins>
 			</build>
