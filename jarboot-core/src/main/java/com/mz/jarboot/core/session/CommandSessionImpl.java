@@ -25,7 +25,7 @@ public class CommandSessionImpl implements CommandSession {
     private final ResultStreamDistributor distributor;
     private boolean running = false;
     private final String sessionId;
-    private AtomicInteger times = new AtomicInteger();
+    private final AtomicInteger times = new AtomicInteger();
     private AdviceListener listener = null;
     private ClassFileTransformer transformer;
     private volatile String jobId = CoreConstant.EMPTY_STRING; //NOSONAR
@@ -58,7 +58,7 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void ack(String message) {
-        logger.info("ack>>{}", message);
+        logger.debug("ack>>{}", message);
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.ACK);
@@ -120,7 +120,7 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void end(boolean success, String message) {
-        logger.info("end>>{}", success);
+        logger.debug("end>>{}, {}", success, message);
         running = false;
         //jobId置为空，以便清理
         jobId = CoreConstant.EMPTY_STRING;

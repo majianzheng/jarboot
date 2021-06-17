@@ -15,6 +15,7 @@ export default {
     NAME: '名字',
     STATUS: '状态',
     CLEAR: '清空',
+    CLOSE: '关闭',
     CMD_PLACEHOLDER: '输入调试命令执行',
     //进程状态
     RUNNING: '运行中',

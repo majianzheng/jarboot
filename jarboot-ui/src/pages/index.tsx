@@ -1,4 +1,4 @@
-import * as React from "react";
+import {memo, useEffect, useState} from "react";
 import {Tabs, ConfigProvider, Tooltip, Avatar, Button, Popover, Menu} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
@@ -8,7 +8,6 @@ import {UserOutlined, GithubOutlined, CaretDownOutlined, LoginOutlined} from '@a
 import styles from './index.less';
 import {WsManager} from "@/common/WsManager";
 import { setLocale, useIntl, getLocale } from 'umi';
-import {memo} from "react";
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
@@ -27,10 +26,6 @@ const TabPanes: any = memo((props: any) => {
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
             <ServerMgrView/>
         </TabPane>
-        {/*与Arthas的集成将作为隐藏的功能*/}
-        {/*<TabPane key={'1'} tab={"Arthas"}>*/}
-        {/*    <ArthasAdapterView/>*/}
-        {/*</TabPane>*/}
         <TabPane key={'2'} tab={intl.formatMessage({id: 'SERVICES_CONF'})}>
             <ServerSetting/>
         </TabPane>
@@ -69,7 +64,7 @@ const SelectLang = (props: any) => {
 //用户下拉菜单
 const UserMenu: any = memo((props: any) => {
     const handleClick = (event: any) => {
-
+        //do user login or out.
     };
 
     return <>
@@ -89,40 +84,37 @@ const UserMenu: any = memo((props: any) => {
 });
 
 //路由入口类
-export default class Index extends React.PureComponent {
-    state = {locale: 'zh-CN'};
-    componentDidMount() {
-        console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: yellow');
-        console.log(`%c(灬°ω°灬) `, 'color:yellow');
-        console.log(`%c（づ￣3￣）づ╭❤～`, 'color:yellow');
+const index = memo(() => {
+    const [lang, setLang] = useState(getLocale());
+    useEffect(() => {
+        console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
+        console.log(`%c(灬°ω°灬) `, 'color:magenta');
+        console.log(`%c（づ￣3￣）づ╭❤～`, 'color:magenta');
         WsManager.initWebsocket();
-        const locale = getLocale();
-        this.setState({locale});
-    }
+    }, []);
 
-    private _onLocaleChange = (locale: string) => {
-        //setLocale(locale, false);
-        this.setState({locale});
+    const _onLocaleChange = (s: string) => {
+        setLang(s);
     };
-    render() {
-        const rightExtra = <div className={styles.rightExtra}>
-            <SelectLang onLocaleChange={this._onLocaleChange}/>
-            <Tooltip title={"Github"}>
-                <a target={"_blank"}
-                   href={"https://github.com/majianzheng/jarboot"}
-                   className={styles.githubIcon}>
-                    <GithubOutlined/>
-                </a>
-            </Tooltip>
-            <Popover content={<UserMenu/>} placement="bottomRight">
-                <Avatar className={styles.userLogin} icon={<UserOutlined/>}/>
-                <CaretDownOutlined style={{verticalAlign: 'text-top'}}/>
-            </Popover>
-        </div>;
-        const leftExtra = <div className={styles.leftExtra}><img src={require('@/assets/logo.png')} alt={"logo"}/></div>;
-        const extra = {left: leftExtra, right: rightExtra};
-        return <ConfigProvider locale={localeMap[this.state.locale]}>
-            <TabPanes extra={extra}/>
-        </ConfigProvider>;
-    }
-}
+    const rightExtra = <div className={styles.rightExtra}>
+        <SelectLang onLocaleChange={_onLocaleChange}/>
+        <Tooltip title={"Github"}>
+            <a target={"_blank"}
+               href={"https://github.com/majianzheng/jarboot"}
+               className={styles.githubIcon}>
+                <GithubOutlined/>
+            </a>
+        </Tooltip>
+        <Popover content={<UserMenu/>} placement="bottomRight">
+            <Avatar className={styles.userLogin} icon={<UserOutlined/>}/>
+            <CaretDownOutlined style={{verticalAlign: 'text-top'}}/>
+        </Popover>
+    </div>;
+    const leftExtra = <div className={styles.leftExtra}><img src={require('@/assets/logo.png')} alt={"logo"}/></div>;
+    const extra = {left: leftExtra, right: rightExtra};
+    return <ConfigProvider locale={localeMap[lang]}>
+        <TabPanes extra={extra}/>
+    </ConfigProvider>;
+});
+
+export default index;

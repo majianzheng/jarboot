@@ -6,6 +6,7 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.dto.GlobalSettingDTO;
+import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
@@ -144,7 +145,9 @@ public class SettingUtils {
 
     public static String getAgentArgs(String server) {
         JSONObject json = new JSONObject();
-        json.put("host", "127.0.0.1:9899");
+        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
+        String host = String.format("127.0.0.1:%s", port);
+        json.put("host", host);
         json.put("server", server);
         byte[] bytes = Base64.getEncoder().encode(json.toJSONString().getBytes());
         return new String(bytes);

@@ -16,6 +16,10 @@ public class ApplicationContextUtils {
         return ctx.getEnvironment().getProperty(name);
     }
 
+    public static String getEnv(String name, String defaultValue) {
+        return ctx.getEnvironment().getProperty(name, defaultValue);
+    }
+
     public static ApplicationContext getContext() {
         return ctx;
     }

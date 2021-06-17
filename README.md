@@ -2,8 +2,12 @@
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
 
+[![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.majianzheng/jarboot-all)
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
 [![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
+![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
+![GitHub issues](https://img.shields.io/github/issues-raw/majianzheng/jarboot)
 
 <code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
 
@@ -25,35 +29,37 @@ In the test environment and daily built integrated environment, a series of jar 
 It adopts <code>front-end and back-end separation architecture</code>, front-end interface adopts <code>React</code> technology, scaffold uses <code>Umi</code>, component library uses <code>Umi</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ## Install or build
-1. Build ui and Java code, or download the zip package.
+1. Build ui and <code>Java</code> code, or <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">download</a> the zip package.
 ```bash
+#build ui.
 cd jarboot-ui
-//First time, execute yarn or npm install
+#First time, execute yarn or npm install
 yarn
 
-//execute compile, yarn buld or npm run build, execute yarn start or npm run start at development mode.
+#execute compile, yarn build or npm run build, execute yarn start or npm run start at development mode.
 yarn build
 
-//Switch to the code root directory and compile the Java code
+#Switch to the code root directory and compile the Java code
+cd ../
 mvn clean install
 ```
 
 2. Directory structure after installation.
 
 ```bash
-jarboot                             //Current working directory
-├─logs                              //logs
+jarboot                             #Current working directory
+├─logs                              #logs
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
-├─jarboot-service.jar               //Web service
+├─jarboot-service.jar               #Web service
 │
-├─services                          //Default root directory which managing other jar files (configurable)
-│  ├─demo1-service                  //The service name is directory, which stores the jar files and their dependencies.
-│  │   └─demo1-service.jar          //The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
+├─services                          #Default root directory which managing other jar files (configurable)
+│  ├─demo1-service                  #The service name is directory, which stores the jar files and their dependencies.
+│  │   └─demo1-service.jar          #The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
 │  └─demo2-service                  
 │      └─demo2-service.jar
-└─static                            //Front end interface resource location
+└─static                            #Front end interface resource location
    ├─index.html                     
    ├─umi.css                        
    └─umi.js                         
@@ -61,14 +67,17 @@ jarboot                             //Current working directory
 Back end service startup specifies a root path to manage other startup jar files (Default is services in current path, you can config it in [Setting])，Create each service directory under this root directory,created ***Directory name is the name of service*** .Put the jar package file in the created directory. See the directory structure convention above for details.
 
 3. Start <code>jarboot-service.jar</code>
-```
+```bash
+#Execute boot.sh to start, use boot.bat when in windows OS.
 ./boot.sh
 ```
 
 4. Browser access <http://127.0.0.1:9899>
 
 ## Command list
-- bytes View the class bytes，Usage：
+### bytes
+View the class bytes，Usage：
+
 ```bash
 $ bytes com.mz.jarboot.demo.DemoServerApplication
 ClassLoader: org.springframework.boot.loader.LaunchedURLClassLoader@31221be2
@@ -86,22 +95,29 @@ IRETURN
 L8
 ```
   
-- dashboard This is the real time statistics dashboard for the current system，click x cancel.
+### dashboard
+This is the real time statistics dashboard for the current system，click x cancel.
 
 ![dashboard](doc/dashboard.png)
   
-- jad Decompile the specified classes.
+### jad
+Decompile the specified classes.
+
 ```bash
 $ jad [-c] java.lang.String
 ````
 ![dashboard](doc/jad.png)
 
-- jvm Check the current JVM’s info
+### jvm
+Check the current JVM’s info
+
 ```bash
 $ jvm
 ````
   
-- trace method calling path, and output the time cost for each node in the path.
+### trace
+method calling path, and output the time cost for each node in the path.
+
 ```bash
 $ trace com.mz.jarboot.demo.DemoServerApplication add 
 Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
@@ -109,13 +125,14 @@ Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
     `---[0.053485ms] com.mz.jarboot.demo.DemoServerApplication:add()
 ```
   
-- watch methods in data aspect including return values, exceptions and parameters
+### watch
+methods in data aspect including return values, exceptions and parameters
     
-Watch the first parameter and thrown exception of `test.arthas.TestWatch#doGet` only if it throws exception.
+Watch the first parameter and thrown exception of `com.mz.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
 
 ```bash
-$ watch test.arthas.TestWatch doGet {params[0], throwExp} -e
-Press Ctrl+C to abort.
+$ watch `com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+Press x to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
     @RequestFacade[org.apache.catalina.connector.RequestFacade@79f922b2],
@@ -123,16 +140,18 @@ ts=2018-09-18 10:26:28;result=@ArrayList[
 ]
 ```
   
-- thread Check the basic info and stack trace of the target thread.
+### thread
+Check the basic info and stack trace of the target thread.
+
 ```bash
 $ thread -n 3
 "as-command-execute-daemon" Id=29 cpuUsage=75% RUNNABLE
     at sun.management.ThreadImpl.dumpThreads0(Native Method)
     at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:440)
-    at com.taobao.arthas.core.command.monitor200.ThreadCommand$1.action(ThreadCommand.java:58)
-    at com.taobao.arthas.core.command.handler.AbstractCommandHandler.execute(AbstractCommandHandler.java:238)
-    at com.taobao.arthas.core.command.handler.DefaultCommandHandler.handleCommand(DefaultCommandHandler.java:67)
-    at com.taobao.arthas.core.server.ArthasServer$4.run(ArthasServer.java:276)
+    at com.mz.jarboot.core.cmd.impl.ThreadCommand$1.action(ThreadCommand.java:58)
+    at com.mz.jarboot.core.cmd.impl.handler.AbstractCommandHandler.execute(AbstractCommandHandler.java:238)
+    at com.mz.jarboot.core.cmd.impl.handler.DefaultCommandHandler.handleCommand(DefaultCommandHandler.java:67)
+    at com.mz.jarboot.core.server.JarbootBootstrap$4.run(ArthasServer.java:276)
     at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
     at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
     at java.lang.Thread.run(Thread.java:745)
@@ -142,7 +161,7 @@ $ thread -n 3
 
 "as-session-expire-daemon" Id=25 cpuUsage=24% TIMED_WAITING
     at java.lang.Thread.sleep(Native Method)
-    at com.taobao.arthas.core.server.DefaultSessionManager$2.run(DefaultSessionManager.java:85)
+    at com.mz.jarboot.core.server.CommandSessionImpl$2.run(DefaultSessionManager.java:85)
 
 "Reference Handler" Id=2 cpuUsage=0% WAITING on java.lang.ref.Reference$Lock@69ba0f27
     at java.lang.Object.wait(Native Method)
@@ -150,14 +169,20 @@ $ thread -n 3
     at java.lang.Object.wait(Object.java:503)
     at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
 ```
-- sysprop Examine the system properties from the target JVM
+### sysprop
+Examine the system properties from the target JVM
+
 ```bash
+#Get all.
 $ sysprop
-sysprop user.home
+#Get one property.
+$ sysprop user.home
 ```
   
-- More powerful command in continuous development...
+### More powerful command in continuous development...
 
+---
+### Credit
 #### Projects
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.

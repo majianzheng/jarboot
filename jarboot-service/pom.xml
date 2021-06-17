@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>jarboot-all</artifactId>
-		<groupId>com.mz.jarboot</groupId>
+		<groupId>io.github.majianzheng</groupId>
 		<version>${revision}</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
@@ -12,6 +12,7 @@
 	<name>jarboot-service</name>
 	<description>jarboot server</description>
 	<packaging>jar</packaging>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -52,7 +53,7 @@
 			<version>2.9.2</version>
 		</dependency>
         <dependency>
-            <groupId>com.mz.jarboot</groupId>
+            <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-common</artifactId>
             <scope>compile</scope>
 			<version>${revision}</version>

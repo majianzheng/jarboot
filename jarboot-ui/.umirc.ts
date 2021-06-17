@@ -12,7 +12,7 @@ export default defineConfig({
     ],
     fastRefresh: {},
     inlineLimit: 100000,
-    devtool: 'source-map',
+    //devtool: 'source-map',
     locale: {
         default: 'zh-CN',
         antd: true,

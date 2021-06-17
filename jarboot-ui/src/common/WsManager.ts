@@ -50,7 +50,7 @@ class WsManager {
                 return;
             }
         }
-        let url = `ws://${window.location.hostname}:9899/jarboot-service/ws`;
+        let url = `ws://${window.location.host}/jarboot-service/ws`;
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager._onMessage;
         WsManager.websocket.onopen = WsManager._onOpen;
@@ -68,12 +68,12 @@ class WsManager {
         CommonNotice.error("错误", data.body);
     };
 
-    private static _onMessage = (event: any) => {
-        if (!StringUtil.isString(event?.data)) {
+    private static _onMessage = (e: any) => {
+        if (!StringUtil.isString(e?.data)) {
             //二进制数据
             return;
         }
-        const resp: string = event.data;
+        const resp: string = e.data;
         try {
             let i = resp.indexOf(JarBootConst.PROTOCOL_SPLIT);
             if (-1 === i) {
@@ -134,6 +134,7 @@ class WsManager {
             }
             if (WebSocket.OPEN === WsManager.websocket?.readyState) {
                 //连接成功
+                Logger.log("websocket重连成功！");
                 clearInterval(WsManager.fd);
                 WsManager.fd = null;
                 return;

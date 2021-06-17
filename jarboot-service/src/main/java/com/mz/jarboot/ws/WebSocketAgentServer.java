@@ -44,7 +44,6 @@ public class WebSocketAgentServer {
 
     @OnMessage
     public void onTextMessage(String message, Session session, @PathParam("server") String server) {
-        logger.info("agent msg:{}", message);
         CommandResponse resp = CommandResponse.createFromRaw(message);
         AgentManager.getInstance().handleAgentResponse(server, resp);
     }
@@ -57,6 +56,5 @@ public class WebSocketAgentServer {
     @OnError
     public void onError(Session session, Throwable error, @PathParam("server") String server) {
         onClose(session, server);
-        logger.error(error.getMessage(), error);
     }
 }

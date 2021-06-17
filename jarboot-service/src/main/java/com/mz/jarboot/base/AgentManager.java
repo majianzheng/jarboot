@@ -106,7 +106,7 @@ public class AgentManager {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令");
-            WebSocketManager.getInstance().commandComplete(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, sessionId);
         } else {
             client.sendCommand(command, sessionId);
         }
@@ -114,14 +114,14 @@ public class AgentManager {
 
     public CommandResponse sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
-            WebSocketManager.getInstance().commandComplete(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, sessionId);
             return new CommandResponse();
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
-            WebSocketManager.getInstance().commandComplete(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, sessionId);
             return resp;
         }
         return client.sendInternalCommand(command, sessionId);
@@ -144,7 +144,7 @@ public class AgentManager {
                 if (Boolean.FALSE.equals(resp.getSuccess())) {
                     WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 }
-                WebSocketManager.getInstance().commandComplete(server, sessionId);
+                WebSocketManager.getInstance().commandEnd(server, sessionId);
                 break;
             default:
                 //do nothing

@@ -34,14 +34,14 @@ export default class ServerMgrView extends React.PureComponent {
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_COMPLETE, this._commandComplete);
+        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandComplete);
     }
 
     componentWillUnmount() {
         WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_LINE);
         WsManager.removeMessageHandler(MSG_EVENT.RENDER_JSON);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
-        WsManager.removeMessageHandler(MSG_EVENT.CMD_COMPLETE);
+        WsManager.removeMessageHandler(MSG_EVENT.CMD_END);
     }
 
     private _renderCmdJsonResult = (data: MsgData) => {

@@ -5,6 +5,8 @@ package com.mz.jarboot.core.session;
  * 以下代码基于开源项目Arthas适配修改
  */
 public class ExitStatus {
+    private int statusCode;
+    private String message;
 
     /**
      * 命令执行成功的状态
@@ -40,10 +42,6 @@ public class ExitStatus {
     public static boolean isFailed(ExitStatus exitStatus) {
         return exitStatus != null && exitStatus.getStatusCode() != 0;
     }
-
-
-    private int statusCode;
-    private String message;
 
     private ExitStatus(int statusCode) {
         this.statusCode = statusCode;

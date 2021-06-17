@@ -15,6 +15,7 @@ export default {
     NAME: 'Name',
     STATUS: 'Status',
     CLEAR: 'Clear',
+    CLOSE: 'Close',
     CMD_PLACEHOLDER: 'Input command to execute',
     //进程状态
     RUNNING: 'Running',

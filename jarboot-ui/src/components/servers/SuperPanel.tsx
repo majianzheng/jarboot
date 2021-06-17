@@ -67,6 +67,18 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         inputRef?.current?.focus();
     };
 
+    const closeView = () => {
+        if (executing) {
+            CommonNotice.info('命令执行中，请先停止命令再关闭');
+            return;
+        }
+        if ('' !== view) {
+            //切换为控制台显示
+            setView('');
+        }
+        inputRef?.current?.focus();
+    };
+
     const onExecCommand = () => {
         if (StringUtil.isEmpty(command)) {
             return;
@@ -113,10 +125,13 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                    <EnterOutlined onClick={onExecCommand}/>}/>
     </>);
 
+    const clearBtn = <Button type={"link"} onClick={clearDisplay}>{formatMsg('CLEAR')}</Button>;
+    const closeBtn = <Button type={"link"} onClick={closeView}>{formatMsg('CLOSE')}</Button>;
+    const extra = '' === view ? clearBtn : closeBtn;
     return <>
         <Card title={outTitle} size={"small"}
               style={{display: props.visible ? 'block' : 'none'}}
-              extra={<Button type={"link"} onClick={clearDisplay}>{formatMsg('CLEAR')}</Button>}>
+              extra={extra}>
             <div className={styles.outPanel} style={{height: outHeight}}>
                 <Console server={props.server}
                          visible={'' === view}

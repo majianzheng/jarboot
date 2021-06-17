@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.mz.jarboot</groupId>
+        <groupId>io.github.majianzheng</groupId>
         <artifactId>jarboot-all</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
@@ -14,7 +14,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.mz.jarboot</groupId>
+            <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-spy</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>

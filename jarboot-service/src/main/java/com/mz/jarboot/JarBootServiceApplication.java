@@ -50,20 +50,16 @@ public class JarBootServiceApplication {
 			String path = curJar.getPath();
 			int p = path.lastIndexOf(".jar");
 			if (-1 == p) {
-				System.out.println("not end jar!!!");
 				return null;
 			}
 			//取上级目录
 			p = path.lastIndexOf(File.separatorChar, p);
 			if (0 == path.indexOf("file:")) {
 				if ('\\' == path.charAt(5)) {
-					System.out.println("path:" + path.substring(6, p));
 					return path.substring(6, p);
 				}
-				System.out.println("path:" + path.substring(5, p));
 				return path.substring(5, p);
 			} else {
-				System.out.println("path:" + path.substring(0, p));
 				return path.substring(0, p);
 			}
 		} catch (URISyntaxException e) {

@@ -50,7 +50,6 @@ public class WebSocketMainServer {
 
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        logger.info(message);
         if (StringUtils.isEmpty(message)) {
             return;
         }
@@ -58,7 +57,6 @@ public class WebSocketMainServer {
         String server = json.getString("server");
         int func = json.getIntValue("func");
         String body = json.getString("body");
-        logger.info("server:{}, msgType:{}, msgBody:{}", server, func, body);
         switch (func) {
             case CMD_FUNC:
                 AgentManager.getInstance().sendCommand(server, body, session.getId());
@@ -67,6 +65,7 @@ public class WebSocketMainServer {
                 AgentManager.getInstance().sendInternalCommand(server, CommandConst.CANCEL_CMD, session.getId());
                 break;
             default:
+                logger.debug("Unknown func, func:{}", func);
                 break;
         }
     }
@@ -80,6 +79,5 @@ public class WebSocketMainServer {
     public void onError(Session session, Throwable error) {
         AgentManager.getInstance().releaseAgentSession(session.getId());
         WebSocketManager.getInstance().delConnect(session.getId());
-        logger.error(error.getMessage(), error);
     }
 }

@@ -5,6 +5,9 @@ public class CommonConst {
     public static final String WORKSPACE_HOME= "workspace.home"; //用户工作目录
     public static final String JARBOOT_HOME= "jarboot.home"; //当前执行目录
 
+    public static final String PORT_KEY = "server.port";
+    public static final String DEFAULT_PORT = "9899";
+
     //协议分隔符
     public static final char PROTOCOL_SPLIT = '\r';
 
