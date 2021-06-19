@@ -6,6 +6,7 @@ package com.mz.jarboot.core.utils;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
+@SuppressWarnings("all")
 public class ThreadLocalWatch {
 
     private final ThreadLocal<LongStack> timestampRef = new ThreadLocal<LongStack>() {

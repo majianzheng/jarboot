@@ -23,15 +23,19 @@ export default {
     STARTING: 'Starting',
     STOPPING: 'Stopping',
 
-    //提交、重置
+    //通用
     SUBMIT_BTN: 'Submit',
     RESET_BTN: 'Reset',
+    REFRESH_BTN: 'Refresh',
+    SERVER_EMPTY: 'The servers is empty now, please put jar file and refresh.',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
     JAR_LABEL: 'Start jar file',
     JVM_OPT_LABEL: 'JVM options',
     MAIN_ARGS_LABEL: 'Main args',
+    WORK_HOME_LABEL: 'Work home',
+    ENV_LABEL: 'environment',
     PRIORITY_LABEL: 'Priority',
     DAEMON_LABEL: 'Daemon',
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',

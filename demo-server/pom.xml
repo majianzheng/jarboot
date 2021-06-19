@@ -24,6 +24,7 @@
         </dependencies>
     </dependencyManagement>
     <properties>
+        <sonar.skip>true</sonar.skip>
         <java.version>1.8</java.version>
     </properties>
     <dependencies>

@@ -1,60 +1,65 @@
 import * as React from "react";
-import { Col, Row, Menu } from 'antd';
+import { Col, Row, Menu, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from '../../common/ErrorUtil';
+import ErrorUtil from '@/common/ErrorUtil';
 import styles from './index.less';
 import ServerMgrService from "@/services/ServerMgrService";
 import Logger from "@/common/Logger";
-import {memo} from "react";
+import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 
-const ServerListHeader: any = memo(() => {
+const ServerSetting = memo(() => {
     const intl = useIntl();
-    return <div>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>;
-});
+    const [data, setData] = useState([]);
+    const [current, setCurrent] = useState('');
 
-export default class ServerSetting extends React.PureComponent {
-
-    state = {data: [], current: ""};
-    componentDidMount() {
-        this._query();
-    }
-
-    private _query = () => {
+    const query = () => {
         ServerMgrService.getServerList((resp: any) => {
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
                 return;
             }
-            this.setState({data: resp.result});
+            if (!(resp?.result instanceof Array)) {
+                resp.result = new Array<any>();
+            }
+            setData(resp.result);
+            if (resp.result.length > 0) {
+                setCurrent(resp.result[0].name);
+            }
         }, (errorMsg: any) => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
     };
-    private _onSelect = (event: any) => {
-        const current = event.key;
-        this.setState({current});
+
+    useEffect(query, []);
+
+    const onSelect = (event: any) => {
+        setCurrent(event.key);
     };
-    render() {
-        return <Row>
-            <Col span={6} className={styles.pageContainer}>
-                <Menu
-                    onClick={this._onSelect}
-                    defaultSelectedKeys={[this.state.data[0]]}
-                    mode="inline"
-                >
-                    <Menu.ItemGroup title={<ServerListHeader/>}>
-                        <Menu.Divider/>
-                        {this.state.data.map((item: any) => {
-                            return <Menu.Item key={item.name}>{item.name}</Menu.Item>
-                        })}
-                    </Menu.ItemGroup>
-                </Menu>
-            </Col>
-            <Col span={18} className={styles.pageContainer}>
-                <div style={{margin: '0 30px 0 5px', width: '80%'}}>
-                    <ServerConfig server={this.state.current}/>
-                </div>
-            </Col>
-        </Row>
-    }
-}
+    return <>{(data instanceof Array && data.length > 0) ? <Row>
+        <Col span={6} className={styles.pageContainer}>
+            <Menu
+                onClick={onSelect}
+                selectedKeys={[current]}
+                mode="inline"
+            >
+                <Menu.ItemGroup title={<div>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>}>
+                    <Menu.Divider/>
+                    {data.map((item: any) => {
+                        return <Menu.Item key={item.name}>{item.name}</Menu.Item>
+                    })}
+                </Menu.ItemGroup>
+            </Menu>
+        </Col>
+        <Col span={18} className={styles.pageContainer}>
+            <div style={{margin: '0 30px 0 5px', width: '80%'}}>
+                <ServerConfig server={current}/>
+            </div>
+        </Col>
+    </Row> : <Result icon={<Empty/>}
+                     title={intl.formatMessage({id: 'SERVER_EMPTY'})}
+                     extra={<Button type="primary" onClick={query}>
+                         {intl.formatMessage({id: 'REFRESH_BTN'})}
+                     </Button>}
+    />}</>
+});
+export default ServerSetting;

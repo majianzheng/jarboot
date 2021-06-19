@@ -89,7 +89,7 @@ const index = memo(() => {
     useEffect(() => {
         console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
         console.log(`%c(灬°ω°灬) `, 'color:magenta');
-        console.log(`%c（づ￣3￣）づ╭❤～`, 'color:magenta');
+        console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
         WsManager.initWebsocket();
     }, []);
 

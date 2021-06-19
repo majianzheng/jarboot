@@ -6,6 +6,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class JadView implements ResultView<com.mz.jarboot.core.cmd.model.JadModel> {
 
     @Override

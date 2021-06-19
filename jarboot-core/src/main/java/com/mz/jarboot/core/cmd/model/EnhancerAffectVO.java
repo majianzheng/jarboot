@@ -28,14 +28,14 @@ public class EnhancerAffectVO {
         this.throwable = affect.getThrowable();
 
         if (GlobalOptions.isDump) {
-            classDumpFiles = new ArrayList<String>();
+            classDumpFiles = new ArrayList<>();
             for (File classDumpFile : affect.getClassDumpFiles()) {
                 classDumpFiles.add(classDumpFile.getAbsolutePath());
             }
         }
 
         if (GlobalOptions.verbose) {
-            methods = new ArrayList<String>();
+            methods = new ArrayList<>();
             methods.addAll(affect.getMethods());
         }
     }

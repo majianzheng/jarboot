@@ -18,6 +18,7 @@ import java.util.Set;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 class ClassDumpTransformer implements ClassFileTransformer {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
 

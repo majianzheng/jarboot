@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 @Name("jad")
 @Summary("Decompile class")
 @Description(CoreConstant.EXAMPLE +

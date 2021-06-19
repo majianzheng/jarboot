@@ -48,6 +48,7 @@ import static java.lang.System.arraycopy;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class ClassEnhancer implements ClassFileTransformer {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
 

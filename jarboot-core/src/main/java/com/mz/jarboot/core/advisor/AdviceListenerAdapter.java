@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public abstract class AdviceListenerAdapter implements AdviceListener, JobAware {
     private static final  AtomicLong ID_GENERATOR = new AtomicLong(0);
     private String commandId;

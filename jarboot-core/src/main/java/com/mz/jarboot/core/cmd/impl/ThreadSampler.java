@@ -1,8 +1,8 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.model.ThreadVO;
-import sun.management.HotspotThreadMBean;
-import sun.management.ManagementFactoryHelper;
+import sun.management.HotspotThreadMBean; //NOSONAR
+import sun.management.ManagementFactoryHelper; //NOSONAR
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -14,6 +14,7 @@ import java.util.*;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class ThreadSampler {
 
     private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();

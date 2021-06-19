@@ -23,6 +23,7 @@ import java.util.List;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public abstract class EnhancerCommand extends Command {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     protected static final List<String> EMPTY = Collections.emptyList();

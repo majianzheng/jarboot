@@ -1,8 +1,5 @@
 package com.mz.jarboot.core.advisor;
 
-import com.mz.jarboot.core.constant.CoreConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AdviceWeaver {
     // 通知监听器集合
-    private final static Map<Long/*ADVICE_ID*/, AdviceListener> advices
-            = new ConcurrentHashMap<Long, AdviceListener>();
+    private static final Map<Long/*ADVICE_ID*/, AdviceListener> advices
+            = new ConcurrentHashMap<>();
 
     /**
      * 注册监听器
@@ -73,4 +70,5 @@ public class AdviceWeaver {
         return advices.remove(adviceId);
     }
 
+    private AdviceWeaver() {}
 }

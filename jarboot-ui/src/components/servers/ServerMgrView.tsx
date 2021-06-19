@@ -2,8 +2,8 @@ import * as React from "react";
 import {Spin, Tag} from "antd";
 import ServerMgrService from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
-import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled,
-    PoweroffOutlined, ReloadOutlined} from '@ant-design/icons';
+import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
+    PoweroffOutlined, ReloadOutlined, UploadOutlined} from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
 import {MsgData, WsManager} from "@/common/WsManager";
 import ErrorUtil from '@/common/ErrorUtil';
@@ -11,10 +11,10 @@ import Logger from "@/common/Logger";
 import {MSG_EVENT} from "@/common/EventConst";
 import {formatMsg} from "@/common/IntlFormat";
 import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
-// @ts-ignore
-import CommonTable from "../commonTable/CommonTable";
 import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
 import OneClickButtons from "@/components/servers/OneClickButtons";
+// @ts-ignore
+import CommonTable from "../commonTable/CommonTable";
 
 interface ServerRunning {
     name: string,
@@ -24,8 +24,12 @@ interface ServerRunning {
 
 const pubsub: PublishSubmit = new ServerPubsubImpl();
 
+const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
+const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
+const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
+
 export default class ServerMgrView extends React.PureComponent {
-    state = {loading: false, data: [], selectedRowKeys: [], selectRows: [], current: '', oneClickLoading: false};
+    state = {loading: false, data: new Array<any>(), selectedRowKeys: new Array<any>(), selectRows: new Array<any>(), current: '', oneClickLoading: false};
     allServerOut: any = [];
     height = window.innerHeight - 120;
     componentDidMount() {
@@ -282,28 +286,53 @@ export default class ServerMgrView extends React.PureComponent {
             {
                 name: '启动',
                 key: 'start ',
-                icon: <CaretRightFilled style={{color: 'green', fontSize: '18px'}}/>,
+                icon: <CaretRightFilled style={toolButtonGreenStyle}/>,
                 onClick: this.startServer,
             },
             {
                 name: '停止',
                 key: 'stop',
-                icon: <PoweroffOutlined style={{color: 'red', fontSize: '18px'}}/>,
+                icon: <PoweroffOutlined style={toolButtonRedStyle}/>,
                 onClick: this.stopServer,
             },
             {
                 name: '重启',
                 key: 'reset',
-                icon: <ReloadOutlined style={{color: '#1890ff', fontSize: '18px'}}/>,
+                icon: <ReloadOutlined style={toolButtonStyle}/>,
                 onClick: this.restartServer,
             },
             {
                 name: '刷新',
                 key: 'refresh',
-                icon: <SyncOutlined style={{color: '#1890ff', fontSize: '18px'}}/>,
+                icon: <SyncOutlined style={toolButtonStyle}/>,
                 onClick: this.refreshWebServerList,
+            },
+            // {
+            //     name: '新增/更新服务',
+            //     key: 'upload',
+            //     icon: <UploadOutlined style={toolButtonStyle}/>,
+            //     onClick: this.refreshWebServerList,
+            // },
+            {
+                name: 'Dashboard',
+                key: 'dashboard',
+                icon: <DashboardOutlined style={toolButtonRedStyle}/>,
+                onClick: this.dashboardCmd,
             }
         ]
+    };
+
+    private dashboardCmd = () => {
+        if (this.state.selectRows?.length < 1) {
+            CommonNotice.info('请选择一个服务后操作');
+            return;
+        }
+        const status: any = this.state.selectRows[0]?.status;
+        if (JarBootConst.STATUS_STARTED !== status) {
+            CommonNotice.info('服务未启动');
+            return;
+        }
+        pubsub.publish(this.state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
     private oneClickRestart = () => {

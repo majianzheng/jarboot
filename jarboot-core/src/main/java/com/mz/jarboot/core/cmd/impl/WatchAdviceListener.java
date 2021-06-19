@@ -16,6 +16,7 @@ import java.util.Date;
  * @author majianzheng
  *
  */
+@SuppressWarnings("all")
 class WatchAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();

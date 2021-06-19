@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class DumpClassModel extends ResultModel {
 
     private List<DumpClassVO> dumpedClasses;
@@ -15,6 +16,7 @@ public class DumpClassModel extends ResultModel {
     private String classLoaderClass;
 
     public DumpClassModel() {
+        //
     }
 
     @Override

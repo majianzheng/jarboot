@@ -10,6 +10,7 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class TraceTree {
     private TraceNode root;
 

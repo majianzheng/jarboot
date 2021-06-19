@@ -5,6 +5,7 @@ package com.mz.jarboot.core.cmd.model;
  *
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class RuntimeInfoVO {
     private String osName;
     private String osVersion;

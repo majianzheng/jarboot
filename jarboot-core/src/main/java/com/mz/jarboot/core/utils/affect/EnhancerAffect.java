@@ -17,6 +17,7 @@ import static java.lang.String.format;
  * @author jianzhengma
  * 以下代码来自开源项目Arthas
  */
+@SuppressWarnings("all")
 public final class EnhancerAffect extends Affect {
 
     private final AtomicInteger cCnt = new AtomicInteger();
@@ -34,6 +35,7 @@ public final class EnhancerAffect extends Affect {
     private final List<String> methods = new ArrayList<String>();
 
     public EnhancerAffect() {
+
     }
 
     /**

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final String API = "api/agent/response?server";
-    private static final String url =String.format("http://%s/%s=%s",
+    private static final String RESP_URL =String.format("http://%s/%s=%s",
             EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30L, TimeUnit.SECONDS)
@@ -32,7 +32,7 @@ public class HttpResponseStreamImpl implements ResponseStream {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), data);
         Request.Builder requestBuilder = new Request
                 .Builder()
-                .url(url)
+                .url(RESP_URL)
                 .post(requestBody);
         requestBuilder.addHeader("Cookie", "");
         requestBuilder.addHeader("Accept", "application/json");

@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Create the command instance by the command line
  * @author jianzhengma
  */
+@SuppressWarnings("all")
 public class CommandBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final Map<String, Class<? extends Command>> commandMap = new ConcurrentHashMap<>();

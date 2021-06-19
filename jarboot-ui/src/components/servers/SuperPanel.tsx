@@ -24,7 +24,8 @@ interface SuperPanelProps {
 
 enum PUB_TOPIC {
     CMD_OVER="commandOver",
-    RENDER_JSON = "renderJson"
+    RENDER_JSON = "renderJson",
+    QUICK_EXEC_CMD = "quickExecCmd",
 }
 
 const outHeight = `${window.innerHeight - 150}px`;
@@ -40,7 +41,8 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     useEffect(() => {
         props.pubsub.submit(props.server, PUB_TOPIC.CMD_OVER, onCmdOver);
         props.pubsub.submit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
-    });
+        props.pubsub.submit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+    }, []);
 
     //解析json数据的视图
     const viewResolver: any = {
@@ -54,6 +56,17 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             setView(cmd);
         }
         setData(data);
+    };
+
+    const onExecQuickCmd = (cmd: string) => {
+        if (executing) {
+            return;
+        }
+        if (StringUtil.isEmpty(cmd)) {
+            return;
+        }
+        setCommand(cmd);
+        doExecCommand(cmd);
     };
 
     const onCmdOver = () => {
@@ -79,8 +92,8 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         inputRef?.current?.focus();
     };
 
-    const onExecCommand = () => {
-        if (StringUtil.isEmpty(command)) {
+    const doExecCommand = (cmd: string) => {
+        if (StringUtil.isEmpty(cmd)) {
             return;
         }
         if (StringUtil.isEmpty(props.server)) {
@@ -93,9 +106,13 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             //切换为控制台显示
             setView('');
         }
-        props.pubsub.publish(props.server, 'appendLine', `>${command}`);
-        const msg = {server: props.server, body: command, func: 1};
+        props.pubsub.publish(props.server, 'appendLine', `jarboot$ ${cmd}`);
+        const msg = {server: props.server, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
+    };
+
+    const onExecCommand = () => {
+        doExecCommand(command);
     };
 
     const onCancelCommand = () => {

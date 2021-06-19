@@ -27,42 +27,34 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitServerSetting(String server, ServerSettingDTO setting) {
-        String path = SettingUtils.getServerSettingFilePath(server);
-        File file = new File(path);
-        if (!file.exists()) {
-            try {
-                boolean rlt = file.createNewFile();
-                if (!rlt) {
-                    logger.debug("Config file({}) is already exist.", path);
-                }
-            } catch (IOException e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
         Map<String, String> prop = new HashMap<>();
-        String jar = setting.getJar();
-        if (StringUtils.isNotEmpty(jar)) {
-            String jarPath = SettingUtils.getServerPath(server) + File.separator + jar;
-            File jarFile = new File(jarPath);
-            if (jarFile.exists()) {
-                prop.put("jar", jar);
-            } else {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
-            }
-        }
-        if (null != setting.getJvm()) {
-            prop.put("jvm", setting.getJvm());
-        }
-        if (null != setting.getArgs()) {
-            prop.put("args", setting.getArgs());
-        }
-        if (null != setting.getPriority()) {
+        File file = getConfAndCheck(server, setting.getJar());
+        prop.put("jar", setting.getJar());
+        prop.put("jvm", setting.getJvm());
+        prop.put("args", setting.getArgs());
+        if (null == setting.getPriority()) {
+            prop.put("priority", "");
+        } else {
             prop.put("priority", setting.getPriority().toString());
         }
-        if (null != setting.getDaemon()) {
+        if (StringUtils.isNotEmpty(setting.getWorkHome())) {
+            checkDirExist(setting.getWorkHome());
+        }
+        prop.put("workHome", setting.getWorkHome());
+        if (PropertyFileUtils.checkEnvp(setting.getEnvp())) {
+            prop.put("envp", setting.getEnvp());
+        } else {
+            throw new MzException(ResultCodeConst.VALIDATE_FAILED,
+                    String.format("环境变量配置错误(%s)！", setting.getEnvp()));
+        }
+        if (null == setting.getDaemon()) {
+            prop.put("daemon", "true");
+        } else {
             prop.put("daemon", setting.getDaemon().toString());
         }
-        if (null != setting.getJarUpdateWatch()) {
+        if (null == setting.getJarUpdateWatch()) {
+            prop.put("jarUpdateWatch", "true");
+        } else {
             prop.put("jarUpdateWatch", setting.getJarUpdateWatch().toString());
         }
         PropertyFileUtils.writeProperty(file, prop);
@@ -80,6 +72,37 @@ public class SettingServiceImpl implements SettingService {
                     String.format("最小启动时间(%d)应不小于3000！", setting.getMaxStartTime()));
         }
         SettingUtils.updateGlobalSetting(setting);
+    }
+
+    private File getConfAndCheck(String server, String jar) {
+        String path = SettingUtils.getServerSettingFilePath(server);
+        File file = new File(path);
+        if (!file.exists()) {
+            try {
+                boolean rlt = file.createNewFile();
+                if (!rlt) {
+                    logger.debug("Config file({}) is already exist.", path);
+                }
+            } catch (IOException e) {
+                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            }
+        }
+        if (StringUtils.isNotEmpty(jar)) {
+            String jarPath = SettingUtils.getServerPath(server) + File.separator + jar;
+            File jarFile = new File(jarPath);
+            if (!jarFile.exists() || !jarFile.isFile()) {
+                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
+            }
+        }
+        return file;
+    }
+
+    private void checkDirExist(String path) {
+        File dir = new File(path);
+        if (dir.exists() && dir.isDirectory()) {
+            return;
+        }
+        throw new MzException(ResultCodeConst.NOT_EXIST, path + "不存在");
     }
 
 }

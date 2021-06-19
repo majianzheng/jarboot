@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import javax.net.ServerSocketFactory;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
@@ -44,6 +45,26 @@ public class NetworkUtils {
             //ignore
         }
         return false;
+    }
+
+    public static List<String> getLocalAddr() {
+        List<String> localAddr = new ArrayList<>();
+        Enumeration<NetworkInterface> ifs;
+        try {
+            ifs = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+        while (ifs.hasMoreElements()) {
+            Enumeration<InetAddress> address = ifs.nextElement().getInetAddresses();
+            while (address.hasMoreElements()) {
+                InetAddress addr = address.nextElement();
+                if (!addr.isLoopbackAddress()) {
+                    localAddr.add(addr.getHostAddress());
+                }
+            }
+        }
+        return localAddr;
     }
 
     /**

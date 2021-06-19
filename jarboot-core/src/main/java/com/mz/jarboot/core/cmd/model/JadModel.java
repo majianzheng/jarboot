@@ -6,6 +6,7 @@ import java.util.NavigableMap;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class JadModel extends ResultModel {
     private ClassVO classInfo;
     private String location;

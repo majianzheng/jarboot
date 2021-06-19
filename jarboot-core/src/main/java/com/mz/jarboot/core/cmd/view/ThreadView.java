@@ -15,6 +15,7 @@ import java.util.Map;
  *
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class ThreadView implements ResultView<ThreadModel> {
 
     @Override

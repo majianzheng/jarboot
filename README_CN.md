@@ -9,7 +9,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 ![GitHub issues](https://img.shields.io/github/issues-raw/majianzheng/jarboot)
 
-<code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及调试一系列的Java进程。
+<code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 
 在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
 
@@ -18,7 +18,7 @@ English version goes [here](README.md).
 ![dashboard](doc/overview.png)
 
 ## 技术背景及目标
-<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。但它的功能定位与<code>Arthas</code>不同，<code>Jarboot</code> 更偏向于面向开发、测试、每日构建等。
+<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。
 
 - 🌈   浏览器界面管理，一键启、停服务进程，不必挨个手动执行
 - 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
@@ -78,7 +78,7 @@ jarboot                             #当前工作目录
 ### bytes
 查看类的字节码，用法：
 ```bash
-$ bytes com.mz.jarboot.demo.DemoServerApplication
+jarboot$ bytes com.mz.jarboot.demo.DemoServerApplication
 ClassLoader: org.springframework.boot.loader.LaunchedURLClassLoader@31221be2
 ------
 getUser
@@ -103,7 +103,7 @@ L8
 反编译
 
 ```bash
-$ jad [-c] java.lang.String
+jarboot$ jad [-c] java.lang.String
 ````
 ![dashboard](doc/jad.png)
 
@@ -111,13 +111,13 @@ $ jad [-c] java.lang.String
 查看进程JVM属性信息
 
 ```bash
-$ jvm
+jarboot$ jvm
 ````
   
 ### trace
 方法执行监控 
 ```bash
-$ trace com.mz.jarboot.demo.DemoServerApplication add 
+jarboot$ trace com.mz.jarboot.demo.DemoServerApplication add 
 Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
 `---ts=2021-06-15 23:34:20;thread_name=http-nio-9900-exec-3;id=13;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@4690b489
     `---[0.053485ms] com.mz.jarboot.demo.DemoServerApplication:add()
@@ -129,7 +129,7 @@ Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
 观察方法 `com.mz.jarboot.demo.DemoServerApplicatio#add` 执行的入参，仅当方法抛出异常时才输出。
 
 ```bash
-$ watch com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+jarboot$ watch com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
 Press Ctrl+C to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
@@ -142,30 +142,22 @@ ts=2018-09-18 10:26:28;result=@ArrayList[
 查看当前线程信息，查看线程的堆栈
 
 ```bash
-$ thread -n 3
-"as-command-execute-daemon" Id=29 cpuUsage=75% RUNNABLE
+jarboot$ thread -n 3
+"nioEventLoopGroup-2-1" Id=31 cpuUsage=0.37% deltaTime=0ms time=880ms RUNNABLE
     at sun.management.ThreadImpl.dumpThreads0(Native Method)
-    at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:440)
-    at com.mz.jarboot.core.cmd.impl.ThreadCommand$1.action(ThreadCommand.java:58)
-    at com.mz.jarboot.core.cmd.impl.handler.AbstractCommandHandler.execute(AbstractCommandHandler.java:238)
-    at com.mz.jarboot.core.cmd.impl.handler.DefaultCommandHandler.handleCommand(DefaultCommandHandler.java:67)
-    at com.mz.jarboot.core.server.JarbootBootstrap$4.run(ArthasServer.java:276)
-    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
-    at java.lang.Thread.run(Thread.java:745)
+    at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:448)
+    at com.mz.jarboot.core.cmd.impl.ThreadCommand.processTopBusyThreads(ThreadCommand.java:209)
+    at com.mz.jarboot.core.cmd.impl.ThreadCommand.run(ThreadCommand.java:120)
+    at com.mz.jarboot.core.basic.EnvironmentContext.runCommand(EnvironmentContext.java:162)
+    at com.mz.jarboot.core.cmd.CommandDispatcher.execute(CommandDispatcher.java:35)
+    at com.mz.jarboot.core.server.JarbootBootstrap$1.onText(JarbootBootstrap.java:94)
+    at com.mz.jarboot.core.ws.WebSocketClientHandler.channelRead0(WebSocketClientHandler.java:83)
+    at io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:99)
 
-    Number of locked synchronizers = 1
-    - java.util.concurrent.ThreadPoolExecutor$Worker@6cd0b6f8
+"C2 CompilerThread1" [Internal] cpuUsage=3.14% deltaTime=6ms time=4599ms
 
-"as-session-expire-daemon" Id=25 cpuUsage=24% TIMED_WAITING
-    at java.lang.Thread.sleep(Native Method)
-    at com.mz.jarboot.core.server.CommandSessionImpl$2.run(DefaultSessionManager.java:85)
 
-"Reference Handler" Id=2 cpuUsage=0% WAITING on java.lang.ref.Reference$Lock@69ba0f27
-    at java.lang.Object.wait(Native Method)
-    -  waiting on java.lang.ref.Reference$Lock@69ba0f27
-    at java.lang.Object.wait(Object.java:503)
-    at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+"C2 CompilerThread0" [Internal] cpuUsage=2.28% deltaTime=4ms time=4692ms
 ```
 
 ### sysprop
@@ -173,9 +165,9 @@ $ thread -n 3
 
 ```bash
 #获取全部
-$ sysprop
+jarboot$ sysprop
 #获取指定的属性
-$ sysprop user.home
+jarboot$ sysprop user.home
 ```
   
 ### 更多强大的指令在持续开发中...

@@ -22,6 +22,7 @@ import java.util.*;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 @Name("dashboard")
 @Summary("Overview of target jvm's thread, memory, gc, vm, tomcat info.")
 @Description(CoreConstant.EXAMPLE +

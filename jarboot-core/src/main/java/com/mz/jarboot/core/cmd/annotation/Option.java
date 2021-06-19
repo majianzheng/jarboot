@@ -4,6 +4,7 @@ package com.mz.jarboot.core.cmd.annotation;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 public @interface Option {

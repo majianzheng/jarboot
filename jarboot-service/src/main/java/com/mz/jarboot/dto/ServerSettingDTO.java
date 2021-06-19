@@ -30,6 +30,14 @@ public class ServerSettingDTO implements Serializable {
      */
     private String args;
     /**
+     * Java进程的工作目录
+     */
+    private String workHome;
+    /**
+     * 环境变量
+     */
+    private String envp;
+    /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
      */
     private Boolean daemon;
@@ -95,6 +103,22 @@ public class ServerSettingDTO implements Serializable {
 
     public void setArgs(String args) {
         this.args = args;
+    }
+
+    public String getWorkHome() {
+        return workHome;
+    }
+
+    public void setWorkHome(String workHome) {
+        this.workHome = workHome;
+    }
+
+    public String getEnvp() {
+        return envp;
+    }
+
+    public void setEnvp(String envp) {
+        this.envp = envp;
     }
 
     public Boolean getDaemon() {

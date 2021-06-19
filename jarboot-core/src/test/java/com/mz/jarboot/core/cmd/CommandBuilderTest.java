@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("all")
 public class CommandBuilderTest {
     @BeforeClass
     public static void init() {

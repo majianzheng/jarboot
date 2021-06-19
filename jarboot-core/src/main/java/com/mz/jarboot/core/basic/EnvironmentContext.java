@@ -15,7 +15,6 @@ import java.lang.instrument.Instrumentation;
 import java.net.URISyntaxException;
 import java.security.CodeSource;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The jarboot running environment context.
@@ -29,10 +28,8 @@ public class EnvironmentContext {
     private static Instrumentation instrumentation;
     private static ConcurrentMap<String, CommandSession> sessionMap = new ConcurrentHashMap<>();
     private static ConcurrentMap<String, Command> runningCommandMap = new ConcurrentHashMap<>();
-    private static ExecutorService executorService;
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
-    private static AtomicLong threadCount = new AtomicLong();
     private static ResultViewResolver resultViewResolver;
     private EnvironmentContext() {}
 
@@ -43,21 +40,10 @@ public class EnvironmentContext {
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
         EnvironmentContext.resultViewResolver = new ResultViewResolver();
-        executorService = new ThreadPoolExecutor(1, 4, 30,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(64),
-                r -> {
-            Thread t = new Thread(r, "jarboot-thread-" + threadCount.incrementAndGet());
+        scheduledExecutorService = Executors.newScheduledThreadPool(1, r -> {
+            final Thread t = new Thread(r, "jarboot-sh-cmd");
             t.setDaemon(true);
             return t;
-        });
-        scheduledExecutorService = Executors.newScheduledThreadPool(1, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                final Thread t = new Thread(r, "jarboot-sh-cmd");
-                t.setDaemon(true);
-                return t;
-            }
         });
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
@@ -89,10 +75,6 @@ public class EnvironmentContext {
 
     public static String getHost() {
         return host;
-    }
-
-    public static ExecutorService getExecutorService() {
-        return executorService;
     }
 
     public static ScheduledExecutorService getScheduledExecutorService() {

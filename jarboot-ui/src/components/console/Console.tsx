@@ -38,14 +38,7 @@ const Console = (props: ConsoleProps) => {
         if (StringUtil.isNotEmpty(props.content)) {
             _resetContent(props.content);
         }
-        return () => {
-            pubsub?.unSubmit(server, 'appendLine', appendLine);
-            pubsub?.unSubmit(server, 'insertLineToHeader', insertLineToHeader);
-            pubsub?.unSubmit(server, 'startLoading', startLoading);
-            pubsub?.unSubmit(server, 'finishLoading', finishLoading);
-            pubsub?.unSubmit(server, 'clear', clear);
-        };
-    }, ['server', 'visible']);
+    }, []);
 
     const init = () => {
         if (null !== codeDom) {

@@ -23,6 +23,7 @@ import java.util.*;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 @Name("thread")
 @Summary("Display thread info, thread stack")
 @Description(CoreConstant.EXAMPLE +

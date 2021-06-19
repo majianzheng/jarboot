@@ -13,13 +13,14 @@ import org.slf4j.LoggerFactory;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     protected final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     protected TraceCommandImpl command;
     protected CommandSession process;
 
-    protected final ThreadLocal<TraceEntity> threadBoundEntity = new ThreadLocal<TraceEntity>();
+    protected final ThreadLocal<TraceEntity> threadBoundEntity = new ThreadLocal<>();
 
     /**
      * Constructor

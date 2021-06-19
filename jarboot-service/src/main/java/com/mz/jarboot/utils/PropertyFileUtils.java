@@ -36,6 +36,26 @@ public class PropertyFileUtils {
         return properties;
     }
 
+    private static boolean checkFileExist(String file) {
+        File f = new File(file);
+        return (f.exists() && f.isFile());
+    }
+
+    public static boolean checkEnvp(String envp) {
+        if (StringUtils.isEmpty(envp)) {
+            return true;
+        }
+        String[] envs = envp.split(",");
+        for (String en : envs) {
+            //只能包含一个等号，且等号不能在边界
+            if (en.length() < 3 && 1 != StringUtils.countMatches(en, '=') &&
+                    '=' != en.charAt(0) && '=' != en.charAt(en.length() - 1)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static ServerSettingDTO getServerSetting(String server) {
         ServerSettingDTO setting = new ServerSettingDTO(server);
         String path = SettingUtils.getServerSettingFilePath(server);
@@ -44,19 +64,38 @@ public class PropertyFileUtils {
             return setting;
         }
         String jar = properties.getProperty("jar", "");
-        setting.setJar(jar);
+        if (checkFileExist(jar)) {
+            setting.setJar(jar);
+        } else {
+            logger.warn("配置的启动jar文件({})不存在", jar);
+        }
 
         String jvm = properties.getProperty("jvm", "");
         setting.setJvm(jvm);
         String args = properties.getProperty("args", "");
         setting.setArgs(args);
+        //工作目录
+        String workHome = properties.getProperty("workHome", "");
+        File dir = new File(workHome);
+        if (dir.isDirectory() && dir.exists()) {
+            setting.setWorkHome(workHome);
+        }
+
+        //环境变量
+        String envp = properties.getProperty("envp", "");
+        if (checkEnvp(envp)) {
+            setting.setEnvp(envp);
+        }
+
         int priority = NumberUtils.toInt(properties.getProperty("priority", "1"), 1);
         setting.setPriority(priority);
+
         String s = properties.getProperty("daemon", "true");
         if (StringUtils.equalsIgnoreCase("false", s)) {
             //初始默认true
             setting.setDaemon(false);
         }
+
         s = properties.getProperty("jarUpdateWatch", "true");
         if (StringUtils.equalsIgnoreCase("false", s)) {
             //初始默认true

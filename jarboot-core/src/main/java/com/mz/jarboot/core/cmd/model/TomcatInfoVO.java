@@ -7,6 +7,7 @@ import java.util.List;
  *
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class TomcatInfoVO {
 
     private List<ConnectorStats> connectorStats;

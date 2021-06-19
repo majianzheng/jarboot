@@ -12,6 +12,10 @@
 
     <artifactId>jarboot-spy</artifactId>
 
+    <properties>
+        <sonar.skip>true</sonar.skip>
+    </properties>
+
     <build>
         <finalName>jarboot-spy</finalName>
         <plugins>

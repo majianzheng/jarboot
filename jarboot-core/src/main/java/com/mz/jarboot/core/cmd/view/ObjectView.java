@@ -21,6 +21,7 @@ import static java.lang.String.format;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class ObjectView implements View {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final static int MAX_OBJECT_LENGTH = 10 * 1024 * 1024; // 10M

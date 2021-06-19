@@ -21,7 +21,7 @@ public class ClassLoaderVO {
 
     public void addChild(ClassLoaderVO child){
         if (this.children == null){
-            this.children = new ArrayList<ClassLoaderVO>();
+            this.children = new ArrayList<>();
         }
         this.children.add(child);
     }

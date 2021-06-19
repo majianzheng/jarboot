@@ -8,6 +8,7 @@ import org.junit.rules.ExpectedException;
 /**
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class ArrayUtilsTest {
 
     @Rule

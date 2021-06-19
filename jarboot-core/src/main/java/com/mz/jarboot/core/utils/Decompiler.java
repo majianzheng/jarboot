@@ -13,6 +13,7 @@ import java.util.Map.Entry;
  * @author majianzheng
  *
  */
+@SuppressWarnings("all")
 public class Decompiler {
 
     public static String decompile(String classFilePath, String methodName) {

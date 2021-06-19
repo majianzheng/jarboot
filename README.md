@@ -18,7 +18,7 @@ In the test environment and daily built integrated environment, a series of jar 
 ![dashboard](doc/overview.png)
 
 ## Background and objectives
-<code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc. But its functional orientation is different from that of <code>Arthas</code>. <code>Jarboot</code> is more oriented to development, testing, daily building, etc.
+<code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
 
 - 🌈   Browser interface management, one click start, stop, do not have to manually execute one by one.
 - 🔥   Support start and stop priority configuration<sup id="a2">[[1]](#f1)</sup>, and default parallel start.
@@ -79,7 +79,7 @@ Back end service startup specifies a root path to manage other startup jar files
 View the class bytes，Usage：
 
 ```bash
-$ bytes com.mz.jarboot.demo.DemoServerApplication
+jarboot$ bytes com.mz.jarboot.demo.DemoServerApplication
 ClassLoader: org.springframework.boot.loader.LaunchedURLClassLoader@31221be2
 ------
 getUser
@@ -104,7 +104,7 @@ This is the real time statistics dashboard for the current system，click x canc
 Decompile the specified classes.
 
 ```bash
-$ jad [-c] java.lang.String
+jarboot$ jad [-c] java.lang.String
 ````
 ![dashboard](doc/jad.png)
 
@@ -112,14 +112,14 @@ $ jad [-c] java.lang.String
 Check the current JVM’s info
 
 ```bash
-$ jvm
+jarboot$ jvm
 ````
   
 ### trace
 method calling path, and output the time cost for each node in the path.
 
 ```bash
-$ trace com.mz.jarboot.demo.DemoServerApplication add 
+jarboot$ trace com.mz.jarboot.demo.DemoServerApplication add 
 Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
 `---ts=2021-06-15 23:34:20;thread_name=http-nio-9900-exec-3;id=13;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@4690b489
     `---[0.053485ms] com.mz.jarboot.demo.DemoServerApplication:add()
@@ -131,7 +131,7 @@ methods in data aspect including return values, exceptions and parameters
 Watch the first parameter and thrown exception of `com.mz.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
 
 ```bash
-$ watch `com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+jarboot$ watch `com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
 Press x to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
@@ -144,39 +144,31 @@ ts=2018-09-18 10:26:28;result=@ArrayList[
 Check the basic info and stack trace of the target thread.
 
 ```bash
-$ thread -n 3
-"as-command-execute-daemon" Id=29 cpuUsage=75% RUNNABLE
+jarboot$ thread -n 3
+"nioEventLoopGroup-2-1" Id=31 cpuUsage=0.37% deltaTime=0ms time=880ms RUNNABLE
     at sun.management.ThreadImpl.dumpThreads0(Native Method)
-    at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:440)
-    at com.mz.jarboot.core.cmd.impl.ThreadCommand$1.action(ThreadCommand.java:58)
-    at com.mz.jarboot.core.cmd.impl.handler.AbstractCommandHandler.execute(AbstractCommandHandler.java:238)
-    at com.mz.jarboot.core.cmd.impl.handler.DefaultCommandHandler.handleCommand(DefaultCommandHandler.java:67)
-    at com.mz.jarboot.core.server.JarbootBootstrap$4.run(ArthasServer.java:276)
-    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
-    at java.lang.Thread.run(Thread.java:745)
+    at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:448)
+    at com.mz.jarboot.core.cmd.impl.ThreadCommand.processTopBusyThreads(ThreadCommand.java:209)
+    at com.mz.jarboot.core.cmd.impl.ThreadCommand.run(ThreadCommand.java:120)
+    at com.mz.jarboot.core.basic.EnvironmentContext.runCommand(EnvironmentContext.java:162)
+    at com.mz.jarboot.core.cmd.CommandDispatcher.execute(CommandDispatcher.java:35)
+    at com.mz.jarboot.core.server.JarbootBootstrap$1.onText(JarbootBootstrap.java:94)
+    at com.mz.jarboot.core.ws.WebSocketClientHandler.channelRead0(WebSocketClientHandler.java:83)
+    at io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:99)
 
-    Number of locked synchronizers = 1
-    - java.util.concurrent.ThreadPoolExecutor$Worker@6cd0b6f8
+"C2 CompilerThread1" [Internal] cpuUsage=3.14% deltaTime=6ms time=4599ms
 
-"as-session-expire-daemon" Id=25 cpuUsage=24% TIMED_WAITING
-    at java.lang.Thread.sleep(Native Method)
-    at com.mz.jarboot.core.server.CommandSessionImpl$2.run(DefaultSessionManager.java:85)
 
-"Reference Handler" Id=2 cpuUsage=0% WAITING on java.lang.ref.Reference$Lock@69ba0f27
-    at java.lang.Object.wait(Native Method)
-    -  waiting on java.lang.ref.Reference$Lock@69ba0f27
-    at java.lang.Object.wait(Object.java:503)
-    at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+"C2 CompilerThread0" [Internal] cpuUsage=2.28% deltaTime=4ms time=4692ms
 ```
 ### sysprop
 Examine the system properties from the target JVM
 
 ```bash
 #Get all.
-$ sysprop
+jarboot$ sysprop
 #Get one property.
-$ sysprop user.home
+jarboot$ sysprop user.home
 ```
   
 ### More powerful command in continuous development...

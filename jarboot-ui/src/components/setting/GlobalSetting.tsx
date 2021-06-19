@@ -1,8 +1,8 @@
 import {Form, Input, Button, InputNumber} from 'antd';
 import React, {memo, useEffect} from "react";
-import SettingService from "../../services/SettingService";
+import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "../../common/ErrorUtil";
+import ErrorUtil from "@/common/ErrorUtil";
 import { useIntl } from 'umi';
 
 const layout = {
@@ -47,11 +47,6 @@ const GlobalSetting: any = memo(() => {
                        rules={[{required: false}]}>
                 <InputNumber min={3000} max={60000} defaultValue={30000} autoComplete="off"/>
             </Form.Item>
-            {/*<Form.Item name="arthasHome"*/}
-            {/*           label={"Arthas home"}*/}
-            {/*           rules={[{required: false}]}>*/}
-            {/*    <Input placeholder={"Arthas installed home path"} autoComplete="off"/>*/}
-            {/*</Form.Item>*/}
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>
                     {intl.formatMessage({id: 'SUBMIT_BTN'})}

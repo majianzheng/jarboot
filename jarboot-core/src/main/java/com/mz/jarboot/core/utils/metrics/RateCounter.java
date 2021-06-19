@@ -81,7 +81,8 @@ public class RateCounter {
      * @return a value select randomly from the range {@code [0..n)}.
      */
     private static long nextLong(long n) {
-        long bits, val;
+        long bits;
+        long val;
         do {
             bits = ThreadLocalRandom.current().nextLong() & (~(1L << BITS_PER_LONG));
             val = bits % n;

@@ -2,6 +2,7 @@ package com.mz.jarboot.core.cmd.model;
 
 import com.mz.jarboot.core.constant.CoreConstant;
 
+@SuppressWarnings("all")
 public abstract class ResultModel {
     /**
      * 页面id

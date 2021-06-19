@@ -10,6 +10,7 @@ import java.util.zip.ZipFile;
  * @author majianzheng
  * 以下代码，有一部分摘自开源项目Arthas
  */
+@SuppressWarnings("all")
 public class IOUtils {
 
     private IOUtils() {

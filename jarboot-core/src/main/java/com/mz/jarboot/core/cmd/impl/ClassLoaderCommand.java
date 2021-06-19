@@ -25,7 +25,7 @@ import java.util.Map.Entry;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
-
+@SuppressWarnings("all")
 @Name("classloader")
 @Summary("Show classloader info")
 @Description(CoreConstant.EXAMPLE +

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class OgnlExpress implements Express {
     private static final MemberAccess MEMBER_ACCESS = new DefaultMemberAccess(true);
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

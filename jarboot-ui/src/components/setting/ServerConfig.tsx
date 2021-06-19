@@ -1,8 +1,8 @@
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
 import {memo, useEffect} from "react";
-import SettingService from "../../services/SettingService";
+import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "../../common/ErrorUtil";
+import ErrorUtil from "@/common/ErrorUtil";
 import { useIntl } from 'umi';
 import StringUtil from "@/common/StringUtil";
 
@@ -55,6 +55,16 @@ const ServerConfig: any = memo((props: any) => {
                        label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
                        rules={[{required: false}]}>
                 <Input autoComplete="off"/>
+            </Form.Item>
+            <Form.Item name="workHome"
+                       label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
+                       rules={[{required: false}]}>
+                <Input autoComplete="off"/>
+            </Form.Item>
+            <Form.Item name="envp"
+                       label={intl.formatMessage({id: 'ENV_LABEL'})}
+                       rules={[{required: false}]}>
+                <Input placeholder={"env1=val1,env2=val2"} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="priority"
                        label={intl.formatMessage({id: 'PRIORITY_LABEL'})}

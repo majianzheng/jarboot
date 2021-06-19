@@ -23,15 +23,19 @@ export default {
     STARTING: '启动中',
     STOPPING: '停止中',
 
-    //提交、重置
+    //通用
     SUBMIT_BTN: '提交',
     RESET_BTN: '重置',
+    REFRESH_BTN: '刷新',
+    SERVER_EMPTY: '服务目录下未发现任何jar启动文件，请添加后刷新。',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
     JAR_LABEL: '启动的jar文件',
     JVM_OPT_LABEL: 'JVM参数',
     MAIN_ARGS_LABEL: 'Main入口参数',
+    WORK_HOME_LABEL: '工作目录',
+    ENV_LABEL: '环境变量',
     PRIORITY_LABEL: '启动优先级',
     DAEMON_LABEL: '进程守护',
     JAR_UPDATE_WATCH_LABEL: '文件路径监控',

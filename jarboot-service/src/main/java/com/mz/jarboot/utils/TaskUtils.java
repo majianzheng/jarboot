@@ -73,7 +73,8 @@ public class TaskUtils {
         if (StringUtils.isNotEmpty(startArg)) {
             cmd = String.format("%s %s", cmd, startArg);
         }
-        startTask(cmd, text -> WebSocketManager.getInstance().sendConsole(server, text));
+        startTask(cmd, setting.getEnvp(), setting.getWorkHome(),
+                text -> WebSocketManager.getInstance().sendConsole(server, text));
     }
 
     /**
@@ -194,10 +195,20 @@ public class TaskUtils {
         pidList.add(Integer.parseInt(builder.toString()));
     }
 
-    public static void startTask(String command, PushMsgCallback callback) {
+    public static void startTask(String command, String envp, String workHome, PushMsgCallback callback) {
         Process process;
+        String[] en;
+        if (StringUtils.isEmpty(envp)) {
+            en = null;
+        } else {
+            en = envp.split(",");
+        }
+        File dir = null;
+        if (StringUtils.isNotEmpty(workHome)) {
+            dir = new File(workHome);
+        }
         try {
-            process = Runtime.getRuntime().exec(command);
+            process = Runtime.getRuntime().exec(command, en, dir);
         } catch (IOException e) {
             return;
         }

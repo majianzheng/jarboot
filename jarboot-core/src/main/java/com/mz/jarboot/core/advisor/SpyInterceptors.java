@@ -9,6 +9,7 @@ import java.jarboot.SpyAPI;
  * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
+@SuppressWarnings("all")
 public class SpyInterceptors {
 
     public static class SpyInterceptor1 {
