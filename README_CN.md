@@ -7,7 +7,8 @@
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
 [![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
-![GitHub issues](https://img.shields.io/github/issues-raw/majianzheng/jarboot)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
 
 <code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 

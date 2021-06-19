@@ -43,9 +43,9 @@ public class AgentManager {
             return;
         }
         WebSocketManager.getInstance().sendConsole(server, "服务" + server + "下线！");
-        logger.info("目标进程已退出，唤醒killServer方法的执行线程");
         synchronized (client) {// NOSONAR
             if (ClientState.EXITING.equals(client.getState())) {
+                logger.info("目标进程已退出，唤醒killServer方法的执行线程");
                 //发送了退出执行，唤醒killClient线程
                 client.notify(); //NOSONAR
                 clientMap.remove(server);
@@ -86,12 +86,13 @@ public class AgentManager {
                 //ignore
                 Thread.currentThread().interrupt();
             }
-            logger.info("等待目标进程退出完成,耗时:{} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             if (clientMap.containsKey(server)) {
-                logger.warn("未能成功退出！{}", server);
+                logger.warn("未能成功退出！{}, 耗时:{}", server, costTime);
                 //失败
                 return false;
             } else {
+                logger.debug("等待目标进程退出完成,耗时:{} ms", costTime);
                 client.setState(ClientState.OFFLINE);
                 WebSocketManager.getInstance().sendConsole(server, "进程优雅退出成功！");
             }
@@ -105,7 +106,7 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令");
+            WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令", sessionId);
             WebSocketManager.getInstance().commandEnd(server, sessionId);
         } else {
             client.sendCommand(command, sessionId);
