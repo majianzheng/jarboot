@@ -4,9 +4,11 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -20,7 +22,20 @@ import java.util.*;
  * @author majianzheng
  */
 public class TaskUtils {
+    private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
+    private static long getStartWaitTime() {
+        if (-1 == startWaitTime) {
+            synchronized (TaskUtils.class) {
+                String val = ApplicationContextUtils.getEnv("jarboot.start-wait-time", "5000");
+                startWaitTime = NumberUtils.toLong(val, 5000);
+                if (startWaitTime < 1500 || startWaitTime > 30000) {
+                    startWaitTime = 5000;
+                }
+            }
+        }
+        return startWaitTime;
+    }
     /**
      * 检查服务进程是否存活
      * @param server 服务名
@@ -212,6 +227,7 @@ public class TaskUtils {
         } catch (IOException e) {
             return;
         }
+        final long waitTime = getStartWaitTime();
         try (InputStream inputStream = process.getInputStream()){
             long timestamp = System.currentTimeMillis();
             byte[] buffer = new byte[2048];
@@ -220,7 +236,7 @@ public class TaskUtils {
                 if (0 == inputStream.available()) {
                     long interval = Math.abs(System.currentTimeMillis() - timestamp);
                     //超过一定时间进程没有输出信息时，认为启动完成
-                    if (interval > 6000) {
+                    if (interval > waitTime) {
                         break;
                     }
                     Thread.sleep(200);//NOSONAR

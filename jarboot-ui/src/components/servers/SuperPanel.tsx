@@ -10,6 +10,7 @@ import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
 import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
+import ClassLoaderView from "@/components/servers/view/ClassLoaderView";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -48,6 +49,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const viewResolver: any = {
         'dashboard': <DashboardView data={data}/>,
         'jad': <JadView data={data}/>,
+        'classloader': <ClassLoaderView data={data}/>,
     };
 
     const renderView = (data: any) => {

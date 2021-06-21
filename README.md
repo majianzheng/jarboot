@@ -95,7 +95,20 @@ IADD
 IRETURN
 L8
 ```
-  
+
+### stdout
+Turn on or off real-time display of standard output stream (initially off), it will be displayed on the front-end UI of the web in real time.
+The output stream includes <code>System.out.println</code>, <code>System.err.println</code> and log printing information such as <code>logger.info("hello")</code> in the code.
+
+Note: when your program log output is too frequent, it will consume performance to turn on the display. It is recommended to turn it on only when necessary and turn it off after use.
+```bash
+#Turn on real time display of standard output stream
+jarboot$ stdout on
+
+#Turn off real time display of standard output stream
+jarboot$ stdout off
+```
+
 ### dashboard
 This is the real time statistics dashboard for the current system，click x cancel.
 
@@ -175,13 +188,13 @@ jarboot$ sysprop user.home
 ### More powerful command in continuous development...
 
 ---
-### Credit
-#### Projects
+## Credit
+### Projects
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) Some command is developed on the source of <code>Arthas</code>.
 
-### 仓库镜像
+## 仓库镜像
 
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 

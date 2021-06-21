@@ -94,6 +94,19 @@ IADD
 IRETURN
 L8
 ```
+
+### stdout
+开启或关闭标准输出流的实时显示（初始为关闭），将会在Web的前端ui界面上实时显示，输出流包括代码中的<code>System.out.println</code>、<code>System.err.println</code>
+以及日志打印信息如<code>logger.info("hello")</code>。
+
+注意：当你的程序日志输出太频繁时，开启显示会比较消耗性能，建议仅在需要时打开，用完后关闭。
+```bash
+#开启标准输出流实时显示
+jarboot$ stdout on
+
+#关闭标准输出流实时显示
+jarboot$ stdout off
+```
   
 ### dashboard
 当前系统的实时数据面板，点击按钮取消

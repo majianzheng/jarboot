@@ -3,6 +3,7 @@ package com.mz.jarboot.core.cmd.view;
 import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
+import com.mz.jarboot.core.utils.HtmlNodeUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import java.util.ArrayList;
@@ -122,11 +123,11 @@ public class ViewRenderUtil {
 
             String daemonLabel = Boolean.toString(thread.isDaemon());
             if (!thread.isDaemon()) {
-                daemonLabel = format("<span style=\"color:magenta\">%s</span>", daemonLabel);
+                daemonLabel = HtmlNodeUtils.magenta(daemonLabel);
             }
             String stateElement = "-";
             if (thread.getState() != null) {
-                stateElement = format("<span style=\"color:%s\">%s</span>", color, thread.getState());
+                stateElement = HtmlNodeUtils.createSpan(thread.getState().toString(), color);
             }
             row.add(String.valueOf(thread.getId()));
             row.add(thread.getName());

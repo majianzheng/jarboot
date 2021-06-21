@@ -15,7 +15,6 @@ public class CommandDispatcher {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
 
     public void execute(String raw) {
-        logger.debug("收到消息：{}", raw);
         CommandRequest request = new CommandRequest();
         try {
             request.fromRaw(raw);

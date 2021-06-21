@@ -18,6 +18,7 @@ import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,12 @@ import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final String MODIFY_TIME_STORE_FILE = "file-record.temp";
     @Autowired
     private ApplicationContext ctx; //应用上下文
     @Autowired
@@ -70,15 +73,22 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                     //取出后
                     Set<String> services = new HashSet<>();
                     services.add(server);
+                    //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
                     while (null != (server = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
                         services.add(server);
                     }
-                    //防抖去重，总是延迟5秒钟，变化多次计一次
-                    List<String> list = new ArrayList<>(services);
-                    TaskEvent event = new TaskEvent();
-                    event.setEventType(TaskEventEnum.RESTART);
-                    event.setServices(list);
-                    ctx.publishEvent(event);
+                    //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
+                    List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(list)) {
+                        TaskEvent event = new TaskEvent();
+                        event.setEventType(TaskEventEnum.RESTART);
+                        event.setServices(list);
+                        logger.debug("服务文件变动，启动重启！{}", list);
+                        final String msg = "文件更新，开始重启...";
+                        list.forEach(s -> WebSocketManager.getInstance().sendConsole(s, s + msg));
+                        WebSocketManager.getInstance().notice(list + msg, NoticeEnum.INFO);
+                        ctx.publishEvent(event);
+                    }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -113,6 +123,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     private void initPathMonitor() {
+        //先遍历所有jar文件，将文件的最后修改时间记录下来
+        storeCurFileModifyTime();
+        //启动路径监控
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             //初始化路径监控
             String servicesPath = SettingUtils.getServicesPath();
@@ -129,6 +142,37 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             logger.error(ex.getMessage(), ex);
             Thread.currentThread().interrupt();
         }
+    }
+
+    private void storeCurFileModifyTime() {
+        File[] serverDirs = taskRunCache.getServerDirs();
+        for (File serverDir : serverDirs) {
+            Collection<File> files = FileUtils.listFiles(serverDir, new String[]{"jar"}, true);
+            if (CollectionUtils.isNotEmpty(files)) {
+                File recordFile = getRecordFile(serverDir);
+                if (null != recordFile) {
+                    Properties properties = new Properties();
+                    files.forEach(jarFile -> properties.put(genFileHashKey(jarFile),
+                            String.valueOf(jarFile.lastModified())));
+                    PropertyFileUtils.storeProperties(recordFile, properties);
+                }
+            }
+        }
+    }
+
+    private File getRecordFile(File serverDir) {
+        File recordFile = new File(serverDir, MODIFY_TIME_STORE_FILE);
+        if (!recordFile.exists()) {
+            try {
+                if (!recordFile.createNewFile()) {
+                    logger.warn("createNewFile({}) failed.", recordFile.getPath());
+                }
+            } catch (IOException e) {
+                logger.warn(e.getMessage(), e);
+                return null;
+            }
+        }
+        return recordFile;
     }
 
     private void pathWatchMonitor(WatchService watchService) throws InterruptedException {
@@ -159,7 +203,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 return;
             }
             ServerSettingDTO setting = PropertyFileUtils.getServerSetting(service);
-            if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && checkJarFileNewer(service)) {
+            if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(service);
             }
@@ -170,20 +214,37 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
     }
 
-    private boolean checkJarFileNewer(String server) {
+    private String genFileHashKey(File jarFile) {
+        String path = jarFile.getPath();
+        return String.format("hash.%d", path.hashCode());
+    }
+    private boolean checkJarUpdate(String server) {
         String path = SettingUtils.getServerPath(server);
-        Collection<File> files = FileUtils.listFiles(new File(path), new String[]{"jar"}, true);
+        File serverDir = new File(path);
+        Collection<File> files = FileUtils.listFiles(serverDir, new String[]{"jar"}, true);
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }
-        final long stamp = System.currentTimeMillis() - modifyWaitTime * 1000;
+        File recordFile = getRecordFile(serverDir);
+        Properties recordProps = PropertyFileUtils.getProperties(recordFile);
+        boolean updateFlag = false;
         for (File file : files) {
-            //检查到一个是新到则返回true
-            if (FileUtils.isFileNewer(file, stamp)) {
-                return true;
+            String key = genFileHashKey(file);
+            Object value = recordProps.get(key);
+            long lastModifyTime = -1L;
+            if (value instanceof String) {
+                lastModifyTime = NumberUtils.toLong((String)value, -1L);
+            }
+            if (lastModifyTime != file.lastModified()) {
+                recordProps.setProperty(key, String.valueOf(file.lastModified()));
+                updateFlag = true;
             }
         }
-        return false;
+        if (updateFlag) {
+            //更新jar文件掉最后修改时间
+            PropertyFileUtils.storeProperties(recordFile, recordProps);
+        }
+        return updateFlag;
     }
 
     private void doAttachRunningServer(ServerRunningDTO server) {

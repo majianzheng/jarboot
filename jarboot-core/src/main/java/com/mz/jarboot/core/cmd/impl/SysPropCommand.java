@@ -4,17 +4,13 @@ import com.mz.jarboot.core.cmd.Command;
 import com.mz.jarboot.core.cmd.annotation.Argument;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * show the jvm detail
  * @author jianzhengma
  */
-public class SysPropCommandImpl extends Command {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+public class SysPropCommand extends Command {
     private SysPropModel model = new SysPropModel();
     private String propertyName;
     private String propertyValue;
@@ -49,7 +45,6 @@ public class SysPropCommandImpl extends Command {
 
     @Override
     public void run() {
-        logger.info("{} 开始执行>>>", name);
         if (StringUtils.isBlank(propertyName) && StringUtils.isBlank(propertyValue)) {
             // show all system properties
             model.setProps(System.getProperties());

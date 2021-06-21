@@ -305,7 +305,7 @@ export default class ServerMgrView extends React.PureComponent {
                 name: '刷新',
                 key: 'refresh',
                 icon: <SyncOutlined style={toolButtonStyle}/>,
-                onClick: this.refreshWebServerList,
+                onClick: () => this.refreshWebServerList(),
             },
             // {
             //     name: '新增/更新服务',

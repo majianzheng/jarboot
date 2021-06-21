@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.common.CommandRequest;
 import com.mz.jarboot.core.cmd.impl.ThreadCommand;
-import com.mz.jarboot.core.cmd.impl.TraceCommandImpl;
+import com.mz.jarboot.core.cmd.impl.TraceCommand;
 import com.mz.jarboot.core.server.LogTest;
 import com.mz.jarboot.core.session.CommandSession;
 import org.junit.BeforeClass;
@@ -26,8 +26,8 @@ public class CommandBuilderTest {
         CommandSession session = Mockito.mock(CommandSession.class);
         request.fromRaw(line);
         Command cmd = CommandBuilder.build(request, session);
-        assertThat(cmd instanceof TraceCommandImpl).isTrue();
-        TraceCommandImpl trace = (TraceCommandImpl)cmd;
+        assertThat(cmd instanceof TraceCommand).isTrue();
+        TraceCommand trace = (TraceCommand)cmd;
         assertEquals("trace", trace.getName());
         assertEquals("demo.Test", trace.getClassPattern());
         assertEquals("run", trace.getMethodPattern());

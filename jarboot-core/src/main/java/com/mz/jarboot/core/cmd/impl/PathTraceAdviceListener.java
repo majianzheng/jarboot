@@ -8,7 +8,7 @@ import com.mz.jarboot.core.session.CommandSession;
  */
 public class PathTraceAdviceListener extends AbstractTraceAdviceListener {
 
-    public PathTraceAdviceListener(TraceCommandImpl command, CommandSession process) {
+    public PathTraceAdviceListener(TraceCommand command, CommandSession process) {
         super(command, process);
     }
 }

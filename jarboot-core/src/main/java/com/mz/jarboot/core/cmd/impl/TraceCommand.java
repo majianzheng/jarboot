@@ -27,7 +27,7 @@ import java.util.List;
         "  trace demo.MathGame run --skipJDKMethod false\n" +
         "  trace javax.servlet.Filter * --exclude-class-pattern com.demo.TestFilter\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "trace")
-public class TraceCommandImpl extends EnhancerCommand {
+public class TraceCommand extends EnhancerCommand {
     @Override
     public boolean isRunning() {
         return session.isRunning();

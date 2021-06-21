@@ -11,5 +11,14 @@ public class HtmlNodeUtils {
         ;
         return builder.toString();
     }
+    public static String red(String text) {
+        return createSpan(text, "red");
+    }
+    public static String green(String text) {
+        return createSpan(text, "green");
+    }
+    public static String magenta(String text) {
+        return createSpan(text, "magenta");
+    }
     private HtmlNodeUtils() {}
 }

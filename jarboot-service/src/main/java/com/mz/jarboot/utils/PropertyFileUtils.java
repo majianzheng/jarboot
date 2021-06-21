@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -23,7 +24,7 @@ public class PropertyFileUtils {
         File configFile = FileUtils.getFile(filePath);
         return getProperties(configFile);
     }
-    private static Properties getProperties(File file) {
+    public static Properties getProperties(File file) {
         Properties properties = new Properties();
         if (null == file || !file.isFile() || !file.exists()) {
             return properties;
@@ -34,6 +35,14 @@ public class PropertyFileUtils {
             logger.error(e.getMessage(), e);
         }
         return properties;
+    }
+
+    public static void storeProperties(File file, Properties properties) {
+        try (FileOutputStream fos = new FileOutputStream(file, false)) {
+            properties.store(fos, "properties store.");
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     private static boolean checkFileExist(String file) {
@@ -61,6 +70,8 @@ public class PropertyFileUtils {
         String path = SettingUtils.getServerSettingFilePath(server);
         Properties properties = getProperties(path);
         if (properties.isEmpty()) {
+            //默认启动目录在服务目录，不继承父进程的工作目录
+            setting.setWorkHome(SettingUtils.getServerPath(server));
             return setting;
         }
         String jar = properties.getProperty("jar", "");
@@ -76,9 +87,17 @@ public class PropertyFileUtils {
         setting.setArgs(args);
         //工作目录
         String workHome = properties.getProperty("workHome", "");
-        File dir = new File(workHome);
-        if (dir.isDirectory() && dir.exists()) {
-            setting.setWorkHome(workHome);
+        if (StringUtils.isEmpty(workHome)) {
+            File dir = new File(workHome);
+            if (dir.isDirectory() && dir.exists()) {
+                setting.setWorkHome(workHome);
+            } else {
+                //默认启动目录在服务目录，不继承父进程的工作目录
+                setting.setWorkHome(SettingUtils.getServerPath(server));
+            }
+        } else {
+            //默认启动目录在服务目录，不继承父进程的工作目录
+            setting.setWorkHome(SettingUtils.getServerPath(server));
         }
 
         //环境变量

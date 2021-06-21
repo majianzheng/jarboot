@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Singleton core factory for create socket client, thread pool, strategy instance.
  * @author jianzhengma
@@ -31,8 +33,21 @@ public class SingletonCoreFactory {
         if (null != client) {
             return client;
         }
+        String server = EnvironmentContext.getServer();
+        //服务目录名支持中文，检查到中文后进行编码
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[\\u4e00-\\u9fa5]").matcher(server);
+        while (matcher.find()) {
+            String tmp = matcher.group();
+            try {
+                server = server.replaceAll(tmp, java.net.URLEncoder.encode(tmp, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                logger.error(e.getMessage(), e);
+                return null;
+            }
+        }
+
         String url = String.format("ws://%s/jarboot-agent/ws/%s",
-                EnvironmentContext.getHost(), EnvironmentContext.getServer());
+                EnvironmentContext.getHost(), server);
         logger.debug("initClient {}", url);
         client = new WebSocketClient(url);
         boolean isOk = client.connect(handler);

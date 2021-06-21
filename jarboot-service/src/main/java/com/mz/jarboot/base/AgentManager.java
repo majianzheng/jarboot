@@ -42,7 +42,7 @@ public class AgentManager {
         if (null == client) {
             return;
         }
-        WebSocketManager.getInstance().sendConsole(server, "服务" + server + "下线！");
+        WebSocketManager.getInstance().sendConsole(server, server + "下线！");
         synchronized (client) {// NOSONAR
             if (ClientState.EXITING.equals(client.getState())) {
                 logger.info("目标进程已退出，唤醒killServer方法的执行线程");
@@ -106,7 +106,7 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            WebSocketManager.getInstance().sendConsole(server, "服务未在线，无法执行命令", sessionId);
+            WebSocketManager.getInstance().sendConsole(server, "未在线，无法执行命令", sessionId);
             WebSocketManager.getInstance().commandEnd(server, sessionId);
         } else {
             client.sendCommand(command, sessionId);

@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * WebSocket 客户端实现
@@ -36,7 +35,7 @@ public final class WebSocketClient {
     public WebSocketClient(String url) {
         try {
             this.uri = new URI(url);
-        } catch (URISyntaxException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }

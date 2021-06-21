@@ -68,7 +68,10 @@ public class TaskRunCache {
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
         }
-        File[] serviceDirs = servicesDir.listFiles((dir, name) -> !StringUtils.equals("lib", name));
+        File[] serviceDirs = servicesDir.listFiles((dir, name) ->
+                dir.isDirectory() && !dir.isHidden()
+                        && !StringUtils.startsWith(name, ".")
+                        && !StringUtils.equals("lib", name));
         if (null == serviceDirs || serviceDirs.length < 1) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
         }

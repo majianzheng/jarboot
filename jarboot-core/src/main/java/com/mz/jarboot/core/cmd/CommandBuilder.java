@@ -30,7 +30,8 @@ public class CommandBuilder {
     static {
         commandMap.put("bytes", BytesCommand.class);
         commandMap.put("jvm", JvmCommand.class);
-        commandMap.put("sysprop", SysPropCommandImpl.class);
+        commandMap.put("stdout", StdOutCommand.class);
+        commandMap.put("sysprop", SysPropCommand.class);
 
         commandMap.put("jad", JadCommand.class);
         commandMap.put("classloader", ClassLoaderCommand.class);
@@ -39,7 +40,7 @@ public class CommandBuilder {
         commandMap.put("dashboard", DashboardCommand.class);
         commandMap.put("thread", ThreadCommand.class);
         commandMap.put("watch", WatchCommand.class);
-        commandMap.put("trace", TraceCommandImpl.class);
+        commandMap.put("trace", TraceCommand.class);
         //初始化内部命令实现
         internalCommandMap.put(CommandConst.EXIT_CMD, ExitCommandImpl.class);
         internalCommandMap.put(CommandConst.CANCEL_CMD, CancelCommandImpl.class);

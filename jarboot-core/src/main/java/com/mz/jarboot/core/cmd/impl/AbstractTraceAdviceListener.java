@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     protected final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
-    protected TraceCommandImpl command;
+    protected TraceCommand command;
     protected CommandSession process;
 
     protected final ThreadLocal<TraceEntity> threadBoundEntity = new ThreadLocal<>();
@@ -25,7 +25,7 @@ public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     /**
      * Constructor
      */
-    public AbstractTraceAdviceListener(TraceCommandImpl command, CommandSession process) {
+    public AbstractTraceAdviceListener(TraceCommand command, CommandSession process) {
         this.command = command;
         this.process = process;
     }
@@ -76,7 +76,7 @@ public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
         finishing(loader, advice);
     }
 
-    public TraceCommandImpl getCommand() {
+    public TraceCommand getCommand() {
         return command;
     }
 

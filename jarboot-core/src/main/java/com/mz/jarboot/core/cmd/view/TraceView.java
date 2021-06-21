@@ -5,6 +5,7 @@ import com.mz.jarboot.core.cmd.model.ThreadNode;
 import com.mz.jarboot.core.cmd.model.TraceNode;
 import com.mz.jarboot.core.cmd.model.ThrowNode;
 import com.mz.jarboot.core.utils.DateUtils;
+import com.mz.jarboot.core.utils.HtmlNodeUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 
 import java.util.List;
@@ -58,8 +59,7 @@ public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.Trace
             String costStr = renderCost(methodNode);
             if (node == maxCostNode) {
                 // the node with max cost will be highlighted
-                sb.append("<span style=\"color: red;\">").append(costStr);
-                sb.append("</span>");
+                sb.append(HtmlNodeUtils.red(costStr));
             } else {
                 sb.append(costStr);
             }
