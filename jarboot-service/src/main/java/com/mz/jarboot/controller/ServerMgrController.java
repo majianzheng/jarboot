@@ -8,6 +8,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @Api(tags="服务管理")
@@ -68,6 +70,34 @@ public class ServerMgrController {
     @ResponseBody
     public ResponseSimple oneClickStop() {
         serverMgrService.oneClickStop();
+        return new ResponseSimple();
+    }
+
+    @ApiOperation(value = "上传jar或zip文件", httpMethod = "POST")
+    @PostMapping(value="/upload")
+    @ResponseBody
+    public ResponseSimple upload(@RequestParam("file") MultipartFile file, @RequestParam("server") String server) {
+        serverMgrService.uploadJarFiles(file, server);
+        return new ResponseSimple();
+    }
+
+    @ApiOperation(value = "删除上传缓冲区的文件", httpMethod = "POST")
+    @GetMapping(value="/deleteFileInUploadCache")
+    @ResponseBody
+    public ResponseSimple deleteFileInUploadCache(@RequestParam("server") String server) {
+        return new ResponseSimple();
+    }
+    @ApiOperation(value = "提交上传缓冲区的文件", httpMethod = "POST")
+    @PostMapping(value="/submitUploadFileInCache")
+    @ResponseBody
+    public ResponseSimple submitUploadFileInCache(@RequestParam("server") String server) {
+        return new ResponseSimple();
+    }
+
+    @ApiOperation(value = "清空上传缓冲区的文件", httpMethod = "POST")
+    @GetMapping(value="/clearUploadFileInCache")
+    @ResponseBody
+    public ResponseSimple clearUploadFileInCache(@RequestParam("server") String server) {
         return new ResponseSimple();
     }
 }

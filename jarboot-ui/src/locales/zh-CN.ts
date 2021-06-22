@@ -17,6 +17,8 @@ export default {
     CLEAR: '清空',
     CLOSE: '关闭',
     CMD_PLACEHOLDER: '输入调试命令执行',
+    SELECT_UPLOAD_SERVER_TITLE: '输入要更新或新增的服务的名称',
+    UPLOAD_STAGE_TITLE: '上传{server}文件',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',
@@ -24,6 +26,7 @@ export default {
     STOPPING: '停止中',
 
     //通用
+    TYPE: '类型',
     SUBMIT_BTN: '提交',
     RESET_BTN: '重置',
     REFRESH_BTN: '刷新',
@@ -52,6 +55,8 @@ export default {
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: '请选择一个服务后操作',
+    NAME_NOT_EMPTY: `名字不能为空`,
+    UPLOAD_FILE_EMPTY: `成功上传的文件为空`,
 
     //帮助
     BASIC: '基础',

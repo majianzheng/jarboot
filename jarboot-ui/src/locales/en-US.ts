@@ -17,6 +17,8 @@ export default {
     CLEAR: 'Clear',
     CLOSE: 'Close',
     CMD_PLACEHOLDER: 'Input command to execute',
+    SELECT_UPLOAD_SERVER_TITLE: 'Input the server name of update or new',
+    UPLOAD_STAGE_TITLE: 'Upload {server} files',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',
@@ -24,6 +26,7 @@ export default {
     STOPPING: 'Stopping',
 
     //通用
+    TYPE: 'Type',
     SUBMIT_BTN: 'Submit',
     RESET_BTN: 'Reset',
     REFRESH_BTN: 'Refresh',
@@ -52,6 +55,8 @@ export default {
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: 'Please select one server to operate.',
+    NAME_NOT_EMPTY: `Name can't be empty`,
+    UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
 
     //帮助
     BASIC: 'Basic',

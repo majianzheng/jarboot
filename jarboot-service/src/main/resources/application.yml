@@ -15,6 +15,11 @@ spring:
     default-domain: jarboot-service
   jms:
     pub-sub-domain: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 64MB
+      max-request-size: 100MB
 logging:
   file:
     path: ${user.home}/jarboot/logs

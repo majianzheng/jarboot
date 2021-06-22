@@ -1,6 +1,8 @@
 package com.mz.jarboot.service;
 
 import com.mz.jarboot.dto.ServerRunningDTO;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 public interface ServerMgrService {
@@ -43,4 +45,11 @@ public interface ServerMgrService {
      * @param p 服务列表，列表内容为jar包的上级文件夹的名称
      */
     void restartServer(List<String> p);
+
+    /**
+     * 更新或新增服务的文件
+     * @param file 上传的jar或zip文件
+     * @param server 服务名
+     */
+    void uploadJarFiles(MultipartFile file, String server);
 }

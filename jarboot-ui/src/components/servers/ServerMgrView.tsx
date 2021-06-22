@@ -15,6 +15,7 @@ import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
 import OneClickButtons from "@/components/servers/OneClickButtons";
 // @ts-ignore
 import CommonTable from "../commonTable/CommonTable";
+import UploadFileModal from "@/components/servers/UploadFileModal";
 
 interface ServerRunning {
     name: string,
@@ -29,7 +30,9 @@ const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
 
 export default class ServerMgrView extends React.PureComponent {
-    state = {loading: false, data: new Array<any>(), selectedRowKeys: new Array<any>(), selectRows: new Array<any>(), current: '', oneClickLoading: false};
+    state = {loading: false, data: new Array<any>(), uploadVisible: false,
+        selectedRowKeys: new Array<any>(),
+        selectRows: new Array<any>(), current: '', oneClickLoading: false};
     allServerOut: any = [];
     height = window.innerHeight - 120;
     componentDidMount() {
@@ -307,12 +310,12 @@ export default class ServerMgrView extends React.PureComponent {
                 icon: <SyncOutlined style={toolButtonStyle}/>,
                 onClick: () => this.refreshWebServerList(),
             },
-            // {
-            //     name: '新增/更新服务',
-            //     key: 'upload',
-            //     icon: <UploadOutlined style={toolButtonStyle}/>,
-            //     onClick: this.refreshWebServerList,
-            // },
+            {
+                name: '新增/更新服务',
+                key: 'upload',
+                icon: <UploadOutlined style={toolButtonStyle}/>,
+                onClick: this.uploadFile,
+            },
             {
                 name: 'Dashboard',
                 key: 'dashboard',
@@ -320,6 +323,10 @@ export default class ServerMgrView extends React.PureComponent {
                 onClick: this.dashboardCmd,
             }
         ]
+    };
+
+    private uploadFile = () => {
+        this.setState({uploadVisible: true});
     };
 
     private dashboardCmd = () => {
@@ -381,6 +388,8 @@ export default class ServerMgrView extends React.PureComponent {
                     ))}
                 </div>
             </div>
+            {this.state.uploadVisible && <UploadFileModal server={this.state.current}
+                             onClose={() => this.setState({uploadVisible: false})}/>}
         </div>);
     }
 }

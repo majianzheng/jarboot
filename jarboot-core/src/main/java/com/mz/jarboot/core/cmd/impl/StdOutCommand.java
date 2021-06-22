@@ -5,7 +5,6 @@ import com.mz.jarboot.core.cmd.annotation.Argument;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.annotation.Name;
 import com.mz.jarboot.core.cmd.annotation.Summary;
-import com.mz.jarboot.core.cmd.model.SysPropModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -26,7 +25,7 @@ public class StdOutCommand extends Command {
 
     private String action;
 
-    @Argument(index = 0, argName = "action", required = true)
+    @Argument(index = 0, argName = "action", required = false)
     @Description("[action] is \"on\" or \"off\"")
     public void setAction(String action) {
         this.action = action;
@@ -49,7 +48,11 @@ public class StdOutCommand extends Command {
 
     @Override
     public void run() {
-        if (ACTION_ON.equalsIgnoreCase(this.action)) {
+        if (StringUtils.isEmpty(this.action)) {
+            boolean flag = StdOutStreamReactor.getInstance().isRegistered(this.getSession().getSessionId());
+            String msg = String.format("stdout 状态：%s", flag ? "on" : "off");
+            session.end(true, msg);
+        } else if (ACTION_ON.equalsIgnoreCase(this.action)) {
             StdOutStreamReactor.getInstance().register(this.getSession());
         } else if (ACTION_OFF.equalsIgnoreCase(this.action)) {
             StdOutStreamReactor.getInstance().unRegister(this.getSession().getSessionId());

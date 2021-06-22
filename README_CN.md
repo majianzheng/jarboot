@@ -187,13 +187,13 @@ jarboot$ sysprop user.home
 ### 更多强大的指令在持续开发中...
 
 ---
-### Credit
-#### Projects
+## Credit
+### Projects
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) 部分命令在<code>Arthas</code>源码的基础上二次开发。
 
-### 仓库镜像
+## 仓库镜像
 
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 
