@@ -41,8 +41,12 @@ public class SettingServiceImpl implements SettingService {
             checkDirExist(setting.getWorkHome());
         }
         prop.put("workHome", setting.getWorkHome());
-        if (PropertyFileUtils.checkEnvp(setting.getEnvp())) {
-            prop.put("envp", setting.getEnvp());
+        String envp = setting.getEnvp();
+        if (PropertyFileUtils.checkEnvp(envp)) {
+            if (null == envp) {
+                envp = "";
+            }
+            prop.put("envp", envp);
         } else {
             throw new MzException(ResultCodeConst.VALIDATE_FAILED,
                     String.format("环境变量配置错误(%s)！", setting.getEnvp()));

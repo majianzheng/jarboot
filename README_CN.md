@@ -9,6 +9,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
+[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/tmpomo)
 
 <code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 

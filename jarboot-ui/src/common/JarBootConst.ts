@@ -35,9 +35,7 @@ interface MessageBody {
 }
 
 const requestFinishCallback = (resp: any) => {
-    if (resp.resultCode === 0) {
-        CommonNotice.info('请求成功');
-    } else {
+    if (resp.resultCode !== 0) {
         CommonNotice.error(ErrorUtil.formatErrResp(resp));
     }
 };

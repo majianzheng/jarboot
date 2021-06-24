@@ -6,6 +6,7 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class TaskRunCache {
         }
         String[] extensions = {"jar"};
         Collection<File> execJar =  FileUtils.listFiles(dir, extensions, false);
-        return 1 == execJar.size();
+        return CollectionUtils.isNotEmpty(execJar);
     }
 
     public List<String> getServerNameList() {

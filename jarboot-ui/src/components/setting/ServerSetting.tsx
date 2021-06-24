@@ -8,6 +8,7 @@ import ServerMgrService from "@/services/ServerMgrService";
 import Logger from "@/common/Logger";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
+import { SyncOutlined } from '@ant-design/icons';
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
@@ -42,7 +43,7 @@ const ServerSetting = memo(() => {
                 selectedKeys={[current]}
                 mode="inline"
             >
-                <Menu.ItemGroup title={<div>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>}>
+                <Menu.ItemGroup title={<div><SyncOutlined style={{color: 'green'}} onClick={query}/>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>}>
                     <Menu.Divider/>
                     {data.map((item: any) => {
                         return <Menu.Item key={item.name}>{item.name}</Menu.Item>

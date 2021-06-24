@@ -36,7 +36,7 @@ export default class ServerMgrView extends React.PureComponent {
     allServerOut: any = [];
     height = window.innerHeight - 120;
     componentDidMount() {
-        this.refreshWebServerList(true);
+        this.refreshServerList(true);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
@@ -214,7 +214,7 @@ export default class ServerMgrView extends React.PureComponent {
         this.allServerOut = allList;
     }
 
-    private refreshWebServerList = (init: boolean = false) => {
+    private refreshServerList = (init: boolean = false) => {
         this.setState({loading: true});
         ServerMgrService.getServerList((resp: any) => {
             this.setState({loading: false});
@@ -308,7 +308,7 @@ export default class ServerMgrView extends React.PureComponent {
                 name: '刷新',
                 key: 'refresh',
                 icon: <SyncOutlined style={toolButtonStyle}/>,
-                onClick: () => this.refreshWebServerList(),
+                onClick: () => this.refreshServerList(),
             },
             {
                 name: '新增/更新服务',
@@ -369,6 +369,11 @@ export default class ServerMgrView extends React.PureComponent {
         });
     }
 
+    private onUploadClose = () => {
+        this.setState({uploadVisible: false});
+        this.refreshServerList();
+    };
+
     render() {
         let tableOption: any = this._getTbProps();
         tableOption.scroll = { y: this.height};
@@ -389,7 +394,7 @@ export default class ServerMgrView extends React.PureComponent {
                 </div>
             </div>
             {this.state.uploadVisible && <UploadFileModal server={this.state.current}
-                             onClose={() => this.setState({uploadVisible: false})}/>}
+                             onClose={this.onUploadClose}/>}
         </div>);
     }
 }

@@ -69,13 +69,14 @@ public class PropertyFileUtils {
         ServerSettingDTO setting = new ServerSettingDTO(server);
         String path = SettingUtils.getServerSettingFilePath(server);
         Properties properties = getProperties(path);
+        String serverPath = SettingUtils.getServerPath(server);
         if (properties.isEmpty()) {
             //默认启动目录在服务目录，不继承父进程的工作目录
-            setting.setWorkHome(SettingUtils.getServerPath(server));
+            setting.setWorkHome(serverPath);
             return setting;
         }
         String jar = properties.getProperty("jar", "");
-        if (checkFileExist(jar)) {
+        if (checkFileExist(serverPath + File.separator + jar)) {
             setting.setJar(jar);
         } else {
             logger.warn("配置的启动jar文件({})不存在", jar);
@@ -102,7 +103,7 @@ public class PropertyFileUtils {
 
         //环境变量
         String envp = properties.getProperty("envp", "");
-        if (checkEnvp(envp)) {
+        if (checkEnvp(envp) && StringUtils.isNotEmpty(envp)) {
             setting.setEnvp(envp);
         }
 

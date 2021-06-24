@@ -36,7 +36,7 @@ public class ServerSettingDTO implements Serializable {
     /**
      * 环境变量
      */
-    private String envp;
+    private String envp = "";
     /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
      */

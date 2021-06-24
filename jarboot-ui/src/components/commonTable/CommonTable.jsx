@@ -134,7 +134,7 @@ export default class CommonTable extends PureComponent {
                                 return (
                                     <Button onClick={element.onClick} key={element.key} type={"text"}
                                             disabled={element.disabled}
-                                            style={{marginRight: '5px', marginLeft: '5px'}}
+                                            style={{marginRight: '2px', marginLeft: '3px'}}
                                             icon={element.icon}
                                             title={element.name}/>
                                 );

@@ -30,5 +30,10 @@ export default defineConfig({
             'changeOrigin': true,
             'pathRewrite': {'^/jarboot-setting': ''}
         },
+        '/jarboot-upload': {
+            'target': 'http://localhost:9899/jarboot-upload/',
+            'changeOrigin': true,
+            'pathRewrite': {'^/jarboot-upload': ''}
+        },
     },
 });

@@ -7,6 +7,7 @@ import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -72,13 +73,15 @@ public class TaskUtils {
      * @param setting 服务配置
      */
     public static void startServer(String server, ServerSettingDTO setting) {
-        String jar = SettingUtils.getJarPath(server);
+        //获取启动的jar文件
+        String jar = SettingUtils.getJarPath(setting);
 
         if (StringUtils.isEmpty(jar)) {
             return;
         }
         String jvm = setting.getJvm();
         if (StringUtils.isEmpty(jvm)) {
+            //未配置则获取默认的
             jvm = SettingUtils.getDefaultJvmArg();
         }
         String cmd = (null == jvm) ?
@@ -131,10 +134,17 @@ public class TaskUtils {
 
     //得到jar的上级目录和自己: demo-service/demo.jar
     public static String getJarWithServerName(String server) {
-        String jar = SettingUtils.getJarPath(server);
-        int p = jar.lastIndexOf(File.separatorChar);
-        if (-1 != p) {
-            jar = jar.substring(p + 1);
+        ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
+        String jar = setting.getJar();
+        if (StringUtils.isEmpty(jar)) {
+            String path = SettingUtils.getServerPath(server);
+            Collection<File> jarFiles = FileUtils.listFiles(new File(path), new String[]{"jar"}, false);
+            Iterator<File> iter = jarFiles.iterator();
+            if (iter.hasNext()) {
+                jar = iter.next().getName();
+            } else {
+                jar = "";
+            }
         }
         return server + File.separatorChar + jar;
     }

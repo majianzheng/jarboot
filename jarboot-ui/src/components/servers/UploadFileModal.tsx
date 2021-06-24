@@ -1,9 +1,11 @@
 import {memo, useState} from "react";
-import { Modal, Upload, Form, Radio, Input } from 'antd';
+import { Modal, Upload, Form, Input, Result } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import CommonNotice from "@/common/CommonNotice";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
+import UploadFileService from "@/services/UploadFileService";
+import ErrorUtil from "@/common/ErrorUtil";
 
 interface UploadFileModal {
     server?: string;
@@ -13,8 +15,9 @@ enum UploadFileStage {
     SERVER_CONFIRM,
     UPLOAD,
     SUBMIT,
-    CLEAR
 }
+let heartbeatHandler: any = -1;
+
 const UploadFileModal = memo((props: UploadFileModal) => {
     //阶段，1：确定服务的名称；2：开始选择并上传文件；3：提交或清理
     const [stage, setStage] = useState(UploadFileStage.SERVER_CONFIRM);
@@ -31,15 +34,11 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 onUpload();
                 break;
             case UploadFileStage.SUBMIT:
-                //提交后天更新
-                break;
-            case UploadFileStage.CLEAR:
-                //清理临时目录
+                props.onClose && props.onClose();
                 break;
             default:
                 break;
         }
-        //props.onClose && props.onClose();
     };
     const onConfirm = () => {
         const server = form.getFieldValue("server");
@@ -47,9 +46,16 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'}));
             return;
         }
-        setName(server);
-        setStage(UploadFileStage.UPLOAD);
+        UploadFileService.beginUploadServerFile(server).then(resp => {
+            if (resp.resultCode === 0) {
+                setName(server);
+                setStage(UploadFileStage.UPLOAD);
+            } else {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+            }
+        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)))
     };
+
     const onUpload = () => {
         const list = fileList.filter(value => 'done' === value.status);
         if (list.length <= 0) {
@@ -57,34 +63,46 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             return;
         }
         setStage(UploadFileStage.SUBMIT);
+        -1 !== heartbeatHandler && clearInterval(heartbeatHandler);
+        heartbeatHandler = -1;
+        UploadFileService.submitUploadFileInCache(name)
+            .then(resp => {
+                if (resp.resultCode !== 0) {
+                    CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                }
+            }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     };
 
     const onCancel = () => {
+        -1 !== heartbeatHandler && clearInterval(heartbeatHandler);
+        heartbeatHandler = -1;
+        if (StringUtil.isNotEmpty(name)) {
+            UploadFileService.clearUploadFileInCache(name);
+        }
         props.onClose && props.onClose();
+    };
+
+    const checkFile = (file: any) => {
+        const isJarOrZip = file.type === "application/java-archive" || file.type === "application/zip";
+        console.log(file.type);
+        const isLt60M = file.size / 1024 / 1024 < 60;
+        if (!isLt60M) {
+            CommonNotice.error('文件大小必须小于60MB！');
+        }
+        const notUploaded = -1 === fileList.findIndex((value: any) => value.name === file.name);
+        return (notUploaded && isJarOrZip && isLt60M);
     };
 
     const uploadProps = {
         name: 'file',
         multiple: true,
-        action: `/jarboot-service/upload`,
+        action: `/jarboot-upload/upload`,
         fileList: fileList,
         data: () => {
-            return {server: props.server}
+            return {server: form.getFieldValue("server")}
         },
         beforeUpload(file: any) {
-            const isJarOrZip = file.type === "application/java-archive" || file.type === "application/zip";
-            console.log("upload file type:", file.type);
-            const isLt60M = file.size / 1024 / 1024 < 60;
-            if (!isLt60M) {
-                CommonNotice.error('文件大小必须小于60MB！');
-            }
-            const notUploaded = -1 === fileList.findIndex((value: any) => value.uid === file.file.uid);
-
-            if (notUploaded && isJarOrZip && isLt60M) {
-                setFileList((prevState => prevState.concat([file])));
-                return true;
-            }
-            return false;
+            return checkFile(file) ? Promise.resolve(file) : Promise.reject();
         },
         onChange(info: any) {
             const { status } = info.file;
@@ -92,11 +110,15 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 console.log(info.file, info.fileList);
             }
             if (status === 'done') {
-                CommonNotice.info(`${info.file.name} file uploaded successfully.`);
+                //CommonNotice.info(`${info.file.name} file uploaded successfully.`);
+                setFileList(info.fileList);
             } else if (status === 'error') {
                 CommonNotice.error(`${info.file.name} file upload failed.`);
+            } else {
+                if (checkFile(info.file)) {
+                    setFileList(info.fileList);
+                }
             }
-            setFileList(info.fileList);
         },
         onRemove(file: any) {
             console.log("remove file.", file);
@@ -115,7 +137,6 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 break;
             case UploadFileStage.UPLOAD:
             case UploadFileStage.SUBMIT:
-            case UploadFileStage.CLEAR:
                 title = intl.formatMessage({id: 'UPLOAD_STAGE_TITLE'}, {server: name});
                 break;
             default:
@@ -152,10 +173,10 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             </p>
         </Upload.Dragger>}
         {UploadFileStage.SUBMIT === stage && <div>
-            显示成功上传即将更新的文件列表，功能开发中...
-        </div>}
-        {UploadFileStage.CLEAR === stage && <div>
-
+            <Result
+                status="success"
+                title="Successfully Update Server!"
+            />
         </div>}
     </Modal>
 });

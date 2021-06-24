@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -274,13 +273,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             startServer0(servers);
         });
     }
-
-    @Override
-    public void uploadJarFiles(MultipartFile file, String server) {
-        logger.info("type:{}, name:{}, size:{}, oriName:{}, server:{}", file.getContentType(),
-                file.getName(), file.getSize(), file.getOriginalFilename(), server);
-    }
-
 
     private void sendStartedMessage(String server, int pid) {
         this.taskRunCache.setTaskInfo(server, CommonConst.STATUS_RUNNING, pid);
