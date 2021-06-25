@@ -7,7 +7,7 @@ const baseUrl = "/jarboot-upload";
 
 export default class UploadFileService {
     /**
-     * 开始上传服务的文件
+     * Begin upload files
      * @param server
      */
     public static beginUploadServerFile(server: string) {
@@ -15,24 +15,35 @@ export default class UploadFileService {
     }
 
     /**
-     * 提交已经上传的文件
+     * upload file heartbeat
      * @param server
+     * @returns {Promise<any>}
+     */
+    public static uploadServerHeartbeat(server: string) {
+        return Request.get(`${baseUrl}/uploadServerHeartbeat`, {server});
+    }
+
+    /**
+     * Submit upload files
+     * @param server
+     * @returns {Promise<any>}
      */
     public static submitUploadFileInCache(server: string) {
         return Request.post(`${baseUrl}/submitUploadFileInCache?server=${server}`, {});
     }
 
     /**
-     * 提交已经上传的文件
+     * Delete files of uploaded.
      * @param server
      * @param file
+     * @returns {Promise<any>}
      */
-    public static deleteUploadFileInCache(server: string, file: string) {
-        return Request.delete(`${baseUrl}/deleteUploadFileInCache?server=${server}&file=${file}`, {});
+    public static deleteFileInUploadCache(server: string, file: string) {
+        return Request.delete(`${baseUrl}/deleteFileInUploadCache?server=${server}&file=${file}`, {});
     }
 
     /**
-     * 提交已经上传的文件
+     * Clear files of uploaded.
      * @param server
      */
     public static clearUploadFileInCache(server: string) {

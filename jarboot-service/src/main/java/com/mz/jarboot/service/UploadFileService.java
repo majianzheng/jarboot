@@ -10,6 +10,12 @@ public interface UploadFileService {
     void beginUploadServerFile(String server);
 
     /**
+     * 上传文件心跳
+     * @param server 服务名
+     */
+    void uploadServerHeartbeat(String server);
+
+    /**
      * 提交已经上传的文件
      * @param server 服务名
      */

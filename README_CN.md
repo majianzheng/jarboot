@@ -107,6 +107,9 @@ jarboot$ stdout on
 
 #关闭标准输出流实时显示
 jarboot$ stdout off
+
+#获取当前的状态，启动或关闭
+jarboot$ stdout
 ```
   
 ### dashboard

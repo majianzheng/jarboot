@@ -18,7 +18,7 @@ import java.security.CodeSource;
  */
 @SpringBootApplication
 @PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/jarboot.properties"}, ignoreResourceNotFound=true)
-@ComponentScan(basePackages= {"com.mz.jarboot.service", "com.mz.jarboot.config", "com.mz.jarboot.task","com.mz.jarboot.controller", "com.mz.jarboot.ws"})
+@ComponentScan(basePackages= {"com.mz.jarboot.service", "com.mz.jarboot.config", "com.mz.jarboot.task", "com.mz.jarboot.aspect", "com.mz.jarboot.controller", "com.mz.jarboot.ws"})
 public class JarBootServiceApplication {
 
 	public static void main(String[] args) {

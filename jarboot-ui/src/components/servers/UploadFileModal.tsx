@@ -1,11 +1,12 @@
 import {memo, useState} from "react";
 import { Modal, Upload, Form, Input, Result } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
+import { InboxOutlined, LoadingOutlined } from '@ant-design/icons';
 import CommonNotice from "@/common/CommonNotice";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
 import UploadFileService from "@/services/UploadFileService";
 import ErrorUtil from "@/common/ErrorUtil";
+import UploadHeartbeat from "@/components/servers/UploadHeartbeat";
 
 interface UploadFileModal {
     server?: string;
@@ -14,9 +15,10 @@ interface UploadFileModal {
 enum UploadFileStage {
     SERVER_CONFIRM,
     UPLOAD,
+    SUBMITTING,
     SUBMIT,
+    FAILED
 }
-let heartbeatHandler: any = -1;
 
 const UploadFileModal = memo((props: UploadFileModal) => {
     //阶段，1：确定服务的名称；2：开始选择并上传文件；3：提交或清理
@@ -34,6 +36,7 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 onUpload();
                 break;
             case UploadFileStage.SUBMIT:
+            case UploadFileStage.FAILED:
                 props.onClose && props.onClose();
                 break;
             default:
@@ -50,6 +53,7 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             if (resp.resultCode === 0) {
                 setName(server);
                 setStage(UploadFileStage.UPLOAD);
+                UploadHeartbeat.getInstance().start(server);
             } else {
                 CommonNotice.error(ErrorUtil.formatErrResp(resp));
             }
@@ -62,20 +66,24 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             CommonNotice.info(intl.formatMessage({id: 'UPLOAD_FILE_EMPTY'}));
             return;
         }
-        setStage(UploadFileStage.SUBMIT);
-        -1 !== heartbeatHandler && clearInterval(heartbeatHandler);
-        heartbeatHandler = -1;
+        UploadHeartbeat.getInstance().stop();
+        setStage(UploadFileStage.SUBMITTING);
         UploadFileService.submitUploadFileInCache(name)
             .then(resp => {
-                if (resp.resultCode !== 0) {
+                if (resp.resultCode === 0) {
+                    setStage(UploadFileStage.SUBMIT);
+                } else {
+                    setStage(UploadFileStage.FAILED);
                     CommonNotice.error(ErrorUtil.formatErrResp(resp));
                 }
-            }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+            }).catch(error => {
+                setStage(UploadFileStage.FAILED);
+                CommonNotice.error(ErrorUtil.formatErrResp(error));
+            });
     };
 
     const onCancel = () => {
-        -1 !== heartbeatHandler && clearInterval(heartbeatHandler);
-        heartbeatHandler = -1;
+        UploadHeartbeat.getInstance().stop();
         if (StringUtil.isNotEmpty(name)) {
             UploadFileService.clearUploadFileInCache(name);
         }
@@ -109,7 +117,7 @@ const UploadFileModal = memo((props: UploadFileModal) => {
             if (status !== 'uploading') {
                 console.log(info.file, info.fileList);
             }
-            if (status === 'done') {
+            if ('done' === status || 'removed' === status) {
                 //CommonNotice.info(`${info.file.name} file uploaded successfully.`);
                 setFileList(info.fileList);
             } else if (status === 'error') {
@@ -122,6 +130,13 @@ const UploadFileModal = memo((props: UploadFileModal) => {
         },
         onRemove(file: any) {
             console.log("remove file.", file);
+            UploadFileService.deleteFileInUploadCache(form.getFieldValue("server")
+                , file.name)
+                .then(resp => {
+                    if (resp.resultCode !== 0) {
+                        CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                    }
+                }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
         },
     };
     const layout = {
@@ -136,7 +151,9 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 title = intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'});
                 break;
             case UploadFileStage.UPLOAD:
+            case UploadFileStage.SUBMITTING:
             case UploadFileStage.SUBMIT:
+            case UploadFileStage.FAILED:
                 title = intl.formatMessage({id: 'UPLOAD_STAGE_TITLE'}, {server: name});
                 break;
             default:
@@ -172,10 +189,22 @@ const UploadFileModal = memo((props: UploadFileModal) => {
                 band files
             </p>
         </Upload.Dragger>}
+        {UploadFileStage.SUBMITTING === stage && <div>
+            <Result
+                icon={<LoadingOutlined />}
+                title="Submitting..."
+            />
+        </div>}
         {UploadFileStage.SUBMIT === stage && <div>
             <Result
                 status="success"
                 title="Successfully Update Server!"
+            />
+        </div>}
+        {UploadFileStage.FAILED === stage && <div>
+            <Result
+                status="error"
+                title="Error Update Server!"
             />
         </div>}
     </Modal>

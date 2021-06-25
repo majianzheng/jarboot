@@ -18,6 +18,7 @@ import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     //文件更新抖动时间，默认5秒
     @Value("${jarboot.file-shake-time:5}")
     private long modifyWaitTime;
+    @Value("${jarboot.after-start-exec:}")
+    private String afterStartExec;
 
     private boolean initialized = false;
 
@@ -98,6 +101,12 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         //attach已经处于启动的进程
         taskExecutor.execute(this::attachRunningServer);
+
+        //启动后置脚本
+        if (StringUtils.isNotEmpty(afterStartExec)) {
+            String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
+            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, null));
+        }
     }
 
     private void attachRunningServer() {

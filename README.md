@@ -108,6 +108,9 @@ jarboot$ stdout on
 
 #Turn off real time display of standard output stream
 jarboot$ stdout off
+
+#Get current status on or off
+jarboot$ stdout
 ```
 
 ### dashboard

@@ -237,6 +237,9 @@ public class TaskUtils {
         } catch (IOException e) {
             return;
         }
+        if (null == callback) {
+            return;
+        }
         final long waitTime = getStartWaitTime();
         try (InputStream inputStream = process.getInputStream()){
             long timestamp = System.currentTimeMillis();

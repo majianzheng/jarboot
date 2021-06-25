@@ -32,6 +32,14 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
+    @ApiOperation(value = "上传文件心跳", httpMethod = "GET")
+    @GetMapping(value="/uploadServerHeartbeat")
+    @ResponseBody
+    public ResponseSimple uploadServerHeartbeat(String server) {
+        uploadFileService.uploadServerHeartbeat(server);
+        return new ResponseSimple();
+    }
+
     @ApiOperation(value = "删除上传缓冲区的文件", httpMethod = "POST")
     @DeleteMapping(value="/deleteFileInUploadCache")
     @ResponseBody
