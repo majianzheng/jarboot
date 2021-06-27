@@ -1,12 +1,14 @@
 package com.mz.jarboot.core.session;
 
+import com.mz.jarboot.core.constant.CoreConstant;
+
 /**
  * 命令执行的结束状态
  * 以下代码基于开源项目Arthas适配修改
  */
 public class ExitStatus {
     private int statusCode;
-    private String message;
+    private String message = CoreConstant.EMPTY_STRING;
 
     /**
      * 命令执行成功的状态

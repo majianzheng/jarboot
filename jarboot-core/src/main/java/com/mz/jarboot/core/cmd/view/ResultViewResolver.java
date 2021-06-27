@@ -27,7 +27,7 @@ public class ResultViewResolver {
         //基本命令
         registerView(JvmView.class);
         registerView(SysPropView.class);
-
+        registerView(HeapDumpView.class);
         //klass
         registerView(ClassLoaderView.class);
         registerView(DumpClassView.class);
@@ -37,7 +37,7 @@ public class ResultViewResolver {
 //        registerView(OgnlView.class);
 //        registerView(RedefineView.class);
 //        registerView(RetransformView.class);
-//        registerView(SearchClassView.class);
+        registerView(SearchClassView.class);
 //        registerView(SearchMethodView.class)
 
 

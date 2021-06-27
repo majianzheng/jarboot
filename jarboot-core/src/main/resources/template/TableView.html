@@ -1,13 +1,11 @@
-<div>
-  <table border="1">
-    <caption style="caption-side: top; font-size: 20px; color: snow" th:utext="${title}"></caption>
+<table th:border="*{border}?: '1'">
+    <caption th:if="${title.length()} > 0" style="caption-side: top; font-size: 20px; color: snow" th:utext="${title}"></caption>
     <tbody>
-    <tr>
-      <th th:each="header : ${headers}"><span th:utext="${header}"></span></th>
+    <tr th:if="${headers.size()} > 0">
+        <th th:each="header : ${headers}"><span th:utext="${header}"></span></th>
     </tr>
-    <tr th:each="row : ${rows}">
-      <td th:each="item : ${row}"><span th:utext="${item}"></span></td>
+    <tr th:if="${rows.size()} > 0" th:each="row : ${rows}">
+        <td th:each="item : ${row}"><span th:utext="${item}"></span></td>
     </tr>
     </tbody>
-  </table>
-</div>
+</table>

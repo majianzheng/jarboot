@@ -76,11 +76,6 @@ public class DashboardCommand extends Command {
         timer.scheduleAtFixedRate(new DashboardTimerTask(session), 0, getInterval());
     }
 
-    @Override
-    public void complete() {
-        stop();
-    }
-
     public synchronized void stop() {
         if (timer != null) {
             timer.cancel();

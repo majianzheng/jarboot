@@ -51,6 +51,12 @@
             <version>3.0.12.RELEASE</version>
         </dependency>
         <dependency>
+            <!-- html压缩库(Apache-2.0 License)，配合thymeleaf使用，压缩html高效传输 -->
+            <groupId>com.googlecode.htmlcompressor</groupId>
+            <artifactId>htmlcompressor</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>

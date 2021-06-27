@@ -5,7 +5,7 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 /**
  * @author jianzhengma
  */
-public class ExitCommandImpl extends InternalCommand {
+public class ExitCommand extends InternalCommand {
     @Override
     public void run() {
         session.console(EnvironmentContext.getServer() + "即将退出");

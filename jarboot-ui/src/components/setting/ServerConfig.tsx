@@ -5,6 +5,7 @@ import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 import { useIntl } from 'umi';
 import StringUtil from "@/common/StringUtil";
+import {requestFinishCallback} from "@/common/JarBootConst";
 
 const layout = {
     labelCol: {span: 8},
@@ -37,7 +38,13 @@ const ServerConfig: any = memo((props: any) => {
             CommonNotice.info('请先选择服务');
             return;
         }
-        SettingService.submitServerSetting(props.server, data);
+        SettingService.submitServerSetting(props.server, data).then(resp => {
+            if (0 === resp?.resultCode) {
+                CommonNotice.info("提交成功！")
+            } else {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp))
+            }
+        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     };
     return (
         <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>

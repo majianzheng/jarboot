@@ -6,8 +6,6 @@ import com.mz.jarboot.core.cmd.Command;
 import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
-import com.mz.jarboot.core.session.ExitStatus;
 import com.mz.jarboot.core.utils.*;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import org.slf4j.Logger;
@@ -134,35 +132,31 @@ public class JadCommand extends Command {
         Set<Class<?>> matchedClasses = SearchUtils.searchClassOnly(inst, classPattern, isRegEx, code);
 
         try {
-            ExitStatus status = null;
+            boolean success = true;
+            StringBuilder sb = new StringBuilder();
             if (matchedClasses == null || matchedClasses.isEmpty()) {
-                status = processNoMatch(session);
+                success = processNoMatch(sb);
             } else if (matchedClasses.size() > 1) {
-                status = processMatches(session, matchedClasses);
+                success = processMatches(sb, matchedClasses);
             } else { // matchedClasses size is 1
                 // find inner classes.
                 Set<Class<?>> withInnerClasses = SearchUtils.searchClassOnly(inst,  matchedClasses.iterator().next().getName() + "$*", false, code);
                 if(withInnerClasses.isEmpty()) {
                     withInnerClasses = matchedClasses;
                 }
-                status = processExactMatch(session, affect, inst, matchedClasses, withInnerClasses);
+                success = processExactMatch(sb, affect, inst, matchedClasses, withInnerClasses);
             }
             if (!this.sourceOnly) {
                 session.appendResult(new RowAffectModel(affect));
             }
-            CommandUtils.end(session, status);
+            session.end(success, sb.toString());
         } catch (Throwable e){
             logger.error("processing error", e);
             session.end(false, "processing error");
         }
     }
 
-    @Override
-    public void complete() {
-
-    }
-
-    private ExitStatus processExactMatch(CommandSession process, RowAffect affect, Instrumentation inst, Set<Class<?>> matchedClasses, Set<Class<?>> withInnerClasses) {
+    private boolean processExactMatch(StringBuilder sb, RowAffect affect, Instrumentation inst, Set<Class<?>> matchedClasses, Set<Class<?>> withInnerClasses) {
         Class<?> c = matchedClasses.iterator().next();
         Set<Class<?>> allClasses = new HashSet<Class<?>>(withInnerClasses);
         allClasses.add(c);
@@ -189,31 +183,34 @@ public class JadCommand extends Command {
                 jadModel.setClassInfo(ClassUtils.createSimpleClassInfo(c));
                 jadModel.setLocation(ClassUtils.getCodeSource(c.getProtectionDomain().getCodeSource()));
             }
-            process.appendResult(jadModel);
+            session.appendResult(jadModel);
 
             affect.rCnt(classFiles.keySet().size());
-            return ExitStatus.success();
+            return true;
         } catch (Throwable t) {
             logger.error("jad: fail to decompile class: " + c.getName(), t);
-            return ExitStatus.failure(-1, "jad: fail to decompile class: " + c.getName());
+            sb.append("jad: fail to decompile class: ").append(c.getName());
+            return false;
         }
     }
 
-    private ExitStatus processMatches(CommandSession process, Set<Class<?>> matchedClasses) {
+    private boolean processMatches(StringBuilder sb, Set<Class<?>> matchedClasses) {
 
         String usage = "jad -c <hashcode> " + classPattern;
         String msg = " Found more than one class for: " + classPattern + ", Please use " + usage;
-        process.appendResult(new MessageModel(msg));
+        session.appendResult(new MessageModel(msg));
 
         List<ClassVO> classVOs = ClassUtils.createClassVOList(matchedClasses);
         JadModel jadModel = new JadModel();
         jadModel.setMatchedClasses(classVOs);
-        process.appendResult(jadModel);
+        session.appendResult(jadModel);
 
-        return ExitStatus.failure(-1, msg);
+        sb.append(msg);
+        return false;
     }
 
-    private ExitStatus processNoMatch(CommandSession process) {
-        return ExitStatus.failure(-1, "No class found for: " + classPattern);
+    private boolean processNoMatch(StringBuilder sb) {
+        sb.append("No class found for: ").append(classLoaderClass);
+        return false;
     }
 }

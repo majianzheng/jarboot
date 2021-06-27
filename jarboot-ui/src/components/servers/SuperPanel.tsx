@@ -10,7 +10,7 @@ import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
 import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
-import ClassLoaderView from "@/components/servers/view/ClassLoaderView";
+import HeapDumpView from "@/components/servers/view/HeapDumpView";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -24,7 +24,7 @@ interface SuperPanelProps {
 }
 
 enum PUB_TOPIC {
-    CMD_OVER="commandOver",
+    CMD_END="commandEnd",
     RENDER_JSON = "renderJson",
     QUICK_EXEC_CMD = "quickExecCmd",
 }
@@ -40,7 +40,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const inputRef = useRef<any>();
 
     useEffect(() => {
-        props.pubsub.submit(props.server, PUB_TOPIC.CMD_OVER, onCmdOver);
+        props.pubsub.submit(props.server, PUB_TOPIC.CMD_END, onCmdEnd);
         props.pubsub.submit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
         props.pubsub.submit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
     }, []);
@@ -49,7 +49,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const viewResolver: any = {
         'dashboard': <DashboardView data={data}/>,
         'jad': <JadView data={data}/>,
-        'classloader': <ClassLoaderView data={data}/>,
+        'heapdump': <HeapDumpView data={data}/>,
     };
 
     const renderView = (data: any) => {
@@ -71,9 +71,9 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         doExecCommand(cmd);
     };
 
-    const onCmdOver = () => {
+    const onCmdEnd = (msg?: string) => {
         setExecuting(false);
-        props.pubsub.publish(props.server, 'finishLoading');
+        props.pubsub.publish(props.server, 'finishLoading', msg);
         inputRef?.current?.focus();
     };
 

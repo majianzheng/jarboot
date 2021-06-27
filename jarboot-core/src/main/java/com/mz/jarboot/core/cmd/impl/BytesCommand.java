@@ -57,8 +57,7 @@ public class BytesCommand extends Command {
         logger.info("bytes 开始执行>>{}", name);
         if (StringUtils.isEmpty(this.classPattern)) {
             //未指定要打印的类
-            session.console("用法: bytes className");
-            complete();
+            session.end(true, "用法: bytes className");
             return;
         }
         Class<?> cls = null;
@@ -70,8 +69,7 @@ public class BytesCommand extends Command {
             }
         }
         if (null == cls) {
-            session.console("没有找到类," + this.classPattern);
-            complete();
+            session.end(true, "没有找到类," + this.classPattern);
             return;
         }
         //打印classloader
@@ -80,9 +78,6 @@ public class BytesCommand extends Command {
         EnvironmentContext.getTransformerManager()
                 .addOnceTransformer(cls, (loader, className, classBeingRedefined,
                                           protectionDomain, classfileBuffer) -> {
-
-                    logger.info("Bytes. >>{}", className);
-
                     try {
                         ClassReader reader = new ClassReader(classfileBuffer);
                         ClassNode classNode = new ClassNode();
@@ -99,7 +94,7 @@ public class BytesCommand extends Command {
                         logger.warn(e.getMessage(), e);
                         session.console("解析类失败，" + e.getMessage());
                     }
-                    complete();
+                    session.end();
                     return null;
                 });
 
@@ -112,12 +107,5 @@ public class BytesCommand extends Command {
         printer.print(new PrintWriter(sw));
         printer.getText().clear();
         return sw.toString();
-    }
-
-    @Override
-    public void complete() {
-        if (null != session) {
-            session.end();
-        }
     }
 }

@@ -31,7 +31,7 @@ public class CommandResponseTest {
 
         response = new CommandResponse();
         response.fromRaw("F0-body xxx data 125663");
-        assertEquals(ResponseType.COMPLETE, response.getResponseType());
+        assertEquals(ResponseType.COMMAND_END, response.getResponseType());
         assertEquals("125663", response.getSessionId());
         assertEquals("body xxx data", response.getBody());
         assertFalse(response.getSuccess());
@@ -66,7 +66,7 @@ public class CommandResponseTest {
         assertEquals("j1-body data 123", response.toRaw());
 
         response = new CommandResponse();
-        response.setResponseType(ResponseType.COMPLETE);
+        response.setResponseType(ResponseType.COMMAND_END);
         response.setSessionId("125663");
         response.setBody("body xxx data");
         response.setSuccess(false);

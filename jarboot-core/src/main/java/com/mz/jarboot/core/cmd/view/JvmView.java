@@ -1,8 +1,7 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.cmd.model.JvmModel;
-import org.thymeleaf.TemplateEngine;
+import com.mz.jarboot.core.utils.HtmlRenderUtils;
 import org.thymeleaf.context.Context;
 
 /**
@@ -10,7 +9,6 @@ import org.thymeleaf.context.Context;
  */
 public class JvmView implements ResultView<JvmModel> {
     public String render(JvmModel model) {
-        TemplateEngine engine = SingletonCoreFactory.getInstance().createTemplateEngine();
         Context context = new Context();
         context.setVariable("memoryInfo", model.getMemoryInfo());
         context.setVariable("memoryMgrInfo", model.getMemoryMgrInfo());
@@ -22,6 +20,6 @@ public class JvmView implements ResultView<JvmModel> {
         context.setVariable("threadInfo", model.getThreadInfo());
         context.setVariable("garbageCollectorsInfo", model.getGarbageCollectorsInfo());
         context.setVariable("fileDescInfo", model.getFileDescInfo());
-        return engine.process("template/JvmView.html", context);
+        return HtmlRenderUtils.getInstance().processHtml("template/JvmView.html", context);
     }
 }

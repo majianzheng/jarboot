@@ -1,6 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
@@ -27,41 +28,56 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitServerSetting(String server, ServerSettingDTO setting) {
-        Map<String, String> prop = new HashMap<>();
         File file = getConfAndCheck(server, setting.getJar());
-        prop.put("jar", setting.getJar());
-        prop.put("jvm", setting.getJvm());
-        prop.put("args", setting.getArgs());
+        Properties prop = PropertyFileUtils.getProperties(file);
+        String jar = setting.getJar();
+        if (null == jar) {
+            jar = CommonConst.EMPTY_STRING;
+        }
+        prop.setProperty("jar", jar);
+        String jvm = setting.getJvm();
+        if (null == jvm) {
+            jvm = CommonConst.EMPTY_STRING;
+        }
+        prop.setProperty("jvm", jvm);
+        String args = setting.getArgs();
+        if (null == args) {
+            args = CommonConst.EMPTY_STRING;
+        }
+        prop.setProperty("args", args);
         if (null == setting.getPriority()) {
-            prop.put("priority", "");
+            prop.setProperty("priority", CommonConst.EMPTY_STRING);
         } else {
-            prop.put("priority", setting.getPriority().toString());
+            prop.setProperty("priority", setting.getPriority().toString());
         }
-        if (StringUtils.isNotEmpty(setting.getWorkHome())) {
-            checkDirExist(setting.getWorkHome());
+        String workHome = setting.getWorkHome();
+        if (StringUtils.isNotEmpty(workHome)) {
+            checkDirExist(workHome);
+        } else {
+            workHome = CommonConst.EMPTY_STRING;
         }
-        prop.put("workHome", setting.getWorkHome());
+        prop.setProperty("workHome", workHome);
         String envp = setting.getEnvp();
         if (PropertyFileUtils.checkEnvp(envp)) {
             if (null == envp) {
                 envp = "";
             }
-            prop.put("envp", envp);
+            prop.setProperty("envp", envp);
         } else {
             throw new MzException(ResultCodeConst.VALIDATE_FAILED,
                     String.format("环境变量配置错误(%s)！", setting.getEnvp()));
         }
         if (null == setting.getDaemon()) {
-            prop.put("daemon", "true");
+            prop.setProperty("daemon", "true");
         } else {
-            prop.put("daemon", setting.getDaemon().toString());
+            prop.setProperty("daemon", setting.getDaemon().toString());
         }
         if (null == setting.getJarUpdateWatch()) {
-            prop.put("jarUpdateWatch", "true");
+            prop.setProperty("jarUpdateWatch", "true");
         } else {
-            prop.put("jarUpdateWatch", setting.getJarUpdateWatch().toString());
+            prop.setProperty("jarUpdateWatch", setting.getJarUpdateWatch().toString());
         }
-        PropertyFileUtils.writeProperty(file, prop);
+        PropertyFileUtils.storeProperties(file, prop);
     }
 
     @Override

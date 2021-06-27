@@ -1,6 +1,12 @@
 package com.mz.jarboot.core.utils;
 
+import com.mz.jarboot.core.cmd.model.ClassDetailVO;
+import com.mz.jarboot.core.cmd.model.ClassVO;
 import com.mz.jarboot.core.cmd.model.FieldVO;
+import com.mz.jarboot.core.cmd.view.ObjectView;
+import com.mz.jarboot.core.cmd.view.element.Element;
+import com.mz.jarboot.core.cmd.view.element.TableElement;
+import com.mz.jarboot.core.cmd.view.element.TreeElement;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -49,55 +55,55 @@ public class TypeRenderUtils {
         return StringUtils.concat("\n", exceptionTypes);
     }
 
-//    public static Element drawSuperClass(ClassDetailVO clazz) {
-//        return drawTree(clazz.getSuperClass());
-//    }
-//
-//    public static Element drawClassLoader(ClassVO clazz) {
-//        String[] classloaders = clazz.getClassloader();
-//        return drawTree(classloaders);
-//    }
+    public static Element drawSuperClass(ClassDetailVO clazz) {
+        return drawTree(clazz.getSuperClass());
+    }
 
-//    public static Element drawTree(String[] nodes) {
-//        TreeElement root = new TreeElement();
-//        TreeElement parent = root;
-//        for (String node : nodes) {
-//            TreeElement child = new TreeElement(label(node));
-//            parent.addChild(child);
-//            parent = child;
-//        }
-//        return root;
-//    }
+    public static Element drawClassLoader(ClassVO clazz) {
+        String[] classloaders = clazz.getClassloader();
+        return drawTree(classloaders);
+    }
 
-//    public static Element drawField(ClassDetailVO clazz, Integer expand) {
-//        TableElement fieldsTable = new TableElement(1).leftCellPadding(0).rightCellPadding(0);
-//        FieldVO[] fields = clazz.getFields();
-//        if (fields == null || fields.length == 0) {
-//            return fieldsTable;
-//        }
-//
-//        for (FieldVO field : fields) {
-//            TableElement fieldTable = new TableElement().leftCellPadding(0).rightCellPadding(1);
-//            fieldTable.row("name", field.getName())
-//                    .row("type", field.getType())
-//                    .row("modifier", field.getModifier());
-//
-//            String[] annotations = field.getAnnotations();
-//            if (annotations != null && annotations.length > 0) {
-//                fieldTable.row("annotation", drawAnnotation(annotations));
-//            }
-//
-//            if (field.isStatic()) {
-//                Object o = (expand != null && expand >= 0) ? new ObjectView(field.getValue(), expand).draw() : field.getValue();
-//                fieldTable.row("value", StringUtils.objectToString(o));
-//            }
-//
-//            fieldTable.row(label(""));
-//            fieldsTable.row(fieldTable);
-//        }
-//
-//        return fieldsTable;
-//    }
+    public static Element drawTree(String[] nodes) {
+        TreeElement root = new TreeElement();
+        TreeElement parent = root;
+        for (String node : nodes) {
+            TreeElement child = new TreeElement(node);
+            parent.addChild(child);
+            parent = child;
+        }
+        return root;
+    }
+
+    public static Element drawField(ClassDetailVO clazz, Integer expand) {
+        TableElement fieldsTable = new TableElement();
+        FieldVO[] fields = clazz.getFields();
+        if (fields == null || fields.length == 0) {
+            return fieldsTable;
+        }
+
+        for (FieldVO field : fields) {
+            TableElement fieldTable = new TableElement();
+            fieldTable.row("name", field.getName())
+                    .row("type", field.getType())
+                    .row("modifier", field.getModifier());
+
+            String[] annotations = field.getAnnotations();
+            if (annotations != null && annotations.length > 0) {
+                fieldTable.row("annotation", drawAnnotation(annotations));
+            }
+
+            if (field.isStatic()) {
+                Object o = (expand != null && expand >= 0) ? new ObjectView(field.getValue(), expand).draw() : field.getValue();
+                fieldTable.row("value", StringUtils.objectToString(o));
+            }
+
+            fieldTable.row("");
+            fieldsTable.row(fieldTable);
+        }
+
+        return fieldsTable;
+    }
 
     public static String drawAnnotation(String... annotations) {
         return StringUtils.concat(",", annotations);

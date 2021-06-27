@@ -61,9 +61,11 @@ export default {
     //帮助
     BASIC: 'Basic',
     QUICK_START: 'Quick start',
+    ADVANCED: 'Advanced',
     COMMAND_LIST: 'Command list',
+    PROP_FILE: 'Property file',
     //快速开始
-    QUICK_START_P1: `Visit the {github} to get more help, or visit Gitee image warehouse.`,
+    QUICK_START_P1: `Project homepage: {github} or Gitee image warehouse`,
     QUICK_START_P2: `When you enter this interface, it means that you have built and start it, and the next thing you need to do is put the jar files you developed into the directory. By default, no configuration is made，create a folder named {dir} in the directory jarboot as the service root path. In this path create the fold which it's name as it's service name, then put the jar files under sub file.`,
     QUICK_START_P3: `Default directory structure: `,
     QUICK_START_P4: `You can modify the default path by {key2} in the {key1} interface. You need to set the jar file name which include the Main Class by {key4} in the {key3} interface when you have multiple jar files.`,
@@ -83,11 +85,9 @@ export default {
     SETTING_P9: `:The higher the start priority, the higher the start priority, and the parallel start priority with the same value will wait for the service of the previous level to start before the next level starts. When the service is shut down, it stops in reverse order.`,
     SETTING_P10: `:Specifies whether the service needs to be guarded. If it is enabled, jarboot will restart the service automatically when it is shut down abnormally.`,
     SETTING_P11: `:Specify whether to monitor the update of the service directory. After opening, if the file under the service directory is monitored to be updated, the service will be automatically restarted. If it is updated many times in a period of time, it will only be restarted at the end (anti jitter design). In addition, it is recommended that temporary files such as logs should not be in the directory of the service, because the update of sub files will be misjudged as an update with executable files.`,
-    //命令
+    //进阶
     USAGE_DEMO: 'Use reference',
-    JVM_DESC: 'View current JVM information',
-    BYTES_DESC: 'View the bytecode of the specified class',
-    JAD_DESC: 'Decompile the specified classes.',
-    DASHBOARD_DESC: `This is the real time statistics dashboard for the current system, click x to exit.\n
-When running in Apache Tomcat Alibaba edition, the dashboard will also present the real time statistics of the tomcat, including QPS, RT, error counts, and thread pool, etc.`,
+    PROP_FILE_DESC: 'Property file jarboot.properties',
+    CMD_LIST_DESC: `Execute debug command`,
+    CMD_LIST_HELP: `Debug command supported, more help goto online document.`,
 };

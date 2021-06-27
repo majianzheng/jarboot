@@ -16,6 +16,7 @@ import OneClickButtons from "@/components/servers/OneClickButtons";
 // @ts-ignore
 import CommonTable from "../commonTable/CommonTable";
 import UploadFileModal from "@/components/servers/UploadFileModal";
+import StringUtil from "@/common/StringUtil";
 
 interface ServerRunning {
     name: string,
@@ -41,7 +42,7 @@ export default class ServerMgrView extends React.PureComponent {
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandComplete);
+        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
     }
 
     componentWillUnmount() {
@@ -109,8 +110,8 @@ export default class ServerMgrView extends React.PureComponent {
         pubsub.publish(data.server, 'appendLine', data.body);
     }
 
-    private _commandComplete = (data: MsgData) => {
-        pubsub.publish(data.server, PUB_TOPIC.CMD_OVER, data.body);
+    private _commandEnd = (data: MsgData) => {
+        pubsub.publish(data.server, PUB_TOPIC.CMD_END, data.body);
     }
 
     private _updateServerStatus(server: string, status: string) {
@@ -334,9 +335,8 @@ export default class ServerMgrView extends React.PureComponent {
             CommonNotice.info('请选择一个服务后操作');
             return;
         }
-        const status: any = this.state.selectRows[0]?.status;
-        if (JarBootConst.STATUS_STARTED !== status) {
-            CommonNotice.info('服务未启动');
+        if (StringUtil.isEmpty(this.state.current)) {
+            CommonNotice.info('请点击选择一个服务执行');
             return;
         }
         pubsub.publish(this.state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");

@@ -21,8 +21,7 @@ export default class SettingService {
      * @param setting 配置信息
      */
     public static submitServerSetting(server: string, setting: any) {
-        Request.post(`${settingUrl}/submitServerSetting?server=${server}`, setting
-        ).then(requestFinishCallback).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        return Request.post(`${settingUrl}/submitServerSetting?server=${server}`, setting);
     }
 
     /**
@@ -38,7 +37,6 @@ export default class SettingService {
      * @param setting 配置信息
      */
     public static submitGlobalSetting(setting: any) {
-        Request.post(`${settingUrl}/submitGlobalSetting`, setting
-        ).then(requestFinishCallback).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        return  Request.post(`${settingUrl}/submitGlobalSetting`, setting);
     }
 }

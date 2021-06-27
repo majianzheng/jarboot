@@ -61,9 +61,4 @@ public class StdOutCommand extends Command {
         }
         session.end();
     }
-
-    @Override
-    public void complete() {
-        session.end();
-    }
 }

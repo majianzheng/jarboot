@@ -140,10 +140,16 @@ public class EnvironmentContext {
                 return;
             }
         }
+
         //开始执行命令，更新正在执行的命令
         session.setRunning();
         runningCommandMap.put(session.getSessionId(), command);
-        command.run();
+        try {
+            command.run();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            session.end(false, e.getMessage());
+        }
     }
 
     /**
@@ -154,7 +160,6 @@ public class EnvironmentContext {
         Command command = runningCommandMap.getOrDefault(sessionId, null);
         if (null != command) {
             command.cancel();
-            command.complete();
             runningCommandMap.remove(sessionId);
         }
         CommandSession session = sessionMap.getOrDefault(sessionId, null);

@@ -7,6 +7,7 @@ import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -57,6 +58,7 @@ public class AgentManager {
                 client.setState(ClientState.OFFLINE);
             }
         }
+        WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
     }
 
     public boolean isOnline(String server) {
@@ -106,8 +108,7 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            WebSocketManager.getInstance().sendConsole(server, "未在线，无法执行命令", sessionId);
-            WebSocketManager.getInstance().commandEnd(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, "未在线，无法执行命令", sessionId);
         } else {
             client.sendCommand(command, sessionId);
         }
@@ -115,14 +116,14 @@ public class AgentManager {
 
     public CommandResponse sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
-            WebSocketManager.getInstance().commandEnd(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
             return new CommandResponse();
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
-            WebSocketManager.getInstance().commandEnd(server, sessionId);
+            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
             return resp;
         }
         return client.sendInternalCommand(command, sessionId);
@@ -141,11 +142,12 @@ public class AgentManager {
             case JSON_RESULT:
                 WebSocketManager.getInstance().renderJson(server, resp.getBody(), sessionId);
                 break;
-            case COMPLETE:
-                if (Boolean.FALSE.equals(resp.getSuccess())) {
-                    WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+            case COMMAND_END:
+                String msg = resp.getBody();
+                if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
+                    msg = String.format("<span style=\"color:red\">%s</span>", resp.getBody());
                 }
-                WebSocketManager.getInstance().commandEnd(server, sessionId);
+                WebSocketManager.getInstance().commandEnd(server, msg, sessionId);
                 break;
             default:
                 //do nothing

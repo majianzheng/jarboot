@@ -1,8 +1,7 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.core.basic.SingletonCoreFactory;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
-import org.thymeleaf.TemplateEngine;
+import com.mz.jarboot.core.utils.HtmlRenderUtils;
 import org.thymeleaf.context.Context;
 
 /**
@@ -10,9 +9,8 @@ import org.thymeleaf.context.Context;
  */
 public class SysPropView implements ResultView<SysPropModel> {
     public String render(SysPropModel model) {
-        TemplateEngine engine = SingletonCoreFactory.getInstance().createTemplateEngine();
         Context context = new Context();
         context.setVariable("props", model.getProps());
-        return engine.process("template/SysPropView.html", context);
+        return HtmlRenderUtils.getInstance().processHtml("template/SysPropView.html", context);
     }
 }

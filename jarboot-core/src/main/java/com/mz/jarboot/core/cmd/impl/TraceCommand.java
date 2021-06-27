@@ -183,9 +183,4 @@ public class TraceCommand extends EnhancerCommand {
     private Matcher<String> getPathTracingMethodMatcher() {
         return new TrueMatcher<>();
     }
-
-    @Override
-    public void complete() {
-        session.end();
-    }
 }

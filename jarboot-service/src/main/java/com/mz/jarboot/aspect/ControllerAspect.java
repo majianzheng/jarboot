@@ -1,6 +1,6 @@
 package com.mz.jarboot.aspect;
 
-import com.mz.jarboot.aop.annotation.Permit;
+import com.mz.jarboot.aop.annotation.Permission;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 
 @Aspect
 @Component
+@SuppressWarnings("all")
 public class ControllerAspect {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     //切入所有controller的public方法
@@ -38,13 +39,13 @@ public class ControllerAspect {
     }
 
     @Around("pointcut()")
-    public Object afterThrowing(ProceedingJoinPoint proceedingJoinPoint) {
+    public Object around(ProceedingJoinPoint proceedingJoinPoint) {
         Object obj;
         if (proceedingJoinPoint.getSignature() instanceof MethodSignature) {
             MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
             Method method = signature.getMethod();
-            Permit action = method.getAnnotation(Permit.class);
-            if (null != action) {
+            Permission permission = method.getAnnotation(Permission.class);
+            if (null != permission) {
                 //todo jwt鉴权（待实现），为了不引入过于庞大沉重的spring security，此处使用aop简易实现
                 checkPermit();
             }

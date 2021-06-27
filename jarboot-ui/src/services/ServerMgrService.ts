@@ -2,6 +2,7 @@ import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 import {requestFinishCallback} from "@/common/JarBootConst";
+import StringUtil from "@/common/StringUtil";
 
 const urlBase = "/jarboot-service";
 
@@ -74,5 +75,16 @@ export default class ServerMgrService {
         ).then(requestFinishCallback).catch(error => {
             CommonNotice.error(ErrorUtil.formatErrResp(error));
         });
+    }
+
+    /**
+     * base64编码
+     * @param data
+     */
+    public static base64Encoder(data: string) {
+        if (StringUtil.isEmpty(data)) {
+            return Promise.resolve();
+        }
+        return Request.get(`${urlBase}/base64Encoder`, {data});
     }
 }

@@ -110,12 +110,12 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void end() {
-        end(true, null);
+        end(true, CoreConstant.EMPTY_STRING);
     }
 
     @Override
     public void end(boolean success) {
-        end(success, null);
+        end(success, CoreConstant.EMPTY_STRING);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class CommandSessionImpl implements CommandSession {
 
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(success);
-        resp.setResponseType(ResponseType.COMPLETE);
+        resp.setResponseType(ResponseType.COMMAND_END);
         resp.setBody(message);
         resp.setSessionId(this.sessionId);
         distributor.write(resp);

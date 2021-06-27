@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.internal;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.Command;
 
-public class CancelCommandImpl extends InternalCommand {
+public class CancelCommand extends InternalCommand {
     @Override
     public void run() {
         Command current = EnvironmentContext.getCurrentCommand(session.getSessionId());

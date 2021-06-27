@@ -19,10 +19,4 @@ public abstract class InternalCommand extends Command {
 
     @Override
     public abstract void run();
-
-
-    @Override
-    public final void complete() {
-        //do nothing
-    }
 }

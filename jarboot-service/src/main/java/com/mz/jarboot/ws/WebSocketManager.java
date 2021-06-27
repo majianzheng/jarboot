@@ -76,20 +76,20 @@ public class WebSocketManager {
         this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
     }
 
-    public void commandEnd(String server) {
-        String msg = formatMsg(server, WsEventEnum.CMD_END, null);
+    public void commandEnd(String server, String body) {
+        String msg = formatMsg(server, WsEventEnum.CMD_END, body);
         this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
     }
 
-    public void commandEnd(String server, String sessionId) {
+    public void commandEnd(String server, String body, String sessionId) {
         if (CommandConst.SESSION_COMMON.equals(sessionId)) {
             //广播session的id
-            commandEnd(server);
+            commandEnd(server, body);
             return;
         }
         Session session = this.sessionMap.getOrDefault(sessionId, null);
         if (null != session) {
-            String msg = formatMsg(server, WsEventEnum.CMD_END, null);
+            String msg = formatMsg(server, WsEventEnum.CMD_END, body);
             sendTextMessage(session, msg);
         }
     }

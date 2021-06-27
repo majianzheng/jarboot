@@ -27,7 +27,13 @@ const GlobalSetting: any = memo(() => {
     };
     useEffect(() => onReset());
     const onSubmit = (data: any) => {
-        SettingService.submitGlobalSetting(data);
+        SettingService.submitGlobalSetting(data).then(resp => {
+            if (0 === resp?.resultCode) {
+                CommonNotice.info("提交成功！")
+            } else {
+                CommonNotice.error(ErrorUtil.formatErrResp(resp))
+            }
+        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     };
 
     return (

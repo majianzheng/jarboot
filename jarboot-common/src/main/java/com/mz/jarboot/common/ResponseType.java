@@ -5,6 +5,6 @@ public enum ResponseType {
     ACK,
     CONSOLE,
     JSON_RESULT,
-    COMPLETE,
+    COMMAND_END,
     UNKNOWN
 }

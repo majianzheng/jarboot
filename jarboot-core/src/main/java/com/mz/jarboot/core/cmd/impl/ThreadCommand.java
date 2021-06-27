@@ -7,10 +7,8 @@ import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.session.ExitStatus;
 import com.mz.jarboot.core.utils.ArrayUtils;
-import com.mz.jarboot.core.utils.CommandUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 import java.lang.Thread.State;
@@ -116,23 +114,17 @@ public class ThreadCommand extends Command {
     public void run() {
         ExitStatus exitStatus;
         if (id > 0) {
-            exitStatus = processThread(session);
+            processThread();
         } else if (topNBusy != null) {
-            exitStatus = processTopBusyThreads(session);
+            processTopBusyThreads();
         } else if (findMostBlockingThread) {
-            exitStatus = processBlockingThread(session);
+            processBlockingThread();
         } else {
-            exitStatus = processAllThreads(session);
+            processAllThreads();
         }
-        CommandUtils.end(session, exitStatus);
     }
 
-    @Override
-    public void complete() {
-        session.end();
-    }
-
-    private ExitStatus processAllThreads(CommandSession process) {
+    private void processAllThreads() {
         List<ThreadVO> threads = ThreadUtil.getThreads();
 
         // 统计各种线程状态
@@ -159,7 +151,8 @@ public class ThreadCommand extends Command {
                     }
                 }
             } else {
-                return ExitStatus.failure(1, "Illegal argument, state should be one of " + states);
+                session.end(false, "Illegal argument, state should be one of " + states);
+                return;
             }
         } else {
             resultThreads = threads;
@@ -172,20 +165,21 @@ public class ThreadCommand extends Command {
         threadSampler.pause(sampleInterval);
         List<ThreadVO> threadStats = threadSampler.sample(resultThreads);
 
-        process.appendResult(new ThreadModel(threadStats, stateCountMap, all));
-        return ExitStatus.success();
+        session.appendResult(new ThreadModel(threadStats, stateCountMap, all));
+        session.end();
     }
 
-    private ExitStatus processBlockingThread(CommandSession process) {
+    private void processBlockingThread() {
         BlockingLockInfo blockingLockInfo = ThreadUtil.findMostBlockingLock();
         if (blockingLockInfo.getThreadInfo() == null) {
-            return ExitStatus.failure(1, "No most blocking thread found!");
+            session.end(false, "No most blocking thread found!");
+            return;
         }
-        process.appendResult(new ThreadModel(blockingLockInfo));
-        return ExitStatus.success();
+        session.appendResult(new ThreadModel(blockingLockInfo));
+        session.end();
     }
 
-    private ExitStatus processTopBusyThreads(CommandSession process) {
+    private void processTopBusyThreads() {
         com.mz.jarboot.core.cmd.impl.ThreadSampler threadSampler = new com.mz.jarboot.core.cmd.impl.ThreadSampler();
         threadSampler.sample(ThreadUtil.getThreads());
         threadSampler.pause(sampleInterval);
@@ -209,7 +203,8 @@ public class ThreadCommand extends Command {
 
         ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(ArrayUtils.toPrimitive(tids.toArray(new Long[0])), lockedMonitors, lockedSynchronizers);
         if (tids.size()> 0 && threadInfos == null) {
-            return ExitStatus.failure(1, "get top busy threads failed");
+            session.end(false, "get top busy threads failed");
+            return;
         }
 
         //threadInfo with cpuUsage
@@ -219,8 +214,8 @@ public class ThreadCommand extends Command {
             BusyThreadInfo busyThread = new BusyThreadInfo(thread, threadInfo);
             busyThreadInfos.add(busyThread);
         }
-        process.appendResult(new ThreadModel(busyThreadInfos));
-        return ExitStatus.success();
+        session.appendResult(new ThreadModel(busyThreadInfos));
+        session.end();
     }
 
     private ThreadInfo findThreadInfoById(ThreadInfo[] threadInfos, long id) {
@@ -233,13 +228,14 @@ public class ThreadCommand extends Command {
         return null;
     }
 
-    private ExitStatus processThread(CommandSession process) {
+    private void processThread() {
         ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(new long[]{id}, lockedMonitors, lockedSynchronizers);
         if (threadInfos == null || threadInfos.length < 1 || threadInfos[0] == null) {
-            return ExitStatus.failure(1, "thread do not exist! id: " + id);
+            session.end(false, "thread do not exist! id: " + id);
+            return;
         }
 
-        process.appendResult(new ThreadModel(threadInfos[0]));
-        return ExitStatus.success();
+        session.appendResult(new ThreadModel(threadInfos[0]));
+        session.end();
     }
 }

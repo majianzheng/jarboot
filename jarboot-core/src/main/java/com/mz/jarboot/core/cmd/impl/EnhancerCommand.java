@@ -98,11 +98,6 @@ public abstract class EnhancerCommand extends Command {
         enhance(session);
     }
 
-    @Override
-    public void complete() {
-        //todo
-    }
-
     protected void enhance(CommandSession process) {
         EnhancerAffect effect = null;
         try {

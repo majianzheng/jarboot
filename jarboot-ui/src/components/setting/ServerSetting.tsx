@@ -43,7 +43,13 @@ const ServerSetting = memo(() => {
                 selectedKeys={[current]}
                 mode="inline"
             >
-                <Menu.ItemGroup title={<div><SyncOutlined style={{color: 'green'}} onClick={query}/>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</div>}>
+                <Menu.ItemGroup title={<span>
+                    <span>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</span>
+                    <Button type={"link"} onClick={query} style={{marginLeft: "50px"}}
+                            icon={<SyncOutlined style={{color: 'green'}}/>}>
+                        {intl.formatMessage({id: 'REFRESH_BTN'})}
+                    </Button>
+                </span>}>
                     <Menu.Divider/>
                     {data.map((item: any) => {
                         return <Menu.Item key={item.name}>{item.name}</Menu.Item>

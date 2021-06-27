@@ -39,7 +39,7 @@ public class PropertyFileUtils {
 
     public static void storeProperties(File file, Properties properties) {
         try (FileOutputStream fos = new FileOutputStream(file, false)) {
-            properties.store(fos, "properties store.");
+            properties.store(fos, "Properties file Jarboot created.");
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -76,10 +76,12 @@ public class PropertyFileUtils {
             return setting;
         }
         String jar = properties.getProperty("jar", "");
-        if (checkFileExist(serverPath + File.separator + jar)) {
-            setting.setJar(jar);
-        } else {
-            logger.warn("配置的启动jar文件({})不存在", jar);
+        if (StringUtils.isNotEmpty(jar)) {
+            if (checkFileExist(serverPath + File.separator + jar)) {
+                setting.setJar(jar);
+            } else {
+                logger.warn("配置的启动jar文件({})不存在", jar);
+            }
         }
 
         String jvm = properties.getProperty("jvm", "");

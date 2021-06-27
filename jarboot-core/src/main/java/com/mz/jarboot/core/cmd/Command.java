@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.Completion;
 
 /**
  * The command abstract class which defined the common behave.
@@ -31,5 +32,7 @@ public abstract class Command {
 
     public abstract void run();
 
-    public abstract void complete();
+    public void complete(Completion completion) {
+        // default do nothing
+    }
 }

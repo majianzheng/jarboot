@@ -1,14 +1,19 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.core.basic.SingletonCoreFactory;
+import com.mz.jarboot.core.cmd.model.ChangeResultVO;
 import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
+import com.mz.jarboot.core.cmd.view.element.TableElement;
+import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
-import org.thymeleaf.TemplateEngine;
+import com.mz.jarboot.core.utils.HtmlRenderUtils;
+import com.mz.jarboot.core.utils.StringUtils;
 import org.thymeleaf.context.Context;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+
 import static java.lang.String.format;
 
 
@@ -34,34 +39,31 @@ public class ViewRenderUtil {
     /**
      * Render key-value table
      * @param map
-     * @param width
      * @return
      */
-//    public static String renderKeyValueTable(Map<String, String> map, int width) {
-//        TableElement table = new TableElement(1, 4).leftCellPadding(1).rightCellPadding(1);
-//        table.row(true, label("KEY").style(Decoration.bold.bold()), label("VALUE").style(Decoration.bold.bold()));
-//
-//        for (Map.Entry<String, String> entry : map.entrySet()) {
-//            table.row(entry.getKey(), entry.getValue());
-//        }
-//
-//        return RenderUtil.render(table, width);
-//    }
+    public static String renderKeyValueTable(Map<String, String> map) {
+        TableElement table = new TableElement();
+        table.row(true, "KEY", "VALUE");
+
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            table.row(entry.getKey(), entry.getValue());
+        }
+
+        return table.toHtml();
+    }
 
     /**
      * Render change result vo
      * @param result
      * @return
      */
-//    public static TableElement renderChangeResult(ChangeResultVO result) {
-//        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
-//        table.row(true, label("NAME").style(Decoration.bold.bold()),
-//                label("BEFORE-VALUE").style(Decoration.bold.bold()),
-//                label("AFTER-VALUE").style(Decoration.bold.bold()));
-//        table.row(result.getName(), StringUtils.objectToString(result.getBeforeValue()),
-//                StringUtils.objectToString(result.getAfterValue()));
-//        return table;
-//    }
+    public static TableElement renderChangeResult(ChangeResultVO result) {
+        TableElement table = new TableElement();
+        table.row(true, "NAME", "BEFORE-VALUE", "AFTER-VALUE");
+        table.row(result.getName(), StringUtils.objectToString(result.getBeforeValue()),
+                StringUtils.objectToString(result.getAfterValue()));
+        return table;
+    }
 
     /**
      * Render EnhancerAffectVO
@@ -165,12 +167,28 @@ public class ViewRenderUtil {
     }
 
     public static String renderTable(List<String> headers, List<List<String>> rows, String title) {
-        TemplateEngine engine = SingletonCoreFactory.getInstance().createTemplateEngine();
+        return renderTable(headers, rows, title, 1);
+    }
+
+    public static String renderTable(List<String> headers, List<List<String>> rows, String title, int border) {
         Context context = new Context();
+        if (null == headers) {
+            headers = new ArrayList<>();
+        }
+        if (null == rows) {
+            rows = new ArrayList<>();
+        }
+        if (null == title) {
+            title = CoreConstant.EMPTY_STRING;
+        }
+        if (border < 0) {
+            border = 0;
+        }
+        context.setVariable("border", border);
         context.setVariable("headers", headers);
         context.setVariable("rows", rows);
         context.setVariable("title", title);
-        return engine.process("template/TableView.html", context);
+        return HtmlRenderUtils.getInstance().processHtml("template/TableView.html", context);
     }
 
     private static String formatTimeMillsToSeconds(long timeMills) {

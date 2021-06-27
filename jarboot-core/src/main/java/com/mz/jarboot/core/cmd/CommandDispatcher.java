@@ -25,7 +25,6 @@ public class CommandDispatcher {
 
             if (null == command) {
                 logger.warn("解析命令错误！");
-                session.end(false, "command not found.");
                 return;
             }
             logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());

@@ -5,34 +5,19 @@ import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.UnsupportedEncodingException;
 
 /**
- * Singleton core factory for create socket client, thread pool, strategy instance.
+ * WebSocket client factory for create socket client.
  * @author jianzhengma
  */
-public class SingletonCoreFactory {
+public class WsClientFactory {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static volatile SingletonCoreFactory instance = null; //NOSONAR
+    private static volatile WsClientFactory instance = null; //NOSONAR
     private WebSocketClient client = null;
-    private TemplateEngine engine = null;
-    public static SingletonCoreFactory getInstance() {
-        if (null == instance) {
-            synchronized (SingletonCoreFactory.class) {
-                if (null == instance) {
-                    instance = new SingletonCoreFactory();
-                }
-            }
-        }
-        return instance;
-    }
-    public synchronized WebSocketClient createSingletonClient(MessageHandler handler) {
-        if (null != client) {
-            return client;
-        }
+
+    private WsClientFactory() {
         String server = EnvironmentContext.getServer();
         //服务目录名支持中文，检查到中文后进行编码
         java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[\\u4e00-\\u9fa5]").matcher(server);
@@ -42,7 +27,7 @@ public class SingletonCoreFactory {
                 server = server.replaceAll(tmp, java.net.URLEncoder.encode(tmp, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 logger.error(e.getMessage(), e);
-                return null;
+                return;
             }
         }
 
@@ -50,26 +35,25 @@ public class SingletonCoreFactory {
                 EnvironmentContext.getHost(), server);
         logger.debug("initClient {}", url);
         client = new WebSocketClient(url);
+    }
+
+    public static WsClientFactory getInstance() {
+        if (null == instance) {
+            synchronized (WsClientFactory.class) {
+                if (null == instance) {
+                    instance = new WsClientFactory();
+                }
+            }
+        }
+        return instance;
+    }
+    public synchronized WebSocketClient createSingletonClient(MessageHandler handler) {
         boolean isOk = client.connect(handler);
         if (!isOk) {
             logger.warn("连接jarboot-server服务失败");
             client.disconnect();
-            client = null;
-            return null;
         }
-        logger.info("createSingletonClient>>>>");
         return client;
-    }
-
-    public TemplateEngine createTemplateEngine() {
-        if (null != engine) {
-            return engine;
-        }
-        engine = new TemplateEngine();
-        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-        resolver.setCharacterEncoding("UTF-8");
-        engine.setTemplateResolver(resolver);
-        return engine;
     }
 
     public WebSocketClient getSingletonClient() {

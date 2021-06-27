@@ -66,11 +66,6 @@ public class SysPropCommand extends Command {
             model.addProp(propertyName, System.getProperty(propertyName));
             session.appendResult(model);
         }
-        complete();
-    }
-
-    @Override
-    public void complete() {
         session.end();
     }
 }

@@ -152,13 +152,6 @@ public class JvmCommand extends Command {
         session.appendResult(model);
 
         //一次性类型命令直接结束
-        complete();
-    }
-
-    @Override
-    public void complete() {
-        if (null != session) {
-            session.end();
-        }
+        session.end();
     }
 }

@@ -61,9 +61,11 @@ export default {
     //帮助
     BASIC: '基础',
     QUICK_START: '快速开始',
+    ADVANCED: '进阶',
     COMMAND_LIST: '命令列表',
+    PROP_FILE: '配置文件',
     //快速开始
-    QUICK_START_P1: `访问{github}获取更多详细帮助, 或者访问Gitee镜像仓库。`,
+    QUICK_START_P1: `项目主页：{github}或者Gitee镜像仓库`,
     QUICK_START_P2: `当你进入到这个界面时，说明你已经搭建并启动好了Jarboot，接下来你要做的是将你自己开发的jar文件放入到约定到目录下。在未做任何配置的默认情况下，在jarboot的目录下创建一个名为{dir}文件夹，作为服务的根目录。在此根目录下，创建的子文件夹的名称即为服务的名称，在子文件下放入要启动的jar文件。`,
     QUICK_START_P3: `默认的目录结构：`,
     QUICK_START_P4: `可以通过{key1}界面中的{key2}修改默认的目录。如果有多个jar文件，则需要在{key3}界面中的{key4}设定Main Class所在的jar文件名称。`,
@@ -83,11 +85,9 @@ export default {
     SETTING_P9: `：启动的优先级，值越大的先启动，值相同的并行启动，会等待前一级别的服务先启动完成才会进行下一等级的启动。服务关闭时则按照相反的顺序依次停止。`,
     SETTING_P10: `：指定该服务是否需要守护，如果开启了守护，则当该服务异常关闭时jarboot会自动将它重新启动。`,
     SETTING_P11: `：指定是否监控服务目录的更新，开启后，如果监控到服务目录下的文件有更新，会自动重启服务。如果一段时间内更新了很多次，则只会在最后重启依次（防抖动设计）。另外建议日志等临时文件不要在服务的目录下，因为子文件的更新会误判为有可执行文件的更新。`,
-    //命令
+    //进阶
     USAGE_DEMO: '使用参考',
-    JVM_DESC: '查看当前JVM信息',
-    BYTES_DESC: '查看指定类的字节码',
-    JAD_DESC: '反编译指定已加载类的源码',
-    DASHBOARD_DESC: `当前系统的实时数据面板，点击 x 退出。\n
-当运行在Ali-tomcat时，会显示当前tomcat的实时信息，如HTTP请求的qps, rt, 错误数, 线程池信息等等。`,
+    PROP_FILE_DESC: '配置文件jarboot.properties',
+    CMD_LIST_DESC: `执行调试命令`,
+    CMD_LIST_HELP: `支持的调试命令, 更多的帮助请访问在线文档。`,
 };

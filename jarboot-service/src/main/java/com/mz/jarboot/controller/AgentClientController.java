@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Api(tags="代理客户端开放接口（非开放，内部使用）", hidden = true)
+@Api(tags="内部接口（非开放）", hidden = true)
 @RequestMapping(value = "/api/agent", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
 public class AgentClientController {

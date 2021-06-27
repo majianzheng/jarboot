@@ -5,6 +5,9 @@ import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
 import com.mz.jarboot.core.cmd.model.ClassVO;
 import com.mz.jarboot.core.cmd.model.MethodVO;
+import com.mz.jarboot.core.cmd.view.element.Element;
+import com.mz.jarboot.core.cmd.view.element.TableElement;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.CodeSource;
@@ -33,38 +36,38 @@ public class ClassUtils {
         return clazz.getName().contains("$$Lambda$");
     }
 
-//    public static Element renderClassInfo(ClassDetailVO clazz) {
-//        return renderClassInfo(clazz, false, null);
-//    }
+    public static TableElement renderClassInfo(ClassDetailVO clazz) {
+        return renderClassInfo(clazz, false, null);
+    }
 
-//    public static Element renderClassInfo(ClassDetailVO clazz, boolean isPrintField, Integer expand) {
-//        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
-//
-//        table.row(label("class-info").style(Decoration.bold.bold()), label(clazz.getClassInfo()))
-//                .row(label("code-source").style(Decoration.bold.bold()), label(clazz.getCodeSource()))
-//                .row(label("name").style(Decoration.bold.bold()), label(clazz.getName()))
-//                .row(label("isInterface").style(Decoration.bold.bold()), label("" + clazz.isInterface()))
-//                .row(label("isAnnotation").style(Decoration.bold.bold()), label("" + clazz.isAnnotation()))
-//                .row(label("isEnum").style(Decoration.bold.bold()), label("" + clazz.isEnum()))
-//                .row(label("isAnonymousClass").style(Decoration.bold.bold()), label("" + clazz.isAnonymousClass()))
-//                .row(label("isArray").style(Decoration.bold.bold()), label("" + clazz.isArray()))
-//                .row(label("isLocalClass").style(Decoration.bold.bold()), label("" + clazz.isLocalClass()))
-//                .row(label("isMemberClass").style(Decoration.bold.bold()), label("" + clazz.isMemberClass()))
-//                .row(label("isPrimitive").style(Decoration.bold.bold()), label("" + clazz.isPrimitive()))
-//                .row(label("isSynthetic").style(Decoration.bold.bold()), label("" + clazz.isSynthetic()))
-//                .row(label("simple-name").style(Decoration.bold.bold()), label(clazz.getSimpleName()))
-//                .row(label("modifier").style(Decoration.bold.bold()), label(clazz.getModifier()))
-//                .row(label("annotation").style(Decoration.bold.bold()), label(StringUtils.join(clazz.getAnnotations(), ",")))
-//                .row(label("interfaces").style(Decoration.bold.bold()), label(StringUtils.join(clazz.getInterfaces(), ",")))
-//                .row(label("super-class").style(Decoration.bold.bold()), TypeRenderUtils.drawSuperClass(clazz))
-//                .row(label("class-loader").style(Decoration.bold.bold()), TypeRenderUtils.drawClassLoader(clazz))
-//                .row(label("classLoaderHash").style(Decoration.bold.bold()), label(clazz.getClassLoaderHash()));
-//
-//        if (isPrintField) {
-//            table.row(label("fields").style(Decoration.bold.bold()), TypeRenderUtils.drawField(clazz, expand));
-//        }
-//        return table;
-//    }
+    public static TableElement renderClassInfo(ClassDetailVO clazz, boolean isPrintField, Integer expand) {
+        TableElement table = new TableElement();
+
+        table.row("class-info", clazz.getClassInfo())
+                .row("code-source", clazz.getCodeSource())
+                .row("name", clazz.getName())
+                .row("isInterface", ("" + clazz.isInterface()))
+                .row("isAnnotation", "" + clazz.isAnnotation())
+                .row("isEnum", ("" + clazz.isEnum()))
+                .row("isAnonymousClass", ("" + clazz.isAnonymousClass()))
+                .row("isArray", ("" + clazz.isArray()))
+                .row("isLocalClass", ("" + clazz.isLocalClass()))
+                .row("isMemberClass", ("" + clazz.isMemberClass()))
+                .row("isPrimitive", ("" + clazz.isPrimitive()))
+                .row("isSynthetic", ("" + clazz.isSynthetic()))
+                .row("simple-name", (clazz.getSimpleName()))
+                .row("modifier", (clazz.getModifier()))
+                .row("annotation", (StringUtils.join(clazz.getAnnotations(), ",")))
+                .row("interfaces", (StringUtils.join(clazz.getInterfaces(), ",")))
+                .row("super-class", TypeRenderUtils.drawSuperClass(clazz).toHtml())
+                .row("class-loader", TypeRenderUtils.drawClassLoader(clazz).toHtml())
+                .row("classLoaderHash", (clazz.getClassLoaderHash()));
+
+        if (isPrintField) {
+            table.row("fields", TypeRenderUtils.drawField(clazz, expand).toHtml());
+        }
+        return table;
+    }
 
     public static ClassDetailVO createClassInfo(Class clazz, boolean withFields) {
         CodeSource cs = clazz.getProtectionDomain().getCodeSource();
@@ -139,30 +142,30 @@ public class ClassUtils {
         return methodVO;
     }
 
-//    public static Element renderMethod(MethodVO method) {
-//        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
-//        table.row(label("declaring-class").style(bold.bold()), label(method.getDeclaringClass()))
-//                .row(label("method-name").style(bold.bold()), label(method.getMethodName()).style(bold.bold()))
-//                .row(label("modifier").style(bold.bold()), label(method.getModifier()))
-//                .row(label("annotation").style(bold.bold()), label(TypeRenderUtils.drawAnnotation(method.getAnnotations())))
-//                .row(label("parameters").style(bold.bold()), label(TypeRenderUtils.drawParameters(method.getParameters())))
-//                .row(label("return").style(bold.bold()), label(method.getReturnType()))
-//                .row(label("exceptions").style(bold.bold()), label(TypeRenderUtils.drawExceptions(method.getExceptions())))
-//                .row(label("classLoaderHash").style(bold.bold()), label(method.getClassLoaderHash()));
-//        return table;
-//    }
-//
-//    public static Element renderConstructor(MethodVO constructor) {
-//        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
-//        table.row(label("declaring-class").style(bold.bold()), label(constructor.getDeclaringClass()))
-//                .row(label("constructor-name").style(bold.bold()), label("<init>").style(bold.bold()))
-//                .row(label("modifier").style(bold.bold()), label(constructor.getModifier()))
-//                .row(label("annotation").style(bold.bold()), label(TypeRenderUtils.drawAnnotation(constructor.getAnnotations())))
-//                .row(label("parameters").style(bold.bold()), label(TypeRenderUtils.drawParameters(constructor.getParameters())))
-//                .row(label("exceptions").style(bold.bold()), label(TypeRenderUtils.drawExceptions(constructor.getExceptions())))
-//                .row(label("classLoaderHash").style(bold.bold()), label(constructor.getClassLoaderHash()));
-//        return table;
-//    }
+    public static TableElement renderMethod(MethodVO method) {
+        TableElement table = new TableElement();
+        table.row("declaring-class", (method.getDeclaringClass()))
+                .row("method-name", (method.getMethodName()))
+                .row("modifier", (method.getModifier()))
+                .row("annotation", (TypeRenderUtils.drawAnnotation(method.getAnnotations())))
+                .row("parameters", (TypeRenderUtils.drawParameters(method.getParameters())))
+                .row("return", (method.getReturnType()))
+                .row("exceptions", (TypeRenderUtils.drawExceptions(method.getExceptions())))
+                .row("classLoaderHash", (method.getClassLoaderHash()));
+        return table;
+    }
+
+    public static TableElement renderConstructor(MethodVO constructor) {
+        TableElement table = new TableElement();
+        table.row("declaring-class", (constructor.getDeclaringClass()))
+                .row("constructor-name", "<init>")
+                .row("modifier", (constructor.getModifier()))
+                .row("annotation", (TypeRenderUtils.drawAnnotation(constructor.getAnnotations())))
+                .row("parameters", (TypeRenderUtils.drawParameters(constructor.getParameters())))
+                .row("exceptions", (TypeRenderUtils.drawExceptions(constructor.getExceptions())))
+                .row("classLoaderHash", (constructor.getClassLoaderHash()));
+        return table;
+    }
 
     public static String[] getClassNameList(Class[] classes) {
         List<String> list = new ArrayList<String>();
@@ -212,18 +215,13 @@ public class ClassUtils {
         return Integer.toHexString(classLoader.hashCode());
     }
 
-//    public static Element renderMatchedClasses(Collection<ClassVO> matchedClasses) {
-//        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
-//        table.row(new LabelElement("NAME").style(Decoration.bold.bold()),
-//                new LabelElement("HASHCODE").style(Decoration.bold.bold()),
-//                new LabelElement("CLASSLOADER").style(Decoration.bold.bold()));
-//
-//        for (ClassVO c : matchedClasses) {
-//            table.row(label(c.getName()),
-//                    label(c.getClassLoaderHash()).style(Decoration.bold.fg(Color.red)),
-//                    TypeRenderUtils.drawClassLoader(c));
-//        }
-//        return table;
-//    }
+    public static Element renderMatchedClasses(Collection<ClassVO> matchedClasses) {
+        TableElement table = new TableElement();
+        table.row("NAME", "HASHCODE", "CLASSLOADER");
 
+        for (ClassVO c : matchedClasses) {
+            table.row(c.getName(), c.getClassLoaderHash(), TypeRenderUtils.drawClassLoader(c).toHtml());
+        }
+        return table;
+    }
 }

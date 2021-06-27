@@ -163,11 +163,6 @@ public class ClassLoaderCommand extends Command {
         }
     }
 
-    @Override
-    public void complete() {
-        //do nothing
-    }
-
     /**
      * Calculate classloader statistics.
      * e.g. In JVM, there are 100 GrooyClassLoader instances, which loaded 200 classes in total

@@ -131,6 +131,41 @@ jarboot$ jad [-c] java.lang.String
 ```bash
 jarboot$ jvm
 ````
+
+### sc
+查找JVM中已经加载的类
+
+```bash
+$ sc -d org.springframework.web.context.support.XmlWebApplicationContext
+ class-info        org.springframework.web.context.support.XmlWebApplicationContext
+ code-source       /Users/xxx/work/test/WEB-INF/lib/spring-web-3.2.11.RELEASE.jar
+ name              org.springframework.web.context.support.XmlWebApplicationContext
+ isInterface       false
+ isAnnotation      false
+ isEnum            false
+ isAnonymousClass  false
+ isArray           false
+ isLocalClass      false
+ isMemberClass     false
+ isPrimitive       false
+ isSynthetic       false
+ simple-name       XmlWebApplicationContext
+ modifier          public
+ annotation
+ interfaces
+ super-class       +-org.springframework.web.context.support.AbstractRefreshableWebApplicationContext
+                     +-org.springframework.context.support.AbstractRefreshableConfigApplicationContext
+                       +-org.springframework.context.support.AbstractRefreshableApplicationContext
+                         +-org.springframework.context.support.AbstractApplicationContext
+                           +-org.springframework.core.io.DefaultResourceLoader
+                             +-java.lang.Object
+ class-loader      +-org.apache.catalina.loader.ParallelWebappClassLoader
+                     +-java.net.URLClassLoader@6108b2d7
+                       +-sun.misc.Launcher$AppClassLoader@18b4aac2
+                         +-sun.misc.Launcher$ExtClassLoader@1ddf84b8
+ classLoaderHash   25131501
+
+````
   
 ### trace
 方法执行监控 
@@ -178,6 +213,29 @@ jarboot$ thread -n 3
 "C2 CompilerThread0" [Internal] cpuUsage=2.28% deltaTime=4ms time=4692ms
 ```
 
+#### Classloader
+查看classloader的继承树，urls，类加载信息
+
+```bash
+jarboot$ classloader
+name	                                                numberOfInstances	loadedCountTotal
+org.springframework.boot.loader.LaunchedURLClassLoader	1	                3929
+BootstrapClassLoader	                                1                	2623
+com.mz.jarboot.agent.JarbootClassLoader             	1               	1780
+sun.misc.Launcher$AppClassLoader                    	1               	59
+sun.reflect.DelegatingClassLoader                 	58                	58
+sun.misc.Launcher$ExtClassLoader                     	1	                18
+Affect(row-cnt:6) cost in 35 ms.
+```
+
+### heapdump
+dump java heap, 类似jmap命令的heap dump功能。
+
+```bash
+jarboot$ heapdump
+````
+![dashboard](doc/heapdump.png)
+
 ### sysprop
 查看进程系统属性信息
 
@@ -187,8 +245,6 @@ jarboot$ sysprop
 #获取指定的属性
 jarboot$ sysprop user.home
 ```
-  
-### 更多强大的指令在持续开发中...
 
 ---
 ## Credit

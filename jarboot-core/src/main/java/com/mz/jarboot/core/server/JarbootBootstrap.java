@@ -14,7 +14,7 @@ import com.alibaba.bytekit.utils.IOUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.basic.SingletonCoreFactory;
+import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
@@ -49,7 +49,7 @@ public class JarbootBootstrap {
     private WebSocketClient client;
     private Instrumentation instrumentation;
     private InstrumentTransformer classLoaderInstrumentTransformer;
-    private boolean online = false;
+    private volatile boolean online = false;
     private MessageHandler messageHandler;
 
     private JarbootBootstrap(Instrumentation inst, String args) {
@@ -129,7 +129,7 @@ public class JarbootBootstrap {
 
         EnvironmentContext.cleanSession();
 
-        client = SingletonCoreFactory.getInstance().createSingletonClient(this.messageHandler);
+        client = WsClientFactory.getInstance().createSingletonClient(this.messageHandler);
         if (null == client) {
             online = false;
             logger.error("连接失败！");

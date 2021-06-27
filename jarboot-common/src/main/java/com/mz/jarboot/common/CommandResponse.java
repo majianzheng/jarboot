@@ -48,7 +48,7 @@ public class CommandResponse implements CmdProtocol {
                 this.setResponseType(ResponseType.JSON_RESULT);
                 break;
             case CommandConst.CMD_END_TYPE:
-                this.setResponseType(ResponseType.COMPLETE);
+                this.setResponseType(ResponseType.COMMAND_END);
                 break;
             default:
                 this.setResponseType(ResponseType.UNKNOWN);
@@ -82,7 +82,7 @@ public class CommandResponse implements CmdProtocol {
                 return CommandConst.CONSOLE_TYPE;
             case JSON_RESULT:
                 return CommandConst.JSON_RESULT_TYPE;
-            case COMPLETE:
+            case COMMAND_END:
                 return CommandConst.CMD_END_TYPE;
             default:
                 break;

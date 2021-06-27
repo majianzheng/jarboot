@@ -2,7 +2,7 @@ import React, {memo} from "react";
 import {BackTop, Typography} from "antd";
 import {useIntl} from "umi";
 import styles from "@/pages/index.less";
-import {GithubOutlined, CaretRightOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
+import {GithubOutlined, YuqueFilled, CaretRightOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
 
 const { Title, Paragraph, Text, Link } = Typography;
 
@@ -11,6 +11,12 @@ const QuickStartDoc: any = memo(() => {
     return <>
         <Typography>
             <Title>{intl.formatMessage({id: 'QUICK_START'})}</Title>
+            <Paragraph>
+                <Link target={"_blank"}
+                      href={"https://www.yuque.com/jarboot/usage/tmpomo"}>
+                    <YuqueFilled style={{color: "green"}}/>语雀
+                </Link>
+            </Paragraph>
             <Paragraph>
                 {intl.formatMessage({id: 'QUICK_START_P1'}, {
                     github: <Link target={"_blank"}

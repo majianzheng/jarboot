@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.core.basic.SingletonCoreFactory;
+import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.ws.WebSocketClient;
 
 /**
@@ -10,7 +10,7 @@ import com.mz.jarboot.core.ws.WebSocketClient;
 public class SocketResponseStreamImpl implements ResponseStream {
     private WebSocketClient client;
     public SocketResponseStreamImpl() {
-        client = SingletonCoreFactory.getInstance().getSingletonClient();
+        client = WsClientFactory.getInstance().getSingletonClient();
     }
     @Override
     public void write(String data) {

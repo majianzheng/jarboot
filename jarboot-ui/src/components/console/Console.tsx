@@ -77,8 +77,18 @@ const Console = (props: ConsoleProps) => {
     const startLoading = () => {
         _initLoading();
     };
-    const finishLoading = () => {
+    const finishLoading = (str?: string) => {
         init();
+        if (undefined !== str && StringUtil.isNotEmpty(str)) {
+            try {
+                _initLoading();
+                let p = _parseLine(str);
+                loading.before(p);
+            } catch (e) {
+                // ignore
+            }
+        }
+        //停止转圈
         try {
             codeDom?.removeChild(loading);
         } catch (error) {
@@ -121,7 +131,6 @@ const Console = (props: ConsoleProps) => {
     };
 
     const _initLoading = () => {
-        init();
         if (!isStartLoading) {
             try {
                 codeDom?.append(loading);
@@ -131,6 +140,7 @@ const Console = (props: ConsoleProps) => {
             }
         }
     };
+
     const _parseLine = (line: string) => {
         let p = document.createElement('p');
         line = line.replace(/ERROR/g, `<span class="error-log">ERROR</span>`).
@@ -140,7 +150,6 @@ const Console = (props: ConsoleProps) => {
             p.className = styles.waring;
         }
         p.innerHTML = line;
-        //TODO 如果含有异常则整行标记颜色
         return p;
     };
 
