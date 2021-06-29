@@ -47,7 +47,8 @@ public class TaskRunCache {
             return false;
         }
         String[] extensions = {"jar"};
-        Collection<File> execJar =  FileUtils.listFiles(dir, extensions, false);
+        //支持多级嵌套目录
+        Collection<File> execJar =  FileUtils.listFiles(dir, extensions, true);
         return CollectionUtils.isNotEmpty(execJar);
     }
 

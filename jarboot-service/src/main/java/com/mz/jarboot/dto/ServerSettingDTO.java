@@ -34,6 +34,10 @@ public class ServerSettingDTO implements Serializable {
      */
     private String workHome;
     /**
+     * 指定使用的JavaHome，默认继承父进程
+     */
+    private String javaHome;
+    /**
      * 环境变量
      */
     private String envp = "";
@@ -111,6 +115,14 @@ public class ServerSettingDTO implements Serializable {
 
     public void setWorkHome(String workHome) {
         this.workHome = workHome;
+    }
+
+    public String getJavaHome() {
+        return javaHome;
+    }
+
+    public void setJavaHome(String javaHome) {
+        this.javaHome = javaHome;
     }
 
     public String getEnvp() {

@@ -1,5 +1,6 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
@@ -50,23 +51,9 @@ public class SettingServiceImpl implements SettingService {
         } else {
             prop.setProperty("priority", setting.getPriority().toString());
         }
-        String workHome = setting.getWorkHome();
-        if (StringUtils.isNotEmpty(workHome)) {
-            checkDirExist(workHome);
-        } else {
-            workHome = CommonConst.EMPTY_STRING;
-        }
-        prop.setProperty("workHome", workHome);
-        String envp = setting.getEnvp();
-        if (PropertyFileUtils.checkEnvp(envp)) {
-            if (null == envp) {
-                envp = "";
-            }
-            prop.setProperty("envp", envp);
-        } else {
-            throw new MzException(ResultCodeConst.VALIDATE_FAILED,
-                    String.format("环境变量配置错误(%s)！", setting.getEnvp()));
-        }
+        checkAndSetWorkHome(setting, prop);
+        checkAndSetJavaHome(setting, prop);
+        checkAndSetEnv(setting, prop);
         if (null == setting.getDaemon()) {
             prop.setProperty("daemon", "true");
         } else {
@@ -78,6 +65,43 @@ public class SettingServiceImpl implements SettingService {
             prop.setProperty("jarUpdateWatch", setting.getJarUpdateWatch().toString());
         }
         PropertyFileUtils.storeProperties(file, prop);
+    }
+
+    private void checkAndSetWorkHome(ServerSettingDTO setting, Properties prop) {
+        String workHome = setting.getWorkHome();
+        if (StringUtils.isNotEmpty(workHome)) {
+            checkDirExist(workHome);
+        } else {
+            workHome = CommonConst.EMPTY_STRING;
+        }
+        prop.setProperty("workHome", workHome);
+    }
+
+    private void checkAndSetJavaHome(ServerSettingDTO setting, Properties prop) {
+        String javaHome = setting.getJavaHome();
+        if (StringUtils.isNotEmpty(javaHome)) {
+            String javaFile = javaHome + File.separator + "bin" + File.separator + "java";
+            if (OSUtils.isWindows()) {
+                javaFile += ".exe";
+            }
+            checkFileExist(javaFile);
+        } else {
+            javaHome = CommonConst.EMPTY_STRING;
+        }
+        prop.setProperty("javaHome", javaHome);
+    }
+
+    private void checkAndSetEnv(ServerSettingDTO setting, Properties prop) {
+        String envp = setting.getEnvp();
+        if (PropertyFileUtils.checkEnvp(envp)) {
+            if (null == envp) {
+                envp = "";
+            }
+            prop.setProperty("envp", envp);
+        } else {
+            throw new MzException(ResultCodeConst.VALIDATE_FAILED,
+                    String.format("环境变量配置错误(%s)！", setting.getEnvp()));
+        }
     }
 
     @Override
@@ -125,4 +149,11 @@ public class SettingServiceImpl implements SettingService {
         throw new MzException(ResultCodeConst.NOT_EXIST, path + "不存在");
     }
 
+    private void checkFileExist(String file) {
+        File dir = new File(file);
+        if (dir.exists() && dir.isFile()) {
+            return;
+        }
+        throw new MzException(ResultCodeConst.NOT_EXIST, file + "不存在");
+    }
 }

@@ -90,15 +90,23 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         props.onClose && props.onClose();
     };
 
-    const checkFile = (file: any) => {
-        const isJarOrZip = file.type === "application/java-archive" || file.type === "application/zip";
-        console.log(file.type);
-        const isLt60M = file.size / 1024 / 1024 < 60;
+    const checkFile = (file: any, show: boolean = true) => {
+        const isJarOrZip = file.type === "application/java-archive";// || file.type === "application/zip";
+        if (!isJarOrZip) {
+            show && CommonNotice.error('只能上传jar文件！');
+            return false;
+        }
+        const isLt60M = file.size / 1024 / 1024 < 500;
         if (!isLt60M) {
-            CommonNotice.error('文件大小必须小于60MB！');
+            show && CommonNotice.error('文件大小必须小于500MB！');
+            return false;
         }
         const notUploaded = -1 === fileList.findIndex((value: any) => value.name === file.name);
-        return (notUploaded && isJarOrZip && isLt60M);
+        if (!notUploaded) {
+            show && CommonNotice.error('文件已经上传！');
+            return false;
+        }
+        return true;
     };
 
     const uploadProps = {
@@ -123,7 +131,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             } else if (status === 'error') {
                 CommonNotice.error(`${info.file.name} file upload failed.`);
             } else {
-                if (checkFile(info.file)) {
+                if (checkFile(info.file, false)) {
                     setFileList(info.fileList);
                 }
             }

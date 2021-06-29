@@ -84,9 +84,16 @@ public class TaskUtils {
             //未配置则获取默认的
             jvm = SettingUtils.getDefaultJvmArg();
         }
+        String javaCmd = "java";
+        if (StringUtils.isNotEmpty(setting.getJavaHome())) {
+            javaCmd = setting.getJavaHome() + File.separator + "bin" + File.separator + "java";
+            if (OSUtils.isWindows()) {
+                javaCmd += ".exe";
+            }
+        }
         String cmd = (null == jvm) ?
-                String.format("java -jar %s", jar) :
-                String.format("java -jar %s %s", jvm, jar);
+                String.format("%s -jar %s", javaCmd, jar) :
+                String.format("%s -jar %s %s", javaCmd, jvm, jar);
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
             cmd = String.format("%s %s", cmd, startArg);

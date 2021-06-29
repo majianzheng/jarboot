@@ -18,8 +18,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 64MB
-      max-request-size: 100MB
+      max-file-size: 512MB
+      max-request-size: 512MB
 logging:
   file:
     path: ${user.home}/jarboot/logs

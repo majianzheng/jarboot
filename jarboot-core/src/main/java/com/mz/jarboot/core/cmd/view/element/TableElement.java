@@ -14,6 +14,16 @@ public class TableElement extends Element {
     private String title;
     private String[] header;
     private List<List<String>> rows = new ArrayList<>();
+    private int border;
+
+    public TableElement() {
+        this(1);
+    }
+
+    public TableElement(int border) {
+        this.border = border;
+    }
+
     public TableElement title(String title) {
         this.title = title;
         return this;
@@ -44,6 +54,6 @@ public class TableElement extends Element {
     @Override
     public String toHtml() {
         List<String> h = null == header ? new ArrayList<>() : Arrays.asList(header);
-        return ViewRenderUtil.renderTable(h, rows, title);
+        return ViewRenderUtil.renderTable(h, rows, title, this.border);
     }
 }

@@ -1,6 +1,7 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
 import org.apache.commons.collections.CollectionUtils;
@@ -88,20 +89,7 @@ public class PropertyFileUtils {
         setting.setJvm(jvm);
         String args = properties.getProperty("args", "");
         setting.setArgs(args);
-        //工作目录
-        String workHome = properties.getProperty("workHome", "");
-        if (StringUtils.isEmpty(workHome)) {
-            File dir = new File(workHome);
-            if (dir.isDirectory() && dir.exists()) {
-                setting.setWorkHome(workHome);
-            } else {
-                //默认启动目录在服务目录，不继承父进程的工作目录
-                setting.setWorkHome(SettingUtils.getServerPath(server));
-            }
-        } else {
-            //默认启动目录在服务目录，不继承父进程的工作目录
-            setting.setWorkHome(SettingUtils.getServerPath(server));
-        }
+        checkAndGetHome(server, setting, properties);
 
         //环境变量
         String envp = properties.getProperty("envp", "");
@@ -125,7 +113,39 @@ public class PropertyFileUtils {
         }
         return setting;
     }
-    
+
+    private static void checkAndGetHome(String server, ServerSettingDTO setting, Properties properties) {
+        //工作目录
+        String workHome = properties.getProperty("workHome", "");
+        if (StringUtils.isEmpty(workHome)) {
+            //默认启动目录在服务目录，不继承父进程的工作目录
+            setting.setWorkHome(SettingUtils.getServerPath(server));
+        } else {
+            File dir = new File(workHome);
+            if (dir.isDirectory() && dir.exists()) {
+                setting.setWorkHome(workHome);
+            } else {
+                //默认启动目录在服务目录，不继承父进程的工作目录
+                setting.setWorkHome(SettingUtils.getServerPath(server));
+            }
+        }
+
+        //Java home路径
+        String javaHome = properties.getProperty("javaHome", "");
+        if (StringUtils.isEmpty(javaHome)) {
+            //默认启动目录在服务目录，不继承父进程的工作目录
+            setting.setJavaHome(CommonConst.EMPTY_STRING);
+        } else {
+            File dir = new File(javaHome);
+            if (dir.isDirectory() && dir.exists()) {
+                setting.setJavaHome(javaHome);
+            } else {
+                //默认启动目录在服务目录，不继承父进程的工作目录
+                setting.setJavaHome(CommonConst.EMPTY_STRING);
+            }
+        }
+    }
+
 
     /**
      * 写入properties或INI文件属性

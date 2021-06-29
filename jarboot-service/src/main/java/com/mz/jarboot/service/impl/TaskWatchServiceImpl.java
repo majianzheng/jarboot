@@ -46,11 +46,14 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunCache taskRunCache;
+    private String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
     //文件更新抖动时间，默认5秒
     @Value("${jarboot.file-shake-time:5}")
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
     private String afterStartExec;
+    @Value("${jarboot.after-server-error-offline:}")
+    private String afterServerErrorOffline;
 
     private boolean initialized = false;
 
@@ -104,7 +107,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
-            String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
             taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, null));
         }
     }
@@ -287,6 +289,11 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             //尝试重新初始化代理客户端
             TaskUtils.attach(server, pid);
             return;
+        }
+
+        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
+            String cmd = afterServerErrorOffline + " " + server;
+            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome, null));
         }
 
         //获取是否开启了守护

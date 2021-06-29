@@ -62,6 +62,11 @@ const ServerConfig: any = memo((props: any) => {
                        rules={[{required: false}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
+            <Form.Item name="javaHome"
+                       label={"Java Home"}
+                       rules={[{required: false}]}>
+                <Input autoComplete="off"/>
+            </Form.Item>
             <Form.Item name="workHome"
                        label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
                        rules={[{required: false}]}>

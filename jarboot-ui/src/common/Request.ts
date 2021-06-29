@@ -1,4 +1,4 @@
-import {extend} from 'umi-request';
+import {extend, RequestOptionsInit} from 'umi-request';
 // @ts-ignore
 import Qs from 'qs';
 
@@ -98,4 +98,26 @@ export default class Request {
     static delete(url: string, params: any) {
         return this.request.delete(url, {data: params,});
     }
+
+    public static init() {
+        // 请求拦截器，塞入token以便鉴权
+        this.request.interceptors.request.use( (url: string, options: RequestOptionsInit) => {
+            let token = localStorage.getItem("token");
+            if (!token) {
+                token = '';
+            }
+            if (options?.method === 'post' ||
+                options?.method === 'put' ||
+                options?.method === 'delete' ||
+                options?.method === 'get') {
+                const headers: any = options?.headers;
+                if (headers) {
+                    headers['token'] = token;
+                }
+            }
+            return {url, options};
+        });
+    }
 }
+
+Request.init();

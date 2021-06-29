@@ -76,7 +76,7 @@ public class TypeRenderUtils {
     }
 
     public static Element drawField(ClassDetailVO clazz, Integer expand) {
-        TableElement fieldsTable = new TableElement();
+        TableElement fieldsTable = new TableElement(0);
         FieldVO[] fields = clazz.getFields();
         if (fields == null || fields.length == 0) {
             return fieldsTable;
