@@ -8,7 +8,7 @@ import UploadFileService from "@/services/UploadFileService";
 import ErrorUtil from "@/common/ErrorUtil";
 import UploadHeartbeat from "@/components/servers/UploadHeartbeat";
 
-interface UploadFileModal {
+interface UploadFileModalProp {
     server?: string;
     onClose: () => void;
 }
@@ -20,7 +20,7 @@ enum UploadFileStage {
     FAILED
 }
 
-const UploadFileModal = memo((props: UploadFileModal) => {
+const UploadFileModal = memo((props: UploadFileModalProp) => {
     //阶段，1：确定服务的名称；2：开始选择并上传文件；3：提交或清理
     const [stage, setStage] = useState(UploadFileStage.SERVER_CONFIRM);
     const [name, setName] = useState('');

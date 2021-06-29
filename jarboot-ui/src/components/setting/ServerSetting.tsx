@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Col, Row, Menu, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";

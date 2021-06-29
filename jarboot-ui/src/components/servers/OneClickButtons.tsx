@@ -1,7 +1,6 @@
 import {memo} from "react";
 import {useIntl} from "umi";
 import {Button, Space} from "antd";
-import * as React from "react";
 
 const OneClickButtons: any = memo((props: any) => {
     const intl = useIntl();
