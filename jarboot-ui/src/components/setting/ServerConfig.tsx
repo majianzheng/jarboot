@@ -5,7 +5,6 @@ import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 import { useIntl } from 'umi';
 import StringUtil from "@/common/StringUtil";
-import {requestFinishCallback} from "@/common/JarBootConst";
 
 const layout = {
     labelCol: {span: 8},
