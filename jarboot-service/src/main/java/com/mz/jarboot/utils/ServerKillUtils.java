@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * 原命令行参数扩展，暂弃用
+ */
+@Deprecated
 public class ServerKillUtils {
     public static ServerKillUtils getInstance() {
         return new ServerKillUtils();

@@ -188,6 +188,7 @@ public class SettingUtils {
         if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
+            return "";
         }
         if (jarList.size() > 1) {
             String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);

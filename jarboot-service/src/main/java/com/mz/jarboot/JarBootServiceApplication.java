@@ -6,7 +6,6 @@ import com.mz.jarboot.service.TaskWatchService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import java.io.File;
 import java.net.URISyntaxException;
@@ -16,9 +15,8 @@ import java.security.CodeSource;
  * Spring boot main function.
  * @author jianzhengma
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.mz.jarboot")
 @PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/jarboot.properties"}, ignoreResourceNotFound=true)
-@ComponentScan(basePackages= {"com.mz.jarboot.service", "com.mz.jarboot.config", "com.mz.jarboot.task", "com.mz.jarboot.aspect", "com.mz.jarboot.controller", "com.mz.jarboot.ws"})
 public class JarBootServiceApplication {
 
 	public static void main(String[] args) {

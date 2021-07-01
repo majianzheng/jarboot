@@ -1,7 +1,7 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.common.ResponseForObject;
-import com.mz.jarboot.entity.UserEntity;
+import com.mz.jarboot.entity.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
@@ -14,10 +14,10 @@ public class OAuthController {
     @ApiOperation(value = "获取当前登录的用户", httpMethod = "GET")
     @GetMapping(value="/getCurrentUser")
     @ResponseBody
-    public ResponseForObject<UserEntity> getCurrentUser(String token) {
+    public ResponseForObject<User> getCurrentUser(String token) {
         //暂未实现
-        ResponseForObject<UserEntity> current = new ResponseForObject<>();
-        UserEntity user = new UserEntity();
+        ResponseForObject<User> current = new ResponseForObject<>();
+        User user = new User();
         user.setId(-1L);
         user.setUserName("游客");
         current.setResult(user);

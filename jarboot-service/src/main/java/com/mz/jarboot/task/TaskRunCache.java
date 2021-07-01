@@ -6,7 +6,6 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,24 +41,12 @@ public class TaskRunCache {
         });
     }
 
-    private boolean existJar(File dir) {
-        if (!dir.isDirectory()) {
-            return false;
-        }
-        String[] extensions = {"jar"};
-        //支持多级嵌套目录
-        Collection<File> execJar =  FileUtils.listFiles(dir, extensions, true);
-        return CollectionUtils.isNotEmpty(execJar);
-    }
-
     public List<String> getServerNameList() {
         File[] serviceDirs = this.getServerDirs();
         List<String> allWebServerList = new ArrayList<>();
         for (File f : serviceDirs) {
             String server = f.getName();
-            if (existJar(f)) {
-                allWebServerList.add(server);
-            }
+            allWebServerList.add(server);
         }
         return allWebServerList;
     }
@@ -85,11 +72,9 @@ public class TaskRunCache {
         File[] serviceDirs = getServerDirs();
         for (File f : serviceDirs) {
             String server = f.getName();
-            if (existJar(f)) {
-                ServerRunningDTO p = new ServerRunningDTO();
-                p.setName(server);
-                serverList.add(p);
-            }
+            ServerRunningDTO p = new ServerRunningDTO();
+            p.setName(server);
+            serverList.add(p);
         }
         updateServerInfo(serverList);
         return serverList;

@@ -1,5 +1,7 @@
 import StringUtil from "@/common/StringUtil";
 import UploadFileService from "@/services/UploadFileService";
+import CommonNotice from "@/common/CommonNotice";
+import ErrorUtil from "@/common/ErrorUtil";
 
 export default class UploadHeartbeat {
     private static inst = new UploadHeartbeat();
@@ -17,8 +19,12 @@ export default class UploadHeartbeat {
             .then(resp => {
                 if (resp.resultCode !== 0) {
                     this.stop();
+                    CommonNotice.error(ErrorUtil.formatErrResp(resp));
                 }
-            }).catch(() => this.stop());
+            }).catch((error) => {
+                this.stop();
+                CommonNotice.error(ErrorUtil.formatErrResp(error));
+            });
     };
     public start(server: string) {
         if (-1 !== this.handler) {

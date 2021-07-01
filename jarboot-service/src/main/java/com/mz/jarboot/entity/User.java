@@ -1,7 +1,7 @@
 package com.mz.jarboot.entity;
 
-//暂未实现
-public class UserEntity {
+
+public class User {
     private Long id;
     private String userName;
     private String password;

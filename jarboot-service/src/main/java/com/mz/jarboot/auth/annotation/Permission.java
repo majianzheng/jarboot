@@ -1,4 +1,4 @@
-package com.mz.jarboot.aop.annotation;
+package com.mz.jarboot.auth.annotation;
 
 import java.lang.annotation.*;
 

@@ -51,7 +51,7 @@ export default class Request {
             let {response} = error;
             if (response && response.status) {
                 // @ts-ignore
-                errorMsg = Request.codeMessage[response.status] || response.statusText;
+                errorMsg = error?.data || Request.codeMessage[response.status] || response.statusText;
             } else if (!response) {
                 errorMsg = '您的网络发生异常，无法连接服务器';
             }
@@ -102,7 +102,7 @@ export default class Request {
     public static init() {
         // 请求拦截器，塞入token以便鉴权
         this.request.interceptors.request.use( (url: string, options: RequestOptionsInit) => {
-            let token = localStorage.getItem("token");
+            let token = localStorage.getItem("Authorization");
             if (!token) {
                 token = '';
             }
@@ -112,7 +112,7 @@ export default class Request {
                 options?.method === 'get') {
                 const headers: any = options?.headers;
                 if (headers) {
-                    headers['token'] = token;
+                    headers['Authorization'] = token;
                 }
             }
             return {url, options};
