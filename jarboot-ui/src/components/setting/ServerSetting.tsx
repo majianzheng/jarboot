@@ -7,15 +7,17 @@ import ServerMgrService from "@/services/ServerMgrService";
 import Logger from "@/common/Logger";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import { SyncOutlined } from '@ant-design/icons';
+import {LoadingOutlined, SyncOutlined} from '@ant-design/icons';
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
     const [data, setData] = useState([]);
     const [current, setCurrent] = useState('');
+    const [loading, setLoading] = useState(true);
 
     const query = () => {
         ServerMgrService.getServerList((resp: any) => {
+            setLoading(false);
             if (resp.resultCode < 0) {
                 CommonNotice.error(resp.resultMsg);
                 return;
@@ -35,6 +37,9 @@ const ServerSetting = memo(() => {
     const onSelect = (event: any) => {
         setCurrent(event.key);
     };
+    if (loading) {
+        return <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>;
+    }
     return <>{(data instanceof Array && data.length > 0) ? <Row>
         <Col span={6} className={styles.pageContainer}>
             <Menu

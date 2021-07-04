@@ -1,25 +1,20 @@
 package com.mz.jarboot.entity;
 
+import javax.persistence.*;
 
-public class User {
-    private Long id;
-    private String userName;
+@Table(name = User.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
+@Entity
+public class User extends AbstractBaseEntity {
+    public static final String TABLE_NAME = "jarboot_user";
+    private String username;
     private String password;
 
-    public Long getId() {
-        return id;
+    public String getUsername() {
+        return username;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String userName) {
+        this.username = userName;
     }
 
     public String getPassword() {

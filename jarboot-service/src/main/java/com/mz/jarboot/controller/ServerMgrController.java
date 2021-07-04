@@ -21,7 +21,7 @@ import java.util.Base64;
 import java.util.List;
 
 @Api(tags="服务管理")
-@RequestMapping(value = "/jarboot-service", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-service", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
 public class ServerMgrController {
     @Autowired

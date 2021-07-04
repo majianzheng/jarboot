@@ -112,7 +112,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     const uploadProps = {
         name: 'file',
         multiple: true,
-        action: `/jarboot-upload/upload`,
+        action: `/api/jarboot-upload/upload`,
         fileList: fileList,
         data: () => {
             return {server: form.getFieldValue("server")}

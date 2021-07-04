@@ -1,6 +1,4 @@
 import Request from "@/common/Request";
-import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 
 const urlBase = "/api/auth";
 
@@ -19,22 +17,17 @@ export default class OAuthService {
 
     /**
      * 登录
-     * @param userName
+     * @param username
      * @param password
      */
-    public static login(userName:string, password:string) {
+    public static login(username?:string, password?:string) {
         let form :FormData = new FormData();
-        form.append("userName", userName);
-        form.append("password", password);
-        Request.post(`${urlBase}/login`, form)
-            .then(resp => {
-                if (resp.resultCode !== 0) {
-                    CommonNotice.error(ErrorUtil.formatErrResp(resp));
-                    return;
-                }
-                localStorage.setItem("token", resp.result);
-                location.assign("/");
-            })
-            .catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        if (username && username.length > 0) {
+            form.append("username", username);
+        }
+        if (password && password.length > 0) {
+            form.append("password", password);
+        }
+        return Request.post(`${urlBase}/login`, form);
     }
 }

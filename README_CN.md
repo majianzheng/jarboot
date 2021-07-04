@@ -34,16 +34,16 @@ English version goes [here](README.md).
 1. 编译前端项目和<code>Java</code>，或者<a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">下载</a>发布的zip安装包
 ```bash
 #编译前端
-cd jarboot-ui
+user$ cd jarboot-ui
 #首次时需要先安装依赖，执行yarn或npm install
-yarn
+user$ yarn
 
 #执行编译，yarn build或npm run build，开发模式可执行yarn start或npm run start
-yarn build
+user$ yarn build
 
 #切换到代码根目录，编译Java代码
-cd ../
-mvn clean install
+user$ cd ../
+user$ mvn clean install
 ```
 
 2. 安装后的目录结构
@@ -55,26 +55,22 @@ jarboot                             #当前工作目录
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
 ├─jarboot-service.jar               #Web服务HTTP接口及WebSocket及主要业务实现
-│
-├─services                          #约定的管理其他jar文件的默认根目录(可配置)
-│  ├─demo1-service                  #服务名为目录, 目录下存放启动的jar文件及其依赖
-│  │   └─demo1-service.jar          #启动的jar文件, 若有多个则需要在[服务配置]界面配置启动的jar文件, 否则可能会随机选择一个
-│  └─demo2-service                  
-│      └─demo2-service.jar
-└─static                            #前端界面资源位置
-   ├─index.html                     
-   ├─umi.css                        
-   └─umi.js                         
+└─services                          #约定的管理其他jar文件的默认根目录(可配置)
+   ├─demo1-service                  #服务名为目录, 目录下存放启动的jar文件及其依赖
+   │   └─demo1-service.jar          #启动的jar文件, 若有多个则需要在[服务配置]界面配置启动的jar文件, 否则可能会随机选择一个
+   └─demo2-service                  
+       └─demo2-service.jar
 ```
 后端服务启动会指定一个管理其他启动jar文件的根路径（默认为当前路径下的services，可在【服务配置】界面配置），在此根目录下创建每个服务目录，创建的 ***目录名字为服务名*** ，在创建的目录下放入jar包文件，详细可见上面的目录结构约定。
 
 3. 启动<code>jarboot-service.jar</code>主控服务
 ```bash
 #执行 boot.sh 启动, 在Windows系统上使用boot.bat。
-./boot.sh
+user$ sh boot.sh
 ```
 
 4. 浏览器访问<http://127.0.0.1:9899>
+5. 进入登录界面，初始的用户名：jarboot，密码：jarboot
 
 ## 命令列表
 ### bytes

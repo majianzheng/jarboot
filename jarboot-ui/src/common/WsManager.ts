@@ -51,8 +51,8 @@ class WsManager {
             }
         }
         let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/jarboot-service/ws` :
-            `ws://${window.location.host}/jarboot-service/ws`;
+            `ws://${window.location.hostname}:9899/public/jarboot-service/ws` :
+            `ws://${window.location.host}/public/jarboot-service/ws`;
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager._onMessage;
         WsManager.websocket.onopen = WsManager._onOpen;

@@ -8,9 +8,6 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
-  web:
-    resources:
-      static-locations: file:${jarboot.home}/static
   jmx:
     default-domain: jarboot-service
   jms:

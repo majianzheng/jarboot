@@ -1,18 +1,13 @@
 package com.mz.jarboot.entity;
 
+import javax.persistence.UniqueConstraint;
 
-public class Role {
-    private Long id;
+@javax.persistence.Table(name = RoleInfo.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"role", "username"})})
+@javax.persistence.Entity
+public class RoleInfo extends AbstractBaseEntity {
+    public static final String TABLE_NAME = "jarboot_role";
     private String role;
     private String username;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getRole() {
         return role;

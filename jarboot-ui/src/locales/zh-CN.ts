@@ -5,8 +5,10 @@ export default {
     //Tab标题
     SERVICES_MGR: '服务管理',
     SERVICES_CONF: '服务配置',
+    AUTH_CONTROL: '权限控制',
     SETTING: '设置',
     HELP_DOC: '帮助',
+    MENU_DOCS: '文档',
 
     //服务管理
     ONE_KEY_START: '一键启动',
@@ -31,6 +33,11 @@ export default {
     RESET_BTN: '重置',
     REFRESH_BTN: '刷新',
     SERVER_EMPTY: '服务目录下未发现任何jar启动文件，请添加后刷新。',
+    MODIFY: '修改',
+    DELETE: '删除',
+    CREATE: '新增',
+    SUCCESS: '成功！',
+    LOADING: '加载中...',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
@@ -52,11 +59,30 @@ export default {
     USER_NAME: '用户',
     PASSWORD: '密码',
     LOGIN: '登录',
+    MODIFY_PWD: '修改密码',
+    CREATE_USER: '创建用户',
+    SIGN_OUT: '退出',
+    INTERNAL_SYS_TIP: `内部系统，不可暴露到公网`,
+    INTERNAL_SYS_TIP1: ` `,
+    REPEAT_PASSWORD: '请输入确认密码',
+    INPUT_PASSWORD: '请输入密码',
+    INPUT_USERNAME: '请输入用户名',
+    INPUT_ROLE: '请输入角色',
+    PWD_NOT_MATCH: '两次输入密码不一致!',
+    USER_LIST: '用户列表',
+    ROLE_MGR: '角色管理',
+    PRIVILEGE_MGR: '权限管理',
+    ROLE: '角色',
+    BIND_ROLE: '绑定角色',
+    DELETE_USER: `是否要删除该用户({user})？`,
+    DELETE_ROLE: `是否要删除该角色？`,
+    CAN_NOT_REMOVE_SELF: '不可以删除当前登录的用户！',
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: '请选择一个服务后操作',
     NAME_NOT_EMPTY: `名字不能为空`,
     UPLOAD_FILE_EMPTY: `成功上传的文件为空`,
+    SELECT_ONE_OP: '请选择要操作的项',
 
     //帮助
     BASIC: '基础',

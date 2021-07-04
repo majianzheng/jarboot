@@ -1,9 +1,11 @@
 import * as React from "react";
-import {Spin, Tag} from "antd";
+import {Result, Tag} from "antd";
 import ServerMgrService from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
-import {SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined} from '@ant-design/icons';
+import {
+    SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
+    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined
+} from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
 import {MsgData, WsManager} from "@/common/WsManager";
 import ErrorUtil from '@/common/ErrorUtil';
@@ -13,8 +15,7 @@ import {formatMsg} from "@/common/IntlFormat";
 import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
 import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
 import OneClickButtons from "@/components/servers/OneClickButtons";
-// @ts-ignore
-import CommonTable from "../commonTable/CommonTable";
+import {CommonTable} from "@/components";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 
@@ -343,16 +344,19 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private oneClickRestart = () => {
+        pubsub.publish(this.state.current, 'appendLine', "Restarting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickRestart();
     };
 
     private oneClickStart = () => {
+        pubsub.publish(this.state.current, 'appendLine', "Starting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStart();
     };
 
     private oneClickStop = () => {
+        pubsub.publish(this.state.current, 'appendLine', "Stopping all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStop();
     };
@@ -384,10 +388,10 @@ export default class ServerMgrView extends React.PureComponent {
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
                                      oneClickStop={this.oneClickStop}/>
-                    <CommonTable bordered tableOption={tableOption} tableButtons={this._getTbBtnProps()} height={this.height}/>
+                    <CommonTable toolbarGap={5} option={tableOption} toolbar={this._getTbBtnProps()} height={this.height}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
-                    {(this.state.loading && 0 == this.allServerOut.length) && <Spin size={"large"}/>}
+                    {(this.state.loading && 0 == this.allServerOut.length) && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
                     {this.allServerOut.map((value: any) => (
                         <SuperPanel key={value} server={value} pubsub={pubsub} visible={this.state.current === value}/>
                     ))}

@@ -5,8 +5,10 @@ export default {
     //Tab标题
     SERVICES_MGR: 'Services',
     SERVICES_CONF: 'Service config',
+    AUTH_CONTROL: 'Authority Control',
     SETTING: 'Setting',
     HELP_DOC: 'Help',
+    MENU_DOCS: 'DOCS',
 
     //服务管理
     ONE_KEY_START: 'Start All',
@@ -31,6 +33,11 @@ export default {
     RESET_BTN: 'Reset',
     REFRESH_BTN: 'Refresh',
     SERVER_EMPTY: 'The servers is empty now, please put jar file and refresh.',
+    MODIFY: 'Modify',
+    DELETE: 'Delete',
+    CREATE: 'Create',
+    SUCCESS: 'Success!',
+    LOADING: 'Loading...',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
@@ -52,11 +59,30 @@ export default {
     USER_NAME: 'User',
     PASSWORD: 'Password',
     LOGIN: 'Login',
+    MODIFY_PWD: 'Modify password',
+    CREATE_USER: 'Create user',
+    SIGN_OUT: 'Sign out',
+    INTERNAL_SYS_TIP: `Internal system.`,
+    INTERNAL_SYS_TIP1: `Not exposed to the public network`,
+    REPEAT_PASSWORD: 'Please input repeat password!',
+    INPUT_PASSWORD: 'Please input password!',
+    INPUT_USERNAME: 'Please input your user name!',
+    INPUT_ROLE: 'Please input role!',
+    PWD_NOT_MATCH: 'The two passwords that you entered do not match!',
+    USER_LIST: 'User List',
+    ROLE_MGR: 'Role Management',
+    PRIVILEGE_MGR: 'Privilege Management',
+    ROLE: 'Role',
+    BIND_ROLE: 'Binding roles',
+    DELETE_USER: `Do you want to delete this user({user})?`,
+    DELETE_ROLE: `Do you want to delete this role?`,
+    CAN_NOT_REMOVE_SELF: 'Can not delete current user!',
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: 'Please select one server to operate.',
     NAME_NOT_EMPTY: `Name can't be empty`,
     UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
+    SELECT_ONE_OP: 'Please select one item to operate.',
 
     //帮助
     BASIC: 'Basic',

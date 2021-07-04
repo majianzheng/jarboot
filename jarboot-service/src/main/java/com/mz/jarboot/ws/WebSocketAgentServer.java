@@ -9,7 +9,7 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint("/jarboot-agent/ws/{server}")
+@ServerEndpoint("/public/jarboot-agent/ws/{server}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);

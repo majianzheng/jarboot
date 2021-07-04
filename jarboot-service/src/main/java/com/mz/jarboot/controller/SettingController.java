@@ -12,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Api(tags="系统配置")
-@RequestMapping(value = "/jarboot-setting", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-setting", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
 public class SettingController {
     @Autowired

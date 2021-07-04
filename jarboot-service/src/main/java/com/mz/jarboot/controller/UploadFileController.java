@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Api(tags="文件上传")
-@RequestMapping(value = "/jarboot-upload", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-upload", method ={RequestMethod.GET, RequestMethod.POST})
 @Controller
 public class UploadFileController {
     @Autowired
@@ -40,7 +40,7 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "删除上传缓冲区的文件", httpMethod = "POST")
+    @ApiOperation(value = "删除上传缓冲区的文件", httpMethod = "DELETE")
     @DeleteMapping(value="/deleteFileInUploadCache")
     @ResponseBody
     public ResponseSimple deleteFileInUploadCache(@RequestParam("server") String server, @RequestParam("file") String file) {
@@ -56,7 +56,7 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "清空上传缓冲区的文件", httpMethod = "POST")
+    @ApiOperation(value = "清空上传缓冲区的文件", httpMethod = "DELETE")
     @DeleteMapping(value="/clearUploadFileInCache")
     @ResponseBody
     public ResponseSimple clearUploadFileInCache(@RequestParam("server") String server) {

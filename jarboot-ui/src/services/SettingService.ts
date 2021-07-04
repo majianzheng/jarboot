@@ -1,9 +1,6 @@
 import Request from '../common/Request';
-import ErrorUtil from "../common/ErrorUtil";
-import CommonNotice from "../common/CommonNotice";
-import {requestFinishCallback} from "@/common/JarBootConst";
 
-const settingUrl = "/jarboot-setting";
+const settingUrl = "/api/jarboot-setting";
 
 export default class SettingService {
     /**

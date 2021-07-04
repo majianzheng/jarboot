@@ -4,7 +4,7 @@ import ErrorUtil from "@/common/ErrorUtil";
 import {requestFinishCallback} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
 
-const urlBase = "/jarboot-service";
+const urlBase = "/api/jarboot-service";
 
 export default class ServerMgrService {
 

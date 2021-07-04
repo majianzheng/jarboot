@@ -31,7 +31,7 @@ public class WsClientFactory {
             }
         }
 
-        String url = String.format("ws://%s/jarboot-agent/ws/%s",
+        String url = String.format("ws://%s/public/jarboot-agent/ws/%s",
                 EnvironmentContext.getHost(), server);
         logger.debug("initClient {}", url);
         client = new WebSocketClient(url);

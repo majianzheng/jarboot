@@ -34,16 +34,16 @@ It adopts <code>front-end and back-end separation architecture</code>, front-end
 1. Build ui and <code>Java</code> code, or <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">download</a> the zip package.
 ```bash
 #build ui.
-cd jarboot-ui
+user$ cd jarboot-ui
 #First time, execute yarn or npm install
-yarn
+user$ yarn
 
 #execute compile, yarn build or npm run build, execute yarn start or npm run start at development mode.
-yarn build
+user$ yarn build
 
 #Switch to the code root directory and compile the Java code
-cd ../
-mvn clean install
+user$ cd ../
+user$ mvn clean install
 ```
 
 2. Directory structure after installation.
@@ -55,27 +55,22 @@ jarboot                             #Current working directory
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
 ├─jarboot-service.jar               #Web service
-│
-├─services                          #Default root directory which managing other jar files (configurable)
-│  ├─demo1-service                  #The service name is directory, which stores the jar files and their dependencies.
-│  │   └─demo1-service.jar          #The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
-│  └─demo2-service                  
-│      └─demo2-service.jar
-└─static                            #Front end interface resource location
-   ├─index.html                     
-   ├─umi.css                        
-   └─umi.js                         
+└─services                          #Default root directory which managing other jar files (configurable)
+   ├─demo1-service                  #The service name is directory, which stores the jar files and their dependencies.
+   │   └─demo1-service.jar          #The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
+   └─demo2-service                  
+       └─demo2-service.jar
 ```
 Back end service startup specifies a root path to manage other startup jar files (Default is services in current path, you can config it in [Setting])，Create each service directory under this root directory,created ***Directory name is the name of service*** .Put the jar package file in the created directory. See the directory structure convention above for details.
 
 3. Start <code>jarboot-service.jar</code>
 ```bash
 #Execute boot.sh to start, use boot.bat when in windows OS.
-./boot.sh
+user$ sh boot.sh
 ```
 
 4. Browser access <http://127.0.0.1:9899>
-
+5. Enter the login page. Initial username: jarboot, password: jarboot
 ## Command list
 ### bytes
 View the class bytes，Usage：

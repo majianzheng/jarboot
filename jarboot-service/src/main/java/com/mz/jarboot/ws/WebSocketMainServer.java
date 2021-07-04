@@ -15,7 +15,7 @@ import javax.websocket.server.ServerEndpoint;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint("/jarboot-service/ws")
+@ServerEndpoint("/public/jarboot-service/ws")
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);

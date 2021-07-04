@@ -1,8 +1,11 @@
 package com.mz.jarboot.dao;
 
 import com.mz.jarboot.entity.User;
-import org.springframework.stereotype.Component;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface UserDao {
-    void createUser(User user);
+@Repository
+public interface UserDao extends JpaRepository<User, Long> {
+
+    User findFirstByUsername(String username);
 }

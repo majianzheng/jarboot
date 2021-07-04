@@ -1,4 +1,5 @@
 import StringUtil from './StringUtil';
+import Logger from "@/common/Logger";
 
 /**
  * http错误处理公用类
@@ -38,6 +39,10 @@ export default class ErrorUtil {
       //http 代码 500等
       resultCode = resp;
     }
-    return `${resultMsg} (错误码:${resultCode})`;
+    Logger.error(`resultMsg:${resultMsg}, 错误码：${resultCode}`);
+    if (resultMsg.startsWith('caused: ')) {
+        resultMsg = resultMsg.substring(7, resultMsg.length - 1);
+    }
+    return resultMsg;
   }
 }

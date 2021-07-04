@@ -26,6 +26,10 @@ class JarBootConst {
     public static NOTICE_ERROR = 2;
 
     public static PANEL_HEIGHT = (window.innerHeight - 150);
+
+    //token
+    public static TOKEN_KEY = 'token';
+    public static currentUser: any = {username: '', globalAdmin: false};
 }
 interface MessageBody {
     server: string;

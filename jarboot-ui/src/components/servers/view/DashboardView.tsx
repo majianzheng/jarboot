@@ -1,10 +1,9 @@
 import React, {memo} from 'react';
-// @ts-ignore
-import CommonTable from "../../commonTable/CommonTable";
 import {Progress, Row, Col, Descriptions} from "antd";
 import StringUtil from "@/common/StringUtil";
 import styles from "../index.less";
 import {JarBootConst} from "@/common/JarBootConst";
+import {CommonTable} from "@/components";
 
 const progressValueFormat = (percent: number|undefined) => <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
 const mu = 1024 * 1024;
@@ -225,10 +224,10 @@ const DashboardView = memo((props: any) => {
     const runtimeInfo = props?.data?.runtimeInfo;
     return <>
         <div className={styles.smallTable}>
-            <CommonTable bordered tableOption={thrTableOption} height={upHeight}/>
+            <CommonTable option={thrTableOption} height={upHeight}/>
             <Row>
                 <Col span={16}>
-                    <CommonTable bordered tableOption={memTableOption} height={downHeight}/>
+                    <CommonTable option={memTableOption} height={downHeight}/>
                 </Col>
                 <Col span={8} style={{overflowY: "auto"}}>
                     <Descriptions size={'small'} column={1} bordered>

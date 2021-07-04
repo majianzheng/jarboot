@@ -42,11 +42,4 @@
       <source>boot.bat</source>
     </file>
   </files>
-
-  <fileSets>
-    <fileSet>
-      <directory>../jarboot-ui/dist</directory>
-      <outputDirectory>static</outputDirectory>
-    </fileSet>
-  </fileSets>
 </assembly>

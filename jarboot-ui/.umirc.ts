@@ -9,31 +9,22 @@ export default defineConfig({
         {path: '/', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
     ],
+    exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},
     inlineLimit: 100000,
     //devtool: 'source-map',
     locale: {
-        default: 'zh-CN',
+        default: 'en-US',
         antd: true,
         title: true,
         baseNavigator: true,
         baseSeparator: '-',
     },
     proxy: {
-        '/jarboot-service': {
-            'target': 'http://localhost:9899/jarboot-service/',
+        '/api': {
+            'target': 'http://localhost:9899/api/',
             'changeOrigin': true,
-            'pathRewrite': {'^/jarboot-service': ''}
-        },
-        '/jarboot-setting': {
-            'target': 'http://localhost:9899/jarboot-setting/',
-            'changeOrigin': true,
-            'pathRewrite': {'^/jarboot-setting': ''}
-        },
-        '/jarboot-upload': {
-            'target': 'http://localhost:9899/jarboot-upload/',
-            'changeOrigin': true,
-            'pathRewrite': {'^/jarboot-upload': ''}
+            'pathRewrite': {'^/api': ''}
         },
     },
 });

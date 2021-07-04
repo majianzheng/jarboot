@@ -1,6 +1,8 @@
 import {extend, RequestOptionsInit} from 'umi-request';
 // @ts-ignore
 import Qs from 'qs';
+import {JarBootConst} from "@/common/JarBootConst";
+import CommonUtils from "@/common/CommonUtils";
 
 export default class Request {
     private static codeMessage = {
@@ -59,6 +61,12 @@ export default class Request {
             response.resultMsg = errorMsg;
             // @ts-ignore
             response.resultCode = -9999;
+            if (401 === response.status) {
+                //没有授权，跳转到登录界面
+                Promise.resolve().then(() => {
+                    CommonUtils.loginPage();
+                });
+            }
             return response;
         },
     });
@@ -102,9 +110,20 @@ export default class Request {
     public static init() {
         // 请求拦截器，塞入token以便鉴权
         this.request.interceptors.request.use( (url: string, options: RequestOptionsInit) => {
-            let token = localStorage.getItem("Authorization");
+            let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
             if (!token) {
                 token = '';
+            }
+            if (options.params instanceof FormData) {
+                options.responseType = "formData";
+            } else if (options.params instanceof Blob) {
+                options.responseType = "blob";
+            } else if (options.params instanceof ArrayBuffer) {
+                options.responseType = "arrayBuffer";
+            } else if ('object' === typeof options.params) {
+                options.responseType = 'json';
+            } else {
+                options.responseType = 'text';
             }
             if (options?.method === 'post' ||
                 options?.method === 'put' ||
