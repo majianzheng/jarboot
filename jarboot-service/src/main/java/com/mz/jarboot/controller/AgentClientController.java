@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Api(tags="内部接口（非开放）", hidden = true)
-@RequestMapping(value = "/api/agent", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/agent")
 @Controller
 public class AgentClientController {
 

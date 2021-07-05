@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Api(tags="文件上传")
-@RequestMapping(value = "/api/jarboot-upload", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-upload")
 @Controller
 public class UploadFileController {
     @Autowired

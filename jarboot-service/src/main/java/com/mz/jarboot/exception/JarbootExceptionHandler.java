@@ -1,6 +1,8 @@
 
 package com.mz.jarboot.exception;
 
+import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.ResponseSimple;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,15 @@ public class JarbootExceptionHandler {
     private ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getAllExceptionMsg(e));
     }
-    
+
+    @ExceptionHandler(MzException.class)
+    private ResponseEntity<ResponseSimple> handleMzException(MzException e) {
+        ResponseSimple resp = new ResponseSimple();
+        resp.setResultCode(e.getErrorCode());
+        resp.setResultMsg(e.getMessage());
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
+    }
+
     @ExceptionHandler(Exception.class)
     private ResponseEntity<String> handleException(Exception e) {
         LOGGER.error("jarboot", e);

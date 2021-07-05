@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @Api(tags="用户管理")
-@RequestMapping(value = "/api/jarboot-user", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-user")
 @Controller
 public class UserController {
     @Autowired

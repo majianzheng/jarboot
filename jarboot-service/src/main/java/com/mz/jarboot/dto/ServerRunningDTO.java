@@ -2,7 +2,6 @@ package com.mz.jarboot.dto;
 
 public class ServerRunningDTO {
     private Integer pid;
-    private String port;
     private String status;
     private String name;
 
@@ -12,14 +11,6 @@ public class ServerRunningDTO {
 
     public void setPid(Integer pid) {
         this.pid = pid;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
     }
 
     public String getStatus() {

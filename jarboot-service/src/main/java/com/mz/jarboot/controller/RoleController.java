@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Api(tags="角色管理")
-@RequestMapping(value = "/api/jarboot-role", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/jarboot-role")
 @Controller
 public class RoleController {
     @Autowired

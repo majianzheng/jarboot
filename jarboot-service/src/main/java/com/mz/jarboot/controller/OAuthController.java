@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Api(tags="鉴权接口")
-@RequestMapping(value = "/api/auth", method ={RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(value = "/api/auth")
 @Controller
 public class OAuthController {
     private static final int DEFAULT_PAGE_NO = 1;
@@ -151,7 +151,7 @@ public class OAuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authenticate);
         } catch (AuthenticationException e) {
-            throw new AccessException("unknown user!");
+            throw new AccessException("Login failed");
         }
 
         if (null == authenticate || StringUtils.isBlank(authenticate.getName())) {

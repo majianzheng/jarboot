@@ -8,6 +8,7 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.task.TaskStatus;
+import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -108,7 +109,25 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            WebSocketManager.getInstance().commandEnd(server, "未在线，无法执行命令", sessionId);
+            //如果进程仍然存活
+            int pid = TaskUtils.getServerPid(server);
+            if (-1 != pid) {
+                TaskUtils.attach(server, pid);
+                WebSocketManager.getInstance().commandEnd(server, "连接断开，重连中...", sessionId);
+                try {
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                client = clientMap.getOrDefault(server, null);
+                if (null != client) {
+                    client.sendCommand(command, sessionId);
+                } else {
+                    WebSocketManager.getInstance().commandEnd(server, "连接断开，重连超时，请稍后重试", sessionId);
+                }
+            } else {
+                WebSocketManager.getInstance().commandEnd(server, "未在线，无法执行命令", sessionId);
+            }
         } else {
             client.sendCommand(command, sessionId);
         }

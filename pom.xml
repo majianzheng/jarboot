@@ -47,7 +47,7 @@
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<spring.version>2.4.5</spring.version>
+		<spring.version>2.5.2</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
 		<netty.version>4.1.59.Final</netty.version>
 		<jjwt.version>0.11.2</jjwt.version>
