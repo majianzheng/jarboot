@@ -13,7 +13,7 @@ const LoginForm: any = memo(() => {
     const intl = useIntl();
     useEffect(() => {
         OAuthService.getCurrentUser().then((resp: any) => {
-            if (StringUtil.isNotEmpty(resp?.result?.username)) {
+            if (0 === resp?.resultCode && StringUtil.isNotEmpty(resp?.result?.username)) {
                 location.assign("/");
             }
         });

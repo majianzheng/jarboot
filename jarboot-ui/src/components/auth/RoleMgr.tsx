@@ -56,8 +56,8 @@ const RoleMgr = memo(() => {
         columns: [
             {
                 title: formatMsg('ROLE'),
-                dataIndex: 'roleInfo',
-                key: 'roleInfo',
+                dataIndex: 'role',
+                key: 'role',
                 ellipsis: true,
             },
             {

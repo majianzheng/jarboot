@@ -221,7 +221,7 @@ export default class ServerMgrView extends React.PureComponent {
         ServerMgrService.getServerList((resp: any) => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
-                CommonNotice.error(resp.resultMsg);
+                CommonNotice.error(ErrorUtil.formatErrResp(resp));
                 return;
             }
             const data = resp.result;

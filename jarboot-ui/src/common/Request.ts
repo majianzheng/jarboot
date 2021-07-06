@@ -3,6 +3,7 @@ import {extend, RequestOptionsInit} from 'umi-request';
 import Qs from 'qs';
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonUtils from "@/common/CommonUtils";
+import Logger from "@/common/Logger";
 
 export default class Request {
     private static codeMessage = {
@@ -49,6 +50,7 @@ export default class Request {
         charset: 'utf8',
         responseType: 'json', //default
         errorHandler: error => {
+            Logger.error(error);
             let errorMsg = '';
             let {response} = error;
             if (response && response.status) {

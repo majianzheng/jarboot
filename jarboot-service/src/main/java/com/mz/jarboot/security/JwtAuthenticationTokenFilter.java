@@ -32,8 +32,10 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             this.tokenManager.validateToken(jwt);
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         }
-        chain.doFilter(request, response);
     }
     
     /**

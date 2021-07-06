@@ -54,6 +54,10 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
                 web.ignoring().antMatchers(each.trim());
             }
         }
+        // 忽略swagger-ui
+        web.ignoring().antMatchers("/swagger-resources/**");
+        web.ignoring().antMatchers("/v2/**");
+        web.ignoring().antMatchers("/csrf");
     }
     
     @Override
