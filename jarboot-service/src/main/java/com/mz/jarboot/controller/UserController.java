@@ -29,7 +29,7 @@ public class UserController {
     private JwtTokenManager jwtTokenManager;
 
     @ApiOperation(value = "创建用户", httpMethod = "POST")
-    @PostMapping(value="/createUser")
+    @PostMapping
     @ResponseBody
     public ResponseSimple createUser(String username, String password) {
         userService.createUser(username, password);
@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "删除用户", httpMethod = "DELETE")
-    @DeleteMapping(value="/deleteUser")
+    @DeleteMapping
     @ResponseBody
     public ResponseSimple deleteUser(Long id) {
         userService.deleteUser(id);
@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "修改密码", httpMethod = "PUT")
-    @PutMapping(value="/updateUserPassword")
+    @PutMapping
     @ResponseBody
     public ResponseSimple updateUserPassword(String username, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
@@ -61,7 +61,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "根据用户名获取用户信息", httpMethod = "GET")
-    @GetMapping(value="/findUserByUsername")
+    @GetMapping
     @ResponseBody
     public ResponseForObject<User> findUserByUsername(String username) {
         User user = userService.findUserByUsername(username);

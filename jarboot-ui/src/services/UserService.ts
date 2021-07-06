@@ -10,20 +10,20 @@ export default class UserService {
         let form :FormData = new FormData();
         form.append("username", username);
         form.append("password", password);
-        return Request.post(`${urlBase}/createUser`, form);
+        return Request.post(urlBase, form);
     }
 
     public static deleteUser(id:number) {
         let form :FormData = new FormData();
         form.append("id", '' + id);
-        return Request.delete(`${urlBase}/deleteUser`, form);
+        return Request.delete(urlBase, form);
     }
 
     public static updateUserPassword(username:string, password:string) {
         let form :FormData = new FormData();
         form.append("username", username);
         form.append("password", password);
-        return Request.put(`${urlBase}/updateUserPassword`, form);
+        return Request.put(urlBase, form);
     }
 
     public static getUsers(pageNo:number, pageSize:number) {

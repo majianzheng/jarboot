@@ -21,7 +21,7 @@ public class RoleController {
     private RoleService roleService;
 
     @ApiOperation(value = "分配角色", httpMethod = "PUT")
-    @PutMapping(value="/addRole")
+    @PutMapping
     @ResponseBody
     public ResponseSimple addRole(String role, String username) {
         roleService.addRole(role, username);
@@ -36,7 +36,7 @@ public class RoleController {
     }
 
     @ApiOperation(value = "删除角色", httpMethod = "DELETE")
-    @DeleteMapping("deleteRole")
+    @DeleteMapping
     @ResponseBody
     public ResponseSimple deleteRole(@RequestParam String role,
                                      @RequestParam(name = "username", defaultValue = StringUtils.EMPTY) String username) {

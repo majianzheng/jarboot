@@ -10,11 +10,11 @@ export default class RoleService {
         let form :FormData = new FormData();
         form.append("role", role);
         form.append("username", username);
-        return Request.post(`${urlBase}/addRole`, form);
+        return Request.post(urlBase, form);
     }
 
     public static deleteRole(role: string, username: string) {
-        return Request.delete(`${urlBase}/deleteRole?role=${role}&username=${username}`, {});
+        return Request.delete(`${urlBase}?role=${role}&username=${username}`, {});
     }
 
     public static getRoles(pageNo:number, pageSize:number) {
