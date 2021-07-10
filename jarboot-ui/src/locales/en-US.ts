@@ -77,6 +77,7 @@ export default {
     DELETE_USER: `Do you want to delete this user({user})?`,
     DELETE_ROLE: `Do you want to delete this role?`,
     CAN_NOT_REMOVE_SELF: 'Can not delete current user!',
+    PERMISSION_CONTROL_TITLE: `Access Permission Control`,
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: 'Please select one server to operate.',

@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.service.ServerMgrService;
@@ -23,6 +24,7 @@ import java.util.List;
 @Api(tags="服务管理")
 @RequestMapping(value = "/api/jarboot-service")
 @Controller
+@Permission
 public class ServerMgrController {
     @Autowired
     private ServerMgrService serverMgrService;
@@ -38,6 +40,7 @@ public class ServerMgrController {
     @ApiOperation(value = "启动服务", httpMethod = "POST")
     @PostMapping(value="/startServer")
     @ResponseBody
+    @Permission
     public ResponseSimple startServer(@RequestBody List<String> servers) {
         serverMgrService.startServer(servers);
         return new ResponseSimple();
@@ -45,6 +48,7 @@ public class ServerMgrController {
     @ApiOperation(value = "停止服务", httpMethod = "POST")
     @PostMapping(value="/stopServer")
     @ResponseBody
+    @Permission
     public ResponseSimple stopServer(@RequestBody List<String> servers) {
         serverMgrService.stopServer(servers);
         return new ResponseSimple();
@@ -52,6 +56,7 @@ public class ServerMgrController {
     @ApiOperation(value = "重启服务", httpMethod = "POST")
     @PostMapping(value="/restartServer")
     @ResponseBody
+    @Permission
     public ResponseSimple restartServer(@RequestBody List<String> servers) {
         serverMgrService.restartServer(servers);
         return new ResponseSimple();
@@ -60,6 +65,7 @@ public class ServerMgrController {
     @ApiOperation(value = "一键重启", httpMethod = "GET")
     @GetMapping(value="/oneClickRestart")
     @ResponseBody
+    @Permission
     public ResponseSimple oneClickRestart() {
         serverMgrService.oneClickRestart();
         return new ResponseSimple();
@@ -68,6 +74,7 @@ public class ServerMgrController {
     @ApiOperation(value = "一键启动", httpMethod = "GET")
     @GetMapping(value="/oneClickStart")
     @ResponseBody
+    @Permission
     public ResponseSimple oneClickStart() {
         serverMgrService.oneClickStart();
         return new ResponseSimple();
@@ -76,6 +83,7 @@ public class ServerMgrController {
     @ApiOperation(value = "一键停止", httpMethod = "GET")
     @GetMapping(value="/oneClickStop")
     @ResponseBody
+    @Permission
     public ResponseSimple oneClickStop() {
         serverMgrService.oneClickStop();
         return new ResponseSimple();
@@ -99,6 +107,7 @@ public class ServerMgrController {
      */
     @ApiOperation(value = "下载文件", httpMethod = "GET")
     @GetMapping(value="/downloadFile/{file}")
+    @Permission
     public void downloadFile(@PathVariable("file") @ApiParam(value = "文件全路径(base64编码)", required = true) String file,
                              HttpServletResponse response) {
         //待下载文件名

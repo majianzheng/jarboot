@@ -77,6 +77,7 @@ export default {
     DELETE_USER: `是否要删除该用户({user})？`,
     DELETE_ROLE: `是否要删除该角色？`,
     CAN_NOT_REMOVE_SELF: '不可以删除当前登录的用户！',
+    PERMISSION_CONTROL_TITLE: `访问权限控制`,
 
     //交互提示信息
     SELECT_ONE_SERVER_INFO: '请选择一个服务后操作',

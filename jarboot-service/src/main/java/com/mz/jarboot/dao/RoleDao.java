@@ -26,4 +26,12 @@ public interface RoleDao extends JpaRepository<RoleInfo, Long> {
     List<String> findRolesLikeRoleName(@Param("role") String role);
 
     RoleInfo findFirstByRoleAndUsername(String role, String username);
+
+    @Query("select distinct r.role from RoleInfo r")
+    List<String> getRoleList();
+
+    RoleInfo findFirstByRole(String role);
+
+    @Query("select count(distinct r.role) from RoleInfo r")
+    long countRoles();
 }

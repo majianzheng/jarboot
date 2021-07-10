@@ -1,11 +1,10 @@
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {CommonTable} from "@/components";
+import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
 import {formatMsg} from "@/common/IntlFormat";
 import {DeleteOutlined, SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import RoleService from "@/services/RoleService";
 import {Form, Input, Modal} from "antd";
 
@@ -28,12 +27,12 @@ const RoleMgr = memo(() => {
         setLoading(true);
         RoleService.getRoles(0, 10000000).then(resp => {
             if (resp.resultCode !== 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             setData(resp.result);
             setLoading(false);
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
 
     const _getRowSelection = () => {
@@ -93,14 +92,14 @@ const RoleMgr = memo(() => {
             icon: <ExclamationCircleOutlined />,
             content: intl.formatMessage({id: 'DELETE_ROLE'}),
             onOk() {
-                RoleService.deleteRole(roleInfo.roleInfo, roleInfo.username).then(resp => {
+                RoleService.deleteRole(roleInfo.role, roleInfo.username).then(resp => {
                     if (0 === resp.resultCode) {
                         CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
                         query();
                     } else {
-                        CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                        CommonNotice.errorFormatted(resp);
                     }
-                }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+                }).catch(CommonNotice.errorFormatted);
             }
         });
     };
@@ -115,15 +114,15 @@ const RoleMgr = memo(() => {
 
     const onSubmit = (data: any) => {
         //提交
-        RoleService.addRole(data.roleInfo, data.username).then(resp => {
+        RoleService.addRole(data.role, data.username).then(resp => {
             if (0 === resp.resultCode) {
                 onModalClose();
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
                 query();
             } else {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
             }
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
 
     const _getTbBtnProps = () => {
@@ -162,9 +161,9 @@ const RoleMgr = memo(() => {
                onCancel={onModalClose}>
             <Form form={form}
                   name="roleInfo-binding-form"
-                  initialValues={{username: '', roleInfo: ''}}
+                  initialValues={{username: '', role: ''}}
                   onFinish={onSubmit}>
-                <Form.Item name="roleInfo"
+                <Form.Item name="role"
                            rules={[{ required: true, message: intl.formatMessage({id: 'INPUT_ROLE'}) }]}>
                     <Input autoComplete="off"
                            autoCorrect="off"

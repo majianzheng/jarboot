@@ -1,12 +1,11 @@
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {CommonTable} from "@/components";
+import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
 import {formatMsg} from "@/common/IntlFormat";
 import {FormOutlined, DeleteOutlined, SyncOutlined, UserAddOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import UserService from "@/services/UserService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import {Modal} from "antd";
 
@@ -31,12 +30,12 @@ const UserList = memo(() => {
         setLoading(true);
         UserService.getUsers(0, 10000000).then(resp => {
             if (resp.resultCode !== 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             setData(resp.result);
             setLoading(false);
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
 
     const _getRowSelection = () => {
@@ -119,9 +118,9 @@ const UserList = memo(() => {
                         CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
                         query();
                     } else {
-                        CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                        CommonNotice.errorFormatted(resp);
                     }
-                }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+                }).catch(CommonNotice.errorFormatted);
             }
         });
     };

@@ -19,7 +19,7 @@ const ServerSetting = memo(() => {
         ServerMgrService.getServerList((resp: any) => {
             setLoading(false);
             if (resp.resultCode < 0) {
-                CommonNotice.error(resp.resultMsg);
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             if (!(resp?.result instanceof Array)) {

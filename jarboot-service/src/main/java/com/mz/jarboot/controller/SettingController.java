@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.dto.*;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags="系统配置")
 @RequestMapping(value = "/api/jarboot-setting")
 @Controller
+@Permission
 public class SettingController {
     @Autowired
     private SettingService settingService;
@@ -21,6 +23,7 @@ public class SettingController {
     @ApiOperation(value = "获取服务配置", httpMethod = "GET")
     @GetMapping(value="/getServerSetting")
     @ResponseBody
+    @Permission("Get Server Setting")
     public ResponseForObject<ServerSettingDTO> getServerSetting(String server) {
         try {
             ServerSettingDTO results = settingService.getServerSetting(server);
@@ -33,6 +36,7 @@ public class SettingController {
     @ApiOperation(value = "提交服务配置", httpMethod = "POST")
     @PostMapping(value="/submitServerSetting")
     @ResponseBody
+    @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestParam String server,
                                               @RequestBody ServerSettingDTO setting) {
         try {
@@ -46,6 +50,7 @@ public class SettingController {
     @ApiOperation(value = "获取全局配置", httpMethod = "GET")
     @GetMapping(value="/getGlobalSetting")
     @ResponseBody
+    @Permission("Get Global Setting")
     public ResponseForObject<GlobalSettingDTO> getGlobalSetting() {
         try {
             GlobalSettingDTO results = settingService.getGlobalSetting();
@@ -58,6 +63,7 @@ public class SettingController {
     @ApiOperation(value = "提交全局配置", httpMethod = "POST")
     @PostMapping(value="/submitGlobalSetting")
     @ResponseBody
+    @Permission("Submit Global Setting")
     public ResponseSimple submitGlobalSetting(@RequestBody GlobalSettingDTO setting) {
         try {
             settingService.submitGlobalSetting(setting);

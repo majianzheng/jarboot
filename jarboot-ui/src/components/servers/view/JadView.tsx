@@ -1,6 +1,6 @@
 import {memo} from "react";
 import {JarBootConst} from "@/common/JarBootConst";
-import {CodeEditor} from "@/components";
+import CodeEditor from "@/components/code";
 
 const JadView = memo((props: any) => {
 

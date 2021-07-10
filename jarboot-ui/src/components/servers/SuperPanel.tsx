@@ -1,6 +1,6 @@
 import * as React from "react";
 import styles from "./index.less";
-import Console from "@/components/console/Console";
+import Console from "@/components/console";
 import {memo, useEffect, useRef, useState} from "react";
 import {Button, Card, Input} from "antd";
 import {formatMsg} from "@/common/IntlFormat";

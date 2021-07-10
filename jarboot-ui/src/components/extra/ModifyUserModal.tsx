@@ -2,7 +2,6 @@ import React, {memo} from "react";
 import {Modal, Form, Input} from "antd";
 import UserService from "@/services/UserService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import {useIntl} from "umi";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
 
@@ -27,9 +26,9 @@ const ModifyUserModal: any = memo((props: ModifyPasswordModalProp) => {
             if (0 === resp.resultCode) {
                 props.onClose && props.onClose(true);
             } else {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
             }
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
     const onCancel = () => {
         props.onClose && props.onClose(false);

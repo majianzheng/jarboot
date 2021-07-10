@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.mz.jarboot.core.basic;
+package com.mz.jarboot.common;
 
 import java.util.Iterator;
 

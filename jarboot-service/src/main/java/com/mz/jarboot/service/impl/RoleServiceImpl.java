@@ -49,6 +49,9 @@ public class RoleServiceImpl implements RoleService {
         if (null == user) {
             throw new IllegalArgumentException("User name is not exist！");
         }
+        if (null == roleDao.findFirstByRole(role) && roleDao.countRoles() > AuthConst.MAX_ROLE) {
+            throw new IllegalArgumentException("Role number exceed " + AuthConst.MAX_ROLE + "!");
+        }
         RoleInfo r = new RoleInfo();
         r.setRole(role);
         r.setUsername(username);
@@ -82,6 +85,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<String> findRolesLikeRoleName(String role) {
         return roleDao.findRolesLikeRoleName(role);
+    }
+
+    @Override
+    public List<String> getRoleList() {
+        return roleDao.getRoleList();
     }
 
     @Transactional

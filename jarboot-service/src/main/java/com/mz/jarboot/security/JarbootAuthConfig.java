@@ -36,6 +36,9 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     
     @Autowired
     private JwtTokenManager tokenProvider;
+
+    @Autowired
+    private PermissionManager permissionManager;
     
     @Autowired
     private JarbootUserDetailsServiceImpl userDetailsService;
@@ -76,7 +79,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
         // disable cache
         http.headers().cacheControl();
 
-        http.addFilterBefore(new JwtAuthenticationTokenFilter(tokenProvider),
+        http.addFilterBefore(new JwtAuthenticationTokenFilter(tokenProvider, permissionManager),
                 UsernamePasswordAuthenticationFilter.class);
     }
     

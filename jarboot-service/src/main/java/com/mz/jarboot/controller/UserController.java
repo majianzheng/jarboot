@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 @Api(tags="用户管理")
 @RequestMapping(value = "/api/jarboot-user")
 @Controller
+@Permission
 public class UserController {
     @Autowired
     private UserService userService;
@@ -31,6 +33,7 @@ public class UserController {
     @ApiOperation(value = "创建用户", httpMethod = "POST")
     @PostMapping
     @ResponseBody
+    @Permission
     public ResponseSimple createUser(String username, String password) {
         userService.createUser(username, password);
         return new ResponseSimple();
@@ -39,6 +42,7 @@ public class UserController {
     @ApiOperation(value = "删除用户", httpMethod = "DELETE")
     @DeleteMapping
     @ResponseBody
+    @Permission
     public ResponseSimple deleteUser(Long id) {
         userService.deleteUser(id);
         return new ResponseSimple();
@@ -47,6 +51,7 @@ public class UserController {
     @ApiOperation(value = "修改密码", httpMethod = "PUT")
     @PutMapping
     @ResponseBody
+    @Permission
     public ResponseSimple updateUserPassword(String username, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
         ResponseSimple result = new ResponseSimple();
@@ -63,12 +68,13 @@ public class UserController {
     @ApiOperation(value = "根据用户名获取用户信息", httpMethod = "GET")
     @GetMapping
     @ResponseBody
+    @Permission
     public ResponseForObject<User> findUserByUsername(String username) {
         User user = userService.findUserByUsername(username);
         return new ResponseForObject<>(user);
     }
 
-    @ApiOperation(value = "根据用户名获取用户信息", httpMethod = "GET")
+    @ApiOperation(value = "获取用户列表", httpMethod = "GET")
     @GetMapping(value="/getUsers")
     @ResponseBody
     public ResponseForList<User> getUsers(int pageNo, int pageSize) {

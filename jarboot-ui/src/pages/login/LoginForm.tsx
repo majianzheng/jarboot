@@ -4,7 +4,6 @@ import OAuthService from "@/services/OAuthService";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import {JarBootConst} from "@/common/JarBootConst";
 import {UserOutlined, LockOutlined} from "@ant-design/icons";
 import styles from "./index.less";
@@ -21,13 +20,13 @@ const LoginForm: any = memo(() => {
     const onSubmit = (data: any) => {
         OAuthService.login(data.username, data.password).then(resp => {
             if (resp.resultCode !== 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             const jarbootUser: any = resp.result;
             localStorage.setItem(JarBootConst.TOKEN_KEY, "Bearer " + jarbootUser.accessToken);
             location.assign("/");
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
     const [form] = Form.useForm();
     //const style = {height: '60px', fontSize: '18px'};

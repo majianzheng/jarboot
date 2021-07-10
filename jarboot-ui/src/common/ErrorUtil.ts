@@ -14,7 +14,7 @@ export default class ErrorUtil {
    */
   public static formatErrResp(resp: any) {
     let resultCode: number|string = 0;
-    let resultMsg = '';
+    let resultMsg: any = '';
     if (StringUtil.isNotNull(resp.resultCode)) {
       //服务器返回的resp
       resultCode = resp.resultCode;
@@ -26,6 +26,9 @@ export default class ErrorUtil {
           }
       }
       resultMsg = resp.resultMsg;
+      if (!StringUtil.isString(resultMsg)) {
+          resultMsg = resultMsg?.error;
+      }
     } else if (StringUtil.isNotNull(resp.status)) {
       //ajax error中的msg
       resultCode = resp.status;

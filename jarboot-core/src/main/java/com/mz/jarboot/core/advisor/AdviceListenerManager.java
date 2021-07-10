@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.advisor;
 
-import com.mz.jarboot.core.basic.ConcurrentWeakKeyHashMap;
+import com.mz.jarboot.common.ConcurrentWeakKeyHashMap;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;

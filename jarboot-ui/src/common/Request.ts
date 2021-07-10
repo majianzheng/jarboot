@@ -113,28 +113,10 @@ export default class Request {
         // 请求拦截器，塞入token以便鉴权
         this.request.interceptors.request.use( (url: string, options: RequestOptionsInit) => {
             let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
-            if (!token) {
-                token = '';
-            }
-            if (options.params instanceof FormData) {
-                options.responseType = "formData";
-            } else if (options.params instanceof Blob) {
-                options.responseType = "blob";
-            } else if (options.params instanceof ArrayBuffer) {
-                options.responseType = "arrayBuffer";
-            } else if ('object' === typeof options.params) {
-                options.responseType = 'json';
-            } else {
-                options.responseType = 'text';
-            }
-            if (options?.method === 'post' ||
-                options?.method === 'put' ||
-                options?.method === 'delete' ||
-                options?.method === 'get') {
-                const headers: any = options?.headers;
-                if (headers) {
-                    headers['Authorization'] = token;
-                }
+
+            const headers: any = options?.headers;
+            if (headers && token) {
+                headers['Authorization'] = token;
             }
             return {url, options};
         });

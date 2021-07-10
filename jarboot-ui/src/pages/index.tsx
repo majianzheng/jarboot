@@ -2,18 +2,19 @@ import React, {memo, useEffect, useState} from "react";
 import {Tabs, ConfigProvider, Button} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
-import {GlobalSetting, ServerSetting, ServerMgrView, AuthControl} from "@/components";
 import Help from "@/pages/help/Help";
 import styles from './index.less';
 import {WsManager} from "@/common/WsManager";
 import { useIntl, getLocale } from 'umi';
 import OAuthService from "@/services/OAuthService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import {JarBootConst} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
 import {SelectLang, UserMenu, ProjectHome} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
+import ServerMgrView from "@/components/servers";
+import {GlobalSetting, ServerSetting} from "@/components/setting";
+import AuthControl from "@/components/auth";
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
@@ -72,7 +73,7 @@ const index = memo(() => {
                 return;
             }
             if (resp.resultCode !== 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 CommonUtils.loginPage();
                 return;
             }
@@ -80,7 +81,7 @@ const index = memo(() => {
             setUsername(jarbootUser.username);
             JarBootConst.currentUser = jarbootUser;
             welcome();
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     }, []);
 
     const _onLocaleChange = (s: string) => {

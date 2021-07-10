@@ -13,13 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
-    
     private static final String TOKEN_PREFIX = "Bearer ";
     
     private final JwtTokenManager tokenManager;
-    
-    public JwtAuthenticationTokenFilter(JwtTokenManager tokenManager) {
+    private final PermissionManager permissionManager;
+
+    public JwtAuthenticationTokenFilter(JwtTokenManager tokenManager, PermissionManager permissionManager) {
         this.tokenManager = tokenManager;
+        this.permissionManager = permissionManager;
     }
     
     @Override
@@ -32,7 +33,11 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             this.tokenManager.validateToken(jwt);
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            chain.doFilter(request, response);
+            if (permissionManager.hasPermission(authentication.getName(), request)) {
+                chain.doFilter(request, response);
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden!");
+            }
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         }

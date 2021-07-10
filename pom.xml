@@ -59,6 +59,7 @@
 		<htmlcompressor.version>1.5.2</htmlcompressor.version>
 		<thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
 		<okhttp.version>3.10.0</okhttp.version>
+		<reflections.version>0.9.11</reflections.version>
 	</properties>
 
 	<dependencyManagement>

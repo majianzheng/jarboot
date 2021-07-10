@@ -2,7 +2,6 @@ import {Form, Input, Button, InputNumber} from 'antd';
 import React, {memo, useEffect} from "react";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import { useIntl } from 'umi';
 
 const layout = {
@@ -19,21 +18,21 @@ const GlobalSetting: any = memo(() => {
     const onReset = () => {
         SettingService.getGlobalSetting().then((resp: any) => {
             if (0 !== resp.resultCode) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             form.setFieldsValue(resp.result);
-        }).catch((error: any) => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
     useEffect(() => onReset());
     const onSubmit = (data: any) => {
         SettingService.submitGlobalSetting(data).then(resp => {
             if (0 === resp?.resultCode) {
-                CommonNotice.info("提交成功！")
+                CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
             } else {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp))
+                CommonNotice.errorFormatted(resp)
             }
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+        }).catch(CommonNotice.errorFormatted);
     };
 
     return (

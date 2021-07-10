@@ -3,6 +3,7 @@ import {memo, useState} from "react";
 import { useIntl } from 'umi';
 import UserList from "@/components/auth/UserList";
 import RoleMgr from "@/components/auth/RoleMgr";
+import PrivilegeMgr from "@/components/auth/PrivilegeMgr";
 
 const AuthControl = memo(() => {
     const intl = useIntl();
@@ -26,7 +27,7 @@ const AuthControl = memo(() => {
         <Col span={18}>
             {'UserList' === selected && <UserList/>}
             {'RoleMgr' === selected && <RoleMgr/>}
-            {'PrivilegeMgr' === selected && "Designing and coding..."}
+            {'PrivilegeMgr' === selected && <PrivilegeMgr/>}
         </Col>
     </Row>
 });

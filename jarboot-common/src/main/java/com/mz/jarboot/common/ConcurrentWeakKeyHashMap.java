@@ -18,7 +18,7 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/licenses/publicdomain
  */
-package com.mz.jarboot.core.basic;
+package com.mz.jarboot.common;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;

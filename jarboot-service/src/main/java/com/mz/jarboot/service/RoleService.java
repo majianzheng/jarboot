@@ -56,4 +56,10 @@ public interface RoleService {
      * @return roles
      */
     List<String> findRolesLikeRoleName(String role);
+
+    /**
+     * 获取角色列表
+     * @return
+     */
+    List<String> getRoleList();
 }

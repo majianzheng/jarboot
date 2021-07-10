@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.service.UploadFileService;
 import io.swagger.annotations.Api;
@@ -12,11 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Api(tags="文件上传")
 @RequestMapping(value = "/api/jarboot-upload")
 @Controller
+@Permission
 public class UploadFileController {
     @Autowired
     private UploadFileService uploadFileService;
 
-    @ApiOperation(value = "上传jar或zip文件", httpMethod = "POST")
+    @ApiOperation(value = "上传服务文件", httpMethod = "POST")
     @PostMapping(value="/upload")
     @ResponseBody
     public ResponseSimple upload(@RequestParam("file") MultipartFile file, @RequestParam("server") String server) {
@@ -27,6 +29,7 @@ public class UploadFileController {
     @ApiOperation(value = "开始上传服务的文件", httpMethod = "GET")
     @GetMapping(value="/beginUploadServerFile")
     @ResponseBody
+    @Permission("Upload file")
     public ResponseSimple beginUploadServerFile(String server) {
         uploadFileService.beginUploadServerFile(server);
         return new ResponseSimple();

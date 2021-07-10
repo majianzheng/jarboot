@@ -5,7 +5,6 @@ import CommonNotice from "@/common/CommonNotice";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
 import UploadFileService from "@/services/UploadFileService";
-import ErrorUtil from "@/common/ErrorUtil";
 import UploadHeartbeat from "@/components/servers/UploadHeartbeat";
 
 interface UploadFileModalProp {
@@ -55,9 +54,9 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 setStage(UploadFileStage.UPLOAD);
                 UploadHeartbeat.getInstance().start(server);
             } else {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
             }
-        }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)))
+        }).catch(CommonNotice.errorFormatted)
     };
 
     const onUpload = () => {
@@ -74,11 +73,11 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                     setStage(UploadFileStage.SUBMIT);
                 } else {
                     setStage(UploadFileStage.FAILED);
-                    CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                    CommonNotice.errorFormatted(resp);
                 }
             }).catch(error => {
                 setStage(UploadFileStage.FAILED);
-                CommonNotice.error(ErrorUtil.formatErrResp(error));
+                CommonNotice.errorFormatted(error);
             });
     };
 
@@ -91,13 +90,8 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     };
 
     const checkFile = (file: any, show: boolean = true) => {
-        const isJarOrZip = file.type === "application/java-archive";// || file.type === "application/zip";
-        if (!isJarOrZip) {
-            show && CommonNotice.error('只能上传jar文件！');
-            return false;
-        }
-        const isLt60M = file.size / 1024 / 1024 < 500;
-        if (!isLt60M) {
+        const isLt = file.size / 1024 / 1024 < 500;
+        if (!isLt) {
             show && CommonNotice.error('文件大小必须小于500MB！');
             return false;
         }
@@ -142,9 +136,9 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 , file.name)
                 .then(resp => {
                     if (resp.resultCode !== 0) {
-                        CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                        CommonNotice.errorFormatted(resp);
                     }
-                }).catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+                }).catch(CommonNotice.errorFormatted);
         },
     };
     const layout = {

@@ -30,6 +30,7 @@ class JarBootConst {
     //token
     public static TOKEN_KEY = 'token';
     public static currentUser: any = {username: '', globalAdmin: false};
+    public static ADMIN_ROLE = "ROLE_ADMIN";
 }
 interface MessageBody {
     server: string;

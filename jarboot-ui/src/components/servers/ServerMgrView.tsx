@@ -8,14 +8,13 @@ import {
 } from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
 import {MsgData, WsManager} from "@/common/WsManager";
-import ErrorUtil from '@/common/ErrorUtil';
 import Logger from "@/common/Logger";
 import {MSG_EVENT} from "@/common/EventConst";
 import {formatMsg} from "@/common/IntlFormat";
 import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
 import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
 import OneClickButtons from "@/components/servers/OneClickButtons";
-import {CommonTable} from "@/components";
+import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 
@@ -221,7 +220,7 @@ export default class ServerMgrView extends React.PureComponent {
         ServerMgrService.getServerList((resp: any) => {
             this.setState({loading: false});
             if (resp.resultCode < 0) {
-                CommonNotice.error(ErrorUtil.formatErrResp(resp));
+                CommonNotice.errorFormatted(resp);
                 return;
             }
             const data = resp.result;
@@ -241,13 +240,13 @@ export default class ServerMgrView extends React.PureComponent {
                 return;
             }
             this.setState({data});
-        }, (errorMsg: any) => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        }, CommonNotice.errorFormatted);
     };
 
     private _finishCallback = (resp: any) => {
         this.setState({loading: false});
         if (resp.resultCode < 0) {
-            CommonNotice.error(resp.resultMsg);
+            CommonNotice.errorFormatted(resp);
         }
     };
 
@@ -258,8 +257,7 @@ export default class ServerMgrView extends React.PureComponent {
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback,
-                (errorMsg: any) => Logger.log(ErrorUtil.formatErrResp(errorMsg)));
+        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
     };
 
     private _clearDisplay = (server: string) => {
@@ -273,8 +271,7 @@ export default class ServerMgrView extends React.PureComponent {
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback,
-                (errorMsg: any) => CommonNotice.error(ErrorUtil.formatErrResp(errorMsg)));
+        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
     };
     private restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
@@ -283,8 +280,7 @@ export default class ServerMgrView extends React.PureComponent {
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback,
-                (errorMsg: any) => CommonNotice.error(ErrorUtil.formatErrResp(errorMsg)));
+        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
     };
     private _getTbBtnProps = () => {
         return [

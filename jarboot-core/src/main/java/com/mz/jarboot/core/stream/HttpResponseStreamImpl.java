@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static final String API = "api/agent/response?server";
+    private static final String API = "api/public/agent/response?server";
     private static final String RESP_URL =String.format("http://%s/%s=%s",
             EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()

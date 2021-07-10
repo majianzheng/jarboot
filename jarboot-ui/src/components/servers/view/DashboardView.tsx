@@ -3,7 +3,7 @@ import {Progress, Row, Col, Descriptions} from "antd";
 import StringUtil from "@/common/StringUtil";
 import styles from "../index.less";
 import {JarBootConst} from "@/common/JarBootConst";
-import {CommonTable} from "@/components";
+import CommonTable from "@/components/table";
 
 const progressValueFormat = (percent: number|undefined) => <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
 const mu = 1024 * 1024;
