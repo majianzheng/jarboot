@@ -2,13 +2,6 @@ package com.mz.jarboot.base;
 
 import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 
-/**
- * request path info. method:{@link org.springframework.web.bind.annotation.RequestMapping#method()} path: {@link
- * org.springframework.web.bind.annotation.RequestMapping#value()} or {@link org.springframework.web.bind.annotation.RequestMapping#value()}
- *
- * @author horizonzy
- * @since 1.3.2
- */
 public class PathRequestCondition {
     
     private final PathExpression pathExpression;
