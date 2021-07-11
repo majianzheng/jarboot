@@ -116,13 +116,11 @@ public class ServerMgrController {
         if (!target.exists() || !target.isFile()) {
             return;
         }
-        //设置为png格式的文件
         response.setHeader("content-type", "file");
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=" + target.getName());
         byte[] buff = new byte[2048];
         //创建缓冲输入流
-
         try (FileInputStream fis = new FileInputStream(target);
              OutputStream outputStream = response.getOutputStream();
              BufferedInputStream bis = new BufferedInputStream(fis);){

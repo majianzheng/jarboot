@@ -92,12 +92,12 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     const checkFile = (file: any, show: boolean = true) => {
         const isLt = file.size / 1024 / 1024 < 500;
         if (!isLt) {
-            show && CommonNotice.error('文件大小必须小于500MB！');
+            show && CommonNotice.error(intl.formatMessage({id: 'FILE_SIZE_OVER_TIPS'}, {size: '500MB'}));
             return false;
         }
         const notUploaded = -1 === fileList.findIndex((value: any) => value.name === file.name);
         if (!notUploaded) {
-            show && CommonNotice.error('文件已经上传！');
+            show && CommonNotice.error(intl.formatMessage({id: 'SUCCESS'}));
             return false;
         }
         return true;
@@ -120,7 +120,6 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 console.log(info.file, info.fileList);
             }
             if ('done' === status || 'removed' === status) {
-                //CommonNotice.info(`${info.file.name} file uploaded successfully.`);
                 setFileList(info.fileList);
             } else if (status === 'error') {
                 CommonNotice.error(`${info.file.name} file upload failed.`);
@@ -131,7 +130,6 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             }
         },
         onRemove(file: any) {
-            console.log("remove file.", file);
             UploadFileService.deleteFileInUploadCache(form.getFieldValue("server")
                 , file.name)
                 .then(resp => {
@@ -185,7 +183,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             <p className="ant-upload-drag-icon">
                 <InboxOutlined/>
             </p>
-            <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
+            <p className="ant-upload-text">{intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'})}</p>
             <p className="ant-upload-hint">
                 Support for a single or bulk upload. Strictly prohibit from uploading company data or other
                 band files

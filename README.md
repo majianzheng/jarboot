@@ -17,6 +17,8 @@ In the test environment and daily built integrated environment, a series of jar 
 
 [中文说明/Chinese Documentation](README_CN.md)
 
+Document: https://www.yuque.com/jarboot/usage/tmpomo
+
 ![dashboard](doc/overview.png)
 
 ## Background and objectives
@@ -31,9 +33,13 @@ In the test environment and daily built integrated environment, a series of jar 
 It adopts <code>front-end and back-end separation architecture</code>, front-end interface adopts <code>React</code> technology, scaffold uses <code>Umi</code>, component library uses <code>Umi</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ## Install or build
-1. Build ui and <code>Java</code> code, or <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">download</a> the zip package.
+1. Build ui and <code>Java</code> code, or download the zip package.
+
+- <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
+- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">Download from maven center</a>
+
 ```bash
-#build ui.
+#At first build ui
 user$ cd jarboot-ui
 #First time, execute yarn or npm install
 user$ yarn
@@ -70,7 +76,9 @@ user$ sh boot.sh
 ```
 
 4. Browser access <http://127.0.0.1:9899>
-5. Enter the login page. Initial username: jarboot, password: jarboot
+5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
+![dashboard](doc/login.png)
+
 ## Command list
 ### bytes
 View the class bytes，Usage：

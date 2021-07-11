@@ -23,7 +23,7 @@ spring:
     show-sql: false
   datasource:
     driver-class-name: ${jarboot.db.driverClassName:org.apache.derby.jdbc.EmbeddedDriver}
-    url: ${jarboot.db.url:jdbc:derby:${user.home}/jarboot/data/derby_data;create=true}
+    url: ${jarboot.db.url:jdbc:derby:${jarboot.home}/data/derby_data;create=true}
     username: ${jarboot.db.user:root}
     password: ${jarboot.db.password:root}
     hikari:
@@ -31,4 +31,4 @@ spring:
       pool-name: jarboot_db_pool
 logging:
   file:
-    path: ${user.home}/jarboot/logs
+    name: ${jarboot.home}/logs/jarboot.log

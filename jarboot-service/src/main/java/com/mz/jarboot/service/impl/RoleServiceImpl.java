@@ -2,6 +2,7 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.constant.AuthConst;
+import com.mz.jarboot.dao.PrivilegeDao;
 import com.mz.jarboot.dao.RoleDao;
 import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.RoleInfo;
@@ -23,6 +24,9 @@ public class RoleServiceImpl implements RoleService {
     private RoleDao roleDao;
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private PrivilegeDao privilegeDao;
+
     @Override
     public ResponseForList<RoleInfo> getRoles(int pageNo, int pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
@@ -68,6 +72,8 @@ public class RoleServiceImpl implements RoleService {
             throw new IllegalArgumentException("The internal role, can't delete.");
         }
         roleDao.deleteAllByRole(role);
+        // 当前role已经没有任何关联的user，删除相关的权限
+        privilegeDao.deleteAllByRole(role);
     }
 
     @Override
@@ -80,6 +86,10 @@ public class RoleServiceImpl implements RoleService {
             throw new IllegalArgumentException("The internal role, can't delete.");
         }
         roleDao.deleteByRoleAndUsername(role, username);
+        if (null == roleDao.findFirstByRole(role)) {
+            // 当前role已经没有任何关联的user，删除相关的权限
+            privilegeDao.deleteAllByRole(role);
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.mz.jarboot.entity.Privilege;
 import com.mz.jarboot.service.PrivilegeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     }
 
     @Override
+    @Transactional
     public void savePrivilege(String role, String resource, Boolean permission) {
         if (AuthConst.ADMIN_ROLE.equals(role)) {
             throw new MzException("Admin role can't modify!");

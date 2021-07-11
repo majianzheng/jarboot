@@ -1,5 +1,6 @@
 import * as React from "react";
 import {Result, Tag} from "antd";
+import { getLocale } from 'umi';
 import ServerMgrService from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
 import {
@@ -29,6 +30,14 @@ const pubsub: PublishSubmit = new ServerPubsubImpl();
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
+
+const notSelectInfo = () => {
+    if ('zh-CN' === getLocale()) {
+        CommonNotice.info('请点击选择一个服务执行');
+    } else {
+        CommonNotice.info('Please select one to operate');
+    }
+};
 
 export default class ServerMgrView extends React.PureComponent {
     state = {loading: false, data: new Array<any>(), uploadVisible: false,
@@ -78,7 +87,7 @@ export default class ServerMgrView extends React.PureComponent {
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
                 Logger.log(`启动失败${server}`);
-                CommonNotice.error(`启动服务${server}失败！`);
+                CommonNotice.error(`Start ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
@@ -88,7 +97,7 @@ export default class ServerMgrView extends React.PureComponent {
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
                 Logger.log(`停止失败${server}`);
-                CommonNotice.error(`停止服务${server}失败！`);
+                CommonNotice.error(`Stop ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
@@ -240,24 +249,24 @@ export default class ServerMgrView extends React.PureComponent {
                 return;
             }
             this.setState({data});
-        }, CommonNotice.errorFormatted);
+        });
     };
 
     private _finishCallback = (resp: any) => {
         this.setState({loading: false});
-        if (resp.resultCode < 0) {
+        if (0 !== resp.resultCode) {
             CommonNotice.errorFormatted(resp);
         }
     };
 
     private startServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
-            CommonNotice.info('请选择一个服务后操作');
+            notSelectInfo();
             return;
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
+        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback);
     };
 
     private _clearDisplay = (server: string) => {
@@ -266,50 +275,50 @@ export default class ServerMgrView extends React.PureComponent {
 
     private stopServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
-            CommonNotice.info('请选择一个服务后操作');
+            notSelectInfo();
             return;
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
+        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback);
     };
     private restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
-            CommonNotice.info('请选择一个服务后操作');
+            notSelectInfo();
             return;
         }
         this.setState({out: "", loading: true});
         this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback, CommonNotice.errorFormatted);
+        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback);
     };
     private _getTbBtnProps = () => {
         return [
             {
-                name: '启动',
+                name: 'Start',
                 key: 'start ',
                 icon: <CaretRightFilled style={toolButtonGreenStyle}/>,
                 onClick: this.startServer,
             },
             {
-                name: '停止',
+                name: 'Stop',
                 key: 'stop',
                 icon: <PoweroffOutlined style={toolButtonRedStyle}/>,
                 onClick: this.stopServer,
             },
             {
-                name: '重启',
-                key: 'reset',
+                name: 'Restart',
+                key: 'restart',
                 icon: <ReloadOutlined style={toolButtonStyle}/>,
                 onClick: this.restartServer,
             },
             {
-                name: '刷新',
+                name: 'Refresh',
                 key: 'refresh',
                 icon: <SyncOutlined style={toolButtonStyle}/>,
                 onClick: () => this.refreshServerList(),
             },
             {
-                name: '新增/更新服务',
+                name: 'New & update',
                 key: 'upload',
                 icon: <UploadOutlined style={toolButtonStyle}/>,
                 onClick: this.uploadFile,
@@ -328,12 +337,8 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private dashboardCmd = () => {
-        if (this.state.selectRows?.length < 1) {
-            CommonNotice.info('请选择一个服务后操作');
-            return;
-        }
-        if (StringUtil.isEmpty(this.state.current)) {
-            CommonNotice.info('请点击选择一个服务执行');
+        if (this.state.selectRows?.length < 1 || StringUtil.isEmpty(this.state.current)) {
+            notSelectInfo();
             return;
         }
         pubsub.publish(this.state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");

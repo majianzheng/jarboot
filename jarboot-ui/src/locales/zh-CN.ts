@@ -21,6 +21,8 @@ export default {
     CMD_PLACEHOLDER: '输入调试命令执行',
     SELECT_UPLOAD_SERVER_TITLE: '输入要更新或新增的服务的名称',
     UPLOAD_STAGE_TITLE: '上传{server}文件',
+    UPLOAD_TIPS: '点击或拖拽文件到此区域上传',
+    FILE_SIZE_OVER_TIPS: '文件大小必须小于{size}',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',

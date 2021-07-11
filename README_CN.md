@@ -17,6 +17,8 @@
 
 English version goes [here](README.md).
 
+文档：https://www.yuque.com/jarboot/usage/tmpomo
+
 ![dashboard](doc/overview.png)
 
 ## 技术背景及目标
@@ -31,9 +33,13 @@ English version goes [here](README.md).
 采用<code>前后端分离</code>架构，前端界面采用<code>React</code>技术，脚手架使用<code>Umi</code>，组件库使用Umi内置等<code>antd</code>。后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
 ## 安装或编译构建
-1. 编译前端项目和<code>Java</code>，或者<a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">下载</a>发布的zip安装包
+1. 编译前端项目和<code>Java</code>，或者下载发布的zip安装包
+
+- <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
+- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">从maven center下载</a>
+
 ```bash
-#编译前端
+#首先编译前端
 user$ cd jarboot-ui
 #首次时需要先安装依赖，执行yarn或npm install
 user$ yarn
@@ -70,7 +76,8 @@ user$ sh boot.sh
 ```
 
 4. 浏览器访问<http://127.0.0.1:9899>
-5. 进入登录界面，初始的用户名：jarboot，密码：jarboot
+5. 进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
+![dashboard](doc/login.png)
 
 ## 命令列表
 ### bytes

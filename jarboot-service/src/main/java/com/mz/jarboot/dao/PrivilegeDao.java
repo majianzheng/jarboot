@@ -2,6 +2,7 @@ package com.mz.jarboot.dao;
 
 import com.mz.jarboot.entity.Privilege;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,4 +13,7 @@ public interface PrivilegeDao extends JpaRepository<Privilege, Long> {
     List<Privilege> findAllByRole(String role);
 
     Privilege findFirstByRoleAndResource(String role, String resource);
+
+    @Modifying
+    void deleteAllByRole(String role);
 }

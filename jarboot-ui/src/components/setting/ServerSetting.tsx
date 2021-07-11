@@ -1,10 +1,8 @@
 import { Col, Row, Menu, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from '@/common/ErrorUtil';
 import styles from './index.less';
 import ServerMgrService from "@/services/ServerMgrService";
-import Logger from "@/common/Logger";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import {LoadingOutlined, SyncOutlined} from '@ant-design/icons';
@@ -29,7 +27,7 @@ const ServerSetting = memo(() => {
             if (resp.result.length > 0) {
                 setCurrent(resp.result[0].name);
             }
-        }, (errorMsg: any) => Logger.warn(`${ErrorUtil.formatErrResp(errorMsg)}`));
+        });
     };
 
     useEffect(query, []);
@@ -40,7 +38,7 @@ const ServerSetting = memo(() => {
     if (loading) {
         return <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>;
     }
-    return <>{(data instanceof Array && data.length > 0) ? <Row>
+    return <>{(data?.length > 0) ? <Row>
         <Col span={6} className={styles.pageContainer}>
             <Menu
                 onClick={onSelect}

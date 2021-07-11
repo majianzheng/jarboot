@@ -6,13 +6,11 @@ import QuickStartDoc from "@/pages/help/QuickStartDoc";
 import styles from "@/pages/index.less";
 import SettingDoc from "@/pages/help/SettingDoc";
 import CmdListDoc from "@/pages/help/CmdListDoc";
-import PropertyFileDoc from "@/pages/help/PropertyFileDoc";
 
 const pageMap: any = {
     'quick-start': <QuickStartDoc/>,
     'setting': <SettingDoc/>,
     'cmdList': <CmdListDoc/>,
-    'propertyFile': <PropertyFileDoc/>,
 };
 
 const Help: any = memo(() => {
@@ -43,7 +41,6 @@ const Help: any = memo(() => {
                 <Menu.ItemGroup title={intl.formatMessage({id: 'ADVANCED'})}>
                     <Menu.Divider/>
                     <Menu.Item key="cmdList">{intl.formatMessage({id: 'COMMAND_LIST'})}</Menu.Item>
-                    <Menu.Item key="propertyFile">{intl.formatMessage({id: 'PROP_FILE'})}</Menu.Item>
                 </Menu.ItemGroup>
 
             </Menu>

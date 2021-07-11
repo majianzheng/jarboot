@@ -45,7 +45,6 @@ public class WebSocketMainServer {
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
         //do nothing
-        //后面传输文件时可能会用到
     }
 
     @OnMessage

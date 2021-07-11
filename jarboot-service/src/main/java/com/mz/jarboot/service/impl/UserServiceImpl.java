@@ -3,7 +3,10 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.constant.AuthConst;
+import com.mz.jarboot.dao.PrivilegeDao;
+import com.mz.jarboot.dao.RoleDao;
 import com.mz.jarboot.dao.UserDao;
+import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.UserService;
 import com.mz.jarboot.utils.PasswordEncoderUtil;
@@ -22,6 +25,10 @@ import java.util.NoSuchElementException;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private RoleDao roleDao;
+    @Autowired
+    private PrivilegeDao privilegeDao;
 
     @Override
     @Transactional
@@ -52,6 +59,18 @@ public class UserServiceImpl implements UserService {
             throw new MzException("The internal user, can't removed!");
         }
         userDao.delete(user);
+        Page<RoleInfo> roles = roleDao.getRoleByUsername(user.getUsername(), PageRequest.of(0, Integer.MAX_VALUE));
+        if (null == roles || roles.isEmpty()) {
+            return;
+        }
+        List<RoleInfo> list = roles.getContent();
+        roleDao.deleteAll(list);
+        list.forEach(roleInfo -> {
+            if (null == roleDao.findFirstByRole(roleInfo.getRole())) {
+                // 当前role已经没有任何关联的user，删除相关的权限
+                privilegeDao.deleteAllByRole(roleInfo.getRole());
+            }
+        });
     }
 
     @Override

@@ -19,7 +19,7 @@ public class WebSocketAgentServer {
      */
     @OnOpen
     public void onOpen(Session session, @PathParam("server") String server) {
-        logger.info("{} Agent连接成功!", server);
+        logger.debug("{} Agent连接成功!", server);
         AgentManager.getInstance().online(server, session);
         WebSocketManager.getInstance().sendConsole(server, server + "上线成功！");
     }
@@ -29,7 +29,7 @@ public class WebSocketAgentServer {
      */
     @OnClose
     public void onClose( Session session, @PathParam("server") String server) {
-        logger.info("目标进程断开连接, id:{}, server:{}", session.getId(), server);
+        logger.debug("目标进程断开连接, id:{}, server:{}", session.getId(), server);
         AgentManager.getInstance().offline(server);
     }
 

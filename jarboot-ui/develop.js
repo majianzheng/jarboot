@@ -1,36 +1,41 @@
 const fs = require("fs");
-
-function log(...args) {
-    console.info('[JARBOOT] - ', ...args)
-};
+const path = require("path");
 
 const distBase = './dist/';
-const resBase = '../jarboot-service/src/main/resources/static/';
+const staticDir = '../jarboot-service/src/main/resources/static/';
 
-log("Start developing...");
+console.info("Start developing...");
 
-log(">>>Copy umi.js...");
-let file = fs.createReadStream(distBase + 'umi.js');
-let out = fs.createWriteStream(resBase + 'umi.js');
-file.pipe(out);
-log(">>>Copy umi.js finished.");
+if (!fs.existsSync(staticDir)) {
+    fs.mkdirSync(staticDir);
+    console.info(`static dir created.`);
+}
+function clean(dir) {
+    const files = fs.readdirSync(dir);
+    files && files.length > 0 && files.forEach(file => {
+        const p = path.join(dir, file);
+        if(fs.statSync(p).isDirectory()) {
+            clean(p);
+        } else {
+            fs.unlinkSync(p);
+        }
+    });
+}
+// 清理旧资源
+clean(staticDir);
 
-log(">>>Copy umi.css...");
-file = fs.createReadStream(distBase + 'umi.css');
-out = fs.createWriteStream(resBase + 'umi.css');
-file.pipe(out);
-log(">>>Copy umi.css finished.");
-
-log(">>>Copy index.html...");
-file = fs.createReadStream(distBase + 'index.html');
-out = fs.createWriteStream(resBase + 'index.html');
-file.pipe(out);
-log(">>>Copy index.html finished.");
-
-log(">>>Copy login.html...");
-file = fs.createReadStream(distBase + 'login.html');
-out = fs.createWriteStream(resBase + 'login.html');
-file.pipe(out);
-log(">>>Copy login.html finished.");
-
-log("Developing finished.");
+// 开始拷贝
+fs.readdir(distBase, (err, files) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+    files.forEach(file => {
+        console.info(`>>>Copy ${file}...`);
+        let rs = fs.createReadStream(path.join(distBase, file));
+        let out = fs.createWriteStream(path.join(staticDir, file));
+        rs.pipe(out);
+        console.info(`>>>Copied ${file}.`);
+    });
+    console.info("Developing finished.");
+});

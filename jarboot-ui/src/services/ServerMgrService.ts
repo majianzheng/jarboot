@@ -1,6 +1,5 @@
 import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
-import ErrorUtil from "@/common/ErrorUtil";
 import {requestFinishCallback} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
 
@@ -11,40 +10,36 @@ export default class ServerMgrService {
     /**
      * 获取服务列表
      * @param callback
-     * @param errorCallBack
      */
-    public static getServerList(callback: any, errorCallBack: any) {
-        Request.get(`${urlBase}/getServerList`, {}).then(callback).catch(errorCallBack);
+    public static getServerList(callback: any) {
+        Request.get(`${urlBase}/getServerList`, {}).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 启动服务
      * @param param
      * @param callback
-     * @param errorCallBack
      */
-    public static startServer(param: any, callback: any, errorCallBack: any) {
-        Request.post(`${urlBase}/startServer`, param).then(callback).catch(errorCallBack);
+    public static startServer(param: any, callback: any) {
+        Request.post(`${urlBase}/startServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 终止服务
      * @param param
      * @param callback
-     * @param errorCallBack
      */
-    public static stopServer(param: any, callback: any, errorCallBack: any) {
-        Request.post(`${urlBase}/stopServer`, param).then(callback).catch(errorCallBack);
+    public static stopServer(param: any, callback: any) {
+        Request.post(`${urlBase}/stopServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 重启服务
      * @param param
      * @param callback
-     * @param errorCallBack
      */
-    public static restartServer(param: any, callback: any, errorCallBack: any) {
-        Request.post(`${urlBase}/restartServer`, param).then(callback).catch(errorCallBack);
+    public static restartServer(param: any, callback: any) {
+        Request.post(`${urlBase}/restartServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -52,9 +47,7 @@ export default class ServerMgrService {
      */
     public static oneClickRestart() {
         Request.get(`${urlBase}/oneClickRestart`, {}
-        ).then(requestFinishCallback).catch(error => {
-            CommonNotice.error(ErrorUtil.formatErrResp(error));
-        });
+        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -62,9 +55,7 @@ export default class ServerMgrService {
      */
     public static oneClickStart() {
         Request.get(`${urlBase}/oneClickStart`, {}
-        ).then(requestFinishCallback).catch(error => {
-            CommonNotice.error(ErrorUtil.formatErrResp(error));
-        });
+        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -72,9 +63,7 @@ export default class ServerMgrService {
      */
     public static oneClickStop() {
         Request.get(`${urlBase}/oneClickStop`, {}
-        ).then(requestFinishCallback).catch(error => {
-            CommonNotice.error(ErrorUtil.formatErrResp(error));
-        });
+        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**

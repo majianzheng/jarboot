@@ -43,7 +43,7 @@
 		<module>packaging</module>
 	</modules>
 	<properties>
-		<revision>1.0.5</revision>
+		<revision>1.0.6</revision>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
@@ -59,7 +59,6 @@
 		<htmlcompressor.version>1.5.2</htmlcompressor.version>
 		<thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
 		<okhttp.version>3.10.0</okhttp.version>
-		<reflections.version>0.9.11</reflections.version>
 	</properties>
 
 	<dependencyManagement>

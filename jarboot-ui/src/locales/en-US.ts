@@ -21,6 +21,8 @@ export default {
     CMD_PLACEHOLDER: 'Input command to execute',
     SELECT_UPLOAD_SERVER_TITLE: 'Input the server name of update or new',
     UPLOAD_STAGE_TITLE: 'Upload {server} files',
+    UPLOAD_TIPS: 'Click or drag the file to upload to this area',
+    FILE_SIZE_OVER_TIPS: 'The file size must be less than {size}',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',

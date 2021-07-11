@@ -95,7 +95,7 @@ const PrivilegeMgr = memo(() => {
                 setCheckedKeys(treeSelect);
                 return;
             }
-            treeSelect = resp.result.map((item: any) => item.resource);
+            treeSelect = resp.result.filter((item: any) => item.permission).map((item: any) => item.resource);
             setCheckedKeys(treeSelect);
             setLoading(false);
         }).catch(error => {

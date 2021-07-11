@@ -22,6 +22,7 @@ const CmdListDoc: any = memo(() => {
                     <li><Text keyboard>thread</Text></li>
                     <li><Text keyboard>watch</Text></li>
                     <li><Text keyboard>trace</Text></li>
+                    <li><Text keyboard>heapdump</Text></li>
                     <li><Text keyboard>sysprop</Text></li>
                 </ul>
             </Paragraph>
