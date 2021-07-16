@@ -36,4 +36,24 @@ export default class SettingService {
     public static submitGlobalSetting(setting: any) {
         return  Request.post(`${settingUrl}/submitGlobalSetting`, setting);
     }
+
+    /**
+     * 获取vm配置
+     * @returns {Promise<any>}
+     */
+    public static getVmOptions(server: string, file: string) {
+        return Request.get(`${settingUrl}/vmoptions`, {server, file});
+    }
+
+    /**
+     * 保存vm配置
+     * @param setting 配置信息
+     */
+    public static saveVmOptions(server: string, file: string, content: string) {
+        let form = new FormData();
+        form.append('server', server);
+        form.append('file', file);
+        form.append('content', content);
+        return Request.post(`${settingUrl}/vmoptions`, form);
+    }
 }

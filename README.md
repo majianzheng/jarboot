@@ -60,7 +60,7 @@ jarboot                             #Current working directory
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
-├─jarboot-service.jar               #Web service
+├─jarboot-server.jar                #Web service
 └─services                          #Default root directory which managing other jar files (configurable)
    ├─demo1-service                  #The service name is directory, which stores the jar files and their dependencies.
    │   └─demo1-service.jar          #The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
@@ -77,6 +77,7 @@ user$ sh boot.sh
 
 4. Browser access <http://127.0.0.1:9899>
 5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
+
 ![dashboard](doc/login.png)
 
 ## Command list

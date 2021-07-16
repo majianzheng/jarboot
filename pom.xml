@@ -38,7 +38,7 @@
 		<module>jarboot-spy</module>
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
-		<module>jarboot-service</module>
+		<module>jarboot-server</module>
 		<module>demo-server</module>
 		<module>packaging</module>
 	</modules>

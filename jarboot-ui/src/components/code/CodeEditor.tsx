@@ -16,15 +16,18 @@ import 'codemirror/addon/fold/brace-fold.js';
 import 'codemirror/addon/fold/comment-fold.js';
 import 'codemirror/addon/selection/active-line';
 import StringUtil from "@/common/StringUtil";
+import CodeMode from "@/components/code/CodeMode";
 
 interface CodeEditorProps {
     source: string;
     readOnly?: boolean;
     height: string|number;
     fullScreen?: boolean;
+    mode?: CodeMode;
+    onChange?: (editor: any, data: any, value: string) => void;
 }
 
-const CodeEditor = memo((props: CodeEditorProps) => {
+const CodeEditor = (props: CodeEditorProps) => {
 
     const codeRef = useRef<any>();
 
@@ -49,7 +52,7 @@ const CodeEditor = memo((props: CodeEditorProps) => {
             ref={codeRef}
             value={props?.source}
             options={{
-                mode: "text/x-java",
+                mode: props.mode,
                 theme: 'material',
                 lineNumbers: true,
                 readOnly: props.readOnly,
@@ -59,11 +62,16 @@ const CodeEditor = memo((props: CodeEditorProps) => {
                 gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
                 fullScreen: props.fullScreen,
             }}
-            // onChange={(editor, data, value) => {
-            // }}
+            onChange={(editor, data, value) => {
+                props?.onChange && props.onChange(editor, data, value);
+            }}
             onUpdate={beforeChange}
         />
     </>
-});
+};
 
-export default CodeEditor;
+CodeEditor.defaultProps = {
+    mode: CodeMode.JAVA
+};
+
+export default memo(CodeEditor);

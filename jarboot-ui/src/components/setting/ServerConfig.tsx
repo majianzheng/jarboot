@@ -1,9 +1,11 @@
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
-import {memo, useEffect} from "react";
+import {memo, useEffect, useState} from "react";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import { useIntl } from 'umi';
 import StringUtil from "@/common/StringUtil";
+import {FormOutlined} from "@ant-design/icons";
+import FileEditModal from "@/components/FileEditModal";
 
 const layout = {
     labelCol: {span: 8},
@@ -16,6 +18,8 @@ const tailLayout = {
 const ServerConfig: any = memo((props: any) => {
     const [form] = Form.useForm();
     const intl = useIntl();
+    let [visible, setVisible] = useState(false);
+    let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => {}});
     const onReset = () => {
         SettingService.getServerSetting(props.server
         ).then((resp: any) => {
@@ -44,22 +48,58 @@ const ServerConfig: any = memo((props: any) => {
             }
         }).catch(CommonNotice.errorFormatted);
     };
-    return (
+    const onJvmEdit = () => {
+        setVisible(true);
+        let jvm = form.getFieldValue("jvm");
+        if (StringUtil.isEmpty(jvm)) {
+            jvm = 'boot.vmoptions';
+        }
+        const onSave = (value: string) => {
+            SettingService.saveVmOptions(props.server, jvm, value).then(resp => {
+                if (resp.resultCode !== 0) {
+                    CommonNotice.errorFormatted(resp);
+                    return;
+                }
+            }).catch(CommonNotice.errorFormatted)
+        };
+        SettingService.getVmOptions(props.server, jvm).then(resp => {
+            if (resp.resultCode !== 0) {
+                CommonNotice.errorFormatted(resp);
+                return;
+            }
+            setFile({name: jvm, content: resp.result, onSave});
+        }).catch(CommonNotice.errorFormatted)
+    };
+
+    const onArgsEdit = () => {
+        setVisible(true);
+        const args = form.getFieldValue('args');
+        const setFieldsValue = form.setFieldsValue;
+        setFile({name: 'start args', content: args, onSave: onArgsSave});
+    };
+    const onArgsSave = (args: string) => {
+        args = args.replaceAll('\n', ' ');
+        setTimeout(() => {
+            form.setFieldsValue({args});
+        }, 100);
+    };
+
+    return (<>
         <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
             <Form.Item name="jar"
                        label={intl.formatMessage({id: 'JAR_LABEL'})}
                        rules={[{required: false}]}>
-                <Input placeholder={"指定Main Class所在的jar，为空则默认第一个"} autoComplete="off"/>
+                <Input placeholder={"The jar file to start"} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="jvm"
                        label={intl.formatMessage({id: 'JVM_OPT_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off"/>
+                <Input autoComplete="off" placeholder={"vm options file"} onDoubleClick={onJvmEdit} addonAfter={<FormOutlined onClick={onJvmEdit}/>}/>
             </Form.Item>
             <Form.Item name="args"
                        label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off"/>
+                <Input autoComplete="off" onDoubleClick={onArgsEdit} addonAfter={<FormOutlined onClick={onArgsEdit}/>}/>
             </Form.Item>
             <Form.Item name="javaHome"
                        label={"Java Home"}
@@ -100,6 +140,8 @@ const ServerConfig: any = memo((props: any) => {
                 </Button>
             </Form.Item>
         </Form>
-    );
+        <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
+                       visible={visible} onClose={() => setVisible(false)}/>
+    </>);
 });
 export default ServerConfig;

@@ -1,0 +1,34 @@
+server:
+  port: ${port:9899}
+  servlet:
+    context-path: /
+spring:
+  application:
+    name: jarboot-server
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  jmx:
+    default-domain: jarboot-server
+  jms:
+    pub-sub-domain: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 512MB
+      max-request-size: 512MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  datasource:
+    driver-class-name: ${jarboot.db.driverClassName:org.apache.derby.jdbc.EmbeddedDriver}
+    url: ${jarboot.db.url:jdbc:derby:${jarboot.home}/data/derby_data;create=true}
+    username: ${jarboot.db.user:root}
+    password: ${jarboot.db.password:root}
+    hikari:
+      minimum-idle: 2
+      pool-name: jarboot_db_pool
+logging:
+  file:
+    name: ${jarboot.home}/logs/jarboot.log
