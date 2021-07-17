@@ -13,7 +13,7 @@ const pageMap: any = {
     'cmdList': <CmdListDoc/>,
 };
 
-const Help: any = memo(() => {
+const About: any = memo(() => {
     const intl = useIntl();
     const [page, setPage] = useState("quick-start");
     const handleClick = (e: any) => {
@@ -53,4 +53,4 @@ const Help: any = memo(() => {
     </Row>
 });
 
-export default Help;
+export default About;

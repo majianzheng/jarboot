@@ -60,7 +60,7 @@ const ServerSetting = memo(() => {
             </Menu>
         </Col>
         <Col span={18} className={styles.pageContainer}>
-            <div style={{margin: '0 30px 0 5px', width: '80%'}}>
+            <div style={{margin: '0 30px 0 5px', width: '95%'}}>
                 <ServerConfig server={current}/>
             </div>
         </Col>

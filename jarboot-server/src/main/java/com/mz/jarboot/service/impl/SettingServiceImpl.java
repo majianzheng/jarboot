@@ -113,10 +113,6 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitGlobalSetting(GlobalSettingDTO setting) {
-        if (setting.getMaxStartTime() < 3000) {
-            throw new MzException(ResultCodeConst.INVALID_PARAM,
-                    String.format("最小启动时间(%d)应不小于3000！", setting.getMaxStartTime()));
-        }
         SettingUtils.updateGlobalSetting(setting);
     }
 

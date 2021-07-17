@@ -7,7 +7,7 @@ export default {
     SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
     SETTING: 'Setting',
-    HELP_DOC: 'Help',
+    HELP_DOC: 'About',
     MENU_DOCS: 'DOCS',
 
     //服务管理
@@ -43,19 +43,19 @@ export default {
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
-    JAR_LABEL: 'Start jar file',
-    JVM_OPT_LABEL: 'JVM options',
-    MAIN_ARGS_LABEL: 'Main args',
-    WORK_HOME_LABEL: 'Work home',
-    ENV_LABEL: 'environment',
+    JAR_LABEL: 'Use jar to start',
+    JVM_OPT_LABEL: 'VM options',
+    MAIN_ARGS_LABEL: 'Program arguments',
+    WORK_HOME_LABEL: 'Work directory',
+    ENV_LABEL: 'Environment variables',
     PRIORITY_LABEL: 'Priority',
     DAEMON_LABEL: 'Daemon',
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',
 
     //全局配置界面
-    SERVERS_PATH: 'Root path',
+    SERVERS_PATH: 'Services root path',
     DEFAULT_VM_OPT: 'Default VM options',
-    MAX_START_TIME: 'Max start time',
+    AUTO_START_AFTER_INIT: 'Auto start after jarboot started',
 
     //用户登录
     USER_NAME: 'User',
@@ -106,7 +106,7 @@ export default {
     SETTING_P1: `General configuration`,
     SETTING_P2: `:Set the default service root directory. You can change the default service root directory location. By default, it is the services directory under jarboot.`,
     SETTING_P3: `:When the service does not set the startup parameters of the JVM, the default global configuration is used.`,
-    SETTING_P4: `:When the service process does not output information for a long time after it is started, it is considered that the start is completed.`,
+    SETTING_P4: `:Auto start services after jarboot-server started.`,
     SETTING_P5: `:Hidden function. The target service can be debugged through the third party's Arthas on the interface. The address is:`,
     SETTING_P6: `:When there are multiple jar files in the service directory, you need to specify which jar file to start, that is, the name of the jar file where main class is located.`,
     SETTING_P7: `:Specify the JVM parameters when the service starts, such as memory size, garbage collector, etc.`,

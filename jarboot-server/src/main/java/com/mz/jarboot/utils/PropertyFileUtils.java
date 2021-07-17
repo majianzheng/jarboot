@@ -72,8 +72,6 @@ public class PropertyFileUtils {
         Properties properties = getProperties(path);
         String serverPath = SettingUtils.getServerPath(server);
         if (properties.isEmpty()) {
-            //默认启动目录在服务目录，不继承父进程的工作目录
-            setting.setWorkHome(serverPath);
             return setting;
         }
         String jar = properties.getProperty("jar", "");
@@ -89,7 +87,7 @@ public class PropertyFileUtils {
         setting.setJvm(jvm);
         String args = properties.getProperty("args", "");
         setting.setArgs(args);
-        checkAndGetHome(server, setting, properties);
+        checkAndGetHome(setting, properties);
 
         //环境变量
         String envp = properties.getProperty("envp", "");
@@ -114,19 +112,16 @@ public class PropertyFileUtils {
         return setting;
     }
 
-    private static void checkAndGetHome(String server, ServerSettingDTO setting, Properties properties) {
+    private static void checkAndGetHome(ServerSettingDTO setting, Properties properties) {
         //工作目录
         String workHome = properties.getProperty("workHome", "");
-        if (StringUtils.isEmpty(workHome)) {
-            //默认启动目录在服务目录，不继承父进程的工作目录
-            setting.setWorkHome(SettingUtils.getServerPath(server));
-        } else {
+        if (StringUtils.isNotEmpty(workHome)) {
             File dir = new File(workHome);
             if (dir.isDirectory() && dir.exists()) {
                 setting.setWorkHome(workHome);
             } else {
                 //默认启动目录在服务目录，不继承父进程的工作目录
-                setting.setWorkHome(SettingUtils.getServerPath(server));
+                setting.setWorkHome(StringUtils.EMPTY);
             }
         }
 
@@ -165,7 +160,7 @@ public class PropertyFileUtils {
         } catch (IOException e) {
             logger.info(e.getMessage(), e);
         }
-        Map<String, String> copy = new HashMap<>(props);
+        HashMap<String, String> copy = new HashMap<>(props);
         if (CollectionUtils.isNotEmpty(lines)) {
             for (int i = 0; i < lines.size(); ++i) {
                 String line = lines.get(i);
@@ -192,7 +187,7 @@ public class PropertyFileUtils {
     //解析启动优先级配置
     public static Queue<ServerSettingDTO> parseStartPriority(List<String> servers) {
         //优先级最大的排在最前面
-        Queue<ServerSettingDTO> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSettingDTO::getPriority));
+        PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
         if (CollectionUtils.isEmpty(servers)) {
             return queue;
         }
@@ -206,7 +201,7 @@ public class PropertyFileUtils {
     //解析终止优先级配置，与启动优先级相反
     public static Queue<ServerSettingDTO> parseStopPriority(List<String> servers) {
         //优先级小的排在最前面
-        Queue<ServerSettingDTO> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
+        PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSettingDTO::getPriority));
         if (CollectionUtils.isEmpty(servers)) {
             return queue;
         }

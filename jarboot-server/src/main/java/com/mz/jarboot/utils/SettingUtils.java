@@ -1,6 +1,5 @@
 package com.mz.jarboot.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
@@ -22,18 +21,25 @@ import java.util.*;
 
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static GlobalSettingDTO globalSetting = null;
+    private static GlobalSettingDTO globalSetting = new GlobalSettingDTO();
     private static final String BOOT_PROPERTIES = "boot.properties";
-    private static final String GLOBAL_SETTING_FILE = "global-setting.conf";
-    private static final String DEFAULT_SERVICES_ROOT_NAME = "services";
+    private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
+    private static final String DEFAULT_JVM_OPTS_KEY = "jarboot.services.default-jvm-options";
+    private static final String DEFAULT_SERVICES_DIR;
+    private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
+    private static final String JARBOOT_CONF;
+
     private static String agentJar;
     static {
+        JARBOOT_CONF = System.getProperty(CommonConst.JARBOOT_HOME) +
+                File.separator + "conf" + File.separator + "jarboot.properties";
+
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
         initGlobalSetting();
-        //进行默认配置
-        initDefaultServicesRootPath();
+        //初始化默认目录及配置路径
+        DEFAULT_SERVICES_DIR = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
     }
 
     private static void initAgentJarPath() {
@@ -59,42 +65,14 @@ public class SettingUtils {
         }
     }
     private static void initGlobalSetting() {
-        String conf = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + GLOBAL_SETTING_FILE;
-        File file = FileUtils.getFile(conf);
-        if (file.isDirectory()) {
-            try {
-                FileUtils.deleteDirectory(file);
-            } catch (IOException e) {
-                logger.error("存在与配置文件相同的文件夹名称，删除失败！");
-                return;
-            }
-        }
-
-        if (!file.exists()) {
-            //不存在配置文件
-            return;
-        }
-        try {
-            String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-            globalSetting = JSON.parseObject(content, GlobalSettingDTO.class);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-    private static void initDefaultServicesRootPath() {
-        if (null == globalSetting) {
-            globalSetting = new GlobalSettingDTO();
-        }
-        String servicesPath = globalSetting.getServicesPath();
-        if (StringUtils.isNotEmpty(servicesPath)) {
-            File dir = new File(servicesPath);
-            if (dir.exists() && dir.isDirectory()) {
-                return;
-            }
-            logger.warn("配置的services({})路径不存在，将使用默认的约定路径。", servicesPath);
-        }
-        servicesPath = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + DEFAULT_SERVICES_ROOT_NAME;
-        globalSetting.setServicesPath(servicesPath);
+        File conf = new File(JARBOOT_CONF);
+        Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
+                PropertyFileUtils.getProperties(conf) : new Properties();
+        globalSetting.setServicesPath(properties.getProperty(ROOT_DIR_KEY, ""));
+        globalSetting.setDefaultJvmArg(properties.getProperty(DEFAULT_JVM_OPTS_KEY, ""));
+        String s = properties.getProperty(ENABLE_AUTO_START_KEY, "false");
+        boolean servicesAutoStart = StringUtils.equalsIgnoreCase("true", s);
+        globalSetting.setServicesAutoStart(servicesAutoStart);
     }
 
     public static GlobalSettingDTO getGlobalSetting() {
@@ -110,23 +88,17 @@ public class SettingUtils {
             }
         }
 
-        String arthasHome = setting.getArthasHome();
-        if (StringUtils.isNotEmpty(arthasHome)) {
-            File dir = new File(arthasHome);
-            if (!dir.isDirectory() || !dir.exists()) {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", arthasHome));
-            }
-        }
-
-        String conf = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + GLOBAL_SETTING_FILE;
-        File file = FileUtils.getFile(conf);
+        File file = FileUtils.getFile(JARBOOT_CONF);
         try {
-            if (file.isDirectory()) {
-                FileUtils.deleteDirectory(file);
-            }
-            FileUtils.writeStringToFile(file, JSON.toJSONString(setting), StandardCharsets.UTF_8);
+            HashMap<String, String> props = new HashMap<>();
+            props.put(DEFAULT_JVM_OPTS_KEY, setting.getDefaultJvmArg());
+            props.put(ROOT_DIR_KEY, setting.getServicesPath());
+            props.put(ENABLE_AUTO_START_KEY, String.valueOf(setting.getServicesAutoStart()));
+            PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
-            globalSetting = setting;
+            globalSetting.setDefaultJvmArg(setting.getDefaultJvmArg());
+            globalSetting.setServicesPath(setting.getServicesPath());
+            globalSetting.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
@@ -134,7 +106,11 @@ public class SettingUtils {
 
 
     public static String getServicesPath() {
-        return globalSetting.getServicesPath();
+        String path = globalSetting.getServicesPath();
+        if (StringUtils.isBlank(path)) {
+            path = DEFAULT_SERVICES_DIR;
+        }
+        return path;
     }
 
     public static String getAgentStartOption(String server) {
@@ -215,6 +191,9 @@ public class SettingUtils {
 
     public static String getJvm(String server, String file) {
         String path;
+        if (StringUtils.isBlank(file)) {
+            file = CommonConst.DEFAULT_JVM_FILE;
+        }
         if (SettingUtils.isAbsPath(file)) {
             // 绝对路径
             path = file;
@@ -228,6 +207,7 @@ public class SettingUtils {
             try {
                 lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
+                WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
                 throw new MzException("Read file error.", e);
             }
             lines.forEach(line -> sb.append(line).append(' '));
@@ -244,10 +224,7 @@ public class SettingUtils {
                 return false;
             }
             char c = path.charAt(0);
-            if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && path.charAt(1) == ':') {
-                return true;
-            }
-            return false;
+            return (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && path.charAt(1) == ':');
         }
         return (path.startsWith("/") || path.startsWith("\\"));
     }

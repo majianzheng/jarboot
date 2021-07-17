@@ -6,9 +6,6 @@ set "JAVA=%JAVA_HOME%\bin\java.exe"
 setlocal enabledelayedexpansion
 
 set BASE_DIR=%~dp0
-rem added double quotation marks to avoid the issue caused by the folder names containing spaces.
-rem removed the last 5 chars(which means \bin\) to get the base DIR.
-set BASE_DIR="%BASE_DIR:~0,-5%"
 
 set SERVER=jarboot-server
 

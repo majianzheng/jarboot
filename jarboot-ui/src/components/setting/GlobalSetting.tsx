@@ -1,4 +1,4 @@
-import {Form, Input, Button, InputNumber} from 'antd';
+import {Form, Input, Button, InputNumber, Switch} from 'antd';
 import React, {memo, useEffect} from "react";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
@@ -40,17 +40,24 @@ const GlobalSetting: any = memo(() => {
             <Form.Item name="servicesPath"
                        label={intl.formatMessage({id: 'SERVERS_PATH'})}
                        rules={[{required: false}]}>
-                <Input placeholder={"services directory"} autoComplete="off"/>
+                <Input placeholder={"services directory"}
+                       autoComplete="off" autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
             </Form.Item>
             <Form.Item name="defaultJvmArg"
                        label={intl.formatMessage({id: 'DEFAULT_VM_OPT'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off"/>
+                <Input autoComplete="off"
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
             </Form.Item>
-            <Form.Item name="maxStartTime"
-                       label={intl.formatMessage({id: 'MAX_START_TIME'})}
+            <Form.Item name="servicesAutoStart"
+                       label={intl.formatMessage({id: 'AUTO_START_AFTER_INIT'})}
+                       valuePropName={"checked"}
                        rules={[{required: false}]}>
-                <InputNumber min={3000} max={60000} defaultValue={30000} autoComplete="off"/>
+                <Switch/>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>

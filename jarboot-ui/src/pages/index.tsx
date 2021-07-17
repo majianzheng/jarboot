@@ -2,7 +2,7 @@ import React, {memo, useEffect, useState} from "react";
 import {Tabs, ConfigProvider, Button} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
-import Help from "@/pages/help/Help";
+import About from "@/pages/help/About";
 import styles from './index.less';
 import {WsManager} from "@/common/WsManager";
 import { useIntl, getLocale } from 'umi';
@@ -10,7 +10,7 @@ import OAuthService from "@/services/OAuthService";
 import CommonNotice from "@/common/CommonNotice";
 import {JarBootConst} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
-import {SelectLang, UserMenu, ProjectHome} from "@/components/extra";
+import {SelectLang, UserMenu, ProjectHome, JarbootVersion} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
 import ServerMgrView from "@/components/servers";
 import {GlobalSetting, ServerSetting} from "@/components/setting";
@@ -40,12 +40,12 @@ const TabPanes: any = memo((props: any) => {
             <AuthControl/>
         </TabPane>
         <TabPane key={'4'} tab={intl.formatMessage({id: 'SETTING'})}>
-            <div style={{width: '66%'}}>
+            <div style={{width: '96%'}}>
                 <GlobalSetting/>
             </div>
         </TabPane>
         <TabPane key={'5'} tab={intl.formatMessage({id: 'HELP_DOC'})}>
-            <Help/>
+            <About/>
         </TabPane>
     </Tabs>
 });
@@ -88,6 +88,7 @@ const index = memo(() => {
         setLang(s);
     };
     const rightExtra = <div className={styles.rightExtra}>
+        <JarbootVersion/>
         <Button type={"text"} href={"https://www.yuque.com/jarboot/usage/tmpomo"}
                 style={{top: '-5px'}} target={"_blank"}>
             {intl.formatMessage({id: 'MENU_DOCS'})}

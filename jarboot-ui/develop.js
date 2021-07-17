@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const distBase = './dist/';
-const staticDir = '../jarboot-service/src/main/resources/static/';
+const staticDir = '../jarboot-server/src/main/resources/static/';
 
 console.info("Start developing...");
 

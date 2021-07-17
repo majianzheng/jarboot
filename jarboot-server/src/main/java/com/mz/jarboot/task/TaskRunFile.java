@@ -6,11 +6,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
 class TaskRunFile implements Serializable {
     private static final long serialVersionUID = 1204122041950251201L;
-    private final Map<String, TaskRunInfo> taskRunMap = new HashMap<>();
+    private final HashMap<String, TaskRunInfo> taskRunMap = new HashMap<>();
     public void setTaskInfo(String name, String status, Integer pid) {
         TaskRunInfo taskRunInfo = taskRunMap.getOrDefault(name, null);
         if (null == taskRunInfo) {
@@ -39,7 +38,7 @@ class TaskRunFile implements Serializable {
         if (taskRunMap.isEmpty()) {
             return false;
         }
-        for (Map.Entry<String, TaskRunInfo> entry : this.taskRunMap.entrySet()) {
+        for (java.util.Map.Entry<String, TaskRunInfo> entry : this.taskRunMap.entrySet()) {
             String status = entry.getValue().getStatus();
             Date actionTime = entry.getValue().getActionTime();
             long actionTimeStamp = 0L;

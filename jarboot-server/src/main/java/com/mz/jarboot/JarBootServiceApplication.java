@@ -17,7 +17,7 @@ import java.security.CodeSource;
  * @author jianzhengma
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
-@PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/jarboot.properties"}, ignoreResourceNotFound=true)
+@PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
 public class JarBootServiceApplication {
 
 	public static void main(String[] args) {

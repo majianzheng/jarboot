@@ -10,8 +10,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.*;
 
@@ -19,6 +21,10 @@ import java.util.*;
 public class TaskRunCache {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private TaskRunFile taskRunFile = null;
+
+    @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
+    private String excludeDirs;
+    private HashSet<String> excludeDirSet = new HashSet<>(16);
 
     private void updateServerInfo(List<ServerRunningDTO> server) {
         Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();
@@ -57,10 +63,7 @@ public class TaskRunCache {
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
         }
-        File[] serviceDirs = servicesDir.listFiles((dir, name) ->
-                dir.isDirectory() && !dir.isHidden()
-                        && !StringUtils.startsWith(name, ".")
-                        && !StringUtils.equals("lib", name));
+        File[] serviceDirs = servicesDir.listFiles(this::filterExcludeDir);
         if (null == serviceDirs || serviceDirs.length < 1) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
         }
@@ -122,6 +125,16 @@ public class TaskRunCache {
         return cache;
     }
 
+    private boolean filterExcludeDir(File dir, String name) {
+        if (!dir.isDirectory() || dir.isHidden()) {
+            return false;
+        }
+        if (StringUtils.startsWith(name, ".")) {
+            return false;
+        }
+        return !excludeDirSet.contains(name);
+    }
+
     private void update(TaskRunFile cache) {
         File cacheFile = FileUtils.getFile(this.getCacheFilePath());
         try (ObjectOutputStream oo = new ObjectOutputStream(new FileOutputStream(cacheFile));){
@@ -137,9 +150,23 @@ public class TaskRunCache {
     }
 
     private String getCacheFilePath() {
-        String path = System.getProperty(CommonConst.WORKSPACE_HOME);
+        String path = System.getProperty(CommonConst.JARBOOT_HOME);
         StringBuilder builder = new StringBuilder();
-        builder.append(path).append(File.separatorChar).append("taskRun.temp");
+        builder.append(path).append(File.separator).append("logs").append(File.separator).append("taskRun.temp");
         return builder.toString();
+    }
+
+    @PostConstruct
+    public void init() {
+        if (StringUtils.isBlank(excludeDirs)) {
+            return;
+        }
+        String[] dirs = excludeDirs.split(",");
+        for (String s : dirs) {
+            s = StringUtils.trim(s);
+            if (StringUtils.isNoneBlank(s)) {
+                excludeDirSet.add(s);
+            }
+        }
     }
 }

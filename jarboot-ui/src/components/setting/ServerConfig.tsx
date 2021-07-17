@@ -81,7 +81,7 @@ const ServerConfig: any = memo((props: any) => {
         args = args.replaceAll('\n', ' ');
         setTimeout(() => {
             form.setFieldsValue({args});
-        }, 100);
+        }, 1500);
     };
 
     return (<>
@@ -94,12 +94,21 @@ const ServerConfig: any = memo((props: any) => {
             <Form.Item name="jvm"
                        label={intl.formatMessage({id: 'JVM_OPT_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off" placeholder={"vm options file"} onDoubleClick={onJvmEdit} addonAfter={<FormOutlined onClick={onJvmEdit}/>}/>
+                <Input autoComplete="off" placeholder={"vm options file"}
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"
+                       onDoubleClick={onJvmEdit} addonAfter={<FormOutlined onClick={onJvmEdit}/>}/>
             </Form.Item>
             <Form.Item name="args"
                        label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off" onDoubleClick={onArgsEdit} addonAfter={<FormOutlined onClick={onArgsEdit}/>}/>
+                <Input autoComplete="off" onDoubleClick={onArgsEdit}
+                       placeholder={"Main arguments"}
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"
+                       addonAfter={<FormOutlined onClick={onArgsEdit}/>}/>
             </Form.Item>
             <Form.Item name="javaHome"
                        label={"Java Home"}
@@ -109,12 +118,19 @@ const ServerConfig: any = memo((props: any) => {
             <Form.Item name="workHome"
                        label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off"/>
+                <Input autoComplete="off"
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
             </Form.Item>
             <Form.Item name="envp"
                        label={intl.formatMessage({id: 'ENV_LABEL'})}
                        rules={[{required: false}]}>
-                <Input placeholder={"env1=val1,env2=val2"} autoComplete="off"/>
+                <Input placeholder={"env1=val1,env2=val2"}
+                       autoComplete="off"
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
             </Form.Item>
             <Form.Item name="priority"
                        label={intl.formatMessage({id: 'PRIORITY_LABEL'})}

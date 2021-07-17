@@ -106,7 +106,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private void startServer0(List<String> servers) {
         //获取服务的优先级启动顺序
         final Queue<ServerSettingDTO> priorityQueue = PropertyFileUtils.parseStartPriority(servers);
-        List<ServerSettingDTO> taskList = new ArrayList<>();
+        ArrayList<ServerSettingDTO> taskList = new ArrayList<>();
         ServerSettingDTO setting;
         while (null != (setting = priorityQueue.poll())) {
             taskList.add(setting);
@@ -200,7 +200,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private void stopServer0(List<String> servers) {
         //获取服务的优先级顺序，与启动相反的顺序依次终止
         final Queue<ServerSettingDTO> priorityQueue = PropertyFileUtils.parseStopPriority(servers);
-        List<String> taskList = new ArrayList<>();
+        ArrayList<String> taskList = new ArrayList<>();
         ServerSettingDTO setting;
         while (null != (setting = priorityQueue.poll())) {
             taskList.add(setting.getServer());
@@ -288,6 +288,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 break;
             case DAEMON_START:
                 this.startServer(event.getServices());
+                break;
+            case AUTO_START_ALL:
+                this.oneClickStart();
                 break;
             default:
                 logger.error("未知的消息类型");

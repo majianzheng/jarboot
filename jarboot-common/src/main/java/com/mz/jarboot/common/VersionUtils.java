@@ -10,6 +10,7 @@ import java.util.Properties;
  *
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class VersionUtils {
     
     public static String version;
@@ -30,7 +31,7 @@ public class VersionUtils {
             String val = props.getProperty("version");
             if (val != null && !VERSION_PLACEHOLDER.equals(val)) {
                 version = val;
-                clientVersion = "Jarboot-Java-Client:v" + VersionUtils.version;
+                clientVersion = "Jarboot:v" + VersionUtils.version;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -67,4 +68,5 @@ public class VersionUtils {
     public static String getFullClientVersion() {
         return clientVersion;
     }
+    private VersionUtils() {}
 }

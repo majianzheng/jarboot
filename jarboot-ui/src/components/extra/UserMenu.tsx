@@ -1,10 +1,11 @@
 import React, {memo, useState} from "react";
 import {JarBootConst} from "@/common/JarBootConst";
 import {Avatar, Menu, Popover} from "antd";
-import {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@ant-design/icons";
+import Icon, {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@ant-design/icons";
 import {useIntl} from "umi";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import CommonUtils from "@/common/CommonUtils";
+import DefaultUserIcon from "@/components/extra/DefaultUserIcon";
 
 const UserPopMenu: any = memo((props: any) => {
     const intl = useIntl();
@@ -54,14 +55,14 @@ interface UserMenuProp {
 }
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
+    const icon = <DefaultUserIcon/>;
     return <Popover content={<UserPopMenu username={props.username} onHide={() => setUserMenuVisible(false)}/>}
                     visible={userMenuVisible}
                     mouseLeaveDelay={0.5}
                     onVisibleChange={(visible) => setUserMenuVisible(visible)}
                     placement="bottomRight">
-        <Avatar className={props.className} alt={props.username} icon={<UserOutlined/>}/>
-        <span style={{verticalAlign: 'text-bottom'}}>{props.username}</span>
-        <CaretDownOutlined style={{verticalAlign: 'text-top'}}/>
+        <Avatar className={props.className} alt={props.username} icon={icon}/>
+        <CaretDownOutlined style={{verticalAlign: 'text-top', position: "relative", top: '-2px'}}/>
     </Popover>;
 }
 export default UserMenu;

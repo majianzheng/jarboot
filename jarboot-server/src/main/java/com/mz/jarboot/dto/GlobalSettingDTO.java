@@ -4,9 +4,8 @@ import java.io.Serializable;
 
 public class GlobalSettingDTO implements Serializable {
     private String servicesPath;
-    private String arthasHome;
     private String defaultJvmArg = "";
-    private int maxStartTime = 30000;
+    private Boolean servicesAutoStart;
 
     public String getServicesPath() {
         return servicesPath;
@@ -14,14 +13,6 @@ public class GlobalSettingDTO implements Serializable {
 
     public void setServicesPath(String servicesPath) {
         this.servicesPath = servicesPath;
-    }
-
-    public String getArthasHome() {
-        return arthasHome;
-    }
-
-    public void setArthasHome(String arthasHome) {
-        this.arthasHome = arthasHome;
     }
 
     public String getDefaultJvmArg() {
@@ -32,11 +23,11 @@ public class GlobalSettingDTO implements Serializable {
         this.defaultJvmArg = defaultJvmArg;
     }
 
-    public int getMaxStartTime() {
-        return maxStartTime;
+    public Boolean getServicesAutoStart() {
+        return servicesAutoStart;
     }
 
-    public void setMaxStartTime(int maxStartTime) {
-        this.maxStartTime = maxStartTime;
+    public void setServicesAutoStart(Boolean servicesAutoStart) {
+        this.servicesAutoStart = servicesAutoStart;
     }
 }

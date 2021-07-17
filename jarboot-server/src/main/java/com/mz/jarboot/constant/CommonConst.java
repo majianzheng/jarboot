@@ -13,6 +13,9 @@ public class CommonConst {
     //协议分隔符
     public static final char PROTOCOL_SPLIT = '\r';
 
+    public static final String JARBOOT_NAME = "jarboot";
+    public static final String SERVICES = "services";
+
     //运行状态
     public static final String STATUS_RUNNING = "RUNNING";
     public static final String STATUS_STOPPED = "STOPPED";

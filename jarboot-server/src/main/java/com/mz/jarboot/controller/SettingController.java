@@ -3,6 +3,7 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.SettingService;
@@ -96,6 +97,18 @@ public class SettingController {
             return new ResponseSimple();
         } catch (MzException e) {
             return new ResponseSimple(e);
+        }
+    }
+
+    @ApiOperation(value = "获取版本", httpMethod = "GET")
+    @GetMapping(value="/version")
+    @ResponseBody
+    public ResponseForObject<String> getVersion() {
+        try {
+            String results = "v" + VersionUtils.version;
+            return new ResponseForObject<>(results);
+        } catch (MzException e) {
+            return new ResponseForObject<>(e);
         }
     }
 }

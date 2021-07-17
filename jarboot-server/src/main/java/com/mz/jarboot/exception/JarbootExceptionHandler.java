@@ -22,11 +22,13 @@ public class JarbootExceptionHandler {
     
     @ExceptionHandler(IllegalArgumentException.class)
     private ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        LOGGER.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getAllExceptionMsg(e));
     }
 
     @ExceptionHandler(MzException.class)
     private ResponseEntity<ResponseSimple> handleMzException(MzException e) {
+        LOGGER.error(e.getMessage(), e);
         ResponseSimple resp = new ResponseSimple();
         resp.setResultCode(e.getErrorCode());
         resp.setResultMsg(e.getMessage());

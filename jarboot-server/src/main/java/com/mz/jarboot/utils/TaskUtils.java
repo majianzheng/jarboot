@@ -25,13 +25,15 @@ import java.util.*;
 public class TaskUtils {
     private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
+    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + "." + CommonConst.SERVICES + ".";
+
     private static long getStartWaitTime() {
         if (-1 == startWaitTime) {
             synchronized (TaskUtils.class) {
                 String val = ApplicationContextUtils.getEnv("jarboot.start-wait-time", "5000");
                 startWaitTime = NumberUtils.toLong(val, 5000);
                 if (startWaitTime < 1500 || startWaitTime > 30000) {
-                    startWaitTime = 5000;
+                    startWaitTime = 15000;
                 }
             }
         }
@@ -43,7 +45,7 @@ public class TaskUtils {
      * @return 是否存活
      */
     public static boolean isAlive(String server) {
-        return checkAliveByJar(getJarWithServerName(server));
+        return checkAliveByJar(getAfterArgs(server));
     }
 
     /**
@@ -61,7 +63,7 @@ public class TaskUtils {
                 WebSocketManager.getInstance().notice("服务" + server +
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
-            String name = getJarWithServerName(server);
+            String name = getAfterArgs(server);
             killJavaByName(name, text -> WebSocketManager.getInstance().sendConsole(server, text));
         }
 
@@ -84,21 +86,50 @@ public class TaskUtils {
             //未配置则获取默认的
             jvm = SettingUtils.getDefaultJvmArg();
         }
-        String javaCmd = "java";
+        StringBuilder cmdBuilder = new StringBuilder();
+
+        // java命令
+        final String javaCmd = "java";
         if (StringUtils.isNotEmpty(setting.getJavaHome())) {
-            javaCmd = setting.getJavaHome() + File.separator + "bin" + File.separator + "java";
+            // 使用了指定到jdk
+            cmdBuilder
+                    .append(setting.getJavaHome())
+                    .append( File.separator)
+                    .append("bin")
+                    .append( File.separator)
+                    .append(javaCmd);
             if (OSUtils.isWindows()) {
-                javaCmd += ".exe";
+                cmdBuilder.append(".exe");
             }
+        } else {
+            cmdBuilder.append(javaCmd);
         }
-        String cmd = (null == jvm) ?
-                String.format("%s -jar %s", javaCmd, jar) :
-                String.format("%s %s -jar %s", javaCmd, jvm, jar);
+        // jvm 配置
+        if (StringUtils.isBlank(jvm)) {
+            cmdBuilder.append(" -jar ").append(jar);
+        } else {
+            cmdBuilder.append(" ").append(jvm).append(" -jar ").append(jar);
+        }
+
+        // 传入参数
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
-            cmd = String.format("%s %s", cmd, startArg);
+            cmdBuilder.append(" ").append(startArg);
         }
-        startTask(cmd, setting.getEnvp(), setting.getWorkHome(),
+
+        // 进程标识
+        cmdBuilder.append(" ").append(getAfterArgs(server));
+
+        String cmd = cmdBuilder.toString();
+
+        // 工作目录
+        String workHome = setting.getWorkHome();
+        if (StringUtils.isBlank(workHome)) {
+            workHome = SettingUtils.getServerPath(server);
+        }
+
+        // 启动
+        startTask(cmd, setting.getEnvp(), workHome,
                 text -> WebSocketManager.getInstance().sendConsole(server, text));
     }
 
@@ -108,7 +139,7 @@ public class TaskUtils {
      * @return 服务PID
      */
     public static int getServerPid(String server) {
-        List<Integer> pidList = getJavaPidByName(getJarWithServerName(server));
+        List<Integer> pidList = getJavaPidByName(getAfterArgs(server));
         if (CollectionUtils.isEmpty(pidList)) {
             return CommonConst.INVALID_PID;
         }
@@ -125,13 +156,13 @@ public class TaskUtils {
         try {
             vm = VMUtils.getInstance().attachVM(pid);
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
             return;
         }
         try {
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server));
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -139,7 +170,13 @@ public class TaskUtils {
         }
     }
 
-    //得到jar的上级目录和自己: demo-service/demo.jar
+    /**
+     * 得到jar的上级目录和自己: demo-service/demo.jar
+     * @deprecated
+     * @param server
+     * @return
+     */
+    @Deprecated
     public static String getJarWithServerName(String server) {
         ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
         String jar = setting.getJar();
@@ -167,13 +204,14 @@ public class TaskUtils {
      */
     private static List<Integer> getPidByName(String name) {
         Runtime runtime = Runtime.getRuntime();
-        List<Integer> pidList = new ArrayList<>();
+        ArrayList<Integer> pidList = new ArrayList<>();
         Process p;
         String cmd = OSUtils.isWindows() ? "cmd /c tasklist |findstr " : "ps -u$USER | grep ";
         cmd += name;
         try {
             p = runtime.exec(cmd);
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             return pidList;
         }
         try (InputStream inputStream = p.getInputStream();
@@ -183,6 +221,7 @@ public class TaskUtils {
                 parseLinePid(pidList, line);
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         }
         p.destroy();
@@ -228,9 +267,9 @@ public class TaskUtils {
     }
 
     public static void startTask(String command, String envp, String workHome, PushMsgCallback callback) {
-        Process process;
         String[] en;
-        if (StringUtils.isEmpty(envp)) {
+        final long waitTime = getStartWaitTime();
+        if (StringUtils.isBlank(envp)) {
             en = null;
         } else {
             en = envp.split(",");
@@ -239,40 +278,49 @@ public class TaskUtils {
         if (StringUtils.isNotEmpty(workHome)) {
             dir = new File(workHome);
         }
-        try {
-            process = Runtime.getRuntime().exec(command, en, dir);
-        } catch (IOException e) {
-            return;
+
+        if (null != callback) {
+            callback.sendMessage(command);
         }
-        if (null == callback) {
-            return;
-        }
-        final long waitTime = getStartWaitTime();
-        try (InputStream inputStream = process.getInputStream()){
-            long timestamp = System.currentTimeMillis();
-            byte[] buffer = new byte[2048];
-            int len;
-            for (;;) {
-                if (0 == inputStream.available()) {
-                    long interval = Math.abs(System.currentTimeMillis() - timestamp);
-                    //超过一定时间进程没有输出信息时，认为启动完成
-                    if (interval > waitTime) {
-                        break;
-                    }
-                    Thread.sleep(200);//NOSONAR
-                } else {
-                    //可用
-                    len = inputStream.read(buffer);
-                    String s = new String(buffer, 0, len);
-                    callback.sendMessage(s);
-                    timestamp = System.currentTimeMillis();
-                }
+        String msg = "finished.";
+        try (InputStream inputStream = Runtime.getRuntime().exec(command, en, dir).getInputStream()) {
+            if (null == callback) {
+                return;
             }
+            intervalReadStream(callback, waitTime, inputStream);
         } catch (InterruptedException e) {
-            callback.sendMessage(e.getLocalizedMessage());
+            msg = e.getMessage();
+            logger.error(msg, e);
             Thread.currentThread().interrupt();
-        } catch (IOException e) {
-            callback.sendMessage(e.getLocalizedMessage());
+        } catch (Exception e) {
+            msg = e.getMessage();
+            logger.error(msg, e);
+        }
+        if (null != callback) {
+            callback.sendMessage(msg);
+        }
+    }
+
+    private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
+            throws IOException, InterruptedException {
+        long timestamp = System.currentTimeMillis();
+        byte[] buffer = new byte[2048];
+        int len;
+        for (;;) {
+            if (0 == inputStream.available()) {
+                long interval = Math.abs(System.currentTimeMillis() - timestamp);
+                //超过一定时间进程没有输出信息时，认为启动完成
+                if (interval > waitTime) {
+                    break;
+                }
+                Thread.sleep(100);//NOSONAR
+            } else {
+                //可用
+                len = inputStream.read(buffer);
+                String s = new String(buffer, 0, len);
+                callback.sendMessage(s);
+                timestamp = System.currentTimeMillis();
+            }
         }
     }
 
@@ -283,11 +331,11 @@ public class TaskUtils {
         }
         killByPid(pid, callback);
     }
-    static void killJavaByName(String jar, PushMsgCallback callback) {
-        if (StringUtils.isEmpty(jar)) {
+    static void killJavaByName(String name, PushMsgCallback callback) {
+        if (StringUtils.isEmpty(name)) {
             return;
         }
-        List<Integer> pidList = getJavaPidByName(jar);
+        List<Integer> pidList = getJavaPidByName(name);
         if (CollectionUtils.isEmpty(pidList)) {
             return;
         }
@@ -299,14 +347,14 @@ public class TaskUtils {
         return !CollectionUtils.isEmpty(getJavaPidByName(jar));
     }
 
-    private static List<Integer> getJavaPidByName(String jar) {
-        List<Integer> pidList = new ArrayList<>();
-        if (StringUtils.isEmpty(jar)) {
+    private static List<Integer> getJavaPidByName(String str) {
+        ArrayList<Integer> pidList = new ArrayList<>();
+        if (StringUtils.isEmpty(str)) {
             return pidList;
         }
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
-            if (name.contains(jar)) {
+            if (name.contains(str)) {
                 pidList.add(pid);
             }
         });
@@ -314,20 +362,14 @@ public class TaskUtils {
     }
 
     public static Map<String, Integer> findJavaProcess() {
-        Map<String, Integer> pidCmdMap = new HashMap<>();
+        HashMap<String, Integer> pidCmdMap = new HashMap<>();
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
-            final int p = name.lastIndexOf(File.separatorChar);
+            final int p = name.lastIndexOf(ADDER_ARGS_PREFIX);
             if (p < 1) {
                 return;
             }
-            int b = name.lastIndexOf(File.separatorChar, p - 1);
-            if (b < 0) {
-                b = 0;
-            } else {
-                ++b;
-            }
-            String serverName = name.substring(b, p);
+            String serverName = name.substring(p + ADDER_ARGS_PREFIX.length());
             pidCmdMap.put(serverName, pid);
         });
         return pidCmdMap;
@@ -352,9 +394,11 @@ public class TaskUtils {
             p.waitFor();
             callback.sendMessage("强制终止进程，pid:" + pid);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
         } finally {
             if (null != p) {
@@ -365,6 +409,9 @@ public class TaskUtils {
                 }
             }
         }
+    }
+    private static String getAfterArgs(String server) {
+        return ADDER_ARGS_PREFIX + server;
     }
     private TaskUtils(){}
 }

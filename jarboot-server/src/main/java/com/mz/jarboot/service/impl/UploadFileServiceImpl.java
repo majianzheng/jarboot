@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -43,7 +42,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final long EXPIRED_TIME = 20000;
     private String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
-    private ConcurrentMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     @Autowired
     private ExecutorService taskExecutor;
     // 是否启动了心跳监测

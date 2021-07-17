@@ -12,9 +12,11 @@ const QuickStartDoc: any = memo(() => {
         <Typography>
             <Title>{intl.formatMessage({id: 'QUICK_START'})}</Title>
             <Paragraph>
+                <Text>{intl.formatMessage({id: 'MENU_DOCS'})}: </Text>
                 <Link target={"_blank"}
                       href={"https://www.yuque.com/jarboot/usage/tmpomo"}>
-                    <YuqueFilled style={{color: "green"}}/>语雀
+                    <YuqueFilled style={{color: "green"}}/>
+                    https://www.yuque.com/jarboot/usage/tmpomo
                 </Link>
             </Paragraph>
             <Paragraph>

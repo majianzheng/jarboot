@@ -55,7 +55,7 @@ public class VMUtils {
     }
 
     public Map<Integer, String> listVM() {
-        Map<Integer, String> vmMap = new HashMap<>();
+        HashMap<Integer, String> vmMap = new HashMap<>();
         List<?> list;
         try {
             list = (List<?>) listVM.invoke(null);

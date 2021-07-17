@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 
@@ -27,11 +26,12 @@ import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 public class PermissionsCache {
     private static final Logger logger = LoggerFactory.getLogger(PermissionsCache.class);
     
-    private final ConcurrentMap<RequestMappingInfo, PermissionInfo> methods = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<RequestMappingInfo, PermissionInfo> methods = new ConcurrentHashMap<>();
     
-    private final ConcurrentMap<String, List<RequestMappingInfo>> urlLookup = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<RequestMappingInfo>> urlLookup = new ConcurrentHashMap<>();
 
-    private final List<PermissionInfo> permissionInfos = new ArrayList<>();
+    private final ArrayList<PermissionInfo> permissionInfos = new ArrayList<>();
+
     public PermissionInfo getMethod(HttpServletRequest request) {
         String path = getPath(request);
         String httpMethod = request.getMethod();
@@ -74,7 +74,7 @@ public class PermissionsCache {
     
     private List<RequestMappingInfo> findMatchedInfo(List<RequestMappingInfo> requestMappingInfos,
             HttpServletRequest request) {
-        List<RequestMappingInfo> matchedInfo = new ArrayList<>();
+        ArrayList<RequestMappingInfo> matchedInfo = new ArrayList<>();
         for (RequestMappingInfo requestMappingInfo : requestMappingInfos) {
             ParamRequestCondition matchingCondition = requestMappingInfo.getParamRequestCondition()
                     .getMatchingCondition(request);

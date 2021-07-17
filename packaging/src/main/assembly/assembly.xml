@@ -27,7 +27,7 @@
     </file>
     <file>
       <source>../jarboot-server/src/main/resources/jarboot.properties</source>
-      <destName>jarboot.properties</destName>
+      <destName>conf/jarboot.properties</destName>
     </file>
     <file>
       <source>../demo-server/target/demo-server.jar</source>

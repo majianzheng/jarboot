@@ -21,7 +21,7 @@ const SettingDoc: any = memo(() => {
                         {intl.formatMessage({id: 'SETTING_P3'})}
                     </li>
                     <li>
-                        <Text keyboard>{intl.formatMessage({id: 'MAX_START_TIME'})}</Text>
+                        <Text keyboard>{intl.formatMessage({id: 'AUTO_START_AFTER_INIT'})}</Text>
                         {intl.formatMessage({id: 'SETTING_P4'})}
                     </li>
                 </ul>

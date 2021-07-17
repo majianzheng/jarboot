@@ -14,13 +14,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class AgentManager {
     private static volatile AgentManager instance = null; //NOSONAR
-    private final Map<String, AgentClient> clientMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AgentManager(){}
     public static AgentManager getInstance() {

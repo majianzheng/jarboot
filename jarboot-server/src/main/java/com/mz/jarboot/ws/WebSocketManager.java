@@ -7,12 +7,11 @@ import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketManager {
     private static volatile WebSocketManager instance = null;// NOSONAR
-    private final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Session> sessionMap = new ConcurrentHashMap<>();
     private WebSocketManager(){}
 
     public static WebSocketManager getInstance() {

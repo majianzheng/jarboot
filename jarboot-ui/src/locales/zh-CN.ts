@@ -7,7 +7,7 @@ export default {
     SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
     SETTING: '设置',
-    HELP_DOC: '帮助',
+    HELP_DOC: '关于',
     MENU_DOCS: '文档',
 
     //服务管理
@@ -43,9 +43,9 @@ export default {
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
-    JAR_LABEL: '启动的jar文件',
-    JVM_OPT_LABEL: 'JVM参数',
-    MAIN_ARGS_LABEL: 'Main入口参数',
+    JAR_LABEL: '用于启动的jar文件',
+    JVM_OPT_LABEL: 'VM参数',
+    MAIN_ARGS_LABEL: '程序传入参数',
     WORK_HOME_LABEL: '工作目录',
     ENV_LABEL: '环境变量',
     PRIORITY_LABEL: '启动优先级',
@@ -54,8 +54,8 @@ export default {
 
     //全局配置
     SERVERS_PATH: '服务根目录',
-    DEFAULT_VM_OPT: '默认的VM启动参数',
-    MAX_START_TIME: '最大启动超时等待',
+    DEFAULT_VM_OPT: '默认的VM参数',
+    AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
 
     //用户登录
     USER_NAME: '用户',
@@ -106,7 +106,7 @@ export default {
     SETTING_P1: `通用配置`,
     SETTING_P2: `：服务默认根目录设置，可以更改默认的服务根目录位置，默认情况下为jarboot下的services目录。`,
     SETTING_P3: `：当服务没有设定JVM的启动参数时，会使用该默认的全局配置。`,
-    SETTING_P4: `：当服务进程启动后多长时间没有输出信息时认定为启动完成。`,
+    SETTING_P4: `：jarboot-server启动后是否自动启动其所管理当服务。`,
     SETTING_P5: `：隐藏功能，可以在界面上通过第三方的Arthas对目标服务进行调试，地址为：`,
     SETTING_P6: `：当服务目录下有多个jar文件时需要指定使用哪一个jar文件启动，即Main Class所在的jar文件的名字。`,
     SETTING_P7: `：指定服务启动时的JVM参数，比如内存大小、垃圾收集器等。`,

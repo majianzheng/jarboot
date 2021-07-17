@@ -14,7 +14,6 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 
 @Configuration
@@ -38,7 +37,7 @@ public class JarBootConfig {
     }
     @Bean("taskExecutor")
     public ExecutorService createExecutorService() {
-        BlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(128);
+        ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(1024);
         return new ThreadPoolExecutor(8, 32,
                 32L, TimeUnit.SECONDS, taskBlockingQueue, (Runnable r, ThreadPoolExecutor executor) ->
             //线程池忙碌拒绝策略
@@ -48,7 +47,7 @@ public class JarBootConfig {
     @PostConstruct
     public void init() {
         Map<String, Object> controllers = ctx.getBeansWithAnnotation(Permission.class);
-        Set<Class<?>> classes = new HashSet<>();
+        HashSet<Class<?>> classes = new HashSet<>();
         controllers.forEach((k, v) -> classes.add(v.getClass()));
         permissionsCache.initClassMethod(classes);
     }

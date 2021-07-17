@@ -46,7 +46,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunCache taskRunCache;
-    private String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
+    private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
     //文件更新抖动时间，默认5秒
     @Value("${jarboot.file-shake-time:5}")
     private long modifyWaitTime;
@@ -54,56 +54,37 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private String afterStartExec;
     @Value("${jarboot.after-server-error-offline:}")
     private String afterServerErrorOffline;
+    @Value("${jarboot.services.enable-auto-start-after-start:false}")
+    private boolean enableAutoStartServices;
 
-    private boolean initialized = false;
+    private boolean starting = false;
 
     //阻塞队列，监控到目录变化则放入队列
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
     @Override
     public void init() {
-        if (initialized) {
+        if (starting) {
             return;
         }
         if (modifyWaitTime < 3 || modifyWaitTime > 600) {
             modifyWaitTime = 5;
         }
-        initialized = true;
+        starting = true;
         //路径监控生产者
         taskExecutor.execute(this::initPathMonitor);
         //路径监控消费者
-        taskExecutor.execute(() -> {
-            for (;;) {
-                try {
-                    String server = modifiedServiceQueue.take();
-                    //取出后
-                    Set<String> services = new HashSet<>();
-                    services.add(server);
-                    //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
-                    while (null != (server = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
-                        services.add(server);
-                    }
-                    //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
-                    List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
-                    if (CollectionUtils.isNotEmpty(list)) {
-                        TaskEvent event = new TaskEvent();
-                        event.setEventType(TaskEventEnum.RESTART);
-                        event.setServices(list);
-                        logger.debug("服务文件变动，启动重启！{}", list);
-                        final String msg = "文件更新，开始重启...";
-                        list.forEach(s -> WebSocketManager.getInstance().sendConsole(s, s + msg));
-                        WebSocketManager.getInstance().notice(list + msg, NoticeEnum.INFO);
-                        ctx.publishEvent(event);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        });
+        taskExecutor.execute(this::pathMonitorConsumer);
 
         //attach已经处于启动的进程
         taskExecutor.execute(this::attachRunningServer);
+
+        if (enableAutoStartServices) {
+            logger.info("Auto starting services...");
+            TaskEvent ev = new TaskEvent();
+            ev.setEventType(TaskEventEnum.AUTO_START_ALL);
+            ctx.publishEvent(ev);
+        }
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
@@ -133,6 +114,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         TaskUtils.attach(server, pid);
     }
 
+    /**
+     * 启动目录变动监控
+     */
     private void initPathMonitor() {
         //先遍历所有jar文件，将文件的最后修改时间记录下来
         storeCurFileModifyTime();
@@ -151,6 +135,41 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             logger.error(ex.getMessage(), ex);
         } catch (InterruptedException ex) {
             logger.error(ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * 目录监控事件处理
+     */
+    private void pathMonitorConsumer() {
+        try {
+            for (; ; ) {
+                String server = modifiedServiceQueue.take();
+                //取出后
+                HashSet<String> services = new HashSet<>();
+                services.add(server);
+                //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
+                while (null != (server = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
+                    services.add(server);
+                }
+                //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
+                List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(list)) {
+                    TaskEvent event = new TaskEvent();
+                    event.setEventType(TaskEventEnum.RESTART);
+                    event.setServices(list);
+                    logger.debug("服务文件变动，启动重启！{}", list);
+                    final String msg = "文件更新，开始重启...";
+                    list.forEach(s -> WebSocketManager.getInstance().sendConsole(s, s + msg));
+                    WebSocketManager.getInstance().notice(list + msg, NoticeEnum.INFO);
+                    ctx.publishEvent(event);
+                }
+                if (!starting) {
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -303,7 +322,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (Boolean.TRUE.equals(setting.getDaemon())) {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
                     , NoticeEnum.WARN);
-            List<String> list = new ArrayList<>();
+            ArrayList<String> list = new ArrayList<>();
             list.add(server);
             TaskEvent ev = new TaskEvent();
             ev.setEventType(TaskEventEnum.DAEMON_START);

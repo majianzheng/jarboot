@@ -56,4 +56,12 @@ export default class SettingService {
         form.append('content', content);
         return Request.post(`${settingUrl}/vmoptions`, form);
     }
+
+    /**
+     * 获取版本
+     * @returns {Promise<any>}
+     */
+    public static getVersion() {
+        return Request.get(`${settingUrl}/version`, {});
+    }
 }
