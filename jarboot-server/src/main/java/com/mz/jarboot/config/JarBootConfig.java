@@ -18,6 +18,7 @@ import java.util.concurrent.*;
 
 @Configuration
 public class JarBootConfig {
+    private static final int MAX_BUFFER_SIZE = 16384;
     @Autowired
     private ApplicationContext ctx;
     @Autowired
@@ -31,10 +32,11 @@ public class JarBootConfig {
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-        container.setMaxBinaryMessageBufferSize(1024*8);
-        container.setMaxTextMessageBufferSize(1024*8);
+        container.setMaxBinaryMessageBufferSize(MAX_BUFFER_SIZE);
+        container.setMaxTextMessageBufferSize(MAX_BUFFER_SIZE);
         return container;
     }
+
     @Bean("taskExecutor")
     public ExecutorService createExecutorService() {
         ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(1024);

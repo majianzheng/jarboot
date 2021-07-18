@@ -2,12 +2,16 @@ package com.mz.jarboot.base;
 
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.constant.CommonConst;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public final class AgentClient {
+    private static final Logger logger = LoggerFactory.getLogger(AgentClient.class);
+
     private final Session session;
     private final String name;
     private final ArrayBlockingQueue<CommandResponse> respQueue = new ArrayBlockingQueue<>(16);
@@ -72,11 +76,11 @@ public final class AgentClient {
         }
     }
 
-    private void sendText(String text) {
+    private synchronized void sendText(String text) {
         try {
             session.getBasicRemote().sendText(text);
-        } catch (IOException e) {
-            //ignore
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
     }
 }

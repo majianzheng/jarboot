@@ -128,6 +128,8 @@ public class TaskUtils {
             workHome = SettingUtils.getServerPath(server);
         }
 
+        //打印命令行
+        WebSocketManager.getInstance().sendConsole(server, cmd);
         // 启动
         startTask(cmd, setting.getEnvp(), workHome,
                 text -> WebSocketManager.getInstance().sendConsole(server, text));
@@ -266,22 +268,19 @@ public class TaskUtils {
         pidList.add(Integer.parseInt(builder.toString()));
     }
 
-    public static void startTask(String command, String envp, String workHome, PushMsgCallback callback) {
+    public static void startTask(String command, String environment, String workHome, PushMsgCallback callback) {
         String[] en;
         final long waitTime = getStartWaitTime();
-        if (StringUtils.isBlank(envp)) {
+        if (StringUtils.isBlank(environment)) {
             en = null;
         } else {
-            en = envp.split(",");
+            en = environment.split(",");
         }
         File dir = null;
         if (StringUtils.isNotEmpty(workHome)) {
             dir = new File(workHome);
         }
 
-        if (null != callback) {
-            callback.sendMessage(command);
-        }
         String msg = "finished.";
         try (InputStream inputStream = Runtime.getRuntime().exec(command, en, dir).getInputStream()) {
             if (null == callback) {
@@ -304,7 +303,7 @@ public class TaskUtils {
     private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
             throws IOException, InterruptedException {
         long timestamp = System.currentTimeMillis();
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[4096];
         int len;
         for (;;) {
             if (0 == inputStream.available()) {

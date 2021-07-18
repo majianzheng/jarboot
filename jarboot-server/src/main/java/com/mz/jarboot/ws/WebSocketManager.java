@@ -5,13 +5,37 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
-import javax.websocket.Session;
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.websocket.Session;
+import java.util.concurrent.*;
+
+/**
+ * 与浏览器交互的WebSocket管理
+ * @author jianzhengma
+ */
 public class WebSocketManager {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketManager.class);
+
     private static volatile WebSocketManager instance = null;// NOSONAR
-    private final ConcurrentHashMap<String, Session> sessionMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, MessageQueueOperator> sessionMap = new ConcurrentHashMap<>();
+    /**
+     * 消费推送到前端的消息的线程组，执行流程如下
+     * ┌─────────────┐  Push to   ┌────────────────┐ Note:
+     * │ New Message │———————————▶│ Blocking Queue │ One session has on blocking queue
+     * └─────────────┘            └────────────────┘
+     *                                    │ Take and wait some time when empty
+     *                                    ▼
+     *                            ┌──────────────────┐
+     *                            │ Consumer threads │ When empty and timeout, then release to thread pool.
+     *                            └──────────────────┘
+     */
+    private final ThreadPoolExecutor msgConsumerExecutor = new ThreadPoolExecutor(
+            1, 32, 10L,TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(1024),
+            (Runnable r, ThreadPoolExecutor executor) -> logger.warn("线程忙碌，无法响应发送消息请求！"));
+
     private WebSocketManager(){}
 
     public static WebSocketManager getInstance() {
@@ -26,7 +50,7 @@ public class WebSocketManager {
     }
 
     public void addNewConnect(Session session) {
-        sessionMap.put(session.getId(), session);
+        sessionMap.put(session.getId(), new MessageQueueOperator(session));
     }
 
     public void delConnect(String id) {
@@ -35,7 +59,7 @@ public class WebSocketManager {
 
     public void sendConsole(String server, String text) {
         String msg = formatMsg(server, WsEventEnum.CONSOLE_LINE, text);
-        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+        this.sessionMap.forEach((k, operator) -> messageProducer(operator, msg));
     }
 
     public void sendConsole(String server, String text, String sessionId) {
@@ -44,16 +68,16 @@ public class WebSocketManager {
             sendConsole(server, text);
             return;
         }
-        Session session = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != session) {
+        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
+        if (null != operator) {
             String msg = formatMsg(server, WsEventEnum.CONSOLE_LINE, text);
-            sendTextMessage(session, msg);
+            messageProducer(operator, msg);
         }
     }
 
     public void renderJson(String server, String text) {
         String msg = formatMsg(server, WsEventEnum.RENDER_JSON, text);
-        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+        this.sessionMap.forEach((k, operator) -> messageProducer(operator, msg));
     }
 
     public void renderJson(String server, String text, String sessionId) {
@@ -62,22 +86,22 @@ public class WebSocketManager {
             renderJson(server, text);
             return;
         }
-        Session session = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != session) {
+        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
+        if (null != operator) {
             String msg = formatMsg(server, WsEventEnum.RENDER_JSON, text);
-            sendTextMessage(session, msg);
+            messageProducer(operator, msg);
         }
     }
 
     public void publishStatus(String server, TaskStatus status) {
         //发布状态变化
         String msg = formatMsg(server, WsEventEnum.SERVER_STATUS, status.name());
-        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+        this.sessionMap.forEach((k, session) -> messageProducer(session, msg));
     }
 
     public void commandEnd(String server, String body) {
         String msg = formatMsg(server, WsEventEnum.CMD_END, body);
-        this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+        this.sessionMap.forEach((k, session) -> messageProducer(session, msg));
     }
 
     public void commandEnd(String server, String body, String sessionId) {
@@ -86,10 +110,10 @@ public class WebSocketManager {
             commandEnd(server, body);
             return;
         }
-        Session session = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != session) {
+        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
+        if (null != operator) {
             String msg = formatMsg(server, WsEventEnum.CMD_END, body);
-            sendTextMessage(session, msg);
+            messageProducer(operator, msg);
         }
     }
 
@@ -110,7 +134,7 @@ public class WebSocketManager {
         }
         String msg = formatMsg("", type, text);
         if (!sessionMap.isEmpty()) {
-            this.sessionMap.forEach((k, session) -> sendTextMessage(session, msg));
+            this.sessionMap.forEach((k, session) -> messageProducer(session, msg));
         }
     }
 
@@ -120,16 +144,17 @@ public class WebSocketManager {
                 .append(event.ordinal()).append(CommonConst.PROTOCOL_SPLIT).append(body);
         return sb.toString();
     }
-    private static void sendTextMessage(final Session session, String msg) {
-        if (!session.isOpen()) {
+    private static void messageProducer(final MessageQueueOperator operator, String msg) {
+        operator.newMessage(msg);
+        if (operator.isRunning()) {
             return;
         }
-        synchronized (session) {// NOSONAR
-            try {
-                session.getBasicRemote().sendText(msg);
-            } catch (IOException e) {
-                //ignore
-            }
+
+        // 这里保证一个MessageQueueOperator只会有一个线程在消费
+        synchronized (operator) { // NOSONAR
+            // 若未开始，则启动消息处理线程进行消费
+            operator.setRunning();
+            instance.msgConsumerExecutor.execute(operator);
         }
     }
 }

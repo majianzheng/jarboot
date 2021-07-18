@@ -71,11 +71,23 @@ export default class ServerMgrView extends React.PureComponent {
         pubsub.publish(data.server, PUB_TOPIC.RENDER_JSON, body);
     }
 
+    private _activeConsole(server: any) {
+        let data: ServerRunning[] = this.state.data;
+        const index = data.findIndex(row => row.name === server);
+        if (-1 !== index) {
+            const selectedRowKeys: any = [data[index].name];
+            const selectRows: any = [data[index]];
+            this.setState({selectedRowKeys, selectRows});
+        }
+    }
+
     private _serverStatusChange = (data: MsgData) => {
         const server = data.server;
         const status = data.body;
         switch (status) {
             case JarBootConst.MSG_TYPE_START:
+                // 激活终端显示
+                this._activeConsole(server);
                 Logger.log(`启动中${server}...`);
                 pubsub.publish(server, 'startLoading');
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
