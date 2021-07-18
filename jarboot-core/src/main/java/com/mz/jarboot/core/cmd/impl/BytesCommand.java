@@ -76,8 +76,7 @@ public class BytesCommand extends Command {
         session.console("ClassLoader: " + cls.getClassLoader().toString());
         session.console("------");
         EnvironmentContext.getTransformerManager()
-                .addOnceTransformer(cls, (loader, className, classBeingRedefined,
-                                          protectionDomain, classfileBuffer) -> {
+                .addOnceTransformer(cls, (className, classfileBuffer) -> {
                     try {
                         ClassReader reader = new ClassReader(classfileBuffer);
                         ClassNode classNode = new ClassNode();
@@ -95,7 +94,6 @@ public class BytesCommand extends Command {
                         session.console("解析类失败，" + e.getMessage());
                     }
                     session.end();
-                    return null;
                 });
 
         EnvironmentContext.getTransformerManager().retransformClasses(cls);
