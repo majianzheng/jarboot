@@ -32,11 +32,14 @@ public class WebSocketManager {
      *                            └──────────────────┘
      */
     private final ThreadPoolExecutor msgConsumerExecutor = new ThreadPoolExecutor(
-            1, 32, 10L,TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(1024),
+            16, 32, 30L,TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(64),
             (Runnable r, ThreadPoolExecutor executor) -> logger.warn("线程忙碌，无法响应发送消息请求！"));
 
-    private WebSocketManager(){}
+    private WebSocketManager(){
+        // 允许core线程数使用keepAliveTime，为节约CPU负荷，长时间空闲时释放线程
+        msgConsumerExecutor.allowCoreThreadTimeOut(true);
+    }
 
     public static WebSocketManager getInstance() {
         if (null == instance) {
@@ -144,7 +147,8 @@ public class WebSocketManager {
                 .append(event.ordinal()).append(CommonConst.PROTOCOL_SPLIT).append(body);
         return sb.toString();
     }
-    private static void messageProducer(final MessageQueueOperator operator, String msg) {
+
+    public static void messageProducer(final MessageQueueOperator operator, String msg) {
         operator.newMessage(msg);
         if (operator.isRunning()) {
             return;

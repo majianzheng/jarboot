@@ -12,7 +12,7 @@ public class MessageQueueOperator implements Runnable {
     private volatile boolean running = false;
 
     private final Session session;
-    private ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<>(MAX_MSG_QUEUE_SIZE);
+    private final ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<>(MAX_MSG_QUEUE_SIZE);
     public MessageQueueOperator(Session session) {
         this.session = session;
     }
@@ -38,14 +38,14 @@ public class MessageQueueOperator implements Runnable {
     @Override
     public void run() {
         int timeoutCount = 0;
-        final int maxWaitCount = 2; // 若等于2，则15秒内没有消息就会释放
+        final int maxWaitCount = 2; // 若等于2，则6秒内没有消息就会释放
         try {
             for (; ; ) {
                 if (timeoutCount > maxWaitCount || !session.isOpen()) {
                     // 连续多次超时没有消息时，或回话已关闭时，释放
                     break;
                 }
-                String msg = queue.poll(5, TimeUnit.SECONDS);
+                String msg = queue.poll(2, TimeUnit.SECONDS);
                 if (null == msg) {
                     // 消息已经清空
                     ++timeoutCount;
@@ -64,7 +64,7 @@ public class MessageQueueOperator implements Runnable {
 
     private void sendText(String text) {
         try {
-            session.getBasicRemote().sendText(text, true);
+            session.getBasicRemote().sendText(text);
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
         }

@@ -146,7 +146,7 @@ public class NetworkUtils {
             String result = sb.toString().trim();
             if (statusCode == INTERNAL_SERVER_ERROR) {
                 JSONObject errorObj = JSON.parseObject(result);
-                if (errorObj.containsKey("errorMsg")) {
+                if (null != errorObj && errorObj.containsKey("errorMsg")) {
                     return new Response(errorObj.getString("errorMsg"), false);
                 }
                 return new Response(result, false);

@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
@@ -95,7 +97,7 @@ public class SettingServiceImpl implements SettingService {
 
     private void checkAndSetEnv(ServerSettingDTO setting, Properties prop) {
         String envp = setting.getEnvp();
-        if (PropertyFileUtils.checkEnvp(envp)) {
+        if (PropertyFileUtils.checkEnvironmentVar(envp)) {
             if (null == envp) {
                 envp = "";
             }
@@ -118,14 +120,11 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public String getVmOptions(String server, String file) {
-        String path;
-        if (SettingUtils.isAbsPath(file)) {
-            // 绝对路径
-            path = file;
-        } else {
-            path = SettingUtils.getServerPath(server) + File.separator + file;
+        Path path = Paths.get(file);
+        if (!path.isAbsolute()) {
+            path = Paths.get(SettingUtils.getServerPath(server), file);
         }
-        File f = new File(path);
+        File f = path.toFile();
         String content = StringUtils.EMPTY;
         if (f.exists()) {
             try {
@@ -139,14 +138,11 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void saveVmOptions(String server, String file, String content) {
-        String path;
-        if (SettingUtils.isAbsPath(file)) {
-            // 绝对路径
-            path = file;
-        } else {
-            path = SettingUtils.getServerPath(server) + File.separator + file;
+        Path path = Paths.get(file);
+        if (!path.isAbsolute()) {
+            path = Paths.get(SettingUtils.getServerPath(server), file);
         }
-        File f = new File(path);
+        File f = path.toFile();
         if (!f.exists()) {
             try {
                 if (!f.createNewFile()) {
@@ -164,13 +160,12 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private File getConfAndCheck(String server, String jar) {
-        String path = SettingUtils.getServerSettingFilePath(server);
-        File file = new File(path);
+        File file = SettingUtils.getServerSettingFile(server);
         if (!file.exists()) {
             try {
                 boolean rlt = file.createNewFile();
                 if (!rlt) {
-                    logger.debug("Config file({}) is already exist.", path);
+                    logger.debug("Config file({}) create failed.", file.getPath());
                 }
             } catch (IOException e) {
                 throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
@@ -187,7 +182,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void checkDirExist(String path) {
-        File dir = new File(path);
+        File dir = FileUtils.getFile(path);
         if (dir.exists() && dir.isDirectory()) {
             return;
         }
@@ -195,7 +190,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void checkFileExist(String file) {
-        File dir = new File(file);
+        File dir = FileUtils.getFile(file);
         if (dir.exists() && dir.isFile()) {
             return;
         }

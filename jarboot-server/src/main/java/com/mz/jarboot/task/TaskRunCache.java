@@ -4,13 +4,10 @@ import com.mz.jarboot.common.ConcurrentWeakKeyHashMap;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dao.TaskRunInfoDao;
 import com.mz.jarboot.dto.ServerRunningDTO;
-import com.mz.jarboot.entity.TaskRunInfo;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +18,10 @@ import java.util.*;
 
 @Component
 public class TaskRunCache {
-    @Autowired
-    private TaskRunInfoDao taskRunInfoDao;
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
     private HashSet<String> excludeDirSet = new HashSet<>(16);
-    // 使用内存缓存，提升效率，防止每次都去数据库中寻找
+    // 使用内存缓存
     private final ConcurrentWeakKeyHashMap<String, TaskRunInfo> taskMap = new ConcurrentWeakKeyHashMap<>();
 
     private void updateServerInfo(List<ServerRunningDTO> server) {
@@ -91,16 +86,10 @@ public class TaskRunCache {
 
     @Transactional
     public void setTaskInfo(String name, String status, Integer pid) {
-        TaskRunInfo taskRunInfo = taskRunInfoDao.findFirstByName(name);
-        if (null == taskRunInfo) {
-            taskRunInfo = new TaskRunInfo();
-            taskRunInfo.setName(name);
-        }
+        TaskRunInfo taskRunInfo = getTaskRunInfo(name);
         taskRunInfo.setStatus(status);
         taskRunInfo.setPid(pid);
         taskRunInfo.setLastUpdateTime(System.currentTimeMillis());
-        taskRunInfoDao.save(taskRunInfo);
-        taskMap.put(name, taskRunInfo);
     }
 
     private TaskRunInfo getTaskRunInfo(final String name) {
@@ -108,16 +97,12 @@ public class TaskRunCache {
         if (null != taskRunInfo) {
             return taskRunInfo;
         }
-        synchronized (name) { // NOSONAR
-            taskRunInfo = taskRunInfoDao.findFirstByName(name);
-            if (null == taskRunInfo) {
-                taskRunInfo = new TaskRunInfo();
-                taskRunInfo.setName(name);
-                taskRunInfo.setStatus(CommonConst.STATUS_STOPPED);
-                taskRunInfo.setLastUpdateTime(System.currentTimeMillis());
-            }
-            taskMap.put(name, taskRunInfo);
-        }
+
+        taskRunInfo = new TaskRunInfo();
+        taskRunInfo.setName(name);
+        taskRunInfo.setStatus(CommonConst.STATUS_STOPPED);
+        taskRunInfo.setLastUpdateTime(System.currentTimeMillis());
+        taskMap.put(name, taskRunInfo);
         return taskRunInfo;
     }
 

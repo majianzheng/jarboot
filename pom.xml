@@ -88,7 +88,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>jarboot-common</artifactId>
-				<scope>compile</scope>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>jarboot-spy</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

@@ -1,13 +1,6 @@
-package com.mz.jarboot.entity;
+package com.mz.jarboot.task;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-@Table(name = TaskRunInfo.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"name"})})
-@Entity
-public class TaskRunInfo extends AbstractBaseEntity {
-    public static final String TABLE_NAME = "jarboot_task_run_info";
+public class TaskRunInfo {
     private String name;
     private Integer pid;
     private String status;

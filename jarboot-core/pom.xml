@@ -16,7 +16,6 @@
         <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-spy</artifactId>
-            <version>${project.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>

@@ -386,10 +386,10 @@ public class TaskUtils {
     }
 
     private static void killByPid(String pid, PushMsgCallback callback) {
-        String cmd = OSUtils.isWindows() ? "taskkill /F /pid " : "kill -9 ";
+        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
         Process p = null;
         try {
-            p = Runtime.getRuntime().exec(cmd + pid);
+            p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
             callback.sendMessage("强制终止进程，pid:" + pid);
         } catch (InterruptedException e) {

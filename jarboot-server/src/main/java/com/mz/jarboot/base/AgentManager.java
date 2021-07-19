@@ -132,19 +132,20 @@ public class AgentManager {
         }
     }
 
-    public CommandResponse sendInternalCommand(String server, String command, String sessionId) {
+    public void sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
             WebSocketManager.getInstance().commandEnd(server, "", sessionId);
-            return new CommandResponse();
+            new CommandResponse();
+            return;
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
             WebSocketManager.getInstance().commandEnd(server, "", sessionId);
-            return resp;
+            return;
         }
-        return client.sendInternalCommand(command, sessionId);
+        client.sendInternalCommand(command, sessionId);
     }
 
     public void handleAgentResponse(String server, CommandResponse resp) {
@@ -174,10 +175,7 @@ public class AgentManager {
     }
 
     public void onAck(String server, CommandResponse resp) {
-        AgentClient client = clientMap.getOrDefault(server, null);
-        if (null != client) {
-            client.onAck(resp);
-        }
+        WebSocketManager.getInstance().sendConsole(server, resp.getBody(), resp.getSessionId());
     }
 
     public void releaseAgentSession(String sessionId) {

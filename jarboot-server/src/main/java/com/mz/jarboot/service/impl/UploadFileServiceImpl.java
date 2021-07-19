@@ -49,8 +49,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     private volatile boolean started = false;
 
     private File getTempCacheDir(String server) {
-        String path = tempDir + File.separator + server;
-        return new File(path);
+        return FileUtils.getFile(tempDir, server);
     }
 
     private void cleanTempCacheDir(File dir) {
@@ -131,7 +130,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         }
         File dir = getTempCacheDir(server);
         String destPath = SettingUtils.getServerPath(server);
-        File dest = new File(destPath);
+        File dest = FileUtils.getFile(destPath);
         //开始复制前要不要先备份，以便失败后还原？文件量、体积巨大如何处理？为了性能先不做考虑
         try {
             String[] ex = new String[]{"jar"};
@@ -196,7 +195,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             if (StringUtils.isEmpty(name)) {
                 throw new MzException("文件原始名字不可为空！");
             }
-            File f = new File(dir, name);
+            File f = FileUtils.getFile(dir, name);
             try {
                 file.transferTo(f);
             } catch (IOException e) {

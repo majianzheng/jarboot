@@ -97,7 +97,7 @@ public class OSUtils {
     public static Map<String, String> readRegistryNode(String nodePath) {
         Map<String, String> regMap = new HashMap<>();
         try {
-            Process process = Runtime.getRuntime().exec("reg query " + nodePath);
+            Process process = Runtime.getRuntime().exec(new String[] {"reg", "query", nodePath});
             process.getOutputStream().close();
             InputStreamReader isr = new InputStreamReader(process.getInputStream());
             String line;
@@ -170,12 +170,9 @@ public class OSUtils {
         String chromePath = FileUtils.getUserDirectoryPath() +
                 "\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
         File file = new File(chromePath);
-        String cmd;
-        if (file.exists() && file.isFile()) {
-            cmd = chromePath + " " + url;
-        } else {
-            cmd = "rundll32 url.dll,FileProtocolHandler " + url;
-        }
+        String[] cmd = (file.exists() && file.isFile()) ?
+                new String[] {chromePath, url} :
+                new String[] {"rundll32", "url.dll,FileProtocolHandler", url};
         try {
             Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {

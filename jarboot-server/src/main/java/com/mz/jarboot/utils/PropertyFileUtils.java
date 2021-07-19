@@ -17,14 +17,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
-    private static Properties getProperties(String filePath) {
-        File configFile = FileUtils.getFile(filePath);
-        return getProperties(configFile);
-    }
+
     public static Properties getProperties(File file) {
         Properties properties = new Properties();
         if (null == file || !file.isFile() || !file.exists()) {
@@ -47,15 +46,14 @@ public class PropertyFileUtils {
     }
 
     private static boolean checkFileExist(String file) {
-        File f = new File(file);
-        return (f.exists() && f.isFile());
+        return Files.exists(Paths.get(file));
     }
 
-    public static boolean checkEnvp(String envp) {
-        if (StringUtils.isEmpty(envp)) {
+    public static boolean checkEnvironmentVar(String env) {
+        if (StringUtils.isEmpty(env)) {
             return true;
         }
-        String[] envs = envp.split(",");
+        String[] envs = env.split(",");
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
             if (en.length() < 3 && 1 != StringUtils.countMatches(en, '=') &&
@@ -68,8 +66,8 @@ public class PropertyFileUtils {
 
     public static ServerSettingDTO getServerSetting(String server) {
         ServerSettingDTO setting = new ServerSettingDTO(server);
-        String path = SettingUtils.getServerSettingFilePath(server);
-        Properties properties = getProperties(path);
+        File file = SettingUtils.getServerSettingFile(server);
+        Properties properties = getProperties(file);
         String serverPath = SettingUtils.getServerPath(server);
         if (properties.isEmpty()) {
             return setting;
@@ -90,9 +88,9 @@ public class PropertyFileUtils {
         checkAndGetHome(setting, properties);
 
         //环境变量
-        String envp = properties.getProperty("envp", "");
-        if (checkEnvp(envp) && StringUtils.isNotEmpty(envp)) {
-            setting.setEnvp(envp);
+        String env = properties.getProperty("envp", "");
+        if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {
+            setting.setEnvp(env);
         }
 
         int priority = NumberUtils.toInt(properties.getProperty("priority", "1"), 1);
