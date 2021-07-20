@@ -3,6 +3,7 @@
 ![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
 
 [![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
+[![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.majianzheng/jarboot-all)
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
 [![codecov](https://codecov.io/gh/majianzheng/jarboot/branch/master/graph/badge.svg?token=FP7EPSFH4E)](https://codecov.io/gh/majianzheng/jarboot)
@@ -17,9 +18,13 @@ In the test environment and daily built integrated environment, a series of jar 
 
 [中文说明/Chinese Documentation](README_CN.md)
 
-Document: https://www.yuque.com/jarboot/usage/tmpomo
+📚 Document: https://www.yuque.com/jarboot/usage/tmpomo
 
-![dashboard](doc/overview.png)
+😊 Advanced application examples: <code>Jarboot</code> 🔥 with <code>Spring Cloud Alibaba</code> Examples ⤵️ 
+
+🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
+
+![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/overview.png)
 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
@@ -30,7 +35,10 @@ Document: https://www.yuque.com/jarboot/usage/tmpomo
 - ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 
-It adopts <code>front-end and back-end separation architecture</code>, front-end interface adopts <code>React</code> technology, scaffold uses <code>Umi</code>, component library uses <code>Umi</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
+<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+
+### Architecture brief introduction [view](jarboot-server/README.md).
 
 ## Install or build
 1. Build ui and <code>Java</code> code, or download the zip package.
@@ -78,7 +86,7 @@ user$ sh boot.sh
 4. Browser access <http://127.0.0.1:9899>
 5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
 
-![dashboard](doc/login.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/login.png)
 
 ## Command list
 ### bytes
@@ -120,7 +128,7 @@ jarboot$ stdout
 ### dashboard
 This is the real time statistics dashboard for the current system，click x cancel.
 
-![dashboard](doc/dashboard.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/dashboard.png)
   
 ### jad
 Decompile the specified classes.
@@ -128,7 +136,7 @@ Decompile the specified classes.
 ```bash
 jarboot$ jad [-c] java.lang.String
 ````
-![dashboard](doc/jad.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/jad.png)
 
 ### jvm
 Check the current JVM’s info
@@ -242,7 +250,7 @@ dump java heap in hprof binary format, like jmap.
 ```bash
 jarboot$ heapdump
 ````
-![dashboard](doc/heapdump.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/heapdump.png)
 
 ### sysprop
 Examine the system properties from the target JVM
