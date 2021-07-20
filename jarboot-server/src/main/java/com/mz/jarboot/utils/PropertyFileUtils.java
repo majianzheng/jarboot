@@ -2,6 +2,7 @@ package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
 import org.apache.commons.collections.CollectionUtils;
@@ -53,7 +54,7 @@ public class PropertyFileUtils {
         if (StringUtils.isEmpty(env)) {
             return true;
         }
-        String[] envs = env.split(",");
+        String[] envs = env.split(CommonConst.DOT_SPLIT);
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
             if (en.length() < 3 && 1 != StringUtils.countMatches(en, '=') &&
@@ -72,7 +73,7 @@ public class PropertyFileUtils {
         if (properties.isEmpty()) {
             return setting;
         }
-        String jar = properties.getProperty("jar", "");
+        String jar = properties.getProperty(SettingPropConst.JAR, StringUtils.EMPTY);
         if (StringUtils.isNotEmpty(jar)) {
             if (checkFileExist(serverPath + File.separator + jar)) {
                 setting.setJar(jar);
@@ -81,29 +82,30 @@ public class PropertyFileUtils {
             }
         }
 
-        String jvm = properties.getProperty("jvm", CommonConst.DEFAULT_JVM_FILE);
-        setting.setJvm(jvm);
-        String args = properties.getProperty("args", "");
+        String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);
+        setting.setVm(jvm);
+        String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);
         setting.setArgs(args);
         checkAndGetHome(setting, properties);
 
         //环境变量
-        String env = properties.getProperty("envp", "");
+        String env = properties.getProperty(SettingPropConst.ENV, StringUtils.EMPTY);
         if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {
-            setting.setEnvp(env);
+            setting.setEnv(env);
         }
 
-        int priority = NumberUtils.toInt(properties.getProperty("priority", "1"), 1);
+        int priority = NumberUtils.toInt(properties.getProperty(SettingPropConst.PRIORITY,
+                SettingPropConst.DEFAULT_PRIORITY));
         setting.setPriority(priority);
 
-        String s = properties.getProperty("daemon", "true");
-        if (StringUtils.equalsIgnoreCase("false", s)) {
+        String s = properties.getProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
+        if (StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_FALSE, s)) {
             //初始默认true
             setting.setDaemon(false);
         }
 
-        s = properties.getProperty("jarUpdateWatch", "true");
-        if (StringUtils.equalsIgnoreCase("false", s)) {
+        s = properties.getProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
+        if (StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_FALSE, s)) {
             //初始默认true
             setting.setJarUpdateWatch(false);
         }
@@ -112,29 +114,29 @@ public class PropertyFileUtils {
 
     private static void checkAndGetHome(ServerSettingDTO setting, Properties properties) {
         //工作目录
-        String workHome = properties.getProperty("workHome", "");
+        String workHome = properties.getProperty(SettingPropConst.WORK_DIR, StringUtils.EMPTY);
         if (StringUtils.isNotEmpty(workHome)) {
             File dir = new File(workHome);
             if (dir.isDirectory() && dir.exists()) {
-                setting.setWorkHome(workHome);
+                setting.setWorkDirectory(workHome);
             } else {
                 //默认启动目录在服务目录，不继承父进程的工作目录
-                setting.setWorkHome(StringUtils.EMPTY);
+                setting.setWorkDirectory(StringUtils.EMPTY);
             }
         }
 
-        //Java home路径
-        String javaHome = properties.getProperty("javaHome", "");
-        if (StringUtils.isEmpty(javaHome)) {
+        //Jdk路径
+        String jdkPath = properties.getProperty(SettingPropConst.JDK_PATH, StringUtils.EMPTY);
+        if (StringUtils.isEmpty(jdkPath)) {
             //默认启动目录在服务目录，不继承父进程的工作目录
-            setting.setJavaHome(CommonConst.EMPTY_STRING);
+            setting.setJdkPath(StringUtils.EMPTY);
         } else {
-            File dir = new File(javaHome);
+            File dir = new File(jdkPath);
             if (dir.isDirectory() && dir.exists()) {
-                setting.setJavaHome(javaHome);
+                setting.setJdkPath(jdkPath);
             } else {
                 //默认启动目录在服务目录，不继承父进程的工作目录
-                setting.setJavaHome(CommonConst.EMPTY_STRING);
+                setting.setJdkPath(StringUtils.EMPTY);
             }
         }
     }

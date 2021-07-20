@@ -7,6 +7,7 @@ import com.mz.jarboot.service.ServerMgrService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,7 @@ import java.util.Base64;
 import java.util.List;
 
 @Api(tags="服务管理")
-@RequestMapping(value = "/api/jarboot-service")
+@RequestMapping(value = "/api/jarboot/services")
 @Controller
 @Permission
 public class ServerMgrController {
@@ -112,7 +113,7 @@ public class ServerMgrController {
                              HttpServletResponse response) {
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
-        File target = new File(fileName);
+        File target = FileUtils.getFile(fileName);
         if (!target.exists() || !target.isFile()) {
             return;
         }

@@ -123,7 +123,7 @@ const PrivilegeMgr = memo(() => {
 
     const parseResource = (permissionInfo: any) => {
         const s: string = permissionInfo.resource;
-        const p = s.indexOf('/jarboot-');
+        const p = s.indexOf('/jarboot/');
         if (-1 === p) {
             const l = s.indexOf('/');
             return s.substring(0, l);

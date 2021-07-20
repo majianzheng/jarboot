@@ -1,6 +1,6 @@
 import Request from "@/common/Request";
 
-const urlBase = "/api/jarboot-user";
+const urlBase = "/api/jarboot/user";
 
 /**
  * 用户管理操作

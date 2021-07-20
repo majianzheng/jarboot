@@ -129,7 +129,7 @@ public class TaskRunCache {
         if (StringUtils.isBlank(excludeDirs)) {
             return;
         }
-        String[] dirs = excludeDirs.split(",");
+        String[] dirs = excludeDirs.split(CommonConst.DOT_SPLIT);
         for (String s : dirs) {
             s = StringUtils.trim(s);
             if (StringUtils.isNoneBlank(s)) {

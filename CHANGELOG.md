@@ -3,6 +3,7 @@
 * Rename module name from jarboot-service to jarboot-server
 * Show the current version when start
 * Fix priority sorted error
+* Refactor modify some url api, service boot properties
 #### FEATURES:
 * Support jar file using absolute path or relative path.
 * jarboot.properties add jarboot.services.enable-auto-start-after-start config.

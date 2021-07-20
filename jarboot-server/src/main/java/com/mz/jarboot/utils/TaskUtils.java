@@ -7,7 +7,6 @@ import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -81,7 +80,7 @@ public class TaskUtils {
         if (StringUtils.isEmpty(jar)) {
             return;
         }
-        String jvm = SettingUtils.getJvm(server, setting.getJvm());
+        String jvm = SettingUtils.getJvm(server, setting.getVm());
         if (StringUtils.isEmpty(jvm)) {
             //未配置则获取默认的
             jvm = SettingUtils.getDefaultJvmArg();
@@ -90,10 +89,10 @@ public class TaskUtils {
 
         // java命令
         final String javaCmd = "java";
-        if (StringUtils.isNotEmpty(setting.getJavaHome())) {
+        if (StringUtils.isNotEmpty(setting.getJdkPath())) {
             // 使用了指定到jdk
             cmdBuilder
-                    .append(setting.getJavaHome())
+                    .append(setting.getJdkPath())
                     .append( File.separator)
                     .append("bin")
                     .append( File.separator)
@@ -123,7 +122,7 @@ public class TaskUtils {
         String cmd = cmdBuilder.toString();
 
         // 工作目录
-        String workHome = setting.getWorkHome();
+        String workHome = setting.getWorkDirectory();
         if (StringUtils.isBlank(workHome)) {
             workHome = SettingUtils.getServerPath(server);
         }
@@ -131,7 +130,7 @@ public class TaskUtils {
         //打印命令行
         WebSocketManager.getInstance().sendConsole(server, cmd);
         // 启动
-        startTask(cmd, setting.getEnvp(), workHome,
+        startTask(cmd, setting.getEnv(), workHome,
                 text -> WebSocketManager.getInstance().sendConsole(server, text));
     }
 
@@ -170,29 +169,6 @@ public class TaskUtils {
                 VMUtils.getInstance().detachVM(vm);
             }
         }
-    }
-
-    /**
-     * 得到jar的上级目录和自己: demo-service/demo.jar
-     * @deprecated
-     * @param server
-     * @return
-     */
-    @Deprecated
-    public static String getJarWithServerName(String server) {
-        ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
-        String jar = setting.getJar();
-        if (StringUtils.isEmpty(jar)) {
-            String path = SettingUtils.getServerPath(server);
-            Collection<File> jarFiles = FileUtils.listFiles(new File(path), new String[]{"jar"}, false);
-            Iterator<File> iter = jarFiles.iterator();
-            if (iter.hasNext()) {
-                jar = iter.next().getName();
-            } else {
-                jar = "";
-            }
-        }
-        return jar;
     }
 
     public interface PushMsgCallback {

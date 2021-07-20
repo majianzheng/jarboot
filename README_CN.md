@@ -54,7 +54,7 @@ user$ mvn clean install
 
 2. 安装后的目录结构
 
-```bash
+```
 jarboot                             #当前工作目录
 ├─logs                              #日志
 ├─jarboot-spy.jar

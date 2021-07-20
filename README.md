@@ -54,7 +54,7 @@ user$ mvn clean install
 
 2. Directory structure after installation.
 
-```bash
+```
 jarboot                             #Current working directory
 ├─logs                              #logs
 ├─jarboot-spy.jar

@@ -1,6 +1,7 @@
 package com.mz.jarboot.dto;
 
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.constant.SettingPropConst;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -21,7 +22,7 @@ public class ServerSettingDTO implements Serializable {
     /**
      * 自定义的JVM参数
      */
-    private String jvm;
+    private String vm;
     /**
      * 启动的优先级，从1开始，越大优先级越高，最高的优先启动
      * 未配置或小于1时，默认为1
@@ -34,15 +35,15 @@ public class ServerSettingDTO implements Serializable {
     /**
      * Java进程的工作目录
      */
-    private String workHome = "";
+    private String workDirectory = StringUtils.EMPTY;
     /**
-     * 指定使用的JavaHome，默认继承父进程
+     * 指定使用的Jdk，默认继承父进程
      */
-    private String javaHome;
+    private String jdkPath;
     /**
      * 环境变量
      */
-    private String envp = "";
+    private String env = StringUtils.EMPTY;
     /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
      */
@@ -54,17 +55,17 @@ public class ServerSettingDTO implements Serializable {
 
     public ServerSettingDTO() {
         //默认设定
-        this(CommonConst.DEFAULT_JVM_FILE, 1, "", true, true);
+        this(SettingPropConst.DEFAULT_VM_FILE, 1, StringUtils.EMPTY, true, true);
     }
 
     public ServerSettingDTO(String server) {
         //默认设定
-        this(CommonConst.DEFAULT_JVM_FILE, 1, "", true, true);
+        this(SettingPropConst.DEFAULT_VM_FILE, 1, StringUtils.EMPTY, true, true);
         this.server = server;
     }
 
-    private ServerSettingDTO(String jvm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
-        this.jvm = jvm;
+    private ServerSettingDTO(String vm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
+        this.vm = vm;
         this.priority = priority;
         this.args = args;
         this.daemon = daemon;
@@ -87,12 +88,12 @@ public class ServerSettingDTO implements Serializable {
         this.jar = jar;
     }
 
-    public String getJvm() {
-        return jvm;
+    public String getVm() {
+        return vm;
     }
 
-    public void setJvm(String jvm) {
-        this.jvm = jvm;
+    public void setVm(String vm) {
+        this.vm = vm;
     }
 
     public Integer getPriority() {
@@ -111,28 +112,28 @@ public class ServerSettingDTO implements Serializable {
         this.args = args;
     }
 
-    public String getWorkHome() {
-        return workHome;
+    public String getWorkDirectory() {
+        return workDirectory;
     }
 
-    public void setWorkHome(String workHome) {
-        this.workHome = workHome;
+    public void setWorkDirectory(String workDirectory) {
+        this.workDirectory = workDirectory;
     }
 
-    public String getJavaHome() {
-        return javaHome;
+    public String getJdkPath() {
+        return jdkPath;
     }
 
-    public void setJavaHome(String javaHome) {
-        this.javaHome = javaHome;
+    public void setJdkPath(String jdkPath) {
+        this.jdkPath = jdkPath;
     }
 
-    public String getEnvp() {
-        return envp;
+    public String getEnv() {
+        return env;
     }
 
-    public void setEnvp(String envp) {
-        this.envp = envp;
+    public void setEnv(String env) {
+        this.env = env;
     }
 
     public Boolean getDaemon() {

@@ -1,6 +1,6 @@
 import Request from '../common/Request';
 
-const settingUrl = "/api/jarboot-setting";
+const settingUrl = "/api/jarboot/setting";
 
 export default class SettingService {
     /**

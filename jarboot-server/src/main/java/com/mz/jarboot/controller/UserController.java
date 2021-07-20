@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @Api(tags="用户管理")
-@RequestMapping(value = "/api/jarboot-user")
+@RequestMapping(value = "/api/jarboot/user")
 @Controller
 @Permission
 public class UserController {

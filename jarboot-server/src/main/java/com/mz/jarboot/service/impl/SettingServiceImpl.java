@@ -3,6 +3,7 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
@@ -37,74 +38,75 @@ public class SettingServiceImpl implements SettingService {
         Properties prop = PropertyFileUtils.getProperties(file);
         String jar = setting.getJar();
         if (null == jar) {
-            jar = CommonConst.EMPTY_STRING;
+            jar = StringUtils.EMPTY;
         }
-        prop.setProperty("jar", jar);
-        String jvm = setting.getJvm();
-        if (null == jvm) {
-            jvm = "boot.vmoptions";
+        prop.setProperty(SettingPropConst.JAR, jar);
+        String vm = setting.getVm();
+        if (null == vm) {
+            vm = SettingPropConst.DEFAULT_VM_FILE;
         }
-        prop.setProperty("jvm", jvm);
+        prop.setProperty(SettingPropConst.VM, vm);
         String args = setting.getArgs();
         if (null == args) {
-            args = CommonConst.EMPTY_STRING;
+            args = StringUtils.EMPTY;
         }
-        prop.setProperty("args", args);
+        prop.setProperty(SettingPropConst.ARGS, args);
         if (null == setting.getPriority()) {
-            prop.setProperty("priority", CommonConst.EMPTY_STRING);
+            prop.setProperty(SettingPropConst.PRIORITY, StringUtils.EMPTY);
         } else {
-            prop.setProperty("priority", setting.getPriority().toString());
+            prop.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
         }
         checkAndSetWorkHome(setting, prop);
         checkAndSetJavaHome(setting, prop);
         checkAndSetEnv(setting, prop);
         if (null == setting.getDaemon()) {
-            prop.setProperty("daemon", "true");
+            prop.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty("daemon", setting.getDaemon().toString());
+            prop.setProperty(SettingPropConst.DAEMON, setting.getDaemon().toString());
         }
         if (null == setting.getJarUpdateWatch()) {
-            prop.setProperty("jarUpdateWatch", "true");
+            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty("jarUpdateWatch", setting.getJarUpdateWatch().toString());
+            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
         }
         PropertyFileUtils.storeProperties(file, prop);
     }
 
     private void checkAndSetWorkHome(ServerSettingDTO setting, Properties prop) {
-        String workHome = setting.getWorkHome();
-        if (StringUtils.isNotEmpty(workHome)) {
-            checkDirExist(workHome);
+        String workDirectory = setting.getWorkDirectory();
+        if (StringUtils.isNotEmpty(workDirectory)) {
+            checkDirExist(workDirectory);
         } else {
-            workHome = CommonConst.EMPTY_STRING;
+            workDirectory = StringUtils.EMPTY;
         }
-        prop.setProperty("workHome", workHome);
+        prop.setProperty(SettingPropConst.WORK_DIR, workDirectory);
     }
 
     private void checkAndSetJavaHome(ServerSettingDTO setting, Properties prop) {
-        String javaHome = setting.getJavaHome();
-        if (StringUtils.isNotEmpty(javaHome)) {
-            String javaFile = javaHome + File.separator + "bin" + File.separator + "java";
+        String jdkPath = setting.getJdkPath();
+        if (StringUtils.isNotEmpty(jdkPath)) {
+            String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
+                    File.separator + CommonConst.JAVA_CMD;
             if (OSUtils.isWindows()) {
                 javaFile += ".exe";
             }
             checkFileExist(javaFile);
         } else {
-            javaHome = CommonConst.EMPTY_STRING;
+            jdkPath = StringUtils.EMPTY;
         }
-        prop.setProperty("javaHome", javaHome);
+        prop.setProperty(SettingPropConst.JDK_PATH, jdkPath);
     }
 
     private void checkAndSetEnv(ServerSettingDTO setting, Properties prop) {
-        String envp = setting.getEnvp();
-        if (PropertyFileUtils.checkEnvironmentVar(envp)) {
-            if (null == envp) {
-                envp = "";
+        String env = setting.getEnv();
+        if (PropertyFileUtils.checkEnvironmentVar(env)) {
+            if (null == env) {
+                env = StringUtils.EMPTY;
             }
-            prop.setProperty("envp", envp);
+            prop.setProperty(SettingPropConst.ENV, env);
         } else {
             throw new MzException(ResultCodeConst.VALIDATE_FAILED,
-                    String.format("环境变量配置错误(%s)！", setting.getEnvp()));
+                    String.format("环境变量配置错误(%s)！", setting.getEnv()));
         }
     }
 
@@ -172,8 +174,9 @@ public class SettingServiceImpl implements SettingService {
             }
         }
         if (StringUtils.isNotEmpty(jar)) {
-            String jarPath = SettingUtils.getServerPath(server) + File.separator + jar;
-            File jarFile = new File(jarPath);
+            Path path = Paths.get(jar);
+            File jarFile = path.isAbsolute() ? path.toFile() :
+                    FileUtils.getFile(SettingUtils.getServerPath(server), jar);
             if (!jarFile.exists() || !jarFile.isFile()) {
                 throw new MzException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
             }
