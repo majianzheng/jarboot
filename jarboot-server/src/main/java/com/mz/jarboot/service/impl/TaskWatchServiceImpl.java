@@ -177,7 +177,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private void storeCurFileModifyTime() {
         File[] serverDirs = taskRunCache.getServerDirs();
         for (File serverDir : serverDirs) {
-            Collection<File> files = FileUtils.listFiles(serverDir, new String[]{"jar"}, true);
+            Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
             if (CollectionUtils.isNotEmpty(files)) {
                 File recordFile = getRecordFile(serverDir);
                 if (null != recordFile) {
@@ -251,7 +251,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private boolean checkJarUpdate(String server) {
         String path = SettingUtils.getServerPath(server);
         File serverDir = new File(path);
-        Collection<File> files = FileUtils.listFiles(serverDir, new String[]{"jar"}, true);
+        Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }

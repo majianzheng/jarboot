@@ -3,7 +3,7 @@ import CommonNotice from "@/common/CommonNotice";
 import {requestFinishCallback} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
 
-const urlBase = "/api/jarboot-service";
+const urlBase = "/api/jarboot/services";
 
 export default class ServerMgrService {
 

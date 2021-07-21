@@ -46,10 +46,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickRestart() {
-        if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().notice("一键重启，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
-            return;
-        }
         //获取所有的服务
         List<String> allWebServerList = taskRunCache.getServerNameList();
         //同步控制，保证所有的都杀死后再重启
@@ -64,10 +60,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickStart() {
-        if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().notice("一键启动，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
-            return;
-        }
         List<String> allWebServerList = taskRunCache.getServerNameList();
         //启动服务
         this.startServer(allWebServerList);
@@ -78,10 +70,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void oneClickStop() {
-        if (this.taskRunCache.hasNotFinished()) {
-            WebSocketManager.getInstance().notice("一键停止，当前有正在启动或关闭的服务在执行中，请稍后再试", NoticeEnum.ERROR);
-            return;
-        }
         List<String> allWebServerList = taskRunCache.getServerNameList();
         //启动服务
         this.stopServer(allWebServerList);

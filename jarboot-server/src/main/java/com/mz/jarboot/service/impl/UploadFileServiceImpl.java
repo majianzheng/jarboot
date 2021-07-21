@@ -49,8 +49,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     private volatile boolean started = false;
 
     private File getTempCacheDir(String server) {
-        String path = tempDir + File.separator + server;
-        return new File(path);
+        return FileUtils.getFile(tempDir, server);
     }
 
     private void cleanTempCacheDir(File dir) {
@@ -131,12 +130,11 @@ public class UploadFileServiceImpl implements UploadFileService {
         }
         File dir = getTempCacheDir(server);
         String destPath = SettingUtils.getServerPath(server);
-        File dest = new File(destPath);
+        File dest = FileUtils.getFile(destPath);
         //开始复制前要不要先备份，以便失败后还原？文件量、体积巨大如何处理？为了性能先不做考虑
         try {
-            String[] ex = new String[]{"jar"};
             //先复制jar文件
-            Collection<File> jarFiles = FileUtils.listFiles(dir, ex, false);
+            Collection<File> jarFiles = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
             for (File jar : jarFiles) {
                 FileUtils.copyFileToDirectory(jar, dest, true);
             }
@@ -145,7 +143,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             //检测多个jar文件时有没有配置启动的jar文件
             ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
             if (StringUtils.isEmpty(setting.getJar())) {
-                boolean bo = FileUtils.listFiles(dest, ex, false).size() > 1;
+                boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
                     String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);
                     WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
@@ -196,7 +194,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             if (StringUtils.isEmpty(name)) {
                 throw new MzException("文件原始名字不可为空！");
             }
-            File f = new File(dir, name);
+            File f = FileUtils.getFile(dir, name);
             try {
                 file.transferTo(f);
             } catch (IOException e) {

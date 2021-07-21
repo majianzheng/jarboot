@@ -55,7 +55,7 @@ interface UserMenuProp {
 }
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
-    const icon = <DefaultUserIcon/>;
+    const icon = <DefaultUserIcon style={{ fontSize: '32px' }}/>;
     return <Popover content={<UserPopMenu username={props.username} onHide={() => setUserMenuVisible(false)}/>}
                     visible={userMenuVisible}
                     mouseLeaveDelay={0.5}

@@ -3,7 +3,7 @@ import ErrorUtil from "../common/ErrorUtil";
 import CommonNotice from "../common/CommonNotice";
 import {requestFinishCallback} from "@/common/JarBootConst";
 
-const baseUrl = "/api/jarboot-upload";
+const baseUrl = "/api/jarboot/upload";
 
 export default class UploadFileService {
     /**

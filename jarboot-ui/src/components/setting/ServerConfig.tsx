@@ -91,7 +91,7 @@ const ServerConfig: any = memo((props: any) => {
                        rules={[{required: false}]}>
                 <Input placeholder={"The jar file to start"} autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="jvm"
+            <Form.Item name="vm"
                        label={intl.formatMessage({id: 'JVM_OPT_LABEL'})}
                        rules={[{required: false}]}>
                 <Input autoComplete="off" placeholder={"vm options file"}
@@ -110,12 +110,12 @@ const ServerConfig: any = memo((props: any) => {
                        spellCheck="false"
                        addonAfter={<FormOutlined onClick={onArgsEdit}/>}/>
             </Form.Item>
-            <Form.Item name="javaHome"
-                       label={"Java Home"}
+            <Form.Item name="jdkPath"
+                       label={"JDK"}
                        rules={[{required: false}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="workHome"
+            <Form.Item name="workDirectory"
                        label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
                        rules={[{required: false}]}>
                 <Input autoComplete="off"
@@ -123,7 +123,7 @@ const ServerConfig: any = memo((props: any) => {
                        autoCapitalize="off"
                        spellCheck="false"/>
             </Form.Item>
-            <Form.Item name="envp"
+            <Form.Item name="env"
                        label={intl.formatMessage({id: 'ENV_LABEL'})}
                        rules={[{required: false}]}>
                 <Input placeholder={"env1=val1,env2=val2"}
@@ -135,7 +135,7 @@ const ServerConfig: any = memo((props: any) => {
             <Form.Item name="priority"
                        label={intl.formatMessage({id: 'PRIORITY_LABEL'})}
                        rules={[{required: false}]}>
-                <InputNumber min={1} max={9999} defaultValue={1} autoComplete="off"/>
+                <InputNumber min={0} max={9999} defaultValue={0} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="daemon"
                        label={intl.formatMessage({id: 'DAEMON_LABEL'})}

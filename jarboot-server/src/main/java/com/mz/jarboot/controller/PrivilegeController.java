@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 @Api(tags="权限管理")
-@RequestMapping(value = "/api/jarboot-privilege")
+@RequestMapping(value = "/api/jarboot/privilege")
 @Controller
 @Permission
 public class PrivilegeController {

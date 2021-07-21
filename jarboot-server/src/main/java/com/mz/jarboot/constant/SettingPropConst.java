@@ -1,0 +1,20 @@
+package com.mz.jarboot.constant;
+
+public class SettingPropConst {
+    public static final String DEFAULT_VM_FILE = "boot.vmoptions";
+    public static final String VALUE_TRUE = "true";
+    public static final String VALUE_FALSE = "false";
+    public static final String DEFAULT_PRIORITY = "1";
+
+    public static final String VM = "vm";
+    public static final String JAR = "jar";
+    public static final String ARGS = "args";
+    public static final String PRIORITY = "priority";
+    public static final String DAEMON = "daemon";
+    public static final String JAR_UPDATE_WATCH = "jarUpdateWatch";
+    public static final String WORK_DIR = "workDirectory";
+    public static final String JDK_PATH = "jdkPath";
+    public static final String ENV = "env";
+
+    private SettingPropConst() {}
+}

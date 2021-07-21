@@ -1,6 +1,6 @@
 import Request from "@/common/Request";
 
-const urlBase = "/api/jarboot-privilege";
+const urlBase = "/api/jarboot/privilege";
 
 /**
  * 权限管理操作

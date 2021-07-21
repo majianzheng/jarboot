@@ -4,8 +4,10 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -20,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class TransformerManager {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private ClassFileTransformer classFileTransformer;
-    private ConcurrentMap<Class<?>, ClassFileTransformer> onceTransformer = new ConcurrentHashMap<>();
+    private ConcurrentMap<Class<?>, ClassBytesCallback> classBytesCallbackMap = new ConcurrentHashMap<>();
     private List<ClassFileTransformer> watchTransformers = new CopyOnWriteArrayList<>();
     private List<ClassFileTransformer> traceTransformers = new CopyOnWriteArrayList<>();
     private Instrumentation instrumentation;
@@ -31,49 +33,53 @@ public class TransformerManager {
         init();
     }
     private void init() {
-        classFileTransformer = (loader, className, classBeingRedefined,
-                                protectionDomain, classfileBuffer) -> {
-            ClassFileTransformer transformer = onceTransformer.get(classBeingRedefined);
-            if (null != transformer) {
-                logger.info("classFileTransformer>>{}", className);
-                byte[] buffer =transformer.transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
-                if (null != buffer) {
-                    classfileBuffer = buffer;
+        classFileTransformer = new ClassFileTransformer() {
+            @Override
+            public byte[] transform(ClassLoader loader,
+                                    String className,
+                                    Class<?> classBeingRedefined,
+                                    ProtectionDomain protectionDomain,
+                                    byte[] classfileBuffer) throws IllegalClassFormatException {
+                ClassBytesCallback classBytesCallback = classBytesCallbackMap.get(classBeingRedefined);
+                if (null != classBytesCallback) {
+                    classBytesCallback.handler(className, classfileBuffer);
+                    classBytesCallbackMap.remove(classBeingRedefined);
+                    return null;
                 }
-                onceTransformer.remove(classBeingRedefined);
-            }
 
-            for (ClassFileTransformer classFileTransformer : reTransformers) {
-                byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
-                        protectionDomain, classfileBuffer);
-                if (transformResult != null) {
-                    classfileBuffer = transformResult;
+                for (ClassFileTransformer classFileTransformer : reTransformers) {
+                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                            protectionDomain, classfileBuffer);
+                    if (transformResult != null) {
+                        classfileBuffer = transformResult;
+                    }
                 }
-            }
 
-            for (ClassFileTransformer classFileTransformer : watchTransformers) {
-                byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
-                        protectionDomain, classfileBuffer);
-                if (transformResult != null) {
-                    classfileBuffer = transformResult;
+                for (ClassFileTransformer classFileTransformer : watchTransformers) {
+                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                            protectionDomain, classfileBuffer);
+                    if (transformResult != null) {
+                        classfileBuffer = transformResult;
+                    }
                 }
-            }
 
-            for (ClassFileTransformer classFileTransformer : traceTransformers) {
-                byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
-                        protectionDomain, classfileBuffer);
-                if (transformResult != null) {
-                    classfileBuffer = transformResult;
+                for (ClassFileTransformer classFileTransformer : traceTransformers) {
+                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                            protectionDomain, classfileBuffer);
+                    if (transformResult != null) {
+                        classfileBuffer = transformResult;
+                    }
                 }
-            }
 
-            return classfileBuffer;
+                return classfileBuffer;
+            }
         };
+
         instrumentation.addTransformer(classFileTransformer, true);
     }
 
-    public synchronized void addOnceTransformer(Class<?> cls, ClassFileTransformer transformer) {
-        onceTransformer.put(cls, transformer);
+    public synchronized void addOnceTransformer(Class<?> cls, ClassBytesCallback callback) {
+        classBytesCallbackMap.put(cls, callback);
     }
 
     public void addTransformer(ClassFileTransformer transformer, boolean isTracing) {

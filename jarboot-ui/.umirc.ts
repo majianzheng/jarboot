@@ -12,6 +12,7 @@ export default defineConfig({
     exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},
     inlineLimit: 100000,
+    hash: true,
     //devtool: 'source-map',
     locale: {
         default: 'en-US',

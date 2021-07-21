@@ -5,6 +5,7 @@ import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.ApplicationContextUtils;
@@ -16,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.security.CodeSource;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class SettingUtils {
@@ -43,24 +45,13 @@ public class SettingUtils {
     }
 
     private static void initAgentJarPath() {
-        CodeSource codeSource = SettingUtils.class.getProtectionDomain().getCodeSource();
-        try {
-            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            File jarFile = new File(curJar.getParentFile(), CommonConst.AGENT_JAR_NAME);
-
-            //先尝试从当前路径下获取jar的位置
-            if (jarFile.exists()) {
-                agentJar = jarFile.getPath();
-            } else {
-                agentJar = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.AGENT_JAR_NAME;
-                jarFile = new File(agentJar);
-                if (!jarFile.exists()) {
-                    throw new MzException(ResultCodeConst.NOT_EXIST, "从用户路径下未发现" + agentJar);
-                }
-            }
-        } catch (Exception e) {
-            //查找jarboot-agent.jar失败
-            logger.error("Can not find jarboot-agent.jar.", e);
+        final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
+        File jarFile = new File(jarbootHome, CommonConst.AGENT_JAR_NAME);
+        //先尝试从当前路径下获取jar的位置
+        if (jarFile.exists()) {
+            agentJar = jarFile.getPath();
+        } else {
+            logger.error("文件不存在 {}",  agentJar);
             System.exit(-1);
         }
     }
@@ -68,10 +59,10 @@ public class SettingUtils {
         File conf = new File(JARBOOT_CONF);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
-        globalSetting.setServicesPath(properties.getProperty(ROOT_DIR_KEY, ""));
-        globalSetting.setDefaultJvmArg(properties.getProperty(DEFAULT_JVM_OPTS_KEY, ""));
-        String s = properties.getProperty(ENABLE_AUTO_START_KEY, "false");
-        boolean servicesAutoStart = StringUtils.equalsIgnoreCase("true", s);
+        globalSetting.setServicesPath(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
+        globalSetting.setDefaultJvmArg(properties.getProperty(DEFAULT_JVM_OPTS_KEY, StringUtils.EMPTY));
+        String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
+        boolean servicesAutoStart = StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_TRUE, s);
         globalSetting.setServicesAutoStart(servicesAutoStart);
     }
 
@@ -92,12 +83,17 @@ public class SettingUtils {
         try {
             HashMap<String, String> props = new HashMap<>();
             props.put(DEFAULT_JVM_OPTS_KEY, setting.getDefaultJvmArg());
-            props.put(ROOT_DIR_KEY, setting.getServicesPath());
+            if (OSUtils.isWindows()) {
+                props.put(ROOT_DIR_KEY, servicesPath.replace('\\', '/'));
+            } else {
+                props.put(ROOT_DIR_KEY, servicesPath);
+            }
+
             props.put(ENABLE_AUTO_START_KEY, String.valueOf(setting.getServicesAutoStart()));
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
             globalSetting.setDefaultJvmArg(setting.getDefaultJvmArg());
-            globalSetting.setServicesPath(setting.getServicesPath());
+            globalSetting.setServicesPath(servicesPath);
             globalSetting.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
@@ -143,14 +139,15 @@ public class SettingUtils {
     public static String getJarPath(ServerSettingDTO setting) {
         String server = setting.getServer();
         String serverPath = getServerPath(server);
-        File dir = new File(serverPath);
+        File dir = FileUtils.getFile(serverPath);
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包路径", NoticeEnum.WARN);
         }
         if (StringUtils.isNotEmpty(setting.getJar())) {
-            //配置制定了jar文件
-            File jar = new File(dir, setting.getJar());
+            //配置了jar文件，判定是否绝对路径
+            Path path = Paths.get(setting.getJar());
+            File jar = path.isAbsolute() ? path.toFile() : FileUtils.getFile(dir, setting.getJar());
             if (jar.exists() && jar.isFile()) {
                 return jar.getPath();
             } else {
@@ -160,47 +157,46 @@ public class SettingUtils {
         }
 
         //未指定时
-        String[] extensions = {"jar"};
-        Collection<File> jarList = FileUtils.listFiles(dir, extensions, false);
+        Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
         if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
-            return "";
+            return StringUtils.EMPTY;
         }
         if (jarList.size() > 1) {
             String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);
             WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
-            return "";
+            return StringUtils.EMPTY;
         }
         if (jarList.iterator().hasNext()) {
             File jarFile = jarList.iterator().next();
             return jarFile.getPath();
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
     public static String getServerPath(String server) {
         return getServicesPath() + File.separator + server;
     }
 
-    public static String getServerSettingFilePath(String server) {
+    public static File getServerSettingFile(String server) {
         StringBuilder builder = new StringBuilder();
-        builder.append(getServicesPath()).append(File.separator).append(server).append(File.separator).append(BOOT_PROPERTIES);
-        return builder.toString();
+        builder
+                .append(getServicesPath())
+                .append(File.separator)
+                .append(server);
+        return FileUtils.getFile(builder.toString(), BOOT_PROPERTIES);
     }
 
     public static String getJvm(String server, String file) {
-        String path;
         if (StringUtils.isBlank(file)) {
-            file = CommonConst.DEFAULT_JVM_FILE;
+            file = SettingPropConst.DEFAULT_VM_FILE;
         }
-        if (SettingUtils.isAbsPath(file)) {
-            // 绝对路径
-            path = file;
-        } else {
-            path = SettingUtils.getServerPath(server) + File.separator + file;
+        Path path = Paths.get(file);
+        if (!path.isAbsolute()) {
+            path = Paths.get(SettingUtils.getServerPath(server), file);
         }
-        File f = new File(path);
+        File f = path.toFile();
         StringBuilder sb = new StringBuilder();
         if (f.exists()) {
             List<String> lines;
@@ -213,20 +209,6 @@ public class SettingUtils {
             lines.forEach(line -> sb.append(line).append(' '));
         }
         return sb.toString().trim();
-    }
-
-    public static boolean isAbsPath(String path) {
-        if (StringUtils.isBlank(path)) {
-            return false;
-        }
-        if (OSUtils.isWindows()) {
-            if (path.length() < 2) {
-                return false;
-            }
-            char c = path.charAt(0);
-            return (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && path.charAt(1) == ':');
-        }
-        return (path.startsWith("/") || path.startsWith("\\"));
     }
 
     private SettingUtils() {

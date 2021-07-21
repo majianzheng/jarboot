@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Api(tags="文件上传")
-@RequestMapping(value = "/api/jarboot-upload")
+@RequestMapping(value = "/api/jarboot/upload")
 @Controller
 @Permission
 public class UploadFileController {

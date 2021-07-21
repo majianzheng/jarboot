@@ -247,8 +247,16 @@ public class JarbootBootstrap {
         ple.start();
         FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
         StringBuilder sb = new StringBuilder();
-        sb.append(EnvironmentContext.getJarbootHome()).append(File.separator).append("logs").append(File.separator)
-                .append("jarboot-").append(EnvironmentContext.getServer()).append(".log");
+        sb
+                .append(EnvironmentContext.getJarbootHome())
+                .append(File.separator)
+                .append("logs")
+                .append(File.separator)
+                .append(EnvironmentContext.getServer())
+                .append(File.separator)
+                .append("jarboot-")
+                .append(EnvironmentContext.getServer())
+                .append(".log");
         String log =sb.toString();
         fileAppender.setFile(log);
         fileAppender.setEncoder(ple);

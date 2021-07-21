@@ -3,6 +3,7 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.common.MzException;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
@@ -35,74 +38,75 @@ public class SettingServiceImpl implements SettingService {
         Properties prop = PropertyFileUtils.getProperties(file);
         String jar = setting.getJar();
         if (null == jar) {
-            jar = CommonConst.EMPTY_STRING;
+            jar = StringUtils.EMPTY;
         }
-        prop.setProperty("jar", jar);
-        String jvm = setting.getJvm();
-        if (null == jvm) {
-            jvm = "boot.vmoptions";
+        prop.setProperty(SettingPropConst.JAR, jar);
+        String vm = setting.getVm();
+        if (null == vm) {
+            vm = SettingPropConst.DEFAULT_VM_FILE;
         }
-        prop.setProperty("jvm", jvm);
+        prop.setProperty(SettingPropConst.VM, vm);
         String args = setting.getArgs();
         if (null == args) {
-            args = CommonConst.EMPTY_STRING;
+            args = StringUtils.EMPTY;
         }
-        prop.setProperty("args", args);
+        prop.setProperty(SettingPropConst.ARGS, args);
         if (null == setting.getPriority()) {
-            prop.setProperty("priority", CommonConst.EMPTY_STRING);
+            prop.setProperty(SettingPropConst.PRIORITY, StringUtils.EMPTY);
         } else {
-            prop.setProperty("priority", setting.getPriority().toString());
+            prop.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
         }
         checkAndSetWorkHome(setting, prop);
         checkAndSetJavaHome(setting, prop);
         checkAndSetEnv(setting, prop);
         if (null == setting.getDaemon()) {
-            prop.setProperty("daemon", "true");
+            prop.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty("daemon", setting.getDaemon().toString());
+            prop.setProperty(SettingPropConst.DAEMON, setting.getDaemon().toString());
         }
         if (null == setting.getJarUpdateWatch()) {
-            prop.setProperty("jarUpdateWatch", "true");
+            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty("jarUpdateWatch", setting.getJarUpdateWatch().toString());
+            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
         }
         PropertyFileUtils.storeProperties(file, prop);
     }
 
     private void checkAndSetWorkHome(ServerSettingDTO setting, Properties prop) {
-        String workHome = setting.getWorkHome();
-        if (StringUtils.isNotEmpty(workHome)) {
-            checkDirExist(workHome);
+        String workDirectory = setting.getWorkDirectory();
+        if (StringUtils.isNotEmpty(workDirectory)) {
+            checkDirExist(workDirectory);
         } else {
-            workHome = CommonConst.EMPTY_STRING;
+            workDirectory = StringUtils.EMPTY;
         }
-        prop.setProperty("workHome", workHome);
+        prop.setProperty(SettingPropConst.WORK_DIR, workDirectory);
     }
 
     private void checkAndSetJavaHome(ServerSettingDTO setting, Properties prop) {
-        String javaHome = setting.getJavaHome();
-        if (StringUtils.isNotEmpty(javaHome)) {
-            String javaFile = javaHome + File.separator + "bin" + File.separator + "java";
+        String jdkPath = setting.getJdkPath();
+        if (StringUtils.isNotEmpty(jdkPath)) {
+            String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
+                    File.separator + CommonConst.JAVA_CMD;
             if (OSUtils.isWindows()) {
                 javaFile += ".exe";
             }
             checkFileExist(javaFile);
         } else {
-            javaHome = CommonConst.EMPTY_STRING;
+            jdkPath = StringUtils.EMPTY;
         }
-        prop.setProperty("javaHome", javaHome);
+        prop.setProperty(SettingPropConst.JDK_PATH, jdkPath);
     }
 
     private void checkAndSetEnv(ServerSettingDTO setting, Properties prop) {
-        String envp = setting.getEnvp();
-        if (PropertyFileUtils.checkEnvp(envp)) {
-            if (null == envp) {
-                envp = "";
+        String env = setting.getEnv();
+        if (PropertyFileUtils.checkEnvironmentVar(env)) {
+            if (null == env) {
+                env = StringUtils.EMPTY;
             }
-            prop.setProperty("envp", envp);
+            prop.setProperty(SettingPropConst.ENV, env);
         } else {
             throw new MzException(ResultCodeConst.VALIDATE_FAILED,
-                    String.format("环境变量配置错误(%s)！", setting.getEnvp()));
+                    String.format("环境变量配置错误(%s)！", setting.getEnv()));
         }
     }
 
@@ -118,14 +122,11 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public String getVmOptions(String server, String file) {
-        String path;
-        if (SettingUtils.isAbsPath(file)) {
-            // 绝对路径
-            path = file;
-        } else {
-            path = SettingUtils.getServerPath(server) + File.separator + file;
+        Path path = Paths.get(file);
+        if (!path.isAbsolute()) {
+            path = Paths.get(SettingUtils.getServerPath(server), file);
         }
-        File f = new File(path);
+        File f = path.toFile();
         String content = StringUtils.EMPTY;
         if (f.exists()) {
             try {
@@ -139,14 +140,11 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void saveVmOptions(String server, String file, String content) {
-        String path;
-        if (SettingUtils.isAbsPath(file)) {
-            // 绝对路径
-            path = file;
-        } else {
-            path = SettingUtils.getServerPath(server) + File.separator + file;
+        Path path = Paths.get(file);
+        if (!path.isAbsolute()) {
+            path = Paths.get(SettingUtils.getServerPath(server), file);
         }
-        File f = new File(path);
+        File f = path.toFile();
         if (!f.exists()) {
             try {
                 if (!f.createNewFile()) {
@@ -164,21 +162,21 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private File getConfAndCheck(String server, String jar) {
-        String path = SettingUtils.getServerSettingFilePath(server);
-        File file = new File(path);
+        File file = SettingUtils.getServerSettingFile(server);
         if (!file.exists()) {
             try {
                 boolean rlt = file.createNewFile();
                 if (!rlt) {
-                    logger.debug("Config file({}) is already exist.", path);
+                    logger.debug("Config file({}) create failed.", file.getPath());
                 }
             } catch (IOException e) {
                 throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
         if (StringUtils.isNotEmpty(jar)) {
-            String jarPath = SettingUtils.getServerPath(server) + File.separator + jar;
-            File jarFile = new File(jarPath);
+            Path path = Paths.get(jar);
+            File jarFile = path.isAbsolute() ? path.toFile() :
+                    FileUtils.getFile(SettingUtils.getServerPath(server), jar);
             if (!jarFile.exists() || !jarFile.isFile()) {
                 throw new MzException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
             }
@@ -187,7 +185,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void checkDirExist(String path) {
-        File dir = new File(path);
+        File dir = FileUtils.getFile(path);
         if (dir.exists() && dir.isDirectory()) {
             return;
         }
@@ -195,7 +193,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void checkFileExist(String file) {
-        File dir = new File(file);
+        File dir = FileUtils.getFile(file);
         if (dir.exists() && dir.isFile()) {
             return;
         }
