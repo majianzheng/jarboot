@@ -10,10 +10,14 @@ public class CommonConst {
 
     public static final String BIN_NAME = "bin";
     public static final String JAVA_CMD = "java";
+    public static final String EXE_EXT = ".exe";
+    public static final String ARG_JAR = " -jar ";
     //协议分隔符
     public static final char PROTOCOL_SPLIT = '\r';
-
-    public static final String DOT_SPLIT = ",";
+    
+    public static final String DOT = ".";
+    
+    public static final String COMMA_SPLIT = ",";
     public static final String[] JAR_FILE_EXT = new String[]{"jar"}; //NOSONAR
 
     public static final String JARBOOT_NAME = "jarboot";

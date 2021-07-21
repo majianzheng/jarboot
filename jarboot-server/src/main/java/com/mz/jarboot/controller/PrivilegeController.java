@@ -45,7 +45,7 @@ public class PrivilegeController {
         return new ResponseForObject<>(has);
     }
 
-    @ApiOperation(value = "获取是否拥有权限", httpMethod = "GET")
+    @ApiOperation(value = "根据角色获取权限", httpMethod = "GET")
     @GetMapping("/getPrivilegeByRole")
     @ResponseBody
     public ResponseForList<Privilege> getPrivilegeByRole(String role) {

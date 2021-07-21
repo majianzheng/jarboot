@@ -24,7 +24,7 @@ import java.util.*;
 public class TaskUtils {
     private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
-    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + "." + CommonConst.SERVICES + ".";
+    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT + CommonConst.SERVICES + CommonConst.DOT;
 
     private static long getStartWaitTime() {
         if (-1 == startWaitTime) {
@@ -88,36 +88,35 @@ public class TaskUtils {
         StringBuilder cmdBuilder = new StringBuilder();
 
         // java命令
-        final String javaCmd = "java";
         if (StringUtils.isNotEmpty(setting.getJdkPath())) {
             // 使用了指定到jdk
             cmdBuilder
                     .append(setting.getJdkPath())
                     .append( File.separator)
-                    .append("bin")
+                    .append(CommonConst.BIN_NAME)
                     .append( File.separator)
-                    .append(javaCmd);
+                    .append(CommonConst.JAVA_CMD);
             if (OSUtils.isWindows()) {
-                cmdBuilder.append(".exe");
+                cmdBuilder.append(CommonConst.EXE_EXT);
             }
         } else {
-            cmdBuilder.append(javaCmd);
+            cmdBuilder.append(CommonConst.JAVA_CMD);
         }
         // jvm 配置
         if (StringUtils.isBlank(jvm)) {
-            cmdBuilder.append(" -jar ").append(jar);
+            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
         } else {
-            cmdBuilder.append(" ").append(jvm).append(" -jar ").append(jar);
+            cmdBuilder.append(StringUtils.SPACE).append(jvm).append(CommonConst.ARG_JAR).append(jar);
         }
 
         // 传入参数
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
-            cmdBuilder.append(" ").append(startArg);
+            cmdBuilder.append(StringUtils.SPACE).append(startArg);
         }
 
         // 进程标识
-        cmdBuilder.append(" ").append(getAfterArgs(server));
+        cmdBuilder.append(StringUtils.SPACE).append(getAfterArgs(server));
 
         String cmd = cmdBuilder.toString();
 
@@ -223,7 +222,7 @@ public class TaskUtils {
         }
         if (OSUtils.isMac()) {
             //MacOS取第二段数字部分
-            index = line.indexOf(' ', index);
+            index = line.indexOf(StringUtils.SPACE, index);
         }
 
         StringBuilder builder = new StringBuilder();
@@ -250,14 +249,14 @@ public class TaskUtils {
         if (StringUtils.isBlank(environment)) {
             en = null;
         } else {
-            en = environment.split(",");
+            en = environment.split(CommonConst.COMMA_SPLIT);
         }
         File dir = null;
         if (StringUtils.isNotEmpty(workHome)) {
             dir = new File(workHome);
         }
 
-        String msg = "finished.";
+        String msg = "Finished.";
         try (InputStream inputStream = Runtime.getRuntime().exec(command, en, dir).getInputStream()) {
             if (null == callback) {
                 return;

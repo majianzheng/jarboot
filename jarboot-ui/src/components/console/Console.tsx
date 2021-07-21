@@ -12,11 +12,12 @@ interface ConsoleProps {
 const MAX_LINE = 20000;
 const AUTO_CLEAN_LINE = 8000; //超出上限则移除最老的行数
 
-const Console = (props: ConsoleProps) => {
+const Console = (props: ConsoleProps) => { // NOSONAR
     const id = `id-${props.server}`;
     let codeDom: HTMLElement|null = null;
     let loading = document.createElement('p');
     let isStartLoading = false;
+
     useEffect(() => {
         //初始化loading
         let three1 = document.createElement('div');
@@ -64,7 +65,6 @@ const Console = (props: ConsoleProps) => {
         if (!codeDom) {
             return;
         }
-        //codeDom.innerHTML = '';
         let count = codeDom.children.length;
         if (count > 0 && loading == codeDom.children[count - 1]) {
             //如果处于加载中，则保留加载的动画

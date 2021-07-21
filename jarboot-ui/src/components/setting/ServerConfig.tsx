@@ -19,7 +19,7 @@ const ServerConfig: any = memo((props: any) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
-    let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => {}});
+    let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
     const onReset = () => {
         SettingService.getServerSetting(props.server
         ).then((resp: any) => {
@@ -58,7 +58,6 @@ const ServerConfig: any = memo((props: any) => {
             SettingService.saveVmOptions(props.server, jvm, value).then(resp => {
                 if (resp.resultCode !== 0) {
                     CommonNotice.errorFormatted(resp);
-                    return;
                 }
             }).catch(CommonNotice.errorFormatted)
         };
@@ -74,7 +73,6 @@ const ServerConfig: any = memo((props: any) => {
     const onArgsEdit = () => {
         setVisible(true);
         const args = form.getFieldValue('args');
-        const setFieldsValue = form.setFieldsValue;
         setFile({name: 'start args', content: args, onSave: onArgsSave});
     };
     const onArgsSave = (args: string) => {

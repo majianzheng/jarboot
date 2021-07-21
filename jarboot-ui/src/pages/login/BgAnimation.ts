@@ -124,7 +124,7 @@ let trans = {
     }
 };
 
-class threeD {
+class ThreeD {
     transIn: any;
     transOut: any;
     constructor(param: any) {
@@ -140,7 +140,7 @@ class threeD {
             cam.disp
         );
     }
-};
+}
 
 export default class BgAnimation {
     canvas: any;
@@ -175,7 +175,7 @@ export default class BgAnimation {
         }
     }
     add() {
-        this.varr.push(new threeD({
+        this.varr.push(new ThreeD({
             vtx: {x: rnd(), y: rnd(), z: rnd()},
             sz: {x: 0, y: 0, z: 0},
             rot: {x: 20, y: -20, z: 0},
@@ -258,16 +258,5 @@ export default class BgAnimation {
             this.toX = (e.touches[0].clientX - this.canvas.width / 2) * -0.8;
             this.toY = (e.touches[0].clientY - this.canvas.height / 2) * 0.8;
         };
-        /*window.addEventListener('mousedown', (e) => {
-            for (let i = 0; i < 100; i++) {
-                this.add();
-            }
-        });
-        window.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < 100; i++) {
-                this.add();
-            }
-        });*/
     }
 }

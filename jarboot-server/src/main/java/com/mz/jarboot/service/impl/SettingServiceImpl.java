@@ -88,7 +88,7 @@ public class SettingServiceImpl implements SettingService {
             String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
                     File.separator + CommonConst.JAVA_CMD;
             if (OSUtils.isWindows()) {
-                javaFile += ".exe";
+                javaFile += CommonConst.EXE_EXT;
             }
             checkFileExist(javaFile);
         } else {

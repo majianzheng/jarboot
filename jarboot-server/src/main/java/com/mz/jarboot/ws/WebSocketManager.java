@@ -5,6 +5,7 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +136,7 @@ public class WebSocketManager {
             default:
                 return;
         }
-        String msg = formatMsg("", type, text);
+        String msg = formatMsg(StringUtils.EMPTY, type, text);
         if (!sessionMap.isEmpty()) {
             this.sessionMap.forEach((k, session) -> messageProducer(session, msg));
         }

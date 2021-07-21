@@ -3,6 +3,7 @@ package com.mz.jarboot.exception;
 
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class JarbootExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     private ResponseEntity<String> handleException(Exception e) {
-        LOGGER.error("jarboot", e);
+        LOGGER.error(CommonConst.JARBOOT_NAME, e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(getAllExceptionMsg(e));
     }
 

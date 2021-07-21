@@ -46,7 +46,7 @@ export default {
     JAR_LABEL: 'Use jar to start',
     JVM_OPT_LABEL: 'VM options',
     MAIN_ARGS_LABEL: 'Program arguments',
-    WORK_HOME_LABEL: 'Work directory',
+    WORK_HOME_LABEL: 'Working directory',
     ENV_LABEL: 'Environment variables',
     PRIORITY_LABEL: 'Priority',
     DAEMON_LABEL: 'Daemon',

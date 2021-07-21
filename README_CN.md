@@ -1,6 +1,6 @@
 # Jarboot ❤️
 
-![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
+![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
 [![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
@@ -24,7 +24,7 @@ English version goes [here](README.md).
 
 🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
 
-![overview](https://gitee.com/majz0908/jarboot/raw/master/doc/overview.png)
+![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
 <code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。
@@ -86,7 +86,7 @@ user$ sh boot.sh
 4. 浏览器访问<http://127.0.0.1:9899>
 5. 进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/master/doc/login.png)
+![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## 命令列表
 ### bytes
@@ -127,7 +127,7 @@ jarboot$ stdout
 ### dashboard
 当前系统的实时数据面板，点击按钮取消
 
-![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/dashboard.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/develop/doc/dashboard.png)
   
 ### jad 
 反编译
@@ -135,7 +135,7 @@ jarboot$ stdout
 ```bash
 jarboot$ jad [-c] java.lang.String
 ````
-![jad](https://gitee.com/majz0908/jarboot/raw/master/doc/jad.png)
+![jad](https://gitee.com/majz0908/jarboot/raw/develop/doc/jad.png)
 
 ### jvm
 查看进程JVM属性信息
@@ -246,7 +246,7 @@ dump java heap, 类似jmap命令的heap dump功能。
 ```bash
 jarboot$ heapdump
 ````
-![heap dump](https://gitee.com/majz0908/jarboot/raw/master/doc/heapdump.png)
+![heap dump](https://gitee.com/majz0908/jarboot/raw/develop/doc/heapdump.png)
 
 ### sysprop
 查看进程系统属性信息

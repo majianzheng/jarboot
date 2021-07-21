@@ -104,7 +104,7 @@ public class ServerMgrController {
     /**
      * 从服务器下载文件
      * @param file base64编码的文件全路径名
-     * @param response
+     * @param response Servlet response
      */
     @ApiOperation(value = "下载文件", httpMethod = "GET")
     @GetMapping(value="/downloadFile/{file}")

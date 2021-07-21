@@ -20,7 +20,7 @@ import java.util.*;
 public class TaskRunCache {
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
-    private HashSet<String> excludeDirSet = new HashSet<>(16);
+    private final HashSet<String> excludeDirSet = new HashSet<>(16);
     // 使用内存缓存
     private final ConcurrentWeakKeyHashMap<String, TaskRunInfo> taskMap = new ConcurrentWeakKeyHashMap<>();
 
@@ -118,7 +118,7 @@ public class TaskRunCache {
         if (!dir.isDirectory() || dir.isHidden()) {
             return false;
         }
-        if (StringUtils.startsWith(name, ".")) {
+        if (StringUtils.startsWith(name, CommonConst.DOT)) {
             return false;
         }
         return !excludeDirSet.contains(name);
@@ -129,7 +129,7 @@ public class TaskRunCache {
         if (StringUtils.isBlank(excludeDirs)) {
             return;
         }
-        String[] dirs = excludeDirs.split(CommonConst.DOT_SPLIT);
+        String[] dirs = excludeDirs.split(CommonConst.COMMA_SPLIT);
         for (String s : dirs) {
             s = StringUtils.trim(s);
             if (StringUtils.isNoneBlank(s)) {

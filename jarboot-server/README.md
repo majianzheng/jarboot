@@ -6,6 +6,7 @@
 * 权限认证，部分命令和操作需要认证用户权限
 
 ### 架构（Architecture）
+#### 模块关系（Modules）
 ```
 Modules 模块关系
 ┏━━━━━━━━━━━━━━━━━┓
@@ -13,11 +14,11 @@ Modules 模块关系
 ┗━━━━━━━━┯━━━━━━━━┛    ╭─────┨ jarboot-agent   ┠──────────────╮
      http│websocket    │     ┗━━━━━━━━━━━━━━━━━┛              │JarbootClassLoader
          │             │                                      │
-         ↓             ↓                                      ↓ core作为客户端反向连接jarboot-server
+         ▼             ▼                                      ▼ core作为客户端反向连接jarboot-server
 ┏━━━━━━━━━━━━━━━━━┓ attach   ┏━━━━━━━━━━━━━━━━━┓      ┏━━━━━━━━━━━━━━━━━┓
 ┃ jarboot-server  ┠─────────>┃ target process  ┠─────>┃ jarboot-core    ┃<────╮
 ┗━━━━━━━━━━━━━━━━━┛          ┗━━━━━━━━━━━━━━━━━┛      ┗━━━━━━━━┯━━━━━━━━┛     │
-         ↑                                                     │              │
+         ▲                                                     │              │
          ╰─────────────────────────────────────────────────────╯              │ class loaded
               http and websocket connect to jarboot-server                    │
                                                       ┏━━━━━━━━━━━━━━━━━┓     │
@@ -30,14 +31,38 @@ Command execute 命令执行
 ┏━━━━━━━━━━━━━━━━━┓  websocket ┏━━━━━━━━━━━━━━━━━┓ send   ┏━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    Browser      ┃<──────────>┃ jarboot-server  ┠───────>┃    target process     ┃
 ┗━━━━━━━━━━━━━━━━━┛ send/recv  ┗━━━━━━━━━━━━━━━━━┛        ┃   ╭──────────────╮    ┃
-                                       ↑                  ┃   │  user code   │    ┃
+                                       ▲                  ┃   │  user code   │    ┃
                                        │                  ┃   ╰──────────────╯    ┃
                                   http │ websocket        ┃   ╭──────────────╮    ┃
-                                       ╰──────────────────┃───┥ jarboot-core │    ┃
+                                       ╰──────────────────╂───┤ jarboot-core │    ┃
                                        result back        ┃   ╰──────────────╯    ┃
                                                           ┗━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
-
+#### 序列图（Sequence）
+```
+Execute command Sequence:
+╭──────────────╮       ╭────────────────╮      ╭───────────────╮
+│    Browser   │       │ jarboot-server │      │ target server │
+╰──────┬───────╯       ╰───────┬────────╯      ╰──────┬────────╯
+       │     send command      │                      │
+       ├─────────────────────>╭┴╮   send command      │
+       │                      │ ├───────────────────>╭┴╮
+       │                      ╰┬╯                    │ ├─╮ Execute command and
+       │                       │    Large data http  │ │ │ Render result
+       │                      ╭┴╮<───────────────────┤ │<╯
+       │                      │ │                    │ │
+       │                      │ │     WebSocket      │ │
+       │        push          │ │<───────────────────┤ │
+      ╭┴╮<────────────────────┤ │                    ╰┬╯ 
+      │ ├─╮                   ╰┬╯                     │
+      │ │ │Render UI           │                      │          
+      │ │ │                    │                      │
+      │ │<╯                    │                      │ 
+      ╰┬╯                      │                      │
+       │                       │                      │
+       
+       
+```
 ### 编译，在项目根目录（Compile，in project root path）
 ```bash
 $ mvn clean install

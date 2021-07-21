@@ -33,7 +33,7 @@ export default class ErrorUtil {
      * 格式化响应为用户可见的提示字符串
      * @param resp
      */
-    public static formatErrResp(resp: any) {
+    public static formatErrResp(resp: any) { // NOSONAR
         if (StringUtil.isString(resp)) {
             return resp;
         }

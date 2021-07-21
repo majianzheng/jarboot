@@ -1,6 +1,6 @@
 # Jarboot ❤️
 
-![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
+![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
 [![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
@@ -24,7 +24,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
 
-![overview](https://gitee.com/majz0908/jarboot/raw/master/doc/overview.png)
+![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
@@ -86,7 +86,7 @@ user$ sh boot.sh
 4. Browser access <http://127.0.0.1:9899>
 5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/master/doc/login.png)
+![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## Command list
 ### bytes
@@ -128,7 +128,7 @@ jarboot$ stdout
 ### dashboard
 This is the real time statistics dashboard for the current system，click x cancel.
 
-![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/dashboard.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/develop/doc/dashboard.png)
   
 ### jad
 Decompile the specified classes.
@@ -136,7 +136,7 @@ Decompile the specified classes.
 ```bash
 jarboot$ jad [-c] java.lang.String
 ````
-![jad](https://gitee.com/majz0908/jarboot/raw/master/doc/jad.png)
+![jad](https://gitee.com/majz0908/jarboot/raw/develop/doc/jad.png)
 
 ### jvm
 Check the current JVM’s info
@@ -250,7 +250,7 @@ dump java heap in hprof binary format, like jmap.
 ```bash
 jarboot$ heapdump
 ````
-![heap dump](https://gitee.com/majz0908/jarboot/raw/master/doc/heapdump.png)
+![heap dump](https://gitee.com/majz0908/jarboot/raw/develop/doc/heapdump.png)
 
 ### sysprop
 Examine the system properties from the target JVM

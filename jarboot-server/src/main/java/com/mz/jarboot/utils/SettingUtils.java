@@ -23,7 +23,7 @@ import java.util.*;
 
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static GlobalSettingDTO globalSetting = new GlobalSettingDTO();
+    private static final GlobalSettingDTO globalSetting = new GlobalSettingDTO();
     private static final String BOOT_PROPERTIES = "boot.properties";
     private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
     private static final String DEFAULT_JVM_OPTS_KEY = "jarboot.services.default-jvm-options";
@@ -206,7 +206,7 @@ public class SettingUtils {
                 WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
                 throw new MzException("Read file error.", e);
             }
-            lines.forEach(line -> sb.append(line).append(' '));
+            lines.forEach(line -> sb.append(line).append(StringUtils.SPACE));
         }
         return sb.toString().trim();
     }

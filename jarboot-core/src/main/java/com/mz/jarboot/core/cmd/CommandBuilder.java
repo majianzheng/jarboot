@@ -52,7 +52,7 @@ public class CommandBuilder {
         String args;
         if (-1 == p) {
             name = commandLine;
-            args = "";
+            args = CoreConstant.EMPTY_STRING;
         } else {
             name = commandLine.substring(0, p);
             args = commandLine.substring(p + 1);

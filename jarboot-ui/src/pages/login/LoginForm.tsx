@@ -29,7 +29,7 @@ const LoginForm: any = memo(() => {
         }).catch(CommonNotice.errorFormatted);
     };
     const [form] = Form.useForm();
-    //const style = {height: '60px', fontSize: '18px'};
+
     return <div className={styles.loginForm}>
         <div className={styles.loginHeader}>{intl.formatMessage({id: 'LOGIN'})}</div>
         <div className={styles.internalSysTip}>

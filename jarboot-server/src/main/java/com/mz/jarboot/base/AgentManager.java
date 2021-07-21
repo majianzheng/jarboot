@@ -134,7 +134,7 @@ public class AgentManager {
 
     public void sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
-            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
+            WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             new CommandResponse();
             return;
         }
@@ -142,7 +142,7 @@ public class AgentManager {
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
-            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
+            WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             return;
         }
         client.sendInternalCommand(command, sessionId);

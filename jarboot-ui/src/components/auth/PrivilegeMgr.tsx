@@ -125,8 +125,8 @@ const PrivilegeMgr = memo(() => {
         const s: string = permissionInfo.resource;
         const p = s.indexOf('/jarboot/');
         if (-1 === p) {
-            const l = s.indexOf('/');
-            return s.substring(0, l);
+            const l1 = s.indexOf('/');
+            return s.substring(0, l1);
         }
         const b = p + 9;
         const l = s.indexOf('/', b);

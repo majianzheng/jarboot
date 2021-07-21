@@ -54,7 +54,7 @@ public class PropertyFileUtils {
         if (StringUtils.isEmpty(env)) {
             return true;
         }
-        String[] envs = env.split(CommonConst.DOT_SPLIT);
+        String[] envs = env.split(CommonConst.COMMA_SPLIT);
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
             if (en.length() < 3 && 1 != StringUtils.countMatches(en, '=') &&

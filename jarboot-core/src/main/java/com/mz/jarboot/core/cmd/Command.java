@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd;
 
+import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.session.Completion;
 
@@ -8,7 +9,7 @@ import com.mz.jarboot.core.session.Completion;
  * @author majianzheng
  */
 public abstract class Command {
-    protected String name = "";
+    protected String name = CoreConstant.EMPTY_STRING;
     protected CommandSession session;
     public abstract boolean isRunning();
 

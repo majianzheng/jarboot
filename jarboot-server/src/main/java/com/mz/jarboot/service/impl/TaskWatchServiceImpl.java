@@ -311,7 +311,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
 
         if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
-            String cmd = afterServerErrorOffline + " " + server;
+            String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
             taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome, null));
         }
 

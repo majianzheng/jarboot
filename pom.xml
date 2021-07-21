@@ -49,7 +49,7 @@
 		<java.version>1.8</java.version>
 		<spring.version>2.5.2</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
-		<netty.version>4.1.59.Final</netty.version>
+		<netty.version>4.1.65.Final</netty.version>
 		<jjwt.version>0.11.2</jjwt.version>
 		<mysql-connector-java.version>8.0.21</mysql-connector-java.version>
 		<derby.version>10.14.2.0</derby.version>

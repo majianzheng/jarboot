@@ -93,8 +93,8 @@ class WsManager {
             let data: MsgData = {event, body, server};
             const handler = WsManager._messageHandler.get(data.event);
             handler && handler(data);
-        } catch (e) {
-            Logger.warn(e);
+        } catch (error) {
+            Logger.warn(error);
         }
     };
 

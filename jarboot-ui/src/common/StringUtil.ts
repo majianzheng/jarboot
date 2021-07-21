@@ -6,7 +6,7 @@ class StringUtil {
      */
     public static isString(object: any) {
         return (object instanceof String || typeof object === 'string' || (this.isNotNull(object) && object.constructor === String));
-    };
+    }
 
     /**
      * 判断字符串是否为空
@@ -44,7 +44,7 @@ class StringUtil {
         }
         let reg = new RegExp(exp);
         return reg.test(str)
-    };
+    }
 
 
     /**
@@ -62,7 +62,7 @@ class StringUtil {
         }
         const reg = new RegExp(exp);
         return reg.test(str)
-    };
+    }
 
     /**
      * 判断是否为数字(整数或浮点数),默认验证非负数
@@ -125,8 +125,8 @@ class StringUtil {
     public static arrayToString(arr: any, spliter = ",") {
         let str = "";
         if (this.isNotNull(arr)) {
-            for (let i = 0; i < arr.length; i++) {
-                str += spliter + arr[i];
+            for (let value of arr) {
+                str += spliter + value;
             }
             if (str.length > 0) {
                 str = str.substring(1, str.length);

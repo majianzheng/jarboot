@@ -23,7 +23,7 @@ public class JarBootServiceApplication {
 	public static void main(String[] args) {
 		//初始化工作空间路径
 		String userHome = System.getProperty("user.home");
-		String wsHome = userHome + File.separator + "jarboot";
+		String wsHome = userHome + File.separator + CommonConst.JARBOOT_NAME;
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome); //初始化工作目录
 		String homePath = getCurrentPath();
 		if (null == homePath) {

@@ -112,9 +112,9 @@ const RoleMgr = memo(() => {
         form.submit();
     };
 
-    const onSubmit = (data: any) => {
+    const onSubmit = (formData: any) => {
         //提交
-        RoleService.addRole(data.role, data.username).then(resp => {
+        RoleService.addRole(formData.role, formData.username).then(resp => {
             if (0 === resp.resultCode) {
                 onModalClose();
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
