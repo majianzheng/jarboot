@@ -1,7 +1,6 @@
 package com.mz.jarboot.common;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import javax.net.ServerSocketFactory;
 import java.io.*;
@@ -145,9 +144,9 @@ public class NetworkUtils {
             int statusCode = urlConnection.getResponseCode();
             String result = sb.toString().trim();
             if (statusCode == INTERNAL_SERVER_ERROR) {
-                JSONObject errorObj = JSON.parseObject(result);
-                if (null != errorObj && errorObj.containsKey("errorMsg")) {
-                    return new Response(errorObj.getString("errorMsg"), false);
+                JsonNode errorObj = JSONUtils.readAsJsonNode(result);
+                if (null != errorObj && errorObj.has("errorMsg")) {
+                    return new Response(errorObj.get("errorMsg").asText("error"), false);
                 }
                 return new Response(result, false);
             }

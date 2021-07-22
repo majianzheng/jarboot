@@ -16,6 +16,10 @@ interface CommonTableProp {
     style?: any,
 }
 
+const toolBarHeight = 32;
+const paginationHeight = 64;
+const columnHeight = 35;
+
 export default class CommonTable extends PureComponent<CommonTableProp> {
     static defaultProps = {
         showSelRowNum: false,
@@ -79,7 +83,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
         this.props?.getNewColumn && this.props.getNewColumn(item);
     };
 
-    private getOptions(toolBarHeight: number, paginationHeight: number, columnHeight: number) {
+    private getOptions() {
         let option = this.props.option;
         if (option?.rowSelection !== undefined) {
             option.rowSelection.columnWidth = 50;
@@ -100,10 +104,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
     }
 
     render() {
-        let toolBarHeight = 32;
-        let paginationHeight = 64;
-        let columnHeight = 35;
-        let option = this.getOptions(toolBarHeight, paginationHeight, columnHeight);
+        let option = this.getOptions();
         let hasButton = false;
         if ((this.props.toolbar && this.props.toolbar.length !== 0) || this.props.showSelRowNum) {
             hasButton = true;

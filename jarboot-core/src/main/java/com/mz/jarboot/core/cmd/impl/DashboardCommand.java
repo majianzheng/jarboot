@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mz.jarboot.common.JSONUtils;
 import com.mz.jarboot.common.NetworkUtils;
 import com.mz.jarboot.core.cmd.Command;
 import com.mz.jarboot.core.cmd.annotation.Description;
@@ -196,14 +196,14 @@ public class DashboardCommand extends Command {
         NetworkUtils.Response connectorStatResponse = NetworkUtils.request(connectorStatPath);
         if (connectorStatResponse.isSuccess()) {
             List<TomcatInfoVO.ConnectorStats> connectorStats = new ArrayList<TomcatInfoVO.ConnectorStats>();
-            List<JSONObject> tomcatConnectorStats = JSON.parseArray(connectorStatResponse.getContent(), JSONObject.class);
-            for (JSONObject stat : tomcatConnectorStats) {
-                String connectorName = stat.getString("name").replace("\"", "");
-                long bytesReceived = stat.getLongValue("bytesReceived");
-                long bytesSent = stat.getLongValue("bytesSent");
-                long processingTime = stat.getLongValue("processingTime");
-                long requestCount = stat.getLongValue("requestCount");
-                long errorCount = stat.getLongValue("errorCount");
+            JsonNode tomcatConnectorStats = JSONUtils.readAsJsonNode(connectorStatResponse.getContent());
+            for (JsonNode stat : tomcatConnectorStats) {
+                String connectorName = stat.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
+                long bytesReceived = stat.get("bytesReceived").asLong(0);
+                long bytesSent = stat.get("bytesSent").asLong(0);
+                long processingTime = stat.get("processingTime").asLong(0);
+                long requestCount = stat.get("requestCount").asLong(0);
+                long errorCount = stat.get("errorCount").asLong(0);
 
                 tomcatRequestCounter.update(requestCount);
                 tomcatErrorCounter.update(errorCount);
@@ -231,11 +231,11 @@ public class DashboardCommand extends Command {
         NetworkUtils.Response threadPoolResponse = NetworkUtils.request(threadPoolPath);
         if (threadPoolResponse.isSuccess()) {
             List<TomcatInfoVO.ThreadPool> threadPools = new ArrayList<TomcatInfoVO.ThreadPool>();
-            List<JSONObject> threadPoolInfos = JSON.parseArray(threadPoolResponse.getContent(), JSONObject.class);
-            for (JSONObject info : threadPoolInfos) {
-                String name = info.getString("name").replace("\"", "");
-                long busy = info.getLongValue("threadBusy");
-                long total = info.getLongValue("threadCount");
+            JsonNode threadPoolInfos = JSONUtils.readAsJsonNode(threadPoolResponse.getContent());
+            for (JsonNode info : threadPoolInfos) {
+                String name = info.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
+                long busy = info.get("threadBusy").asLong(0);
+                long total = info.get("threadCount").asLong(0);
                 threadPools.add(new TomcatInfoVO.ThreadPool(name, busy, total));
             }
             tomcatInfoVO.setThreadPools(threadPools);

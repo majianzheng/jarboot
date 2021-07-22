@@ -1,3 +1,8 @@
+/**
+ * 登录界面背景动态
+ * @author majianzheng
+ */
+
 let num = 200;
 let w = window.innerWidth;
 let h = window.innerHeight;

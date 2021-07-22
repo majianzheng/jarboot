@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.stream;
 
-import com.alibaba.fastjson.JSON;
+import com.mz.jarboot.common.JSONUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
@@ -44,7 +44,11 @@ public class HttpResponseStreamImpl implements ResponseStream {
             ResponseBody response = call.execute().body();
             if (null != response) {
                 String body = response.string();
-                ResponseSimple resp = JSON.parseObject(body, ResponseSimple.class);
+                ResponseSimple resp = JSONUtils.readValue(body, ResponseSimple.class);
+                if (null == resp) {
+                    logger.error("返回结果解析json失败！{}", body);
+                    return;
+                }
                 if (resp.getResultCode() != ResultCodeConst.SUCCESS) {
                     logger.error(resp.getResultMsg());
                 }

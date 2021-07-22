@@ -7,21 +7,24 @@ import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.service.SettingService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Api(tags="系统配置")
+/**
+ * 系统配置
+ */
 @RequestMapping(value = "/api/jarboot/setting")
-@Controller
+@RestController
 @Permission
 public class SettingController {
     @Autowired
     private SettingService settingService;
 
-    @ApiOperation(value = "获取服务配置", httpMethod = "GET")
+    /**
+     * 获取服务配置
+     * @param server 服务名
+     * @return 服务配置
+     */
     @GetMapping(value="/getServerSetting")
     @ResponseBody
     @Permission("Get Server Setting")
@@ -34,7 +37,12 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "提交服务配置", httpMethod = "POST")
+    /**
+     * 提交服务配置
+     * @param server 服务名
+     * @param setting 服务配置
+     * @return
+     */
     @PostMapping(value="/submitServerSetting")
     @ResponseBody
     @Permission("Submit Server Setting")
@@ -48,7 +56,10 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "获取全局配置", httpMethod = "GET")
+    /**
+     * 获取全局配置
+     * @return 全局配置
+     */
     @GetMapping(value="/getGlobalSetting")
     @ResponseBody
     @Permission("Get Global Setting")
@@ -61,7 +72,11 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "提交全局配置", httpMethod = "POST")
+    /**
+     * 提交全局配置
+     * @param setting 全局配置
+     * @return 提交结果
+     */
     @PostMapping(value="/submitGlobalSetting")
     @ResponseBody
     @Permission("Submit Global Setting")
@@ -74,7 +89,12 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "获取服务的JVM配置", httpMethod = "GET")
+    /**
+     * 获取服务的VM配置
+     * @param server 服务名
+     * @param file vm文件路径
+     * @return vm配置
+     */
     @GetMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Get Server jvm options")
@@ -87,7 +107,13 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "保存服务的JVM配置", httpMethod = "POST")
+    /**
+     * 保存服务的JVM配置
+     * @param server 服务名
+     * @param file vm配置文件路径
+     * @param content vm配置文件内容
+     * @return 执行结果
+     */
     @PostMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Save Server jvm options")
@@ -100,7 +126,10 @@ public class SettingController {
         }
     }
 
-    @ApiOperation(value = "获取版本", httpMethod = "GET")
+    /**
+     * 获取版本
+     * @return 版本
+     */
     @GetMapping(value="/version")
     @ResponseBody
     public ResponseForObject<String> getVersion() {

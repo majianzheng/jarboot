@@ -1,6 +1,6 @@
 package com.mz.jarboot.utils;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mz.jarboot.common.JSONUtils;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
@@ -26,7 +26,7 @@ public class SettingUtils {
     private static final GlobalSettingDTO globalSetting = new GlobalSettingDTO();
     private static final String BOOT_PROPERTIES = "boot.properties";
     private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
-    private static final String DEFAULT_JVM_OPTS_KEY = "jarboot.services.default-jvm-options";
+    private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     private static final String DEFAULT_SERVICES_DIR;
     private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
     private static final String JARBOOT_CONF;
@@ -60,7 +60,7 @@ public class SettingUtils {
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
         globalSetting.setServicesPath(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
-        globalSetting.setDefaultJvmArg(properties.getProperty(DEFAULT_JVM_OPTS_KEY, StringUtils.EMPTY));
+        globalSetting.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY));
         String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
         boolean servicesAutoStart = StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_TRUE, s);
         globalSetting.setServicesAutoStart(servicesAutoStart);
@@ -82,7 +82,7 @@ public class SettingUtils {
         File file = FileUtils.getFile(JARBOOT_CONF);
         try {
             HashMap<String, String> props = new HashMap<>();
-            props.put(DEFAULT_JVM_OPTS_KEY, setting.getDefaultJvmArg());
+            props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
             if (OSUtils.isWindows()) {
                 props.put(ROOT_DIR_KEY, servicesPath.replace('\\', '/'));
             } else {
@@ -92,7 +92,7 @@ public class SettingUtils {
             props.put(ENABLE_AUTO_START_KEY, String.valueOf(setting.getServicesAutoStart()));
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
-            globalSetting.setDefaultJvmArg(setting.getDefaultJvmArg());
+            globalSetting.setDefaultVmOptions(setting.getDefaultVmOptions());
             globalSetting.setServicesPath(servicesPath);
             globalSetting.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
@@ -118,17 +118,17 @@ public class SettingUtils {
     }
 
     public static String getAgentArgs(String server) {
-        JSONObject json = new JSONObject();
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
         String host = String.format("127.0.0.1:%s", port);
+        HashMap<String, String> json = new HashMap<>();
         json.put("host", host);
         json.put("server", server);
-        byte[] bytes = Base64.getEncoder().encode(json.toJSONString().getBytes());
+        byte[] bytes = Base64.getEncoder().encode(JSONUtils.toJSONString(json).getBytes());
         return new String(bytes);
     }
 
     public static String getDefaultJvmArg() {
-        return globalSetting.getDefaultJvmArg();
+        return globalSetting.getDefaultVmOptions();
     }
 
     /**

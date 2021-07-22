@@ -5,24 +5,28 @@ import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.RoleService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags="角色管理")
+/**
+ * 角色管理
+ */
 @RequestMapping(value = "/api/jarboot/role")
-@Controller
+@RestController
 @Permission
 public class RoleController {
     @Autowired
     private RoleService roleService;
 
-    @ApiOperation(value = "分配角色", httpMethod = "PUT")
+    /**
+     * 分配角色
+     * @param role 角色
+     * @param username 用户名
+     * @return 执行结果
+     */
     @PutMapping
     @ResponseBody
     @Permission("Add Role")
@@ -31,14 +35,23 @@ public class RoleController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "搜索角色", httpMethod = "GET")
+    /**
+     * 搜索角色
+     * @param role 角色关键字
+     * @return 角色列表
+     */
     @GetMapping("/search")
     @ResponseBody
     public List<String> searchRoles(@RequestParam String role) {
         return roleService.findRolesLikeRoleName(role);
     }
 
-    @ApiOperation(value = "删除角色", httpMethod = "DELETE")
+    /**
+     * 删除角色
+     * @param role 角色
+     * @param username 用户名
+     * @return 执行结果
+     */
     @DeleteMapping
     @ResponseBody
     @Permission("Delete Role")
@@ -52,14 +65,22 @@ public class RoleController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "获取角色列表", httpMethod = "GET")
+    /**
+     * 获取角色信息列表
+     * @param pageNo 页数
+     * @param pageSize 页大小
+     * @return 角色信息列表
+     */
     @GetMapping(value="/getRoles")
     @ResponseBody
     public ResponseForList<RoleInfo> getRoles(Integer pageNo, Integer pageSize) {
         return roleService.getRoles(pageNo, pageSize);
     }
 
-    @ApiOperation(value = "获取角色列表", httpMethod = "GET")
+    /**
+     * 获取角色列表
+     * @return 角色名列表
+     */
     @GetMapping(value="/getRoleList")
     @ResponseBody
     public ResponseForList<String> getRoleList() {

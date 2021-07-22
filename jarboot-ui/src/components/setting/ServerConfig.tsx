@@ -48,7 +48,7 @@ const ServerConfig: any = memo((props: any) => {
             }
         }).catch(CommonNotice.errorFormatted);
     };
-    const onJvmEdit = () => {
+    const onVmEdit = () => {
         setVisible(true);
         let jvm = form.getFieldValue("jvm");
         if (StringUtil.isEmpty(jvm)) {
@@ -90,13 +90,13 @@ const ServerConfig: any = memo((props: any) => {
                 <Input placeholder={"The jar file to start"} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="vm"
-                       label={intl.formatMessage({id: 'JVM_OPT_LABEL'})}
+                       label={intl.formatMessage({id: 'VM_OPT_LABEL'})}
                        rules={[{required: false}]}>
                 <Input autoComplete="off" placeholder={"vm options file"}
                        autoCorrect="off"
                        autoCapitalize="off"
                        spellCheck="false"
-                       onDoubleClick={onJvmEdit} addonAfter={<FormOutlined onClick={onJvmEdit}/>}/>
+                       onDoubleClick={onVmEdit} addonAfter={<FormOutlined onClick={onVmEdit}/>}/>
             </Form.Item>
             <Form.Item name="args"
                        label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}

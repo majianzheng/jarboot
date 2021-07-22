@@ -1,9 +1,9 @@
 package com.mz.jarboot.ws;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +52,14 @@ public class WebSocketMainServer {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        JSONObject json = JSON.parseObject(message);
-        String server = json.getString("server");
-        int func = json.getIntValue("func");
-        String body = json.getString("body");
+        JsonNode json = JSONUtils.readAsJsonNode(message);
+        if (null == json) {
+            logger.error("解析json失败！{}", message);
+            return;
+        }
+        String server = json.get("server").asText(StringUtils.EMPTY);
+        int func = json.get("func").asInt(-1);
+        String body = json.get("body").asText(StringUtils.EMPTY);
         switch (func) {
             case CMD_FUNC:
                 AgentManager.getInstance().sendCommand(server, body, session.getId());

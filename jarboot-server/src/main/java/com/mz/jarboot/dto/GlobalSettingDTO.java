@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class GlobalSettingDTO implements Serializable {
     private String servicesPath;
-    private String defaultJvmArg = "";
+    private String defaultVmOptions = "";
     private Boolean servicesAutoStart;
 
     public String getServicesPath() {
@@ -15,12 +15,12 @@ public class GlobalSettingDTO implements Serializable {
         this.servicesPath = servicesPath;
     }
 
-    public String getDefaultJvmArg() {
-        return defaultJvmArg;
+    public String getDefaultVmOptions() {
+        return defaultVmOptions;
     }
 
-    public void setDefaultJvmArg(String defaultJvmArg) {
-        this.defaultJvmArg = defaultJvmArg;
+    public void setDefaultVmOptions(String defaultVmOptions) {
+        this.defaultVmOptions = defaultVmOptions;
     }
 
     public Boolean getServicesAutoStart() {

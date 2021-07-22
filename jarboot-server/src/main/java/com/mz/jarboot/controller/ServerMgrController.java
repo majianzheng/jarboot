@@ -4,9 +4,6 @@ import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.dto.*;
 import com.mz.jarboot.service.ServerMgrService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-@Api(tags="服务管理")
+/**
+ * 服务管理
+ */
 @RequestMapping(value = "/api/jarboot/services")
 @Controller
 @Permission
@@ -30,7 +29,10 @@ public class ServerMgrController {
     @Autowired
     private ServerMgrService serverMgrService;
 
-    @ApiOperation(value = "获取服务列表", httpMethod = "GET")
+    /**
+     * 获取服务列表
+     * @return 服务列表
+     */
     @GetMapping(value="/getServerList")
     @ResponseBody
     public ResponseForList<ServerRunningDTO> getWebServerList() {
@@ -38,7 +40,11 @@ public class ServerMgrController {
         return new ResponseForList<>(results, results.size());
     }
 
-    @ApiOperation(value = "启动服务", httpMethod = "POST")
+    /**
+     * 启动服务
+     * @param servers 服务列表
+     * @return 执行结果
+     */
     @PostMapping(value="/startServer")
     @ResponseBody
     @Permission
@@ -46,7 +52,12 @@ public class ServerMgrController {
         serverMgrService.startServer(servers);
         return new ResponseSimple();
     }
-    @ApiOperation(value = "停止服务", httpMethod = "POST")
+
+    /**
+     * 停止服务
+     * @param servers 服务列表
+     * @return 执行结果
+     */
     @PostMapping(value="/stopServer")
     @ResponseBody
     @Permission
@@ -54,7 +65,12 @@ public class ServerMgrController {
         serverMgrService.stopServer(servers);
         return new ResponseSimple();
     }
-    @ApiOperation(value = "重启服务", httpMethod = "POST")
+
+    /**
+     * 重启服务
+     * @param servers 服务列表
+     * @return 执行结果
+     */
     @PostMapping(value="/restartServer")
     @ResponseBody
     @Permission
@@ -63,7 +79,10 @@ public class ServerMgrController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "一键重启", httpMethod = "GET")
+    /**
+     * 一键重启
+     * @return 执行结果
+     */
     @GetMapping(value="/oneClickRestart")
     @ResponseBody
     @Permission
@@ -72,7 +91,10 @@ public class ServerMgrController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "一键启动", httpMethod = "GET")
+    /**
+     * 一键启动
+     * @return 执行结果
+     */
     @GetMapping(value="/oneClickStart")
     @ResponseBody
     @Permission
@@ -81,7 +103,10 @@ public class ServerMgrController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "一键停止", httpMethod = "GET")
+    /**
+     * 一键停止
+     * @return 执行结果
+     */
     @GetMapping(value="/oneClickStop")
     @ResponseBody
     @Permission
@@ -90,10 +115,14 @@ public class ServerMgrController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "base64编码", httpMethod = "GET")
+    /**
+     * base64编码
+     * @param data 数据
+     * @return 编码后的数据
+     */
     @GetMapping(value="/base64Encoder")
     @ResponseBody
-    public ResponseForObject<String> base64Encoder(@ApiParam(value = "字符串数据", required = true) String data) {
+    public ResponseForObject<String> base64Encoder(String data) {
         if (StringUtils.isEmpty(data)) {
             return new ResponseForObject<>(ResultCodeConst.EMPTY_PARAM, "参数为空");
         }
@@ -106,10 +135,9 @@ public class ServerMgrController {
      * @param file base64编码的文件全路径名
      * @param response Servlet response
      */
-    @ApiOperation(value = "下载文件", httpMethod = "GET")
     @GetMapping(value="/downloadFile/{file}")
     @Permission
-    public void downloadFile(@PathVariable("file") @ApiParam(value = "文件全路径(base64编码)", required = true) String file,
+    public void downloadFile(@PathVariable("file") String file,
                              HttpServletResponse response) {
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));

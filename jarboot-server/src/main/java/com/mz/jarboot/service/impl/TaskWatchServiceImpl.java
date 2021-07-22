@@ -228,7 +228,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             //创建或修改文件
-            if (!CommonConst.STATUS_RUNNING.equals(taskRunCache.getTaskStatus(service))) {
+            if (!TaskUtils.isAlive(service)) {
                 //当前不处于正在运行的状态
                 return;
             }
@@ -300,8 +300,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         int pid = TaskUtils.getServerPid(server);
         if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
-            String status = taskRunCache.getTaskStatus(server);
-            if (CommonConst.STATUS_STOPPING.equals(status)) {
+            if (taskRunCache.isStopping(server)) {
                 //处于停止中状态，此时不做干预，守护只针对正在运行的进程
                 return;
             }

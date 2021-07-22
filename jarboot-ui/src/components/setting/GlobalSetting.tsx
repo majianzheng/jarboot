@@ -45,7 +45,7 @@ const GlobalSetting: any = memo(() => {
                        autoCapitalize="off"
                        spellCheck="false"/>
             </Form.Item>
-            <Form.Item name="defaultJvmArg"
+            <Form.Item name="defaultVmOptions"
                        label={intl.formatMessage({id: 'DEFAULT_VM_OPT'})}
                        rules={[{required: false}]}>
                 <Input autoComplete="off"

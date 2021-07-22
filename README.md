@@ -65,6 +65,7 @@ user$ mvn clean install
 ```
 jarboot                             #Current working directory
 ├─logs                              #logs
+├─conf                              #jarboot配置文件
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
@@ -79,8 +80,8 @@ Back end service startup specifies a root path to manage other startup jar files
 
 3. Start <code>jarboot-service.jar</code>
 ```bash
-#Execute boot.sh to start, use boot.bat when in windows OS.
-user$ sh boot.sh
+#Execute startup.sh to start, use startup.cmd when in windows OS.
+$ sh startup.sh
 ```
 
 4. Browser access <http://127.0.0.1:9899>

@@ -29,26 +29,24 @@ public class DemoServerApplication implements Runnable {
     final JLabel costLabel = new JLabel("耗时：");
     final JLabel resultLabel = new JLabel();
     Thread runFuncThread = null;
-    private int func = 0;
+    private volatile int func = 0;
     
     private DemoServerApplication() {
-        JFrame mainFrame = new JFrame("Jarboot Demo Server");
+        JFrame mainFrame = new JFrame("Jarboot Demo Server —— 演示程序");
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int height = 400;
-        int width = 600;
-        mainFrame.setSize(width, height);
+        mainFrame.setSize(600, 400);
         mainFrame.setLocationRelativeTo(null);
-    
-        JPanel panel = new JPanel();
+        
+        JPanel mainPanel = new JPanel(new GridLayout(2, 1));
         
         // 简介
-        String text = "\t\t          演示程序\n"
-                + "使用Jarboot启动后，执行 stdout on 命令，开启程序输出流显示，"
-                + "然后执行算法就可以在Jarboot的界面看到程序的输出内容。\n当前类：com.mz.jarboot.demo.DemoServerApplication\n"
-                + "执行 jad com.mz.jarboot.demo.DemoServerApplication 命令可查看反编译代码，"
-                + "然后可以根据代码中的方法测试trace、watch等命令\n\n"
-                + "首先请执行命令：stdout on\n开启输出流实时显示到Jarboot的界面的功能\n";
+        String text = "使用Jarboot启动后，执行 stdout on 命令，开启程序输出流显示，"
+                + "然后执行算法就可以在Jarboot的界面看到程序的输出内容。\n\n"
+                + "首先请执行命令：stdout on    开启输出流实时显示到Jarboot的界面的功能\n"
+                + "jad com.mz.jarboot.demo.DemoServerApplication        反编译命令\n"
+                + "watch com.mz.jarboot.demo.DemoServerApplication fib        监控fib函数执行命令\n"
+                + "trace com.mz.jarboot.demo.DemoServerApplication fib        追踪fib函数调用栈命令\n"
+                + "watch com.mz.jarboot.demo.DemoServerApplication pow\ntrace com.mz.jarboot.demo.DemoServerApplication pow";
         JTextArea desc = new JTextArea(text);
         desc.setEditable(false);
         desc.setCursor(null);
@@ -56,18 +54,20 @@ public class DemoServerApplication implements Runnable {
         desc.setLineWrap(true);
         desc.setWrapStyleWord(true);
         desc.setColumns(50);
-        panel.add(desc);
+        mainPanel.add(desc);
     
+        JPanel execPanel = new JPanel(new GridLayout(5, 4, 5, 10));
         //第一行，执行次数、
-        JLabel execLimitLabel = new JLabel("算法执行次数：");
+        JLabel execLimitLabel = new JLabel("算法执行次数：", SwingConstants.CENTER);
         execLimitInput = new JTextField("1000", 15);
-        JLabel execIntervalLabel = new JLabel("算法执行间隔(ms)：");
+        JLabel execIntervalLabel = new JLabel("算法执行间隔(ms)：", SwingConstants.CENTER);
         execIntervalInput = new JTextField("3", 15);
     
-        panel.add(execLimitLabel);
-        panel.add(execLimitInput);
-        panel.add(execIntervalLabel);
-        panel.add(execIntervalInput);
+        execPanel.add(execLimitLabel);
+        execPanel.add(execLimitInput);
+        execPanel.add(execIntervalLabel);
+        execPanel.add(execIntervalInput);
+        mainPanel.add(execPanel);
     
         //第二行算法按钮
         JButton btn1 = new JButton("斐波那契数列");
@@ -78,8 +78,11 @@ public class DemoServerApplication implements Runnable {
             }
         });
         fibInput = new JTextField("100", 40);
-        panel.add(btn1);
-        panel.add(fibInput);
+        execPanel.add(btn1);
+        execPanel.add(fibInput);
+        execPanel.add(new JLabel());
+        execPanel.add(new JLabel());
+        
     
         JButton btn2 = new JButton("整数次方计算");
         btn2.addActionListener(new AbstractAction() {
@@ -90,20 +93,21 @@ public class DemoServerApplication implements Runnable {
         });
         pow1Input = new JTextField("2", 20);
         pow2Input = new JTextField("14", 20);
-        panel.add(btn2);
-        panel.add(pow1Input);
-        panel.add(pow2Input);
+        execPanel.add(btn2);
+        execPanel.add(pow1Input);
+        execPanel.add(pow2Input);
+        execPanel.add(new JLabel());
     
         //进度条
-        JLabel progressLabel = new JLabel("执行进度：");
-        panel.add(progressLabel);
-        panel.add(progressBar);
+        JLabel progressLabel = new JLabel("执行进度：", SwingConstants.CENTER);
+        execPanel.add(progressLabel);
+        execPanel.add(progressBar);
         //耗时
-        panel.add(costLabel);
+        execPanel.add(costLabel);
         //结果
-        panel.add(resultLabel);
-    
-        mainFrame.setContentPane(panel);
+        execPanel.add(resultLabel);
+        
+        mainFrame.setContentPane(mainPanel);
         mainFrame.setVisible(true);
     }
     
@@ -127,7 +131,7 @@ public class DemoServerApplication implements Runnable {
         System.out.println(text);
     }
     
-    public void doFib(int limit, int interval) {
+    private String doFib(int limit, int interval) {
         log("开始执行【斐波那契数列】计算>>>");
         String text = fibInput.getText();
         log("输入值为：" + text);
@@ -136,7 +140,7 @@ public class DemoServerApplication implements Runnable {
             n = Integer.parseInt(text);
         } catch (Exception e) {
             log("转换错误，必须为整数值，执行中止！");
-            return;
+            return "输入参数错误";
         }
         int result = 0;
         progressBar.setMaximum(limit);
@@ -147,12 +151,10 @@ public class DemoServerApplication implements Runnable {
                 sleep(interval);
             }
         }
-        String rlt = "结果：" + result;
-        log(rlt);
-        resultLabel.setText(rlt);
+        return String.valueOf(result);
     }
-
-    public void doPow(int limit, int interval) {
+    
+    private String doPow(int limit, int interval) {
         log("开始执行【数值整数次方】计算>>>");
         String text1 = pow1Input.getText();
         String text2 = pow2Input.getText();
@@ -164,7 +166,7 @@ public class DemoServerApplication implements Runnable {
             c = Integer.parseInt(text2);
         } catch (Exception e) {
             log("转换错误，必须为数值，执行中止！");
-            return;
+            return "输入参数错误";
         }
         double result = 0;
         progressBar.setMaximum(limit);
@@ -176,9 +178,7 @@ public class DemoServerApplication implements Runnable {
                 sleep(interval);
             }
         }
-        String rlt = "结果：" + result;
-        log(rlt);
-        resultLabel.setText(rlt);
+        return String.valueOf(result);
     }
     
     public static int fib(int n) {
@@ -265,26 +265,33 @@ public class DemoServerApplication implements Runnable {
             log("执行次数必须为大于0的整数");
             return;
         }
-        if (interval < 1) {
-            log("间隔必须为大于1的整数");
+        if (interval < 0) {
+            log("间隔必须为大于0的整数");
             return;
         }
         log("开始执行，次数：" + limit + ", 间隔：" + interval + " ms");
+        String result = "";
         long begin = System.currentTimeMillis();
         switch (func) {
             case FIB_FUNC:
-                doFib(limit, interval);
+                result = doFib(limit, interval);
                 break;
             case POW_FUNC:
-                doPow(limit, interval);
+                result = doPow(limit, interval);
                 break;
             default:
                 log("不支持的函数：" + func);
                 break;
         }
         long cost = System.currentTimeMillis() - begin;
+        if (!result.isEmpty()) {
+            String rlt = "结果：" + result;
+            log(rlt);
+            resultLabel.setText(rlt);
+        }
         String costStr = String.format("耗时：%d ms", cost);
         log("计算完成，" + costStr);
         costLabel.setText(costStr);
+        func = INVALID_NUM;
     }
 }

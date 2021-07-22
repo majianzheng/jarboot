@@ -1,7 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.mz.jarboot.common.JSONUtils;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
@@ -45,7 +44,7 @@ public class ObjectView implements View {
         StringBuilder buf = new StringBuilder();
         try {
             if (GlobalOptions.isUsingJson) {
-                return JSON.toJSONString(object, SerializerFeature.IgnoreErrorGetter);
+                return JSONUtils.toJSONString(object);
             }
             renderObject(object, 0, deep, buf);
             return buf.toString();

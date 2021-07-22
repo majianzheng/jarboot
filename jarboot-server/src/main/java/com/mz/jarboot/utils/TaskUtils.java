@@ -44,7 +44,7 @@ public class TaskUtils {
      * @return 是否存活
      */
     public static boolean isAlive(String server) {
-        return checkAliveByJar(getAfterArgs(server));
+        return AgentManager.getInstance().isOnline(server) || checkAliveByJar(getAfterArgs(server));
     }
 
     /**

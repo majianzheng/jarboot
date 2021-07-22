@@ -3,17 +3,22 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseSimple;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Api(tags="内部接口（非开放）", hidden = true)
+/**
+ * 内部接口，与jarboot-core交互，非开放
+ */
 @RequestMapping(value = "/api/public/agent")
 @Controller
 public class AgentClientController {
 
-    @ApiOperation(hidden = true, value = "agent的推送消息", httpMethod = "POST")
+    /**
+     * 命令执行结果反馈接口
+     * @param server 服务名
+     * @param raw 执行结果数据
+     * @return 处理结果
+     */
     @PostMapping(value="/response")
     @ResponseBody
     public ResponseSimple ack(@RequestParam String server, @RequestBody String raw) {

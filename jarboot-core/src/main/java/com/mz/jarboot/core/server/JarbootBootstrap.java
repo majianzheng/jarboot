@@ -11,8 +11,8 @@ import com.alibaba.bytekit.asm.instrument.InstrumentTransformer;
 import com.alibaba.bytekit.asm.matcher.SimpleClassMatcher;
 import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mz.jarboot.common.JSONUtils;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -60,9 +60,9 @@ public class JarbootBootstrap {
 
         //1.解析args，获取目标服务端口
         String s = new String(Base64.getDecoder().decode(args));
-        JSONObject json = JSON.parseObject(s);
-        host = json.getString("host");
-        serverName = json.getString("server");
+        JsonNode json = JSONUtils.readAsJsonNode(s);
+        host = json.get("host").asText();
+        serverName = json.get("server").asText();
 
         //2.环境初始化
         EnvironmentContext.init(serverName, host, inst);

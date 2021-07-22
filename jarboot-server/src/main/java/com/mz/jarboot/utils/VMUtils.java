@@ -41,6 +41,7 @@ public class VMUtils {
         try {
             return attach.invoke(null, String.valueOf(pid));
         } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn("pid:{}", pid);
             logger.warn(e.getMessage(), e);
         }
         return null;
@@ -50,6 +51,7 @@ public class VMUtils {
         try {
             loadAgent.invoke(vm, path, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn("vm isNull:{}, path:{}, args:{}", null == vm, path, args);
             logger.warn(e.getMessage(), e);
         }
     }

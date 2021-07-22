@@ -1,6 +1,5 @@
 package com.mz.jarboot.base;
 
-import com.google.common.base.Stopwatch;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
@@ -78,7 +77,7 @@ public class AgentManager {
             return false;
         }
         synchronized (client) {// NOSONAR
-            Stopwatch stopwatch = Stopwatch.createStarted();
+            long startTime = System.currentTimeMillis();
             client.setState(ClientState.EXITING);
             sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
@@ -88,7 +87,7 @@ public class AgentManager {
                 //ignore
                 Thread.currentThread().interrupt();
             }
-            long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            long costTime = System.currentTimeMillis() - startTime;
             if (clientMap.containsKey(server)) {
                 logger.warn("未能成功退出！{}, 耗时:{}", server, costTime);
                 //失败

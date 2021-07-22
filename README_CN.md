@@ -65,6 +65,7 @@ user$ mvn clean install
 ```
 jarboot                             #当前工作目录
 ├─logs                              #日志
+├─conf                              #jarboot配置文件
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
@@ -79,8 +80,8 @@ jarboot                             #当前工作目录
 
 3. 启动<code>jarboot-server.jar</code>主控服务
 ```bash
-#执行 boot.sh 启动, 在Windows系统上使用boot.bat。
-user$ sh boot.sh
+#执行 startup.sh 启动, 在Windows系统上使用startup.cmd。
+$ sh startup.sh
 ```
 
 4. 浏览器访问<http://127.0.0.1:9899>
