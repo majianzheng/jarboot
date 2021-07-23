@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author jianzhengma
+ */
+@SuppressWarnings("all")
 public class VMUtils {
     private static final Logger logger = LoggerFactory.getLogger(VMUtils.class);
     private Method attach;
@@ -22,7 +26,7 @@ public class VMUtils {
     private Method listVM;
     private Method getVMId;
     private Method getVMName;
-    private static volatile VMUtils instance = null; //NOSONAR
+    private static volatile VMUtils instance = null;
     private boolean initialized = false;
     public static VMUtils getInstance() {
         if (null == instance) {

@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class ObjectView implements View {
         StringBuilder buf = new StringBuilder();
         try {
             if (GlobalOptions.isUsingJson) {
-                return JSONUtils.toJSONString(object);
+                return JsonUtils.toJSONString(object);
             }
             renderObject(object, 0, deep, buf);
             return buf.toString();

@@ -1,12 +1,12 @@
 package com.mz.jarboot.core.cmd.internal;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 
 /**
  * 内部命令体系，用于jarboot-service与agent之间交互的专用通道，即时任务，无状态控制
  * @author jianzhengma
  */
-public abstract class InternalCommand extends Command {
+public abstract class AbstractInternalCommand extends AbstractCommand {
     @Override
     public final boolean isRunning() {
         return false;
@@ -17,6 +17,9 @@ public abstract class InternalCommand extends Command {
         //do nothing
     }
 
+    /**
+     * 命令执行逻辑
+     */
     @Override
     public abstract void run();
 }

@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
 
+/**
+ * 雪花算法ID生成器
+ * @author jianzhengma
+ */
 @SuppressWarnings("all")
 @Component
 public class SnowFlakeIdGenerator implements IdentifierGenerator {

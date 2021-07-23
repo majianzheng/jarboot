@@ -1,5 +1,11 @@
 package com.mz.jarboot.common;
 
+/**
+ * Pair类
+ * @param <X> key
+ * @param <Y> value
+ * @author jianzhengma
+ */
 public class Pair<X, Y> {
     private final X x;
     private final Y y;
@@ -23,26 +29,32 @@ public class Pair<X, Y> {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
-        if (!(o instanceof Pair))
+        }
+        if (!(o instanceof Pair)) {
             return false;
+        }
 
         Pair<?,?> other = (Pair<?,?>) o;
 
         if (x == null) {
-            if (other.x != null)
+            if (other.x != null) {
                 return false;
+            }
         } else {
-            if (!x.equals(other.x))
+            if (!x.equals(other.x)) {
                 return false;
+            }
         }
         if (y == null) {
-            if (other.y != null)
+            if (other.y != null) {
                 return false;
+            }
         } else {
-            if (!y.equals(other.y))
+            if (!y.equals(other.y)) {
                 return false;
+            }
         }
         return true;
     }
@@ -50,10 +62,12 @@ public class Pair<X, Y> {
     @Override
     public int hashCode() {
         int hashCode = 1;
-        if (x != null)
+        if (x != null) {
             hashCode = x.hashCode();
-        if (y != null)
+        }
+        if (y != null) {
             hashCode = (hashCode * 31) + y.hashCode();
+        }
         return hashCode;
     }
 

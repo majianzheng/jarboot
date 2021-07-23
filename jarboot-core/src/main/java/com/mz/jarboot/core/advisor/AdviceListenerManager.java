@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
  * 以下代码来自开源项目Arthas，进行了较大的修改
  */
 public class AdviceListenerManager { //NOSONAR
+    /** 日志 */
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final FakeBootstrapClassLoader FAKEBOOTSTRAPCLASSLOADER = new FakeBootstrapClassLoader();
 
@@ -26,18 +28,15 @@ public class AdviceListenerManager { //NOSONAR
 
     private static void init() {
         // 清理失效的 AdviceListener
-        EnvironmentContext.getScheduledExecutorService().scheduleWithFixedDelay(new Runnable() { //NOSONAR
-            @Override
-            public void run() {
-                cleanOutDateListener();
-            }
-        }, 5, 5, TimeUnit.SECONDS);
+        EnvironmentContext.getScheduledExecutorService()
+                .scheduleWithFixedDelay(AdviceListenerManager::cleanOutDateListener,
+                        5, 5, TimeUnit.SECONDS);
     }
 
     private static void cleanOutDateListener() { //NOSONAR
         try {
-            if (adviceListenerMap != null) {
-                for (Map.Entry<ClassLoader, ClassLoaderAdviceListenerManager> entry : adviceListenerMap.entrySet()) {
+            if (ADVICE_LISTENER_MAP != null) {
+                for (Map.Entry<ClassLoader, ClassLoaderAdviceListenerManager> entry : ADVICE_LISTENER_MAP.entrySet()) {
                     ClassLoaderAdviceListenerManager adviceListenerManager = entry.getValue();
                     synchronized (adviceListenerManager) {
                         for (Map.Entry<String, List<AdviceListener>> eee : adviceListenerManager.map.entrySet()) {
@@ -66,7 +65,8 @@ public class AdviceListenerManager { //NOSONAR
         }
     }
 
-    private static final ConcurrentWeakKeyHashMap<ClassLoader, ClassLoaderAdviceListenerManager> adviceListenerMap = new ConcurrentWeakKeyHashMap<>();
+    private static final ConcurrentWeakKeyHashMap<ClassLoader, ClassLoaderAdviceListenerManager> ADVICE_LISTENER_MAP =
+            new ConcurrentWeakKeyHashMap<>();
 
     static class ClassLoaderAdviceListenerManager {
         private ConcurrentHashMap<String, List<AdviceListener>> map = new ConcurrentHashMap<>();
@@ -85,7 +85,7 @@ public class AdviceListenerManager { //NOSONAR
                 className = className.replace('/', '.');
                 String key = key(className, methodName, methodDesc);
 
-                List<AdviceListener> listeners = map.get(key); //NOSONAR
+                List<AdviceListener> listeners = map.getOrDefault(key, null);
                 if (listeners == null) {
                     listeners = new ArrayList<>();
                     map.put(key, listeners);
@@ -107,7 +107,7 @@ public class AdviceListenerManager { //NOSONAR
 
             className = className.replace('/', '.');
             String key = keyForTrace(className, owner, methodName, methodDesc);
-            List<AdviceListener> listeners = map.get(key); //NOSONAR
+            List<AdviceListener> listeners = map.getOrDefault(key, null);
             if (listeners == null) {
                 listeners = new ArrayList<>();
                 map.put(key, listeners);
@@ -130,11 +130,11 @@ public class AdviceListenerManager { //NOSONAR
         classLoader = wrap(classLoader);
         className = className.replace('/', '.');
 
-        ClassLoaderAdviceListenerManager manager = adviceListenerMap.get(classLoader); //NOSONAR
+        ClassLoaderAdviceListenerManager manager = ADVICE_LISTENER_MAP.getOrDefault(classLoader, null);
 
         if (manager == null) {
             manager = new ClassLoaderAdviceListenerManager();
-            adviceListenerMap.put(classLoader, manager);
+            ADVICE_LISTENER_MAP.put(classLoader, manager);
         }
         manager.registerAdviceListener(className, methodName, methodDesc, listener);
     }
@@ -143,13 +143,13 @@ public class AdviceListenerManager { //NOSONAR
             String methodName, String methodDesc) {
         classLoader = wrap(classLoader);
         className = className.replace('/', '.');
-        ClassLoaderAdviceListenerManager manager = adviceListenerMap.get(classLoader);
+        ClassLoaderAdviceListenerManager manager = ADVICE_LISTENER_MAP.get(classLoader);
 
         if (manager != null) {
             return manager.queryAdviceListeners(className, methodName, methodDesc);
         }
 
-        return null; //NOSONAR
+        return Collections.emptyList();
     }
 
     public static void registerTraceAdviceListener(ClassLoader classLoader, String className, String owner,
@@ -157,11 +157,11 @@ public class AdviceListenerManager { //NOSONAR
         classLoader = wrap(classLoader);
         className = className.replace('/', '.');
 
-        ClassLoaderAdviceListenerManager manager = adviceListenerMap.get(classLoader); //NOSONAR
+        ClassLoaderAdviceListenerManager manager = ADVICE_LISTENER_MAP.getOrDefault(classLoader, null);
 
         if (manager == null) {
             manager = new ClassLoaderAdviceListenerManager();
-            adviceListenerMap.put(classLoader, manager);
+            ADVICE_LISTENER_MAP.put(classLoader, manager);
         }
         manager.registerTraceAdviceListener(className, owner, methodName, methodDesc, listener);
     }
@@ -170,12 +170,12 @@ public class AdviceListenerManager { //NOSONAR
             String owner, String methodName, String methodDesc) {
         classLoader = wrap(classLoader);
         className = className.replace('/', '.');
-        ClassLoaderAdviceListenerManager manager = adviceListenerMap.get(classLoader);
+        ClassLoaderAdviceListenerManager manager = ADVICE_LISTENER_MAP.get(classLoader);
 
         if (manager != null) {
             return manager.queryTraceAdviceListeners(className, owner, methodName, methodDesc);
         }
-        return null; //NOSONAR
+        return Collections.emptyList();
     }
 
     private static ClassLoader wrap(ClassLoader classLoader) {

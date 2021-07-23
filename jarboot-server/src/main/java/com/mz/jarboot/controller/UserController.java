@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * 用户管理
+ * @author jianzhengma
  */
 @RequestMapping(value = "/api/jarboot/user")
 @RestController

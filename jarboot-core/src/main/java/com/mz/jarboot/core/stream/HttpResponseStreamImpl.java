@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
@@ -21,7 +21,7 @@ public class HttpResponseStreamImpl implements ResponseStream {
     private static final String API = "api/public/agent/response?server";
     private static final String RESP_URL =String.format("http://%s/%s=%s",
             EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
-    private static final OkHttpClient httpClient = new OkHttpClient.Builder()
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(30L, TimeUnit.SECONDS)
             .readTimeout(30L, TimeUnit.SECONDS)
             .writeTimeout(30L, TimeUnit.SECONDS)
@@ -39,12 +39,12 @@ public class HttpResponseStreamImpl implements ResponseStream {
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
 
-        Call call = httpClient.newCall(request);
+        Call call = HTTP_CLIENT.newCall(request);
         try {
             ResponseBody response = call.execute().body();
             if (null != response) {
                 String body = response.string();
-                ResponseSimple resp = JSONUtils.readValue(body, ResponseSimple.class);
+                ResponseSimple resp = JsonUtils.readValue(body, ResponseSimple.class);
                 if (null == resp) {
                     logger.error("返回结果解析json失败！{}", body);
                     return;

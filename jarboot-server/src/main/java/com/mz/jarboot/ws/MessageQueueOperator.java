@@ -6,6 +6,10 @@ import javax.websocket.Session;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * WebSocket消息推送
+ * @author jianzhengma
+ */
 public class MessageQueueOperator implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(MessageQueueOperator.class);
     private static final int MAX_MSG_QUEUE_SIZE = 256;
@@ -38,7 +42,8 @@ public class MessageQueueOperator implements Runnable {
     @Override
     public void run() {
         int timeoutCount = 0;
-        final int maxWaitCount = 2; // 若等于2，则6秒内没有消息就会释放
+        // 若等于2，则6秒内没有消息就会释放
+        final int maxWaitCount = 2;
         try {
             for (; ; ) {
                 if (timeoutCount > maxWaitCount || !session.isOpen()) {

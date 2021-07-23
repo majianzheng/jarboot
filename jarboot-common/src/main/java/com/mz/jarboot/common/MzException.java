@@ -1,5 +1,9 @@
 package com.mz.jarboot.common;
 
+/**
+ * 项目内异常类
+ * @author jianzhengma
+ */
 public class MzException extends RuntimeException {
 	private static final long serialVersionUID = -6230029731717806830L;
 

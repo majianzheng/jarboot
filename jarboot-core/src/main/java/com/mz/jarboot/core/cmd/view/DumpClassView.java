@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 
 /**
  * @author majianzheng
@@ -9,7 +9,7 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
 
     @Override
     public String render(com.mz.jarboot.core.cmd.model.DumpClassModel result) {
-        return JSONUtils.toJSONString(result);
+        return JsonUtils.toJSONString(result);
     }
 
     @Override

@@ -48,16 +48,16 @@ English version goes [here](README.md).
 
 ```bash
 #首先编译前端
-user$ cd jarboot-ui
+$ cd jarboot-ui
 #首次时需要先安装依赖，执行yarn或npm install
-user$ yarn
+$ yarn
 
 #执行编译，yarn build或npm run build，开发模式可执行yarn start或npm run start
-user$ yarn build
+$ yarn build
 
 #切换到代码根目录，编译Java代码
-user$ cd ../
-user$ mvn clean install
+$ cd ../
+$ mvn clean install
 ```
 
 2. 安装后的目录结构

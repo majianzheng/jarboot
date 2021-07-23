@@ -4,6 +4,7 @@ import com.mz.jarboot.core.constant.CoreConstant;
 
 /**
  * 命令执行的结束状态
+ * @author jianzhengma
  * 以下代码基于开源项目Arthas适配修改
  */
 public class ExitStatus {

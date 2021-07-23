@@ -14,7 +14,8 @@ import java.io.UnsupportedEncodingException;
  */
 public class WsClientFactory {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static volatile WsClientFactory instance = null; //NOSONAR
+    @SuppressWarnings("all")
+    private static volatile WsClientFactory instance = null;
     private WebSocketClient client = null;
 
     private WsClientFactory() {

@@ -18,6 +18,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsUtils;
 
 
+/**
+ * @author jianzhengma
+ */
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     

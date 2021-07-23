@@ -13,8 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * 以下代码基于开源项目Arthas适配修改
  */
 public class AdviceWeaver {
-    // 通知监听器集合
-    private static final Map<Long/*ADVICE_ID*/, AdviceListener> advices
+    /**
+     * 通知监听器集合
+     */
+    private static final Map<Long, AdviceListener> ADVICES
             = new ConcurrentHashMap<>();
 
     /**
@@ -28,18 +30,18 @@ public class AdviceWeaver {
         listener.create();
 
         // 注册监听器
-        advices.put(listener.id(), listener);
+        ADVICES.put(listener.id(), listener);
     }
 
     /**
      * 注销监听器
      *
-     * @param listener
+     * @param listener 监听器
      */
     public static void unReg(AdviceListener listener) {
         if (null != listener) {
             // 注销监听器
-            advices.remove(listener.id());
+            ADVICES.remove(listener.id());
 
             // 触发监听器销毁
             listener.destroy();
@@ -47,7 +49,7 @@ public class AdviceWeaver {
     }
 
     public static AdviceListener listener(long id) {
-        return advices.get(id);
+        return ADVICES.get(id);
     }
 
     /**
@@ -57,7 +59,7 @@ public class AdviceWeaver {
      */
     public static void resume(AdviceListener listener) {
         // 注册监听器
-        advices.put(listener.id(), listener);
+        ADVICES.put(listener.id(), listener);
     }
 
     /**
@@ -67,7 +69,7 @@ public class AdviceWeaver {
      */
     public static AdviceListener suspend(long adviceId) {
         // 注销监听器
-        return advices.remove(adviceId);
+        return ADVICES.remove(adviceId);
     }
 
     private AdviceWeaver() {}

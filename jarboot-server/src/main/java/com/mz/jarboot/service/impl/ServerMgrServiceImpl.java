@@ -108,7 +108,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         taskExecutor.execute(() -> this.startServer0(servers));
     }
 
-    //同步方法，全部完成后返回
     private void startServer0(List<String> servers) {
         //获取服务的优先级启动顺序
         final Queue<ServerSettingDTO> priorityQueue = PropertyFileUtils.parseStartPriority(servers);

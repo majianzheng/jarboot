@@ -1,5 +1,8 @@
 package com.mz.jarboot.service;
 
+/**
+ * @author jianzhengma
+ */
 public interface TaskWatchService {
     /**
      * 初始化监控

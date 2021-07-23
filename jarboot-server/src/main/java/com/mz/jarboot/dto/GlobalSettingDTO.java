@@ -2,9 +2,12 @@ package com.mz.jarboot.dto;
 
 import java.io.Serializable;
 
+/**
+ * @author jianzhengma
+ */
 public class GlobalSettingDTO implements Serializable {
     private String servicesPath;
-    private String defaultVmOptions = "";
+    private String defaultVmOptions;
     private Boolean servicesAutoStart;
 
     public String getServicesPath() {
@@ -29,5 +32,14 @@ public class GlobalSettingDTO implements Serializable {
 
     public void setServicesAutoStart(Boolean servicesAutoStart) {
         this.servicesAutoStart = servicesAutoStart;
+    }
+
+    @Override
+    public String toString() {
+        return "GlobalSettingDTO{" +
+                "servicesPath='" + servicesPath + '\'' +
+                ", defaultVmOptions='" + defaultVmOptions + '\'' +
+                ", servicesAutoStart=" + servicesAutoStart +
+                '}';
     }
 }

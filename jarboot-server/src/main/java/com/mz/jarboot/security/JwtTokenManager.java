@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author jianzhengma
+ */
 @Component
 public class JwtTokenManager {
     

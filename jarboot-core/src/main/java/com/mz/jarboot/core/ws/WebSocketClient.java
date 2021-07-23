@@ -28,6 +28,8 @@ import java.net.URI;
  */
 public final class WebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final String WS_HEADER = "ws";
+    private static final String WSS_HEADER = "wss";
     private URI uri;
     private EventLoopGroup group;
     private Channel channel;
@@ -49,16 +51,16 @@ public final class WebSocketClient {
     }
 
     public boolean connect(MessageHandler messageHandler) {
-        String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
+        String scheme = uri.getScheme() == null ? WS_HEADER : uri.getScheme();
         final String host = uri.getHost() == null ? "127.0.0.1" : uri.getHost();
         final int port = parsePort(scheme);
 
-        if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
+        if (!WS_HEADER.equalsIgnoreCase(scheme) && !WSS_HEADER.equalsIgnoreCase(scheme)) {
             logger.error("Only WS(S) is supported.");
             return false;
         }
 
-        final boolean ssl = "wss".equalsIgnoreCase(scheme);
+        final boolean ssl = WSS_HEADER.equalsIgnoreCase(scheme);
         final SslContext sslCtx;
         if (ssl) {
             try {
@@ -109,9 +111,9 @@ public final class WebSocketClient {
     private int parsePort(String scheme) {
         final int port;
         if (uri.getPort() == -1) {
-            if ("ws".equalsIgnoreCase(scheme)) {
+            if (WS_HEADER.equalsIgnoreCase(scheme)) {
                 port = 80;
-            } else if ("wss".equalsIgnoreCase(scheme)) {
+            } else if (WSS_HEADER.equalsIgnoreCase(scheme)) {
                 port = 443;
             } else {
                 port = -1;

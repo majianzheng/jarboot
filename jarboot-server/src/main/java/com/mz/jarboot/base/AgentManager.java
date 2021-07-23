@@ -16,8 +16,12 @@ import javax.websocket.Session;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author jianzhengma
+ */
+@SuppressWarnings("all")
 public class AgentManager {
-    private static volatile AgentManager instance = null; //NOSONAR
+    private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AgentManager(){}
@@ -43,7 +47,7 @@ public class AgentManager {
             return;
         }
         WebSocketManager.getInstance().sendConsole(server, server + "下线！");
-        synchronized (client) {// NOSONAR
+        synchronized (client) {
             if (ClientState.EXITING.equals(client.getState())) {
                 logger.info("目标进程已退出，唤醒killServer方法的执行线程");
                 //发送了退出执行，唤醒killClient线程
@@ -65,7 +69,7 @@ public class AgentManager {
         if (null == client) {
             return false;
         }
-        synchronized (client) {// NOSONAR
+        synchronized (client) {
             return ClientState.ONLINE.equals(client.getState());
         }
     }
@@ -76,13 +80,13 @@ public class AgentManager {
             logger.debug("服务已经是退出状态，{}", server);
             return false;
         }
-        synchronized (client) {// NOSONAR
+        synchronized (client) {
             long startTime = System.currentTimeMillis();
             client.setState(ClientState.EXITING);
             sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);//NOSONAR
+                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();

@@ -29,7 +29,8 @@ public class ClassLoaderClassResolver implements ClassResolver {
             try {
                 result = classLoader.loadClass(className);
             } catch (ClassNotFoundException ex) {
-                if (className.indexOf('.') == -1) {
+                final char dot = '.';
+                if (className.indexOf(dot) == -1) {
                     result = Class.forName("java.lang." + className);
                     classes.put("java.lang." + className, result);
                 }

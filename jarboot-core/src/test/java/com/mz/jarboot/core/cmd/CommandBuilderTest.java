@@ -30,7 +30,7 @@ public class CommandBuilderTest {
         CommandRequest request = new CommandRequest();
         CommandSession session = Mockito.mock(CommandSession.class);
         request.fromRaw(line);
-        Command cmd = CommandBuilder.build(request, session);
+        AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
         TraceCommand trace = (TraceCommand)cmd;
         assertEquals("trace", trace.getName());
@@ -102,7 +102,7 @@ public class CommandBuilderTest {
         CommandRequest request = new CommandRequest();
         CommandSession session = Mockito.mock(CommandSession.class);
         request.fromRaw(line);
-        Command cmd = CommandBuilder.build(request, session);
+        AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof ExitCommand).isTrue();
         assertEquals("exit", cmd.getName());
 

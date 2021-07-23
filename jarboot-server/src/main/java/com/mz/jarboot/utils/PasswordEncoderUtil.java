@@ -3,6 +3,9 @@ package com.mz.jarboot.utils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+/**
+ * @author jianzhengma
+ */
 public class PasswordEncoderUtil {
     
     public static Boolean matches(String raw, String encoded) {

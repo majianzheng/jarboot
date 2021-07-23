@@ -31,10 +31,11 @@ import java.util.List;
 
 /**
  * 鉴权接口
+ * @author jianzhengma
  */
 @RequestMapping(value = "/api/auth")
 @Controller
-public class OAuthController {
+public class AuthController {
     private static final int DEFAULT_PAGE_NO = 1;
 
     private static final String PARAM_USERNAME = "username";

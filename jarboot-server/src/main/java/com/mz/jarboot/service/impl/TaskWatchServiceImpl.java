@@ -36,18 +36,24 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+/**
+ * @author jianzhengma
+ */
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String MODIFY_TIME_STORE_FILE = "file-record.temp";
+    private static final int MIN_MODIFY_WAIT_TIME = 3;
+    private static final int MAX_MODIFY_WAIT_TIME = 600;
+
     @Autowired
-    private ApplicationContext ctx; //应用上下文
+    private ApplicationContext ctx;
     @Autowired
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunCache taskRunCache;
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-    //文件更新抖动时间，默认5秒
+
     @Value("${jarboot.file-shake-time:5}")
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
@@ -59,7 +65,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
     private boolean starting = false;
 
-    //阻塞队列，监控到目录变化则放入队列
+    /** 阻塞队列，监控到目录变化则放入队列 */
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
     @Override
@@ -67,7 +73,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (starting) {
             return;
         }
-        if (modifyWaitTime < 3 || modifyWaitTime > 600) {
+        if (modifyWaitTime < MIN_MODIFY_WAIT_TIME || modifyWaitTime > MAX_MODIFY_WAIT_TIME) {
             modifyWaitTime = 5;
         }
         starting = true;

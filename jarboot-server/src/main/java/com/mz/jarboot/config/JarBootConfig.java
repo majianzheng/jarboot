@@ -2,6 +2,7 @@ package com.mz.jarboot.config;
 
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.PermissionsCache;
+import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.*;
 
+/**
+ * jarboot配置类
+ * @author jianzhengma
+ */
 @Configuration
 public class JarBootConfig {
     private static final int MAX_BUFFER_SIZE = 16384;
@@ -41,9 +46,11 @@ public class JarBootConfig {
     public ExecutorService createExecutorService() {
         ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(1024);
         return new ThreadPoolExecutor(8, 32,
-                32L, TimeUnit.SECONDS, taskBlockingQueue, (Runnable r, ThreadPoolExecutor executor) ->
-            //线程池忙碌拒绝策略
-            WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
+                32L, TimeUnit.SECONDS, taskBlockingQueue,
+                JarbootThreadFactory.createThreadFactory("jarboot-task-pool"),
+                //线程池忙碌拒绝策略
+                (Runnable r, ThreadPoolExecutor executor) ->
+                        WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
     }
 
     @PostConstruct

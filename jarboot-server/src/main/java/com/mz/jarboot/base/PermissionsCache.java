@@ -22,13 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 
+/**
+ * @author jianzhengma
+ */
 @Component
 public class PermissionsCache {
     private static final Logger logger = LoggerFactory.getLogger(PermissionsCache.class);
     
-    private final ConcurrentHashMap<RequestMappingInfo, PermissionInfo> methods = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<RequestMappingInfo, PermissionInfo> methods = new ConcurrentHashMap<>(32);
     
-    private final ConcurrentHashMap<String, List<RequestMappingInfo>> urlLookup = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<RequestMappingInfo>> urlLookup = new ConcurrentHashMap<>(32);
 
     private final ArrayList<PermissionInfo> permissionInfos = new ArrayList<>();
 

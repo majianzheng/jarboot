@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Json序列化、反序列化工具类
  * @author jianzhengma
  */
-public class JSONUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+public class JsonUtils {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * 解析字符串为 {@link JsonNode}
@@ -18,7 +18,7 @@ public class JSONUtils {
      */
     public static JsonNode readAsJsonNode(String content) {
         try {
-            return objectMapper.readValue(content, JsonNode.class);
+            return MAPPER.readValue(content, JsonNode.class);
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -33,7 +33,7 @@ public class JSONUtils {
      */
     public static <T> T readValue(String content, Class<T> cls) {
         try {
-            return objectMapper.readValue(content, cls);
+            return MAPPER.readValue(content, cls);
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -46,11 +46,11 @@ public class JSONUtils {
      */
     public static String toJSONString(Object obj) {
         try {
-            return objectMapper.writeValueAsString(obj);
+            return MAPPER.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             return null;
         }
     }
 
-    private JSONUtils() {}
+    private JsonUtils() {}
 }

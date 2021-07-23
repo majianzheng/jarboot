@@ -8,7 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 开发中，后端的html渲染轻量化改进
+ * 表渲染节点
+ * @author jianzhengma
  */
 public class TableElement extends Element {
     private String title;

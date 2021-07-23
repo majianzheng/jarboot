@@ -6,5 +6,9 @@ package com.mz.jarboot.core.stream;
  * @author jianzhengma
  */
 public interface ResponseStream {
+    /**
+     * 写响应数据
+     * @param data 数据
+     */
     void write(String data);
 }

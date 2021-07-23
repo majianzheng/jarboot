@@ -8,6 +8,7 @@ import org.thymeleaf.context.Context;
  * @author jianzhengma
  */
 public class SysPropView implements ResultView<SysPropModel> {
+    @Override
     public String render(SysPropModel model) {
         Context context = new Context();
         context.setVariable("props", model.getProps());

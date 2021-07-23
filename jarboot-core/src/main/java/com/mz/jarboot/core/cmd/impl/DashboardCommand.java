@@ -1,9 +1,9 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.NetworkUtils;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.annotation.Name;
 import com.mz.jarboot.core.cmd.annotation.Option;
@@ -30,7 +30,7 @@ import java.util.*;
         "  dashboard -n 10\n" +
         "  dashboard -i 2000\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "dashboard")
-public class DashboardCommand extends Command {
+public class DashboardCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
 
     private SumRateCounter tomcatRequestCounter = new SumRateCounter();
@@ -196,7 +196,7 @@ public class DashboardCommand extends Command {
         NetworkUtils.Response connectorStatResponse = NetworkUtils.request(connectorStatPath);
         if (connectorStatResponse.isSuccess()) {
             List<TomcatInfoVO.ConnectorStats> connectorStats = new ArrayList<TomcatInfoVO.ConnectorStats>();
-            JsonNode tomcatConnectorStats = JSONUtils.readAsJsonNode(connectorStatResponse.getContent());
+            JsonNode tomcatConnectorStats = JsonUtils.readAsJsonNode(connectorStatResponse.getContent());
             for (JsonNode stat : tomcatConnectorStats) {
                 String connectorName = stat.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
                 long bytesReceived = stat.get("bytesReceived").asLong(0);
@@ -231,7 +231,7 @@ public class DashboardCommand extends Command {
         NetworkUtils.Response threadPoolResponse = NetworkUtils.request(threadPoolPath);
         if (threadPoolResponse.isSuccess()) {
             List<TomcatInfoVO.ThreadPool> threadPools = new ArrayList<TomcatInfoVO.ThreadPool>();
-            JsonNode threadPoolInfos = JSONUtils.readAsJsonNode(threadPoolResponse.getContent());
+            JsonNode threadPoolInfos = JsonUtils.readAsJsonNode(threadPoolResponse.getContent());
             for (JsonNode info : threadPoolInfos) {
                 String name = info.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
                 long busy = info.get("threadBusy").asLong(0);

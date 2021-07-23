@@ -15,13 +15,16 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author jianzhengma
+ */
 @Component
 public class TaskRunCache {
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
-    private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
     private void updateServerInfo(List<ServerRunningDTO> server) {
         Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();

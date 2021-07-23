@@ -48,16 +48,16 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 
 ```bash
 #At first build ui
-user$ cd jarboot-ui
+$ cd jarboot-ui
 #First time, execute yarn or npm install
-user$ yarn
+$ yarn
 
 #execute compile, yarn build or npm run build, execute yarn start or npm run start at development mode.
-user$ yarn build
+$ yarn build
 
 #Switch to the code root directory and compile the Java code
-user$ cd ../
-user$ mvn clean install
+$ cd ../
+$ mvn clean install
 ```
 
 2. Directory structures after installation.

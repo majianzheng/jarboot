@@ -1,6 +1,6 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
@@ -21,9 +21,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * @author jianzhengma
+ */
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static final GlobalSettingDTO globalSetting = new GlobalSettingDTO();
+    private static final GlobalSettingDTO GLOBAL_SETTING = new GlobalSettingDTO();
     private static final String BOOT_PROPERTIES = "boot.properties";
     private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
@@ -59,15 +62,15 @@ public class SettingUtils {
         File conf = new File(JARBOOT_CONF);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
-        globalSetting.setServicesPath(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
-        globalSetting.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY));
+        GLOBAL_SETTING.setServicesPath(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
+        GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY));
         String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
         boolean servicesAutoStart = StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_TRUE, s);
-        globalSetting.setServicesAutoStart(servicesAutoStart);
+        GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
     public static GlobalSettingDTO getGlobalSetting() {
-        return globalSetting;
+        return GLOBAL_SETTING;
     }
 
     public static void updateGlobalSetting(GlobalSettingDTO setting) {
@@ -81,8 +84,12 @@ public class SettingUtils {
 
         File file = FileUtils.getFile(JARBOOT_CONF);
         try {
-            HashMap<String, String> props = new HashMap<>();
-            props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
+            HashMap<String, String> props = new HashMap<>(4);
+            if (null == setting.getDefaultVmOptions()) {
+                props.put(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY);
+            } else {
+                props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
+            }
             if (OSUtils.isWindows()) {
                 props.put(ROOT_DIR_KEY, servicesPath.replace('\\', '/'));
             } else {
@@ -92,9 +99,13 @@ public class SettingUtils {
             props.put(ENABLE_AUTO_START_KEY, String.valueOf(setting.getServicesAutoStart()));
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
-            globalSetting.setDefaultVmOptions(setting.getDefaultVmOptions());
-            globalSetting.setServicesPath(servicesPath);
-            globalSetting.setServicesAutoStart(setting.getServicesAutoStart());
+            if (null == setting.getDefaultVmOptions()) {
+                GLOBAL_SETTING.setDefaultVmOptions(StringUtils.EMPTY);
+            } else {
+                GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions());
+            }
+            GLOBAL_SETTING.setServicesPath(servicesPath);
+            GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
@@ -102,7 +113,7 @@ public class SettingUtils {
 
 
     public static String getServicesPath() {
-        String path = globalSetting.getServicesPath();
+        String path = GLOBAL_SETTING.getServicesPath();
         if (StringUtils.isBlank(path)) {
             path = DEFAULT_SERVICES_DIR;
         }
@@ -120,15 +131,16 @@ public class SettingUtils {
     public static String getAgentArgs(String server) {
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
         String host = String.format("127.0.0.1:%s", port);
-        HashMap<String, String> json = new HashMap<>();
+        HashMap<String, String> json = new HashMap<>(4);
         json.put("host", host);
         json.put("server", server);
-        byte[] bytes = Base64.getEncoder().encode(JSONUtils.toJSONString(json).getBytes());
+        byte[] bytes = Base64.getEncoder().encode(Objects.requireNonNull(JsonUtils.toJSONString(json)).getBytes());
         return new String(bytes);
     }
 
     public static String getDefaultJvmArg() {
-        return globalSetting.getDefaultVmOptions();
+        String defaultVmOptions = GLOBAL_SETTING.getDefaultVmOptions();
+        return null == defaultVmOptions ? StringUtils.EMPTY : defaultVmOptions;
     }
 
     /**

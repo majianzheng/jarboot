@@ -20,9 +20,10 @@ public class ArrayUtils {
      * @return a {@code long} array, {@code null} if null array input
      * @throws NullPointerException if array content is {@code null}
      */
+    @SuppressWarnings("all")
     public static long[] toPrimitive(final Long[] array) {
         if (array == null) {
-            return null; //NOSONAR
+            return null;
         } else if (array.length == 0) {
             return EMPTY_LONG_ARRAY;
         }

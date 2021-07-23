@@ -24,14 +24,17 @@ import java.util.*;
 public class TaskUtils {
     private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
-    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT + CommonConst.SERVICES + CommonConst.DOT;
+    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
+            CommonConst.SERVICES + CommonConst.DOT;
+    private static final int MIN_START_WAIT = 1500;
+    private static final int MAX_START_WAIT = 30000;
 
     private static long getStartWaitTime() {
         if (-1 == startWaitTime) {
             synchronized (TaskUtils.class) {
                 String val = ApplicationContextUtils.getEnv("jarboot.start-wait-time", "5000");
                 startWaitTime = NumberUtils.toLong(val, 5000);
-                if (startWaitTime < 1500 || startWaitTime > 30000) {
+                if (startWaitTime < MIN_START_WAIT || startWaitTime > MAX_START_WAIT) {
                     startWaitTime = 15000;
                 }
             }
@@ -171,6 +174,10 @@ public class TaskUtils {
     }
 
     public interface PushMsgCallback {
+        /**
+         * 反馈的消息
+         * @param text 消息
+         */
         void sendMessage(String text);
     }
 
@@ -275,6 +282,7 @@ public class TaskUtils {
         }
     }
 
+    @SuppressWarnings("all")
     private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
             throws IOException, InterruptedException {
         long timestamp = System.currentTimeMillis();
@@ -287,7 +295,7 @@ public class TaskUtils {
                 if (interval > waitTime) {
                     break;
                 }
-                Thread.sleep(100);//NOSONAR
+                Thread.sleep(100);
             } else {
                 //可用
                 len = inputStream.read(buffer);
@@ -336,7 +344,7 @@ public class TaskUtils {
     }
 
     public static Map<String, Integer> findJavaProcess() {
-        HashMap<String, Integer> pidCmdMap = new HashMap<>();
+        HashMap<String, Integer> pidCmdMap = new HashMap<>(32);
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
             final int p = name.lastIndexOf(ADDER_ARGS_PREFIX);

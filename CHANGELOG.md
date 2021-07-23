@@ -1,10 +1,11 @@
-## 1.0.7 (7.18, 2021)
+## 1.0.7-SNAPSHOT (7.23, 2021)
 
 * Rename module name from jarboot-service to jarboot-server
 * Show the current version when start
 * Fix priority sorted error
 * Refactor modify some url api, service boot properties
 * fastjson -> jackson
+* code format add p3c, sonar, dependency and findbugs plugins
 #### FEATURES:
 * Support jar file using absolute path or relative path.
 * jarboot.properties add jarboot.services.enable-auto-start-after-start config.

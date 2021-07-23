@@ -27,8 +27,8 @@ public class CommandArgsParser {
 
     private Map<Method, Argument> argumentMethods = new HashMap<>();
     private Map<Method, Option> optionMethods = new HashMap<>();
-    private Command command;
-    public CommandArgsParser(String args, Class<? extends Command> cls) {
+    private AbstractCommand command;
+    public CommandArgsParser(String args, Class<? extends AbstractCommand> cls) {
         // 构建实例，解析方法注解
         this.init(cls);
 
@@ -39,12 +39,12 @@ public class CommandArgsParser {
         this.doInitField();
     }
 
-    public Command getCommand() {
+    public AbstractCommand getCommand() {
         return this.command;
     }
 
-    private void init(Class<? extends Command> cls) {
-        Constructor<? extends Command> constructor;
+    private void init(Class<? extends AbstractCommand> cls) {
+        Constructor<? extends AbstractCommand> constructor;
         try {
             constructor = cls.getConstructor();
             command = constructor.newInstance();

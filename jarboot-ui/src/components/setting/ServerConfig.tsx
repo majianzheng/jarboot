@@ -50,23 +50,23 @@ const ServerConfig: any = memo((props: any) => {
     };
     const onVmEdit = () => {
         setVisible(true);
-        let jvm = form.getFieldValue("jvm");
-        if (StringUtil.isEmpty(jvm)) {
-            jvm = 'boot.vmoptions';
+        let vm = form.getFieldValue("vm");
+        if (StringUtil.isEmpty(vm)) {
+            vm = 'boot.vmoptions';
         }
         const onSave = (value: string) => {
-            SettingService.saveVmOptions(props.server, jvm, value).then(resp => {
+            SettingService.saveVmOptions(props.server, vm, value).then(resp => {
                 if (resp.resultCode !== 0) {
                     CommonNotice.errorFormatted(resp);
                 }
             }).catch(CommonNotice.errorFormatted)
         };
-        SettingService.getVmOptions(props.server, jvm).then(resp => {
+        SettingService.getVmOptions(props.server, vm).then(resp => {
             if (resp.resultCode !== 0) {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            setFile({name: jvm, content: resp.result, onSave});
+            setFile({name: vm, content: resp.result, onSave});
         }).catch(CommonNotice.errorFormatted)
     };
 

@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+/**
+ * @author jianzhengma
+ */
 public class JarbootUserDetails implements UserDetails {
     private final User user;
 

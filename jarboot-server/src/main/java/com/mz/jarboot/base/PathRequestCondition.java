@@ -2,6 +2,9 @@ package com.mz.jarboot.base;
 
 import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 
+/**
+ * @author jianzhengma
+ */
 public class PathRequestCondition {
     
     private final PathExpression pathExpression;

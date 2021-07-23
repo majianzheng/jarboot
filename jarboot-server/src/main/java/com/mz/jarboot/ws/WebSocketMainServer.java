@@ -3,7 +3,7 @@ package com.mz.jarboot.ws;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.JSONUtils;
+import com.mz.jarboot.common.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class WebSocketMainServer {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        JsonNode json = JSONUtils.readAsJsonNode(message);
+        JsonNode json = JsonUtils.readAsJsonNode(message);
         if (null == json) {
             logger.error("解析json失败！{}", message);
             return;

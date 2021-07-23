@@ -28,7 +28,7 @@ public class CommandSessionImpl implements CommandSession {
     private final AtomicInteger times = new AtomicInteger();
     private AdviceListener listener = null;
     private ClassFileTransformer transformer;
-    private volatile String jobId = CoreConstant.EMPTY_STRING; //NOSONAR
+    private volatile String jobId = CoreConstant.EMPTY_STRING;
     public CommandSessionImpl(String sessionId) {
         this.sessionId = sessionId;
         this.distributor = new ResultStreamDistributor(this.sessionId);

@@ -2,6 +2,9 @@ package com.mz.jarboot.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * @author jianzhengma
+ */
 public interface UploadFileService {
     /**
      * 开始上传服务文件

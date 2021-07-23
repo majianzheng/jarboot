@@ -17,6 +17,14 @@ package com.mz.jarboot.common;
 
 import java.util.Iterator;
 
+/**
+ * ReusableIterator接口
+ * @param <E> 类型
+ * @author jianzhengma
+ */
 public interface ReusableIterator<E> extends Iterator<E> {
+    /**
+     * rewind
+     */
     void rewind();
 }

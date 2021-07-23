@@ -2,6 +2,9 @@ package com.mz.jarboot.entity;
 
 import javax.persistence.*;
 
+/**
+ * @author jianzhengma
+ */
 @Table(name = User.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 @Entity
 public class User extends AbstractBaseEntity {

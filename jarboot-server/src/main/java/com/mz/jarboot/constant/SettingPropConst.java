@@ -1,5 +1,8 @@
 package com.mz.jarboot.constant;
 
+/**
+ * @author jianzhengma
+ */
 public class SettingPropConst {
     public static final String DEFAULT_VM_FILE = "boot.vmoptions";
     public static final String VALUE_TRUE = "true";

@@ -22,8 +22,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * @author jianzhengma
+ */
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
+    private static final char COMMENT_PREFIX = '#';
 
     public static Properties getProperties(File file) {
         Properties properties = new Properties();
@@ -57,8 +61,8 @@ public class PropertyFileUtils {
         String[] envs = env.split(CommonConst.COMMA_SPLIT);
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
-            if (en.length() < 3 && 1 != StringUtils.countMatches(en, '=') &&
-                    '=' != en.charAt(0) && '=' != en.charAt(en.length() - 1)) {
+            if (en.length() < 3 && 1 != StringUtils.countMatches(en, CommonConst.EQUAL_CHAR) &&
+                    CommonConst.EQUAL_CHAR != en.charAt(0) && CommonConst.EQUAL_CHAR != en.charAt(en.length() - 1)) {
                 return false;
             }
         }
@@ -184,7 +188,11 @@ public class PropertyFileUtils {
         }
     }
 
-    //解析启动优先级配置
+    /**
+     * 解析启动优先级配置
+     * @param servers 服务列表
+     * @return 优先级排序结果
+     */
     public static Queue<ServerSettingDTO> parseStartPriority(List<String> servers) {
         //优先级最大的排在最前面
         PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
@@ -198,7 +206,11 @@ public class PropertyFileUtils {
         return queue;
     }
 
-    //解析终止优先级配置，与启动优先级相反
+    /**
+     * 解析终止优先级配置，与启动优先级相反
+     * @param servers 服务列表
+     * @return 排序结果
+     */
     public static Queue<ServerSettingDTO> parseStopPriority(List<String> servers) {
         //优先级小的排在最前面
         PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSettingDTO::getPriority));
@@ -214,7 +226,8 @@ public class PropertyFileUtils {
 
     private static String parsePropLine(String line, Map<String, String> props) {
         line = StringUtils.trim(line);
-        if (StringUtils.indexOf(line, '=') <= 0 || 0 == StringUtils.indexOf(line, '#')) {
+        if (StringUtils.indexOf(line, CommonConst.EQUAL_CHAR) <= 0 ||
+                0 == StringUtils.indexOf(line, COMMENT_PREFIX)) {
             throw new MzException();
         }
         String[] spliced = StringUtils.split(line, "=", 2);
@@ -226,7 +239,7 @@ public class PropertyFileUtils {
         if (null == value) {
             throw new MzException();
         }
-        line = key + '=' + value;
+        line = key + CommonConst.EQUAL_CHAR + value;
         props.remove(key);
         return line;
     }
