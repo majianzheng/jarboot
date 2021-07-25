@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Argument;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.annotation.Name;
@@ -11,7 +11,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * 标准输出流开启显示与关闭
- * @author jianzhengma
+ * @author majianzheng
  */
 @Name("stdout")
 @Summary("Stdout display on web ui")
@@ -19,7 +19,7 @@ import com.mz.jarboot.core.utils.StringUtils;
         "  stdout on\n" +
         "  stdout off\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "stdout")
-public class StdOutCommand extends Command {
+public class StdOutCommand extends AbstractCommand {
     private static final String ACTION_ON = "on";
     private static final String ACTION_OFF = "off";
 

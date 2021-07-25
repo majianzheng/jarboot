@@ -2,14 +2,15 @@ package java.jarboot;
 
 /**
  * SpyAPI
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas修改
  */
-public class SpyAPI { //NOSONAR
+@SuppressWarnings("all")
+public class SpyAPI {
     public static final AbstractSpy NOP_SPY = new NopSpy();
-    private static volatile AbstractSpy spyInstance = NOP_SPY; //NOSONAR
+    private static volatile AbstractSpy spyInstance = NOP_SPY;
 
-    public static volatile boolean initialized; //NOSONAR
+    public static volatile boolean initialized;
 
     public static AbstractSpy getSpy() {
         return spyInstance;

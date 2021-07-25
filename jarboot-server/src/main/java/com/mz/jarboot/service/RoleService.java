@@ -5,6 +5,10 @@ import com.mz.jarboot.entity.RoleInfo;
 
 import java.util.List;
 
+/**
+ * Role Service
+ * @author majianzheng
+ */
 public interface RoleService {
 
     /**

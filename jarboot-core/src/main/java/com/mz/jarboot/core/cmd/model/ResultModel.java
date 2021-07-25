@@ -2,6 +2,9 @@ package com.mz.jarboot.core.cmd.model;
 
 import com.mz.jarboot.core.constant.CoreConstant;
 
+/**
+ * @author majianzheng
+ */
 @SuppressWarnings("all")
 public abstract class ResultModel {
     /**

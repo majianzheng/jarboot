@@ -1,7 +1,6 @@
 package com.mz.jarboot.common;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import javax.net.ServerSocketFactory;
 import java.io.*;
@@ -13,6 +12,7 @@ import java.util.Random;
 
 /**
  * 以下代码，有一小部分摘自开源项目Arthas
+ * @author majianzheng
  */
 public class NetworkUtils {
     public static final int PORT_RANGE_MIN = 1024;
@@ -24,8 +24,9 @@ public class NetworkUtils {
     private static final int INTERNAL_SERVER_ERROR = 500;
     private static final int CONNECT_TIMEOUT = 10000;
     private static final int READ_TIMEOUT = 3000;
+    private static final String ERROR_MSG = "errorMsg";
 
-    private static final Random random = new Random(System.currentTimeMillis());
+    private static final Random RANDOM = new Random(System.currentTimeMillis());
 
     private NetworkUtils() {
     }
@@ -145,9 +146,9 @@ public class NetworkUtils {
             int statusCode = urlConnection.getResponseCode();
             String result = sb.toString().trim();
             if (statusCode == INTERNAL_SERVER_ERROR) {
-                JSONObject errorObj = JSON.parseObject(result);
-                if (null != errorObj && errorObj.containsKey("errorMsg")) {
-                    return new Response(errorObj.getString("errorMsg"), false);
+                JsonNode errorObj = JsonUtils.readAsJsonNode(result);
+                if (null != errorObj && errorObj.has(ERROR_MSG)) {
+                    return new Response(errorObj.get(ERROR_MSG).asText("error"), false);
                 }
                 return new Response(result, false);
             }
@@ -189,7 +190,7 @@ public class NetworkUtils {
                 if (start) {
                     sb.append(line).append("\n");
                 }
-                if (line.equals(QOS_RESPONSE_START_LINE)) {
+                if (QOS_RESPONSE_START_LINE.equals(line)) {
                     start = true;
                 }
             }
@@ -345,6 +346,6 @@ public class NetworkUtils {
      */
     private static int findRandomPort(int minPort, int maxPort) {
         int portRange = maxPort - minPort;
-        return minPort + random.nextInt(portRange + 1);
+        return minPort + RANDOM.nextInt(portRange + 1);
     }
 }

@@ -109,7 +109,11 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
         return sb.toString();
     }
 
-    // 统计所有的ClassLoader的信息
+    /**
+     * 统计所有的ClassLoader的信息
+     * @param classLoaderInfos 类加载信息
+     * @return 表
+     */
     private static TableElement renderTable(Collection<ClassLoaderVO> classLoaderInfos) {
         TableElement table = new TableElement();
         table.row("name", "loadedCount", "hash", "parent");
@@ -119,7 +123,11 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
         return table;
     }
 
-    // 以树状列出ClassLoader的继承结构
+    /**
+     * 以树状列出ClassLoader的继承结构
+     * @param classLoaderInfos 类加载信息
+     * @return 树
+     */
     private static Element renderTree(Collection<ClassLoaderVO> classLoaderInfos) {
         TreeElement root = new TreeElement();
         for (ClassLoaderVO classLoader : classLoaderInfos) {

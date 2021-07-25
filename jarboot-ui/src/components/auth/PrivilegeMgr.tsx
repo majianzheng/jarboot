@@ -7,6 +7,10 @@ import PrivilegeService from "@/services/PrivilegeService";
 import RoleService from "@/services/RoleService";
 import {Col, Menu, Row, Card, Tree} from "antd";
 
+/**
+ * 权限管理
+ * @author majianzheng
+ */
 const PrivilegeMgr = memo(() => {
     const intl = useIntl();
     let [loading, setLoading] = useState(true);
@@ -125,8 +129,8 @@ const PrivilegeMgr = memo(() => {
         const s: string = permissionInfo.resource;
         const p = s.indexOf('/jarboot/');
         if (-1 === p) {
-            const l = s.indexOf('/');
-            return s.substring(0, l);
+            const l1 = s.indexOf('/');
+            return s.substring(0, l1);
         }
         const b = p + 9;
         const l = s.indexOf('/', b);

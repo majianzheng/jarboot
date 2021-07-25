@@ -2,6 +2,9 @@ package com.mz.jarboot.core.cmd.model;
 
 import java.util.Properties;
 
+/**
+ * @author majianzheng
+ */
 public class SysPropModel extends ResultModel {
     private Properties props;
 

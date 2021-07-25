@@ -5,8 +5,12 @@ import org.springframework.util.ObjectUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author majianzheng
+ */
 public class ParamRequestCondition {
     
     private final Set<ParamExpression> expressions;
@@ -43,7 +47,24 @@ public class ParamRequestCondition {
     public String toString() {
         return "ParamRequestCondition{" + "expressions=" + expressions + '}';
     }
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ParamRequestCondition that = (ParamRequestCondition) o;
+        return Objects.equals(expressions, that.expressions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(expressions);
+    }
+
     static class ParamExpression {
         
         private final String name;

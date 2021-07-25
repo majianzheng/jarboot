@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author majianzheng
+ */
 public class JvmModel extends ResultModel {
     private List<JvmItem> runtimeInfo = new ArrayList<>();
     private List<JvmItem> classLoadingInfo = new ArrayList<>();

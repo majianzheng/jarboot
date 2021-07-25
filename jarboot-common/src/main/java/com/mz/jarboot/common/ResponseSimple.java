@@ -1,5 +1,9 @@
 package com.mz.jarboot.common;
 
+/**
+ * api响应数据基类
+ * @author majianzheng
+ */
 public class ResponseSimple extends BaseResponse{
 	
 	public ResponseSimple() {

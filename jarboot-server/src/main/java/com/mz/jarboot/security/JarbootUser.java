@@ -1,5 +1,8 @@
 package com.mz.jarboot.security;
 
+/**
+ * @author majianzheng
+ */
 public class JarbootUser {
     private String username;
     private String accessToken;

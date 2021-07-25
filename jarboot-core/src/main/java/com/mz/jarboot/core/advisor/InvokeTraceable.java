@@ -3,7 +3,7 @@ package com.mz.jarboot.core.advisor;
 /**
  * 方法调用跟踪<br/>
  * 当一个方法内部调用另外一个方法时，会触发此跟踪方法
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")

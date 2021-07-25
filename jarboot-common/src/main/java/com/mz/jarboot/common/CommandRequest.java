@@ -1,5 +1,9 @@
 package com.mz.jarboot.common;
 
+/**
+ * 命令请求
+ * @author majianzheng
+ */
 public class CommandRequest implements CmdProtocol {
     private CommandType commandType = CommandType.UNKNOWN;
     private String commandLine = "";
@@ -27,7 +31,7 @@ public class CommandRequest implements CmdProtocol {
 
     @Override
     public void fromRaw(String raw) {
-        if (null == raw || raw.length() < 3) {
+        if (null == raw || raw.length() < CommandConst.MIN_CMD_LEN) {
             return;
         }
         switch (raw.charAt(0)) {
@@ -43,7 +47,7 @@ public class CommandRequest implements CmdProtocol {
         }
         //从第二个字符到第一个空格，为sessionId
         int p = raw.indexOf(' ');
-        if (p < 2) {
+        if (p < CommandConst.MIN_CMD_LEN - 1) {
             throw new MzException("协议错误，缺少sessionId参数！");
         }
         sessionId = raw.substring(1, p);

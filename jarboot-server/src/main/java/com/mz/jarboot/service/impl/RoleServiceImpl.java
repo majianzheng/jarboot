@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+/**
+ * @author majianzheng
+ */
 @Service
 public class RoleServiceImpl implements RoleService {
     @Autowired
@@ -41,7 +44,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void addRole(String role, String username) {
         if (StringUtils.isEmpty(role) || StringUtils.isEmpty(username)) {
             throw new IllegalArgumentException("Argument can't be empty！");
@@ -63,7 +66,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void deleteRole(String role) {
         if (StringUtils.isEmpty(role)) {
             throw new IllegalArgumentException("Argument role can't be empty！");
@@ -77,7 +80,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void deleteRole(String role, String username) {
         if (StringUtils.isEmpty(role) || StringUtils.isEmpty(username)) {
             throw new IllegalArgumentException("Argument role or name can't be empty！");
@@ -102,7 +105,7 @@ public class RoleServiceImpl implements RoleService {
         return roleDao.getRoleList();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     @PostConstruct
     public void init() {
         //检查是否存在ADMIN_ROLE，否则创建

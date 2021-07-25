@@ -9,6 +9,9 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+/**
+ * @author majianzheng
+ */
 @ServerEndpoint("/public/jarboot-agent/ws/{server}")
 @RestController
 public class WebSocketAgentServer {

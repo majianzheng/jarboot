@@ -5,9 +5,10 @@ import com.mz.jarboot.core.utils.HtmlRenderUtils;
 import org.thymeleaf.context.Context;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class JvmView implements ResultView<JvmModel> {
+    @Override
     public String render(JvmModel model) {
         Context context = new Context();
         context.setVariable("memoryInfo", model.getMemoryInfo());

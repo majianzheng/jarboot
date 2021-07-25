@@ -1,5 +1,8 @@
 package com.mz.jarboot.core.utils;
 
+/**
+ * @author majianzheng
+ */
 public class HtmlNodeUtils {
     public static String createSpan(String text, String color) {
         return createNode("span", text, color);

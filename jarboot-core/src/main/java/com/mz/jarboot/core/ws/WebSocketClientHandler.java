@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Netty nio处理类
- * @author jianzhengma
+ * @author majianzheng
  */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

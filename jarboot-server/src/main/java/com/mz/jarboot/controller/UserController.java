@@ -9,20 +9,20 @@ import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(tags="用户管理")
+/**
+ * 用户管理
+ * @author majianzheng
+ */
 @RequestMapping(value = "/api/jarboot/user")
-@Controller
+@RestController
 @Permission
 public class UserController {
     @Autowired
@@ -30,7 +30,12 @@ public class UserController {
     @Autowired
     private JwtTokenManager jwtTokenManager;
 
-    @ApiOperation(value = "创建用户", httpMethod = "POST")
+    /**
+     * 创建用户
+     * @param username 用户名
+     * @param password 密码
+     * @return 执行结果
+     */
     @PostMapping
     @ResponseBody
     @Permission
@@ -39,7 +44,11 @@ public class UserController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "删除用户", httpMethod = "DELETE")
+    /**
+     * 删除用户
+     * @param id 用户id
+     * @return 执行结果
+     */
     @DeleteMapping
     @ResponseBody
     @Permission
@@ -48,7 +57,13 @@ public class UserController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "修改密码", httpMethod = "PUT")
+    /**
+     * 修改密码
+     * @param username 用户名
+     * @param password 密码
+     * @param request  http请求
+     * @return 执行结果
+     */
     @PutMapping
     @ResponseBody
     @Permission
@@ -65,7 +80,11 @@ public class UserController {
         return result;
     }
 
-    @ApiOperation(value = "根据用户名获取用户信息", httpMethod = "GET")
+    /**
+     * 根据用户名获取用户信息
+     * @param username 用户名
+     * @return 用户信息
+     */
     @GetMapping
     @ResponseBody
     @Permission
@@ -74,7 +93,12 @@ public class UserController {
         return new ResponseForObject<>(user);
     }
 
-    @ApiOperation(value = "获取用户列表", httpMethod = "GET")
+    /**
+     * 获取用户列表
+     * @param pageNo   页数
+     * @param pageSize 页大小
+     * @return 用户列表
+     */
     @GetMapping(value="/getUsers")
     @ResponseBody
     public ResponseForList<User> getUsers(int pageNo, int pageSize) {

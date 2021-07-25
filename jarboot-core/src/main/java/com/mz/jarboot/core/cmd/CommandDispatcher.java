@@ -21,7 +21,7 @@ public class CommandDispatcher {
             CommandSession session = EnvironmentContext.registerSession(request.getSessionId());
 
             CommandType type = request.getCommandType();
-            Command command = CommandBuilder.build(request, session);
+            AbstractCommand command = CommandBuilder.build(request, session);
 
             if (null == command) {
                 logger.warn("解析命令错误！");

@@ -2,6 +2,9 @@ package com.mz.jarboot.base;
 
 import java.util.Comparator;
 
+/**
+ * @author majianzheng
+ */
 public class RequestMappingInfo {
     
     private PathRequestCondition pathRequestCondition;

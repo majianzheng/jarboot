@@ -5,6 +5,10 @@ import com.mz.jarboot.core.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 树渲染
+ * @author majianzheng
+ */
 public class TreeElement extends Element {
     private TreeElement parent = null;
     private List<TreeElement> children = new ArrayList<>();

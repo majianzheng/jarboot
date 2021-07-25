@@ -7,6 +7,7 @@ import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -24,14 +27,17 @@ import java.util.*;
 public class TaskUtils {
     private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
-    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + "." + CommonConst.SERVICES + ".";
+    private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
+            CommonConst.SERVICES + CommonConst.DOT;
+    private static final int MIN_START_WAIT = 1500;
+    private static final int MAX_START_WAIT = 30000;
 
     private static long getStartWaitTime() {
         if (-1 == startWaitTime) {
             synchronized (TaskUtils.class) {
                 String val = ApplicationContextUtils.getEnv("jarboot.start-wait-time", "5000");
                 startWaitTime = NumberUtils.toLong(val, 5000);
-                if (startWaitTime < 1500 || startWaitTime > 30000) {
+                if (startWaitTime < MIN_START_WAIT || startWaitTime > MAX_START_WAIT) {
                     startWaitTime = 15000;
                 }
             }
@@ -44,7 +50,7 @@ public class TaskUtils {
      * @return 是否存活
      */
     public static boolean isAlive(String server) {
-        return checkAliveByJar(getAfterArgs(server));
+        return AgentManager.getInstance().isOnline(server) || checkAliveByJar(getAfterArgs(server));
     }
 
     /**
@@ -76,55 +82,61 @@ public class TaskUtils {
     public static void startServer(String server, ServerSettingDTO setting) {
         //获取启动的jar文件
         String jar = SettingUtils.getJarPath(setting);
-
         if (StringUtils.isEmpty(jar)) {
             return;
         }
+        //服务目录
+        String serverPath = SettingUtils.getServerPath(server);
+
         String jvm = SettingUtils.getJvm(server, setting.getVm());
         if (StringUtils.isEmpty(jvm)) {
             //未配置则获取默认的
-            jvm = SettingUtils.getDefaultJvmArg();
+            jvm = SettingUtils.getDefaultJvmArg() + StringUtils.SPACE;
         }
         StringBuilder cmdBuilder = new StringBuilder();
 
         // java命令
-        final String javaCmd = "java";
-        if (StringUtils.isNotEmpty(setting.getJdkPath())) {
-            // 使用了指定到jdk
-            cmdBuilder
-                    .append(setting.getJdkPath())
-                    .append( File.separator)
-                    .append("bin")
-                    .append( File.separator)
-                    .append(javaCmd);
-            if (OSUtils.isWindows()) {
-                cmdBuilder.append(".exe");
-            }
+        if (StringUtils.isBlank(setting.getJdkPath())) {
+            cmdBuilder.append(CommonConst.JAVA_CMD);
         } else {
-            cmdBuilder.append(javaCmd);
+            // 使用了指定到jdk
+            String jdkPath = getAbsPath(setting.getJdkPath(), serverPath);
+            cmdBuilder
+                    .append(jdkPath)
+                    .append( File.separator)
+                    .append(CommonConst.BIN_NAME)
+                    .append( File.separator)
+                    .append(CommonConst.JAVA_CMD);
+            if (OSUtils.isWindows()) {
+                cmdBuilder.append(CommonConst.EXE_EXT);
+            }
         }
+        cmdBuilder.append(StringUtils.SPACE);
         // jvm 配置
         if (StringUtils.isBlank(jvm)) {
-            cmdBuilder.append(" -jar ").append(jar);
+            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
         } else {
-            cmdBuilder.append(" ").append(jvm).append(" -jar ").append(jar);
+            cmdBuilder.append(jvm).append(CommonConst.ARG_JAR).append(jar);
         }
 
         // 传入参数
         String startArg = setting.getArgs();
         if (StringUtils.isNotEmpty(startArg)) {
-            cmdBuilder.append(" ").append(startArg);
+            cmdBuilder.append(StringUtils.SPACE).append(startArg);
         }
 
         // 进程标识
-        cmdBuilder.append(" ").append(getAfterArgs(server));
+        cmdBuilder.append(StringUtils.SPACE).append(getAfterArgs(server));
 
         String cmd = cmdBuilder.toString();
 
         // 工作目录
         String workHome = setting.getWorkDirectory();
         if (StringUtils.isBlank(workHome)) {
-            workHome = SettingUtils.getServerPath(server);
+            workHome = serverPath;
+        } else {
+            //解析相对路径或绝对路径，得到真实路径
+            workHome = getAbsPath(workHome, serverPath);
         }
 
         //打印命令行
@@ -172,7 +184,20 @@ public class TaskUtils {
     }
 
     public interface PushMsgCallback {
+        /**
+         * 反馈的消息
+         * @param text 消息
+         */
         void sendMessage(String text);
+    }
+
+    private static String getAbsPath(String s, String serverPath) {
+        Path path = Paths.get(s);
+        if (path.isAbsolute()) {
+            return s;
+        }
+        File dir = FileUtils.getFile(serverPath, s);
+        return dir.getPath();
     }
 
     /**
@@ -223,7 +248,7 @@ public class TaskUtils {
         }
         if (OSUtils.isMac()) {
             //MacOS取第二段数字部分
-            index = line.indexOf(' ', index);
+            index = line.indexOf(StringUtils.SPACE, index);
         }
 
         StringBuilder builder = new StringBuilder();
@@ -250,14 +275,14 @@ public class TaskUtils {
         if (StringUtils.isBlank(environment)) {
             en = null;
         } else {
-            en = environment.split(",");
+            en = environment.split(CommonConst.COMMA_SPLIT);
         }
         File dir = null;
         if (StringUtils.isNotEmpty(workHome)) {
             dir = new File(workHome);
         }
 
-        String msg = "finished.";
+        String msg = "Finished.";
         try (InputStream inputStream = Runtime.getRuntime().exec(command, en, dir).getInputStream()) {
             if (null == callback) {
                 return;
@@ -276,6 +301,7 @@ public class TaskUtils {
         }
     }
 
+    @SuppressWarnings("all")
     private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
             throws IOException, InterruptedException {
         long timestamp = System.currentTimeMillis();
@@ -288,7 +314,7 @@ public class TaskUtils {
                 if (interval > waitTime) {
                     break;
                 }
-                Thread.sleep(100);//NOSONAR
+                Thread.sleep(100);
             } else {
                 //可用
                 len = inputStream.read(buffer);
@@ -337,7 +363,7 @@ public class TaskUtils {
     }
 
     public static Map<String, Integer> findJavaProcess() {
-        HashMap<String, Integer> pidCmdMap = new HashMap<>();
+        HashMap<String, Integer> pidCmdMap = new HashMap<>(32);
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, name) -> {
             final int p = name.lastIndexOf(ADDER_ARGS_PREFIX);

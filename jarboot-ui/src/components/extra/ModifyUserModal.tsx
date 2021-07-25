@@ -10,7 +10,7 @@ interface ModifyPasswordModalProp {
     username: string;
     onClose: (success?: boolean) => void;
     isCreate: boolean;
-};
+}
 
 const ModifyUserModal: any = memo((props: ModifyPasswordModalProp) => {
     const intl = useIntl();

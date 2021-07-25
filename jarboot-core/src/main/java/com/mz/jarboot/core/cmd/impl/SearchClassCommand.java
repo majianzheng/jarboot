@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd.impl;
 
 
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
@@ -31,7 +31,7 @@ import java.util.*;
         "  sc -d -f org.apache.commons.lang.StringUtils\n" +
         "  sc -E org\\\\.apache\\\\.commons\\\\.lang\\\\.StringUtils\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "sc")
-public class SearchClassCommand extends Command {
+public class SearchClassCommand extends AbstractCommand {
     private String classPattern;
     private boolean isDetail = false;
     private boolean isField = false;

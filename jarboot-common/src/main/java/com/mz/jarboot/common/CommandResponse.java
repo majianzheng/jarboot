@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * We defined a response data structure or protocol used give back the executed result.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CommandResponse implements CmdProtocol {
     private static final char SUCCESS_FLAG = '1';
@@ -20,12 +20,16 @@ public class CommandResponse implements CmdProtocol {
         //格式: 前3个字符是控制位 + 数据体
         //控制位 0 响应类型、1 是否成功、2保留填-
         char rt = this.getResponseTypeChar();
-        return new StringBuilder() //响应类型
+        return new StringBuilder()
+                //响应类型
                 .append(rt)
-                .append(Boolean.TRUE.equals(success) ? SUCCESS_FLAG : '0')//是否成功标志
-                .append('-') //保留位
+                //是否成功标志
+                .append(Boolean.TRUE.equals(success) ? SUCCESS_FLAG : '0')
+                //保留位
+                .append('-')
                 .append(body)
-                .append(' ') //最后填充sessionId
+                .append(' ')
+                //最后填充sessionId
                 .append(sessionId)
                 .toString();
     }

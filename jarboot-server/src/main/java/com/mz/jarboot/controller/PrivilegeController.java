@@ -8,19 +8,17 @@ import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.entity.Privilege;
 import com.mz.jarboot.security.PermissionInfo;
 import com.mz.jarboot.service.PrivilegeService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
-@Api(tags="权限管理")
+/**
+ * 权限管理
+ * @author majianzheng
+ */
 @RequestMapping(value = "/api/jarboot/privilege")
-@Controller
+@RestController
 @Permission
 public class PrivilegeController {
     @Autowired
@@ -28,7 +26,13 @@ public class PrivilegeController {
     @Autowired
     private PermissionsCache permissionsCache;
 
-    @ApiOperation(value = "修改权限", httpMethod = "PUT")
+    /**
+     * 修改权限
+     * @param role 角色
+     * @param username 用户名
+     * @param permission 是否拥有权限
+     * @return 执行结果
+     */
     @PutMapping
     @ResponseBody
     @Permission("Modify permission")
@@ -37,7 +41,12 @@ public class PrivilegeController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "获取是否拥有权限", httpMethod = "GET")
+    /**
+     * 获取是否拥有权限
+     * @param role 角色
+     * @param username 用户
+     * @return 是否拥有权限
+     */
     @GetMapping
     @ResponseBody
     public ResponseForObject<Boolean> hasPrivilege(String role, String username) {
@@ -45,7 +54,11 @@ public class PrivilegeController {
         return new ResponseForObject<>(has);
     }
 
-    @ApiOperation(value = "获取是否拥有权限", httpMethod = "GET")
+    /**
+     * 根据角色获取权限
+     * @param role 角色
+     * @return 权限列表
+     */
     @GetMapping("/getPrivilegeByRole")
     @ResponseBody
     public ResponseForList<Privilege> getPrivilegeByRole(String role) {
@@ -53,7 +66,10 @@ public class PrivilegeController {
         return new ResponseForList<>(result);
     }
 
-    @ApiOperation(value = "获取权限信息", httpMethod = "GET")
+    /**
+     * 获取权限信息
+     * @return 权限信息列表
+     */
     @GetMapping("/getPermissionInfos")
     @ResponseBody
     public ResponseForList<PermissionInfo> getPermissionInfos() {

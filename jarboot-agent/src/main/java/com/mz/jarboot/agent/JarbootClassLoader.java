@@ -3,6 +3,9 @@ package com.mz.jarboot.agent;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+/**
+ * @author majianzheng
+ */
 public class JarbootClassLoader extends URLClassLoader {
     public JarbootClassLoader(URL[] urls) {
         super(urls, ClassLoader.getSystemClassLoader().getParent());

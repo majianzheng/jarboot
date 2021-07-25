@@ -11,6 +11,10 @@ import {Form, Input, Modal} from "antd";
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 
+/**
+ * 角色管理
+ * @author majianzheng
+ */
 const RoleMgr = memo(() => {
     const intl = useIntl();
     const [form] = Form.useForm();
@@ -112,9 +116,9 @@ const RoleMgr = memo(() => {
         form.submit();
     };
 
-    const onSubmit = (data: any) => {
+    const onSubmit = (formData: any) => {
         //提交
-        RoleService.addRole(data.role, data.username).then(resp => {
+        RoleService.addRole(formData.role, formData.username).then(resp => {
             if (0 === resp.resultCode) {
                 onModalClose();
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));

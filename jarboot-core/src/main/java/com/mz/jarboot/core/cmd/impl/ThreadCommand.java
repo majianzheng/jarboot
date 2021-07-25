@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.BlockingLockInfo;
 import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
@@ -33,7 +33,7 @@ import java.util.*;
         "  thread -i 2000\n" +
         "  thread --state BLOCKED\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "thread")
-public class ThreadCommand extends Command {
+public class ThreadCommand extends AbstractCommand {
     private static Set<String> states = null;
     private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     private long id = -1;

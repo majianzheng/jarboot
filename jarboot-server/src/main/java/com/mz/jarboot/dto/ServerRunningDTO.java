@@ -1,5 +1,8 @@
 package com.mz.jarboot.dto;
 
+/**
+ * @author majianzheng
+ */
 public class ServerRunningDTO {
     private Integer pid;
     private String status;
@@ -27,5 +30,14 @@ public class ServerRunningDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerRunningDTO{" +
+                "pid=" + pid +
+                ", status='" + status + '\'' +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.model.JvmModel;
 import java.lang.management.*;
 import java.lang.reflect.Method;
@@ -8,9 +8,9 @@ import java.util.*;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
-public class JvmCommand extends Command {
+public class JvmCommand extends AbstractCommand {
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
     private final CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
@@ -112,10 +112,11 @@ public class JvmCommand extends Command {
         model.appendFileDescInfo("OPEN-FILE-DESCRIPTOR-COUNT", invokeFileDescriptor(operatingSystemMXBean, "getOpenFileDescriptorCount"));
     }
 
+    @SuppressWarnings("all")
     private long invokeFileDescriptor(OperatingSystemMXBean os, String name) {
         try {
             final Method method = os.getClass().getDeclaredMethod(name);
-            method.setAccessible(true); //NOSONAR
+            method.setAccessible(true);
             return (Long) method.invoke(os);
         } catch (Exception e) {
             return -1;

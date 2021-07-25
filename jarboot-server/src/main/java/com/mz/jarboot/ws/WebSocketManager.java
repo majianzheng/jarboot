@@ -1,10 +1,12 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,13 +15,14 @@ import java.util.concurrent.*;
 
 /**
  * 与浏览器交互的WebSocket管理
- * @author jianzhengma
+ * @author majianzheng
  */
 public class WebSocketManager {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketManager.class);
 
-    private static volatile WebSocketManager instance = null;// NOSONAR
-    private final ConcurrentHashMap<String, MessageQueueOperator> sessionMap = new ConcurrentHashMap<>();
+    @SuppressWarnings("all")
+    private static volatile WebSocketManager instance = null;
+    private final ConcurrentHashMap<String, MessageQueueOperator> sessionMap = new ConcurrentHashMap<>(32);
     /**
      * 消费推送到前端的消息的线程组，执行流程如下
      * ┌─────────────┐  Push to   ┌────────────────┐ Note:
@@ -30,10 +33,12 @@ public class WebSocketManager {
      *                            ┌──────────────────┐
      *                            │ Consumer threads │ When empty and timeout, then release to thread pool.
      *                            └──────────────────┘
+     * WebSocket消息推送消费者线程池定义
      */
     private final ThreadPoolExecutor msgConsumerExecutor = new ThreadPoolExecutor(
-            16, 32, 30L,TimeUnit.SECONDS,
+            16, 32, 30L, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(64),
+            JarbootThreadFactory.createThreadFactory("jarboot-ws-push-pool", true),
             (Runnable r, ThreadPoolExecutor executor) -> logger.warn("线程忙碌，无法响应发送消息请求！"));
 
     private WebSocketManager(){
@@ -135,7 +140,7 @@ public class WebSocketManager {
             default:
                 return;
         }
-        String msg = formatMsg("", type, text);
+        String msg = formatMsg(StringUtils.EMPTY, type, text);
         if (!sessionMap.isEmpty()) {
             this.sessionMap.forEach((k, session) -> messageProducer(session, msg));
         }
@@ -148,6 +153,7 @@ public class WebSocketManager {
         return sb.toString();
     }
 
+    @SuppressWarnings("all")
     public static void messageProducer(final MessageQueueOperator operator, String msg) {
         operator.newMessage(msg);
         if (operator.isRunning()) {
@@ -155,7 +161,7 @@ public class WebSocketManager {
         }
 
         // 这里保证一个MessageQueueOperator只会有一个线程在消费
-        synchronized (operator) { // NOSONAR
+        synchronized (operator) {
             // 若未开始，则启动消息处理线程进行消费
             operator.setRunning();
             instance.msgConsumerExecutor.execute(operator);

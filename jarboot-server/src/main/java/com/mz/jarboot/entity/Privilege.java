@@ -4,6 +4,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+/**
+ * @author majianzheng
+ */
 @Table(name = Privilege.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"role", "resource"})})
 @Entity
 public class Privilege extends AbstractBaseEntity {

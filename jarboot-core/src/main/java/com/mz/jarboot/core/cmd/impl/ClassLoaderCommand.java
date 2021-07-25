@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.annotation.Name;
 import com.mz.jarboot.core.cmd.annotation.Option;
@@ -22,7 +22,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")
@@ -38,7 +38,7 @@ import java.util.Map.Entry;
         "  classloader -a -c 327a647b\n" +
         "  classloader -c 659e0bfd --load demo.MathGame\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "classloader")
-public class ClassLoaderCommand extends Command {
+public class ClassLoaderCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private boolean isTree = false;
     private String hashCode;

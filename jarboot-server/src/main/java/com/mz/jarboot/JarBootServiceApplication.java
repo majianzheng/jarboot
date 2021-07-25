@@ -4,6 +4,7 @@ import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.service.TaskWatchService;
+import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -14,7 +15,7 @@ import java.security.CodeSource;
 
 /**
  * Spring boot main function.
- * @author jianzhengma
+ * @author majianzheng
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
 @PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
@@ -23,13 +24,15 @@ public class JarBootServiceApplication {
 	public static void main(String[] args) {
 		//初始化工作空间路径
 		String userHome = System.getProperty("user.home");
-		String wsHome = userHome + File.separator + "jarboot";
-		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome); //初始化工作目录
+		String wsHome = userHome + File.separator + CommonConst.JARBOOT_NAME;
+		//初始化工作目录
+		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
 		String homePath = getCurrentPath();
 		if (null == homePath) {
 			homePath = wsHome;
 		}
-		System.setProperty(CommonConst.JARBOOT_HOME, homePath); //初始化当前目录
+		//初始化当前目录
+		System.setProperty(CommonConst.JARBOOT_HOME, homePath);
 		System.setProperty("application.version", "v" + VersionUtils.version);
 		//启动环境检查，若不符合环境要求则弹出swing提示框提醒问题
 		CheckBeforeStart.check();
@@ -46,14 +49,15 @@ public class JarBootServiceApplication {
 		try {
 			curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
 			String path = curJar.getPath();
-			int p = path.lastIndexOf(".jar");
+			int p = path.lastIndexOf(CommonConst.JAR_EXT);
 			if (-1 == p) {
 				return null;
 			}
 			//取上级目录
+			final String prefix = "file:";
 			p = path.lastIndexOf(File.separatorChar, p);
-			if (0 == path.indexOf("file:")) {
-				if ('\\' == path.charAt(5)) {
+			if (0 == path.indexOf(prefix)) {
+				if (IOUtils.DIR_SEPARATOR_WINDOWS == path.charAt(prefix.length())) {
 					return path.substring(6, p);
 				}
 				return path.substring(5, p);

@@ -10,6 +10,7 @@ import java.util.List;
 public interface Completion {
 
     /**
+     * raw line
      * @return the current line being completed in raw format, i.e without any char escape performed
      */
     String rawLine();

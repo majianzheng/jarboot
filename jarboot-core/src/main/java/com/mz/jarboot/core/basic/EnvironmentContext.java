@@ -1,13 +1,14 @@
 package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.core.advisor.TransformerManager;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
+import com.mz.jarboot.common.JarbootThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.*;
 
 /**
  * The jarboot running environment context.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class EnvironmentContext {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
@@ -27,8 +28,8 @@ public class EnvironmentContext {
     private static String host;
     private static TransformerManager transformerManager;
     private static Instrumentation instrumentation;
-    private static ConcurrentMap<String, CommandSession> sessionMap = new ConcurrentHashMap<>();
-    private static ConcurrentMap<String, Command> runningCommandMap = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, CommandSession> sessionMap = new ConcurrentHashMap<>(16);
+    private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
     private static ResultViewResolver resultViewResolver;
@@ -41,11 +42,8 @@ public class EnvironmentContext {
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
         EnvironmentContext.resultViewResolver = new ResultViewResolver();
-        scheduledExecutorService = Executors.newScheduledThreadPool(1, r -> {
-            final Thread t = new Thread(r, "jarboot-sh-cmd");
-            t.setDaemon(true);
-            return t;
-        });
+        scheduledExecutorService = Executors.newScheduledThreadPool(1,
+                JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
             File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
@@ -62,12 +60,12 @@ public class EnvironmentContext {
     public static void cleanSession() {
         if (!sessionMap.isEmpty()) {
             sessionMap.forEach((k, v) -> v.cancel());
-            sessionMap = new ConcurrentHashMap<>();
+            sessionMap = new ConcurrentHashMap<>(16);
             StdOutStreamReactor.getInstance().unRegisterAll();
         }
         if (!runningCommandMap.isEmpty()) {
             runningCommandMap.forEach((k, v) -> v.cancel());
-            runningCommandMap = new ConcurrentHashMap<>();
+            runningCommandMap = new ConcurrentHashMap<>(16);
         }
     }
 
@@ -109,7 +107,7 @@ public class EnvironmentContext {
 
     /**
      * 检查job是否已经结束
-     * @return
+     * @return 是否结束
      */
     public static boolean checkJobEnd(String sessionId, String jobId) {
         CommandSession session = sessionMap.getOrDefault(sessionId, null);
@@ -119,18 +117,18 @@ public class EnvironmentContext {
         return !session.getJobId().equals(jobId);
     }
 
-    public static Command getCurrentCommand(String sessionId) {
+    public static AbstractCommand getCurrentCommand(String sessionId) {
         return runningCommandMap.getOrDefault(sessionId, null);
     }
 
     /**
      * Run the command in running environment, one time one command in one session.
-     * @param command
+     * @param command 命令
      */
-    public static void runCommand(Command command) {
+    public static void runCommand(AbstractCommand command) {
         CommandSession session = command.getSession();
         if (session.isRunning()) {
-            Command cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
+            AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
             if (null == cmd) {
                 session.end();
             } else {
@@ -154,10 +152,10 @@ public class EnvironmentContext {
 
     /**
      * when browser client exit or refreshed it will be reconnect a new session.
-     * @param sessionId
+     * @param sessionId 会话id
      */
     public static void releaseSession(String sessionId) {
-        Command command = runningCommandMap.getOrDefault(sessionId, null);
+        AbstractCommand command = runningCommandMap.getOrDefault(sessionId, null);
         if (null != command) {
             command.cancel();
             runningCommandMap.remove(sessionId);

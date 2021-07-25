@@ -5,6 +5,10 @@ import UserList from "@/components/auth/UserList";
 import RoleMgr from "@/components/auth/RoleMgr";
 import PrivilegeMgr from "@/components/auth/PrivilegeMgr";
 
+/**
+ * 权限控制
+ * @author majianzheng
+ */
 const AuthControl = memo(() => {
     const intl = useIntl();
     let [selected, setSelected] = useState("UserList");

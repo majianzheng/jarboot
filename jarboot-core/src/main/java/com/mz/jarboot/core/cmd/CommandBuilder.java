@@ -15,13 +15,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Create the command instance by the command line
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class CommandBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static final Map<String, Class<? extends Command>> commandMap = new ConcurrentHashMap<>();
-    private static final Map<String, Class<? extends Command>> internalCommandMap = new ConcurrentHashMap<>();
+    private static final Map<String, Class<? extends AbstractCommand>> commandMap = new ConcurrentHashMap<>();
+    private static final Map<String, Class<? extends AbstractCommand>> internalCommandMap = new ConcurrentHashMap<>();
     static {
         commandMap.put("bytes", BytesCommand.class);
         commandMap.put("jvm", JvmCommand.class);
@@ -44,7 +44,7 @@ public class CommandBuilder {
         internalCommandMap.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
     }
     private CommandBuilder(){}
-    public static Command build(CommandRequest request, CommandSession session) {
+    public static AbstractCommand build(CommandRequest request, CommandSession session) {
         CommandType type = request.getCommandType();
         String commandLine = request.getCommandLine();
         int p = commandLine.indexOf(' ');
@@ -52,14 +52,14 @@ public class CommandBuilder {
         String args;
         if (-1 == p) {
             name = commandLine;
-            args = "";
+            args = CoreConstant.EMPTY_STRING;
         } else {
             name = commandLine.substring(0, p);
             args = commandLine.substring(p + 1);
         }
         name = name.toLowerCase();
         logger.info("type:{}, cmd:{}, args:{}", type, name, args);
-        Class<? extends Command> cls = (CommandType.INTERNAL.equals(type)) ?
+        Class<? extends AbstractCommand> cls = (CommandType.INTERNAL.equals(type)) ?
                 internalCommandMap.getOrDefault(name, null) :
                 commandMap.getOrDefault(name, null);
         if (null == cls) {
@@ -72,7 +72,7 @@ public class CommandBuilder {
             CommandArgsParser parser = new CommandArgsParser(args, cls);
 
             //构建command实例
-            Command command = parser.getCommand();
+            AbstractCommand command = parser.getCommand();
             command.setSession(session);
             //设置命令名
             command.setName(name);
@@ -84,8 +84,8 @@ public class CommandBuilder {
         return null;
     }
 
-    private static void printSummary(Command command) {
-        Class<? extends Command> cls = command.getClass();
+    private static void printSummary(AbstractCommand command) {
+        Class<? extends AbstractCommand> cls = command.getClass();
         Summary summary = cls.getAnnotation(Summary.class);
         Description usage = cls.getAnnotation(Description.class);
         StringBuilder sb = new StringBuilder();

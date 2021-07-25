@@ -2,6 +2,9 @@ package com.mz.jarboot.auth.annotation;
 
 import java.lang.annotation.*;
 
+/**
+ * @author majianzheng
+ */
 @Target({java.lang.annotation.ElementType.TYPE, java.lang.annotation.ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

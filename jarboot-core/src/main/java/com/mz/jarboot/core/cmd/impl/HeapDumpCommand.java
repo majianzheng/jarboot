@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.HeapDumpModel;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Summary("Heap dump")
 @Description("\nExamples:\n" + "  heapdump\n" + "  heapdump --live\n"
                 + CoreConstant.WIKI + CoreConstant.WIKI_HOME + "heapdump")
-public class HeapDumpCommand extends Command {
+public class HeapDumpCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
 
     private boolean live;

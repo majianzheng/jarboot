@@ -1,4 +1,3 @@
-import * as React from "react";
 import styles from "./index.less";
 import Console from "@/components/console";
 import {memo, useEffect, useRef, useState} from "react";
@@ -31,7 +30,7 @@ enum PUB_TOPIC {
 
 const outHeight = `${window.innerHeight - 150}px`;
 
-const SuperPanel = memo((props: SuperPanelProps) => {
+const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const [view, setView] = useState('');
     const [executing, setExecuting] = useState(false);
@@ -52,12 +51,12 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         'heapdump': <HeapDumpView data={data}/>,
     };
 
-    const renderView = (data: any) => {
-        const cmd = data.name;
+    const renderView = (resultData: any) => {
+        const cmd = resultData.name;
         if (cmd !== view) {
             setView(cmd);
         }
-        setData(data);
+        setData(resultData);
     };
 
     const onExecQuickCmd = (cmd: string) => {

@@ -3,6 +3,7 @@ import ErrorUtil from "@/common/ErrorUtil";
 
 /**
  * 通知组件
+ * @author majianzheng
  */
 export default class CommonNotice {
     /**

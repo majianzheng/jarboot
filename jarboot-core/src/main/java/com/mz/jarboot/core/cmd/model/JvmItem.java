@@ -1,5 +1,8 @@
 package com.mz.jarboot.core.cmd.model;
 
+/**
+ * @author majianzheng
+ */
 public class JvmItem {
     private String name;
     private Object value;

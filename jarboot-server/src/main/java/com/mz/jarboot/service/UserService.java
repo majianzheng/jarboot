@@ -3,6 +3,9 @@ package com.mz.jarboot.service;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.entity.User;
 
+/**
+ * @author majianzheng
+ */
 public interface UserService {
     /**
      * 创建用户

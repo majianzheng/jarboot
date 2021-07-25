@@ -1,13 +1,33 @@
     ,---,                       ____             
   .'  .' `\                   ,'  , `.           
 ,---.'     \               ,-+-,.' _ |   ,---.   
-|   |  .`\  |           ,-+-. ;   , ||  '   ,'\  🌈 Jarboot server demo ✨
-:   : |  '  |   ,---.  ,--.'|'   |  || /   /   | 🐴 Port:   ${server.port}
-|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. : 🐱 Pid:    ${pid}
-'   | ;  .  | /    /  |   | /  | |--' '   | |: : 🍎 Author: https://github.com/majianzheng
+|   |  .`\  |           ,-+-. ;   , ||  '   ,'\   Jarboot server demo ✨
+:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |
+|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :
+'   | ;  .  | /    /  |   | /  | |--' '   | |: :  Author: https://github.com/majianzheng
 |   | :  |  '.    ' / |   : |  | ,    '   | .; : 
 '   : | /  ; '   ;   /|   : |  |/     |   :    | 
 |   | '` ,/  '   |  / |   | |`-'       \   \  /  
 ;   :  .'    |   :    |   ;/            `----'   
 |   ,.'       \   \  /'---'                      
-'---'          `----'                            
+'---'          `----'
+Jarboot version: v${project.version}
+This application just for test, using Java Swing framework.
+
+In this test application UI you can execute some method for Jarboot tests.
+Execute command:
+jad com.mz.jarboot.demo.DemoServerApplication
+stdout on
+Watch or trace fib and pow method
+watch com.mz.jarboot.demo.DemoServerApplication fib
+trace com.mz.jarboot.demo.DemoServerApplication fib
+watch com.mz.jarboot.demo.DemoServerApplication pow
+trace com.mz.jarboot.demo.DemoServerApplication pow
+
+************************************************************************
+*   When start finished, please first execute command: stdout on
+*   to enable the console output show.
+*   启动成功后，请先执行命令: stdout on，开启应用的控制台输出流的实时显示
+************************************************************************
+More advanced application examples :
+https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example

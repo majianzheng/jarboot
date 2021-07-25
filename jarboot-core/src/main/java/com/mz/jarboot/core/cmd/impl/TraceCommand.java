@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @Name("trace")

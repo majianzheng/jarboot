@@ -2,7 +2,7 @@ package com.mz.jarboot.core.utils.matcher;
 
 /**
  * 匹配器
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
 public interface Matcher<T> {

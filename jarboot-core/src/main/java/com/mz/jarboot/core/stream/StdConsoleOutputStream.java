@@ -2,6 +2,7 @@ package com.mz.jarboot.core.stream;
 
 import java.io.OutputStream;
 
+@SuppressWarnings("all")
 public class StdConsoleOutputStream extends OutputStream {
     private static final int LINE_BREAK = 10;
     private static final int MIN_PRINT_UNIT = 12;

@@ -2,8 +2,11 @@ package com.mz.jarboot.event;
 
 import org.springframework.context.ApplicationContext;
 
+/**
+ * @author majianzheng
+ */
 public class ApplicationContextUtils {
-    private static ApplicationContext ctx; //应用上下文
+    private static ApplicationContext ctx;
     private ApplicationContextUtils() {}
 
     public static void publish(Object event) {

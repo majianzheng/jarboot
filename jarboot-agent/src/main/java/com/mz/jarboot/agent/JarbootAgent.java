@@ -9,6 +9,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 
+/**
+ * @author majianzheng
+ */
 @SuppressWarnings("all")
 public class JarbootAgent {
     private static final String JARBOOT_CORE_JAR = "jarboot-core.jar";

@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.stream;
 
-import com.alibaba.fastjson.JSON;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
@@ -14,14 +14,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * 大数据量传输通过http协议，使用WebSocket会增加额外的拆包、组包实现增加业务复杂性
  * 快慢个几毫秒眼睛也分辨不出来
- * @author jianzhengma
+ * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final String API = "api/public/agent/response?server";
     private static final String RESP_URL =String.format("http://%s/%s=%s",
             EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
-    private static final OkHttpClient httpClient = new OkHttpClient.Builder()
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(30L, TimeUnit.SECONDS)
             .readTimeout(30L, TimeUnit.SECONDS)
             .writeTimeout(30L, TimeUnit.SECONDS)
@@ -39,12 +39,16 @@ public class HttpResponseStreamImpl implements ResponseStream {
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
 
-        Call call = httpClient.newCall(request);
+        Call call = HTTP_CLIENT.newCall(request);
         try {
             ResponseBody response = call.execute().body();
             if (null != response) {
                 String body = response.string();
-                ResponseSimple resp = JSON.parseObject(body, ResponseSimple.class);
+                ResponseSimple resp = JsonUtils.readValue(body, ResponseSimple.class);
+                if (null == resp) {
+                    logger.error("返回结果解析json失败！{}", body);
+                    return;
+                }
                 if (resp.getResultCode() != ResultCodeConst.SUCCESS) {
                     logger.error(resp.getResultMsg());
                 }

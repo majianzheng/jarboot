@@ -1,10 +1,13 @@
 package com.mz.jarboot.core.advisor;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 public enum AccessPoint {
+    /**
+     * Access before
+     */
     ACCESS_BEFORE(1, "AtEnter"), ACCESS_AFTER_RETUNING(1 << 1, "AtExit"), ACCESS_AFTER_THROWING(1 << 2, "AtExceptionExit");
 
     private int value;

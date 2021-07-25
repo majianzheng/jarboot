@@ -1,6 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 
+/**
+ * build 完成后自动清理jarboot-server/static下的文件并拷贝更新
+ * @author majianzheng
+ */
+
 const distBase = './dist/';
 const staticDir = '../jarboot-server/src/main/resources/static/';
 
@@ -22,7 +27,9 @@ function clean(dir) {
     });
 }
 // 清理旧资源
+console.info("Cleaning old static...");
 clean(staticDir);
+console.info("Clean old static success!");
 
 // 开始拷贝
 fs.readdir(distBase, (err, files) => {
@@ -31,7 +38,7 @@ fs.readdir(distBase, (err, files) => {
         return;
     }
     files.forEach(file => {
-        console.info(`>>>Copy ${file}...`);
+        console.info(`>>>Copying ${file}...`);
         let rs = fs.createReadStream(path.join(distBase, file));
         let out = fs.createWriteStream(path.join(staticDir, file));
         rs.pipe(out);

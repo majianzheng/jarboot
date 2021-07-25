@@ -17,6 +17,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author majianzheng
+ */
 @SuppressWarnings("all")
 public class CommandBuilderTest {
     @BeforeClass
@@ -30,7 +33,7 @@ public class CommandBuilderTest {
         CommandRequest request = new CommandRequest();
         CommandSession session = Mockito.mock(CommandSession.class);
         request.fromRaw(line);
-        Command cmd = CommandBuilder.build(request, session);
+        AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
         TraceCommand trace = (TraceCommand)cmd;
         assertEquals("trace", trace.getName());
@@ -102,7 +105,7 @@ public class CommandBuilderTest {
         CommandRequest request = new CommandRequest();
         CommandSession session = Mockito.mock(CommandSession.class);
         request.fromRaw(line);
-        Command cmd = CommandBuilder.build(request, session);
+        AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof ExitCommand).isTrue();
         assertEquals("exit", cmd.getName());
 

@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
 
     <artifactId>jarboot-packaging</artifactId>
+    <name>Jarboot packaging</name>
 
     <build>
         <finalName>jarboot</finalName>

@@ -2,6 +2,9 @@ package com.mz.jarboot.event;
 
 import java.util.List;
 
+/**
+ * @author majianzheng
+ */
 public class TaskEvent {
     private TaskEventEnum eventType;
     private List<String> services;

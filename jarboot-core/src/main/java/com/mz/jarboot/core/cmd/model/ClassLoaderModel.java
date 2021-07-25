@@ -15,7 +15,7 @@ public class ClassLoaderModel extends ResultModel {
     private List<String> resources;
     private ClassDetailVO loadClass;
     private List<String> urls;
-    //classloader -l -t
+    /** classloader -l -t */
     private List<ClassLoaderVO> classLoaders;
     private Boolean tree;
 

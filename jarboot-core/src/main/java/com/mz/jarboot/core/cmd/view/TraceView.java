@@ -22,7 +22,7 @@ public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.Trace
     private static final String STEP_EMPTY_BOARD = "    ";
     private static final String TIME_UNIT = "ms";
 
-    // 是否输出耗时
+    /** 是否输出耗时 */
     private boolean isPrintCost = true;
     private MethodNode maxCostNode;
 
@@ -186,7 +186,13 @@ public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.Trace
      */
     private interface Callback {
 
+        /**
+         * 回调方法
+         * @param deep 深度
+         * @param isLast 是否最后
+         * @param prefix prefix
+         * @param node node
+         */
         void callback(int deep, boolean isLast, String prefix, TraceNode node);
-
     }
 }

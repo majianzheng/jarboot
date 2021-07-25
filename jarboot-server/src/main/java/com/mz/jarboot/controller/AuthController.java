@@ -10,8 +10,6 @@ import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.RoleService;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +25,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-@Api(tags="鉴权接口")
+/**
+ * 鉴权接口
+ * @author majianzheng
+ */
 @RequestMapping(value = "/api/auth")
 @Controller
-public class OAuthController {
+public class AuthController {
     private static final int DEFAULT_PAGE_NO = 1;
 
     private static final String PARAM_USERNAME = "username";
@@ -50,7 +50,11 @@ public class OAuthController {
     @Value("${jarboot.token.expire.seconds:18000}")
     private long expireSeconds;
 
-    @ApiOperation(value = "获取当前登录的用户", httpMethod = "GET")
+    /**
+     * 获取当前登录的用户
+     * @param request Http请求
+     * @return 结果
+     */
     @GetMapping(value="/getCurrentUser")
     @ResponseBody
     public ResponseForObject<Object> getCurrentUser(HttpServletRequest request) {
@@ -66,15 +70,17 @@ public class OAuthController {
         return current;
     }
 
-    @ApiOperation(value = "登入系统", httpMethod = "POST")
+    /**
+     * 登入系统
+     * @param request http请求
+     * @return 结果
+     */
     @PostMapping(value="/login")
     @ResponseBody
-    public ResponseForObject<JarbootUser> login(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseForObject<JarbootUser> login(HttpServletRequest request) {
         String token = resolveToken(request);
         ResponseForObject<JarbootUser> result = new ResponseForObject<>();
 
-        // write Token to Http header
-        response.addHeader(AuthConst.AUTHORIZATION_HEADER, "Bearer " + token);
         String username = request.getParameter(PARAM_USERNAME);
         if (StringUtils.isEmpty(username)) {
             // 已经登录了，鉴定权限
@@ -113,6 +119,11 @@ public class OAuthController {
         return result;
     }
 
+    /**
+     * 根据用户名获取角色
+     * @param username 用户名
+     * @return 角色
+     */
     public List<RoleInfo> getRoles(String username) {
         ResponseForList<RoleInfo> roleInfoList = roleService.getRolesByUserName(username, DEFAULT_PAGE_NO, Integer.MAX_VALUE);
         List<RoleInfo> roleInfos = roleInfoList.getResult();

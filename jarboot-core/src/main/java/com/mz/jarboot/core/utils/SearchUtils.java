@@ -91,7 +91,8 @@ public class SearchUtils {
         if (StringUtils.isEmpty(classPattern)) {
             classPattern = isRegEx ? ".*" : "*";
         }
-        if (!classPattern.contains("$$Lambda")) {
+        final String lambda = "$$Lambda";
+        if (!classPattern.contains(lambda)) {
             classPattern = StringUtils.replace(classPattern, "/", ".");
         }
         return isRegEx ? new RegexMatcher(classPattern) : new WildcardMatcher(classPattern);

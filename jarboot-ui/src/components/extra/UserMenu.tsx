@@ -1,7 +1,7 @@
 import React, {memo, useState} from "react";
 import {JarBootConst} from "@/common/JarBootConst";
 import {Avatar, Menu, Popover} from "antd";
-import Icon, {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@ant-design/icons";
+import {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@ant-design/icons";
 import {useIntl} from "umi";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import CommonUtils from "@/common/CommonUtils";

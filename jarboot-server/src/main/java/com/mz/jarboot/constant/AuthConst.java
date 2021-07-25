@@ -1,5 +1,8 @@
 package com.mz.jarboot.constant;
 
+/**
+ * @author majianzheng
+ */
 public class AuthConst {
     private AuthConst(){}
 

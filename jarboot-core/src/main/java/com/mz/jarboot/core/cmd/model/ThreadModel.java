@@ -12,16 +12,16 @@ import java.util.Map;
  */
 public class ThreadModel extends ResultModel {
 
-    //single thread: thread 12
+    /** single thread: thread 12 */
     private ThreadInfo threadInfo;
 
-    //thread -b
+    /** thread -b */
     private BlockingLockInfo blockingLockInfo;
 
-    //thread -n 5
+    /** thread -n 5 */
     private List<BusyThreadInfo> busyThreads;
 
-    //thread stats
+    /** thread stats */
     private List<com.mz.jarboot.core.cmd.model.ThreadVO> threadStats;
     private Map<Thread.State, Integer> threadStateCount;
     private boolean all;

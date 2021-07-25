@@ -3,6 +3,9 @@ package com.mz.jarboot.core.cmd.view.element;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
 
+/**
+ * @author majianzheng
+ */
 public class Element {
     protected String text;
     protected String color;

@@ -4,7 +4,7 @@ import static java.lang.System.currentTimeMillis;
 
 /**
  * 影响反馈
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
 public class Affect {

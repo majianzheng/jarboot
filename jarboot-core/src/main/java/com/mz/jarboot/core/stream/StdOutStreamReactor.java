@@ -8,9 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("all")
 public class StdOutStreamReactor {
-    private StdConsoleOutputStream sos;
-    private Map<String, CommandSession> reg;
+    private final StdConsoleOutputStream sos;
+    private final Map<String, CommandSession> reg;
     private final PrintStream defaultOut;
     private final PrintStream defaultErr;
     private final PrintStream stdRedirectStream;

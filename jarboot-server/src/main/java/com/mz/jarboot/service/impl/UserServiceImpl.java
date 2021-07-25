@@ -21,6 +21,9 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/**
+ * @author majianzheng
+ */
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -31,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private PrivilegeDao privilegeDao;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void createUser(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             throw new IllegalArgumentException("User or password is empty!");
@@ -46,7 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void deleteUser(Long id) {
         if (null == id) {
             throw new NullPointerException("id is empty!");
@@ -74,7 +77,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void updateUserPassword(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             throw new IllegalArgumentException("User or password is empty!");
@@ -116,7 +119,7 @@ public class UserServiceImpl implements UserService {
         return new ResponseForList<>(result, all.getTotalElements());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     @PostConstruct
     public void init() {
         //检查是否存在jarboot用户，否则创建

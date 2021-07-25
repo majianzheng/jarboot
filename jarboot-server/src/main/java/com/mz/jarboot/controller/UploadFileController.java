@@ -3,14 +3,15 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.service.UploadFileService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Api(tags="文件上传")
+/**
+ * 文件上传
+ * @author majianzheng
+ */
 @RequestMapping(value = "/api/jarboot/upload")
 @Controller
 @Permission
@@ -18,7 +19,12 @@ public class UploadFileController {
     @Autowired
     private UploadFileService uploadFileService;
 
-    @ApiOperation(value = "上传服务文件", httpMethod = "POST")
+    /**
+     * 上传服务文件
+     * @param file 文件
+     * @param server 服务名
+     * @return 执行结果
+     */
     @PostMapping(value="/upload")
     @ResponseBody
     public ResponseSimple upload(@RequestParam("file") MultipartFile file, @RequestParam("server") String server) {
@@ -26,7 +32,11 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "开始上传服务的文件", httpMethod = "GET")
+    /**
+     * 开始上传服务的文件
+     * @param server 服务名
+     * @return 执行结果
+     */
     @GetMapping(value="/beginUploadServerFile")
     @ResponseBody
     @Permission("Upload file")
@@ -35,7 +45,11 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "上传文件心跳", httpMethod = "GET")
+    /**
+     * 上传文件心跳
+     * @param server 服务名
+     * @return 执行结果
+     */
     @GetMapping(value="/uploadServerHeartbeat")
     @ResponseBody
     public ResponseSimple uploadServerHeartbeat(String server) {
@@ -43,7 +57,12 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "删除上传缓冲区的文件", httpMethod = "DELETE")
+    /**
+     * 删除上传缓冲区的文件
+     * @param server 服务名
+     * @param file 文件
+     * @return 执行结果
+     */
     @DeleteMapping(value="/deleteFileInUploadCache")
     @ResponseBody
     public ResponseSimple deleteFileInUploadCache(@RequestParam("server") String server, @RequestParam("file") String file) {
@@ -51,7 +70,11 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "提交上传缓冲区的文件", httpMethod = "POST")
+    /**
+     * 提交上传缓冲区的文件
+     * @param server 服务名
+     * @return 执行结果
+     */
     @PostMapping(value="/submitUploadFileInCache")
     @ResponseBody
     public ResponseSimple submitUploadFileInCache(@RequestParam("server") String server) {
@@ -59,7 +82,11 @@ public class UploadFileController {
         return new ResponseSimple();
     }
 
-    @ApiOperation(value = "清空上传缓冲区的文件", httpMethod = "DELETE")
+    /**
+     * 清空上传缓冲区的文件
+     * @param server 服务名
+     * @return 执行结果
+     */
     @DeleteMapping(value="/clearUploadFileInCache")
     @ResponseBody
     public ResponseSimple clearUploadFileInCache(@RequestParam("server") String server) {

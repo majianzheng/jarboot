@@ -5,7 +5,7 @@ import com.mz.jarboot.core.advisor.AdviceWeaver;
 import com.mz.jarboot.core.advisor.ClassEnhancer;
 import com.mz.jarboot.core.advisor.InvokeTraceable;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.annotation.Option;
 import com.mz.jarboot.core.cmd.model.EnhancerModel;
@@ -20,11 +20,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")
-public abstract class EnhancerCommand extends Command {
+public abstract class EnhancerCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     protected static final List<String> EMPTY = Collections.emptyList();
     public static final String[] EXPRESS_EXAMPLES = { "params", "returnObj", "throwExp", "target", "clazz", "method",

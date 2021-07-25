@@ -35,7 +35,7 @@ public class ServerSettingDTO implements Serializable {
     /**
      * Java进程的工作目录
      */
-    private String workDirectory = StringUtils.EMPTY;
+    private String workDirectory;
     /**
      * 指定使用的Jdk，默认继承父进程
      */
@@ -43,7 +43,7 @@ public class ServerSettingDTO implements Serializable {
     /**
      * 环境变量
      */
-    private String env = StringUtils.EMPTY;
+    private String env;
     /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
      */
@@ -150,5 +150,21 @@ public class ServerSettingDTO implements Serializable {
 
     public void setJarUpdateWatch(Boolean jarUpdateWatch) {
         this.jarUpdateWatch = jarUpdateWatch;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerSettingDTO{" +
+                "server='" + server + '\'' +
+                ", jar='" + jar + '\'' +
+                ", vm='" + vm + '\'' +
+                ", priority=" + priority +
+                ", args='" + args + '\'' +
+                ", workDirectory='" + workDirectory + '\'' +
+                ", jdkPath='" + jdkPath + '\'' +
+                ", env='" + env + '\'' +
+                ", daemon=" + daemon +
+                ", jarUpdateWatch=" + jarUpdateWatch +
+                '}';
     }
 }

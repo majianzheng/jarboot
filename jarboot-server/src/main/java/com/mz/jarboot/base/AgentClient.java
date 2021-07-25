@@ -5,6 +5,9 @@ import com.mz.jarboot.ws.MessageQueueOperator;
 import com.mz.jarboot.ws.WebSocketManager;
 import javax.websocket.Session;
 
+/**
+ * @author majianzheng
+ */
 public final class AgentClient extends MessageQueueOperator {
     private final String name;
     private ClientState state;

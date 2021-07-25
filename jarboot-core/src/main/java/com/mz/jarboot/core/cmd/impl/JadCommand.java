@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.common.Pair;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
         "  jad -c 39eb305e org/apache/log4j/Logger\n" +
         "  jad -c 39eb305e -E org\\\\.apache\\\\.*\\\\.StringUtils\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "jad")
-public class JadCommand extends Command {
+public class JadCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static Pattern pattern = Pattern.compile("(?m)^/\\*\\s*\\*/\\s*$" + System.getProperty("line.separator"));
 

@@ -23,6 +23,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * @author majianzheng
+ */
 @Service
 public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -88,7 +91,7 @@ public class SettingServiceImpl implements SettingService {
             String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
                     File.separator + CommonConst.JAVA_CMD;
             if (OSUtils.isWindows()) {
-                javaFile += ".exe";
+                javaFile += CommonConst.EXE_EXT;
             }
             checkFileExist(javaFile);
         } else {

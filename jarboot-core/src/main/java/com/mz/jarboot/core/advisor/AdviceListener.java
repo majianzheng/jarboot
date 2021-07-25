@@ -2,7 +2,7 @@ package com.mz.jarboot.core.advisor;
 
 /**
  * 通知监听接口
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")

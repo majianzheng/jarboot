@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author majianzheng
+ */
+@SuppressWarnings("all")
 public class VMUtils {
     private static final Logger logger = LoggerFactory.getLogger(VMUtils.class);
     private Method attach;
@@ -22,7 +26,7 @@ public class VMUtils {
     private Method listVM;
     private Method getVMId;
     private Method getVMName;
-    private static volatile VMUtils instance = null; //NOSONAR
+    private static volatile VMUtils instance = null;
     private boolean initialized = false;
     public static VMUtils getInstance() {
         if (null == instance) {
@@ -41,6 +45,7 @@ public class VMUtils {
         try {
             return attach.invoke(null, String.valueOf(pid));
         } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn("pid:{}", pid);
             logger.warn(e.getMessage(), e);
         }
         return null;
@@ -50,6 +55,7 @@ public class VMUtils {
         try {
             loadAgent.invoke(vm, path, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
+            logger.warn("vm isNull:{}, path:{}, args:{}", null == vm, path, args);
             logger.warn(e.getMessage(), e);
         }
     }

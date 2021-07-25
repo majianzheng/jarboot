@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.model;
 import com.mz.jarboot.core.utils.affect.EnhancerAffect;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 public class EnhancerModel extends ResultModel {

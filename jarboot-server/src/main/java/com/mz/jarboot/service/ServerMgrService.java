@@ -4,6 +4,10 @@ import com.mz.jarboot.dto.ServerRunningDTO;
 
 import java.util.List;
 
+/**
+ * 服务管理
+ * @author majianzheng
+ */
 public interface ServerMgrService {
 
     /**

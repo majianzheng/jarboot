@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicLongArray;
  *
  * </pre>
  *
- * @author hengyunabc 2015年12月18日 下午3:40:19
- *
+ * @author majianzheng
+ * 以下代码来自开源项目Arthas
  */
 public class RateCounter {
     private static final int BITS_PER_LONG = 63;

@@ -1,6 +1,5 @@
 package com.mz.jarboot.base;
 
-import com.google.common.base.Stopwatch;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
@@ -17,8 +16,12 @@ import javax.websocket.Session;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author majianzheng
+ */
+@SuppressWarnings("all")
 public class AgentManager {
-    private static volatile AgentManager instance = null; //NOSONAR
+    private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AgentManager(){}
@@ -44,7 +47,7 @@ public class AgentManager {
             return;
         }
         WebSocketManager.getInstance().sendConsole(server, server + "下线！");
-        synchronized (client) {// NOSONAR
+        synchronized (client) {
             if (ClientState.EXITING.equals(client.getState())) {
                 logger.info("目标进程已退出，唤醒killServer方法的执行线程");
                 //发送了退出执行，唤醒killClient线程
@@ -66,7 +69,7 @@ public class AgentManager {
         if (null == client) {
             return false;
         }
-        synchronized (client) {// NOSONAR
+        synchronized (client) {
             return ClientState.ONLINE.equals(client.getState());
         }
     }
@@ -77,18 +80,18 @@ public class AgentManager {
             logger.debug("服务已经是退出状态，{}", server);
             return false;
         }
-        synchronized (client) {// NOSONAR
-            Stopwatch stopwatch = Stopwatch.createStarted();
+        synchronized (client) {
+            long startTime = System.currentTimeMillis();
             client.setState(ClientState.EXITING);
             sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);//NOSONAR
+                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
             }
-            long costTime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            long costTime = System.currentTimeMillis() - startTime;
             if (clientMap.containsKey(server)) {
                 logger.warn("未能成功退出！{}, 耗时:{}", server, costTime);
                 //失败
@@ -134,7 +137,7 @@ public class AgentManager {
 
     public void sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
-            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
+            WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             new CommandResponse();
             return;
         }
@@ -142,7 +145,7 @@ public class AgentManager {
         if (null == client) {
             CommandResponse resp = new CommandResponse();
             resp.setSuccess(false);
-            WebSocketManager.getInstance().commandEnd(server, "", sessionId);
+            WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             return;
         }
         client.sendInternalCommand(command, sessionId);

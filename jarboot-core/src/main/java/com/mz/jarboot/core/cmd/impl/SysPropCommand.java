@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Argument;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
@@ -8,9 +8,9 @@ import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
-public class SysPropCommand extends Command {
+public class SysPropCommand extends AbstractCommand {
     private SysPropModel model = new SysPropModel();
     private String propertyName;
     private String propertyValue;

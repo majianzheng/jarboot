@@ -4,6 +4,7 @@ import { getLocale } from 'umi';
 
 /**
  * http错误处理公用类
+ * @author majianzheng
  */
 export default class ErrorUtil {
     private static codeMessage: any = {
@@ -33,7 +34,7 @@ export default class ErrorUtil {
      * 格式化响应为用户可见的提示字符串
      * @param resp
      */
-    public static formatErrResp(resp: any) {
+    public static formatErrResp(resp: any) { // NOSONAR
         if (StringUtil.isString(resp)) {
             return resp;
         }

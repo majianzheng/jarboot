@@ -1,6 +1,6 @@
 # Jarboot ❤️
 
-![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
+![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
 [![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
@@ -24,7 +24,7 @@ English version goes [here](README.md).
 
 🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
 
-![overview](https://gitee.com/majz0908/jarboot/raw/master/doc/overview.png)
+![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
 <code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。
@@ -48,16 +48,16 @@ English version goes [here](README.md).
 
 ```bash
 #首先编译前端
-user$ cd jarboot-ui
+$ cd jarboot-ui
 #首次时需要先安装依赖，执行yarn或npm install
-user$ yarn
+$ yarn
 
 #执行编译，yarn build或npm run build，开发模式可执行yarn start或npm run start
-user$ yarn build
+$ yarn build
 
 #切换到代码根目录，编译Java代码
-user$ cd ../
-user$ mvn clean install
+$ cd ../
+$ mvn clean install
 ```
 
 2. 安装后的目录结构
@@ -65,6 +65,7 @@ user$ mvn clean install
 ```
 jarboot                             #当前工作目录
 ├─logs                              #日志
+├─conf                              #jarboot配置文件
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
@@ -79,14 +80,14 @@ jarboot                             #当前工作目录
 
 3. 启动<code>jarboot-server.jar</code>主控服务
 ```bash
-#执行 boot.sh 启动, 在Windows系统上使用boot.bat。
-user$ sh boot.sh
+#执行 startup.sh 启动, 在Windows系统上使用startup.cmd。
+$ sh startup.sh
 ```
 
 4. 浏览器访问<http://127.0.0.1:9899>
 5. 进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/master/doc/login.png)
+![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## 命令列表
 ### bytes
@@ -127,7 +128,7 @@ jarboot$ stdout
 ### dashboard
 当前系统的实时数据面板，点击按钮取消
 
-![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/dashboard.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/develop/doc/dashboard.png)
   
 ### jad 
 反编译
@@ -135,7 +136,7 @@ jarboot$ stdout
 ```bash
 jarboot$ jad [-c] java.lang.String
 ````
-![jad](https://gitee.com/majz0908/jarboot/raw/master/doc/jad.png)
+![jad](https://gitee.com/majz0908/jarboot/raw/develop/doc/jad.png)
 
 ### jvm
 查看进程JVM属性信息
@@ -226,6 +227,7 @@ jarboot$ thread -n 3
 ```
 
 #### Classloader
+
 查看classloader的继承树，urls，类加载信息
 
 ```bash
@@ -246,7 +248,7 @@ dump java heap, 类似jmap命令的heap dump功能。
 ```bash
 jarboot$ heapdump
 ````
-![heap dump](https://gitee.com/majz0908/jarboot/raw/master/doc/heapdump.png)
+![heap dump](https://gitee.com/majz0908/jarboot/raw/develop/doc/heapdump.png)
 
 ### sysprop
 查看进程系统属性信息
@@ -270,5 +272,5 @@ jarboot$ sysprop user.home
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 
 ---
-<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反，默认为1。<br>
+<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反。<br>
 <span id="f2">2[](#a2)</span>: 开发中可以由<code>gitlab runner</code>、<code>Jenkins</code>等工具自动构建后通过脚本拷贝到Jarboot指定的目录下，Jarboot监控到文件的更新会自动重启服务，目录监控实现了<code>防抖设计</code>（在一定时间内的多次更新只会触发一次重启）。

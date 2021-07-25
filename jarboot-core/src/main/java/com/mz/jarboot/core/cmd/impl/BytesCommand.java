@@ -9,7 +9,7 @@ import com.alibaba.deps.org.objectweb.asm.util.Printer;
 import com.alibaba.deps.org.objectweb.asm.util.Textifier;
 import com.alibaba.deps.org.objectweb.asm.util.TraceMethodVisitor;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.cmd.Command;
+import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.annotation.Argument;
 import com.mz.jarboot.core.cmd.annotation.Description;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -22,9 +22,9 @@ import java.util.List;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
-public class BytesCommand extends Command {
+public class BytesCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static Printer printer = new Textifier();
     private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);

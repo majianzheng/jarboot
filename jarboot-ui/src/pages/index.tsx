@@ -23,8 +23,6 @@ const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
  * 主页
  * @author majianzheng
  */
-
-//主界面内容
 const TabPanes: any = memo((props: any) => {
     const intl = useIntl();
     return <Tabs defaultActiveKey={'0'} size={'large'}

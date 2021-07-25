@@ -3,8 +3,12 @@ package com.mz.jarboot.core.stream;
 
 /**
  * handle the command's response to jarboot-server
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface ResponseStream {
+    /**
+     * 写响应数据
+     * @param data 数据
+     */
     void write(String data);
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd `dirname $0`/../target
+cd `dirname $0`
 target_dir=`pwd`
 
 pid=`ps ax | grep -i 'jarboot.jarboot' | grep ${target_dir} | grep java | grep -v grep | awk '{print $1}'`

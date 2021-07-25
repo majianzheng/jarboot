@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * @author majianzheng
+ */
 @Service
 public class PrivilegeServiceImpl implements PrivilegeService {
     @Autowired
@@ -21,7 +24,7 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void savePrivilege(String role, String resource, Boolean permission) {
         if (AuthConst.ADMIN_ROLE.equals(role)) {
             throw new MzException("Admin role can't modify!");

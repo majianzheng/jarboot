@@ -2,6 +2,9 @@ package com.mz.jarboot.entity;
 
 import javax.persistence.UniqueConstraint;
 
+/**
+ * @author majianzheng
+ */
 @javax.persistence.Table(name = RoleInfo.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"role", "username"})})
 @javax.persistence.Entity
 public class RoleInfo extends AbstractBaseEntity {

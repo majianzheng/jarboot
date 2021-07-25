@@ -44,7 +44,7 @@ export default {
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
     JAR_LABEL: '用于启动的jar文件',
-    JVM_OPT_LABEL: 'VM参数',
+    VM_OPT_LABEL: 'VM参数',
     MAIN_ARGS_LABEL: '程序传入参数',
     WORK_HOME_LABEL: '工作目录',
     ENV_LABEL: '环境变量',

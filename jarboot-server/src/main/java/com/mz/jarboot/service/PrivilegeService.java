@@ -4,6 +4,10 @@ import com.mz.jarboot.entity.Privilege;
 
 import java.util.List;
 
+/**
+ * 权限服务
+ * @author majianzheng
+ */
 public interface PrivilegeService {
     /**
      * 获取角色的权限列表

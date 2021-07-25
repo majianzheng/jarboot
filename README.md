@@ -1,6 +1,6 @@
 # Jarboot ❤️
 
-![logo](https://gitee.com/majz0908/jarboot/raw/master/doc/jarboot.png)
+![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
 [![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
@@ -24,7 +24,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
 
-![overview](https://gitee.com/majz0908/jarboot/raw/master/doc/overview.png)
+![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
@@ -36,7 +36,7 @@ In the test environment and daily built integrated environment, a series of jar 
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 
 Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
-<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ### Architecture brief introduction [view](jarboot-server/README.md).
 
@@ -48,16 +48,16 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 
 ```bash
 #At first build ui
-user$ cd jarboot-ui
+$ cd jarboot-ui
 #First time, execute yarn or npm install
-user$ yarn
+$ yarn
 
 #execute compile, yarn build or npm run build, execute yarn start or npm run start at development mode.
-user$ yarn build
+$ yarn build
 
 #Switch to the code root directory and compile the Java code
-user$ cd ../
-user$ mvn clean install
+$ cd ../
+$ mvn clean install
 ```
 
 2. Directory structures after installation.
@@ -65,6 +65,7 @@ user$ mvn clean install
 ```
 jarboot                             #Current working directory
 ├─logs                              #logs
+├─conf                              #jarboot setting
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
@@ -79,14 +80,14 @@ Back end service startup specifies a root path to manage other startup jar files
 
 3. Start <code>jarboot-service.jar</code>
 ```bash
-#Execute boot.sh to start, use boot.bat when in windows OS.
-user$ sh boot.sh
+#Execute startup.sh to start, use startup.cmd when in windows OS.
+$ sh startup.sh
 ```
 
 4. Browser access <http://127.0.0.1:9899>
 5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/master/doc/login.png)
+![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## Command list
 ### bytes
@@ -128,7 +129,7 @@ jarboot$ stdout
 ### dashboard
 This is the real time statistics dashboard for the current system，click x cancel.
 
-![dashboard](https://gitee.com/majz0908/jarboot/raw/master/doc/dashboard.png)
+![dashboard](https://gitee.com/majz0908/jarboot/raw/develop/doc/dashboard.png)
   
 ### jad
 Decompile the specified classes.
@@ -136,7 +137,7 @@ Decompile the specified classes.
 ```bash
 jarboot$ jad [-c] java.lang.String
 ````
-![jad](https://gitee.com/majz0908/jarboot/raw/master/doc/jad.png)
+![jad](https://gitee.com/majz0908/jarboot/raw/develop/doc/jad.png)
 
 ### jvm
 Check the current JVM’s info
@@ -197,7 +198,7 @@ methods in data aspect including return values, exceptions and parameters
 Watch the first parameter and thrown exception of `com.mz.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
 
 ```bash
-jarboot$ watch `com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+jarboot$ watch com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
 Press x to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
@@ -230,7 +231,7 @@ jarboot$ thread -n 3
 
 #### Classloader
 
-了解当前系统中有多少类加载器，以及每个加载器加载的类数量，帮助您判断是否有类加载器泄露。
+View the class loader extends tree, url and class loader info.
 
 ```bash
 jarboot$ classloader
@@ -250,7 +251,7 @@ dump java heap in hprof binary format, like jmap.
 ```bash
 jarboot$ heapdump
 ````
-![heap dump](https://gitee.com/majz0908/jarboot/raw/master/doc/heapdump.png)
+![heap dump](https://gitee.com/majz0908/jarboot/raw/develop/doc/heapdump.png)
 
 ### sysprop
 Examine the system properties from the target JVM
@@ -275,5 +276,5 @@ jarboot$ sysprop user.home
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 
 ---
-<span id="f1">1[](#a1)</span>: You can configure the priority level, starting from the integer value of 1. The more you start first, the reverse is the order of stop. The default value is 1。<br>
-<span id="f2">2[](#a2)</span>: In development, it can be built automatically by tools such as gitlab runner, Jenkins, etc. and copied to the directory specified by Jarboot through script. Updates monitored by Jarboot will restart the service automatically. Directory monitoring implements anti-shake design (multiple updates within a certain period of time will trigger only one restart)。
+<span id="f1">1[](#a1)</span>: You can configure the priority level, starting from the integer value of 1. The more you start first, the reverse is the order of stop.<br>
+<span id="f2">2[](#a2)</span>: In development, it can be built automatically by tools such as gitlab runner, Jenkins, etc. and copied to the directory specified by Jarboot through script. Updates monitored by Jarboot will restart the service automatically. Directory monitoring implements anti-shake design (multiple updates within a certain period of time will trigger only one restart).

@@ -36,18 +36,24 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+/**
+ * @author majianzheng
+ */
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String MODIFY_TIME_STORE_FILE = "file-record.temp";
+    private static final int MIN_MODIFY_WAIT_TIME = 3;
+    private static final int MAX_MODIFY_WAIT_TIME = 600;
+
     @Autowired
-    private ApplicationContext ctx; //应用上下文
+    private ApplicationContext ctx;
     @Autowired
     private ExecutorService taskExecutor;
     @Autowired
     private TaskRunCache taskRunCache;
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-    //文件更新抖动时间，默认5秒
+
     @Value("${jarboot.file-shake-time:5}")
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
@@ -59,7 +65,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
     private boolean starting = false;
 
-    //阻塞队列，监控到目录变化则放入队列
+    /** 阻塞队列，监控到目录变化则放入队列 */
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
 
     @Override
@@ -67,7 +73,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (starting) {
             return;
         }
-        if (modifyWaitTime < 3 || modifyWaitTime > 600) {
+        if (modifyWaitTime < MIN_MODIFY_WAIT_TIME || modifyWaitTime > MAX_MODIFY_WAIT_TIME) {
             modifyWaitTime = 5;
         }
         starting = true;
@@ -228,7 +234,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             //创建或修改文件
-            if (!CommonConst.STATUS_RUNNING.equals(taskRunCache.getTaskStatus(service))) {
+            if (!TaskUtils.isAlive(service)) {
                 //当前不处于正在运行的状态
                 return;
             }
@@ -300,8 +306,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         int pid = TaskUtils.getServerPid(server);
         if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
-            String status = taskRunCache.getTaskStatus(server);
-            if (CommonConst.STATUS_STOPPING.equals(status)) {
+            if (taskRunCache.isStopping(server)) {
                 //处于停止中状态，此时不做干预，守护只针对正在运行的进程
                 return;
             }
@@ -311,7 +316,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
 
         if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
-            String cmd = afterServerErrorOffline + " " + server;
+            String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
             taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome, null));
         }
 
