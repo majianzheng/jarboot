@@ -3,16 +3,16 @@ package com.mz.jarboot.core.cmd.model;
 import java.lang.management.ThreadInfo;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 public class BlockingLockInfo {
 
-    // the thread info that is holing this lock.
+    /** the thread info that is holing this lock. */
     private ThreadInfo threadInfo = null;
-    // the associated LockInfo object
+    /** the associated LockInfo object */
     private int lockIdentityHashCode = 0;
-    // the number of thread that is blocked on this lock
+    /** the number of thread that is blocked on this lock */
     private int blockingThreadCount = 0;
 
     public BlockingLockInfo() {

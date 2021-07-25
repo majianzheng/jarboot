@@ -10,6 +10,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @author majianzheng
+ */
 public class TypeRenderUtilsTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();

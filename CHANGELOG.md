@@ -1,13 +1,15 @@
-## 1.0.7-SNAPSHOT (7.23, 2021)
+## 1.0.7 (7.25, 2021)
 
+* [#13] Command line parse error when space in quotation
 * Rename module name from jarboot-service to jarboot-server
 * Show the current version when start
 * Fix priority sorted error
 * Refactor modify some url api, service boot properties
 * fastjson -> jackson
 * code format add p3c, sonar, dependency and findbugs plugins
+* Global config move in jarboot.properties
 #### FEATURES:
-* Support jar file using absolute path or relative path.
+* Support jar file, working directory and jdk path using absolute path or relative path.
 * jarboot.properties add jarboot.services.enable-auto-start-after-start config.
 * Server vm option from a file, and can edit in ui.
 * Server start main arguments edit ui.

@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>jarboot-agent</artifactId>
-    <name>jarboot-agent</name>
+    <name>Jarboot agent</name>
 
     <dependencies>
         <dependency>

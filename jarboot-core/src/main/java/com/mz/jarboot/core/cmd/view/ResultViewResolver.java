@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Result view resolver
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class ResultViewResolver {

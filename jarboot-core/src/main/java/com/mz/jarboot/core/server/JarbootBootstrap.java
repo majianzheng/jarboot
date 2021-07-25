@@ -36,7 +36,7 @@ import java.util.jar.JarFile;
 
 /**
  * attach 启动入口，为减轻对程序对侵入，将程序作为客户端，由服务端反向连接
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class JarbootBootstrap {

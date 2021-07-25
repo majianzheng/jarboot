@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Service
 public class UserServiceImpl implements UserService {

@@ -15,7 +15,7 @@ import java.util.concurrent.*;
 
 /**
  * 与浏览器交互的WebSocket管理
- * @author jianzhengma
+ * @author majianzheng
  */
 public class WebSocketManager {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketManager.class);

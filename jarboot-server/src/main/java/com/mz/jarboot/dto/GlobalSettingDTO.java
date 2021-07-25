@@ -3,7 +3,7 @@ package com.mz.jarboot.dto;
 import java.io.Serializable;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class GlobalSettingDTO implements Serializable {
     private String servicesPath;

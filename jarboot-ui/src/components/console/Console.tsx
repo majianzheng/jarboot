@@ -9,8 +9,10 @@ interface ConsoleProps {
     pubsub?: PublishSubmit;
     server: string;
 }
+//最大行数
 const MAX_LINE = 20000;
-const AUTO_CLEAN_LINE = 8000; //超出上限则移除最老的行数
+//超出上限则移除最老的行数
+const AUTO_CLEAN_LINE = 8000;
 
 const Console = (props: ConsoleProps) => { // NOSONAR
     const id = `id-${props.server}`;

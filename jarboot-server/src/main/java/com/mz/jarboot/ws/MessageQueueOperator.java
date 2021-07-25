@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * WebSocket消息推送
- * @author jianzhengma
+ * @author majianzheng
  */
 public class MessageQueueOperator implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(MessageQueueOperator.class);

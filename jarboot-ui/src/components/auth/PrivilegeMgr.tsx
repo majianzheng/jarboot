@@ -7,6 +7,10 @@ import PrivilegeService from "@/services/PrivilegeService";
 import RoleService from "@/services/RoleService";
 import {Col, Menu, Row, Card, Tree} from "antd";
 
+/**
+ * 权限管理
+ * @author majianzheng
+ */
 const PrivilegeMgr = memo(() => {
     const intl = useIntl();
     let [loading, setLoading] = useState(true);

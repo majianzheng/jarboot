@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * jarboot启动的Java进程的demo示例
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class DemoServerApplication implements Runnable {
@@ -143,7 +143,6 @@ public class DemoServerApplication implements Runnable {
             return "输入参数错误";
         }
         int result = 0;
-        progressBar.setMaximum(limit);
         for (int i = 0; i < limit; ++i) {
             result = fib(n);
             progressBar.setValue(i);
@@ -169,7 +168,6 @@ public class DemoServerApplication implements Runnable {
             return "输入参数错误";
         }
         double result = 0;
-        progressBar.setMaximum(limit);
         
         for (int i = 0; i < limit; ++i) {
             result = pow(a1, c);
@@ -257,8 +255,8 @@ public class DemoServerApplication implements Runnable {
     
     @Override
     public void run() {
-        progressBar.setValue(0);
         resultLabel.setText("");
+        costLabel.setText("");
         int limit = getLimit();
         int interval = getInterval();
         if (limit < 1) {
@@ -271,6 +269,8 @@ public class DemoServerApplication implements Runnable {
         }
         log("开始执行，次数：" + limit + ", 间隔：" + interval + " ms");
         String result = "";
+        progressBar.setMaximum(limit - 1);
+        progressBar.setValue(0);
         long begin = System.currentTimeMillis();
         switch (func) {
             case FIB_FUNC:

@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 以下代码，有一部分摘自开源项目Arthas
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ExecNativeCmd {
     private ExecNativeCmd() {

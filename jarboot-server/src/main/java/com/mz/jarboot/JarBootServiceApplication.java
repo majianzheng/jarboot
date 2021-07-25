@@ -15,7 +15,7 @@ import java.security.CodeSource;
 
 /**
  * Spring boot main function.
- * @author jianzhengma
+ * @author majianzheng
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
 @PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/conf/jarboot.properties"}, ignoreResourceNotFound=true)

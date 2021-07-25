@@ -4,7 +4,7 @@ import com.mz.jarboot.dto.*;
 
 /**
  * 配置服务
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface SettingService {
 

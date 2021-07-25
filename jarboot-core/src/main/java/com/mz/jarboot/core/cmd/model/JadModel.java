@@ -15,7 +15,7 @@ public class JadModel extends ResultModel {
     private Collection<ClassLoaderVO> matchedClassLoaders;
     private String classLoaderClass;
 
-    //match multiple classes
+    /** match multiple classes */
     private Collection<ClassVO> matchedClasses;
 
     @Override

@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 /**
  * 字符串转化为指定的类型数据
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class BasicTypeConvert {

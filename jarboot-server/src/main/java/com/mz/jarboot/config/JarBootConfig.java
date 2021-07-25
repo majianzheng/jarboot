@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 
 /**
  * jarboot配置类
- * @author jianzhengma
+ * @author majianzheng
  */
 @Configuration
 public class JarBootConfig {

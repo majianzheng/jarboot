@@ -24,7 +24,7 @@ import java.net.URI;
 
 /**
  * WebSocket 客户端实现
- * @author jianzhengma
+ * @author majianzheng
  */
 public final class WebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

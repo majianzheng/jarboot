@@ -12,7 +12,7 @@ import java.util.Random;
 
 /**
  * 以下代码，有一小部分摘自开源项目Arthas
- * @author jianzhengma
+ * @author majianzheng
  */
 public class NetworkUtils {
     public static final int PORT_RANGE_MIN = 1024;

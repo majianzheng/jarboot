@@ -8,7 +8,7 @@ import java.util.*;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
 public class JvmCommand extends AbstractCommand {
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();

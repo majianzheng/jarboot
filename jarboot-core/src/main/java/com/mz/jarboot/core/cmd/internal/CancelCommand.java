@@ -5,7 +5,7 @@ import com.mz.jarboot.core.cmd.AbstractCommand;
 
 /**
  * 命令取消执行
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CancelCommand extends AbstractInternalCommand {
     @Override

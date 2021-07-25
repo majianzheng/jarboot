@@ -4,7 +4,7 @@ package com.mz.jarboot.utils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class PasswordEncoderUtil {
     

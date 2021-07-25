@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * 2、开始上传阶段，将文件一个个上传到创建的缓冲区中，此间前端必须每隔5秒钟向后端探测一次心跳；
  * 3、提交 & 取消，停止心跳监测，将第二阶段上传的一批文件复制到服务的目录下，并清理缓冲区目录。
  * 停止心跳探测后，至少会过两个周期才会停止心跳监控的线程
- * @author jianzhengma
+ * @author majianzheng
  */
 @Service
 public class UploadFileServiceImpl implements UploadFileService {

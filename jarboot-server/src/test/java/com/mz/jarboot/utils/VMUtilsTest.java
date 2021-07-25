@@ -5,6 +5,9 @@ import org.junit.Test;
 
 import java.util.Map;
 
+/**
+ * @author majianzheng
+ */
 public class VMUtilsTest {
     @Test
     public void test() {

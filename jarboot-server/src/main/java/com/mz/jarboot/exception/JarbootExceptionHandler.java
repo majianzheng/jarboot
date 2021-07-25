@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @ControllerAdvice
 public class JarbootExceptionHandler {

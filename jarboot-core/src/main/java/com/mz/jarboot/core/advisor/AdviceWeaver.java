@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <h2>线程帧栈与执行帧栈</h2>
  * 编织者在执行通知的时候有两个重要的栈:线程帧栈(threadFrameStack),执行帧栈(frameStack)
  * <p/>
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 public class AdviceWeaver {

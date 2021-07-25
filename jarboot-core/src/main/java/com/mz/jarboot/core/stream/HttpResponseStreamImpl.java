@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 大数据量传输通过http协议，使用WebSocket会增加额外的拆包、组包实现增加业务复杂性
  * 快慢个几毫秒眼睛也分辨不出来
- * @author jianzhengma
+ * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

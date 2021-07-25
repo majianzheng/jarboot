@@ -8,7 +8,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
 public class SysPropCommand extends AbstractCommand {
     private SysPropModel model = new SysPropModel();

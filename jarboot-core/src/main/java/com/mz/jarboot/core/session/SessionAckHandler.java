@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.session;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface SessionAckHandler {
     /**

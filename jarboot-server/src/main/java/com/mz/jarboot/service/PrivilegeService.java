@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * 权限服务
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface PrivilegeService {
     /**

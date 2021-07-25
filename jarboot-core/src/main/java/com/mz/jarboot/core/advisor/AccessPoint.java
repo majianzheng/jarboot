@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.advisor;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 public enum AccessPoint {

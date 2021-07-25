@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
@@ -218,9 +218,14 @@ public class SettingUtils {
                 WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
                 throw new MzException("Read file error.", e);
             }
-            lines.forEach(line -> sb.append(line).append(StringUtils.SPACE));
+            lines.stream()
+                    //去除首尾空格
+                    .map(StringUtils::trim)
+                    //以#开头的视为注释
+                    .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
+                    .forEach(line -> sb.append(line).append(StringUtils.SPACE));
         }
-        return sb.toString().trim();
+        return sb.toString();
     }
 
     private SettingUtils() {

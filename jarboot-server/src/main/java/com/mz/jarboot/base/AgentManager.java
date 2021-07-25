@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class AgentManager {

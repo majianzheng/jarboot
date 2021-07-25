@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class VMUtils {

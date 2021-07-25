@@ -15,6 +15,10 @@ const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 let isCreate = true;
 let username = '';
 
+/**
+ * 用户管理
+ * @author majianzheng
+ */
 const UserList = memo(() => {
     const intl = useIntl();
     let [loading, setLoading] = useState(false);

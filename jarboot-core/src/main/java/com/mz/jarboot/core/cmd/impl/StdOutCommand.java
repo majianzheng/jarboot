@@ -11,7 +11,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * 标准输出流开启显示与关闭
- * @author jianzhengma
+ * @author majianzheng
  */
 @Name("stdout")
 @Summary("Stdout display on web ui")

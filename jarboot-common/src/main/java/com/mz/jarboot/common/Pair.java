@@ -4,7 +4,7 @@ package com.mz.jarboot.common;
  * Pair类
  * @param <X> key
  * @param <Y> value
- * @author jianzhengma
+ * @author majianzheng
  */
 public class Pair<X, Y> {
     private final X x;

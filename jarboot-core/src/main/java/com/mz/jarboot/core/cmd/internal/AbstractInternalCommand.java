@@ -4,7 +4,7 @@ import com.mz.jarboot.core.cmd.AbstractCommand;
 
 /**
  * 内部命令体系，用于jarboot-service与agent之间交互的专用通道，即时任务，无状态控制
- * @author jianzhengma
+ * @author majianzheng
  */
 public abstract class AbstractInternalCommand extends AbstractCommand {
     @Override

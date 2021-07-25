@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 /**
  * 雪花算法ID生成器
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 @Component

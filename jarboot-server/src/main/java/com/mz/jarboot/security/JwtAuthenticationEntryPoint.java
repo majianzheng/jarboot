@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

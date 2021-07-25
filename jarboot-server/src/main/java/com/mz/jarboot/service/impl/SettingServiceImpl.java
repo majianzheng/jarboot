@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Service
 public class SettingServiceImpl implements SettingService {

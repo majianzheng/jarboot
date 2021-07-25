@@ -1,5 +1,6 @@
 /**
  * 定义来自后端的WebSocket事件类型
+ * @author majianzheng
  */
 export enum MSG_EVENT {
     NOTICE_INFO,

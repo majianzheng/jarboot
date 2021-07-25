@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 权限管理
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/jarboot/privilege")
 @RestController

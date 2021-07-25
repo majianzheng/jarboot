@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 命令交互协议
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface CmdProtocol {
 

@@ -11,6 +11,10 @@ import {Form, Input, Modal} from "antd";
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 
+/**
+ * 角色管理
+ * @author majianzheng
+ */
 const RoleMgr = memo(() => {
     const intl = useIntl();
     const [form] = Form.useForm();

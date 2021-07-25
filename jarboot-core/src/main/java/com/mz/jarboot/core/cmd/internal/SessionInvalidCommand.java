@@ -4,7 +4,7 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 
 /**
  * 当浏览器客户端退出或者刷新时触发
- * @author jianzhengma
+ * @author majianzheng
  */
 public class SessionInvalidCommand extends AbstractInternalCommand {
     @Override

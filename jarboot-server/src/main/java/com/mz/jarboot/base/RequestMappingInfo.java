@@ -3,7 +3,7 @@ package com.mz.jarboot.base;
 import java.util.Comparator;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class RequestMappingInfo {
     

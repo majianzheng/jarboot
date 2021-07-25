@@ -3,7 +3,7 @@ package com.mz.jarboot.event;
 import org.springframework.context.ApplicationContext;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ApplicationContextUtils {
     private static ApplicationContext ctx;

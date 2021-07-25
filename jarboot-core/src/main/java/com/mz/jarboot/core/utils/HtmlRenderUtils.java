@@ -7,7 +7,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class HtmlRenderUtils {
     private TemplateEngine engine;

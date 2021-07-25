@@ -7,6 +7,7 @@ import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -79,22 +82,27 @@ public class TaskUtils {
     public static void startServer(String server, ServerSettingDTO setting) {
         //获取启动的jar文件
         String jar = SettingUtils.getJarPath(setting);
-
         if (StringUtils.isEmpty(jar)) {
             return;
         }
+        //服务目录
+        String serverPath = SettingUtils.getServerPath(server);
+
         String jvm = SettingUtils.getJvm(server, setting.getVm());
         if (StringUtils.isEmpty(jvm)) {
             //未配置则获取默认的
-            jvm = SettingUtils.getDefaultJvmArg();
+            jvm = SettingUtils.getDefaultJvmArg() + StringUtils.SPACE;
         }
         StringBuilder cmdBuilder = new StringBuilder();
 
         // java命令
-        if (StringUtils.isNotEmpty(setting.getJdkPath())) {
+        if (StringUtils.isBlank(setting.getJdkPath())) {
+            cmdBuilder.append(CommonConst.JAVA_CMD);
+        } else {
             // 使用了指定到jdk
+            String jdkPath = getAbsPath(setting.getJdkPath(), serverPath);
             cmdBuilder
-                    .append(setting.getJdkPath())
+                    .append(jdkPath)
                     .append( File.separator)
                     .append(CommonConst.BIN_NAME)
                     .append( File.separator)
@@ -102,14 +110,13 @@ public class TaskUtils {
             if (OSUtils.isWindows()) {
                 cmdBuilder.append(CommonConst.EXE_EXT);
             }
-        } else {
-            cmdBuilder.append(CommonConst.JAVA_CMD);
         }
+        cmdBuilder.append(StringUtils.SPACE);
         // jvm 配置
         if (StringUtils.isBlank(jvm)) {
             cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
         } else {
-            cmdBuilder.append(StringUtils.SPACE).append(jvm).append(CommonConst.ARG_JAR).append(jar);
+            cmdBuilder.append(jvm).append(CommonConst.ARG_JAR).append(jar);
         }
 
         // 传入参数
@@ -126,7 +133,10 @@ public class TaskUtils {
         // 工作目录
         String workHome = setting.getWorkDirectory();
         if (StringUtils.isBlank(workHome)) {
-            workHome = SettingUtils.getServerPath(server);
+            workHome = serverPath;
+        } else {
+            //解析相对路径或绝对路径，得到真实路径
+            workHome = getAbsPath(workHome, serverPath);
         }
 
         //打印命令行
@@ -179,6 +189,15 @@ public class TaskUtils {
          * @param text 消息
          */
         void sendMessage(String text);
+    }
+
+    private static String getAbsPath(String s, String serverPath) {
+        Path path = Paths.get(s);
+        if (path.isAbsolute()) {
+            return s;
+        }
+        File dir = FileUtils.getFile(serverPath, s);
+        return dir.getPath();
     }
 
     /**

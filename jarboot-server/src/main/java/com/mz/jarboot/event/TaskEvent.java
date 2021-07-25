@@ -3,7 +3,7 @@ package com.mz.jarboot.event;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class TaskEvent {
     private TaskEventEnum eventType;

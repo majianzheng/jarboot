@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Component
 public class JwtTokenManager {

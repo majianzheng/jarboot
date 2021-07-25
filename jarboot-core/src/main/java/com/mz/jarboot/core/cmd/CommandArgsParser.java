@@ -15,10 +15,12 @@ import java.util.*;
 
 /**
  * The command line param parser, command builder get param by annotations.
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class CommandArgsParser {
+    private static final char QUOTATION = '"';
+
     private List<String> arguments = new ArrayList<>();
     private Map<String, List<String>> options = new LinkedHashMap<>();
 
@@ -68,7 +70,7 @@ public class CommandArgsParser {
     }
 
     private void doParse(String args) {
-        Iterator<String> iter = Arrays.stream(args.split(" ")).iterator();
+        Iterator<String> iter = splitArgs(args).iterator();
         Option preOp = null;
         while (iter.hasNext()) {
             String s = iter.next().trim();
@@ -110,6 +112,58 @@ public class CommandArgsParser {
         }
     }
 
+    public static List<String> splitArgs(String args) {
+        ArrayList<String> argsList = new ArrayList<>();
+        args = args.trim();
+        final int invalidPos = -1;
+        // 将传入的整个参数拆分，遇到空格拆分，将引号包裹的视为一个
+        int preQuotation  = invalidPos;
+        int preChar = ' ';
+        // 使用快慢指针算法
+        int slow =0, fast = 0;
+        for (; fast < args.length(); ++fast) {
+            char c = args.charAt(fast);
+            if (QUOTATION == c) {
+                if (invalidPos == preQuotation) {
+                    if (' ' == preChar) {
+                        //引号开始位置
+                        preQuotation = fast;
+                    }
+                } else {
+                    //判定前一个字符是否是转义符
+                    if ('\\' != preChar) {
+                        //引号结束位置，获取引号内的字符串
+                        String str = args.substring(preQuotation + 1, fast);
+                        //todo 转义符替换
+                        argsList.add(str);
+                        slow = fast + 1;
+                        preQuotation = invalidPos;
+                    }
+                }
+            } else if (' ' == c){
+                if (invalidPos == preQuotation) {
+                    if (' ' != preChar) {
+                        addArgsToList(args, slow, fast, argsList);
+                    }
+                    slow = fast + 1;
+                }
+            } else {
+                // do nothing
+            }
+            preChar = c;
+        }
+        addArgsToList(args, slow, fast, argsList);
+        return argsList;
+    }
+
+    private static void addArgsToList(String args, int slow, int fast, List<String> list) {
+        if (slow == fast) {
+            return;
+        }
+        String arg = args.substring(slow, fast);
+        list.add(arg);
+    }
+
     private void doInitField() {
         //set Argument
         argumentMethods.forEach(this::doInitArgumentField);
@@ -149,7 +203,7 @@ public class CommandArgsParser {
                 throw new MzException(formatParamError(option.longName(), method));
             }
             // 默认值不为空
-            values = Arrays.asList(defaultValue.value().split(" "));
+            values = splitArgs(defaultValue.value());
             if (values.isEmpty()) {
                 throw new MzException(formatParamError(option.longName(), method));
             }

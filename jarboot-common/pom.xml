@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jarboot-common</artifactId>
-    <name>jarboot-common</name>
+    <name>Jarboot common</name>
     <description>common utils and os</description>
 
     <dependencies>

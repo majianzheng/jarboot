@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 命令类型
- * @author jianzhengma
+ * @author majianzheng
  */
 public enum CommandType {
     /**

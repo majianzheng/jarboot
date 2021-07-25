@@ -1,7 +1,7 @@
 package com.mz.jarboot.service;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface TaskWatchService {
     /**

@@ -9,7 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>demo-server</artifactId>
-    <name>demo-server</name>
+    <name>Demo server</name>
     <description>Demo server for jarboot</description>
     <packaging>jar</packaging>
     <dependencies>

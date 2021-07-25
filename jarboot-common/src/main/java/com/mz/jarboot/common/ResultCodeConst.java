@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 执行结果错误码定义
- * @author jianzhengma
+ * @author majianzheng
  */
 public final class ResultCodeConst {
 	/** 执行成功 */

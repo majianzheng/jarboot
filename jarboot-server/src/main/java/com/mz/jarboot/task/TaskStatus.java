@@ -1,7 +1,7 @@
 package com.mz.jarboot.task;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 
 public enum TaskStatus {

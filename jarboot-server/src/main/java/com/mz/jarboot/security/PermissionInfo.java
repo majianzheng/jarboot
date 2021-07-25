@@ -1,7 +1,7 @@
 package com.mz.jarboot.security;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class PermissionInfo {
     private String resource;

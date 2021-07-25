@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Json序列化、反序列化工具类
- * @author jianzhengma
+ * @author majianzheng
  */
 public class JsonUtils {
     private static final ObjectMapper MAPPER = new ObjectMapper();

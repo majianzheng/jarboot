@@ -1,7 +1,7 @@
 package com.mz.jarboot.event;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 
 public enum WsEventEnum {

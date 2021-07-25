@@ -2,7 +2,7 @@ package com.mz.jarboot.constant;
 
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class CommonConst {
@@ -16,7 +16,7 @@ public class CommonConst {
     public static final String JAVA_CMD = "java";
     public static final String EXE_EXT = ".exe";
     public static final String JAR_EXT = ".jar";
-    public static final String ARG_JAR = " -jar ";
+    public static final String ARG_JAR = "-jar ";
 
     /**
      * 协议分隔符

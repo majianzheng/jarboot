@@ -4,6 +4,7 @@ import { getLocale } from 'umi';
 
 /**
  * http错误处理公用类
+ * @author majianzheng
  */
 export default class ErrorUtil {
     private static codeMessage: any = {

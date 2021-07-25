@@ -30,7 +30,7 @@ enum PUB_TOPIC {
 
 const outHeight = `${window.innerHeight - 150}px`;
 
-const SuperPanel = memo((props: SuperPanelProps) => {
+const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const [view, setView] = useState('');
     const [executing, setExecuting] = useState(false);

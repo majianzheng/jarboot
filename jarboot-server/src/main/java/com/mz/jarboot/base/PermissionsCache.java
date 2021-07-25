@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.mz.jarboot.constant.AuthConst.REQUEST_PATH_SEPARATOR;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Component
 public class PermissionsCache {

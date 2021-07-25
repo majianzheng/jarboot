@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Repository
 public interface PrivilegeDao extends JpaRepository<Privilege, Long> {

@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * show the jvm detail
- * @author jianzhengma
+ * @author majianzheng
  */
 public class BytesCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

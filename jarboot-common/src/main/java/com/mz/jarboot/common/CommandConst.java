@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 命令交互常量定义
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CommandConst {
 

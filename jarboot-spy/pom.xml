@@ -11,6 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jarboot-spy</artifactId>
+    <name>Jarboot Spy</name>
 
     <build>
         <finalName>jarboot-spy</finalName>

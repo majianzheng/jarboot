@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 命令请求
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CommandRequest implements CmdProtocol {
     private CommandType commandType = CommandType.UNKNOWN;

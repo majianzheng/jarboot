@@ -1,7 +1,7 @@
 package com.mz.jarboot.base;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 
 public enum ClientState {

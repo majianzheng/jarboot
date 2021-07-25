@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 文件上传
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/jarboot/upload")
 @Controller

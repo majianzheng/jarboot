@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Service
 public class PrivilegeServiceImpl implements PrivilegeService {

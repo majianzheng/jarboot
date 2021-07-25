@@ -4,7 +4,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author jianzhengma
+ * 线程工厂，生产特定前缀名称的线程
+ * @author majianzheng
  */
 public class JarbootThreadFactory implements ThreadFactory {
     public static final int MAX_THREAD_SIGN = 100000;

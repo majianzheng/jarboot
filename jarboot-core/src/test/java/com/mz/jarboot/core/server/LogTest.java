@@ -10,6 +10,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author majianzheng
+ */
 public class LogTest {
     private static Logger logger;
     public static void initTest() {

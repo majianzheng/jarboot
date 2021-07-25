@@ -2,7 +2,7 @@ package com.mz.jarboot.core.advisor;
 
 /**
  * 根据唯一id判定命令是否执行完成
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface JobAware {
 

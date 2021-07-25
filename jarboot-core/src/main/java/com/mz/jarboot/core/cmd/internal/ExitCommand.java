@@ -4,7 +4,7 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 
 /**
  * 进程优雅退出
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ExitCommand extends AbstractInternalCommand {
     @Override

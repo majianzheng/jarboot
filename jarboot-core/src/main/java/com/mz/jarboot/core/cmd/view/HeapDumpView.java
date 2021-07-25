@@ -4,7 +4,7 @@ import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.core.cmd.model.HeapDumpModel;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class HeapDumpView implements ResultView<com.mz.jarboot.core.cmd.model.HeapDumpModel> {
     @Override

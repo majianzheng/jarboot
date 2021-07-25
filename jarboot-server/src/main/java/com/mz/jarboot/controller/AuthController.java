@@ -25,13 +25,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 鉴权接口
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/auth")
 @Controller
@@ -74,17 +73,14 @@ public class AuthController {
     /**
      * 登入系统
      * @param request http请求
-     * @param response http响应
      * @return 结果
      */
     @PostMapping(value="/login")
     @ResponseBody
-    public ResponseForObject<JarbootUser> login(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseForObject<JarbootUser> login(HttpServletRequest request) {
         String token = resolveToken(request);
         ResponseForObject<JarbootUser> result = new ResponseForObject<>();
 
-        // write Token to Http header
-        response.addHeader(AuthConst.AUTHORIZATION_HEADER, "Bearer " + token);
         String username = request.getParameter(PARAM_USERNAME);
         if (StringUtils.isEmpty(username)) {
             // 已经登录了，鉴定权限

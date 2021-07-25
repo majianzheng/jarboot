@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Create the command instance by the command line
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class CommandBuilder {

@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * 命令响应类型
- * @author jianzhengma
+ * @author majianzheng
  */
 public enum ResponseType {
     /**

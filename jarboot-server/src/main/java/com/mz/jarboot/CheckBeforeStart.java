@@ -7,7 +7,7 @@ import java.io.File;
 
 /**
  * check file is all exist and environment is jdk.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CheckBeforeStart {
 

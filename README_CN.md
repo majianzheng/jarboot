@@ -227,6 +227,7 @@ jarboot$ thread -n 3
 ```
 
 #### Classloader
+
 查看classloader的继承树，urls，类加载信息
 
 ```bash
@@ -271,5 +272,5 @@ jarboot$ sysprop user.home
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 
 ---
-<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反，默认为1。<br>
+<span id="f1">1[](#a1)</span>: 可以配置优先级级别，从整数值1开始，越大约先启动，停止的顺序则相反。<br>
 <span id="f2">2[](#a2)</span>: 开发中可以由<code>gitlab runner</code>、<code>Jenkins</code>等工具自动构建后通过脚本拷贝到Jarboot指定的目录下，Jarboot监控到文件的更新会自动重启服务，目录监控实现了<code>防抖设计</code>（在一定时间内的多次更新只会触发一次重启）。

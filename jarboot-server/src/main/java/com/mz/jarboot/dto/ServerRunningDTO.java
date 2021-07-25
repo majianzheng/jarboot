@@ -1,7 +1,7 @@
 package com.mz.jarboot.dto;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ServerRunningDTO {
     private Integer pid;

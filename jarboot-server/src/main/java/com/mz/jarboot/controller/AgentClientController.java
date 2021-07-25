@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 内部接口，与jarboot-core交互，非开放
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/public/agent")
 @Controller

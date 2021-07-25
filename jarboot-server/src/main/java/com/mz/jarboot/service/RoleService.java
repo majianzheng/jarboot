@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * Role Service
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface RoleService {
 

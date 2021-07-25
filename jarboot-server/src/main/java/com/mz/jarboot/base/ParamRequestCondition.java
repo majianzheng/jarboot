@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ParamRequestCondition {
     

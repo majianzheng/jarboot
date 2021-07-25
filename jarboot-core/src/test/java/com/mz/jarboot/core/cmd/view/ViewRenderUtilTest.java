@@ -13,6 +13,9 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author majianzheng
+ */
 public class ViewRenderUtilTest {
     @Test
     public void testRenderTable() {

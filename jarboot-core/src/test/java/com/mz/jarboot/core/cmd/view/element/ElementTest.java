@@ -3,6 +3,9 @@ package com.mz.jarboot.core.cmd.view.element;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author majianzheng
+ */
 public class ElementTest {
     @Test
     public void testToHtml() {

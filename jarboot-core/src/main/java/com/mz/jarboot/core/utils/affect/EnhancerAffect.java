@@ -14,7 +14,7 @@ import static java.lang.String.format;
 /**
  * 增强影响范围<br/>
  * 统计影响类/方法/耗时
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
 @SuppressWarnings("all")

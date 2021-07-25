@@ -19,7 +19,7 @@ import org.springframework.web.cors.CorsUtils;
 
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {

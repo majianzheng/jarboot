@@ -3,7 +3,7 @@ package com.mz.jarboot.entity;
 import javax.persistence.*;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Table(name = User.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 @Entity

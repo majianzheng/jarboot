@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Component
 public class PermissionManager {

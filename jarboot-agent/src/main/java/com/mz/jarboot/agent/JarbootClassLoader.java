@@ -4,7 +4,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class JarbootClassLoader extends URLClassLoader {
     public JarbootClassLoader(URL[] urls) {

@@ -4,7 +4,7 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class Element {
     protected String text;

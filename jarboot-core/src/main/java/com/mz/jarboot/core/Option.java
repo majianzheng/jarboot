@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Jarboot全局选项
+ * @author majianzheng
  * 如下代码基于开源项目Arthas适配修改
  */
 @Retention(RetentionPolicy.RUNTIME)

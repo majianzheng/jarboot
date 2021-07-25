@@ -22,6 +22,7 @@ To make the bug report accurate and easy to understand, please try to create bug
 - Reproducible. Include the steps to reproduce the problem. If not please describe as many details as possible, attach stack trace and logs if possible.
 
 zh-CN：
+
 如果你在使用本项目中遇到了问题或者文档有错误，请通过提交[opening an issue][Jarboot-issue]的方式告诉我。我会认真解决这些问题，哪怕是再小的问题都是值得的。首先，在提交一个问题前，请先检查下有没有相同的问题已经存在。
 
 为了使错误报告更加准确、易于理解，请尝试按照如下的约定创建问题：

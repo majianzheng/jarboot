@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @Service
 public class RoleServiceImpl implements RoleService {

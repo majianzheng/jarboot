@@ -1,4 +1,7 @@
 {
+    "name": "jarboot-ui",
+    "description": "jarboot ui module",
+    "license": "Apache-2.0",
     "private": true,
     "scripts": {
         "start": "umi dev",
@@ -19,6 +22,10 @@
         "*.ts?(x)": [
             "prettier --parser=typescript --write"
         ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/majianzheng/jarboot.git"
     },
     "dependencies": {
         "@ant-design/pro-layout": "^6.5.0",

@@ -9,7 +9,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>jarboot-server</artifactId>
-	<name>jarboot-server</name>
+	<name>Jarboot server</name>
 	<description>jarboot server</description>
 	<packaging>jar</packaging>
 
@@ -90,7 +90,7 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>release</id>
+			<id>package-ui</id>
 			<build>
 				<plugins>
 					<!-- 打包前，编译jarboot-ui前端代码并部署到static下 -->
@@ -98,21 +98,37 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
+							<!-- 先安装或更新依赖 -->
+							<execution>
+								<id>jarboot-ui-init</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>yarn</executable>
+									<workingDirectory>../jarboot-ui</workingDirectory>
+									<arguments>
+										<argument>install</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<!-- 执行编译，会自动将编译输出部署到static下 -->
 							<execution>
 								<id>compile-jarboot-ui</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>exec</goal>
 								</goals>
+								<configuration>
+									<executable>yarn</executable>
+									<workingDirectory>../jarboot-ui</workingDirectory>
+									<arguments>
+										<argument>build</argument>
+									</arguments>
+								</configuration>
 							</execution>
 						</executions>
-						<configuration>
-							<executable>yarn</executable>
-							<workingDirectory>../jarboot-ui</workingDirectory>
-							<arguments>
-								<argument>build</argument>
-							</arguments>
-						</configuration>
 					</plugin>
 				</plugins>
 			</build>

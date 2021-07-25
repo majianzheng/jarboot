@@ -3,7 +3,7 @@ package com.mz.jarboot.core.stream;
 
 /**
  * handle the command's response to jarboot-server
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface ResponseStream {
     /**

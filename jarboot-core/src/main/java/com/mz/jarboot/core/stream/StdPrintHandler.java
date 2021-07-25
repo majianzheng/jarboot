@@ -2,7 +2,7 @@ package com.mz.jarboot.core.stream;
 
 /**
  * stdout 处理接口
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface StdPrintHandler {
     /**

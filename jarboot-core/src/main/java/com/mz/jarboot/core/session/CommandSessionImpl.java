@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Implement the process handler.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CommandSessionImpl implements CommandSession {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);

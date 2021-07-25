@@ -20,7 +20,7 @@ import java.util.concurrent.*;
 
 /**
  * The jarboot running environment context.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class EnvironmentContext {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
@@ -43,7 +43,7 @@ public class EnvironmentContext {
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
         EnvironmentContext.resultViewResolver = new ResultViewResolver();
         scheduledExecutorService = Executors.newScheduledThreadPool(1,
-                JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd"));
+                JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
             File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());

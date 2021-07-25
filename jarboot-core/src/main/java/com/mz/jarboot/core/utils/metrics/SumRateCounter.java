@@ -8,8 +8,8 @@ package com.mz.jarboot.core.utils.metrics;
  * 则统计的平均速率是：( (457-267) + (635-457) + (894-635) + (1398-894) ) / 4 = 282
  * </pre>
  * 
- * @author hengyunabc 2015年12月18日 下午3:40:26
- *
+ * @author majianzheng
+ * 以下代码来自开源项目Arthas
  */
 public class SumRateCounter {
 

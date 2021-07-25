@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 系统配置
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/jarboot/setting")
 @RestController

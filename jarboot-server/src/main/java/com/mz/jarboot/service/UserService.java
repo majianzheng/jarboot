@@ -4,7 +4,7 @@ import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.entity.User;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface UserService {
     /**

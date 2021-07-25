@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.advisor;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface ClassBytesCallback {
     /**

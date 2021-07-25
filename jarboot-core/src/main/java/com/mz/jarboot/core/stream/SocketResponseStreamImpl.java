@@ -5,7 +5,7 @@ import com.mz.jarboot.core.ws.WebSocketClient;
 
 /**
  * 小数据量传输通过WebSocket
- * @author jianzhengma
+ * @author majianzheng
  */
 public class SocketResponseStreamImpl implements ResponseStream {
     private WebSocketClient client;

@@ -23,11 +23,10 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
-    private static final char COMMENT_PREFIX = '#';
 
     public static Properties getProperties(File file) {
         Properties properties = new Properties();
@@ -227,7 +226,7 @@ public class PropertyFileUtils {
     private static String parsePropLine(String line, Map<String, String> props) {
         line = StringUtils.trim(line);
         if (StringUtils.indexOf(line, CommonConst.EQUAL_CHAR) <= 0 ||
-                0 == StringUtils.indexOf(line, COMMENT_PREFIX)) {
+                0 == StringUtils.indexOf(line, SettingPropConst.COMMENT_PREFIX)) {
             throw new MzException();
         }
         String[] spliced = StringUtils.split(line, "=", 2);

@@ -2,7 +2,7 @@ package java.jarboot;
 
 /**
  * SpyAPI
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas修改
  */
 @SuppressWarnings("all")

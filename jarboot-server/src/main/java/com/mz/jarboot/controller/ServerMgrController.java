@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * 服务管理
- * @author jianzhengma
+ * @author majianzheng
  */
 @RequestMapping(value = "/api/jarboot/services")
 @Controller

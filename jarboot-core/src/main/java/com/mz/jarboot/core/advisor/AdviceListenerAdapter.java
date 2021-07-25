@@ -9,7 +9,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")

@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * 表渲染节点
- * @author jianzhengma
+ * @author majianzheng
  */
 public class TableElement extends Element {
     private String title;

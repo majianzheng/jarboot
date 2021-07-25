@@ -10,7 +10,7 @@ import java.net.URL;
 import java.security.CodeSource;
 
 /**
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class JarbootAgent {

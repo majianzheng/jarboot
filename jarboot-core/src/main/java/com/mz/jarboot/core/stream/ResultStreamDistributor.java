@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
- * @author jianzhengma
+ * @author majianzheng
  */
 @SuppressWarnings("all")
 public class ResultStreamDistributor {

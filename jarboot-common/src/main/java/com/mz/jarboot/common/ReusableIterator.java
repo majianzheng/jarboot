@@ -20,7 +20,7 @@ import java.util.Iterator;
 /**
  * ReusableIterator接口
  * @param <E> 类型
- * @author jianzhengma
+ * @author majianzheng
  */
 public interface ReusableIterator<E> extends Iterator<E> {
     /**

@@ -36,7 +36,7 @@ In the test environment and daily built integrated environment, a series of jar 
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 
 Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
-<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>Springboot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ### Architecture brief introduction [view](jarboot-server/README.md).
 
@@ -65,7 +65,7 @@ $ mvn clean install
 ```
 jarboot                             #Current working directory
 ├─logs                              #logs
-├─conf                              #jarboot配置文件
+├─conf                              #jarboot setting
 ├─jarboot-spy.jar
 ├─jarboot-agent.jar                 
 ├─jarboot-core.jar                  
@@ -198,7 +198,7 @@ methods in data aspect including return values, exceptions and parameters
 Watch the first parameter and thrown exception of `com.mz.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
 
 ```bash
-jarboot$ watch `com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+jarboot$ watch com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
 Press x to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
@@ -231,7 +231,7 @@ jarboot$ thread -n 3
 
 #### Classloader
 
-了解当前系统中有多少类加载器，以及每个加载器加载的类数量，帮助您判断是否有类加载器泄露。
+View the class loader extends tree, url and class loader info.
 
 ```bash
 jarboot$ classloader
@@ -276,5 +276,5 @@ jarboot$ sysprop user.home
 * [码云Jarboot](https://gitee.com/majz0908/jarboot)
 
 ---
-<span id="f1">1[](#a1)</span>: You can configure the priority level, starting from the integer value of 1. The more you start first, the reverse is the order of stop. The default value is 1。<br>
-<span id="f2">2[](#a2)</span>: In development, it can be built automatically by tools such as gitlab runner, Jenkins, etc. and copied to the directory specified by Jarboot through script. Updates monitored by Jarboot will restart the service automatically. Directory monitoring implements anti-shake design (multiple updates within a certain period of time will trigger only one restart)。
+<span id="f1">1[](#a1)</span>: You can configure the priority level, starting from the integer value of 1. The more you start first, the reverse is the order of stop.<br>
+<span id="f2">2[](#a2)</span>: In development, it can be built automatically by tools such as gitlab runner, Jenkins, etc. and copied to the directory specified by Jarboot through script. Updates monitored by Jarboot will restart the service automatically. Directory monitoring implements anti-shake design (multiple updates within a certain period of time will trigger only one restart).

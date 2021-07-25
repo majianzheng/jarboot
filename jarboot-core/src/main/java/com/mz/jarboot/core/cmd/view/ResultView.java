@@ -4,7 +4,7 @@ import com.mz.jarboot.core.cmd.model.ResultModel;
 
 /**
  * Command execute result view interface
- * @author jianzhengma
+ * @author majianzheng
  * @param <T>
  */
 public interface ResultView<T extends ResultModel> {

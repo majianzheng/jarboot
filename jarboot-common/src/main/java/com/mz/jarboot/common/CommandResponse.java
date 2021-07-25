@@ -2,7 +2,7 @@ package com.mz.jarboot.common;
 
 /**
  * We defined a response data structure or protocol used give back the executed result.
- * @author jianzhengma
+ * @author majianzheng
  */
 public class CommandResponse implements CmdProtocol {
     private static final char SUCCESS_FLAG = '1';
