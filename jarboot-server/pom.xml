@@ -90,7 +90,7 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>package-ui</id>
+			<id>release</id>
 			<build>
 				<plugins>
 					<!-- 打包前，编译jarboot-ui前端代码并部署到static下 -->
