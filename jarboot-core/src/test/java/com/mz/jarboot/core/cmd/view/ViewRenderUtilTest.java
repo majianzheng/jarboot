@@ -46,36 +46,36 @@ public class ViewRenderUtilTest {
         rows.add(row3);
 
         String tableHtml = ViewRenderUtil.renderTable(headers, rows, title);
-        String expect = "<table border=1><caption style=\"caption-side: top; font-size: 20px; color: snow\">title</caption><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr><tr><td><span>col11</span></td><td><span>col12</span></td><td><span>col13</span></td><td><span>col21</span></td><td><span>col22</span></td><td><span>col23</span></td><td><span>col31</span></td><td><span>col32</span></td><td><span>col33</span></td></tr><tr></tr><tr></tr></tbody></table>";
+        String expect = "<table border=\"1\"><caption style=\"caption-side: top; font-size: 20px; color: snow\">title</caption><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr><tr><td>col11</td><td>col12</td><td>col13</td><td>col21</td><td>col22</td><td>col23</td><td>col31</td><td>col32</td><td>col33</td></tr><tr></tr><tr></tr></tbody></table>";
         assertEquals(expect, tableHtml);
 
         //标题为空，此时无caption
         tableHtml = ViewRenderUtil.renderTable(headers, rows, null);
-        expect = "<table border=1><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr><tr><td><span>col11</span></td><td><span>col12</span></td><td><span>col13</span></td><td><span>col21</span></td><td><span>col22</span></td><td><span>col23</span></td><td><span>col31</span></td><td><span>col32</span></td><td><span>col33</span></td></tr><tr></tr><tr></tr></tbody></table>";
+        expect = "<table border=\"1\"><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr><tr><td>col11</td><td>col12</td><td>col13</td><td>col21</td><td>col22</td><td>col23</td><td>col31</td><td>col32</td><td>col33</td></tr><tr></tr><tr></tr></tbody></table>";
         assertEquals(expect, tableHtml);
 
         //header为null，此时无th
         tableHtml = ViewRenderUtil.renderTable(null, rows, null);
-        expect = "<table border=1><tbody><tr><td><span>col11</span></td><td><span>col12</span></td><td><span>col13</span></td><td><span>col21</span></td><td><span>col22</span></td><td><span>col23</span></td><td><span>col31</span></td><td><span>col32</span></td><td><span>col33</span></td></tr><tr></tr><tr></tr></tbody></table>";
+        expect = "<table border=\"1\"><tbody><tr><td>col11</td><td>col12</td><td>col13</td><td>col21</td><td>col22</td><td>col23</td><td>col31</td><td>col32</td><td>col33</td></tr><tr></tr><tr></tr></tbody></table>";
         assertEquals(expect, tableHtml);
 
         //行为空
         tableHtml = ViewRenderUtil.renderTable(headers, null, "demo");
-        expect = "<table border=1><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr></tbody></table>";
+        expect = "<table border=\"1\"><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr></tbody></table>";
         assertEquals(expect, tableHtml);
 
         //border为2
         tableHtml = ViewRenderUtil.renderTable(headers, null, "demo", 2);
-        expect = "<table border=2><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr></tbody></table>";
+        expect = "<table border=\"2\"><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr></tbody></table>";
         assertEquals(expect, tableHtml);
 
         //border为-1
         tableHtml = ViewRenderUtil.renderTable(headers, null, "demo", -1);
-        expect = "<table border=0><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr></tbody></table>";
+        expect = "<table border=\"0\"><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr></tbody></table>";
         assertEquals(expect, tableHtml);
         //border为0
         tableHtml = ViewRenderUtil.renderTable(headers, null, "demo", 0);
-        expect = "<table border=0><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th><span>header1</span></th><th><span>header2</span></th><th><span>header3</span></th></tr></tbody></table>";
+        expect = "<table border=\"0\"><caption style=\"caption-side: top; font-size: 20px; color: snow\">demo</caption><tbody><tr><th>header1</th><th>header2</th><th>header3</th></tr></tbody></table>";
         assertEquals(expect, tableHtml);
     }
 
@@ -84,14 +84,14 @@ public class ViewRenderUtilTest {
         ChangeResultVO result = new ChangeResultVO();
         TableElement table = ViewRenderUtil.renderChangeResult(result);
         String html = table.toHtml();
-        assertEquals("<table border=1><tbody><tr><th><span>NAME</span></th><th><span>BEFORE-VALUE</span></th><th><span>AFTER-VALUE</span></th></tr><tr><td><span></span></td><td><span></span></td><td><span></span></td></tr></tbody></table>", html);
+        assertEquals("<table border=\"1\"><tbody><tr><th>NAME</th><th>BEFORE-VALUE</th><th>AFTER-VALUE</th></tr><tr><td></td><td></td><td></td></tr></tbody></table>", html);
         result.setName("name1");
         result.setBeforeValue(123);
         result.setAfterValue(456);
         table = ViewRenderUtil.renderChangeResult(result);
         html = table.toHtml();
         System.out.println(html);
-        assertEquals("<table border=1><tbody><tr><th><span>NAME</span></th><th><span>BEFORE-VALUE</span></th><th><span>AFTER-VALUE</span></th></tr><tr><td><span>name1</span></td><td><span>123</span></td><td><span>456</span></td></tr></tbody></table>", html);
+        assertEquals("<table border=\"1\"><tbody><tr><th>NAME</th><th>BEFORE-VALUE</th><th>AFTER-VALUE</th></tr><tr><td>name1</td><td>123</td><td>456</td></tr></tbody></table>", html);
     }
 
     @Test
@@ -99,11 +99,11 @@ public class ViewRenderUtilTest {
         Map<String, String> data = new HashMap<>();
         String tableHtml = ViewRenderUtil.renderKeyValueTable(data);
         //空表测试
-        assertEquals("<table border=1><tbody><tr><th><span>KEY</span></th><th><span>VALUE</span></th></tr></tbody></table>", tableHtml);
+        assertEquals("<table border=\"1\"><tbody><tr><th>KEY</th><th>VALUE</th></tr></tbody></table>", tableHtml);
         data.put("主键", "值");
         tableHtml = ViewRenderUtil.renderKeyValueTable(data);
         System.out.println(tableHtml);
-        assertEquals("<table border=1><tbody><tr><th><span>KEY</span></th><th><span>VALUE</span></th></tr><tr><td><span>主键</span></td><td><span>值</span></td></tr></tbody></table>", tableHtml);
+        assertEquals("<table border=\"1\"><tbody><tr><th>KEY</th><th>VALUE</th></tr><tr><td>主键</td><td>值</td></tr></tbody></table>", tableHtml);
     }
 
     @Test

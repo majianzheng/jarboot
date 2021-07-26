@@ -6,9 +6,7 @@ import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
-import com.mz.jarboot.core.utils.HtmlRenderUtils;
 import com.mz.jarboot.core.utils.StringUtils;
-import org.thymeleaf.context.Context;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -171,7 +169,6 @@ public class ViewRenderUtil {
     }
 
     public static String renderTable(List<String> headers, List<List<String>> rows, String title, int border) {
-        Context context = new Context();
         if (null == headers) {
             headers = new ArrayList<>();
         }
@@ -184,11 +181,40 @@ public class ViewRenderUtil {
         if (border < 0) {
             border = 0;
         }
-        context.setVariable("border", border);
-        context.setVariable("headers", headers);
-        context.setVariable("rows", rows);
-        context.setVariable("title", title);
-        return HtmlRenderUtils.getInstance().processHtml("template/TableView.html", context);
+        StringBuilder tableBuilder = new StringBuilder();
+        tableBuilder
+                .append("<table border=\"")
+                .append(border).append("\">");
+        if (!title.isEmpty()) {
+            tableBuilder
+                    .append("<caption style=\"caption-side: top; font-size: 20px; color: snow\">")
+                    .append(title).append("</caption>");
+        }
+        tableBuilder.append("<tbody>");
+        //是否有列头
+        if (!headers.isEmpty()) {
+            tableBuilder.append("<tr>");
+            headers.forEach(header ->
+                    tableBuilder
+                            .append("<th>")
+                            .append(null == header ? CoreConstant.EMPTY_STRING : header)
+                            .append("</th>"));
+            tableBuilder.append("</tr>");
+        }
+        if (!rows.isEmpty()) {
+            rows.forEach(row -> {
+                tableBuilder.append("<tr>");
+                row.forEach(cell ->
+                        tableBuilder
+                                .append("<td>")
+                                .append(null == cell ? CoreConstant.EMPTY_STRING : cell)
+                                .append("</td>"));
+                tableBuilder.append("</tr>");
+            });
+        }
+        tableBuilder.append("</tbody>");
+        tableBuilder.append("</table>");
+        return tableBuilder.toString();
     }
 
     private static String formatTimeMillsToSeconds(long timeMills) {

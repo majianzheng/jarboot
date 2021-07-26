@@ -57,10 +57,9 @@
 		<jjwt.version>0.11.2</jjwt.version>
 		<logback.version>1.2.3</logback.version>
 		<slf4j.version>1.7.31</slf4j.version>
-		<htmlcompressor.version>1.5.2</htmlcompressor.version>
-		<thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
 		<okhttp.version>3.10.0</okhttp.version>
 		<cfr.version>0.151</cfr.version>
+		<olgn.version>3.1.19</olgn.version>
 		<jackson-core.version>2.12.3</jackson-core.version>
 		<jackson-databind.version>2.12.3</jackson-databind.version>
 		<jackson.annotations.version>2.12.3</jackson.annotations.version>
@@ -205,18 +204,6 @@
 				<version>${okhttp.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.thymeleaf</groupId>
-				<artifactId>thymeleaf</artifactId>
-				<version>${thymeleaf.version}</version>
-			</dependency>
-			<dependency>
-				<!-- html压缩库(Apache-2.0 License)，配合thymeleaf使用，压缩html高效传输 -->
-				<groupId>com.googlecode.htmlcompressor</groupId>
-				<artifactId>htmlcompressor</artifactId>
-				<version>${htmlcompressor.version}</version>
-			</dependency>
-
-			<dependency>
 				<groupId>com.alibaba</groupId>
 				<artifactId>bytekit-core</artifactId>
 				<version>${bytekit.version}</version>
@@ -230,6 +217,11 @@
 				<groupId>io.netty</groupId>
 				<artifactId>netty-codec-http</artifactId>
 				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ognl</groupId>
+				<artifactId>ognl</artifactId>
+				<version>${olgn.version}</version>
 			</dependency>
 
 			<!-- JDBC libs -->
