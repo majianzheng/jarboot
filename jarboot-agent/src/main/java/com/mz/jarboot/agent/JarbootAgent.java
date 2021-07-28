@@ -19,11 +19,12 @@ public class JarbootAgent {
     private static final String GET_INSTANCE = "getInstance";
 
     private static PrintStream ps = System.err;
+    private static final File CURRENT_DIR;
 
     static {
+        CURRENT_DIR = getCurrentDir();
         try {
-            File logDir = new File(System.getProperty("user.home") + File.separator +
-                    "jarboot" + File.separator + "logs"  + File.separator);
+            File logDir = new File(CURRENT_DIR, "logs");
             if (!logDir.exists()) {
                 logDir.mkdir();
             }
@@ -41,6 +42,17 @@ public class JarbootAgent {
 
     public static void premain(String args, Instrumentation inst) {
         main(args, inst);
+        //上线成功开启输出流实时显示
+        try {
+            Class<?> bootClass = jarbootClassLoader.loadClass(JARBOOT_CLASS);
+            Object obj = bootClass.getMethod(GET_INSTANCE).invoke(null);
+            boolean isOnline = (Boolean) bootClass.getMethod("isOnline").invoke(obj);
+            if (isOnline) {
+                bootClass.getMethod("setStarting").invoke(obj);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(ps);
+        }
     }
 
     public static void agentmain(String args, Instrumentation inst) {
@@ -91,10 +103,9 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
         try {
-            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            coreJarFile = new File(agentJarFile.getParentFile(), JARBOOT_CORE_JAR);
+            coreJarFile = new File(CURRENT_DIR, JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
-                ps.println("Can not find jarboot-core jar file." + agentJarFile);
+                ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }
         } catch (Throwable e) {// NOSONAR
             ps.println("Can not find jar file from" + codeSource.getLocation());
@@ -118,5 +129,16 @@ public class JarbootAgent {
     private static void bind(ClassLoader classLoader, Instrumentation inst, String args) throws Exception {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
         bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class).invoke(null, inst, args);
+    }
+
+    private static File getCurrentDir() {
+        CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
+        try {
+            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            return agentJarFile.getParentFile();
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
     }
 }

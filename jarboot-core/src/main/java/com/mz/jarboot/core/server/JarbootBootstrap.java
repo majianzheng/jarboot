@@ -17,6 +17,7 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
+import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
@@ -151,6 +152,11 @@ public class JarbootBootstrap {
 
     public boolean isOnline() {
         return online;
+    }
+
+    public void setStarting() {
+        //开启标准输出流重定向
+        StdOutStreamReactor.getInstance().setStarting();
     }
 
     public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args) {

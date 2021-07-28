@@ -1,3 +1,8 @@
+## 1.0.8-SNAPSHOT (7.28, 2021)
+
+* refactor command protocol (重构命令执行协议)
+* stdout default on, and change from session to broadcast (stdout命令默认开启，改为广播级，将广播到所有客户端)
+
 ## 1.0.7 (7.25, 2021)
 
 * [#13] Command line parse error when space in quotation

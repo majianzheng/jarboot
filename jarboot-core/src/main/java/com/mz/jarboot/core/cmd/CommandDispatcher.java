@@ -27,7 +27,6 @@ public class CommandDispatcher {
                 logger.warn("解析命令错误！");
                 return;
             }
-            logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());
             switch (type) {
                 case USER_PUBLIC:
                     EnvironmentContext.runCommand(command);
@@ -36,7 +35,7 @@ public class CommandDispatcher {
                     command.run();
                     break;
                 default:
-                    //ignore
+                    logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());
                     break;
             }
         } catch (Exception e) {

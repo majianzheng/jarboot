@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,7 +23,8 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("all")
 public class AgentManager {
     private static volatile AgentManager instance = null;
-    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, Semaphore> startingSemMap = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AgentManager(){}
     public static AgentManager getInstance() {
@@ -39,6 +41,10 @@ public class AgentManager {
     public void online(String server, Session session) {
         //目标进程上线
         clientMap.put(server, new AgentClient(server, session));
+        Semaphore semaphore = startingSemMap.getOrDefault(server, null);
+        if (null != semaphore) {
+            semaphore.release();
+        }
     }
 
     public void offline(String server) {
@@ -161,6 +167,10 @@ public class AgentManager {
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
+            case STD_OUT:
+                //启动中的控制台消息
+                WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                break;
             case JSON_RESULT:
                 WebSocketManager.getInstance().renderJson(server, resp.getBody(), sessionId);
                 break;
@@ -174,6 +184,59 @@ public class AgentManager {
             default:
                 //do nothing
                 break;
+        }
+    }
+
+    public void onServerStarted(final String server) {
+        AgentClient client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            return;
+        }
+        client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            logger.error("Wait server online timeout!");
+            WebSocketManager.getInstance().sendConsole(server, server + " connect timeout！");
+            return;
+        }
+        synchronized (client) {
+            if (ClientState.STARTING.equals(client.getState())) {
+                WebSocketManager.getInstance().sendConsole(server, server + " started！");
+                //发送启动成功，唤醒waitServerStarted线程
+                client.notify(); //NOSONAR
+            }
+            client.setState(ClientState.ONLINE);
+        }
+    }
+
+    public void waitServerStarted(String server, long millis) {
+        startingSemMap.put(server, new Semaphore(0));
+        AgentClient client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            logger.debug("Wait error server is offline，{}", server);
+            Semaphore semaphore = startingSemMap.computeIfAbsent(server, k -> new Semaphore(0));
+            try {
+                semaphore.tryAcquire(15, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            startingSemMap.remove(server);
+            client = clientMap.getOrDefault(server, null);
+            if (null == client) {
+                logger.debug("Wait error server is offline，{}", server);
+                return;
+            }
+        }
+
+        synchronized (client) {
+            if (!ClientState.STARTING.equals(client.getState())) {
+                return;
+            }
+            try {
+                client.wait(millis);
+            } catch (InterruptedException e) {
+                //ignore
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

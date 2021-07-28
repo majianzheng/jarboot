@@ -58,12 +58,11 @@ public class CommandBuilder {
             args = commandLine.substring(p + 1);
         }
         name = name.toLowerCase();
-        logger.info("type:{}, cmd:{}, args:{}", type, name, args);
         Class<? extends AbstractCommand> cls = (CommandType.INTERNAL.equals(type)) ?
                 internalCommandMap.getOrDefault(name, null) :
                 commandMap.getOrDefault(name, null);
         if (null == cls) {
-            logger.info("can not find class. {}", name);
+            logger.info("can not find class. {}, type:{}, args:{}", name, type, args);
             session.end(false, "command not found.");
             return null;
         }

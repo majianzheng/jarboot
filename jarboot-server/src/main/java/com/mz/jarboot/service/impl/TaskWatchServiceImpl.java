@@ -94,7 +94,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
-            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, null));
+            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome));
         }
     }
 
@@ -317,7 +317,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
             String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
-            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome, null));
+            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome));
         }
 
         //获取是否开启了守护

@@ -14,7 +14,7 @@ public final class AgentClient extends MessageQueueOperator {
     public AgentClient(String name, final Session session) {
         super(session);
         this.name = name;
-        this.state = ClientState.ONLINE;
+        this.state = ClientState.STARTING;
     }
 
     public String getName() {

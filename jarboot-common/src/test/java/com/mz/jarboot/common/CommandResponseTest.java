@@ -9,28 +9,32 @@ public class CommandResponseTest {
     @Test
     public void testFromRaw() {
         CommandResponse response = new CommandResponse();
-        response.fromRaw("k1-body data 123");
+        char header = CommandConst.ACK_TYPE | CommandConst.SUCCESS_FLAG;
+        response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.ACK, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        response.fromRaw("c0-body data 123");
+        header = CommandConst.CONSOLE_TYPE;
+        response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.CONSOLE, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertFalse(response.getSuccess());
 
         response = new CommandResponse();
-        response.fromRaw("j1-body data 123");
+        header = CommandConst.JSON_RESULT_TYPE | CommandConst.SUCCESS_FLAG;
+        response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.JSON_RESULT, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        response.fromRaw("F0-body xxx data 125663");
+        header = CommandConst.CMD_END_TYPE;
+        response.fromRaw(header + "body xxx data\r125663");
         assertEquals(ResponseType.COMMAND_END, response.getResponseType());
         assertEquals("125663", response.getSessionId());
         assertEquals("body xxx data", response.getBody());
@@ -44,32 +48,36 @@ public class CommandResponseTest {
 
     @Test
     public void testToRaw() {
+        char header = CommandConst.ACK_TYPE | CommandConst.SUCCESS_FLAG;
         CommandResponse response = new CommandResponse();
         response.setResponseType(ResponseType.ACK);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(true);
-        assertEquals("k1-body data 123", response.toRaw());
+        assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
+        header = CommandConst.CONSOLE_TYPE;
         response.setResponseType(ResponseType.CONSOLE);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(false);
-        assertEquals("c0-body data 123", response.toRaw());
+        assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
+        header = CommandConst.JSON_RESULT_TYPE | CommandConst.SUCCESS_FLAG;
         response.setResponseType(ResponseType.JSON_RESULT);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(true);
-        assertEquals("j1-body data 123", response.toRaw());
+        assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
+        header = CommandConst.CMD_END_TYPE;
         response.setResponseType(ResponseType.COMMAND_END);
         response.setSessionId("125663");
         response.setBody("body xxx data");
         response.setSuccess(false);
-        assertEquals("F0-body xxx data 125663", response.toRaw());
+        assertEquals(header + "body xxx data\r125663", response.toRaw());
     }
 }

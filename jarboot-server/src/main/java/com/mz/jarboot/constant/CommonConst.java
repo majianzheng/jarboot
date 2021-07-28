@@ -17,11 +17,6 @@ public class CommonConst {
     public static final String EXE_EXT = ".exe";
     public static final String JAR_EXT = ".jar";
     public static final String ARG_JAR = "-jar ";
-
-    /**
-     * 协议分隔符
-     */
-    public static final char PROTOCOL_SPLIT = '\r';
     
     public static final String DOT = ".";
     public static final char EQUAL_CHAR = '=';

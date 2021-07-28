@@ -2,7 +2,6 @@ package com.mz.jarboot.ws;
 
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.JarbootThreadFactory;
-import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
@@ -148,8 +147,8 @@ public class WebSocketManager {
 
     private static String formatMsg(String server, WsEventEnum event, String body) {
         StringBuilder sb = new StringBuilder();
-        sb.append(server).append(CommonConst.PROTOCOL_SPLIT)
-                .append(event.ordinal()).append(CommonConst.PROTOCOL_SPLIT).append(body);
+        sb.append(server).append(CommandConst.PROTOCOL_SPLIT)
+                .append(event.ordinal()).append(CommandConst.PROTOCOL_SPLIT).append(body);
         return sb.toString();
     }
 

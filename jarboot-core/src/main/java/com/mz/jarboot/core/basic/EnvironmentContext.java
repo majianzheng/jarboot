@@ -7,7 +7,6 @@ import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandSession;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
-import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,6 @@ public class EnvironmentContext {
         if (!sessionMap.isEmpty()) {
             sessionMap.forEach((k, v) -> v.cancel());
             sessionMap = new ConcurrentHashMap<>(16);
-            StdOutStreamReactor.getInstance().unRegisterAll();
         }
         if (!runningCommandMap.isEmpty()) {
             runningCommandMap.forEach((k, v) -> v.cancel());
@@ -165,7 +163,6 @@ public class EnvironmentContext {
             session.cancel();
             session.end();
             sessionMap.remove(sessionId);
-            StdOutStreamReactor.getInstance().unRegister(sessionId);
         }
     }
 }

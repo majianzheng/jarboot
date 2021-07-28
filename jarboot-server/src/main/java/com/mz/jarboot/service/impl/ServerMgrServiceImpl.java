@@ -185,7 +185,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             //启动失败
             WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
         } else {
-            TaskUtils.attach(server, pid);
             WebSocketManager.getInstance().sendConsole(server,
                     START_TIME_CONST + costTime + "毫秒");
             WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);

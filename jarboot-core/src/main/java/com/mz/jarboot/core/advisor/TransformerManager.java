@@ -9,8 +9,6 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -22,7 +20,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class TransformerManager {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private ClassFileTransformer classFileTransformer;
-    private ConcurrentMap<Class<?>, ClassBytesCallback> classBytesCallbackMap = new ConcurrentHashMap<>();
     private List<ClassFileTransformer> watchTransformers = new CopyOnWriteArrayList<>();
     private List<ClassFileTransformer> traceTransformers = new CopyOnWriteArrayList<>();
     private Instrumentation instrumentation;
@@ -40,13 +37,6 @@ public class TransformerManager {
                                     Class<?> classBeingRedefined,
                                     ProtectionDomain protectionDomain,
                                     byte[] classfileBuffer) throws IllegalClassFormatException {
-                ClassBytesCallback classBytesCallback = classBytesCallbackMap.get(classBeingRedefined);
-                if (null != classBytesCallback) {
-                    classBytesCallback.handler(className, classfileBuffer);
-                    classBytesCallbackMap.remove(classBeingRedefined);
-                    return null;
-                }
-
                 for (ClassFileTransformer classFileTransformer : reTransformers) {
                     byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
                             protectionDomain, classfileBuffer);
@@ -76,10 +66,6 @@ public class TransformerManager {
         };
 
         instrumentation.addTransformer(classFileTransformer, true);
-    }
-
-    public synchronized void addOnceTransformer(Class<?> cls, ClassBytesCallback callback) {
-        classBytesCallbackMap.put(cls, callback);
     }
 
     public void addTransformer(ClassFileTransformer transformer, boolean isTracing) {

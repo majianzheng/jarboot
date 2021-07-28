@@ -27,4 +27,16 @@ public class AgentClientController {
         AgentManager.getInstance().handleAgentResponse(server, resp);
         return new ResponseSimple();
     }
+
+    /**
+     * 通知启动成功完成
+     * @param server 服务名
+     * @return 处理结果
+     */
+    @GetMapping(value="/setStarted")
+    @ResponseBody
+    public ResponseSimple setStarted(@RequestParam String server) {
+        AgentManager.getInstance().onServerStarted(server);
+        return new ResponseSimple();
+    }
 }

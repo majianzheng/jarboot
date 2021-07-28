@@ -49,13 +49,13 @@ public class StdOutCommand extends AbstractCommand {
     @Override
     public void run() {
         if (StringUtils.isEmpty(this.action)) {
-            boolean flag = StdOutStreamReactor.getInstance().isRegistered(this.getSession().getSessionId());
+            boolean flag = StdOutStreamReactor.getInstance().isEnabled();
             String msg = String.format("stdout 状态：%s", flag ? "on" : "off");
             session.end(true, msg);
         } else if (ACTION_ON.equalsIgnoreCase(this.action)) {
-            StdOutStreamReactor.getInstance().register(this.getSession());
+            StdOutStreamReactor.getInstance().enabled(true);
         } else if (ACTION_OFF.equalsIgnoreCase(this.action)) {
-            StdOutStreamReactor.getInstance().unRegister(this.getSession().getSessionId());
+            StdOutStreamReactor.getInstance().enabled(false);
         } else {
             session.end(false, "stdout on 或 stdout off");
         }

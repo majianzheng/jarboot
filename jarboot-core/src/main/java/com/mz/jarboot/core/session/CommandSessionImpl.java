@@ -9,9 +9,6 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author majianzheng
  */
 public class CommandSessionImpl implements CommandSession {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final ResultStreamDistributor distributor;
     private boolean running = false;
     private final String sessionId;
@@ -58,13 +54,11 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void ack(String message) {
-        logger.debug("ack>>{}", message);
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.ACK);
         resp.setBody(message);
         resp.setSessionId(this.sessionId);
-        logger.info("write>>");
         distributor.write(resp);
     }
 
@@ -120,7 +114,6 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void end(boolean success, String message) {
-        logger.debug("end>>{}, {}", success, message);
         running = false;
         //jobId置为空，以便清理
         jobId = CoreConstant.EMPTY_STRING;
