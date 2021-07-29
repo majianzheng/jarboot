@@ -1,5 +1,7 @@
 package com.mz.jarboot.event;
 
+import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -27,7 +29,12 @@ public class ApplicationContextUtils {
         return ctx;
     }
 
-    public static void setContext(final ApplicationContext ctx) {
+    public static void init(final ApplicationContext ctx) {
         ApplicationContextUtils.ctx = ctx;
+        int maxStartTime = ctx.getEnvironment().getProperty("jarboot.services.max-start-time", int.class, 120000);
+        TaskUtils.setMaxStartTime(maxStartTime);
+        int maxExitTime = ctx.getEnvironment()
+                .getProperty("jarboot.services.max-graceful-exit-time", int.class, 120000);
+        AgentManager.getInstance().setMaxGracefulExitTime(maxExitTime);
     }
 }

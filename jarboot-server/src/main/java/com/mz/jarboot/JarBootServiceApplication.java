@@ -38,7 +38,7 @@ public class JarBootServiceApplication {
 		CheckBeforeStart.check();
 
 		ApplicationContext context = SpringApplication.run(JarBootServiceApplication.class, args);
-		ApplicationContextUtils.setContext(context);
+		ApplicationContextUtils.init(context);
 		TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
 		taskWatchService.init();
 	}

@@ -41,7 +41,12 @@ public class CommonConst {
     /**
      * 等待目标进程退出的最大时间，毫秒
      */
-    public static final int MAX_WAIT_EXIT_TIME = 5000;
+    public static final int MAX_WAIT_EXIT_TIME = 15000;
+
+    /**
+     * Agent最大连接超时时间（秒）
+     */
+    public static final int MAX_AGENT_CONNECT_TIME = 15;
 
     public static final String AGENT_JAR_NAME = "jarboot-agent.jar";
 

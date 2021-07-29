@@ -26,6 +26,14 @@ public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
     private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
             CommonConst.SERVICES + CommonConst.DOT;
+    private static int maxStartTime = 12000;
+
+    /**
+     * 服务最大启动时间
+     */
+    public static void setMaxStartTime(int v) {
+        maxStartTime = v;
+    }
 
     /**
      * 检查服务进程是否存活
@@ -52,7 +60,7 @@ public class TaskUtils {
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
             String name = getAfterArgs(server);
-            killJavaByName(name, text -> WebSocketManager.getInstance().sendConsole(server, text));
+            killJavaByName(name);
         }
 
     }
@@ -129,7 +137,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServerStarted(server, 120000);
+        AgentManager.getInstance().waitServerStarted(server, maxStartTime);
     }
 
     /**
@@ -167,14 +175,6 @@ public class TaskUtils {
                 VMUtils.getInstance().detachVM(vm);
             }
         }
-    }
-
-    public interface PushMsgCallback {
-        /**
-         * 反馈的消息
-         * @param text 消息
-         */
-        void sendMessage(String text);
     }
 
     private static String getAbsPath(String s, String serverPath) {
@@ -275,38 +275,14 @@ public class TaskUtils {
         }
     }
 
-    @SuppressWarnings("all")
-    private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
-            throws IOException, InterruptedException {
-        long timestamp = System.currentTimeMillis();
-        byte[] buffer = new byte[4096];
-        int len;
-        for (;;) {
-            if (0 == inputStream.available()) {
-                long interval = Math.abs(System.currentTimeMillis() - timestamp);
-                //超过一定时间进程没有输出信息时，认为启动完成
-                if (interval > waitTime) {
-                    break;
-                }
-                Thread.sleep(100);
-            } else {
-                //可用
-                len = inputStream.read(buffer);
-                String s = new String(buffer, 0, len);
-                callback.sendMessage(s);
-                timestamp = System.currentTimeMillis();
-            }
-        }
-    }
-
-    public static void killByName(String name, PushMsgCallback callback) {
+    public static void killByName(String name) {
         List<Integer> pid = getPidByName(name);
         if (CollectionUtils.isEmpty(pid)) {
             return;
         }
-        killByPid(pid, callback);
+        killByPid(pid);
     }
-    static void killJavaByName(String name, PushMsgCallback callback) {
+    static void killJavaByName(String name) {
         if (StringUtils.isEmpty(name)) {
             return;
         }
@@ -314,8 +290,7 @@ public class TaskUtils {
         if (CollectionUtils.isEmpty(pidList)) {
             return;
         }
-
-        pidList.forEach( pid -> killByPid(pid, callback));
+        killByPid(pidList);
     }
 
     public static boolean checkAliveByJar(String jar) {
@@ -350,24 +325,23 @@ public class TaskUtils {
         return pidCmdMap;
     }
 
-    private static void killByPid(List<Integer> pid, PushMsgCallback callback) {
+    private static void killByPid(List<Integer> pid) {
         if (CollectionUtils.isEmpty(pid)) {
             return;
         }
-        pid.forEach(p -> killByPid(p, callback));
+        pid.forEach(TaskUtils::killByPid);
     }
 
-    private static void killByPid(int pid, PushMsgCallback callback) {
-        killByPid(String.valueOf(pid), callback);
+    private static void killByPid(int pid) {
+        killByPid(String.valueOf(pid));
     }
 
-    private static void killByPid(String pid, PushMsgCallback callback) {
+    private static void killByPid(String pid) {
         String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
-            callback.sendMessage("强制终止进程，pid:" + pid);
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();

@@ -56,11 +56,9 @@ public class StdOutStreamReactor {
 
     private void init() {
         // 输出不满一行的字符串
-        sos.setPrintHandler(text -> {
-            //暂不支持
-        });
+        sos.setPrintHandler(stdoutPrintHandler);
         //输出行
-        sos.setPrintLineHandler(startingPrintHandler);
+        sos.setPrintLineHandler(stdoutPrintHandler);
         //默认开启
         this.enabled(true);
     }
@@ -97,7 +95,7 @@ public class StdOutStreamReactor {
         EnvironmentContext.getScheduledExecutorService().execute(() -> {
             do {
                 try {
-                    TimeUnit.SECONDS.sleep(5);
+                    TimeUnit.SECONDS.sleep(2);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

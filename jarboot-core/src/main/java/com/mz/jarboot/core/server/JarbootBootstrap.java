@@ -11,14 +11,14 @@ import com.alibaba.bytekit.asm.instrument.InstrumentTransformer;
 import com.alibaba.bytekit.asm.matcher.SimpleClassMatcher;
 import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
+import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.ws.MessageHandler;
 import com.mz.jarboot.core.ws.WebSocketClient;
 import io.netty.channel.Channel;
@@ -61,9 +61,9 @@ public class JarbootBootstrap {
 
         //1.解析args，获取目标服务端口
         String s = new String(Base64.getDecoder().decode(args));
-        JsonNode json = JsonUtils.readAsJsonNode(s);
-        host = json.get("host").asText();
-        serverName = json.get("server").asText();
+        String[] agentArgs = StringUtils.split(s, String.valueOf(CommandConst.PROTOCOL_SPLIT));
+        host = agentArgs[0];
+        serverName = agentArgs[1];
 
         //2.环境初始化
         EnvironmentContext.init(serverName, host, inst);

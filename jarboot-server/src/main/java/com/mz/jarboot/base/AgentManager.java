@@ -26,6 +26,7 @@ public class AgentManager {
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, Semaphore> startingSemMap = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
     private AgentManager(){}
     public static AgentManager getInstance() {
         if (null == instance) {
@@ -92,7 +93,7 @@ public class AgentManager {
             sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
+                client.wait(maxGracefulExitTime);
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
@@ -194,8 +195,8 @@ public class AgentManager {
         }
         client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            logger.error("Wait server online timeout!");
-            WebSocketManager.getInstance().sendConsole(server, server + " connect timeout！");
+            logger.error("Server {} in offline already!", server);
+            WebSocketManager.getInstance().sendConsole(server, server + " is offline now！");
             return;
         }
         synchronized (client) {
@@ -208,27 +209,30 @@ public class AgentManager {
         }
     }
 
-    public void waitServerStarted(String server, long millis) {
-        startingSemMap.put(server, new Semaphore(0));
+    public void waitServerStarted(String server, int millis) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            logger.debug("Wait error server is offline，{}", server);
             Semaphore semaphore = startingSemMap.computeIfAbsent(server, k -> new Semaphore(0));
             try {
-                semaphore.tryAcquire(15, TimeUnit.SECONDS);
+                semaphore.tryAcquire(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
             startingSemMap.remove(server);
             client = clientMap.getOrDefault(server, null);
             if (null == client) {
-                logger.debug("Wait error server is offline，{}", server);
+                logger.error("Wait server connect timeout，{}", server);
+                WebSocketManager.getInstance().sendConsole(server, server + " connect timeout！");
                 return;
             }
         }
 
         synchronized (client) {
             if (!ClientState.STARTING.equals(client.getState())) {
+                logger.info("Current server({}) is not starting now, wait server started error. statue:{}",
+                        server, client.getState());
+                WebSocketManager.getInstance().sendConsole(server,
+                        server + " is not starting, wait started error. status:" + client.getState());
                 return;
             }
             try {
@@ -247,5 +251,13 @@ public class AgentManager {
     public void releaseAgentSession(String sessionId) {
         //向所有在线的agent客户端发送会话失效命令
         clientMap.forEach((k, v) -> sendInternalCommand(k, CommandConst.CANCEL_CMD, sessionId));
+    }
+
+    public void setMaxGracefulExitTime(int d) {
+        this.maxGracefulExitTime = d;
+    }
+
+    public int getMaxGracefulExitTime() {
+        return this.maxGracefulExitTime;
     }
 }
