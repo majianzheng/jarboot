@@ -5,6 +5,7 @@ package com.mz.jarboot.common;
  * @author majianzheng
  */
 public class CommandConst {
+    public static final int MAX_COMMAND_BUFFER = 16384;
     /**
      * 控制位头，char占用2个自己，共16位bit
      * 1000 0000 0000 0001

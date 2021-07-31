@@ -90,14 +90,25 @@ $ sh startup.sh
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## SPI扩展，支持JDK和Spring的SPI
+使用扩展可以自己实现命令，自己定义一个命令如何执行。并且，可以时应用启动完成快速的通知Jarboot服务，不需要等待没有控制台输出的时间。
+### SpringBoot应用
+- 引入<code>spring-boot-starter-jarboot</code>依赖
+```xml
+<dependency>
+  <groupId>io.github.majianzheng</groupId>
+  <artifactId>spring-boot-starter-jarboot</artifactId>
+</dependency>
+```
+
 ### 非SpringBoot应用
+演示普通的非SpringBoot的应用如何使用。
 #### 如何创建一个用户自定义的命令
 - 引入jarboot api的依赖
 ```xml
 <dependency>
-    <groupId>io.github.majianzheng</groupId>
-    <artifactId>jarboot-api</artifactId>
-    <scope>provided</scope>
+  <groupId>io.github.majianzheng</groupId>
+  <artifactId>jarboot-api</artifactId>
+  <scope>provided</scope>
 </dependency>
 ```
 - 实现spi接口

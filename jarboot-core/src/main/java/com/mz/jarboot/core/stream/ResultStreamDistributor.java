@@ -55,12 +55,13 @@ public class ResultStreamDistributor {
         }
     }
 
+    @SuppressWarnings("all")
     private static void consumer() {
         for (; ; ) {
             try {
                 CmdProtocol resp = queue.take();
                 sendToServer(resp);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }
         }

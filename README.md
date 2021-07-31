@@ -90,6 +90,17 @@ $ sh startup.sh
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
 ## SPI Extension, support JDK and Spring SPI
+Use SPI extension can implement your own command, define a command how to execute。and，also can notify stated event to Jarboot server
+, don't need to wait no console time.
+### SpringBoot Application
+- Import <code>spring-boot-starter-jarboot</code> dependency
+```xml
+<dependency>
+  <groupId>io.github.majianzheng</groupId>
+  <artifactId>spring-boot-starter-jarboot</artifactId>
+</dependency>
+```
+
 ### None SpringBoot Application
 #### How to create user-defined command
 - Import jarboot api dependency

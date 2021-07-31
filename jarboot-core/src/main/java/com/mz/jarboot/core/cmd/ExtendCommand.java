@@ -4,7 +4,7 @@ package com.mz.jarboot.core.cmd;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 
 /**
- * 扩展的命令，有jdk SPI、Spring SPI加载的用户自定义命令
+ * 扩展的命令，由jdk SPI、Spring SPI加载的用户自定义命令
  * @author jianzhengma
  */
 public class ExtendCommand extends AbstractCommand {

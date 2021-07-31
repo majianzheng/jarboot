@@ -92,12 +92,12 @@ public class JarbootBootstrap {
 
             @Override
             public void onText(String text, Channel channel) {
-                dispatcher.execute(text);
+                dispatcher.publish(text);
             }
 
             @Override
             public void onBinary(byte[] bytes, Channel channel) {
-                dispatcher.execute(new String(bytes));
+                dispatcher.publish(new String(bytes));
             }
 
             @Override

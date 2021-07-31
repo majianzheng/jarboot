@@ -12,6 +12,7 @@ import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
@@ -312,6 +313,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
             //尝试重新初始化代理客户端
             TaskUtils.attach(server, pid);
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
             return;
         }
 

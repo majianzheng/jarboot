@@ -40,6 +40,7 @@
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>
+		<module>spring-boot-starter-jarboot</module>
 		<module>demo-server</module>
 		<module>packaging</module>
 	</modules>
@@ -139,6 +140,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>demo-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>jarboot-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
