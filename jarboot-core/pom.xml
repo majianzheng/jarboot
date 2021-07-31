@@ -60,6 +60,11 @@
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.majianzheng</groupId>
+            <artifactId>jarboot-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class CommandDispatcher {
         CommandRequest request = new CommandRequest();
         try {
             request.fromRaw(raw);
-            CommandSession session = EnvironmentContext.registerSession(request.getSessionId());
+            CommandCoreSession session = EnvironmentContext.registerSession(request.getSessionId());
 
             CommandType type = request.getCommandType();
             AbstractCommand command = CommandBuilder.build(request, session);

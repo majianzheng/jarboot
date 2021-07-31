@@ -35,7 +35,7 @@ public class CommandRequestTest {
             request.fromRaw("x1234watch");
             org.junit.Assert.fail("应该抛出协议错误移除");
         } catch (Throwable e) {
-            assertTrue(e instanceof MzException);
+            assertTrue(e instanceof JarbootException);
         }
     }
 

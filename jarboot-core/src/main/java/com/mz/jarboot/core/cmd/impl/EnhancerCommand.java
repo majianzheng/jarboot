@@ -6,11 +6,11 @@ import com.mz.jarboot.core.advisor.ClassEnhancer;
 import com.mz.jarboot.core.advisor.InvokeTraceable;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.core.cmd.model.EnhancerModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.affect.EnhancerAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.slf4j.Logger;
@@ -81,9 +81,9 @@ public abstract class EnhancerCommand extends AbstractCommand {
      *
      * @return 返回监听器
      */
-    protected abstract AdviceListener getAdviceListener(CommandSession process);
+    protected abstract AdviceListener getAdviceListener(CommandCoreSession process);
 
-    AdviceListener getAdviceListenerWithId(CommandSession process) {
+    AdviceListener getAdviceListenerWithId(CommandCoreSession process) {
         if (listenerId != 0) {
             AdviceListener listener = AdviceWeaver.listener(listenerId);
             if (listener != null) {
@@ -98,7 +98,7 @@ public abstract class EnhancerCommand extends AbstractCommand {
         enhance(session);
     }
 
-    protected void enhance(CommandSession process) {
+    protected void enhance(CommandCoreSession process) {
         EnhancerAffect effect = null;
         try {
             Instrumentation inst = EnvironmentContext.getInstrumentation();

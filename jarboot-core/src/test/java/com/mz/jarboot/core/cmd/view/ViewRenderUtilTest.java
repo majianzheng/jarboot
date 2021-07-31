@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.core.cmd.model.ChangeResultVO;
 import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
@@ -118,12 +118,12 @@ public class ViewRenderUtilTest {
         List<String> methods = new ArrayList<>();
         methods.add("method1");
         affectVO.setMethods(methods);
-        Throwable throwable = new MzException("test");
+        Throwable throwable = new JarbootException("test");
         affectVO.setThrowable(throwable);
         str = ViewRenderUtil.renderEnhancerAffect(affectVO);
         assertEquals("[dump: file1]\n" +
                 "[Affect method: method1]\n" +
                 "Affect(class count: 3 , method count: 2) cost in 100 ms, listenerId: 4\n" +
-                "Enhance error! exception: com.mz.jarboot.common.MzException: test\n", str);
+                "Enhance error! exception: com.mz.jarboot.common.JarbootException: test\n", str);
     }
 }

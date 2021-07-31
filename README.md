@@ -89,6 +89,50 @@ $ sh startup.sh
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
+## SPI Extension, support JDK and Spring SPI
+### None SpringBoot Application
+#### How to create user-defined command
+- Import jarboot api dependency
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>jarboot-api</artifactId>
+    <scope>provided</scope>
+</dependency>
+```
+- Implement spi interface
+```java
+/**
+ * Use Name to define the command name
+ */
+@Name("demo")
+public class DemoCommandProcessor implements CommandProcessor {
+    @Override
+    public String process(CommandSession session, String[] args) {
+        return "demo SPI command result.";
+    }
+}
+```
+- Create spi define file
+
+Then create a file in <code>resources</code>/<code>META-INF</code>/<code>services</code> named 
+ <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code> the content is class full name.
+
+#### Proactive notification of startup completion
+```java
+public class DemoApplication {
+    public static void main(String[] args) {
+        // do something
+        try {
+            //Notify completion
+            JarbootFactory.createAgentService().setStarted();
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
+    }
+}
+```
+
 ## Command list
 ### bytes
 View the class bytes，Usage：

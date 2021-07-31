@@ -39,9 +39,9 @@ public class CommonConst {
     public static final int INVALID_PID = -1;
 
     /**
-     * 等待目标进程退出的最大时间，毫秒
+     * 等待目标进程优雅退出的最大时间，毫秒
      */
-    public static final int MAX_WAIT_EXIT_TIME = 15000;
+    public static final int MAX_WAIT_EXIT_TIME = 30000;
 
     /**
      * Agent最大连接超时时间（秒）

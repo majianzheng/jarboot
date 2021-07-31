@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.session;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 
@@ -9,18 +10,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author majianzheng
  */
-public interface CommandSession {
+public interface CommandCoreSession extends CommandSession {
 
     /**
      * 获取会话id
      * @return 会话id
      */
+    @Override
     String getSessionId();
 
     /**
      * 每执行一次命令生成一个唯一id
      * @return job id
      */
+    @Override
     String getJobId();
 
     /**
@@ -35,15 +38,10 @@ public interface CommandSession {
     void setRunning();
 
     /**
-     * 应答
-     * @param message 消息
-     */
-    void ack(String message);
-
-    /**
      * 控制台消息打印
      * @param text 消息
      */
+    @Override
     void console(String text);
 
     /**
@@ -68,17 +66,20 @@ public interface CommandSession {
     /**
      * 取消
      */
+    @Override
     void cancel();
 
     /**
      * 结束
      */
+    @Override
     void end();
 
     /**
      * 结束
      * @param success 是否成功
      */
+    @Override
     void end(boolean success);
 
     /**
@@ -86,5 +87,6 @@ public interface CommandSession {
      * @param success 是否成功
      * @param message 消息
      */
+    @Override
     void end(boolean success, String message);
 }

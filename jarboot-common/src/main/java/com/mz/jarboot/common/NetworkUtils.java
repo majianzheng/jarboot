@@ -54,7 +54,7 @@ public class NetworkUtils {
         try {
             ifs = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
         }
         while (ifs.hasMoreElements()) {
             Enumeration<InetAddress> address = ifs.nextElement().getInetAddresses();
@@ -87,13 +87,13 @@ public class NetworkUtils {
             return false;
         }
         if (inetAddress.isLoopbackAddress()) {
-            throw new MzException(ResultCodeConst.INVALID_PARAM, "请输入真实IP地址或域名，而不是环路地址：" + host);
+            throw new JarbootException(ResultCodeConst.INVALID_PARAM, "请输入真实IP地址或域名，而不是环路地址：" + host);
         }
         Enumeration<NetworkInterface> ifs;
         try {
             ifs = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
         }
         while (ifs.hasMoreElements()) {
             Enumeration<InetAddress> address = ifs.nextElement().getInetAddresses();

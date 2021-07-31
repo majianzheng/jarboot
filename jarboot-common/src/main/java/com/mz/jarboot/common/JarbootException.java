@@ -4,7 +4,7 @@ package com.mz.jarboot.common;
  * 项目内异常类
  * @author majianzheng
  */
-public class MzException extends RuntimeException {
+public class JarbootException extends RuntimeException {
 	private static final long serialVersionUID = -6230029731717806830L;
 
 	private final int errorCode;
@@ -13,31 +13,31 @@ public class MzException extends RuntimeException {
 		return errorCode;
 	}
 
-	public MzException(String message) {
+	public JarbootException(String message) {
 		super(message);
 		errorCode = ResultCodeConst.INTERNAL_ERROR;
 	}
 
-	public MzException() {
+	public JarbootException() {
 		errorCode = ResultCodeConst.INTERNAL_ERROR;
 	}
 
-	public MzException(int errorCode, String message) {
+	public JarbootException(int errorCode, String message) {
 		super(message);
 		this.errorCode = errorCode;
 	}
 
-	public MzException(int errorCode, Throwable cause) {
+	public JarbootException(int errorCode, Throwable cause) {
 		super(cause);
 		this.errorCode = errorCode;
 	}
 
-	public MzException(int errorCode, String message, Throwable cause) {
+	public JarbootException(int errorCode, String message, Throwable cause) {
 		super(message, cause);
 		this.errorCode = errorCode;
 	}
 
-	public MzException(String message, Throwable cause) {
+	public JarbootException(String message, Throwable cause) {
 		super(message, cause);
 		errorCode = ResultCodeConst.INTERNAL_ERROR;
 	}

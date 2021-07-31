@@ -30,19 +30,14 @@ public class CommandConst {
     public static final char JSON_RESULT_TYPE = BASE_TYPE + 3;
 
     /**
-     * 响应命令的ack
-     */
-    public static final char ACK_TYPE = BASE_TYPE + 4;
-
-    /**
      * agent上线
      */
-    public static final char ONLINE_TYPE = BASE_TYPE + 5;
+    public static final char ONLINE_TYPE = BASE_TYPE + 4;
 
     /**
      * 命令完成消息
      */
-    public static final char CMD_END_TYPE = BASE_TYPE + 6;
+    public static final char CMD_END_TYPE = BASE_TYPE + 5;
 
     public static final char USER_COMMAND = 0xF001;
     public static final char INTERNAL_COMMAND = 0xF002;

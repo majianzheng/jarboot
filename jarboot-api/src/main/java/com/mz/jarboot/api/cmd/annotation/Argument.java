@@ -1,8 +1,8 @@
-package com.mz.jarboot.core.cmd.annotation;
+package com.mz.jarboot.api.cmd.annotation;
 
 /**
+ * 命令参数注解
  * @author majianzheng
- * 以下代码基于开源项目Arthas适配修改
  */
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)

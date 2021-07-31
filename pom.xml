@@ -36,6 +36,7 @@
 	<modules>
 		<module>jarboot-common</module>
 		<module>jarboot-spy</module>
+		<module>jarboot-api</module>
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>
@@ -113,6 +114,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>jarboot-agent</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>jarboot-api</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

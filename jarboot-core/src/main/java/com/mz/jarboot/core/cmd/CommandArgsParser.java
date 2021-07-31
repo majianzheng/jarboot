@@ -1,10 +1,10 @@
 package com.mz.jarboot.core.cmd;
 
-import com.mz.jarboot.common.MzException;
-import com.mz.jarboot.core.cmd.annotation.Argument;
-import com.mz.jarboot.core.cmd.annotation.DefaultValue;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Option;
+import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.api.cmd.annotation.Argument;
+import com.mz.jarboot.api.cmd.annotation.DefaultValue;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.BasicTypeConvert;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -29,27 +29,30 @@ public class CommandArgsParser {
 
     private Map<Method, Argument> argumentMethods = new HashMap<>();
     private Map<Method, Option> optionMethods = new HashMap<>();
-    private AbstractCommand command;
-    public CommandArgsParser(String args, Class<? extends AbstractCommand> cls) {
+    private List<String> splitedArgs;
+    private Object command;
+    public CommandArgsParser(String args, Object obj) {
         // 构建实例，解析方法注解
-        this.init(cls);
+        this.init(obj);
 
         // 解析命令行
         this.doParse(args.trim());
+    }
 
+    public void postConstruct() {
         // 根据类的解析和命令行的解析填充实例成员变量
         this.doInitField();
     }
 
-    public AbstractCommand getCommand() {
-        return this.command;
+    public String[] getSplitedArgs() {
+        return splitedArgs.toArray(new String[splitedArgs.size()]);
     }
 
-    private void init(Class<? extends AbstractCommand> cls) {
+    private void init(Object obj) {
+        Class<?> cls = obj.getClass();
         Constructor<? extends AbstractCommand> constructor;
         try {
-            constructor = cls.getConstructor();
-            command = constructor.newInstance();
+            command = obj;
             Method[] methods = cls.getMethods();
             for (Method m : methods) {
                 Argument argument = m.getAnnotation(Argument.class);
@@ -65,12 +68,13 @@ public class CommandArgsParser {
                 }
             }
         } catch (Exception e) {
-            throw new MzException(e.getMessage(), e);
+            throw new JarbootException(e.getMessage(), e);
         }
     }
 
     private void doParse(String args) {
-        Iterator<String> iter = splitArgs(args).iterator();
+        splitedArgs = splitArgs(args);
+        Iterator<String> iter = splitedArgs.iterator();
         Option preOp = null;
         while (iter.hasNext()) {
             String s = iter.next().trim();
@@ -82,8 +86,8 @@ public class CommandArgsParser {
                 String op = StringUtils.trimLeadingCharacter(s, '-');
                 //获取option配置，判定是否flag
                 Option option = optionMap.getOrDefault(op, null);
-                if (null == option) {
-                    throw new MzException("不支持的选项：" + op);
+                if (null == option && !optionMap.isEmpty()) {
+                    throw new JarbootException("不支持的选项：" + op);
                 }
                 if (!option.flag()) {
                     preOp = option;
@@ -96,9 +100,9 @@ public class CommandArgsParser {
                     //参数
                     int index = arguments.size();
                     Argument argument = argumentMap.getOrDefault(index, null);
-                    if (null == argument) {
+                    if (null == argument && !argumentMap.isEmpty()) {
                         // 输入的参数多于了命令限定的数量
-                        throw new MzException("无法识别的参数:" + s);
+                        throw new JarbootException("无法识别的参数:" + s);
                     }
                     arguments.add(s);
                 } else {
@@ -180,7 +184,7 @@ public class CommandArgsParser {
             DefaultValue defaultValue = method.getAnnotation(DefaultValue.class);
             //缺少参数时，检查是否必须
             if (argument.required() && null == defaultValue) {
-                throw new MzException(formatParamError(argument.argName(), method));
+                throw new JarbootException(formatParamError(argument.argName(), method));
             }
             if (null != defaultValue) {
                 arg = defaultValue.value();
@@ -200,12 +204,12 @@ public class CommandArgsParser {
         if ((null == values || values.isEmpty()) && option.required()) {
             DefaultValue defaultValue = method.getAnnotation(DefaultValue.class);
             if (null == defaultValue) {
-                throw new MzException(formatParamError(option.longName(), method));
+                throw new JarbootException(formatParamError(option.longName(), method));
             }
             // 默认值不为空
             values = splitArgs(defaultValue.value());
             if (values.isEmpty()) {
-                throw new MzException(formatParamError(option.longName(), method));
+                throw new JarbootException(formatParamError(option.longName(), method));
             }
         }
 
@@ -214,7 +218,7 @@ public class CommandArgsParser {
             callMethod(method, values);
             return;
         }
-        String value = "";
+        String value = CoreConstant.EMPTY_STRING;
         if (null != values && !values.isEmpty()) {
             value = values.get(0);
         }
@@ -227,7 +231,7 @@ public class CommandArgsParser {
         }
         Class<?>[] paramTypes = method.getParameterTypes();
         if (1 != paramTypes.length) {
-            throw new MzException("命令定义错误，set方法应该存在一个参数！" + paramTypes.length);
+            throw new JarbootException("命令定义错误，set方法应该存在一个参数！" + paramTypes.length);
         }
         Object val = BasicTypeConvert.convert(arg, paramTypes[0]);
         callMethod(method, val);
@@ -237,7 +241,7 @@ public class CommandArgsParser {
         try {
             method.invoke(command, value);
         } catch (Exception e) {
-            throw new MzException(e.getMessage(), e);
+            throw new JarbootException(e.getMessage(), e);
         }
     }
 

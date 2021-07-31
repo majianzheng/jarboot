@@ -4,7 +4,7 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
@@ -155,7 +155,7 @@ public class PropertyFileUtils {
             return;
         }
         if (!file.isFile() || !file.exists()) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "配置文件不存在：" + file.getPath());
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "配置文件不存在：" + file.getPath());
         }
         List<String> lines = new ArrayList<>();
         try {
@@ -170,7 +170,7 @@ public class PropertyFileUtils {
                 try {
                     line = parsePropLine(line, copy);
                     lines.set(i, line);
-                } catch (MzException e) {
+                } catch (JarbootException e) {
                     //do nothing
                 }
             }
@@ -227,16 +227,16 @@ public class PropertyFileUtils {
         line = StringUtils.trim(line);
         if (StringUtils.indexOf(line, CommonConst.EQUAL_CHAR) <= 0 ||
                 0 == StringUtils.indexOf(line, SettingPropConst.COMMENT_PREFIX)) {
-            throw new MzException();
+            throw new JarbootException();
         }
         String[] spliced = StringUtils.split(line, "=", 2);
         if (spliced.length <= 0) {
-            throw new MzException();
+            throw new JarbootException();
         }
         String key = StringUtils.trim(spliced[0]);
         String value = props.getOrDefault(key, null);
         if (null == value) {
-            throw new MzException();
+            throw new JarbootException();
         }
         line = key + CommonConst.EQUAL_CHAR + value;
         props.remove(key);

@@ -1,12 +1,12 @@
 package com.mz.jarboot.exception;
 
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 
 /**
  * @author majianzheng
  */
-public class AccessException extends MzException {
+public class AccessException extends JarbootException {
     
     public AccessException(String msg) {
         super(msg);

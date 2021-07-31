@@ -1,7 +1,7 @@
 
 package com.mz.jarboot.exception;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.constant.CommonConst;
 import org.apache.commons.lang3.StringUtils;
@@ -30,8 +30,8 @@ public class JarbootExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getAllExceptionMsg(e));
     }
 
-    @ExceptionHandler(MzException.class)
-    private ResponseEntity<ResponseSimple> handleMzException(MzException e) {
+    @ExceptionHandler(JarbootException.class)
+    private ResponseEntity<ResponseSimple> handleMzException(JarbootException e) {
         LOGGER.error(e.getMessage(), e);
         ResponseSimple resp = new ResponseSimple();
         resp.setResultCode(e.getErrorCode());

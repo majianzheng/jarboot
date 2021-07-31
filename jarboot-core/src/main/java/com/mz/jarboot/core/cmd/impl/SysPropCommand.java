@@ -1,8 +1,8 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Argument;
-import com.mz.jarboot.core.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Argument;
+import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
 import com.mz.jarboot.core.utils.StringUtils;
 

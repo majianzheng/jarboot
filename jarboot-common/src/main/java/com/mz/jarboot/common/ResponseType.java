@@ -11,11 +11,6 @@ public enum ResponseType {
     ONLINE,
 
     /**
-     * 命令应答
-     */
-    ACK,
-
-    /**
      * 程序中的标准输出流
      */
     STD_OUT,

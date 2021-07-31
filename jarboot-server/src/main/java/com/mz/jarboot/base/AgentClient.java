@@ -2,7 +2,6 @@ package com.mz.jarboot.base;
 
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.ws.MessageQueueOperator;
-import com.mz.jarboot.ws.WebSocketManager;
 import javax.websocket.Session;
 
 /**
@@ -38,7 +37,7 @@ public final class AgentClient extends MessageQueueOperator {
         request.setCommandType(CommandType.INTERNAL);
         request.setCommandLine(command);
         request.setSessionId(sessionId);
-        WebSocketManager.messageProducer(this, request.toRaw());
+        this.newMessage(request.toRaw());
     }
 
     public void sendCommand(String command, String sessionId) {
@@ -46,6 +45,6 @@ public final class AgentClient extends MessageQueueOperator {
         request.setCommandType(CommandType.USER_PUBLIC);
         request.setCommandLine(command);
         request.setSessionId(sessionId);
-        WebSocketManager.messageProducer(this, request.toRaw());
+        this.newMessage(request.toRaw());
     }
 }

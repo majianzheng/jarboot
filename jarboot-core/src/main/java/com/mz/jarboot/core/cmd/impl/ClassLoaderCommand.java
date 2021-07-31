@@ -2,10 +2,10 @@ package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Name;
-import com.mz.jarboot.core.cmd.annotation.Option;
-import com.mz.jarboot.core.cmd.annotation.Summary;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.ClassLoaderUtils;

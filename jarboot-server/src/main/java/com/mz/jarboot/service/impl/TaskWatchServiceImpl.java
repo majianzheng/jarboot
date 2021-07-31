@@ -1,7 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
@@ -115,7 +115,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     public void attachServer(String server) {
         int pid = TaskUtils.getServerPid(server);
         if (CommonConst.INVALID_PID == pid) {
-            throw new MzException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
+            throw new JarbootException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
         }
         TaskUtils.attach(server, pid);
     }

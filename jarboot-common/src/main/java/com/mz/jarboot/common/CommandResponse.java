@@ -40,9 +40,6 @@ public class CommandResponse implements CmdProtocol {
         //反向解析出类实例
         //获取响应类型
         switch (h) {
-            case CommandConst.ACK_TYPE:
-                this.setResponseType(ResponseType.ACK);
-                break;
             case CommandConst.ONLINE_TYPE:
                 this.setResponseType(ResponseType.ONLINE);
                 break;
@@ -80,8 +77,6 @@ public class CommandResponse implements CmdProtocol {
     }
     private char getResponseTypeChar() {
         switch (responseType) {
-            case ACK:
-                return CommandConst.ACK_TYPE;
             case ONLINE:
                 return CommandConst.ONLINE_TYPE;
             case STD_OUT:

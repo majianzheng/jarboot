@@ -9,9 +9,9 @@ public class CommandResponseTest {
     @Test
     public void testFromRaw() {
         CommandResponse response = new CommandResponse();
-        char header = CommandConst.ACK_TYPE | CommandConst.SUCCESS_FLAG;
+        char header = CommandConst.CONSOLE_TYPE | CommandConst.SUCCESS_FLAG;
         response.fromRaw(header + "body data\r123");
-        assertEquals(ResponseType.ACK, response.getResponseType());
+        assertEquals(ResponseType.CONSOLE, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertTrue(response.getSuccess());
@@ -48,9 +48,9 @@ public class CommandResponseTest {
 
     @Test
     public void testToRaw() {
-        char header = CommandConst.ACK_TYPE | CommandConst.SUCCESS_FLAG;
+        char header = CommandConst.CONSOLE_TYPE | CommandConst.SUCCESS_FLAG;
         CommandResponse response = new CommandResponse();
-        response.setResponseType(ResponseType.ACK);
+        response.setResponseType(ResponseType.CONSOLE);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(true);

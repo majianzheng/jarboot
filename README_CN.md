@@ -89,6 +89,50 @@ $ sh startup.sh
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
+## SPI扩展，支持JDK和Spring的SPI
+### 非SpringBoot应用
+#### 如何创建一个用户自定义的命令
+- 引入jarboot api的依赖
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>jarboot-api</artifactId>
+    <scope>provided</scope>
+</dependency>
+```
+- 实现spi接口
+```java
+/**
+ * 使用Name注解来定义一个命令的名字
+ */
+@Name("demo")
+public class DemoCommandProcessor implements CommandProcessor {
+    @Override
+    public String process(CommandSession session, String[] args) {
+        return "demo SPI command result.";
+    }
+}
+```
+- 创建JDK的spi定义文件
+
+在目录<code>resources</code>/<code>META-INF</code>/<code>services</code>中创建名为
+  <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code>的文件，内容为类的全名。
+
+#### 启动成功主动通知Jarboot服务
+```java
+public class DemoApplication {
+    public static void main(String[] args) {
+        // do something
+        try {
+            //Notify completion
+            JarbootFactory.createAgentService().setStarted();
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
+    }
+}
+```
+
 ## 命令列表
 ### bytes
 查看类的字节码，用法：

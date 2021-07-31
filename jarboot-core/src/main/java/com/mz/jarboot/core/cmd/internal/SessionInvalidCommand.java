@@ -10,7 +10,6 @@ public class SessionInvalidCommand extends AbstractInternalCommand {
     @Override
     public void run() {
         EnvironmentContext.releaseSession(session.getSessionId());
-        session.ack("Released the invalided session.");
         session.end();
     }
 }

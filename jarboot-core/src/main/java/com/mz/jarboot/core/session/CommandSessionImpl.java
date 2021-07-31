@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Implement the process handler.
  * @author majianzheng
  */
-public class CommandSessionImpl implements CommandSession {
+public class CommandSessionImpl implements CommandCoreSession {
     private final ResultStreamDistributor distributor;
     private boolean running = false;
     private final String sessionId;
@@ -50,16 +50,6 @@ public class CommandSessionImpl implements CommandSession {
         this.running = true;
         times.set(0);
         jobId = UUID.randomUUID().toString();
-    }
-
-    @Override
-    public void ack(String message) {
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.ACK);
-        resp.setBody(message);
-        resp.setSessionId(this.sessionId);
-        distributor.write(resp);
     }
 
     @Override

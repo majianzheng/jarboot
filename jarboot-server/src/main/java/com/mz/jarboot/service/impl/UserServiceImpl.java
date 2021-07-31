@@ -1,6 +1,6 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
@@ -56,10 +56,10 @@ public class UserServiceImpl implements UserService {
         }
         User user = userDao.findById(id).orElse(null);
         if (null == user) {
-            throw new MzException("Can't find the user to delete.");
+            throw new JarbootException("Can't find the user to delete.");
         }
         if (AuthConst.JARBOOT_USER.equals(user.getUsername())) {
-            throw new MzException("The internal user, can't removed!");
+            throw new JarbootException("The internal user, can't removed!");
         }
         userDao.delete(user);
         Page<RoleInfo> roles = roleDao.getRoleByUsername(user.getUsername(), PageRequest.of(0, Integer.MAX_VALUE));

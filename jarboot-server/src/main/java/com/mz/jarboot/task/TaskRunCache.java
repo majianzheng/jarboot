@@ -1,7 +1,7 @@
 package com.mz.jarboot.task;
 
 import com.mz.jarboot.common.ResultCodeConst;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerRunningDTO;
 import com.mz.jarboot.utils.SettingUtils;
@@ -59,11 +59,11 @@ public class TaskRunCache {
         String servicesPath = SettingUtils.getServicesPath();
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
         }
         File[] serviceDirs = servicesDir.listFiles(this::filterExcludeDir);
         if (null == serviceDirs || serviceDirs.length < 1) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
         }
         // 根据名字排序
         Arrays.sort(serviceDirs, Comparator.comparing(File::getName));

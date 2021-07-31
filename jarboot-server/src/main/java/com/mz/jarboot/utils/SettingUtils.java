@@ -74,7 +74,7 @@ public class SettingUtils {
         if (StringUtils.isNotEmpty(servicesPath)) {
             File dir = new File(servicesPath);
             if (!dir.isDirectory() || !dir.exists()) {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
             }
         }
 
@@ -103,7 +103,7 @@ public class SettingUtils {
             GLOBAL_SETTING.setServicesPath(servicesPath);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
     }
 
@@ -214,7 +214,7 @@ public class SettingUtils {
                 lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
-                throw new MzException("Read file error.", e);
+                throw new JarbootException("Read file error.", e);
             }
             lines.stream()
                     //去除首尾空格

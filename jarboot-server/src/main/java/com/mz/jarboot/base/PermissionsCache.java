@@ -1,7 +1,7 @@
 package com.mz.jarboot.base;
 
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.security.PermissionInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -71,7 +71,7 @@ public class PermissionsCache {
             return new URI(request.getRequestURI()).getPath();
         } catch (URISyntaxException e) {
             logger.error("parse request to path error", e);
-            throw new MzException(404, "Invalid URI");
+            throw new JarbootException(404, "Invalid URI");
         }
     }
     

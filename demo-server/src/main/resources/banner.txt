@@ -24,10 +24,5 @@ trace com.mz.jarboot.demo.DemoServerApplication fib
 watch com.mz.jarboot.demo.DemoServerApplication pow
 trace com.mz.jarboot.demo.DemoServerApplication pow
 
-************************************************************************
-*   When start finished, please first execute command: stdout on
-*   to enable the console output show.
-*   启动成功后，请先执行命令: stdout on，开启应用的控制台输出流的实时显示
-************************************************************************
 More advanced application examples :
 https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example

@@ -20,6 +20,7 @@ public class JarbootAgent {
 
     private static PrintStream ps = System.err;
     private static final File CURRENT_DIR;
+    private static volatile ClassLoader jarbootClassLoader = null;
 
     static {
         CURRENT_DIR = getCurrentDir();
@@ -38,8 +39,6 @@ public class JarbootAgent {
         }
     }
 
-    private static volatile ClassLoader jarbootClassLoader = null; // NOSONAR
-
     public static void premain(String args, Instrumentation inst) {
         main(args, inst);
         //上线成功开启输出流实时显示
@@ -57,6 +56,18 @@ public class JarbootAgent {
 
     public static void agentmain(String args, Instrumentation inst) {
         main(args, inst);
+    }
+
+    /**
+     * 获取{@link JarbootClassLoader}，供扩展的反射使用，通过此方法获取的加载器可获取jarboot-core的内部类
+     * @return ClassLoader
+     */
+    public static ClassLoader getJarbootClassLoader() {
+        return jarbootClassLoader;
+    }
+
+    public static PrintStream getPs() {
+        return ps;
     }
 
     private static ClassLoader getClassLoader(File jarFile) throws MalformedURLException {

@@ -4,7 +4,7 @@ import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.server.JarbootBootstrap;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
 import com.mz.jarboot.common.JarbootThreadFactory;
@@ -27,11 +27,12 @@ public class EnvironmentContext {
     private static String host;
     private static TransformerManager transformerManager;
     private static Instrumentation instrumentation;
-    private static ConcurrentMap<String, CommandSession> sessionMap = new ConcurrentHashMap<>(16);
+    private static ConcurrentMap<String, CommandCoreSession> sessionMap = new ConcurrentHashMap<>(16);
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
     private static ResultViewResolver resultViewResolver;
+    private static volatile boolean started = false;
     private EnvironmentContext() {}
 
     public static void init(String server, String host, Instrumentation inst) {
@@ -41,7 +42,7 @@ public class EnvironmentContext {
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
         EnvironmentContext.resultViewResolver = new ResultViewResolver();
-        scheduledExecutorService = Executors.newScheduledThreadPool(1,
+        scheduledExecutorService = Executors.newScheduledThreadPool(5,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
@@ -87,16 +88,8 @@ public class EnvironmentContext {
         return transformerManager;
     }
 
-    public static CommandSession registerSession(String sessionId) {
-        CommandSession session = sessionMap.getOrDefault(sessionId, null);
-        if (null != session) {
-            return session;
-        }
-        synchronized (CommandSession.class) {
-            session = new CommandSessionImpl(sessionId);
-            sessionMap.put(sessionId, session);
-        }
-        return session;
+    public static CommandCoreSession registerSession(String sessionId) {
+        return sessionMap.computeIfAbsent(sessionId, key -> new CommandSessionImpl(sessionId));
     }
 
     public static ResultViewResolver getResultViewResolver() {
@@ -108,7 +101,7 @@ public class EnvironmentContext {
      * @return 是否结束
      */
     public static boolean checkJobEnd(String sessionId, String jobId) {
-        CommandSession session = sessionMap.getOrDefault(sessionId, null);
+        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
         if (null == session) {
             return true;
         }
@@ -124,7 +117,7 @@ public class EnvironmentContext {
      * @param command 命令
      */
     public static void runCommand(AbstractCommand command) {
-        CommandSession session = command.getSession();
+        CommandCoreSession session = command.getSession();
         if (session.isRunning()) {
             AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
             if (null == cmd) {
@@ -158,11 +151,19 @@ public class EnvironmentContext {
             command.cancel();
             runningCommandMap.remove(sessionId);
         }
-        CommandSession session = sessionMap.getOrDefault(sessionId, null);
+        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
         if (null != session) {
             session.cancel();
             session.end();
             sessionMap.remove(sessionId);
         }
+    }
+
+    public static boolean isStarted() {
+        return started;
+    }
+
+    public static void setStarted(){
+        started = true;
     }
 }

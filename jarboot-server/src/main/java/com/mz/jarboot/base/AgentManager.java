@@ -55,8 +55,8 @@ public class AgentManager {
         }
         WebSocketManager.getInstance().sendConsole(server, server + "下线！");
         synchronized (client) {
-            if (ClientState.EXITING.equals(client.getState())) {
-                logger.info("目标进程已退出，唤醒killServer方法的执行线程");
+            //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
+            if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
                 //发送了退出执行，唤醒killClient线程
                 client.notify(); //NOSONAR
                 clientMap.remove(server);
@@ -162,9 +162,6 @@ public class AgentManager {
         ResponseType type = resp.getResponseType();
         String sessionId = resp.getSessionId();
         switch (type) {
-            case ACK:
-                AgentManager.getInstance().onAck(server, resp);
-                break;
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
@@ -242,10 +239,6 @@ public class AgentManager {
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    public void onAck(String server, CommandResponse resp) {
-        WebSocketManager.getInstance().sendConsole(server, resp.getBody(), resp.getSessionId());
     }
 
     public void releaseAgentSession(String sessionId) {

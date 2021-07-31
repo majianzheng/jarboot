@@ -1,8 +1,9 @@
-package com.mz.jarboot.core.cmd.annotation;
+package com.mz.jarboot.api.cmd.annotation;
 
 /**
+ * Option 注解
+ * 如： -c classloader
  * @author majianzheng
- * 以下代码基于开源项目Arthas适配修改
  */
 @SuppressWarnings("all")
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})

@@ -12,6 +12,8 @@ public class CoreConstant {
     public static final String LOG_NAME = "jarboot-core";
     public static final String BR = "<br/>";
 
+    public static final String START_DETERMINE_TIME_KEY = "start.determine.time";
+
     /**
      * 使用websocket发送的最大字节阈值
      * 向jarboot-service发送的长度小于该值时使用WebSocket发送，否则通过http

@@ -13,6 +13,11 @@
     <description>Demo server for jarboot</description>
     <packaging>jar</packaging>
     <dependencies>
+        <dependency>
+            <groupId>io.github.majianzheng</groupId>
+            <artifactId>jarboot-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -36,6 +41,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>banner.txt</include>
+                    <include>META-INF/services/com.mz.jarboot.api.cmd.spi.CommandProcessor</include>
                 </includes>
             </resource>
         </resources>

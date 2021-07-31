@@ -3,7 +3,7 @@ package com.mz.jarboot.core.advisor;
 import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.express.ExpressFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.StringUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -151,7 +151,7 @@ public abstract class AdviceListenerAdapter implements AdviceListener, JobAware 
      * @param process the process to be aborted
      * @param limit   the limit to be printed
      */
-    protected void abortProcess(CommandSession process, int limit) {
+    protected void abortProcess(CommandCoreSession process, int limit) {
         process.console("Command execution times exceed limit: " + limit
                 + ", so command will exit. You can set it with -n option.\n");
         process.end();

@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.session.Completion;
 
 /**
@@ -10,7 +10,7 @@ import com.mz.jarboot.core.session.Completion;
  */
 public abstract class AbstractCommand {
     protected String name = CoreConstant.EMPTY_STRING;
-    protected CommandSession session;
+    protected CommandCoreSession session;
 
     /**
      * 命令是否执行中
@@ -30,11 +30,11 @@ public abstract class AbstractCommand {
         return name;
     }
 
-    public void setSession(CommandSession session) {
+    public void setSession(CommandCoreSession session) {
         this.session = session;
     }
 
-    public CommandSession getSession() {
+    public CommandCoreSession getSession() {
         return session;
     }
 

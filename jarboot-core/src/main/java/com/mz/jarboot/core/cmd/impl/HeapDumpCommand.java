@@ -1,7 +1,10 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.HeapDumpModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.sun.management.HotSpotDiagnosticMXBean; //NOSONAR
