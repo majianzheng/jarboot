@@ -1,2 +1,4 @@
 org.springframework.boot.SpringApplicationRunListener=\
-  com.mz.jarboot.spring.listener.JarbootRunListener
+  com.mz.jarboot.listener.JarbootRunListener
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.mz.jarboot.JarbootAutoConfiguration

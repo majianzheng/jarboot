@@ -24,6 +24,8 @@ English version goes [here](README.md).
 
 🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
 
+🧩 可扩展（SPI）: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>
+
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
@@ -34,6 +36,7 @@ English version goes [here](README.md).
 - ⭐️   支持进程守护，开启后若服务异常退出则自动启动并通知
 - ☀️   支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[2]](#f2)</sup>
 - 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
+- 💎   支持通过<code>SPI</code>自定义调试命令实现
 
 前端界面采用<code>React</code>技术，脚手架使用<code>UmiJs</code>，组件库使用UmiJs内置等<code>antd</code>。
 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
@@ -92,18 +95,32 @@ $ sh startup.sh
 ## SPI扩展，支持JDK和Spring的SPI
 使用扩展可以自己实现命令，自己定义一个命令如何执行。并且，可以时应用启动完成快速的通知Jarboot服务，不需要等待没有控制台输出的时间。
 ### SpringBoot应用
-- 引入<code>spring-boot-starter-jarboot</code>依赖
+1. 引入<code>spring-boot-starter-jarboot</code>依赖
 ```xml
 <dependency>
   <groupId>io.github.majianzheng</groupId>
   <artifactId>spring-boot-starter-jarboot</artifactId>
 </dependency>
 ```
+2. 实现<code>CommandProcessor</code>SPI接口
+
+同样的, 你也可以在方法上使用 <code>@Bean</code> 注解来定义命令处理器。<br>
+如果没有使用<code>@Name</code>注解的话，将会默认使用Bean的名称作为命令的名称。
+```java
+@Name("spring.cmd")   //The command name
+@Component
+public class SpringBeanCommandProcessor implements CommandProcessor {
+  @Override
+  public String process(CommandSession session, String[] args) {
+      return "Spring boot Demo user-defined command using Spring SPI";
+  }
+}
+```
 
 ### 非SpringBoot应用
 演示普通的非SpringBoot的应用如何使用。
 #### 如何创建一个用户自定义的命令
-- 引入jarboot api的依赖
+1. 引入jarboot api的依赖
 ```xml
 <dependency>
   <groupId>io.github.majianzheng</groupId>
@@ -111,7 +128,7 @@ $ sh startup.sh
   <scope>provided</scope>
 </dependency>
 ```
-- 实现spi接口
+2. 实现spi接口
 ```java
 /**
  * 使用Name注解来定义一个命令的名字
@@ -124,7 +141,7 @@ public class DemoCommandProcessor implements CommandProcessor {
     }
 }
 ```
-- 创建JDK的spi定义文件
+3. 创建JDK的spi定义文件
 
 在目录<code>resources</code>/<code>META-INF</code>/<code>services</code>中创建名为
   <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code>的文件，内容为类的全名。

@@ -36,7 +36,7 @@ public class CommandResponse implements CmdProtocol {
         char h = raw.charAt(0);
         this.success = CommandConst.SUCCESS_FLAG == (CommandConst.SUCCESS_FLAG & h);
         //取反再与得到真实响应类型
-        h = (char)(h & ~CommandConst.SUCCESS_FLAG);
+        h = (char) (h & ~CommandConst.SUCCESS_FLAG);
         //反向解析出类实例
         //获取响应类型
         switch (h) {
@@ -54,6 +54,9 @@ public class CommandResponse implements CmdProtocol {
                 break;
             case CommandConst.CMD_END_TYPE:
                 this.setResponseType(ResponseType.COMMAND_END);
+                break;
+            case CommandConst.ACTION_TYPE:
+                this.setResponseType(ResponseType.ACTION);
                 break;
             default:
                 this.setResponseType(ResponseType.UNKNOWN);
@@ -87,6 +90,8 @@ public class CommandResponse implements CmdProtocol {
                 return CommandConst.JSON_RESULT_TYPE;
             case COMMAND_END:
                 return CommandConst.CMD_END_TYPE;
+            case ACTION:
+                return CommandConst.ACTION_TYPE;
             default:
                 break;
         }

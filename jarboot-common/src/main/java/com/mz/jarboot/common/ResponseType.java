@@ -31,6 +31,11 @@ public enum ResponseType {
     COMMAND_END,
 
     /**
+     * 动作，请求jarboot server执行
+     */
+    ACTION,
+
+    /**
      * 非法的未知类型
      */
     UNKNOWN

@@ -14,6 +14,7 @@ import java.util.concurrent.BlockingQueue;
  * Command dispatch, the main loop of the logic.
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class CommandDispatcher extends Thread {
     private final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
@@ -31,7 +32,6 @@ public class CommandDispatcher extends Thread {
         }
     }
 
-    @SuppressWarnings("all")
     @Override
     public void run() {
         for (;;) {
@@ -49,9 +49,10 @@ public class CommandDispatcher extends Thread {
 
     public void execute(String raw) {
         CommandRequest request = new CommandRequest();
+        CommandCoreSession session = null;
         try {
             request.fromRaw(raw);
-            CommandCoreSession session = EnvironmentContext.registerSession(request.getSessionId());
+            session = EnvironmentContext.registerSession(request.getSessionId());
 
             CommandType type = request.getCommandType();
             AbstractCommand command = CommandBuilder.build(request, session);
@@ -70,9 +71,11 @@ public class CommandDispatcher extends Thread {
                     logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());
                     break;
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error(e.getMessage(), e);
+            if (null != session) {
+                session.end();
+            }
         }
-
     }
 }

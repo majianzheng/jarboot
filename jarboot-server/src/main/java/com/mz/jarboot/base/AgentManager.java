@@ -1,18 +1,22 @@
 package com.mz.jarboot.base;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.event.AgentOfflineEvent;
-import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -179,6 +183,9 @@ public class AgentManager {
                 }
                 WebSocketManager.getInstance().commandEnd(server, msg, sessionId);
                 break;
+            case ACTION:
+                this.handleAction(resp.getBody(), sessionId, server);
+                break;
             default:
                 //do nothing
                 break;
@@ -252,5 +259,36 @@ public class AgentManager {
 
     public int getMaxGracefulExitTime() {
         return this.maxGracefulExitTime;
+    }
+
+    private void handleAction(String data, String sessionId, String server) {
+        logger.debug("handleAction data:{}", data);
+        JsonNode body = JsonUtils.readAsJsonNode(data);
+        String action = body.get(CommandConst.ACTION_PROP_NAME_KEY).asText(StringUtils.EMPTY);
+        String param = body.get(CommandConst.ACTION_PROP_PARAM_KEY).asText(StringUtils.EMPTY);
+        if (StringUtils.isEmpty(sessionId)) {
+            sessionId = CommandConst.SESSION_COMMON;
+        }
+        logger.debug("action: {}, param:{}", action, param);
+        switch (action) {
+            case CommandConst.ACTION_NOTICE_INFO:
+                WebSocketManager.getInstance().notice(param, NoticeEnum.INFO);
+                break;
+            case CommandConst.ACTION_NOTICE_WARN:
+                WebSocketManager.getInstance().notice(param, NoticeEnum.WARN);
+                break;
+            case CommandConst.ACTION_NOTICE_ERROR:
+                WebSocketManager.getInstance().notice(param, NoticeEnum.ERROR);
+                break;
+            case CommandConst.ACTION_RESTART:
+                TaskEvent taskEvent = new TaskEvent();
+                taskEvent.setEventType(TaskEventEnum.RESTART);
+                ArrayList<String> services = new ArrayList<>();
+                services.add(server);
+                taskEvent.setServices(services);
+                break;
+            default:
+                break;
+        }
     }
 }

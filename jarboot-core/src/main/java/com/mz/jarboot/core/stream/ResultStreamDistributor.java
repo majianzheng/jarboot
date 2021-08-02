@@ -51,11 +51,10 @@ public class ResultStreamDistributor {
 
     public void write(CmdProtocol resp) {
         if (!queue.offer(resp)) {
-            logger.warn("message queue may overflow, put failed.");
+            logger.trace("message queue may overflow, put failed.");
         }
     }
 
-    @SuppressWarnings("all")
     private static void consumer() {
         for (; ; ) {
             try {

@@ -34,4 +34,9 @@ public class ExtendCommand extends AbstractCommand {
             session.end(false, e.getMessage());
         }
     }
+
+    @Override
+    public void printHelp() {
+        this.printHelp(this.processor.getClass());
+    }
 }

@@ -1,7 +1,5 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.api.AgentService;
-import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
@@ -17,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 public class StdOutStreamReactor {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private final StdConsoleOutputStream sos;
-    private final ResultStreamDistributor broadcastDistributor = new ResultStreamDistributor(CommandConst.SESSION_COMMON);
     private final PrintStream defaultOut;
     private final PrintStream defaultErr;
     private final PrintStream stdRedirectStream;
@@ -33,7 +30,7 @@ public class StdOutStreamReactor {
         resp.setResponseType(ResponseType.STD_OUT);
         resp.setBody(text);
         resp.setSessionId(CommandConst.SESSION_COMMON);
-        broadcastDistributor.write(resp);
+        EnvironmentContext.distribute(resp);
     }
 
     private void stdStartingConsole(String text) {
@@ -107,8 +104,7 @@ public class StdOutStreamReactor {
             sos.setPrintLineHandler(stdoutPrintHandler);
             //通知Jarboot server启动完成
             try {
-                AgentService agentService = JarbootFactory.createAgentService();
-                agentService.setStarted();
+                EnvironmentContext.setStarted();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }

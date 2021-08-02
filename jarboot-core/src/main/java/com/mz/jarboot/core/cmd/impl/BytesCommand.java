@@ -9,6 +9,8 @@ import com.alibaba.deps.org.objectweb.asm.tree.MethodNode;
 import com.alibaba.deps.org.objectweb.asm.util.Printer;
 import com.alibaba.deps.org.objectweb.asm.util.Textifier;
 import com.alibaba.deps.org.objectweb.asm.util.TraceMethodVisitor;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Argument;
@@ -23,9 +25,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * show the jvm detail
+ * show the class byte detail
  * @author majianzheng
  */
+@Name("bytes")
+@Summary("Show the class byte detail")
+@Description(CoreConstant.EXAMPLE +
+        "  bytes java.lang.String\n" +
+        CoreConstant.WIKI + CoreConstant.WIKI_HOME + "bytes")
 public class BytesCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static Printer printer = new Textifier();

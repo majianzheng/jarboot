@@ -14,7 +14,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +28,6 @@ import java.util.concurrent.*;
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String START_TIME_CONST = "启动耗时：";
-
-    @Value("${jarboot.start-wait-time:5000}")
-    private long startWaitTime;
 
     @Autowired
     private TaskRunCache taskRunCache;

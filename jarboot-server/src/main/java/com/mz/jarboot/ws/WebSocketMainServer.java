@@ -15,7 +15,7 @@ import javax.websocket.server.ServerEndpoint;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot-service/ws")
+@ServerEndpoint("/public/jarboot/service/ws")
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
@@ -23,7 +23,8 @@ public class WebSocketMainServer {
     private static final int CANCEL_FUNC = 2;
 
     /**
-     * 连接建立成功调用的方法*/
+     * 连接建立成功调用的方法
+     * */
     @OnOpen
     public void onOpen(Session session) {
         WebSocketManager.getInstance().addNewConnect(session);

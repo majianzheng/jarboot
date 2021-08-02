@@ -1,5 +1,8 @@
 package com.mz.jarboot.core.cmd;
 
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.session.Completion;
@@ -54,5 +57,28 @@ public abstract class AbstractCommand {
      */
     public void complete(Completion completion) {
         // default do nothing
+    }
+
+    public void printHelp() {
+        this.printHelp(this.getClass());
+    }
+
+    protected void printHelp(Class<?> cls) {
+        if (null == session) {
+            return;
+        }
+        session.console("Usage:" + CoreConstant.BR);
+        Name cmd = cls.getAnnotation(Name.class);
+        if (null != cmd) {
+            session.console("Command: " + cmd.value() + CoreConstant.BR);
+        }
+        Summary summary = cls.getAnnotation(Summary.class);
+        if (null != summary) {
+            session.console(summary.value() + CoreConstant.BR);
+        }
+        Description description = cls.getAnnotation(Description.class);
+        if (null != description) {
+            session.console(description.value());
+        }
     }
 }

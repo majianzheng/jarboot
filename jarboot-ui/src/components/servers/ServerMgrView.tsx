@@ -290,10 +290,12 @@ export default class ServerMgrView extends React.PureComponent {
             notSelectInfo();
             return;
         }
+
         this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
+
         ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback);
     };
+
     private restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
             notSelectInfo();
@@ -303,6 +305,7 @@ export default class ServerMgrView extends React.PureComponent {
         this.state.selectedRowKeys.forEach(this._clearDisplay);
         ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback);
     };
+
     private _getTbBtnProps = () => {
         return [
             {

@@ -20,6 +20,7 @@ import java.util.*;
 @SuppressWarnings("all")
 public class CommandArgsParser {
     private static final char QUOTATION = '"';
+    private static final char SPACE = ' ';
 
     private List<String> arguments = new ArrayList<>();
     private Map<String, List<String>> options = new LinkedHashMap<>();
@@ -122,14 +123,14 @@ public class CommandArgsParser {
         final int invalidPos = -1;
         // 将传入的整个参数拆分，遇到空格拆分，将引号包裹的视为一个
         int preQuotation  = invalidPos;
-        int preChar = ' ';
+        int preChar = SPACE;
         // 使用快慢指针算法
         int slow =0, fast = 0;
         for (; fast < args.length(); ++fast) {
             char c = args.charAt(fast);
             if (QUOTATION == c) {
                 if (invalidPos == preQuotation) {
-                    if (' ' == preChar) {
+                    if (SPACE == preChar) {
                         //引号开始位置
                         preQuotation = fast;
                     }
@@ -144,9 +145,9 @@ public class CommandArgsParser {
                         preQuotation = invalidPos;
                     }
                 }
-            } else if (' ' == c){
+            } else if (SPACE == c){
                 if (invalidPos == preQuotation) {
-                    if (' ' != preChar) {
+                    if (SPACE != preChar) {
                         addArgsToList(args, slow, fast, argsList);
                     }
                     slow = fast + 1;

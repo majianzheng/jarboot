@@ -16,6 +16,7 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
+import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -82,6 +83,8 @@ public class JarbootBootstrap {
 
         //6.客户端初始化
         this.initClient();
+
+        EnvironmentContext.setDistributor(new ResultStreamDistributor(CommandConst.SESSION_COMMON));
     }
     private void initMessageHandler() {
         this.messageHandler = new MessageHandler() {

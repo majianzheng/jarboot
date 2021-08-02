@@ -1,7 +1,7 @@
 package com.mz.jarboot.api.cmd.annotation;
 
 /**
- *
+ * Name 名字
  * @author majianzheng
  */
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)

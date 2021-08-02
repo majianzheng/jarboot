@@ -4,6 +4,7 @@ import {MSG_EVENT} from "@/common/EventConst";
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
+import CommonUtils from "@/common/CommonUtils";
 
 interface MsgData {
     event: number,
@@ -51,8 +52,9 @@ class WsManager {
             }
         }
         let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/public/jarboot-service/ws` :
-            `ws://${window.location.host}/public/jarboot-service/ws`;
+            `ws://${window.location.hostname}:9899/public/jarboot/service/ws?token=` :
+            `ws://${window.location.host}/public/jarboot/service/ws?token=`;
+        url += CommonUtils.getToken();
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager._onMessage;
         WsManager.websocket.onopen = WsManager._onOpen;

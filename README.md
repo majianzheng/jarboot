@@ -24,6 +24,8 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
 
+🧩 SPI Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>
+
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
@@ -34,6 +36,7 @@ In the test environment and daily built integrated environment, a series of jar 
 - ⭐   Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
 - ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
+- 💎   Support user-define command by <code>SPI</code>.
 
 Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
 <code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
@@ -89,21 +92,36 @@ $ sh startup.sh
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
-## SPI Extension, support JDK and Spring SPI
+## SPI Extension, support both JDK and Spring SPI
 Use SPI extension can implement your own command, define a command how to execute。and，also can notify stated event to Jarboot server
 , don't need to wait no console time.
 ### SpringBoot Application
-- Import <code>spring-boot-starter-jarboot</code> dependency
+1. Import <code>spring-boot-starter-jarboot</code> dependency
 ```xml
 <dependency>
   <groupId>io.github.majianzheng</groupId>
   <artifactId>spring-boot-starter-jarboot</artifactId>
 </dependency>
 ```
+2. 实现<code>CommandProcessor</code>SPI接口
+
+Also, you can use <code>@Bean</code> in the method.<br>
+It will use bean name as the command name if not annotated by <code>@Name</code>.
+```java
+@Name("spring.cmd")   //The command name
+@Component
+public class SpringBeanCommandProcessor implements CommandProcessor {
+  @Override
+  public String process(CommandSession session, String[] args) {
+      return "Spring boot Demo user-defined command using Spring SPI";
+  }
+}
+```
 
 ### None SpringBoot Application
+Demonstrate how to use ordinary non springboot applications.
 #### How to create user-defined command
-- Import jarboot api dependency
+1. Import jarboot api dependency
 ```xml
 <dependency>
     <groupId>io.github.majianzheng</groupId>
@@ -111,7 +129,7 @@ Use SPI extension can implement your own command, define a command how to execut
     <scope>provided</scope>
 </dependency>
 ```
-- Implement spi interface
+2. Implement spi interface
 ```java
 /**
  * Use Name to define the command name
@@ -124,7 +142,7 @@ public class DemoCommandProcessor implements CommandProcessor {
     }
 }
 ```
-- Create spi define file
+3. Create spi define file
 
 Then create a file in <code>resources</code>/<code>META-INF</code>/<code>services</code> named 
  <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code> the content is class full name.

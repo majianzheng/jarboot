@@ -7,6 +7,8 @@ import com.mz.jarboot.common.JarbootException;
  * @author jianzhengma
  */
 public class JarbootFactory {
+    private static final String AGENT_CLASS = "com.mz.jarboot.agent.client.AgentServiceImpl";
+
     /**
      * 创建AgentService实例<br>
      * 前置条件：使用Jarboot启动的进程，否则抛出异常{@link JarbootException}，调用端代码要做好异常防护
@@ -14,7 +16,7 @@ public class JarbootFactory {
      */
     public static AgentService createAgentService() {
         try {
-            Class<?> cls = Class.forName("com.mz.jarboot.agent.client.AgentServiceImpl");
+            Class<?> cls = Class.forName(AGENT_CLASS);
             return (AgentService)cls.getConstructor().newInstance();
         } catch (Exception e) {
             throw new JarbootException("Current application maybe not started by jarboot", e);

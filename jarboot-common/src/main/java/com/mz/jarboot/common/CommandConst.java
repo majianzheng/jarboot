@@ -40,6 +40,11 @@ public class CommandConst {
      */
     public static final char CMD_END_TYPE = BASE_TYPE + 5;
 
+    /**
+     * 发送动作指令
+     */
+    public static final char ACTION_TYPE = BASE_TYPE + 6;
+
     public static final char USER_COMMAND = 0xF001;
     public static final char INTERNAL_COMMAND = 0xF002;
     public static final char NONE_COMMAND = 0xFF00;
@@ -56,8 +61,15 @@ public class CommandConst {
      */
     public static final String SESSION_COMMON = "common";
 
+    public static final String ACTION_PROP_NAME_KEY = "name";
+    public static final String ACTION_PROP_PARAM_KEY = "param";
 
-    public static final int MIN_CMD_LEN = 3;
+    public static final String ACTION_RESTART = "restart";
+    public static final String ACTION_NOTICE_INFO = "info";
+    public static final String ACTION_NOTICE_WARN = "warn";
+    public static final String ACTION_NOTICE_ERROR = "error";
+
+    public static final int MIN_CMD_LEN = 2;
 
     /**
      * 协议分隔符

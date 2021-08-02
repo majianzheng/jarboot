@@ -28,7 +28,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CommandBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final Map<String, Class<? extends AbstractCommand>> commandMap = new ConcurrentHashMap<>(32);
-    private static final Map<String, CommandProcessor> extendMap = new ConcurrentHashMap<>(16);
+    public static final Map<String, CommandProcessor> EXTEND_MAP = new ConcurrentHashMap<>(16);
+    private static volatile boolean jdkSpiLoaded = false;
+
     static {
         commandMap.put("bytes", BytesCommand.class);
         commandMap.put("jvm", JvmCommand.class);
@@ -68,33 +70,39 @@ public class CommandBuilder {
         AbstractCommand command = null;
         Class<? extends AbstractCommand> cls = commandMap.getOrDefault(name, null);
         if (null == cls) {
-            command = createFromSpi(name, args, session);
-            if (null != command) {
-                return command;
+            try {
+                // 尝试从SPI加载扩展命令
+                command = createFromSpi(name, args, session);
+                if (null != command) {
+                    return command;
+                }
+            } catch (Throwable e) {
+                logger.error(e.getMessage(), e);
             }
-            logger.info("can not find class. {}, type:{}, args:{}", name, type, args);
             session.end(false, "command not found.");
             return null;
         }
         try {
             command = cls.getConstructor().newInstance();
-            //处理命令参数
-            CommandArgsParser parser = new CommandArgsParser(args, command);
-            parser.postConstruct();
             command.setSession(session);
             //设置命令名
             command.setName(name);
-        } catch (Exception e) {
+            //处理命令参数
+            CommandArgsParser parser = new CommandArgsParser(args, command);
+            parser.postConstruct();
+        } catch (Throwable e) {
             logger.warn(e.getMessage(), e);
+            if (null != command) {
+                command.printHelp();
+            }
             session.end(false, e.getMessage());
+            command = null;
         }
         return command;
     }
 
     private static AbstractCommand createFromSpi(String cmd, String args, CommandCoreSession session) {
-        CommandProcessor processor = extendMap.computeIfAbsent(cmd, k -> {
-            return findJdkCmdSpi(cmd);
-        });
+        CommandProcessor processor = EXTEND_MAP.computeIfAbsent(cmd, k -> findJdkCmdSpi(k));
         if (null == processor) {
             return null;
         }
@@ -108,20 +116,24 @@ public class CommandBuilder {
     }
 
     private static CommandProcessor findJdkCmdSpi(String cmd) {
+        if (jdkSpiLoaded) {
+            return null;
+        }
         ServiceLoader<CommandProcessor> services = ServiceLoader.load(CommandProcessor.class);
         Iterator<CommandProcessor> iter = services.iterator();
         while (iter.hasNext()) {
             CommandProcessor p = iter.next();
             try {
                 Name name = p.getClass().getAnnotation(Name.class);
-                if (null != name && cmd.equals(name.value())) {
-                    return p;
+                if (null != name && null != EXTEND_MAP.putIfAbsent(name.value(), p)) {
+                    logger.warn("User-defined command {} is repetitive in jdk SPI.", name.value());
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }
         }
-        return null;
+        jdkSpiLoaded = true;
+        return EXTEND_MAP.getOrDefault(cmd, null);
     }
 
     private static void printSummary(AbstractCommand command) {

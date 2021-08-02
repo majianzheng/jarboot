@@ -2,6 +2,7 @@ package com.mz.jarboot.api.cmd.session;
 
 
 /**
+ * Command session
  * @author majianzheng
  */
 public interface CommandSession {
@@ -13,7 +14,7 @@ public interface CommandSession {
     String getSessionId();
 
     /**
-     * 每执行一次命令生成一个唯一id
+     * 每执行一次命令会有一个唯一id
      * @return Job uuid
      */
     String getJobId();
