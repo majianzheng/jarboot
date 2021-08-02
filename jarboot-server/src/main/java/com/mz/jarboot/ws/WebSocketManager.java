@@ -130,6 +130,9 @@ public class WebSocketManager extends Thread {
     }
 
     public void notice(String text, NoticeEnum level) {
+        if (StringUtils.isEmpty(text) || null == level) {
+            return;
+        }
         WsEventEnum type = null;
         switch (level) {
             case INFO:

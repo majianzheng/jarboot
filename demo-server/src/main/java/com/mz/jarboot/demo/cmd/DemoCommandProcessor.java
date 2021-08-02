@@ -1,6 +1,8 @@
 package com.mz.jarboot.demo.cmd;
 
+import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import java.lang.instrument.Instrumentation;
@@ -10,6 +12,8 @@ import java.lang.instrument.Instrumentation;
  * @author jianzhengma
  */
 @Name("demo")
+@Summary("The demo command summary")
+@Description("The demo spi command usage detail")
 public class DemoCommandProcessor implements CommandProcessor {
     private String server;
 

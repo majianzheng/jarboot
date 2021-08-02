@@ -2,9 +2,6 @@ package com.mz.jarboot.agent.client;
 
 import com.mz.jarboot.agent.JarbootAgent;
 import com.mz.jarboot.api.AgentService;
-import com.mz.jarboot.common.*;
-
-import java.lang.reflect.Method;
 
 /**
  * Control Service implements<br>
@@ -13,32 +10,34 @@ import java.lang.reflect.Method;
  */
 @SuppressWarnings("all")
 public class AgentServiceImpl implements AgentService {
-    public static final Class<?> CORE_ENV_CLASS;
+    public static final Class<?> OPERATOR_CLASS;
     private static final String SERVER_NAME;
-    private static final Method DISTRIBUTE;
+    private static final String SET_STARTED = "setStarted";
+    private static final String RESTART_SELF = "restartSelf";
+    private static final String NOTICE_INFO = "noticeInfo";
+    private static final String NOTICE_WARN = "noticeWarn";
+    private static final String NOTICE_ERROR = "noticeError";
+    private static final String SPRING_INIT = "springContextInit";
 
     static {
         Class<?> tmp = null;
         String server = "";
-        Method obj = null;
         ClassLoader classLoader = JarbootAgent.getJarbootClassLoader();
         try {
-            tmp = classLoader.loadClass("com.mz.jarboot.core.basic.EnvironmentContext");
+            tmp = classLoader.loadClass("com.mz.jarboot.core.basic.AgentServiceOperator");
             server = (String)tmp.getMethod("getServer").invoke(null);
-            obj = tmp.getMethod("distributeAction", String.class, String.class, String.class);
         } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
-        CORE_ENV_CLASS = tmp;
+        OPERATOR_CLASS = tmp;
         SERVER_NAME = server;
-        DISTRIBUTE = obj;
     }
 
     @Override
     public void setStarted() {
         try {
             //启动完成
-            CORE_ENV_CLASS.getMethod("setStarted").invoke(null);
+            OPERATOR_CLASS.getMethod(SET_STARTED).invoke(null);
         } catch (Exception e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
@@ -46,12 +45,41 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public void restartSelf() {
-        this.action(CommandConst.ACTION_RESTART, null);
+        try {
+            OPERATOR_CLASS.getMethod(RESTART_SELF).invoke(null);
+        } catch (Throwable e) {
+            e.printStackTrace(JarbootAgent.getPs());
+        }
     }
 
     @Override
-    public void notice(String message, String level) {
-        action(level, message);
+    public void noticeInfo(String message, String sessionId) {
+        try {
+            OPERATOR_CLASS.getMethod(NOTICE_INFO, String.class, String.class)
+                    .invoke(null, message, sessionId);
+        } catch (Throwable e) {
+            e.printStackTrace(JarbootAgent.getPs());
+        }
+    }
+
+    @Override
+    public void noticeWarn(String message, String sessionId) {
+        try {
+            OPERATOR_CLASS.getMethod(NOTICE_WARN, String.class, String.class)
+                    .invoke(null, message, sessionId);
+        } catch (Throwable e) {
+            e.printStackTrace(JarbootAgent.getPs());
+        }
+    }
+
+    @Override
+    public void noticeError(String message, String sessionId) {
+        try {
+            OPERATOR_CLASS.getMethod(NOTICE_ERROR, String.class, String.class)
+                    .invoke(null, message, sessionId);
+        } catch (Throwable e) {
+            e.printStackTrace(JarbootAgent.getPs());
+        }
     }
 
     @Override
@@ -61,19 +89,7 @@ public class AgentServiceImpl implements AgentService {
 
     public static void springContextInit(Object context) {
         try {
-            CORE_ENV_CLASS.getMethod("springContextInit", Object.class).invoke(null, context);
-        } catch (Throwable e) {
-            e.printStackTrace(JarbootAgent.getPs());
-        }
-    }
-
-    private void action(String name, String param) {
-        action(name, param, CommandConst.SESSION_COMMON);
-    }
-
-    private void action(String name, String param, String sessionId) {
-        try {
-            DISTRIBUTE.invoke(null, name, param, sessionId);
+            OPERATOR_CLASS.getMethod(SPRING_INIT, Object.class).invoke(null, context);
         } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }

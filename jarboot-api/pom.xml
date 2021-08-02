@@ -13,10 +13,4 @@
     <artifactId>jarboot-api</artifactId>
     <name>Jarboot API</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.github.majianzheng</groupId>
-            <artifactId>jarboot-common</artifactId>
-        </dependency>
-    </dependencies>
 </project>

@@ -44,7 +44,7 @@ public class ObjectView implements View {
         StringBuilder buf = new StringBuilder();
         try {
             if (GlobalOptions.isUsingJson) {
-                return JsonUtils.toJSONString(object);
+                return JsonUtils.toJsonString(object);
             }
             renderObject(object, 0, deep, buf);
             return buf.toString();

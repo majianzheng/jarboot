@@ -65,9 +65,9 @@ public class CommandConst {
     public static final String ACTION_PROP_PARAM_KEY = "param";
 
     public static final String ACTION_RESTART = "restart";
-    public static final String ACTION_NOTICE_INFO = "info";
-    public static final String ACTION_NOTICE_WARN = "warn";
-    public static final String ACTION_NOTICE_ERROR = "error";
+    public static final String ACTION_NOTICE_INFO = "INFO";
+    public static final String ACTION_NOTICE_WARN = "WARN";
+    public static final String ACTION_NOTICE_ERROR = "ERROR";
 
     public static final int MIN_CMD_LEN = 2;
 

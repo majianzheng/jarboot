@@ -21,14 +21,25 @@ public interface AgentService {
     void restartSelf();
 
     /**
-     * 向所有浏览器客户端发出提示信息
+     * 向浏览器客户端发出提示信息
      * @param message 消息
-     * @param level 级别，为如下几种：
-     * 提示：{@link com.mz.jarboot.common.CommandConst#ACTION_NOTICE_INFO}
-     * 警告：{@link com.mz.jarboot.common.CommandConst#ACTION_NOTICE_WARN}
-     * 错误：{@link com.mz.jarboot.common.CommandConst#ACTION_NOTICE_ERROR}
+     * @param sessionId 客户端会话id，若为null或空则广播所有客户端
      */
-    void notice(String message, String level);
+    void noticeInfo(String message, String sessionId);
+
+    /**
+     * 向浏览器客户端发出警告信息
+     * @param message 消息
+     * @param sessionId 客户端会话id，若为null或空则广播所有客户端
+     */
+    void noticeWarn(String message, String sessionId);
+
+    /**
+     * 向浏览器客户端发出错误信息
+     * @param message 消息
+     * @param sessionId 客户端会话id，若为null或空则广播所有客户端
+     */
+    void noticeError(String message, String sessionId);
 
     /**
      * 获取服务名

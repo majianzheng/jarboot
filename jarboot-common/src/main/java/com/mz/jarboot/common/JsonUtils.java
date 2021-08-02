@@ -1,6 +1,5 @@
 package com.mz.jarboot.common;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,7 +18,7 @@ public class JsonUtils {
     public static JsonNode readAsJsonNode(String content) {
         try {
             return MAPPER.readValue(content, JsonNode.class);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -34,7 +33,7 @@ public class JsonUtils {
     public static <T> T readValue(String content, Class<T> cls) {
         try {
             return MAPPER.readValue(content, cls);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -44,10 +43,10 @@ public class JsonUtils {
      * @param obj 对象
      * @return json字符串
      */
-    public static String toJSONString(Object obj) {
+    public static String toJsonString(Object obj) {
         try {
             return MAPPER.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             return null;
         }
     }

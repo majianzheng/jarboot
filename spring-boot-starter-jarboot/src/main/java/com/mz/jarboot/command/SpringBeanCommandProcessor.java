@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 @Name("spring.bean")
 @Summary("View Spring Bean info")
-@Description("\nEXAMPLES:\nspring.bean -b beanName\n" +
+@Description("\nEXAMPLES:\n spring.bean -b beanName\n" +
         " spring.bean -b beanName -d\n")
 public class SpringBeanCommandProcessor implements CommandProcessor {
     private static final String CGLIG_FLAG = "$$EnhancerBySpringCGLIB$$";

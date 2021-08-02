@@ -9,7 +9,7 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
 
     @Override
     public String render(com.mz.jarboot.core.cmd.model.DumpClassModel result) {
-        return JsonUtils.toJSONString(result);
+        return JsonUtils.toJsonString(result);
     }
 
     @Override

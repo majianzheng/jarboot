@@ -16,7 +16,7 @@ import java.lang.instrument.Instrumentation;
  */
 @Name("spring.env")
 @Summary("Get Spring Environment property")
-@Description("\nEXAMPLES:\nspring.env server.port")
+@Description("\nEXAMPLES:\n spring.env server.port")
 public class SpringEnvCommandProcessor implements CommandProcessor {
 
     private String propKey;

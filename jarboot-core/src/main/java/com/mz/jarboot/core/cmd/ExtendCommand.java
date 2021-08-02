@@ -9,9 +9,12 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
  */
 public class ExtendCommand extends AbstractCommand {
     private final CommandProcessor processor;
-    private final String[] args;
-    public ExtendCommand(CommandProcessor processor, String[] args) {
+    private String[] args;
+    public ExtendCommand(CommandProcessor processor) {
         this.processor = processor;
+    }
+
+    public void setArgs(String[] args) {
         this.args = args;
     }
 
@@ -37,6 +40,9 @@ public class ExtendCommand extends AbstractCommand {
 
     @Override
     public void printHelp() {
+        if (null == this.processor) {
+            return;
+        }
         this.printHelp(this.processor.getClass());
     }
 }

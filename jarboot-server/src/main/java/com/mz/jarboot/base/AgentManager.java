@@ -262,23 +262,21 @@ public class AgentManager {
     }
 
     private void handleAction(String data, String sessionId, String server) {
-        logger.debug("handleAction data:{}", data);
         JsonNode body = JsonUtils.readAsJsonNode(data);
+        if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_PROP_NAME_KEY)) {
+            return;
+        }
         String action = body.get(CommandConst.ACTION_PROP_NAME_KEY).asText(StringUtils.EMPTY);
         String param = body.get(CommandConst.ACTION_PROP_PARAM_KEY).asText(StringUtils.EMPTY);
         if (StringUtils.isEmpty(sessionId)) {
             sessionId = CommandConst.SESSION_COMMON;
         }
-        logger.debug("action: {}, param:{}", action, param);
         switch (action) {
             case CommandConst.ACTION_NOTICE_INFO:
-                WebSocketManager.getInstance().notice(param, NoticeEnum.INFO);
-                break;
             case CommandConst.ACTION_NOTICE_WARN:
-                WebSocketManager.getInstance().notice(param, NoticeEnum.WARN);
-                break;
             case CommandConst.ACTION_NOTICE_ERROR:
-                WebSocketManager.getInstance().notice(param, NoticeEnum.ERROR);
+                NoticeEnum level = EnumUtils.getEnum(NoticeEnum.class, action);
+                WebSocketManager.getInstance().notice(param, level);
                 break;
             case CommandConst.ACTION_RESTART:
                 TaskEvent taskEvent = new TaskEvent();

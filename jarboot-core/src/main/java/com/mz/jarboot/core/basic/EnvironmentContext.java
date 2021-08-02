@@ -1,11 +1,8 @@
 package com.mz.jarboot.core.basic;
 
-import com.mz.jarboot.api.cmd.annotation.Name;
-import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandCoreSession;
@@ -19,8 +16,6 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.net.URISyntaxException;
 import java.security.CodeSource;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -39,9 +34,6 @@ public class EnvironmentContext {
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
     private static ResultViewResolver resultViewResolver;
-    private static volatile boolean started = false;
-    private static final String SET_STARTED_API = "/api/public/agent/setStarted?server=";
-    private static String setStartedUrl = null;
     private static ResultStreamDistributor distributor = null;
     private EnvironmentContext() {}
 
@@ -52,7 +44,6 @@ public class EnvironmentContext {
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
         EnvironmentContext.resultViewResolver = new ResultViewResolver();
-        setStartedUrl = SET_STARTED_API + server;
 
         scheduledExecutorService = Executors.newScheduledThreadPool(5,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
@@ -171,52 +162,6 @@ public class EnvironmentContext {
         }
     }
 
-    /**
-     * 初始化Spring容器中的{@link CommandProcessor}的bean<br>
-     * 前置条件：引入了spring-boot-starter-jarboot的依赖
-     * @param context Spring Context
-     */
-    @SuppressWarnings("all")
-    public static void springContextInit(Object context) {
-        Map<String, CommandProcessor> beans = null;
-        //获取
-        try {
-            beans = (Map<String, CommandProcessor>)context.getClass()
-                    .getMethod("getBeansOfType", java.lang.Class.class)
-                    .invoke(context, CommandProcessor.class);
-        } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
-        }
-        if (null == beans || beans.isEmpty()) {
-            return;
-        }
-        beans.forEach((k, v) -> {
-            //未使用Name注解定义命令时，以bean的Name作为命令名
-            String cmd = k;
-            Name name = v.getClass().getAnnotation(Name.class);
-            if (!(null == name || null == name.value() || name.value().isEmpty())) {
-                cmd = name.value();
-            }
-            if (CommandBuilder.EXTEND_MAP.containsKey(cmd)) {
-                //命令重复
-                logger.warn("User-defined command {} is repetitive in spring boot.", k);
-                return;
-            }
-            CommandBuilder.EXTEND_MAP.put(cmd, v);
-        });
-    }
-
-    /**
-     * 设置启动成功
-     */
-    public static void setStarted(){
-        if (started) {
-            return;
-        }
-        com.mz.jarboot.core.utils.HttpUtils.getSimple(setStartedUrl);
-        started = true;
-    }
-
     public static void setDistributor(ResultStreamDistributor distributor) {
         EnvironmentContext.distributor = distributor;
     }
@@ -225,25 +170,5 @@ public class EnvironmentContext {
         if (null != distributor) {
             distributor.write(resp);
         }
-    }
-
-    /**
-     * 用于AgentServiceImpl中的消息发布，使用反射未直接调用
-     * @param name Action name
-     * @param param Action param
-     * @param sessionId session id
-     */
-    public static void distributeAction(String name, String param, String sessionId) {
-        CommandResponse response = new CommandResponse();
-        response.setResponseType(ResponseType.ACTION);
-        response.setSuccess(true);
-        HashMap<String, String> body = new HashMap<>(2);
-        body.put(CommandConst.ACTION_PROP_NAME_KEY, name);
-        if (null != param && !param.isEmpty()) {
-            body.put(CommandConst.ACTION_PROP_PARAM_KEY, param);
-        }
-        response.setBody(JsonUtils.toJSONString(body));
-        response.setSessionId(sessionId);
-        distribute(response);
     }
 }

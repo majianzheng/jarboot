@@ -24,7 +24,7 @@ English version goes [here](README.md).
 
 🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
 
-🧩 可扩展（SPI）: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>
+🐳 可扩展（SPI）: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
@@ -107,13 +107,16 @@ $ sh startup.sh
 同样的, 你也可以在方法上使用 <code>@Bean</code> 注解来定义命令处理器。<br>
 如果没有使用<code>@Name</code>注解的话，将会默认使用Bean的名称作为命令的名称。
 ```java
-@Name("spring.cmd")   //The command name
+@Name("spring.command.name")
+@Summary("The command summary")
+@Description("The command usage detail")
 @Component
-public class SpringBeanCommandProcessor implements CommandProcessor {
+public class DemoServiceImpl implements DemoService, CommandProcessor {
   @Override
   public String process(CommandSession session, String[] args) {
-      return "Spring boot Demo user-defined command using Spring SPI";
+    return "Spring boot Demo user-defined command using Spring SPI";
   }
+  //implement other method...
 }
 ```
 
@@ -134,6 +137,8 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
  * 使用Name注解来定义一个命令的名字
  */
 @Name("demo")
+@Summary("The command summary")
+@Description("The command usage detail")
 public class DemoCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
@@ -182,10 +187,10 @@ L8
 ```
 
 ### stdout
-开启或关闭标准输出流的实时显示（初始为关闭），将会在Web的前端ui界面上实时显示，输出流包括代码中的<code>System.out.println</code>、<code>System.err.println</code>
+开启或关闭标准输出流的实时显示（默认开启），将会在Web的前端ui界面上实时显示，输出流包括代码中的<code>System.out.println</code>、<code>System.err.println</code>
 以及日志打印信息如<code>logger.info("hello")</code>。
 
-注意：当你的程序日志输出太频繁时，开启显示会比较消耗性能，建议仅在需要时打开，用完后关闭。
+注：该功能的实现机制经过精心设计，建议一直开启，对性能没有影响还可加速启动。
 ```bash
 #开启标准输出流实时显示
 jarboot$ stdout on

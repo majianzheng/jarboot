@@ -34,9 +34,9 @@
 	<url>https://github.com/majianzheng/jarboot</url>
 
 	<modules>
+		<module>jarboot-api</module>
 		<module>jarboot-common</module>
 		<module>jarboot-spy</module>
-		<module>jarboot-api</module>
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>

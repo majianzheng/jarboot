@@ -90,7 +90,7 @@ public class CommandArgsParser {
                 if (null == option && !optionMap.isEmpty()) {
                     throw new JarbootException("不支持的选项：" + op);
                 }
-                if (!option.flag()) {
+                if (null != option && !option.flag()) {
                     preOp = option;
                 }
                 List<String> opValueList = new ArrayList<>();

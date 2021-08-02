@@ -236,11 +236,12 @@ public class DemoServerApplication implements Runnable {
 
         // 简介
         String text = "使用Jarboot启动后，可执行测试的算法\n"
-                + "输出流默认会实时显示到Jarboot的界面的功能，可使用stdout off命令关闭\n"
+                + "输出流默认会实时显示到Jarboot的界面，可使用stdout off命令关闭\n"
                 + "jad com.mz.jarboot.demo.DemoServerApplication        反编译命令\n"
                 + "watch com.mz.jarboot.demo.DemoServerApplication fib        监控fib函数执行命令\n"
                 + "trace com.mz.jarboot.demo.DemoServerApplication fib        追踪fib函数调用栈命令\n"
-                + "watch com.mz.jarboot.demo.DemoServerApplication pow\ntrace com.mz.jarboot.demo.DemoServerApplication pow";
+                + "watch com.mz.jarboot.demo.DemoServerApplication pow\n"
+                + "trace com.mz.jarboot.demo.DemoServerApplication pow";
         JTextArea desc = new JTextArea(text);
         desc.setEditable(false);
         desc.setCursor(null);

@@ -25,10 +25,13 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-json</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-api</artifactId>
-            <optional>true</optional>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

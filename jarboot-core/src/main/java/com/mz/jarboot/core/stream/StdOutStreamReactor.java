@@ -3,6 +3,7 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
@@ -11,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author majianzheng
+ */
 @SuppressWarnings("all")
 public class StdOutStreamReactor {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
@@ -104,8 +108,8 @@ public class StdOutStreamReactor {
             sos.setPrintLineHandler(stdoutPrintHandler);
             //通知Jarboot server启动完成
             try {
-                EnvironmentContext.setStarted();
-            } catch (Exception e) {
+                AgentServiceOperator.setStarted();
+            } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }
         });

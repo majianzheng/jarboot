@@ -3,8 +3,6 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import com.mz.jarboot.command.SpringBeanCommandProcessor;
-import com.mz.jarboot.command.SpringEnvCommandProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,12 +28,12 @@ public class JarbootAutoConfiguration {
     @Bean("spring.env")
     @ConditionalOnClass(name = {AGENT_CLASS, FACTORY_CLASS})
     public CommandProcessor springEnv(Environment environment) {
-        return new SpringEnvCommandProcessor(environment);
+        return new com.mz.jarboot.command.SpringEnvCommandProcessor(environment);
     }
 
     @Bean("spring.bean")
     @ConditionalOnClass(name = {AGENT_CLASS, FACTORY_CLASS})
     public CommandProcessor springBean(ApplicationContext context) {
-        return new SpringBeanCommandProcessor(context);
+        return new com.mz.jarboot.command.SpringBeanCommandProcessor(context);
     }
 }

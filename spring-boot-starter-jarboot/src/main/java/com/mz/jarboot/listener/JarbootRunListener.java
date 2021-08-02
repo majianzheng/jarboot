@@ -2,7 +2,6 @@ package com.mz.jarboot.listener;
 
 import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
-import com.mz.jarboot.common.CommandConst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -64,8 +63,8 @@ public class JarbootRunListener implements SpringApplicationRunListener {
         try {
             JarbootFactory
                     .createAgentService()
-                    .notice("Start Spring boot application failed.\n" + exception.getMessage(),
-                            CommandConst.ACTION_NOTICE_ERROR);
+                    .noticeError("Start Spring boot application failed.\n" +
+                            exception.getMessage(), null);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }

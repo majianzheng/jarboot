@@ -24,7 +24,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
 
-🧩 SPI Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>
+🐳 SPI Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
@@ -108,13 +108,16 @@ Use SPI extension can implement your own command, define a command how to execut
 Also, you can use <code>@Bean</code> in the method.<br>
 It will use bean name as the command name if not annotated by <code>@Name</code>.
 ```java
-@Name("spring.cmd")   //The command name
+@Name("spring.command.name")
+@Summary("The command summary")
+@Description("The command usage detail")
 @Component
-public class SpringBeanCommandProcessor implements CommandProcessor {
+public class DemoServiceImpl implements DemoService, CommandProcessor {
   @Override
   public String process(CommandSession session, String[] args) {
       return "Spring boot Demo user-defined command using Spring SPI";
   }
+  //implement other method...
 }
 ```
 
@@ -135,6 +138,8 @@ Demonstrate how to use ordinary non springboot applications.
  * Use Name to define the command name
  */
 @Name("demo")
+@Summary("The command summary")
+@Description("The command usage detail")
 public class DemoCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
@@ -184,10 +189,12 @@ L8
 ```
 
 ### stdout
-Turn on or off real-time display of standard output stream (initially off), it will be displayed on the front-end UI of the web in real time.
-The output stream includes <code>System.out.println</code>, <code>System.err.println</code> and log printing information such as <code>logger.info("hello")</code> in the code.
+Turn on or off real-time display of standard output stream (initially on), it will be displayed on the front-end UI of 
+the web in real time. The output stream includes <code>System.out.println</code>, <code>System.err.println</code> and 
+log printing information such as <code>logger.info("hello")</code> in the code.
 
-Note: when your program log output is too frequent, it will consume performance to turn on the display. It is recommended to turn it on only when necessary and turn it off after use.
+Note: The implementation mechanism of this function has been carefully designed. It is recommended to be turned on all 
+ the time, which has no impact on performance and can be accelerated when starting.
 ```bash
 #Turn on real time display of standard output stream
 jarboot$ stdout on
