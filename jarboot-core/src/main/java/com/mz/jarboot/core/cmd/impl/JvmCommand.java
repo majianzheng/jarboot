@@ -1,7 +1,12 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.model.JvmModel;
+import com.mz.jarboot.core.constant.CoreConstant;
+
 import java.lang.management.*;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -10,6 +15,9 @@ import java.util.*;
  * show the jvm detail
  * @author majianzheng
  */
+@Name("jvm")
+@Summary("Display the target JVM information")
+@Description(CoreConstant.WIKI + CoreConstant.WIKI_HOME + "jvm")
 public class JvmCommand extends AbstractCommand {
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();

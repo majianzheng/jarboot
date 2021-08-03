@@ -18,7 +18,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 [中文说明/Chinese Documentation](README_CN.md)
 
-📚 Document: https://www.yuque.com/jarboot/usage/tmpomo
+📚 Document: https://www.yuque.com/jarboot/usage/quick-start
 
 😊 Advanced application examples: <code>Jarboot</code> 🔥 with <code>Spring Cloud Alibaba</code> Examples ⤵️ 
 

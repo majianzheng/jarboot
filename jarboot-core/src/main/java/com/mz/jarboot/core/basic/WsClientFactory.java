@@ -1,8 +1,8 @@
 package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.ws.MessageHandler;
-import com.mz.jarboot.core.ws.WebSocketClient;
+import com.mz.jarboot.core.utils.HttpUtils;
+import okhttp3.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,8 @@ public class WsClientFactory {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     @SuppressWarnings("all")
     private static volatile WsClientFactory instance = null;
-    private WebSocketClient client = null;
+    private okhttp3.WebSocket client = null;
+    private String url = null;
 
     private WsClientFactory() {
         String server = EnvironmentContext.getServer();
@@ -32,10 +33,9 @@ public class WsClientFactory {
             }
         }
 
-        String url = String.format("ws://%s/public/jarboot/agent/ws/%s",
+        url = String.format("ws://%s/public/jarboot/agent/ws/%s",
                 EnvironmentContext.getHost(), server);
         logger.debug("initClient {}", url);
-        client = new WebSocketClient(url);
     }
 
     public static WsClientFactory getInstance() {
@@ -48,16 +48,20 @@ public class WsClientFactory {
         }
         return instance;
     }
-    public synchronized WebSocketClient createSingletonClient(MessageHandler handler) {
-        boolean isOk = client.connect(handler);
-        if (!isOk) {
-            logger.warn("连接jarboot-server服务失败");
-            client.disconnect();
+    public synchronized void createSingletonClient(okhttp3.WebSocketListener handler) {
+        try {
+            client = HttpUtils.HTTP_CLIENT
+                    .newWebSocket(new Request
+                            .Builder()
+                            .get()
+                            .url(url)
+                            .build(), handler);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
-        return client;
     }
 
-    public WebSocketClient getSingletonClient() {
+    public okhttp3.WebSocket getSingletonClient() {
         return this.client;
     }
 }

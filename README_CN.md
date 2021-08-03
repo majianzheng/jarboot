@@ -18,7 +18,7 @@
 
 English version goes [here](README.md).
 
-📚 文档：https://www.yuque.com/jarboot/usage/tmpomo
+📚 文档：https://www.yuque.com/jarboot/usage/quick-start
 
 😊 高级应用示例: <code>Jarboot</code> 🔥 和 <code>Spring Cloud Alibaba</code> 演示示例 ⤵️
 

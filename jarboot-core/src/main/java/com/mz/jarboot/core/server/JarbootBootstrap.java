@@ -20,9 +20,10 @@ import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.StringUtils;
-import com.mz.jarboot.core.ws.MessageHandler;
-import com.mz.jarboot.core.ws.WebSocketClient;
-import io.netty.channel.Channel;
+import okhttp3.Response;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+import okio.ByteString;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.Base64;
 import java.util.HashSet;
@@ -48,13 +50,12 @@ public class JarbootBootstrap {
     private CommandDispatcher dispatcher;
     private String host;
     private String serverName;
-    private WebSocketClient client;
     private Instrumentation instrumentation;
     private InstrumentTransformer classLoaderInstrumentTransformer;
     private volatile boolean online = false;
-    private MessageHandler messageHandler;
+    private okhttp3.WebSocketListener listener;
 
-    private JarbootBootstrap(Instrumentation inst, String args) {
+    private JarbootBootstrap(Instrumentation inst, String args, boolean isPremain) {
         if (null == args || args.isEmpty()) {
             return;
         }
@@ -83,39 +84,52 @@ public class JarbootBootstrap {
 
         //6.客户端初始化
         this.initClient();
+        if (isPremain) {
+            //上线成功开启输出流实时显示
+            setStarting();
+        }
 
         EnvironmentContext.setDistributor(new ResultStreamDistributor(CommandConst.SESSION_COMMON));
     }
     private void initMessageHandler() {
-        this.messageHandler = new MessageHandler() {
+        this.listener = new WebSocketListener() {
             @Override
-            public void onOpen(Channel channel) {
-                logger.debug("连接成功>>>");
+            public void onOpen(WebSocket webSocket, Response response) {
+                logger.debug("client connected>>>");
+                synchronized (this) {
+                    online = true;
+                    listener.notify();
+                }
             }
 
             @Override
-            public void onText(String text, Channel channel) {
+            public void onMessage(WebSocket webSocket, String text) {
                 dispatcher.publish(text);
             }
 
             @Override
-            public void onBinary(byte[] bytes, Channel channel) {
-                dispatcher.publish(new String(bytes));
+            public void onMessage(WebSocket webSocket, ByteString bytes) {
+                dispatcher.publish(bytes.string(StandardCharsets.UTF_8));
             }
 
             @Override
-            public void onClose(Channel channel) {
+            public void onClosing(WebSocket webSocket, int code, String reason) {
                 if (online) {
                     online = false;
                 }
                 EnvironmentContext.cleanSession();
-                logger.debug("连接关闭>>>");
+                logger.debug("onClosing>>>{}", reason);
             }
 
             @Override
-            public void onError(Channel channel) {
-                logger.error("连接异常>>>");
-                onClose(channel);
+            public void onClosed(WebSocket webSocket, int code, String reason) {
+                logger.debug("onClosed>>>{}", reason);
+            }
+
+            @Override
+            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+                logger.error("onFailure>>>", t);
+                online = false;
             }
         };
     }
@@ -124,31 +138,17 @@ public class JarbootBootstrap {
             logger.warn("当前已经处于在线状态，不需要重新连接");
             return;
         }
-
-        if (null != client && !client.isOpen()) {
-            //已经不在线，清理资源重新连接
-            logger.info("已离线，正在重新初始化客户端...");
-            client.disconnect();
-        }
-
         EnvironmentContext.cleanSession();
 
-        client = WsClientFactory.getInstance().createSingletonClient(this.messageHandler);
-        if (null == client) {
-            online = false;
-            logger.error("连接失败！");
-            return;
-        }
-        if (client.isOpen()) {
-            online = true;
-        } else {
-            logger.info("尝试重新连接中..");
-            if (client.connect(this.messageHandler)) {
-                online = true;
-                logger.info("尝试重新连接成功！");
-            } else {
-                online = false;
-                logger.error("尝试重新连接失败！");
+        WsClientFactory.getInstance().createSingletonClient(this.listener);
+        synchronized (this.listener) {
+            try {
+                long b = System.currentTimeMillis();
+                logger.debug("wait connected:{}", b);
+                this.listener.wait(5000);
+                logger.debug("wait time:{}", System.currentTimeMillis() - b);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -162,12 +162,12 @@ public class JarbootBootstrap {
         StdOutStreamReactor.getInstance().setStarting();
     }
 
-    public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args) {
+    public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args, boolean isPremain) {
         //主入口
         if (bootstrap != null) {
             return bootstrap;
         }
-        bootstrap = new JarbootBootstrap(inst, args);
+        bootstrap = new JarbootBootstrap(inst, args, isPremain);
         return bootstrap;
     }
     public static JarbootBootstrap getInstance() {

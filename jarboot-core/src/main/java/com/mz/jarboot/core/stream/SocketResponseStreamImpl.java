@@ -11,6 +11,6 @@ public class SocketResponseStreamImpl implements ResponseStream {
     public void write(String data) {
         WsClientFactory.getInstance()
                 .getSingletonClient()
-                .sendText(data);
+                .send(data);
     }
 }

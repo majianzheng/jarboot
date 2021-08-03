@@ -40,22 +40,11 @@ public class JarbootAgent {
     }
 
     public static void premain(String args, Instrumentation inst) {
-        main(args, inst);
-        //上线成功开启输出流实时显示
-        try {
-            Class<?> bootClass = jarbootClassLoader.loadClass(JARBOOT_CLASS);
-            Object obj = bootClass.getMethod(GET_INSTANCE).invoke(null);
-            boolean isOnline = (Boolean) bootClass.getMethod("isOnline").invoke(obj);
-            if (isOnline) {
-                bootClass.getMethod("setStarting").invoke(obj);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(ps);
-        }
+        main(args, inst, true);
     }
 
     public static void agentmain(String args, Instrumentation inst) {
-        main(args, inst);
+        main(args, inst, false);
     }
 
     /**
@@ -95,7 +84,7 @@ public class JarbootAgent {
         }
     }
 
-    private static synchronized void main(String args, final Instrumentation inst) {
+    private static synchronized void main(String args, final Instrumentation inst, boolean isPremain) {
         try {
             Class.forName("java.jarboot.SpyAPI");
             if (SpyAPI.isInited()) {
@@ -106,7 +95,7 @@ public class JarbootAgent {
                 return;
             }
         } catch (Exception e) {
-            // ignore
+            e.printStackTrace(ps);
         }
 
         ps.println("jarboot Agent start...");
@@ -130,16 +119,16 @@ public class JarbootAgent {
             //构造自定义的类加载器
             ClassLoader classLoader = getClassLoader(coreJarFile);
 
-            bind(classLoader, inst, args);
+            bind(classLoader, inst, args, isPremain);
             //初始化成功
             ps.println("jarboot Agent ready.");
         } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
-    private static void bind(ClassLoader classLoader, Instrumentation inst, String args) throws Exception {
+    private static void bind(ClassLoader classLoader, Instrumentation inst, String args, boolean isPremain) throws Exception {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
-        bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class).invoke(null, inst, args);
+        bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class, boolean.class).invoke(null, inst, args, isPremain);
     }
 
     private static File getCurrentDir() {
@@ -148,7 +137,7 @@ public class JarbootAgent {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
             return agentJarFile.getParentFile();
         } catch (Exception e) {
-            // ignore
+            e.printStackTrace(ps);
         }
         return null;
     }

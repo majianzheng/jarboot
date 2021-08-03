@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpUtils {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final String BASE_URL =String.format("http://%s", EnvironmentContext.getHost());
-    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
+    public static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(30L, TimeUnit.SECONDS)
             .readTimeout(30L, TimeUnit.SECONDS)
             .writeTimeout(30L, TimeUnit.SECONDS)

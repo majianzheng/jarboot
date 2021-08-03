@@ -44,7 +44,7 @@ public class CoreConstant {
 
     public static final String WIKI = "\nWIKI:\n";
 
-    public static final String WIKI_HOME = "  https://github.com/majianzheng/jarboot";
+    public static final String WIKI_HOME = "  https://www.yuque.com/jarboot/usage/command#";
 
     public static final String EXPRESS_EXAMPLES =   "Examples:\n" +
             "  params\n" +
