@@ -1,5 +1,6 @@
 package com.mz.jarboot.listener;
 
+import com.mz.jarboot.Constants;
 import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class JarbootRunListener implements SpringApplicationRunListener {
     public void contextPrepared(ConfigurableApplicationContext context) {
         //先判定是否使用了Jarboot启动
         try {
-            Class<?> cls = ClassLoader.getSystemClassLoader().loadClass("com.mz.jarboot.agent.JarbootAgent");
+            Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(Constants.AGENT_CLASS);
             startByJarboot = true;
             logger.info("Jarboot is starting spring boot application...");
         } catch (Throwable e) {
@@ -45,7 +46,7 @@ public class JarbootRunListener implements SpringApplicationRunListener {
                 agentService.setStarted();
                 //初始化Spring
                 agentService.getClass()
-                        .getMethod("springContextInit", Object.class)
+                        .getMethod(Constants.SPRING_INIT_METHOD, Object.class)
                         .invoke(null, context);
             } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
@@ -68,7 +69,7 @@ public class JarbootRunListener implements SpringApplicationRunListener {
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
-        boolean v = context.getEnvironment().getProperty("spring.jarboot.failed-auto-exit", boolean.class, true);
+        boolean v = context.getEnvironment().getProperty(Constants.FAILED_AUTO_EXIT_KEY, boolean.class, true);
         if (v) {
             logger.error(exception.getMessage(), exception);
             //启动失败自动退出

@@ -97,16 +97,6 @@ public class JadCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-
-    }
-
-    @Override
     public void run() {
         RowAffect affect = new RowAffect();
         Instrumentation inst = EnvironmentContext.getInstrumentation();

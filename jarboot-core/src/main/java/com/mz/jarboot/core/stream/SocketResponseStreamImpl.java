@@ -9,7 +9,8 @@ import com.mz.jarboot.core.basic.WsClientFactory;
 public class SocketResponseStreamImpl implements ResponseStream {
     @Override
     public void write(String data) {
-        WsClientFactory.getInstance()
+        WsClientFactory
+                .getInstance()
                 .getSingletonClient()
                 .send(data);
     }

@@ -24,6 +24,7 @@ public class DemoCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(CommandSession session, String[] args) {
+        session.console("start process demo command>>>");
         StringBuilder sb = new StringBuilder();
         sb
                 .append("Demo JDK SPI command process success.\nserver:")

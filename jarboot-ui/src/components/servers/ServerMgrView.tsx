@@ -90,6 +90,7 @@ export default class ServerMgrView extends React.PureComponent {
                 this._activeConsole(server);
                 Logger.log(`启动中${server}...`);
                 pubsub.publish(server, 'startLoading');
+                this._clearDisplay(server);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:

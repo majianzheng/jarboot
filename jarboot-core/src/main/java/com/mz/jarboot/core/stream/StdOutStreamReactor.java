@@ -34,7 +34,7 @@ public class StdOutStreamReactor {
         resp.setResponseType(ResponseType.STD_OUT);
         resp.setBody(text);
         resp.setSessionId(CommandConst.SESSION_COMMON);
-        EnvironmentContext.distribute(resp);
+        ResultStreamDistributor.write(resp);
     }
 
     private void stdStartingConsole(String text) {

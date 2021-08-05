@@ -27,7 +27,6 @@ import java.util.concurrent.*;
 @Service
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final String START_TIME_CONST = "启动耗时：";
 
     @Autowired
     private TaskRunCache taskRunCache;
@@ -174,7 +173,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             TaskUtils.startServer(server, setting);
             //记录启动结束时间，减去判定时间修正
 
-            long costTime = System.currentTimeMillis() - startTime;
+            double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             int pid = TaskUtils.getServerPid(server);
             //服务是否启动成功
             if (CommonConst.INVALID_PID == pid) {
@@ -182,7 +181,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(server,
-                        START_TIME_CONST + costTime + "毫秒");
+                        String.format("%s started cost %f second.", server, costTime));
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
             }
         } catch (Exception e) {
@@ -259,12 +258,13 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             long startTime = System.currentTimeMillis();
             TaskUtils.killServer(server);
             //耗时
-            long costTime = System.currentTimeMillis() - startTime;
+            double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
             if (AgentManager.getInstance().isOnline(server)) {
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
             } else {
-                WebSocketManager.getInstance().sendConsole(server, "停止成功！耗时：" + costTime + "毫秒");
+                WebSocketManager.getInstance().sendConsole(server,
+                        String.format("%s stopped cost %f second.", server, costTime));
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
             }
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-## 1.0.8-SNAPSHOT (7.31, 2021)
+## 1.0.8-SNAPSHOT (8.5, 2021)
 
 * refactor command protocol (重构命令执行协议)
 * stdout default on, and change from session to broadcast (stdout命令默认开启，改为广播级，将广播到所有客户端)
@@ -6,6 +6,13 @@
 * 重构消息交互机制，优化性能
 #### FEATURES:
 * Agent api and command SPI （增加api主动通知启动完成接口，自定义命令SPI扩展，支持用户自己开发命令）
+* add help command
+* add ognl command
+* add sm command
+* add sysenv command
+* add tt command
+* add stack command
+* add pwd command
 
 ## 1.0.7 (7.25, 2021)
 

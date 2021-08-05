@@ -16,9 +16,11 @@ public class MessageQueueOperator {
 
     private final Session session;
     private static final BlockingQueue<MessageSender> QUEUE = new ArrayBlockingQueue<>(MAX_MSG_QUEUE_SIZE);
+    
     public MessageQueueOperator(Session session) {
         this.session = session;
     }
+    
     public void newMessage(String msg) {
         if (!QUEUE.offer(new MessageSender(session, msg))) {
             // 消息已满，丢弃

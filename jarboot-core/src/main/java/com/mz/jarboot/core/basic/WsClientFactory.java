@@ -24,12 +24,13 @@ public class WsClientFactory {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     @SuppressWarnings("all")
     private static volatile WsClientFactory instance = null;
+    private static final int MAX_CONNECT_WAIT_SECOND = 10;
     private okhttp3.WebSocket client = null;
     private String url = null;
     private final CommandDispatcher dispatcher;
     private okhttp3.WebSocketListener listener;
     private volatile boolean online = false;
-    private CountDownLatch latch = new CountDownLatch(1);
+    private CountDownLatch latch = null;
 
     private WsClientFactory() {
         //1.命令派发器
@@ -61,7 +62,9 @@ public class WsClientFactory {
             public void onOpen(WebSocket webSocket, Response response) {
                 logger.debug("client connected>>>");
                 online = true;
-                latch.countDown();
+                if (null != latch) {
+                    latch.countDown();
+                }
             }
 
             @Override
@@ -107,6 +110,7 @@ public class WsClientFactory {
     }
 
     public synchronized void createSingletonClient() {
+        latch = new CountDownLatch(1);
         try {
             client = HttpUtils.HTTP_CLIENT
                     .newWebSocket(new Request
@@ -121,7 +125,7 @@ public class WsClientFactory {
         try {
             long b = System.currentTimeMillis();
             logger.debug("wait connected:{}", b);
-            boolean r = latch.await(5, TimeUnit.SECONDS);
+            boolean r = latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
             if (r) {
                 logger.debug("wait time:{}", System.currentTimeMillis() - b);
             } else {
@@ -130,8 +134,7 @@ public class WsClientFactory {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            //重置供下次使用
-            latch = new CountDownLatch(1);
+            latch = null;
         }
     }
 

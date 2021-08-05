@@ -47,18 +47,8 @@ public class BytesCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return null != session && session.isRunning();
-    }
-
-    @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public void cancel() {
-        //do nothing
     }
 
     @Override

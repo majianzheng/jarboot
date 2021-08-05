@@ -90,16 +90,6 @@ public class SearchClassCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        // do nothing
-    }
-
-    @Override
     public void run() {
         RowAffect affect = new RowAffect();
         Instrumentation inst = EnvironmentContext.getInstrumentation();

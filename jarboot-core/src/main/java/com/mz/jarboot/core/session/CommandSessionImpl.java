@@ -59,7 +59,7 @@ public class CommandSessionImpl implements CommandCoreSession {
         resp.setResponseType(ResponseType.CONSOLE);
         resp.setBody(text);
         resp.setSessionId(this.sessionId);
-        distributor.write(resp);
+        ResultStreamDistributor.write(resp);
     }
 
     @Override
@@ -119,6 +119,6 @@ public class CommandSessionImpl implements CommandCoreSession {
         resp.setResponseType(ResponseType.COMMAND_END);
         resp.setBody(message);
         resp.setSessionId(this.sessionId);
-        distributor.write(resp);
+        ResultStreamDistributor.write(resp);
     }
 }

@@ -15,7 +15,6 @@ import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -72,10 +71,8 @@ public class JarbootBootstrap {
         this.initClient();
         if (isPremain) {
             //上线成功开启输出流实时显示
-            setStarting();
+            StdOutStreamReactor.getInstance().setStarting();
         }
-
-        EnvironmentContext.setDistributor(new ResultStreamDistributor(CommandConst.SESSION_COMMON));
     }
 
     public void initClient() {
@@ -90,11 +87,6 @@ public class JarbootBootstrap {
 
     public boolean isOnline() {
         return WsClientFactory.getInstance().isOnline();
-    }
-
-    public void setStarting() {
-        //开启标准输出流重定向
-        StdOutStreamReactor.getInstance().setStarting();
     }
 
     public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args, boolean isPremain) {

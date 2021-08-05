@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class AgentManager {
     private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
-    private final ConcurrentHashMap<String, Semaphore> startingSemMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, CountDownLatch> startingSemMap = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
     private AgentManager(){}
@@ -46,9 +47,9 @@ public class AgentManager {
     public void online(String server, Session session) {
         //目标进程上线
         clientMap.put(server, new AgentClient(server, session));
-        Semaphore semaphore = startingSemMap.getOrDefault(server, null);
-        if (null != semaphore) {
-            semaphore.release();
+        CountDownLatch latch = startingSemMap.getOrDefault(server, null);
+        if (null != latch) {
+            latch.countDown();
         }
     }
 
@@ -61,8 +62,8 @@ public class AgentManager {
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
-                //发送了退出执行，唤醒killClient线程
-                client.notify(); //NOSONAR
+                //发送了退出执行，唤醒killClient或waitServerStarted线程
+                client.notify();
                 clientMap.remove(server);
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
@@ -128,7 +129,7 @@ public class AgentManager {
                 TaskUtils.attach(server, pid);
                 WebSocketManager.getInstance().commandEnd(server, "连接断开，重连中...", sessionId);
                 try {
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -149,13 +150,10 @@ public class AgentManager {
     public void sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
             WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
-            new CommandResponse();
             return;
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(false);
             WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             return;
         }
@@ -205,9 +203,8 @@ public class AgentManager {
         }
         synchronized (client) {
             if (ClientState.STARTING.equals(client.getState())) {
-                WebSocketManager.getInstance().sendConsole(server, server + " started！");
                 //发送启动成功，唤醒waitServerStarted线程
-                client.notify(); //NOSONAR
+                client.notify();
             }
             client.setState(ClientState.ONLINE);
         }
@@ -216,16 +213,18 @@ public class AgentManager {
     public void waitServerStarted(String server, int millis) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            Semaphore semaphore = startingSemMap.computeIfAbsent(server, k -> new Semaphore(0));
+            CountDownLatch latch = startingSemMap.computeIfAbsent(server, k -> new CountDownLatch(1));
             try {
-                semaphore.tryAcquire(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS);
+                if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
+                    logger.error("Wait server connect timeout，{}", server);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+            } finally {
+                startingSemMap.remove(server);
             }
-            startingSemMap.remove(server);
             client = clientMap.getOrDefault(server, null);
             if (null == client) {
-                logger.error("Wait server connect timeout，{}", server);
                 WebSocketManager.getInstance().sendConsole(server, server + " connect timeout！");
                 return;
             }

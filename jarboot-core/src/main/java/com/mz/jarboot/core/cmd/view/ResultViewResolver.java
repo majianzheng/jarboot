@@ -23,22 +23,23 @@ public class ResultViewResolver {
      */
     private void initResultViews() {
         registerView(RowAffectView.class);
-
+        //registerView(HelpView.class);
         //基本命令
         registerView(JvmView.class);
         registerView(SysPropView.class);
         registerView(HeapDumpView.class);
+        registerView(SystemEnvView.class);
         //klass
         registerView(ClassLoaderView.class);
         registerView(DumpClassView.class);
         //registerView(GetStaticView.class);
         registerView(JadView.class);
 //        registerView(MemoryCompilerView.class);
-//        registerView(OgnlView.class);
+        registerView(OgnlView.class);
 //        registerView(RedefineView.class);
 //        registerView(RetransformView.class);
         registerView(SearchClassView.class);
-//        registerView(SearchMethodView.class)
+        registerView(SearchMethodView.class);
 
 
         //监控
@@ -50,8 +51,8 @@ public class ResultViewResolver {
         //registerView(ProfilerView.class);
         registerView(EnhancerView.class);
         //registerView(MonitorView.class);
-        //registerView(StackView.class);
-        //registerView(TimeTunnelView.class);
+        registerView(StackView.class);
+        registerView(TimeTunnelView.class);
         registerView(TraceView.class);
         registerView(WatchView.class);
     }

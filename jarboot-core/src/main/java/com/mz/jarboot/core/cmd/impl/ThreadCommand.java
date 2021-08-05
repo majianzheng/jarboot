@@ -101,16 +101,6 @@ public class ThreadCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
-    @Override
     public void run() {
         ExitStatus exitStatus;
         if (id > 0) {

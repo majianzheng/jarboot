@@ -35,17 +35,15 @@ public class DemoServerApplication implements Runnable {
     public static void main(String[] args) {
         //打印banner
         printBanner();
-
+        //启动界面
+        new DemoServerApplication();
+        log("Jarboot Demo Server started!");
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {
             JarbootFactory.createAgentService().setStarted();
         } catch (Exception e) {
             log(e.getMessage());
         }
-        log("Jarboot Demo Server started!");
-
-        //启动界面
-        new DemoServerApplication();
     }
     
     private void callFunc(int f) {

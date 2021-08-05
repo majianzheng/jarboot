@@ -18,24 +18,27 @@ import java.util.concurrent.ArrayBlockingQueue;
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class ResultStreamDistributor {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static final ArrayBlockingQueue<CmdProtocol> queue = new ArrayBlockingQueue<>(16384);
-    private static final ResponseStream http = new HttpResponseStreamImpl();
-    private static final ResponseStream socket = new SocketResponseStreamImpl();
-    private final ResultViewResolver resultViewResolver = EnvironmentContext.getResultViewResolver();
+    private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
     private final String session;
     public ResultStreamDistributor(String session) {
         this.session = session;
     }
 
     static {
-        EnvironmentContext.getScheduledExecutorService().execute(() -> consumer());
+        EnvironmentContext.getScheduledExecutorService().execute(ResultStreamDistributor::consumer);
+    }
+    
+    private static class ResultStreamDistributorHolder {
+        static ResponseStream http = new HttpResponseStreamImpl();
+        static ResponseStream socket = new SocketResponseStreamImpl();
+        static ResultViewResolver resultViewResolver = EnvironmentContext.getResultViewResolver();
     }
 
+    @SuppressWarnings("all")
     public void appendResult(ResultModel model) {
-        ResultView resultView = resultViewResolver.getResultView(model);
+        ResultView resultView = ResultStreamDistributorHolder.resultViewResolver.getResultView(model);
         if (resultView == null) {
             logger.info("获取视图解析失败！{}, {}", model.getName(), model.getClass());
             return;
@@ -46,19 +49,20 @@ public class ResultStreamDistributor {
         resp.setResponseType(resultView.isJson() ? ResponseType.JSON_RESULT : ResponseType.CONSOLE);
         resp.setBody(text);
         resp.setSessionId(this.session);
-        this.write(resp);
+        write(resp);
     }
 
-    public void write(CmdProtocol resp) {
-        if (!queue.offer(resp)) {
+    public static void write(CmdProtocol resp) {
+        if (!QUEUE.offer(resp)) {
             logger.trace("message queue may overflow, put failed.");
         }
     }
-
+    
+    @SuppressWarnings("all")
     private static void consumer() {
         for (; ; ) {
             try {
-                CmdProtocol resp = queue.take();
+                CmdProtocol resp = QUEUE.take();
                 sendToServer(resp);
             } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
@@ -70,9 +74,9 @@ public class ResultStreamDistributor {
         //根据数据包的大小选择合适的通讯方式
         String raw = resp.toRaw();
         if (raw.length() < CoreConstant.SOCKET_MAX_SEND) {
-            socket.write(raw);
+            ResultStreamDistributorHolder.socket.write(raw);
         } else {
-            http.write(raw);
+            ResultStreamDistributorHolder.http.write(raw);
         }
     }
 }

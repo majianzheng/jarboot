@@ -19,7 +19,8 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 public class CommandArgsParser {
-    private static final char QUOTATION = '"';
+    private static final char QUOTATION1 = '\'';
+    private static final char QUOTATION2 = '"';
     private static final char SPACE = ' ';
 
     private List<String> arguments = new ArrayList<>();
@@ -123,20 +124,22 @@ public class CommandArgsParser {
         final int invalidPos = -1;
         // 将传入的整个参数拆分，遇到空格拆分，将引号包裹的视为一个
         int preQuotation  = invalidPos;
+        char preQuot = '"';
         int preChar = SPACE;
         // 使用快慢指针算法
         int slow =0, fast = 0;
         for (; fast < args.length(); ++fast) {
             char c = args.charAt(fast);
-            if (QUOTATION == c) {
+            if (QUOTATION1 == c || QUOTATION2 == c) {
                 if (invalidPos == preQuotation) {
                     if (SPACE == preChar) {
                         //引号开始位置
                         preQuotation = fast;
+                        preQuot = c;
                     }
                 } else {
                     //判定前一个字符是否是转义符
-                    if ('\\' != preChar) {
+                    if ('\\' != preChar && preQuot == c) {
                         //引号结束位置，获取引号内的字符串
                         String str = args.substring(preQuotation + 1, fast);
                         //todo 转义符替换

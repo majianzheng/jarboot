@@ -44,16 +44,6 @@ public class HeapDumpCommand extends AbstractCommand {
         this.live = live;
     }
 
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        //do nothing
-    }
-
     private void cleanOldDump(File dir) {
         //文件夹中最多存放5个文件，超了则删除最老的
         File[] files = dir.listFiles();

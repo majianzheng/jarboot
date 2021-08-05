@@ -88,6 +88,7 @@ public class JarbootAgent {
         try {
             Class.forName("java.jarboot.SpyAPI");
             if (SpyAPI.isInited()) {
+                //非正常流程，第二次或第n次attach
                 ps.println("Jarboot Agent is already started, skip attach and check client.");
                 //检查是否在线
                 clientCheckAndInit();
@@ -95,7 +96,7 @@ public class JarbootAgent {
                 return;
             }
         } catch (Exception e) {
-            e.printStackTrace(ps);
+            //ignore 正常流程，当前第一次attach
         }
 
         ps.println("jarboot Agent start...");
@@ -126,9 +127,13 @@ public class JarbootAgent {
             e.printStackTrace(ps);
         }
     }
-    private static void bind(ClassLoader classLoader, Instrumentation inst, String args, boolean isPremain) throws Exception {
+    
+    private static void bind(ClassLoader classLoader, Instrumentation inst, String args, boolean isPremain)
+            throws Exception {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
-        bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class, boolean.class).invoke(null, inst, args, isPremain);
+        bootClass
+                .getMethod(GET_INSTANCE, Instrumentation.class, String.class, boolean.class)
+                .invoke(null, inst, args, isPremain);
     }
 
     private static File getCurrentDir() {

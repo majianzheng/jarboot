@@ -106,8 +106,8 @@ public abstract class EnhancerCommand extends AbstractCommand {
             if (listener == null) {
                 logger.error("advice listener is null");
                 String msg = "advice listener is null, check arthas log";
-                process.appendResult(new EnhancerModel(effect, false, msg));
-                process.end(false, msg);
+                session.appendResult(new EnhancerModel(effect, false, msg));
+                session.end(false, msg);
                 return;
             }
             boolean skipJDKTrace = false;

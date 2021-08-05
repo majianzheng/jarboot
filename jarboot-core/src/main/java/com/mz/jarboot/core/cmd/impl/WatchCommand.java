@@ -188,14 +188,4 @@ public class WatchCommand extends EnhancerCommand {
     protected AdviceListener getAdviceListener(CommandCoreSession process) {
         return new WatchAdviceListener(this, process, GlobalOptions.verbose || this.verbose);
     }
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
 }

@@ -61,7 +61,7 @@ public class WebSocketManager extends Thread {
         return instance;
     }
 
-    public void addNewConnect(Session session) {
+    public void newConnect(Session session) {
         sessionMap.put(session.getId(), new MessageQueueOperator(session));
     }
 

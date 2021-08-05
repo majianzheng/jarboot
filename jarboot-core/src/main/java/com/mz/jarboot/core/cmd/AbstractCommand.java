@@ -19,7 +19,9 @@ public abstract class AbstractCommand {
      * 命令是否执行中
      * @return 是否执行中
      */
-    public abstract boolean isRunning();
+    public boolean isRunning() {
+        return null != session && session.isRunning();
+    }
 
     public final void setName(String name) {
         this.name = name;
@@ -44,7 +46,9 @@ public abstract class AbstractCommand {
     /**
      * 取消执行
      */
-    public abstract void cancel();
+    public void cancel() {
+        session.cancel();
+    }
 
     /**
      * 命令执行逻辑

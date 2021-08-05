@@ -23,6 +23,6 @@ watch com.mz.jarboot.demo.DemoServerApplication fib
 trace com.mz.jarboot.demo.DemoServerApplication fib
 watch com.mz.jarboot.demo.DemoServerApplication pow
 trace com.mz.jarboot.demo.DemoServerApplication pow
-SPI extend command （jdk SPI 扩展命令）: demo arg1
+SPI extend command （jdk SPI）: demo arg1
 More advanced application examples :
 https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example

@@ -46,4 +46,10 @@ public interface AgentService {
      * @return 服务名
      */
     String getServerName();
+
+    /**
+     * 获取Jarboot的类加载器
+     * @return Jarboot的类加载器
+     */
+    ClassLoader getJarbootClassLoader();
 }

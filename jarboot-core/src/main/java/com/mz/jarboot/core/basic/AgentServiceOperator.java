@@ -8,6 +8,7 @@ import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class AgentServiceOperator {
     }
 
     public static void restartSelf() {
-        action(CommandConst.ACTION_RESTART, null);
+        action(CommandConst.ACTION_RESTART, null, CommandConst.SESSION_COMMON);
     }
 
     public static void noticeInfo(String message, String sessionId) {
@@ -96,10 +97,6 @@ public class AgentServiceOperator {
         });
     }
 
-    private static void action(String name, String param) {
-        action(name, param, CommandConst.SESSION_COMMON);
-    }
-
     private static void action(String name, String param, String sessionId) {
         if (StringUtils.isEmpty(sessionId)) {
             sessionId = CommandConst.SESSION_COMMON;
@@ -123,7 +120,7 @@ public class AgentServiceOperator {
         String bodyData = JsonUtils.toJsonString(body);
         response.setBody(bodyData);
         response.setSessionId(sessionId);
-        EnvironmentContext.distribute(response);
+        ResultStreamDistributor.write(response);
     }
 
     private AgentServiceOperator() {}

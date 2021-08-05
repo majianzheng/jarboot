@@ -11,8 +11,8 @@ import javax.websocket.Session;
  */
 public class MessageSender {
     private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
-    private Session session;
-    private String message;
+    private final Session session;
+    private final String message;
     public MessageSender(Session session, String message) {
         this.session = session;
         this.message = message;

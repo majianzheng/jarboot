@@ -57,12 +57,6 @@ public class DashboardCommand extends AbstractCommand {
         this.interval = interval;
     }
 
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
     @Override
     public void cancel() {
         stop();

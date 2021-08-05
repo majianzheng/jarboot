@@ -101,16 +101,6 @@ public class ClassLoaderCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
-    @Override
     public void run() {
         // ctrl-C support
         ClassLoader targetClassLoader = null;

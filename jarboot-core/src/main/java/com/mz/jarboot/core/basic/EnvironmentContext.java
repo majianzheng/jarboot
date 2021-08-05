@@ -8,7 +8,6 @@ import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
-import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,6 @@ public class EnvironmentContext {
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
     private static ResultViewResolver resultViewResolver;
-    private static ResultStreamDistributor distributor = null;
     private EnvironmentContext() {}
 
     public static void init(String server, String host, Instrumentation inst) {
@@ -120,28 +118,30 @@ public class EnvironmentContext {
      * @param command 命令
      */
     public static void runCommand(AbstractCommand command) {
-        CommandCoreSession session = command.getSession();
-        if (session.isRunning()) {
-            AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
-            if (null == cmd) {
-                session.end();
-            } else {
-                String msg = String.format("当前正在执行%s命令，请等待执行完成，或取消、终止当前命令",
-                        command.getName());
-                logger.warn(msg);
-                return;
+        scheduledExecutorService.execute(() -> {
+            CommandCoreSession session = command.getSession();
+            if (session.isRunning()) {
+                AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
+                if (null == cmd) {
+                    session.end();
+                } else {
+                    String msg = String.format("当前正在执行%s命令，请等待执行完成，或取消、终止当前命令",
+                            command.getName());
+                    logger.warn(msg);
+                    return;
+                }
             }
-        }
 
-        //开始执行命令，更新正在执行的命令
-        session.setRunning();
-        runningCommandMap.put(session.getSessionId(), command);
-        try {
-            command.run();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            session.end(false, e.getMessage());
-        }
+            //开始执行命令，更新正在执行的命令
+            session.setRunning();
+            runningCommandMap.put(session.getSessionId(), command);
+            try {
+                command.run();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                session.end(false, e.getMessage());
+            }
+        });
     }
 
     /**
@@ -159,16 +159,6 @@ public class EnvironmentContext {
             session.cancel();
             session.end();
             sessionMap.remove(sessionId);
-        }
-    }
-
-    public static void setDistributor(ResultStreamDistributor distributor) {
-        EnvironmentContext.distributor = distributor;
-    }
-
-    public static void distribute(CmdProtocol resp) {
-        if (null != distributor) {
-            distributor.write(resp);
         }
     }
 }

@@ -27,7 +27,7 @@ public class WebSocketMainServer {
      * */
     @OnOpen
     public void onOpen(Session session) {
-        WebSocketManager.getInstance().addNewConnect(session);
+        WebSocketManager.getInstance().newConnect(session);
     }
 
     /**

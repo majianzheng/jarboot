@@ -28,16 +28,6 @@ import java.util.List;
         "  trace javax.servlet.Filter * --exclude-class-pattern com.demo.TestFilter\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "trace")
 public class TraceCommand extends EnhancerCommand {
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
     private String classPattern;
     private String methodPattern;
     private String conditionExpress;

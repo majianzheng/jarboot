@@ -87,6 +87,11 @@ public class AgentServiceImpl implements AgentService {
         return SERVER_NAME;
     }
 
+    @Override
+    public ClassLoader getJarbootClassLoader() {
+        return JarbootAgent.getJarbootClassLoader();
+    }
+
     public static void springContextInit(Object context) {
         try {
             OPERATOR_CLASS.getMethod(SPRING_INIT, Object.class).invoke(null, context);
