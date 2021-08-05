@@ -41,7 +41,7 @@ public class CommandBuilderTest {
         assertEquals("demo.Test", trace.getClassPattern());
         assertEquals("run", trace.getMethodPattern());
         assertEquals(5, trace.getNumberOfLimit());
-        assertEquals("'params.length>=0'", trace.getConditionExpress());
+        assertEquals("params.length>=0", trace.getConditionExpress());
 
         line = CommandConst.USER_COMMAND + "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3";
         request = new CommandRequest();
@@ -54,7 +54,7 @@ public class CommandBuilderTest {
         assertEquals("demo.Test", trace.getClassPattern());
         assertEquals("run", trace.getMethodPattern());
         assertEquals(3, trace.getNumberOfLimit());
-        assertEquals("'params.length>=0'", trace.getConditionExpress());
+        assertEquals("params.length>=0", trace.getConditionExpress());
         List<String> patterns = trace.getPathPatterns();
         assertEquals(3, patterns.size());
 

@@ -181,7 +181,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(server,
-                        String.format("%s started cost %f second.", server, costTime));
+                        String.format("%s started cost %.3f second.", server, costTime));
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
             }
         } catch (Exception e) {
@@ -264,7 +264,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(server,
-                        String.format("%s stopped cost %f second.", server, costTime));
+                        String.format("%s stopped cost %.3f second.", server, costTime));
                 WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
             }
         } catch (Exception e) {
