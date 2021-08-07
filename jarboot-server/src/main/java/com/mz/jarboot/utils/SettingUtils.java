@@ -1,10 +1,7 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.common.OSUtils;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.common.MzException;
 import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
@@ -38,7 +35,6 @@ public class SettingUtils {
     static {
         JARBOOT_CONF = System.getProperty(CommonConst.JARBOOT_HOME) +
                 File.separator + "conf" + File.separator + "jarboot.properties";
-
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
@@ -78,7 +74,7 @@ public class SettingUtils {
         if (StringUtils.isNotEmpty(servicesPath)) {
             File dir = new File(servicesPath);
             if (!dir.isDirectory() || !dir.exists()) {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", servicesPath));
             }
         }
 
@@ -107,7 +103,7 @@ public class SettingUtils {
             GLOBAL_SETTING.setServicesPath(servicesPath);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
     }
 
@@ -130,11 +126,13 @@ public class SettingUtils {
 
     public static String getAgentArgs(String server) {
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
-        String host = String.format("127.0.0.1:%s", port);
-        HashMap<String, String> json = new HashMap<>(4);
-        json.put("host", host);
-        json.put("server", server);
-        byte[] bytes = Base64.getEncoder().encode(Objects.requireNonNull(JsonUtils.toJSONString(json)).getBytes());
+        StringBuilder sb = new StringBuilder();
+        sb
+                .append("127.0.0.1:")
+                .append(port)
+                .append(CommandConst.PROTOCOL_SPLIT)
+                .append(server);
+        byte[] bytes = Base64.getEncoder().encode(sb.toString().getBytes());
         return new String(bytes);
     }
 
@@ -216,7 +214,7 @@ public class SettingUtils {
                 lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
-                throw new MzException("Read file error.", e);
+                throw new JarbootException("Read file error.", e);
             }
             lines.stream()
                     //去除首尾空格

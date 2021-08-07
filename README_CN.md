@@ -10,7 +10,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
-[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/tmpomo)
+[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 
 <code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 
@@ -18,11 +18,13 @@
 
 English version goes [here](README.md).
 
-📚 文档：https://www.yuque.com/jarboot/usage/tmpomo
+📚 文档：https://www.yuque.com/jarboot/usage/quick-start
 
 😊 高级应用示例: <code>Jarboot</code> 🔥 和 <code>Spring Cloud Alibaba</code> 演示示例 ⤵️
 
 🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
+
+🐳 可扩展（SPI）: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
@@ -34,6 +36,7 @@ English version goes [here](README.md).
 - ⭐️   支持进程守护，开启后若服务异常退出则自动启动并通知
 - ☀️   支持文件更新监控，开启后若jar文件更新则自动重启<sup id="a3">[[2]](#f2)</sup>
 - 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
+- 💎   支持通过<code>SPI</code>自定义调试命令实现
 
 前端界面采用<code>React</code>技术，脚手架使用<code>UmiJs</code>，组件库使用UmiJs内置等<code>antd</code>。
 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
@@ -89,6 +92,99 @@ $ sh startup.sh
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
+## SPI扩展，支持JDK和Spring的SPI
+使用扩展可以自己实现命令，自己定义一个命令如何执行。并且，可以时应用启动完成快速的通知Jarboot服务，不需要等待没有控制台输出的时间。
+### SpringBoot应用
+1. 引入<code>spring-boot-starter-jarboot</code>依赖
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>spring-boot-starter-jarboot</artifactId>
+    <version>1.0.8</version>
+</dependency>
+```
+2. 实现<code>CommandProcessor</code>SPI接口
+
+同样的, 你也可以在方法上使用 <code>@Bean</code> 注解来定义命令处理器。<br>
+如果没有使用<code>@Name</code>注解的话，将会默认使用Bean的名称作为命令的名称。
+```java
+@Name("spring.command.name")
+@Summary("The command summary")
+@Description("The command usage detail")
+@Component
+public class DemoServiceImpl implements DemoService, CommandProcessor {
+  @Override
+  public String process(CommandSession session, String[] args) {
+    return "Spring boot Demo user-defined command using Spring SPI";
+  }
+  //implement other method...
+}
+```
+当引入了<code>spring-boot-starter-jarboot</code>依赖后，将会增加2个Spring调试命令，<code>spring.bean</code>和<code>spring.env</code>
+```shell
+#spring.bean 用法：
+$ spring.bean [-b <name>] [-d]
+#示例：
+# 获取所有的bean name
+$ spring.bean
+# 获取bean的信息
+$ spring.bean -b beanName
+# 获取bean的详细信息
+$ spring.bean -b beanName -d
+
+#sping.env 用法：
+$ spring.env <name>
+#示例：
+$ spring.env spring.application.name
+```
+
+### 非SpringBoot应用
+演示普通的非SpringBoot的应用如何使用。
+#### 如何创建一个用户自定义的命令
+1. 引入jarboot api的依赖
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>jarboot-api</artifactId>
+    <scope>provided</scope>
+    <version>1.0.8</version>
+</dependency>
+```
+2. 实现spi接口
+```java
+/**
+ * 使用Name注解来定义一个命令的名字
+ */
+@Name("demo")
+@Summary("The command summary")
+@Description("The command usage detail")
+public class DemoCommandProcessor implements CommandProcessor {
+    @Override
+    public String process(CommandSession session, String[] args) {
+        return "demo SPI command result.";
+    }
+}
+```
+3. 创建JDK的spi定义文件
+
+在目录<code>resources</code>/<code>META-INF</code>/<code>services</code>中创建名为
+  <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code>的文件，内容为类的全名。
+
+#### 启动成功主动通知Jarboot服务
+```java
+public class DemoApplication {
+    public static void main(String[] args) {
+        // do something
+        try {
+            //Notify completion
+            JarbootFactory.createAgentService().setStarted();
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
+    }
+}
+```
+
 ## 命令列表
 ### bytes
 查看类的字节码，用法：
@@ -110,10 +206,10 @@ L8
 ```
 
 ### stdout
-开启或关闭标准输出流的实时显示（初始为关闭），将会在Web的前端ui界面上实时显示，输出流包括代码中的<code>System.out.println</code>、<code>System.err.println</code>
+开启或关闭标准输出流的实时显示（默认开启），将会在Web的前端ui界面上实时显示，输出流包括代码中的<code>System.out.println</code>、<code>System.err.println</code>
 以及日志打印信息如<code>logger.info("hello")</code>。
 
-注意：当你的程序日志输出太频繁时，开启显示会比较消耗性能，建议仅在需要时打开，用完后关闭。
+注：该功能的实现机制经过精心设计，建议一直开启，对性能没有影响还可加速启动。
 ```bash
 #开启标准输出流实时显示
 jarboot$ stdout on

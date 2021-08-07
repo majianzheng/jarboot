@@ -26,7 +26,7 @@ public class CommandRequest implements CmdProtocol {
 
     @Override
     public String toRaw() {
-        return this.getCommandTypeChar() + sessionId + ' ' + this.commandLine;
+        return this.getCommandTypeChar() + sessionId + CommandConst.PROTOCOL_SPLIT + this.commandLine;
     }
 
     @Override
@@ -46,9 +46,9 @@ public class CommandRequest implements CmdProtocol {
                 break;
         }
         //从第二个字符到第一个空格，为sessionId
-        int p = raw.indexOf(' ');
+        int p = raw.indexOf(CommandConst.PROTOCOL_SPLIT);
         if (p < CommandConst.MIN_CMD_LEN - 1) {
-            throw new MzException("协议错误，缺少sessionId参数！");
+            throw new JarbootException("协议错误，缺少sessionId参数！");
         }
         sessionId = raw.substring(1, p);
         commandLine = raw.substring(p + 1);

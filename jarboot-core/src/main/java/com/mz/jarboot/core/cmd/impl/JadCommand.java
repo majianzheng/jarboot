@@ -1,9 +1,9 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.common.Pair;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.*;
@@ -94,16 +94,6 @@ public class JadCommand extends AbstractCommand {
     @Description("Output source code contins line number, default value true")
     public void setLineNumber(boolean lineNumber) {
         this.lineNumber = lineNumber;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-
     }
 
     @Override
@@ -198,7 +188,7 @@ public class JadCommand extends AbstractCommand {
 
         String usage = "jad -c <hashcode> " + classPattern;
         String msg = " Found more than one class for: " + classPattern + ", Please use " + usage;
-        session.appendResult(new MessageModel(msg));
+        session.console(msg);
 
         List<ClassVO> classVOs = ClassUtils.createClassVOList(matchedClasses);
         JadModel jadModel = new JadModel();

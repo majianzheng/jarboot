@@ -1,10 +1,10 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.advisor.AdviceListener;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.matcher.*;
 import java.util.ArrayList;
@@ -28,16 +28,6 @@ import java.util.List;
         "  trace javax.servlet.Filter * --exclude-class-pattern com.demo.TestFilter\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "trace")
 public class TraceCommand extends EnhancerCommand {
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
     private String classPattern;
     private String methodPattern;
     private String conditionExpress;
@@ -151,7 +141,7 @@ public class TraceCommand extends EnhancerCommand {
 
 
     @Override
-    protected AdviceListener getAdviceListener(CommandSession process) {
+    protected AdviceListener getAdviceListener(CommandCoreSession process) {
         if (pathPatterns == null || pathPatterns.isEmpty()) {
             return new TraceAdviceListener(this, process, GlobalOptions.verbose || this.verbose);
         } else {

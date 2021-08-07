@@ -14,7 +14,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +27,6 @@ import java.util.concurrent.*;
 @Service
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final String START_TIME_CONST = "启动耗时：";
-
-    @Value("${jarboot.start-wait-time:5000}")
-    private long startWaitTime;
 
     @Autowired
     private TaskRunCache taskRunCache;
@@ -168,27 +163,32 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             return;
         }
 
-        //设定启动中，并发送前端让其转圈圈
         this.taskRunCache.addStarting(server);
-        WebSocketManager.getInstance().publishStatus(server, TaskStatus.START);
+        try {
+            //设定启动中，并发送前端让其转圈圈
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.START);
+            //记录开始时间
+            long startTime = System.currentTimeMillis();
+            //开始启动进程
+            TaskUtils.startServer(server, setting);
+            //记录启动结束时间，减去判定时间修正
 
-        //记录开始时间
-        long startTime = System.currentTimeMillis();
-        //开始启动进程
-        TaskUtils.startServer(server, setting);
-        //记录启动结束时间，减去判定时间修正
-        long costTime = System.currentTimeMillis() - startTime - startWaitTime;
-        int pid = TaskUtils.getServerPid(server);
-        this.taskRunCache.removeStarting(server);
-        //服务是否启动成功
-        if (CommonConst.INVALID_PID == pid) {
-            //启动失败
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
-        } else {
-            TaskUtils.attach(server, pid);
-            WebSocketManager.getInstance().sendConsole(server,
-                    START_TIME_CONST + costTime + "毫秒");
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
+            double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
+            int pid = TaskUtils.getServerPid(server);
+            //服务是否启动成功
+            if (CommonConst.INVALID_PID == pid) {
+                //启动失败
+                WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
+            } else {
+                WebSocketManager.getInstance().sendConsole(server,
+                        String.format("%s started cost %.3f second.", server, costTime));
+                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
+        } finally {
+            this.taskRunCache.removeStarting(server);
         }
     }
 
@@ -250,24 +250,28 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeEnum.INFO);
             return;
         }
-        //发送停止中消息
         this.taskRunCache.addStopping(server);
-        WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP);
-
-        //记录开始时间
-        long startTime = System.currentTimeMillis();
-
-        TaskUtils.killServer(server);
-
-        //耗时
-        long costTime = System.currentTimeMillis() - startTime;
-        this.taskRunCache.removeStopping(server);
-        //停止成功
-        if (AgentManager.getInstance().isOnline(server)) {
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
-        } else {
-            WebSocketManager.getInstance().sendConsole(server, "停止成功！耗时：" + costTime + "毫秒");
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
+        try {
+            //发送停止中消息
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP);
+            //记录开始时间
+            long startTime = System.currentTimeMillis();
+            TaskUtils.killServer(server);
+            //耗时
+            double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
+            //停止成功
+            if (AgentManager.getInstance().isOnline(server)) {
+                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
+            } else {
+                WebSocketManager.getInstance().sendConsole(server,
+                        String.format("%s stopped cost %.3f second.", server, costTime));
+                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
+        } finally {
+            this.taskRunCache.removeStopping(server);
         }
     }
 

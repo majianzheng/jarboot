@@ -1,15 +1,7 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.common.ResponseSimple;
-import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
-import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
+import com.mz.jarboot.core.utils.HttpUtils;
 
 /**
  * 大数据量传输通过http协议，使用WebSocket会增加额外的拆包、组包实现增加业务复杂性
@@ -17,44 +9,13 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static final String API = "api/public/agent/response?server";
-    private static final String RESP_URL =String.format("http://%s/%s=%s",
-            EnvironmentContext.getHost(), API, EnvironmentContext.getServer());
-    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
-            .connectTimeout(30L, TimeUnit.SECONDS)
-            .readTimeout(30L, TimeUnit.SECONDS)
-            .writeTimeout(30L, TimeUnit.SECONDS)
-            .followRedirects(false)
-            .build();
+
+    private static class HttpResponseStreamImplHolder {
+        static String api = "/api/public/agent/response?server=" + EnvironmentContext.getServer();
+    }
+
     @Override
     public void write(String data) {
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), data);
-        Request.Builder requestBuilder = new Request
-                .Builder()
-                .url(RESP_URL)
-                .post(requestBody);
-        requestBuilder.addHeader("Cookie", "");
-        requestBuilder.addHeader("Accept", "application/json");
-        requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
-        Request request = requestBuilder.build();
-
-        Call call = HTTP_CLIENT.newCall(request);
-        try {
-            ResponseBody response = call.execute().body();
-            if (null != response) {
-                String body = response.string();
-                ResponseSimple resp = JsonUtils.readValue(body, ResponseSimple.class);
-                if (null == resp) {
-                    logger.error("返回结果解析json失败！{}", body);
-                    return;
-                }
-                if (resp.getResultCode() != ResultCodeConst.SUCCESS) {
-                    logger.error(resp.getResultMsg());
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
+        HttpUtils.postSimple(HttpResponseStreamImplHolder.api, data);
     }
 }

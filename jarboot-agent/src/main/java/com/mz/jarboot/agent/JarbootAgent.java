@@ -19,11 +19,13 @@ public class JarbootAgent {
     private static final String GET_INSTANCE = "getInstance";
 
     private static PrintStream ps = System.err;
+    private static final File CURRENT_DIR;
+    private static volatile ClassLoader jarbootClassLoader = null;
 
     static {
+        CURRENT_DIR = getCurrentDir();
         try {
-            File logDir = new File(System.getProperty("user.home") + File.separator +
-                    "jarboot" + File.separator + "logs"  + File.separator);
+            File logDir = new File(CURRENT_DIR, "logs");
             if (!logDir.exists()) {
                 logDir.mkdir();
             }
@@ -37,14 +39,24 @@ public class JarbootAgent {
         }
     }
 
-    private static volatile ClassLoader jarbootClassLoader = null; // NOSONAR
-
     public static void premain(String args, Instrumentation inst) {
-        main(args, inst);
+        main(args, inst, true);
     }
 
     public static void agentmain(String args, Instrumentation inst) {
-        main(args, inst);
+        main(args, inst, false);
+    }
+
+    /**
+     * 获取{@link JarbootClassLoader}，供扩展的反射使用，通过此方法获取的加载器可获取jarboot-core的内部类
+     * @return ClassLoader
+     */
+    public static ClassLoader getJarbootClassLoader() {
+        return jarbootClassLoader;
+    }
+
+    public static PrintStream getPs() {
+        return ps;
     }
 
     private static ClassLoader getClassLoader(File jarFile) throws MalformedURLException {
@@ -72,10 +84,11 @@ public class JarbootAgent {
         }
     }
 
-    private static synchronized void main(String args, final Instrumentation inst) {
+    private static synchronized void main(String args, final Instrumentation inst, boolean isPremain) {
         try {
             Class.forName("java.jarboot.SpyAPI");
             if (SpyAPI.isInited()) {
+                //非正常流程，第二次或第n次attach
                 ps.println("Jarboot Agent is already started, skip attach and check client.");
                 //检查是否在线
                 clientCheckAndInit();
@@ -83,7 +96,7 @@ public class JarbootAgent {
                 return;
             }
         } catch (Exception e) {
-            // ignore
+            //ignore 正常流程，当前第一次attach
         }
 
         ps.println("jarboot Agent start...");
@@ -91,10 +104,9 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
         try {
-            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            coreJarFile = new File(agentJarFile.getParentFile(), JARBOOT_CORE_JAR);
+            coreJarFile = new File(CURRENT_DIR, JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
-                ps.println("Can not find jarboot-core jar file." + agentJarFile);
+                ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }
         } catch (Throwable e) {// NOSONAR
             ps.println("Can not find jar file from" + codeSource.getLocation());
@@ -108,15 +120,30 @@ public class JarbootAgent {
             //构造自定义的类加载器
             ClassLoader classLoader = getClassLoader(coreJarFile);
 
-            bind(classLoader, inst, args);
+            bind(classLoader, inst, args, isPremain);
             //初始化成功
             ps.println("jarboot Agent ready.");
         } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
-    private static void bind(ClassLoader classLoader, Instrumentation inst, String args) throws Exception {
+    
+    private static void bind(ClassLoader classLoader, Instrumentation inst, String args, boolean isPremain)
+            throws Exception {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
-        bootClass.getMethod(GET_INSTANCE, Instrumentation.class, String.class).invoke(null, inst, args);
+        bootClass
+                .getMethod(GET_INSTANCE, Instrumentation.class, String.class, boolean.class)
+                .invoke(null, inst, args, isPremain);
+    }
+
+    private static File getCurrentDir() {
+        CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
+        try {
+            File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+            return agentJarFile.getParentFile();
+        } catch (Exception e) {
+            e.printStackTrace(ps);
+        }
+        return null;
     }
 }

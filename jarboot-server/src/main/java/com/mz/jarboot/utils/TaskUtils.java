@@ -4,12 +4,10 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
-import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -25,25 +23,18 @@ import java.util.*;
  * @author majianzheng
  */
 public class TaskUtils {
-    private static volatile long startWaitTime = -1;
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
     private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
             CommonConst.SERVICES + CommonConst.DOT;
-    private static final int MIN_START_WAIT = 1500;
-    private static final int MAX_START_WAIT = 30000;
+    private static int maxStartTime = 12000;
 
-    private static long getStartWaitTime() {
-        if (-1 == startWaitTime) {
-            synchronized (TaskUtils.class) {
-                String val = ApplicationContextUtils.getEnv("jarboot.start-wait-time", "5000");
-                startWaitTime = NumberUtils.toLong(val, 5000);
-                if (startWaitTime < MIN_START_WAIT || startWaitTime > MAX_START_WAIT) {
-                    startWaitTime = 15000;
-                }
-            }
-        }
-        return startWaitTime;
+    /**
+     * 服务最大启动时间
+     */
+    public static void setMaxStartTime(int v) {
+        maxStartTime = v;
     }
+
     /**
      * 检查服务进程是否存活
      * @param server 服务名
@@ -69,7 +60,7 @@ public class TaskUtils {
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
             String name = getAfterArgs(server);
-            killJavaByName(name, text -> WebSocketManager.getInstance().sendConsole(server, text));
+            killJavaByName(name);
         }
 
     }
@@ -111,13 +102,15 @@ public class TaskUtils {
                 cmdBuilder.append(CommonConst.EXE_EXT);
             }
         }
-        cmdBuilder.append(StringUtils.SPACE);
-        // jvm 配置
-        if (StringUtils.isBlank(jvm)) {
-            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
-        } else {
-            cmdBuilder.append(jvm).append(CommonConst.ARG_JAR).append(jar);
-        }
+        cmdBuilder
+                .append(StringUtils.SPACE)
+                // jvm 配置
+                .append(jvm)
+                // Java agent
+                .append(SettingUtils.getAgentStartOption(server))
+                .append(StringUtils.SPACE)
+                // 待执行的jar
+                .append(CommonConst.ARG_JAR).append(jar);
 
         // 传入参数
         String startArg = setting.getArgs();
@@ -142,8 +135,9 @@ public class TaskUtils {
         //打印命令行
         WebSocketManager.getInstance().sendConsole(server, cmd);
         // 启动
-        startTask(cmd, setting.getEnv(), workHome,
-                text -> WebSocketManager.getInstance().sendConsole(server, text));
+        startTask(cmd, setting.getEnv(), workHome);
+        //等待启动完成，最长2分钟
+        AgentManager.getInstance().waitServerStarted(server, maxStartTime);
     }
 
     /**
@@ -181,14 +175,6 @@ public class TaskUtils {
                 VMUtils.getInstance().detachVM(vm);
             }
         }
-    }
-
-    public interface PushMsgCallback {
-        /**
-         * 反馈的消息
-         * @param text 消息
-         */
-        void sendMessage(String text);
     }
 
     private static String getAbsPath(String s, String serverPath) {
@@ -269,9 +255,8 @@ public class TaskUtils {
         pidList.add(Integer.parseInt(builder.toString()));
     }
 
-    public static void startTask(String command, String environment, String workHome, PushMsgCallback callback) {
+    public static void startTask(String command, String environment, String workHome) {
         String[] en;
-        final long waitTime = getStartWaitTime();
         if (StringUtils.isBlank(environment)) {
             en = null;
         } else {
@@ -282,57 +267,22 @@ public class TaskUtils {
             dir = new File(workHome);
         }
 
-        String msg = "Finished.";
-        try (InputStream inputStream = Runtime.getRuntime().exec(command, en, dir).getInputStream()) {
-            if (null == callback) {
-                return;
-            }
-            intervalReadStream(callback, waitTime, inputStream);
-        } catch (InterruptedException e) {
-            msg = e.getMessage();
-            logger.error(msg, e);
-            Thread.currentThread().interrupt();
+        try {
+            Runtime.getRuntime().exec(command, en, dir);
         } catch (Exception e) {
-            msg = e.getMessage();
-            logger.error(msg, e);
-        }
-        if (null != callback) {
-            callback.sendMessage(msg);
+            logger.error(e.getMessage(), e);
+            WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeEnum.ERROR);
         }
     }
 
-    @SuppressWarnings("all")
-    private static void intervalReadStream(PushMsgCallback callback, long waitTime, InputStream inputStream)
-            throws IOException, InterruptedException {
-        long timestamp = System.currentTimeMillis();
-        byte[] buffer = new byte[4096];
-        int len;
-        for (;;) {
-            if (0 == inputStream.available()) {
-                long interval = Math.abs(System.currentTimeMillis() - timestamp);
-                //超过一定时间进程没有输出信息时，认为启动完成
-                if (interval > waitTime) {
-                    break;
-                }
-                Thread.sleep(100);
-            } else {
-                //可用
-                len = inputStream.read(buffer);
-                String s = new String(buffer, 0, len);
-                callback.sendMessage(s);
-                timestamp = System.currentTimeMillis();
-            }
-        }
-    }
-
-    public static void killByName(String name, PushMsgCallback callback) {
+    public static void killByName(String name) {
         List<Integer> pid = getPidByName(name);
         if (CollectionUtils.isEmpty(pid)) {
             return;
         }
-        killByPid(pid, callback);
+        killByPid(pid);
     }
-    static void killJavaByName(String name, PushMsgCallback callback) {
+    static void killJavaByName(String name) {
         if (StringUtils.isEmpty(name)) {
             return;
         }
@@ -340,8 +290,7 @@ public class TaskUtils {
         if (CollectionUtils.isEmpty(pidList)) {
             return;
         }
-
-        pidList.forEach( pid -> killByPid(pid, callback));
+        killByPid(pidList);
     }
 
     public static boolean checkAliveByJar(String jar) {
@@ -376,24 +325,23 @@ public class TaskUtils {
         return pidCmdMap;
     }
 
-    private static void killByPid(List<Integer> pid, PushMsgCallback callback) {
+    private static void killByPid(List<Integer> pid) {
         if (CollectionUtils.isEmpty(pid)) {
             return;
         }
-        pid.forEach(p -> killByPid(p, callback));
+        pid.forEach(TaskUtils::killByPid);
     }
 
-    private static void killByPid(int pid, PushMsgCallback callback) {
-        killByPid(String.valueOf(pid), callback);
+    private static void killByPid(int pid) {
+        killByPid(String.valueOf(pid));
     }
 
-    private static void killByPid(String pid, PushMsgCallback callback) {
+    private static void killByPid(String pid) {
         String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
-            callback.sendMessage("强制终止进程，pid:" + pid);
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();

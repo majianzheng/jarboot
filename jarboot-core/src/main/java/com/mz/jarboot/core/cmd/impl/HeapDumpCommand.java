@@ -1,7 +1,10 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.HeapDumpModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.sun.management.HotSpotDiagnosticMXBean; //NOSONAR
@@ -39,16 +42,6 @@ public class HeapDumpCommand extends AbstractCommand {
     @Description("Dump only live objects; if not specified, all objects in the heap are dumped.")
     public void setLive(boolean live) {
         this.live = live;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        //do nothing
     }
 
     private void cleanOldDump(File dir) {

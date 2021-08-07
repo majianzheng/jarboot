@@ -12,7 +12,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot-agent/ws/{server}")
+@ServerEndpoint("/public/jarboot/agent/ws/{server}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
@@ -24,7 +24,7 @@ public class WebSocketAgentServer {
     public void onOpen(Session session, @PathParam("server") String server) {
         logger.debug("{} Agent连接成功!", server);
         AgentManager.getInstance().online(server, session);
-        WebSocketManager.getInstance().sendConsole(server, server + "上线成功！");
+        WebSocketManager.getInstance().sendConsole(server, server + " connected!");
     }
 
     /**

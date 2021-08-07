@@ -1,6 +1,6 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
 import com.mz.jarboot.entity.Privilege;
@@ -27,7 +27,7 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     @Transactional(rollbackFor = Throwable.class)
     public void savePrivilege(String role, String resource, Boolean permission) {
         if (AuthConst.ADMIN_ROLE.equals(role)) {
-            throw new MzException("Admin role can't modify!");
+            throw new JarbootException("Admin role can't modify!");
         }
         Privilege privilege = privilegeDao.findFirstByRoleAndResource(role, resource);
         if (null == privilege) {

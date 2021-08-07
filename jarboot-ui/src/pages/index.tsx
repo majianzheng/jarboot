@@ -48,7 +48,7 @@ const TabPanes: any = memo((props: any) => {
     </Tabs>
 });
 
-const token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+const token = CommonUtils.getToken();
 //路由入口类
 const index = memo(() => {
     if (StringUtil.isEmpty(token)) {
@@ -87,7 +87,7 @@ const index = memo(() => {
     };
     const rightExtra = <div className={styles.rightExtra}>
         <JarbootVersion/>
-        <Button type={"text"} href={"https://www.yuque.com/jarboot/usage/tmpomo"}
+        <Button type={"text"} href={JarBootConst.DOCS_URL}
                 style={{top: '-5px'}} target={"_blank"}>
             {intl.formatMessage({id: 'MENU_DOCS'})}
         </Button>

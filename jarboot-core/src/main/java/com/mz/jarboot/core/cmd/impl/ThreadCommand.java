@@ -1,13 +1,12 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.BlockingLockInfo;
 import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.ExitStatus;
 import com.mz.jarboot.core.utils.ArrayUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
@@ -101,18 +100,7 @@ public class ThreadCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
-    @Override
     public void run() {
-        ExitStatus exitStatus;
         if (id > 0) {
             processThread();
         } else if (topNBusy != null) {

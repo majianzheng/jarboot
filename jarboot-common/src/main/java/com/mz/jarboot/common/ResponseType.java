@@ -9,22 +9,32 @@ public enum ResponseType {
      * 服务上线
      */
     ONLINE,
+
     /**
-     * 命令应答
+     * 程序中的标准输出流
      */
-    ACK,
+    STD_OUT,
+
     /**
-     * 控制太消息打印
+     * 控制台消息打印
      */
     CONSOLE,
+
     /**
      * Json类型的执行结果
      */
     JSON_RESULT,
+
     /**
      * 执行执行完成
      */
     COMMAND_END,
+
+    /**
+     * 动作，请求jarboot server执行
+     */
+    ACTION,
+
     /**
      * 非法的未知类型
      */

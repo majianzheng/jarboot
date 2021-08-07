@@ -1,10 +1,10 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.advisor.AdviceListener;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 
@@ -185,17 +185,7 @@ public class WatchCommand extends EnhancerCommand {
     }
 
     @Override
-    protected AdviceListener getAdviceListener(CommandSession process) {
+    protected AdviceListener getAdviceListener(CommandCoreSession process) {
         return new WatchAdviceListener(this, process, GlobalOptions.verbose || this.verbose);
-    }
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
     }
 }

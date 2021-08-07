@@ -6,7 +6,7 @@ import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.constant.SettingPropConst;
 import com.mz.jarboot.dto.GlobalSettingDTO;
 import com.mz.jarboot.dto.ServerSettingDTO;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.service.SettingService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
@@ -108,7 +108,7 @@ public class SettingServiceImpl implements SettingService {
             }
             prop.setProperty(SettingPropConst.ENV, env);
         } else {
-            throw new MzException(ResultCodeConst.VALIDATE_FAILED,
+            throw new JarbootException(ResultCodeConst.VALIDATE_FAILED,
                     String.format("环境变量配置错误(%s)！", setting.getEnv()));
         }
     }
@@ -135,7 +135,7 @@ public class SettingServiceImpl implements SettingService {
             try {
                 content = FileUtils.readFileToString(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                throw new MzException("Read file error.", e);
+                throw new JarbootException("Read file error.", e);
             }
         }
         return content;
@@ -151,16 +151,16 @@ public class SettingServiceImpl implements SettingService {
         if (!f.exists()) {
             try {
                 if (!f.createNewFile()) {
-                    throw new MzException("Create file failed.");
+                    throw new JarbootException("Create file failed.");
                 }
             } catch (IOException e) {
-                throw new MzException("Create file error.", e);
+                throw new JarbootException("Create file error.", e);
             }
         }
         try {
             FileUtils.writeStringToFile(f, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new MzException("Write file error.", e);
+            throw new JarbootException("Write file error.", e);
         }
     }
 
@@ -173,7 +173,7 @@ public class SettingServiceImpl implements SettingService {
                     logger.debug("Config file({}) create failed.", file.getPath());
                 }
             } catch (IOException e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
         if (StringUtils.isNotEmpty(jar)) {
@@ -181,7 +181,7 @@ public class SettingServiceImpl implements SettingService {
             File jarFile = path.isAbsolute() ? path.toFile() :
                     FileUtils.getFile(SettingUtils.getServerPath(server), jar);
             if (!jarFile.exists() || !jarFile.isFile()) {
-                throw new MzException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
             }
         }
         return file;
@@ -192,7 +192,7 @@ public class SettingServiceImpl implements SettingService {
         if (dir.exists() && dir.isDirectory()) {
             return;
         }
-        throw new MzException(ResultCodeConst.NOT_EXIST, path + "不存在");
+        throw new JarbootException(ResultCodeConst.NOT_EXIST, path + "不存在");
     }
 
     private void checkFileExist(String file) {
@@ -200,6 +200,6 @@ public class SettingServiceImpl implements SettingService {
         if (dir.exists() && dir.isFile()) {
             return;
         }
-        throw new MzException(ResultCodeConst.NOT_EXIST, file + "不存在");
+        throw new JarbootException(ResultCodeConst.NOT_EXIST, file + "不存在");
     }
 }

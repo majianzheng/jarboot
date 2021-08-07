@@ -1,15 +1,22 @@
 package com.mz.jarboot.core.cmd.impl;
 
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Argument;
-import com.mz.jarboot.core.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Argument;
+import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
+import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.StringUtils;
 
 /**
- * show the jvm detail
+ * show the system property
  * @author majianzheng
  */
+@Name("sysprop")
+@Summary("Display, and change the system properties.")
+@Description(CoreConstant.EXAMPLE + "  sysprop\n"+ "  sysprop file.encoding\n" + "  sysprop production.mode true\n" +
+        CoreConstant.WIKI + CoreConstant.WIKI_HOME + "sysprop")
 public class SysPropCommand extends AbstractCommand {
     private SysPropModel model = new SysPropModel();
     private String propertyName;
@@ -27,20 +34,9 @@ public class SysPropCommand extends AbstractCommand {
         this.propertyValue = propertyValue;
     }
 
-
-    @Override
-    public boolean isRunning() {
-        return null != session && session.isRunning();
-    }
-
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public void cancel() {
-        //do nothing
     }
 
     @Override

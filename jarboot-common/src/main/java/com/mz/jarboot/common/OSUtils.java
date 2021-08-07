@@ -134,7 +134,7 @@ public class OSUtils {
                 Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
                 openURL.invoke(null, url);
             } catch (Exception e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
             return;
         }
@@ -150,17 +150,17 @@ public class OSUtils {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
         } catch (IOException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
         }
         if (browser == null) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, "未找到任何可用的浏览器");
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "未找到任何可用的浏览器");
         } else {// 这个值在上面已经成功的得到了一个进程。
             try {
                 Runtime.getRuntime().exec(new String[]{browser, url});
             } catch (IOException e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
     }
@@ -176,7 +176,7 @@ public class OSUtils {
         try {
             Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
-            throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
         }
     }
 
@@ -188,7 +188,7 @@ public class OSUtils {
                 uri = new URI(url);
                 desktop.browse(uri);
             } catch (Exception e) {
-                throw new MzException(ResultCodeConst.INTERNAL_ERROR, e);
+                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
     }

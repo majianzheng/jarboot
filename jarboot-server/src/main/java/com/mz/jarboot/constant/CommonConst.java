@@ -17,11 +17,6 @@ public class CommonConst {
     public static final String EXE_EXT = ".exe";
     public static final String JAR_EXT = ".jar";
     public static final String ARG_JAR = "-jar ";
-
-    /**
-     * 协议分隔符
-     */
-    public static final char PROTOCOL_SPLIT = '\r';
     
     public static final String DOT = ".";
     public static final char EQUAL_CHAR = '=';
@@ -44,9 +39,14 @@ public class CommonConst {
     public static final int INVALID_PID = -1;
 
     /**
-     * 等待目标进程退出的最大时间，毫秒
+     * 等待目标进程优雅退出的最大时间，毫秒
      */
-    public static final int MAX_WAIT_EXIT_TIME = 5000;
+    public static final int MAX_WAIT_EXIT_TIME = 30000;
+
+    /**
+     * Agent最大连接超时时间（秒）
+     */
+    public static final int MAX_AGENT_CONNECT_TIME = 15;
 
     public static final String AGENT_JAR_NAME = "jarboot-agent.jar";
 

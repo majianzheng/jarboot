@@ -1,9 +1,9 @@
 package com.mz.jarboot.core.cmd.impl;
 
 
+import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.*;
 import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
 import com.mz.jarboot.core.cmd.model.RowAffectModel;
@@ -87,16 +87,6 @@ public class SearchClassCommand extends AbstractCommand {
     @Description("Maximum number of matching classes with details (100 by default)")
     public void setNumberOfLimit(int numberOfLimit) {
         this.numberOfLimit = numberOfLimit;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        // do nothing
     }
 
     @Override

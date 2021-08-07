@@ -5,6 +5,9 @@ import {requestFinishCallback} from "@/common/JarBootConst";
 
 const baseUrl = "/api/jarboot/upload";
 
+/**
+ * 文件上传
+ */
 export default class UploadFileService {
     /**
      * Begin upload files

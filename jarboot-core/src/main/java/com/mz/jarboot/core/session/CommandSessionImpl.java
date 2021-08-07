@@ -9,9 +9,6 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,9 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Implement the process handler.
  * @author majianzheng
  */
-public class CommandSessionImpl implements CommandSession {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private final ResultStreamDistributor distributor;
+public class CommandSessionImpl implements CommandCoreSession {
     private boolean running = false;
     private final String sessionId;
     private final AtomicInteger times = new AtomicInteger();
@@ -31,7 +26,6 @@ public class CommandSessionImpl implements CommandSession {
     private volatile String jobId = CoreConstant.EMPTY_STRING;
     public CommandSessionImpl(String sessionId) {
         this.sessionId = sessionId;
-        this.distributor = new ResultStreamDistributor(this.sessionId);
     }
 
     @Override
@@ -57,30 +51,18 @@ public class CommandSessionImpl implements CommandSession {
     }
 
     @Override
-    public void ack(String message) {
-        logger.debug("ack>>{}", message);
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.ACK);
-        resp.setBody(message);
-        resp.setSessionId(this.sessionId);
-        logger.info("write>>");
-        distributor.write(resp);
-    }
-
-    @Override
     public void console(String text) {
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.CONSOLE);
         resp.setBody(text);
         resp.setSessionId(this.sessionId);
-        distributor.write(resp);
+        ResultStreamDistributor.write(resp);
     }
 
     @Override
     public void appendResult(ResultModel resultModel) {
-        distributor.appendResult(resultModel);
+        ResultStreamDistributor.appendResult(resultModel, this.sessionId);
     }
 
     @Override
@@ -120,7 +102,6 @@ public class CommandSessionImpl implements CommandSession {
 
     @Override
     public void end(boolean success, String message) {
-        logger.debug("end>>{}, {}", success, message);
         running = false;
         //jobId置为空，以便清理
         jobId = CoreConstant.EMPTY_STRING;
@@ -136,6 +117,6 @@ public class CommandSessionImpl implements CommandSession {
         resp.setResponseType(ResponseType.COMMAND_END);
         resp.setBody(message);
         resp.setSessionId(this.sessionId);
-        distributor.write(resp);
+        ResultStreamDistributor.write(resp);
     }
 }

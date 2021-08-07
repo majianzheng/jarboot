@@ -1,10 +1,10 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Argument;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Name;
-import com.mz.jarboot.core.cmd.annotation.Summary;
+import com.mz.jarboot.api.cmd.annotation.Argument;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -32,30 +32,20 @@ public class StdOutCommand extends AbstractCommand {
     }
 
     @Override
-    public boolean isRunning() {
-        return null != session && session.isRunning();
-    }
-
-    @Override
     public String getName() {
         return name;
     }
 
     @Override
-    public void cancel() {
-        //do nothing
-    }
-
-    @Override
     public void run() {
         if (StringUtils.isEmpty(this.action)) {
-            boolean flag = StdOutStreamReactor.getInstance().isRegistered(this.getSession().getSessionId());
+            boolean flag = StdOutStreamReactor.getInstance().isEnabled();
             String msg = String.format("stdout 状态：%s", flag ? "on" : "off");
             session.end(true, msg);
         } else if (ACTION_ON.equalsIgnoreCase(this.action)) {
-            StdOutStreamReactor.getInstance().register(this.getSession());
+            StdOutStreamReactor.getInstance().enabled(true);
         } else if (ACTION_OFF.equalsIgnoreCase(this.action)) {
-            StdOutStreamReactor.getInstance().unRegister(this.getSession().getSessionId());
+            StdOutStreamReactor.getInstance().enabled(false);
         } else {
             session.end(false, "stdout on 或 stdout off");
         }

@@ -1,7 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
@@ -12,6 +12,7 @@ import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
@@ -94,7 +95,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
-            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, null));
+            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome));
         }
     }
 
@@ -115,7 +116,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     public void attachServer(String server) {
         int pid = TaskUtils.getServerPid(server);
         if (CommonConst.INVALID_PID == pid) {
-            throw new MzException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
+            throw new JarbootException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
         }
         TaskUtils.attach(server, pid);
     }
@@ -312,12 +313,13 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
             //尝试重新初始化代理客户端
             TaskUtils.attach(server, pid);
+            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
             return;
         }
 
         if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
             String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
-            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome, null));
+            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome));
         }
 
         //获取是否开启了守护

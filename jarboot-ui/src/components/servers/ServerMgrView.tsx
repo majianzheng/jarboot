@@ -32,7 +32,7 @@ const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
 
 const notSelectInfo = () => {
-    if ('zh-CN' === getLocale()) {
+    if (JarBootConst.ZH_CN === getLocale()) {
         CommonNotice.info('请点击选择一个服务执行');
     } else {
         CommonNotice.info('Please select one to operate');
@@ -90,6 +90,7 @@ export default class ServerMgrView extends React.PureComponent {
                 this._activeConsole(server);
                 Logger.log(`启动中${server}...`);
                 pubsub.publish(server, 'startLoading');
+                this._clearDisplay(server);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
@@ -290,10 +291,12 @@ export default class ServerMgrView extends React.PureComponent {
             notSelectInfo();
             return;
         }
+
         this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
+
         ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback);
     };
+
     private restartServer = () => {
         if (this.state.selectedRowKeys.length < 1) {
             notSelectInfo();
@@ -303,6 +306,7 @@ export default class ServerMgrView extends React.PureComponent {
         this.state.selectedRowKeys.forEach(this._clearDisplay);
         ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback);
     };
+
     private _getTbBtnProps = () => {
         return [
             {
@@ -401,10 +405,12 @@ export default class ServerMgrView extends React.PureComponent {
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
                                      oneClickStop={this.oneClickStop}/>
-                    <CommonTable toolbarGap={5} option={tableOption} toolbar={this._getTbBtnProps()} height={this.height}/>
+                    <CommonTable toolbarGap={5} option={tableOption}
+                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
-                    {(this.state.loading && 0 == this.allServerOut.length) && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
+                    {(this.state.loading && 0 == this.allServerOut.length) &&
+                    <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
                     {this.allServerOut.map((value: any) => (
                         <SuperPanel key={value} server={value} pubsub={pubsub} visible={this.state.current === value}/>
                     ))}

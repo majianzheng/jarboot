@@ -53,7 +53,7 @@ export default {
     JAR_UPDATE_WATCH_LABEL: '文件路径监控',
 
     //全局配置
-    SERVERS_PATH: '服务根目录',
+    SERVERS_PATH: '服务管理目录',
     DEFAULT_VM_OPT: '默认的VM参数',
     AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
 
@@ -86,6 +86,7 @@ export default {
     NAME_NOT_EMPTY: `名字不能为空`,
     UPLOAD_FILE_EMPTY: `成功上传的文件为空`,
     SELECT_ONE_OP: '请选择要操作的项',
+    COMMAND_RUNNING: '命令执行中，请先停止命令再执行',
 
     //帮助
     BASIC: '基础',

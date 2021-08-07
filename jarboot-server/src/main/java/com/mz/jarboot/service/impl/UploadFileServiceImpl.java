@@ -1,6 +1,6 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.constant.CommonConst;
 import com.mz.jarboot.dto.ServerSettingDTO;
 import com.mz.jarboot.event.NoticeEnum;
@@ -101,14 +101,14 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public synchronized void beginUploadServerFile(String server) {
         if (uploadHeartbeat.containsKey(server)) {
-            throw new MzException("已经有其他客户端在上传！");
+            throw new JarbootException("已经有其他客户端在上传！");
         }
         File dir = getTempCacheDir(server);
         if (dir.exists()) {
             cleanTempCacheDir(dir);
         }
         if (!dir.mkdirs()) {
-            throw new MzException("创建临时缓存目录失败！" + server);
+            throw new JarbootException("创建临时缓存目录失败！" + server);
         }
         uploadHeartbeat.put(server, System.currentTimeMillis());
         startMonitor();
@@ -120,14 +120,14 @@ public class UploadFileServiceImpl implements UploadFileService {
         uploadHeartbeat.computeIfPresent(server, (k, v) -> System.currentTimeMillis());
         if (!uploadHeartbeat.containsKey(server)) {
             // 通知前端停止继续探测
-            throw new MzException("心跳已经失效！");
+            throw new JarbootException("心跳已经失效！");
         }
     }
 
     @Override
     public synchronized void submitUploadFileInCache(String server) {
         if (StringUtils.isEmpty(server)) {
-            throw new MzException("服务名为空！");
+            throw new JarbootException("服务名为空！");
         }
         File dir = getTempCacheDir(server);
         String destPath = SettingUtils.getServerPath(server);
@@ -152,7 +152,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             }
         } catch (Exception e) {
             //还原目录?万一体积巨大怎么处理
-            throw new MzException(e.getMessage(), e);
+            throw new JarbootException(e.getMessage(), e);
         } finally {
             //清理缓存文件
             clearUploadFileInCache(server);
@@ -167,7 +167,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             try {
                 FileUtils.forceDelete(find[0]);
             } catch (IOException e) {
-                throw new MzException("删除失败！" + file, e);
+                throw new JarbootException("删除失败！" + file, e);
             }
         }
     }
@@ -193,13 +193,13 @@ public class UploadFileServiceImpl implements UploadFileService {
         if (dir.exists() && dir.isDirectory()) {
             String name = file.getOriginalFilename();
             if (StringUtils.isEmpty(name)) {
-                throw new MzException("文件原始名字不可为空！");
+                throw new JarbootException("文件原始名字不可为空！");
             }
             File f = FileUtils.getFile(dir, name);
             try {
                 file.transferTo(f);
             } catch (IOException e) {
-                throw new MzException("上传失败！" + file.getOriginalFilename(), e);
+                throw new JarbootException("上传失败！" + file.getOriginalFilename(), e);
             }
         }
     }

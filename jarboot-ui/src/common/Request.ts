@@ -1,10 +1,12 @@
 import {extend, RequestOptionsInit} from 'umi-request';
 // @ts-ignore
 import Qs from 'qs';
-import {JarBootConst} from "@/common/JarBootConst";
 import CommonUtils from "@/common/CommonUtils";
 import Logger from "@/common/Logger";
 
+/**
+ * Http请求封装
+ */
 export default class Request {
     private static request = extend({
         timeout: 30000,
@@ -80,10 +82,10 @@ export default class Request {
     public static init() {
         // 请求拦截器，塞入token以便鉴权
         this.request.interceptors.request.use( (url: string, options: RequestOptionsInit) => {
-            let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+            let token = CommonUtils.getToken();
 
             const headers: any = options?.headers;
-            if (headers && token) {
+            if (headers && token.length) {
                 headers['Authorization'] = token;
             }
             return {url, options};

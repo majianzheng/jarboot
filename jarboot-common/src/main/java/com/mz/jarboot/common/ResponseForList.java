@@ -22,8 +22,8 @@ public class ResponseForList<T> extends ResponseSimple{
 	
 	public ResponseForList(Throwable e) {
 		this.resultMsg = e.getMessage();
-		if(e instanceof MzException) {
-			MzException eTmp = (MzException)e;
+		if(e instanceof JarbootException) {
+			JarbootException eTmp = (JarbootException)e;
 			this.resultCode = eTmp.getErrorCode();
 		}else {
 			this.resultCode = ResultCodeConst.INTERNAL_ERROR;

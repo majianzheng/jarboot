@@ -4,6 +4,8 @@ import {MSG_EVENT} from "@/common/EventConst";
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
+import CommonUtils from "@/common/CommonUtils";
+import { getLocale } from 'umi';
 
 interface MsgData {
     event: number,
@@ -51,8 +53,9 @@ class WsManager {
             }
         }
         let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/public/jarboot-service/ws` :
-            `ws://${window.location.host}/public/jarboot-service/ws`;
+            `ws://${window.location.hostname}:9899/public/jarboot/service/ws?token=` :
+            `ws://${window.location.host}/public/jarboot/service/ws?token=`;
+        url += CommonUtils.getToken();
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager._onMessage;
         WsManager.websocket.onopen = WsManager._onOpen;
@@ -61,13 +64,16 @@ class WsManager {
     }
 
     private static _noticeInfo = (data: MsgData) => {
-        CommonNotice.info("提示", data.body);
+        const title = JarBootConst.ZH_CN === getLocale() ? "提示" : "Info";
+        CommonNotice.info(title, data.body);
     };
     private static _noticeWarn = (data: MsgData) => {
-        CommonNotice.warn("警告", data.body);
+        const title = JarBootConst.ZH_CN === getLocale() ? "警告" : "Warn";
+        CommonNotice.warn(title, data.body);
     };
     private static _noticeError = (data: MsgData) => {
-        CommonNotice.error("错误", data.body);
+        const title = JarBootConst.ZH_CN === getLocale() ? "错误" : "Error";
+        CommonNotice.error(title, data.body);
     };
 
     private static _onMessage = (e: any) => {

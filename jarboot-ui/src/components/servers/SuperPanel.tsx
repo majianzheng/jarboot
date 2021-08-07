@@ -2,7 +2,6 @@ import styles from "./index.less";
 import Console from "@/components/console";
 import {memo, useEffect, useRef, useState} from "react";
 import {Button, Card, Input} from "antd";
-import {formatMsg} from "@/common/IntlFormat";
 import {CloseCircleOutlined, EnterOutlined, LoadingOutlined} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
 import CommonNotice from "@/common/CommonNotice";
@@ -10,6 +9,7 @@ import {WsManager} from "@/common/WsManager";
 import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
+import {useIntl} from "umi";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -31,7 +31,7 @@ enum PUB_TOPIC {
 const outHeight = `${window.innerHeight - 150}px`;
 
 const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
-
+    const intl = useIntl();
     const [view, setView] = useState('');
     const [executing, setExecuting] = useState(false);
     const [command, setCommand] = useState("");
@@ -83,7 +83,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const closeView = () => {
         if (executing) {
-            CommonNotice.info('命令执行中，请先停止命令再关闭');
+            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}));
             return;
         }
         if ('' !== view) {
@@ -98,7 +98,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             return;
         }
         if (StringUtil.isEmpty(props.server)) {
-            CommonNotice.info('请选择一个服务后操作');
+            CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
 
@@ -118,7 +118,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const onCancelCommand = () => {
         if (StringUtil.isEmpty(props.server)) {
-            CommonNotice.info('请选择一个服务后操作');
+            CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
         const msg = {server: props.server, body: '', func: 2};
@@ -143,8 +143,8 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
                    <EnterOutlined onClick={onExecCommand}/>}/>
     </>);
 
-    const clearBtn = <Button type={"link"} onClick={clearDisplay}>{formatMsg('CLEAR')}</Button>;
-    const closeBtn = <Button type={"link"} onClick={closeView}>{formatMsg('CLOSE')}</Button>;
+    const clearBtn = <Button type={"link"} onClick={clearDisplay}>{intl.formatMessage({id: 'CLEAR'})}</Button>;
+    const closeBtn = <Button type={"link"} onClick={closeView}>{intl.formatMessage({id: 'CLOSE'})}</Button>;
     const extra = '' === view ? clearBtn : closeBtn;
     return <>
         <Card title={outTitle} size={"small"}

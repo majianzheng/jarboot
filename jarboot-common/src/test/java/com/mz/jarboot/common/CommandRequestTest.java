@@ -11,21 +11,21 @@ public class CommandRequestTest {
     public void testFromRaw() {
         //用户命令协议测试
         CommandRequest request = new CommandRequest();
-        request.fromRaw("u123 trace com.demo.Test add");
+        request.fromRaw(CommandConst.USER_COMMAND +  "123\rtrace com.demo.Test add");
         assertEquals(CommandType.USER_PUBLIC, request.getCommandType());
         assertEquals("123", request.getSessionId());
         assertEquals("trace com.demo.Test add", request.getCommandLine());
 
         //内部命令协议测试
         request = new CommandRequest();
-        request.fromRaw("i1234 cancel watch");
+        request.fromRaw(CommandConst.INTERNAL_COMMAND + "1234\rcancel watch");
         assertEquals(CommandType.INTERNAL, request.getCommandType());
         assertEquals("1234", request.getSessionId());
         assertEquals("cancel watch", request.getCommandLine());
 
         //异常命令协议测试
         request = new CommandRequest();
-        request.fromRaw("x1234 cancel watch");
+        request.fromRaw("x1234\rcancel watch");
         assertEquals(CommandType.UNKNOWN, request.getCommandType());
         assertEquals("1234", request.getSessionId());
         assertEquals("cancel watch", request.getCommandLine());
@@ -35,7 +35,7 @@ public class CommandRequestTest {
             request.fromRaw("x1234watch");
             org.junit.Assert.fail("应该抛出协议错误移除");
         } catch (Throwable e) {
-            assertTrue(e instanceof MzException);
+            assertTrue(e instanceof JarbootException);
         }
     }
 
@@ -46,20 +46,20 @@ public class CommandRequestTest {
         request.setCommandType(CommandType.USER_PUBLIC);
         request.setSessionId("123");
         request.setCommandLine("trace com.demo.Test add");
-        assertEquals("u123 trace com.demo.Test add", request.toRaw());
+        assertEquals(CommandConst.USER_COMMAND +  "123\rtrace com.demo.Test add", request.toRaw());
 
         //内部命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.INTERNAL);
         request.setSessionId("1234");
         request.setCommandLine("cancel watch");
-        assertEquals("i1234 cancel watch", request.toRaw());
+        assertEquals(CommandConst.INTERNAL_COMMAND + "1234\rcancel watch", request.toRaw());
 
         //异常命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.UNKNOWN);
         request.setSessionId("1234");
         request.setCommandLine("cancel watch");
-        assertEquals("-1234 cancel watch", request.toRaw());
+        assertEquals("-1234\rcancel watch", request.toRaw());
     }
 }

@@ -103,7 +103,24 @@ public class ParamRequestCondition {
         private boolean matchValue(HttpServletRequest request) {
             return ObjectUtils.nullSafeEquals(this.value, request.getParameter(this.name));
         }
-        
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ParamExpression that = (ParamExpression) o;
+            return isNegated == that.isNegated && Objects.equals(name, that.name) && Objects.equals(value, that.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, value, isNegated);
+        }
+
         @Override
         public String toString() {
             return "ParamExpression{" + "name='" + name + '\'' + ", value='" + value + '\'' + ", isNegated=" + isNegated

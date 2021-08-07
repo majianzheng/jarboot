@@ -13,8 +13,9 @@ public class CancelCommand extends AbstractInternalCommand {
         AbstractCommand current = EnvironmentContext.getCurrentCommand(session.getSessionId());
         if (null != current && current.isRunning()) {
             current.cancel();
+            session.end(true, current.getName() + " canceled.");
+        } else {
+            session.end();
         }
-        session.ack("取消执行");
-        session.end();
     }
 }

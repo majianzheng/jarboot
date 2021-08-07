@@ -7,6 +7,10 @@ import java.net.URLClassLoader;
  * @author majianzheng
  */
 public class JarbootClassLoader extends URLClassLoader {
+    private static final String SUN_PREFIX = "sun.";
+    private static final String JAVA_PREFIX = "java.";
+    private static final String API_PREFIX = "com.mz.jarboot.api.";
+
     public JarbootClassLoader(URL[] urls) {
         super(urls, ClassLoader.getSystemClassLoader().getParent());
     }
@@ -17,7 +21,13 @@ public class JarbootClassLoader extends URLClassLoader {
         if (null != loadedClass) {
             return loadedClass;
         }
-        if (null != name && (name.startsWith("sun.") || name.startsWith("java."))) {
+        if (null == name) {
+            return null;
+        }
+        if (name.startsWith(API_PREFIX)) {
+            return ClassLoader.getSystemClassLoader().loadClass(name);
+        }
+        if (name.startsWith(SUN_PREFIX) || name.startsWith(JAVA_PREFIX)) {
             return super.loadClass(name, resolve);
         }
         try {

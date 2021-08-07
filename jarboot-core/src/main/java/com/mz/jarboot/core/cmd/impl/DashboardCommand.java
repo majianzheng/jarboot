@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.NetworkUtils;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Name;
-import com.mz.jarboot.core.cmd.annotation.Option;
-import com.mz.jarboot.core.cmd.annotation.Summary;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandSession;
+import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.ThreadUtil;
 import com.mz.jarboot.core.utils.metrics.SumRateCounter;
 import org.slf4j.Logger;
@@ -55,12 +55,6 @@ public class DashboardCommand extends AbstractCommand {
     @Description("The interval (in ms) between two executions, default is 5000 ms.")
     public void setInterval(long interval) {
         this.interval = interval;
-    }
-
-
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
     }
 
     @Override
@@ -243,10 +237,10 @@ public class DashboardCommand extends AbstractCommand {
     }
 
     private class DashboardTimerTask extends TimerTask {
-        private CommandSession process;
+        private CommandCoreSession process;
         private ThreadSampler threadSampler;
 
-        public DashboardTimerTask(CommandSession process) {
+        public DashboardTimerTask(CommandCoreSession process) {
             this.process = process;
             this.threadSampler = new ThreadSampler();
         }

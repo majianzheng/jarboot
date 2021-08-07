@@ -10,7 +10,7 @@ public class JadView implements ResultView<com.mz.jarboot.core.cmd.model.JadMode
 
     @Override
     public String render(com.mz.jarboot.core.cmd.model.JadModel result) {
-        return JsonUtils.toJSONString(result);
+        return JsonUtils.toJsonString(result);
     }
 
     @Override

@@ -34,7 +34,7 @@ const SettingDoc: any = memo(() => {
                         {intl.formatMessage({id: 'SETTING_P6'})}
                     </li>
                     <li>
-                        <Text keyboard>{intl.formatMessage({id: 'JVM_OPT_LABEL'})}</Text>
+                        <Text keyboard>{intl.formatMessage({id: 'VM_OPT_LABEL'})}</Text>
                         {intl.formatMessage({id: 'SETTING_P7'})}
                     </li>
                     <li>

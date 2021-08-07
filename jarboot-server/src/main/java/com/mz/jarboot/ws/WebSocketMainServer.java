@@ -15,18 +15,22 @@ import javax.websocket.server.ServerEndpoint;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot-service/ws")
+@ServerEndpoint("/public/jarboot/service/ws")
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
     private static final int CMD_FUNC = 1;
     private static final int CANCEL_FUNC = 2;
+    private static final String SERVER_KEY = "server";
+    private static final String FUNC_KEY = "func";
+    private static final String BODY_KEY = "body";
 
     /**
-     * 连接建立成功调用的方法*/
+     * 连接建立成功调用的方法
+     * */
     @OnOpen
     public void onOpen(Session session) {
-        WebSocketManager.getInstance().addNewConnect(session);
+        WebSocketManager.getInstance().newConnect(session);
     }
 
     /**
@@ -57,9 +61,9 @@ public class WebSocketMainServer {
             logger.error("解析json失败！{}", message);
             return;
         }
-        String server = json.get("server").asText(StringUtils.EMPTY);
-        int func = json.get("func").asInt(-1);
-        String body = json.get("body").asText(StringUtils.EMPTY);
+        String server = json.get(SERVER_KEY).asText(StringUtils.EMPTY);
+        int func = json.get(FUNC_KEY).asInt(-1);
+        String body = json.get(BODY_KEY).asText(StringUtils.EMPTY);
         switch (func) {
             case CMD_FUNC:
                 AgentManager.getInstance().sendCommand(server, body, session.getId());

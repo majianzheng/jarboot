@@ -1,6 +1,6 @@
 package com.mz.jarboot.idgenerator;
 
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -71,7 +71,7 @@ public class SnowFlakeIdGenerator implements IdentifierGenerator {
     public synchronized long nextId() {
         long timestamp = timeGen();
         if (timestamp < lastTimestamp) {
-            throw new MzException(String.format(
+            throw new JarbootException(String.format(
                     "Clock moved backwards.  Refusing to generate id for %d milliseconds", lastTimestamp - timestamp));
         }
         if (timestamp == lastTimestamp) {

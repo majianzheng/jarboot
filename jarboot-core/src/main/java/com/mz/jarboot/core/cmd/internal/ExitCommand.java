@@ -10,8 +10,7 @@ public class ExitCommand extends AbstractInternalCommand {
     @Override
     public void run() {
         session.console(EnvironmentContext.getServer() + "即将退出");
-        session.ack("即将执行退出");
-        session.end();
+        session.end(true, "Application exiting...");
         System.exit(0);
     }
 }

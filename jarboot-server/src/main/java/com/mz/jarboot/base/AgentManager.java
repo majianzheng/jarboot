@@ -1,19 +1,23 @@
 package com.mz.jarboot.base;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.event.AgentOfflineEvent;
-import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,8 +26,10 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("all")
 public class AgentManager {
     private static volatile AgentManager instance = null;
-    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
     private AgentManager(){}
     public static AgentManager getInstance() {
         if (null == instance) {
@@ -39,6 +45,10 @@ public class AgentManager {
     public void online(String server, Session session) {
         //目标进程上线
         clientMap.put(server, new AgentClient(server, session));
+        CountDownLatch latch = startingLatchMap.getOrDefault(server, null);
+        if (null != latch) {
+            latch.countDown();
+        }
     }
 
     public void offline(String server) {
@@ -48,10 +58,10 @@ public class AgentManager {
         }
         WebSocketManager.getInstance().sendConsole(server, server + "下线！");
         synchronized (client) {
-            if (ClientState.EXITING.equals(client.getState())) {
-                logger.info("目标进程已退出，唤醒killServer方法的执行线程");
-                //发送了退出执行，唤醒killClient线程
-                client.notify(); //NOSONAR
+            //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
+            if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
+                //发送了退出执行，唤醒killClient或waitServerStarted线程
+                client.notify();
                 clientMap.remove(server);
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
@@ -86,7 +96,7 @@ public class AgentManager {
             sendInternalCommand(server, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(CommonConst.MAX_WAIT_EXIT_TIME);
+                client.wait(maxGracefulExitTime);
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
@@ -117,7 +127,7 @@ public class AgentManager {
                 TaskUtils.attach(server, pid);
                 WebSocketManager.getInstance().commandEnd(server, "连接断开，重连中...", sessionId);
                 try {
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -138,13 +148,10 @@ public class AgentManager {
     public void sendInternalCommand(String server, String command, String sessionId) {
         if (StringUtils.isEmpty(server) || StringUtils.isEmpty(command)) {
             WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
-            new CommandResponse();
             return;
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(false);
             WebSocketManager.getInstance().commandEnd(server, StringUtils.EMPTY, sessionId);
             return;
         }
@@ -155,10 +162,11 @@ public class AgentManager {
         ResponseType type = resp.getResponseType();
         String sessionId = resp.getSessionId();
         switch (type) {
-            case ACK:
-                AgentManager.getInstance().onAck(server, resp);
-                break;
             case CONSOLE:
+                WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                break;
+            case STD_OUT:
+                //启动中的控制台消息
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
@@ -171,18 +179,111 @@ public class AgentManager {
                 }
                 WebSocketManager.getInstance().commandEnd(server, msg, sessionId);
                 break;
+            case ACTION:
+                this.handleAction(resp.getBody(), sessionId, server);
+                break;
             default:
                 //do nothing
                 break;
         }
     }
 
-    public void onAck(String server, CommandResponse resp) {
-        WebSocketManager.getInstance().sendConsole(server, resp.getBody(), resp.getSessionId());
+    public void onServerStarted(final String server) {
+        AgentClient client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            return;
+        }
+        client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            logger.error("Server {} in offline already!", server);
+            WebSocketManager.getInstance().sendConsole(server, server + " is offline now！");
+            return;
+        }
+        synchronized (client) {
+            if (ClientState.STARTING.equals(client.getState())) {
+                //发送启动成功，唤醒waitServerStarted线程
+                client.notify();
+            }
+            client.setState(ClientState.ONLINE);
+        }
+    }
+
+    public void waitServerStarted(String server, int millis) {
+        AgentClient client = clientMap.getOrDefault(server, null);
+        if (null == client) {
+            CountDownLatch latch = startingLatchMap.computeIfAbsent(server, k -> new CountDownLatch(1));
+            try {
+                if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
+                    logger.error("Wait server connect timeout，{}", server);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                startingLatchMap.remove(server);
+            }
+            client = clientMap.getOrDefault(server, null);
+            if (null == client) {
+                WebSocketManager.getInstance().sendConsole(server, server + " connect timeout！");
+                return;
+            }
+        }
+
+        synchronized (client) {
+            if (!ClientState.STARTING.equals(client.getState())) {
+                logger.info("Current server({}) is not starting now, wait server started error. statue:{}",
+                        server, client.getState());
+                WebSocketManager.getInstance().sendConsole(server,
+                        server + " is not starting, wait started error. status:" + client.getState());
+                return;
+            }
+            try {
+                client.wait(millis);
+            } catch (InterruptedException e) {
+                //ignore
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     public void releaseAgentSession(String sessionId) {
         //向所有在线的agent客户端发送会话失效命令
         clientMap.forEach((k, v) -> sendInternalCommand(k, CommandConst.CANCEL_CMD, sessionId));
+    }
+
+    public void setMaxGracefulExitTime(int d) {
+        this.maxGracefulExitTime = d;
+    }
+
+    public int getMaxGracefulExitTime() {
+        return this.maxGracefulExitTime;
+    }
+
+    private void handleAction(String data, String sessionId, String server) {
+        JsonNode body = JsonUtils.readAsJsonNode(data);
+        if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_PROP_NAME_KEY)) {
+            return;
+        }
+        String action = body.get(CommandConst.ACTION_PROP_NAME_KEY).asText(StringUtils.EMPTY);
+        String param = body.get(CommandConst.ACTION_PROP_PARAM_KEY).asText(StringUtils.EMPTY);
+        if (StringUtils.isEmpty(sessionId)) {
+            sessionId = CommandConst.SESSION_COMMON;
+        }
+        switch (action) {
+            case CommandConst.ACTION_NOTICE_INFO:
+            case CommandConst.ACTION_NOTICE_WARN:
+            case CommandConst.ACTION_NOTICE_ERROR:
+                NoticeEnum level = EnumUtils.getEnum(NoticeEnum.class, action);
+                WebSocketManager.getInstance().notice(param, level);
+                break;
+            case CommandConst.ACTION_RESTART:
+                TaskEvent taskEvent = new TaskEvent();
+                taskEvent.setEventType(TaskEventEnum.RESTART);
+                ArrayList<String> services = new ArrayList<>();
+                services.add(server);
+                taskEvent.setServices(services);
+                break;
+            default:
+                break;
+        }
     }
 }

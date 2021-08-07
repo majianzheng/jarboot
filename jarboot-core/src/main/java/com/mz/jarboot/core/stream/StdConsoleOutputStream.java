@@ -2,6 +2,9 @@ package com.mz.jarboot.core.stream;
 
 import java.io.OutputStream;
 
+/**
+ * @author majianzheng
+ */
 @SuppressWarnings("all")
 public class StdConsoleOutputStream extends OutputStream {
     private static final int LINE_BREAK = 10;

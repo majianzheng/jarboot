@@ -10,7 +10,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
-[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/tmpomo)
+[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 
 <code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
 
@@ -18,11 +18,13 @@ In the test environment and daily built integrated environment, a series of jar 
 
 [中文说明/Chinese Documentation](README_CN.md)
 
-📚 Document: https://www.yuque.com/jarboot/usage/tmpomo
+📚 Document: https://www.yuque.com/jarboot/usage/quick-start
 
 😊 Advanced application examples: <code>Jarboot</code> 🔥 with <code>Spring Cloud Alibaba</code> Examples ⤵️ 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
+
+🐳 SPI Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
@@ -34,6 +36,7 @@ In the test environment and daily built integrated environment, a series of jar 
 - ⭐   Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
 - ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
+- 💎   Support user-define command by <code>SPI</code>.
 
 Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
 <code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
@@ -89,6 +92,101 @@ $ sh startup.sh
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
+## SPI Extension, support both JDK and Spring SPI
+Use SPI extension can implement your own command, define a command how to execute。and，also can notify stated event to Jarboot server
+, don't need to wait no console time.
+### SpringBoot Application
+1. Import <code>spring-boot-starter-jarboot</code> dependency
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>spring-boot-starter-jarboot</artifactId>
+    <version>1.0.8</version>
+</dependency>
+```
+2. 实现<code>CommandProcessor</code>SPI接口
+
+Also, you can use <code>@Bean</code> in the method.<br>
+It will use bean name as the command name if not annotated by <code>@Name</code>.
+```java
+@Name("spring.command.name")
+@Summary("The command summary")
+@Description("The command usage detail")
+@Component
+public class DemoServiceImpl implements DemoService, CommandProcessor {
+  @Override
+  public String process(CommandSession session, String[] args) {
+      return "Spring boot Demo user-defined command using Spring SPI";
+  }
+  //implement other method...
+}
+```
+It will add two new spring debug command <code>spring.bean</code> and <code>spring.env</code> after imported 
+<code>spring-boot-starter-jarboot</code> dependence.
+```shell
+#spring.bean usage:
+$ spring.bean [-b <name>] [-d]
+#Examples:
+# Get all bean names
+$ spring.bean
+# Get bean info
+$ spring.bean -b beanName
+# Get bean detail definition
+$ spring.bean -b beanName -d
+
+#sping.env usage:
+$ spring.env <name>
+#Examples:
+$ spring.env spring.application.name
+```
+
+### None SpringBoot Application
+Demonstrate how to use ordinary non springboot applications.
+#### How to create user-defined command
+1. Import jarboot api dependency
+```xml
+<dependency>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>jarboot-api</artifactId>
+    <scope>provided</scope>
+    <version>1.0.8</version>
+</dependency>
+```
+2. Implement spi interface
+```java
+/**
+ * Use Name to define the command name
+ */
+@Name("demo")
+@Summary("The command summary")
+@Description("The command usage detail")
+public class DemoCommandProcessor implements CommandProcessor {
+    @Override
+    public String process(CommandSession session, String[] args) {
+        return "demo SPI command result.";
+    }
+}
+```
+3. Create spi define file
+
+Then create a file in <code>resources</code>/<code>META-INF</code>/<code>services</code> named 
+ <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code> the content is class full name.
+
+#### Proactive notification of startup completion
+```java
+public class DemoApplication {
+    public static void main(String[] args) {
+        // do something
+        try {
+            //Notify completion
+            JarbootFactory.createAgentService().setStarted();
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
+    }
+}
+```
+
 ## Command list
 ### bytes
 View the class bytes，Usage：
@@ -111,10 +209,12 @@ L8
 ```
 
 ### stdout
-Turn on or off real-time display of standard output stream (initially off), it will be displayed on the front-end UI of the web in real time.
-The output stream includes <code>System.out.println</code>, <code>System.err.println</code> and log printing information such as <code>logger.info("hello")</code> in the code.
+Turn on or off real-time display of standard output stream (initially on), it will be displayed on the front-end UI of 
+the web in real time. The output stream includes <code>System.out.println</code>, <code>System.err.println</code> and 
+log printing information such as <code>logger.info("hello")</code> in the code.
 
-Note: when your program log output is too frequent, it will consume performance to turn on the display. It is recommended to turn it on only when necessary and turn it off after use.
+Note: The implementation mechanism of this function has been carefully designed. It is recommended to be turned on all 
+ the time, which has no impact on performance and can be accelerated when starting.
 ```bash
 #Turn on real time display of standard output stream
 jarboot$ stdout on

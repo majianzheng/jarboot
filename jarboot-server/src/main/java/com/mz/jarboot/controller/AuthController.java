@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -78,44 +77,46 @@ public class AuthController {
     @PostMapping(value="/login")
     @ResponseBody
     public ResponseForObject<JarbootUser> login(HttpServletRequest request) {
-        String token = resolveToken(request);
+        String token = getToken(request);
         ResponseForObject<JarbootUser> result = new ResponseForObject<>();
 
         String username = request.getParameter(PARAM_USERNAME);
-        if (StringUtils.isEmpty(username)) {
+        if (StringUtils.isEmpty(username) && StringUtils.isNotBlank(token)) {
             // 已经登录了，鉴定权限
             try {
                 jwtTokenManager.validateToken(token);
             } catch (ExpiredJwtException e) {
-                throw new AccessException("token expired!");
+                throw new AccessException("Token expired!");
             } catch (Exception e) {
-                throw new AccessException("token invalid!");
+                throw new AccessException("Token invalid!");
             }
             Authentication authentication = jwtTokenManager.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             username = authentication.getName();
+        } else {
+            try {
+                String password = request.getParameter(PARAM_PASSWORD);
+                token = resolveTokenFromUser(username, password);
+            } catch (Exception e) {
+                result.setResultCode(HttpStatus.UNAUTHORIZED.value());
+                result.setResultMsg("Login failed, user name or password error.");
+            }
         }
-
-        try {
-            JarbootUser user = new JarbootUser();
-            user.setUsername(username);
-            user.setAccessToken(token);
-            user.setTokenTtl(expireSeconds);
-            List<RoleInfo> roleInfoInfoList = getRoles(username);
-            if (CollectionUtils.isNotEmpty(roleInfoInfoList)) {
-                for (RoleInfo roleInfo : roleInfoInfoList) {
-                    if (roleInfo.getRole().equals(AuthConst.ADMIN_ROLE)) {
-                        user.setGlobalAdmin(true);
-                        break;
-                    }
+        JarbootUser user = new JarbootUser();
+        user.setUsername(username);
+        user.setAccessToken(token);
+        user.setTokenTtl(expireSeconds);
+        List<RoleInfo> roleInfoInfoList = getRoles(username);
+        if (CollectionUtils.isNotEmpty(roleInfoInfoList)) {
+            for (RoleInfo roleInfo : roleInfoInfoList) {
+                if (roleInfo.getRole().equals(AuthConst.ADMIN_ROLE)) {
+                    user.setGlobalAdmin(true);
+                    break;
                 }
             }
-
-            result.setResult(user);
-        } catch (BadCredentialsException authentication) {
-            result.setResultCode(HttpStatus.UNAUTHORIZED.value());
-            result.setResultMsg("Login failed");
         }
+        result.setResult(user);
+
         return result;
     }
 
@@ -137,18 +138,21 @@ public class AuthController {
         return roleInfos;
     }
 
-    private String resolveToken(HttpServletRequest request) throws AccessException {
+    private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
         if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
             return bearerToken.substring(7);
         }
-        bearerToken = request.getParameter(AuthConst.ACCESS_TOKEN);
+        return request.getParameter(AuthConst.ACCESS_TOKEN);
+    }
+
+    private String resolveToken(HttpServletRequest request) throws AccessException {
+        String bearerToken = getToken(request);
         if (StringUtils.isBlank(bearerToken)) {
             String userName = request.getParameter(PARAM_USERNAME);
             String password = request.getParameter(PARAM_PASSWORD);
             bearerToken = resolveTokenFromUser(userName, password);
         }
-
         return bearerToken;
     }
 

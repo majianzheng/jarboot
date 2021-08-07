@@ -5,7 +5,7 @@ import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.dto.*;
-import com.mz.jarboot.common.MzException;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.service.SettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +33,7 @@ public class SettingController {
         try {
             ServerSettingDTO results = settingService.getServerSetting(server);
             return new ResponseForObject<>(results);
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseForObject<>(e);
         }
     }
@@ -52,7 +52,7 @@ public class SettingController {
         try {
             settingService.submitServerSetting(server, setting);
             return new ResponseSimple();
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseSimple(e);
         }
     }
@@ -68,7 +68,7 @@ public class SettingController {
         try {
             GlobalSettingDTO results = settingService.getGlobalSetting();
             return new ResponseForObject<>(results);
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseForObject<>(e);
         }
     }
@@ -85,7 +85,7 @@ public class SettingController {
         try {
             settingService.submitGlobalSetting(setting);
             return new ResponseSimple();
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseSimple(e);
         }
     }
@@ -103,7 +103,7 @@ public class SettingController {
         try {
             String results = settingService.getVmOptions(server, file);
             return new ResponseForObject<>(results);
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseForObject<>(e);
         }
     }
@@ -122,7 +122,7 @@ public class SettingController {
         try {
             settingService.saveVmOptions(server, file, content);
             return new ResponseSimple();
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseSimple(e);
         }
     }
@@ -137,7 +137,7 @@ public class SettingController {
         try {
             String results = "v" + VersionUtils.version;
             return new ResponseForObject<>(results);
-        } catch (MzException e) {
+        } catch (JarbootException e) {
             return new ResponseForObject<>(e);
         }
     }

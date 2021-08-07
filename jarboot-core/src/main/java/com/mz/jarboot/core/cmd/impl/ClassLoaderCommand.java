@@ -2,10 +2,10 @@ package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.annotation.Description;
-import com.mz.jarboot.core.cmd.annotation.Name;
-import com.mz.jarboot.core.cmd.annotation.Option;
-import com.mz.jarboot.core.cmd.annotation.Summary;
+import com.mz.jarboot.api.cmd.annotation.Description;
+import com.mz.jarboot.api.cmd.annotation.Name;
+import com.mz.jarboot.api.cmd.annotation.Option;
+import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.ClassLoaderUtils;
@@ -98,16 +98,6 @@ public class ClassLoaderCommand extends AbstractCommand {
     @Description("Use ClassLoader to load class, won't work without -c specified")
     public void setLoadClass(String className) {
         this.loadClass = className;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
     }
 
     @Override
@@ -223,13 +213,13 @@ public class ClassLoaderCommand extends AbstractCommand {
                 List<String> classLoaderUrls = getClassLoaderUrls(targetClassLoader);
                 affect.rCnt(classLoaderUrls.size());
                 if (classLoaderUrls.isEmpty()) {
-                    session.appendResult(new MessageModel("urls is empty."));
+                    session.console("urls is empty.");
                 } else {
                     session.appendResult(new ClassLoaderModel().setUrls(classLoaderUrls));
                     affect.rCnt(classLoaderUrls.size());
                 }
             } else {
-                session.appendResult(new MessageModel("not a URLClassLoader."));
+                session.console("not a URLClassLoader.");
             }
         }
         session.appendResult(new RowAffectModel(affect));
@@ -265,7 +255,7 @@ public class ClassLoaderCommand extends AbstractCommand {
         if (targetClassLoader != null) {
             try {
                 Class<?> clazz = targetClassLoader.loadClass(this.loadClass);
-                session.appendResult(new MessageModel("load class success."));
+                session.console("load class success.");
                 ClassDetailVO classInfo = ClassUtils.createClassInfo(clazz, false);
                 session.appendResult(new ClassLoaderModel().setLoadClass(classInfo));
 

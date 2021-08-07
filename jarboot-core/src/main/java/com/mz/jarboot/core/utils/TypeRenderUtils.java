@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * @author majianzheng
- * 以下代码来自开源项目Arthas
+ * 以下代码由开源项目Arthas重构
  */
 @SuppressWarnings("all")
 public class TypeRenderUtils {

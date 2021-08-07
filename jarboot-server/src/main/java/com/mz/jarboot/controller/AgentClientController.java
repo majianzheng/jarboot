@@ -22,9 +22,21 @@ public class AgentClientController {
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple ack(@RequestParam String server, @RequestBody String raw) {
+    public ResponseSimple onResponse(@RequestParam String server, @RequestBody String raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
         AgentManager.getInstance().handleAgentResponse(server, resp);
+        return new ResponseSimple();
+    }
+
+    /**
+     * 通知启动成功完成
+     * @param server 服务名
+     * @return 处理结果
+     */
+    @GetMapping(value="/setStarted")
+    @ResponseBody
+    public ResponseSimple setStarted(@RequestParam String server) {
+        AgentManager.getInstance().onServerStarted(server);
         return new ResponseSimple();
     }
 }
