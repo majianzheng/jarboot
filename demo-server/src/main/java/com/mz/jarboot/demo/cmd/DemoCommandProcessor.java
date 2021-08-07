@@ -8,12 +8,12 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import java.lang.instrument.Instrumentation;
 
 /**
- * 测试jdk SPI
+ * 测试jdk SPI Command 示例
  * @author jianzhengma
  */
 @Name("demo")
 @Summary("The demo command summary")
-@Description("The demo spi command usage detail")
+@Description("The demo spi command usage detail. From JDK spi")
 public class DemoCommandProcessor implements CommandProcessor {
     private String server;
 

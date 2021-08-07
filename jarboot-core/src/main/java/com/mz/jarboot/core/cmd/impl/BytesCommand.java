@@ -73,7 +73,7 @@ public class BytesCommand extends AbstractCommand {
         }
         //打印classloader
         session.console("ClassLoader: " + cls.getClassLoader().toString());
-        session.console("------");
+        session.console("<hr>");
         try {
             byte[] classfileBuffer = IOUtils.getBytes(Objects.requireNonNull(cls.getClassLoader()
                     .getResourceAsStream(cls.getName().replace('.', '/') + ".class")));
@@ -90,8 +90,9 @@ public class BytesCommand extends AbstractCommand {
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            session.end();
         }
-        session.end();
     }
 
     public static String nodeToString(AbstractInsnNode node){

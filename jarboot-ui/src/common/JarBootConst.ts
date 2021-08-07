@@ -28,6 +28,8 @@ class JarBootConst {
 
     public static PANEL_HEIGHT = (window.innerHeight - 150);
 
+    public static ZH_CN = 'zh-CN';
+
     //token
     public static TOKEN_KEY = 'token';
     public static currentUser: any = {username: '', globalAdmin: false};

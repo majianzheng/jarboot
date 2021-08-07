@@ -21,10 +21,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class ResultStreamDistributor {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
-    private final String session;
-    public ResultStreamDistributor(String session) {
-        this.session = session;
-    }
 
     static {
         EnvironmentContext.getScheduledExecutorService().execute(ResultStreamDistributor::consumer);
@@ -36,8 +32,13 @@ public class ResultStreamDistributor {
         static ResultViewResolver resultViewResolver = EnvironmentContext.getResultViewResolver();
     }
 
+    /**
+     * 输出执行结果
+     * @param model   数据
+     * @param session 会话
+     */
     @SuppressWarnings("all")
-    public void appendResult(ResultModel model) {
+    public static void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.resultViewResolver.getResultView(model);
         if (resultView == null) {
             logger.info("获取视图解析失败！{}, {}", model.getName(), model.getClass());
@@ -48,10 +49,14 @@ public class ResultStreamDistributor {
         resp.setSuccess(true);
         resp.setResponseType(resultView.isJson() ? ResponseType.JSON_RESULT : ResponseType.CONSOLE);
         resp.setBody(text);
-        resp.setSessionId(this.session);
+        resp.setSessionId(session);
         write(resp);
     }
 
+    /**
+     * 发送数据
+     * @param resp 数据
+     */
     public static void write(CmdProtocol resp) {
         if (!QUEUE.offer(resp)) {
             logger.trace("message queue may overflow, put failed.");
@@ -73,10 +78,10 @@ public class ResultStreamDistributor {
     private static void sendToServer(CmdProtocol resp) {
         //根据数据包的大小选择合适的通讯方式
         String raw = resp.toRaw();
-        if (raw.length() < CoreConstant.SOCKET_MAX_SEND) {
-            ResultStreamDistributorHolder.socket.write(raw);
-        } else {
-            ResultStreamDistributorHolder.http.write(raw);
-        }
+        ResponseStream stream = (raw.length() < CoreConstant.SOCKET_MAX_SEND) ?
+                ResultStreamDistributorHolder.socket : ResultStreamDistributorHolder.http;
+        stream.write(raw);
     }
+
+    private ResultStreamDistributor() {}
 }

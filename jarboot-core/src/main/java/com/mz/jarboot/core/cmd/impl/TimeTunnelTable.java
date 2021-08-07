@@ -73,7 +73,8 @@ public class TimeTunnelTable {
 
     public static void drawTimeTunnel(TableElement table, TimeFragmentVO tf) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        table.row("INDEX", "" + tf.getIndex())
+        table
+                .row("INDEX", "" + tf.getIndex())
                 .row("GMT-CREATE", sdf.format(tf.getTimestamp()))
                 .row("COST(ms)", "" + tf.getCost())
                 .row("OBJECT", tf.getObject())

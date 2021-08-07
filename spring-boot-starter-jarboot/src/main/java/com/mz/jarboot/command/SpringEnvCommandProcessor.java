@@ -20,7 +20,7 @@ import java.lang.instrument.Instrumentation;
 public class SpringEnvCommandProcessor implements CommandProcessor {
 
     private String propKey;
-    private Environment environment;
+    private final Environment environment;
 
     public SpringEnvCommandProcessor(Environment environment) {
         this.environment = environment;
@@ -40,5 +40,10 @@ public class SpringEnvCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
         return environment.getProperty(this.propKey, "Not found.");
+    }
+
+    @Override
+    public void afterProcess(String result, Throwable e) {
+        this.propKey = null;
     }
 }

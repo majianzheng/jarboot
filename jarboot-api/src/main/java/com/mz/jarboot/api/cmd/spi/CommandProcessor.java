@@ -34,4 +34,14 @@ public interface CommandProcessor {
      * @return 命令执行结果
      */
     String process(CommandSession session, String[] args);
+
+    /**
+     * <h3>命令执行后</h3>
+     * 可用于参数的重置操作
+     * @param result 执行结果
+     * @param e      失败时抛出的异常，执行成功为{@link null}
+     */
+    default void afterProcess(String result, Throwable e) {
+        //ignore
+    }
 }

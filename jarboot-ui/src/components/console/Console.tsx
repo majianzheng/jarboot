@@ -15,7 +15,7 @@ const MAX_LINE = 20000;
 const AUTO_CLEAN_LINE = 8000;
 
 const Console = (props: ConsoleProps) => { // NOSONAR
-    const id = `id-${props.server}`;
+    const id = `id-console-${props.server}`;
     let codeDom: HTMLElement|null = null;
     let loading = document.createElement('p');
     let isStartLoading = false;

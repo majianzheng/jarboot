@@ -1,3 +1,7 @@
+/**
+ * 字符串工具类
+ * @author majianzheng
+ */
 class StringUtil {
     /**
      * 判断是否为字符串

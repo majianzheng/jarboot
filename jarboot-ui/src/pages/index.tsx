@@ -48,7 +48,7 @@ const TabPanes: any = memo((props: any) => {
     </Tabs>
 });
 
-const token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+const token = CommonUtils.getToken();
 //路由入口类
 const index = memo(() => {
     if (StringUtil.isEmpty(token)) {

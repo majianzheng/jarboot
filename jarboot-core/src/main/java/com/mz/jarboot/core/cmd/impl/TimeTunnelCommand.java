@@ -7,7 +7,6 @@ import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.advisor.JarbootMethod;
 import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.express.ExpressFactory;
-import com.mz.jarboot.core.cmd.model.MessageModel;
 import com.mz.jarboot.core.cmd.model.RowAffectModel;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
@@ -415,7 +414,7 @@ public class TimeTunnelCommand extends EnhancerCommand {
         if (timeFragmentMap.remove(index) != null) {
             affect.rCnt(1);
         }
-        session.appendResult(new MessageModel(format("Time fragment[%d] successfully deleted.", index)));
+        session.console(format("Time fragment[%d] successfully deleted.", index));
         session.appendResult(new RowAffectModel(affect));
         session.end();
     }
@@ -424,7 +423,7 @@ public class TimeTunnelCommand extends EnhancerCommand {
         int count = timeFragmentMap.size();
         RowAffect affect = new RowAffect(count);
         timeFragmentMap.clear();
-        session.appendResult(new MessageModel("Time fragments are cleaned."));
+        session.console("Time fragments are cleaned.");
         session.appendResult(new RowAffectModel(affect));
         session.end();
     }

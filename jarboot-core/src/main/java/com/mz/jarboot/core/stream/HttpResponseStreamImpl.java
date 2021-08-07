@@ -9,9 +9,13 @@ import com.mz.jarboot.core.utils.HttpUtils;
  * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
-    private static final String API = "/api/public/agent/response?server=" + EnvironmentContext.getServer();
+
+    private static class HttpResponseStreamImplHolder {
+        static String api = "/api/public/agent/response?server=" + EnvironmentContext.getServer();
+    }
+
     @Override
     public void write(String data) {
-        HttpUtils.postSimple(API, data);
+        HttpUtils.postSimple(HttpResponseStreamImplHolder.api, data);
     }
 }

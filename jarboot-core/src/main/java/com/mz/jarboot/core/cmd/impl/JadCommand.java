@@ -188,7 +188,7 @@ public class JadCommand extends AbstractCommand {
 
         String usage = "jad -c <hashcode> " + classPattern;
         String msg = " Found more than one class for: " + classPattern + ", Please use " + usage;
-        session.appendResult(new MessageModel(msg));
+        session.console(msg);
 
         List<ClassVO> classVOs = ClassUtils.createClassVOList(matchedClasses);
         JadModel jadModel = new JadModel();

@@ -1,6 +1,5 @@
 package com.mz.jarboot.core.cmd;
 
-import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
@@ -208,19 +207,5 @@ public class CommandBuilder {
                 logger.error(e.getMessage(), e);
             }
         }
-    }
-
-    private static void printSummary(AbstractCommand command) {
-        Class<? extends AbstractCommand> cls = command.getClass();
-        Summary summary = cls.getAnnotation(Summary.class);
-        Description usage = cls.getAnnotation(Description.class);
-        StringBuilder sb = new StringBuilder();
-        if (null != summary) {
-            sb.append(summary.value()).append(CoreConstant.BR);
-        }
-        if (null != usage) {
-            sb.append(usage.value()).append(CoreConstant.BR);
-        }
-        command.getSession().console(sb.toString());
     }
 }

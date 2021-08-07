@@ -5,6 +5,9 @@ import StringUtil from "@/common/StringUtil";
 
 const urlBase = "/api/jarboot/services";
 
+/**
+ * 服务管理
+ */
 export default class ServerMgrService {
 
     /**

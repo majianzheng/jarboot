@@ -12,14 +12,12 @@ import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class AgentManager {
     private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
-    private final ConcurrentHashMap<String, CountDownLatch> startingSemMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
     private AgentManager(){}
@@ -47,7 +45,7 @@ public class AgentManager {
     public void online(String server, Session session) {
         //目标进程上线
         clientMap.put(server, new AgentClient(server, session));
-        CountDownLatch latch = startingSemMap.getOrDefault(server, null);
+        CountDownLatch latch = startingLatchMap.getOrDefault(server, null);
         if (null != latch) {
             latch.countDown();
         }
@@ -213,7 +211,7 @@ public class AgentManager {
     public void waitServerStarted(String server, int millis) {
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            CountDownLatch latch = startingSemMap.computeIfAbsent(server, k -> new CountDownLatch(1));
+            CountDownLatch latch = startingLatchMap.computeIfAbsent(server, k -> new CountDownLatch(1));
             try {
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                     logger.error("Wait server connect timeout，{}", server);
@@ -221,7 +219,7 @@ public class AgentManager {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-                startingSemMap.remove(server);
+                startingLatchMap.remove(server);
             }
             client = clientMap.getOrDefault(server, null);
             if (null == client) {

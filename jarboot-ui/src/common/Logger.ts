@@ -1,4 +1,6 @@
-
+/**
+ * 日志
+ */
 export default class Logger {
     /**
      * 日志log

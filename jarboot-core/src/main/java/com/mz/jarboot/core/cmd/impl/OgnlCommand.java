@@ -106,7 +106,7 @@ public class OgnlCommand extends AbstractCommand {
         } catch (ExpressException e) {
             logger.warn("ognl: failed execute express: " + express, e);
             session.end(false, "Failed to execute ognl, exception message: " + e.getMessage()
-                    + ", please check $HOME/logs/arthas/arthas.log for more details. ");
+                    + ", please check logs for more details. ");
         }
     }
 }

@@ -2,7 +2,9 @@ import Request from "@/common/Request";
 
 const urlBase = "/api/auth";
 
-//暂未实现
+/**
+ * 鉴权
+ */
 export default class OAuthService {
     /**
      * 获取当前用户

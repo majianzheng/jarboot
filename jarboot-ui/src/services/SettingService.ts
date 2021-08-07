@@ -2,6 +2,9 @@ import Request from '../common/Request';
 
 const settingUrl = "/api/jarboot/setting";
 
+/**
+ * 配置服务
+ */
 export default class SettingService {
     /**
      * 获取服务配置

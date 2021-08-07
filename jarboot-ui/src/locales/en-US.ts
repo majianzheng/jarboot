@@ -53,7 +53,7 @@ export default {
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',
 
     //全局配置界面
-    SERVERS_PATH: 'Services root path',
+    SERVERS_PATH: 'Workspace',
     DEFAULT_VM_OPT: 'Default VM options',
     AUTO_START_AFTER_INIT: 'Auto start after jarboot started',
 
@@ -86,6 +86,7 @@ export default {
     NAME_NOT_EMPTY: `Name can't be empty`,
     UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
     SELECT_ONE_OP: 'Please select one item to operate.',
+    COMMAND_RUNNING: 'Command is running，please stop it first.',
 
     //帮助
     BASIC: 'Basic',

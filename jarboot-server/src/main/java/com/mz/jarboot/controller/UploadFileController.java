@@ -4,7 +4,6 @@ import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.service.UploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author majianzheng
  */
 @RequestMapping(value = "/api/jarboot/upload")
-@Controller
+@RestController
 @Permission
 public class UploadFileController {
     @Autowired

@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 @Name("spring.bean")
 @Summary("View Spring Bean info")
-@Description("\nEXAMPLES:\n spring.bean -b beanName\n" +
+@Description("\nEXAMPLES:\n spring.bean\n spring.bean -b beanName\n" +
         " spring.bean -b beanName -d\n")
 public class SpringBeanCommandProcessor implements CommandProcessor {
     private static final String CGLIG_FLAG = "$$EnhancerBySpringCGLIB$$";
@@ -41,6 +41,15 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(CommandSession session, String[] args) {
+        if (null == beanName || beanName.isEmpty()) {
+            String[] beans = context.getBeanDefinitionNames();
+            session.console("<span style=\"color:green;font-weight:bold;\">All spring bean definition names:</span>");
+            for (String bean : beans) {
+                session.console(bean);
+            }
+            session.console("<br>spring bean total count: " + beans.length);
+            return "";
+        }
         Object bean = context.getBean(beanName);
         Class<?> beanClass = bean.getClass();
         String className = beanClass.getName();
@@ -72,5 +81,12 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
             }
         }
         return "";
+    }
+
+    @Override
+    public void afterProcess(String result, Throwable e) {
+        //重置
+        this.beanName = null;
+        this.showDetail = false;
     }
 }

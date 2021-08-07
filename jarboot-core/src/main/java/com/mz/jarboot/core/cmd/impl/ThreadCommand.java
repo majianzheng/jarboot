@@ -7,7 +7,6 @@ import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.ExitStatus;
 import com.mz.jarboot.core.utils.ArrayUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
@@ -102,7 +101,6 @@ public class ThreadCommand extends AbstractCommand {
 
     @Override
     public void run() {
-        ExitStatus exitStatus;
         if (id > 0) {
             processThread();
         } else if (topNBusy != null) {

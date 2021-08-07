@@ -213,13 +213,13 @@ public class ClassLoaderCommand extends AbstractCommand {
                 List<String> classLoaderUrls = getClassLoaderUrls(targetClassLoader);
                 affect.rCnt(classLoaderUrls.size());
                 if (classLoaderUrls.isEmpty()) {
-                    session.appendResult(new MessageModel("urls is empty."));
+                    session.console("urls is empty.");
                 } else {
                     session.appendResult(new ClassLoaderModel().setUrls(classLoaderUrls));
                     affect.rCnt(classLoaderUrls.size());
                 }
             } else {
-                session.appendResult(new MessageModel("not a URLClassLoader."));
+                session.console("not a URLClassLoader.");
             }
         }
         session.appendResult(new RowAffectModel(affect));
@@ -255,7 +255,7 @@ public class ClassLoaderCommand extends AbstractCommand {
         if (targetClassLoader != null) {
             try {
                 Class<?> clazz = targetClassLoader.loadClass(this.loadClass);
-                session.appendResult(new MessageModel("load class success."));
+                session.console("load class success.");
                 ClassDetailVO classInfo = ClassUtils.createClassInfo(clazz, false);
                 session.appendResult(new ClassLoaderModel().setLoadClass(classInfo));
 

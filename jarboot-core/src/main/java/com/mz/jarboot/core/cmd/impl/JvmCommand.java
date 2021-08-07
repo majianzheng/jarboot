@@ -40,7 +40,7 @@ public class JvmCommand extends AbstractCommand {
                 .appendRuntimeInfo("VM-VERSION", runtimeMXBean.getVmVersion())
                 .appendRuntimeInfo("INPUT-ARGUMENTS", runtimeMXBean.getInputArguments())
                 .appendRuntimeInfo("CLASS-PATH", runtimeMXBean.getClassPath())
-                .appendRuntimeInfo("BOOT-CLASS-PATH", runtimeMXBean.getBootClassPath())
+                //.appendRuntimeInfo("BOOT-CLASS-PATH", runtimeMXBean.getBootClassPath())
                 .appendRuntimeInfo("LIBRARY-PATH", runtimeMXBean.getLibraryPath())
                 ;
     }

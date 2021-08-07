@@ -112,8 +112,6 @@ public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
      * 如果到达容量，pos会重置，循环存储数据。所以使用这个Stack如果在极端情况下统计的数据会不准确，只用于monitor/watch等命令的计时。
      * 
      * </pre>
-     * 
-     * @author hengyunabc 2020-05-20
      *
      */
     static class ObjectStack {

@@ -32,7 +32,7 @@ const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
 
 const notSelectInfo = () => {
-    if ('zh-CN' === getLocale()) {
+    if (JarBootConst.ZH_CN === getLocale()) {
         CommonNotice.info('请点击选择一个服务执行');
     } else {
         CommonNotice.info('Please select one to operate');
@@ -405,10 +405,12 @@ export default class ServerMgrView extends React.PureComponent {
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
                                      oneClickStop={this.oneClickStop}/>
-                    <CommonTable toolbarGap={5} option={tableOption} toolbar={this._getTbBtnProps()} height={this.height}/>
+                    <CommonTable toolbarGap={5} option={tableOption}
+                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
-                    {(this.state.loading && 0 == this.allServerOut.length) && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
+                    {(this.state.loading && 0 == this.allServerOut.length) &&
+                    <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
                     {this.allServerOut.map((value: any) => (
                         <SuperPanel key={value} server={value} pubsub={pubsub} visible={this.state.current === value}/>
                     ))}

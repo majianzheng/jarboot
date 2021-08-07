@@ -5,7 +5,7 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 
 /**
  * 扩展的命令，由jdk SPI、Spring SPI加载的用户自定义命令
- * @author jianzhengma
+ * @author majianzheng
  */
 public class ExtendCommand extends AbstractCommand {
     private final CommandProcessor processor;
@@ -18,23 +18,19 @@ public class ExtendCommand extends AbstractCommand {
         this.args = args;
     }
 
-    @Override
-    public boolean isRunning() {
-        return session.isRunning();
-    }
-
-    @Override
-    public void cancel() {
-        session.cancel();
-    }
-
+    @SuppressWarnings("all")
     @Override
     public void run() {
+        String result = "";
+        Throwable throwable = null;
         try {
-            String result = processor.process(session, args);
+            result = processor.process(session, args);
             session.end(true, result);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             session.end(false, e.getMessage());
+            throwable = e;
+        } finally {
+            processor.afterProcess(result, throwable);
         }
     }
 

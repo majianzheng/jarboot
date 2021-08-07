@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author majianzheng
  */
 public class CommandSessionImpl implements CommandCoreSession {
-    private final ResultStreamDistributor distributor;
     private boolean running = false;
     private final String sessionId;
     private final AtomicInteger times = new AtomicInteger();
@@ -27,7 +26,6 @@ public class CommandSessionImpl implements CommandCoreSession {
     private volatile String jobId = CoreConstant.EMPTY_STRING;
     public CommandSessionImpl(String sessionId) {
         this.sessionId = sessionId;
-        this.distributor = new ResultStreamDistributor(this.sessionId);
     }
 
     @Override
@@ -64,7 +62,7 @@ public class CommandSessionImpl implements CommandCoreSession {
 
     @Override
     public void appendResult(ResultModel resultModel) {
-        distributor.appendResult(resultModel);
+        ResultStreamDistributor.appendResult(resultModel, this.sessionId);
     }
 
     @Override

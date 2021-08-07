@@ -10,7 +10,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
-[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/tmpomo)
+[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 
 <code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 
@@ -98,8 +98,9 @@ $ sh startup.sh
 1. 引入<code>spring-boot-starter-jarboot</code>依赖
 ```xml
 <dependency>
-  <groupId>io.github.majianzheng</groupId>
-  <artifactId>spring-boot-starter-jarboot</artifactId>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>spring-boot-starter-jarboot</artifactId>
+    <version>1.0.8</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -119,6 +120,23 @@ public class DemoServiceImpl implements DemoService, CommandProcessor {
   //implement other method...
 }
 ```
+当引入了<code>spring-boot-starter-jarboot</code>依赖后，将会增加2个Spring调试命令，<code>spring.bean</code>和<code>spring.env</code>
+```shell
+#spring.bean 用法：
+$ spring.bean [-b <name>] [-d]
+#示例：
+# 获取所有的bean name
+$ spring.bean
+# 获取bean的信息
+$ spring.bean -b beanName
+# 获取bean的详细信息
+$ spring.bean -b beanName -d
+
+#sping.env 用法：
+$ spring.env <name>
+#示例：
+$ spring.env spring.application.name
+```
 
 ### 非SpringBoot应用
 演示普通的非SpringBoot的应用如何使用。
@@ -126,9 +144,10 @@ public class DemoServiceImpl implements DemoService, CommandProcessor {
 1. 引入jarboot api的依赖
 ```xml
 <dependency>
-  <groupId>io.github.majianzheng</groupId>
-  <artifactId>jarboot-api</artifactId>
-  <scope>provided</scope>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>jarboot-api</artifactId>
+    <scope>provided</scope>
+    <version>1.0.8</version>
 </dependency>
 ```
 2. 实现spi接口

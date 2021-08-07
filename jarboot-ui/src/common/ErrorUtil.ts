@@ -55,7 +55,7 @@ export default class ErrorUtil {
                 resultMsg = resultMsg?.error;
             }
         } else if (StringUtil.isNotNull(resp.status)) {
-            //ajax error中的msg
+
             resultCode = resp.status;
             resultMsg = resp.statusText;
             if (ErrorUtil.codeMessage.hasOwnProperty(resp.status)) {
@@ -66,7 +66,8 @@ export default class ErrorUtil {
                 }
             }
         } else {
-            resultCode = -1; // unknown error
+            // unknown error
+            resultCode = -1;
             resultMsg = 'Unknown error';
             Logger.error(resp);
         }

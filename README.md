@@ -10,7 +10,7 @@
 ![GitHub](https://img.shields.io/github/license/majianzheng/jarboot)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
-[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/tmpomo)
+[![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 
 <code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
 
@@ -99,8 +99,9 @@ Use SPI extension can implement your own command, define a command how to execut
 1. Import <code>spring-boot-starter-jarboot</code> dependency
 ```xml
 <dependency>
-  <groupId>io.github.majianzheng</groupId>
-  <artifactId>spring-boot-starter-jarboot</artifactId>
+    <groupId>io.github.majianzheng</groupId>
+    <artifactId>spring-boot-starter-jarboot</artifactId>
+    <version>1.0.8</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -120,6 +121,24 @@ public class DemoServiceImpl implements DemoService, CommandProcessor {
   //implement other method...
 }
 ```
+It will add two new spring debug command <code>spring.bean</code> and <code>spring.env</code> after imported 
+<code>spring-boot-starter-jarboot</code> dependence.
+```shell
+#spring.bean usage:
+$ spring.bean [-b <name>] [-d]
+#Examples:
+# Get all bean names
+$ spring.bean
+# Get bean info
+$ spring.bean -b beanName
+# Get bean detail definition
+$ spring.bean -b beanName -d
+
+#sping.env usage:
+$ spring.env <name>
+#Examples:
+$ spring.env spring.application.name
+```
 
 ### None SpringBoot Application
 Demonstrate how to use ordinary non springboot applications.
@@ -130,6 +149,7 @@ Demonstrate how to use ordinary non springboot applications.
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
+    <version>1.0.8</version>
 </dependency>
 ```
 2. Implement spi interface

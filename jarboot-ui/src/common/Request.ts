@@ -4,6 +4,9 @@ import Qs from 'qs';
 import CommonUtils from "@/common/CommonUtils";
 import Logger from "@/common/Logger";
 
+/**
+ * Http请求封装
+ */
 export default class Request {
     private static request = extend({
         timeout: 30000,
