@@ -6,6 +6,7 @@ import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
 import UploadFileService from "@/services/UploadFileService";
 import UploadHeartbeat from "@/components/servers/UploadHeartbeat";
+import CommonUtils from "@/common/CommonUtils";
 
 interface UploadFileModalProp {
     server?: string;
@@ -107,6 +108,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         name: 'file',
         multiple: true,
         action: `/api/jarboot/upload/upload`,
+        headers: {Authorization: CommonUtils.getToken()},
         fileList: fileList,
         data: () => {
             return {server: form.getFieldValue("server")}
