@@ -137,7 +137,6 @@ public class ServerMgrController {
      * @param response Servlet response
      */
     @GetMapping(value="/downloadFile/{file}")
-    @Permission
     public void downloadFile(@PathVariable("file") String file,
                              HttpServletResponse response) {
         //待下载文件名

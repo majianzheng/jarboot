@@ -1,26 +1,20 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.alibaba.bytekit.utils.IOUtils;
-import com.alibaba.deps.org.objectweb.asm.ClassReader;
-import com.alibaba.deps.org.objectweb.asm.tree.AbstractInsnNode;
-import com.alibaba.deps.org.objectweb.asm.tree.ClassNode;
-import com.alibaba.deps.org.objectweb.asm.tree.InsnList;
-import com.alibaba.deps.org.objectweb.asm.tree.MethodNode;
-import com.alibaba.deps.org.objectweb.asm.util.Printer;
-import com.alibaba.deps.org.objectweb.asm.util.Textifier;
-import com.alibaba.deps.org.objectweb.asm.util.TraceMethodVisitor;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
+import com.mz.jarboot.common.ExecNativeCmd;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,8 +29,6 @@ import java.util.Objects;
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "bytes")
 public class BytesCommand extends AbstractCommand {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-    private static Printer printer = new Textifier();
-    private static TraceMethodVisitor mp = new TraceMethodVisitor(printer);
 
     private String classPattern;
 
@@ -59,6 +51,10 @@ public class BytesCommand extends AbstractCommand {
             session.end(true, "用法: bytes className");
             return;
         }
+        String javaHome = System.getenv("JAVA_HOME");
+        if (StringUtils.isEmpty(javaHome)) {
+            session.console("JAVA_HOME is not set!");
+        }
         Class<?> cls = null;
         Class[] classes = EnvironmentContext.getInstrumentation().getAllLoadedClasses();
         for (Class<?> c : classes) {
@@ -74,32 +70,25 @@ public class BytesCommand extends AbstractCommand {
         //打印classloader
         session.console("ClassLoader: " + cls.getClassLoader().toString());
         session.console("<hr>");
+        File file = null;
         try {
             byte[] classfileBuffer = IOUtils.getBytes(Objects.requireNonNull(cls.getClassLoader()
                     .getResourceAsStream(cls.getName().replace('.', '/') + ".class")));
-            ClassReader reader = new ClassReader(classfileBuffer);
-            ClassNode classNode = new ClassNode();
-            reader.accept(classNode, 0);
-            final List<MethodNode> methods = classNode.methods;
-            for (MethodNode m : methods) {
-                InsnList inList = m.instructions;
-                session.console(m.name);
-                for (int i = 0; i < inList.size(); i++) {
-                    session.console(nodeToString(inList.get(i)));
-                }
-            }
+            file = new File(cls.getSimpleName() + ".class");
+            FileUtils.writeByteArrayToFile(file, classfileBuffer, false);
+            List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getName());
+            codes.forEach(l -> session.console(l));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
+            if (null != file) {
+                try {
+                    FileUtils.delete(file);
+                } catch (Exception e) {
+                    //ignore
+                }
+            }
             session.end();
         }
-    }
-
-    public static String nodeToString(AbstractInsnNode node){
-        node.accept(mp);
-        StringWriter sw = new StringWriter();
-        printer.print(new PrintWriter(sw));
-        printer.getText().clear();
-        return sw.toString();
     }
 }
