@@ -33,7 +33,12 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         String jwt = resolveToken(request);
         
         if (StringUtils.isNotBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            this.tokenManager.validateToken(jwt);
+            try {
+                this.tokenManager.validateToken(jwt);
+            } catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                return;
+            }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             if (permissionManager.hasPermission(authentication.getName(), request)) {

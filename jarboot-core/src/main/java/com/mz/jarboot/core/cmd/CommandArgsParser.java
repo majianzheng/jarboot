@@ -205,15 +205,17 @@ public class CommandArgsParser {
             return;
         }
 
-        if ((null == values || values.isEmpty()) && option.required()) {
+        if ((null == values || values.isEmpty())) {
             DefaultValue defaultValue = method.getAnnotation(DefaultValue.class);
-            if (null == defaultValue) {
+            if (null == defaultValue && option.required()) {
                 throw new JarbootException(formatParamError(option.longName(), method));
             }
             // 默认值不为空
-            values = splitArgs(defaultValue.value());
-            if (values.isEmpty()) {
-                throw new JarbootException(formatParamError(option.longName(), method));
+            if (null != defaultValue) {
+                values = splitArgs(defaultValue.value());
+                if (option.required() && null != values && values.isEmpty()) {
+                    throw new JarbootException(formatParamError(option.longName(), method));
+                }
             }
         }
 

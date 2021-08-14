@@ -36,6 +36,7 @@ public class CommandBuilder {
         commandMap.put("jvm", JvmCommand.class);
         commandMap.put("stdout", StdOutCommand.class);
         commandMap.put("sysprop", SysPropCommand.class);
+        commandMap.put("dump", DumpClassCommand.class);
         commandMap.put("heapdump", HeapDumpCommand.class);
         commandMap.put("sysenv", SystemEnvCommand.class);
         commandMap.put("help", HelpCommand.class);

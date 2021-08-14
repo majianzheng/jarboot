@@ -70,6 +70,10 @@ public class BytesCommand extends AbstractCommand {
         //打印classloader
         session.console("ClassLoader: " + cls.getClassLoader().toString());
         session.console("<hr>");
+        showBytesCode(cls);
+    }
+
+    private synchronized void showBytesCode(Class<?> cls) {
         File file = null;
         try {
             byte[] classfileBuffer = IOUtils.getBytes(Objects.requireNonNull(cls.getClassLoader()
