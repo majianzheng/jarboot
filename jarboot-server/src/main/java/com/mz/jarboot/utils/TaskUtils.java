@@ -25,7 +25,7 @@ import java.util.*;
 public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
     private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
-            CommonConst.SERVICES + CommonConst.DOT;
+            "%x" + CommonConst.DOT;
     private static int maxStartTime = 12000;
 
     /**
@@ -314,12 +314,13 @@ public class TaskUtils {
     public static Map<String, Integer> findJavaProcess() {
         HashMap<String, Integer> pidCmdMap = new HashMap<>(32);
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
+        String prefix = getAdderArgsPrefix();
         vms.forEach((pid, name) -> {
-            final int p = name.lastIndexOf(ADDER_ARGS_PREFIX);
+            final int p = name.lastIndexOf(prefix);
             if (p < 1) {
                 return;
             }
-            String serverName = name.substring(p + ADDER_ARGS_PREFIX.length());
+            String serverName = name.substring(p + prefix.length());
             pidCmdMap.put(serverName, pid);
         });
         return pidCmdMap;
@@ -359,8 +360,14 @@ public class TaskUtils {
             }
         }
     }
+
+    private static String getAdderArgsPrefix() {
+        int hash = SettingUtils.getServicesPath().hashCode();
+        return String.format(ADDER_ARGS_PREFIX, hash);
+    }
+
     private static String getAfterArgs(String server) {
-        return ADDER_ARGS_PREFIX + server;
+        return getAdderArgsPrefix() + server;
     }
     private TaskUtils(){}
 }

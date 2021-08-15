@@ -60,6 +60,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
                 web.ignoring().antMatchers(each.trim());
             }
         }
+        web.ignoring().antMatchers("/api/jarboot/services/downloadFile/**");
     }
     
     @Override

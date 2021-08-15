@@ -1,3 +1,13 @@
+## 1.0.9 (8.14, 2021)
+
+* refactor bytes command (重构查看字节码命令)
+* fix upload file and download file 401 error
+* task filter by workspace
+* fix request error when token expire
+* fix command cli parse not use default when not require
+#### FEATURES:
+* add dump command
+
 ## 1.0.8 (8.7, 2021)
 
 * refactor command protocol (重构命令执行协议)
