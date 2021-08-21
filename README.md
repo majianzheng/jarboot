@@ -44,10 +44,11 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 ### Architecture brief introduction [view](jarboot-server/README.md).
 
 ## Install or build
-1. Build ui and <code>Java</code> code, or download the zip package.
+1. Build ui and <code>Java</code> code, or download the zip package, and also you can use docker.
 
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
 - <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">Download from maven center</a>
+- 🐳 Docker Hub: <code>sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot</code>
 
 ```bash
 #At first build ui

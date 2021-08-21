@@ -44,10 +44,11 @@ English version goes [here](README.md).
 ### 架构简介 [查看](jarboot-server/README.md)。
 
 ## 安装或编译构建
-1. 编译前端项目和<code>Java</code>，或者下载发布的zip安装包
+1. 编译前端项目和<code>Java</code>，或者下载发布的zip安装包，也可以使用Docker
 
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
 - <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">从maven center下载</a>
+- 🐳 Docker Hub: <code>sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot</code>
 
 ```bash
 #首先编译前端
