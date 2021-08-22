@@ -11,6 +11,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
+![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
 <code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
 
@@ -44,12 +45,20 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 ### Architecture brief introduction [view](jarboot-server/README.md).
 
 ## Install or build
-1. Build ui and <code>Java</code> code, or download the zip package, and also you can use docker.
-
+### Download the zip package to install or using docker.
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
 - <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">Download from maven center</a>
-- 🐳 Docker Hub: <code>sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot</code>
+- 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
+Use <code>docker</code>
+```bash
+sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+```
+
+### Code build method
+Ignore this when using zip package or <code>docker</code>.
+
+Build the jarboot code.
 ```bash
 #At first build ui
 $ cd jarboot-ui
@@ -63,33 +72,15 @@ $ yarn build
 $ cd ../
 $ mvn clean install
 ```
-
-2. Directory structures after installation.
-
-```
-jarboot                             #Current working directory
-├─logs                              #logs
-├─conf                              #jarboot setting
-├─jarboot-spy.jar
-├─jarboot-agent.jar                 
-├─jarboot-core.jar                  
-├─jarboot-server.jar                #Web service
-└─services                          #Default root directory which managing other jar files (configurable)
-   ├─demo1-service                  #The service name is directory, which stores the jar files and their dependencies.
-   │   └─demo1-service.jar          #The jar file, If there are more than one, you need to config by service configuration interface, otherwise may randomly run one
-   └─demo2-service                  
-       └─demo2-service.jar
-```
-Back end service startup specifies a root path to manage other startup jar files (Default is services in current path, you can config it in [Setting])，Create each service directory under this root directory,created ***Directory name is the name of service*** .Put the jar package file in the created directory. See the directory structure convention above for details.
-
-3. Start <code>jarboot-service.jar</code>
+### Start <code>jarboot</code> server
+Ignore this when using <code>docker</code>.
 ```bash
 #Execute startup.sh to start, use startup.cmd when in windows OS.
 $ sh startup.sh
 ```
 
-4. Browser access <http://127.0.0.1:9899>
-5. Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
+### Browser access <http://127.0.0.1:9899>
+Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
@@ -102,7 +93,7 @@ Use SPI extension can implement your own command, define a command how to execut
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 ```
 2. Implement <code>CommandProcessor</code>SPI interface
@@ -150,7 +141,7 @@ Demonstrate how to use ordinary non springboot applications.
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 ```
 2. Implement spi interface

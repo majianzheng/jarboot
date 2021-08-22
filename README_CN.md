@@ -11,6 +11,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/majianzheng/jarboot.svg)](http://isitmaintained.com/project/majianzheng/jarboot "Percentage of issues still open")
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
+![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
 <code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
 
@@ -44,12 +45,20 @@ English version goes [here](README.md).
 ### 架构简介 [查看](jarboot-server/README.md)。
 
 ## 安装或编译构建
-1. 编译前端项目和<code>Java</code>，或者下载发布的zip安装包，也可以使用Docker
-
+### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
 - <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">从maven center下载</a>
-- 🐳 Docker Hub: <code>sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot</code>
+- 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
+使用<code>Docker</code>
+```bash
+sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+```
+
+### 编译源码的步骤
+使用压缩包安装或者<code>Docker</code>的时候忽略此步骤
+
+编译Jarboot源代码
 ```bash
 #首先编译前端
 $ cd jarboot-ui
@@ -63,33 +72,15 @@ $ yarn build
 $ cd ../
 $ mvn clean install
 ```
-
-2. 安装后的目录结构
-
-```
-jarboot                             #当前工作目录
-├─logs                              #日志
-├─conf                              #jarboot配置文件
-├─jarboot-spy.jar
-├─jarboot-agent.jar                 
-├─jarboot-core.jar                  
-├─jarboot-server.jar                #Web服务HTTP接口及WebSocket及主要业务实现
-└─services                          #约定的管理其他jar文件的默认根目录(可配置)
-   ├─demo1-service                  #服务名为目录, 目录下存放启动的jar文件及其依赖
-   │   └─demo1-service.jar          #启动的jar文件, 若有多个则需要在[服务配置]界面配置启动的jar文件, 否则可能会随机选择一个
-   └─demo2-service                  
-       └─demo2-service.jar
-```
-后端服务启动会指定一个管理其他启动jar文件的根路径（默认为当前路径下的services，可在【服务配置】界面配置），在此根目录下创建每个服务目录，创建的 ***目录名字为服务名*** ，在创建的目录下放入jar包文件，详细可见上面的目录结构约定。
-
-3. 启动<code>jarboot-server.jar</code>主控服务
+### 启动<code>Jarboot</code>服务
+如果是使用的<code>Docker</code>忽略此步骤。
 ```bash
 #执行 startup.sh 启动, 在Windows系统上使用startup.cmd。
 $ sh startup.sh
 ```
 
-4. 浏览器访问<http://127.0.0.1:9899>
-5. 进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
+### 浏览器访问<http://127.0.0.1:9899>
+进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
 
 ![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
 
@@ -101,7 +92,7 @@ $ sh startup.sh
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -148,7 +139,7 @@ $ spring.env spring.application.name
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 </dependency>
 ```
 2. 实现spi接口
