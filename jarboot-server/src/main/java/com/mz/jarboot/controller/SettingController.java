@@ -8,6 +8,7 @@ import com.mz.jarboot.dto.*;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.service.SettingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class SettingController {
     @Autowired
     private SettingService settingService;
+    @Value("${docker:false}")
+    private boolean isInDocker;
 
     /**
      * 获取服务配置
@@ -136,6 +139,9 @@ public class SettingController {
     public ResponseForObject<String> getVersion() {
         try {
             String results = "v" + VersionUtils.version;
+            if (isInDocker) {
+                results += "(Docker)";
+            }
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);

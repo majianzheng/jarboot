@@ -1,3 +1,8 @@
+## 1.0.10-SNAPSHOT (8.22, 2021)
+
+#### FEATURES:
+* docker added
+
 ## 1.0.9 (8.14, 2021)
 
 * refactor bytes command (重构查看字节码命令)
