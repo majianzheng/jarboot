@@ -1,1 +1,3 @@
 com.mz.jarboot.demo.cmd.DemoCommandProcessor
+com.mz.jarboot.demo.cmd.FibCommandProcessor
+com.mz.jarboot.demo.cmd.PowCommandProcessor
