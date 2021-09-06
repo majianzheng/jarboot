@@ -78,7 +78,18 @@ public class BytesCommand extends AbstractCommand {
         try {
             byte[] classfileBuffer = IOUtils.getBytes(Objects.requireNonNull(cls.getClassLoader()
                     .getResourceAsStream(cls.getName().replace('.', '/') + ".class")));
-            file = new File(cls.getSimpleName() + ".class");
+            StringBuilder sb = new StringBuilder();
+            sb
+                    .append(EnvironmentContext.getJarbootHome())
+                    .append(File.separator)
+                    .append("logs")
+                    .append(File.separator)
+                    .append(CoreConstant.DUMP_DIR);
+            File dir = new File(sb.toString());
+            if (!dir.exists()) {
+                FileUtils.forceMkdir(dir);
+            }
+            file = new File(dir, cls.getSimpleName() + ".class");
             FileUtils.writeByteArrayToFile(file, classfileBuffer, false);
             List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getName());
             codes.forEach(l -> session.console(l));
