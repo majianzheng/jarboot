@@ -73,18 +73,21 @@ public class PropertyFileUtils {
         File file = SettingUtils.getServerSettingFile(server);
         Properties properties = getProperties(file);
         String serverPath = SettingUtils.getServerPath(server);
+        String runnable = properties.getProperty(SettingPropConst.RUNNABLE, SettingPropConst.VALUE_TRUE);
+        setting.setRunnable(Boolean.parseBoolean(runnable));
         if (properties.isEmpty()) {
             return setting;
         }
         String jar = properties.getProperty(SettingPropConst.JAR, StringUtils.EMPTY);
-        if (StringUtils.isNotEmpty(jar)) {
+        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(jar)) {
             if (checkFileExist(serverPath + File.separator + jar)) {
                 setting.setJar(jar);
             } else {
                 logger.warn("配置的启动jar文件({})不存在", jar);
             }
         }
-
+        String userDefineRunArg = properties.getProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, StringUtils.EMPTY);
+        setting.setUserDefineRunArgument(userDefineRunArg);
         String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);
         setting.setVm(jvm);
         String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);

@@ -71,11 +71,6 @@ public class TaskUtils {
      * @param setting 服务配置
      */
     public static void startServer(String server, ServerSettingDTO setting) {
-        //获取启动的jar文件
-        String jar = SettingUtils.getJarPath(setting);
-        if (StringUtils.isEmpty(jar)) {
-            return;
-        }
         //服务目录
         String serverPath = SettingUtils.getServerPath(server);
 
@@ -108,9 +103,21 @@ public class TaskUtils {
                 .append(jvm)
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(server))
-                .append(StringUtils.SPACE)
-                // 待执行的jar
-                .append(CommonConst.ARG_JAR).append(jar);
+                .append(StringUtils.SPACE);
+        if (Boolean.TRUE.equals(setting.getRunnable())) {
+            //获取启动的jar文件
+            String jar = SettingUtils.getJarPath(setting);
+            if (StringUtils.isBlank(jar)) {
+                return;
+            }
+            // 待执行的jar
+            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
+        } else {
+            if (StringUtils.isBlank(setting.getUserDefineRunArgument())) {
+                return;
+            }
+            cmdBuilder.append(setting.getUserDefineRunArgument()).append(StringUtils.SPACE);
+        }
 
         // 传入参数
         String startArg = setting.getArgs();

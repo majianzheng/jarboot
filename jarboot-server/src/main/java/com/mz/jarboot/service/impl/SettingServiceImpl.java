@@ -37,8 +37,16 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitServerSetting(String server, ServerSettingDTO setting) {
-        File file = getConfAndCheck(server, setting.getJar());
+        File file = getConfAndCheck(server, setting);
         Properties prop = PropertyFileUtils.getProperties(file);
+        prop.setProperty(SettingPropConst.RUNNABLE, String.valueOf(setting.getRunnable()));
+        String userDefineRunArg = setting.getUserDefineRunArgument();
+        if (null == userDefineRunArg) {
+            userDefineRunArg = StringUtils.EMPTY;
+        } else {
+            userDefineRunArg = userDefineRunArg.replace('\n', ' ');
+        }
+        prop.setProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, userDefineRunArg);
         String jar = setting.getJar();
         if (null == jar) {
             jar = StringUtils.EMPTY;
@@ -164,7 +172,7 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private File getConfAndCheck(String server, String jar) {
+    private File getConfAndCheck(String server, ServerSettingDTO setting) {
         File file = SettingUtils.getServerSettingFile(server);
         if (!file.exists()) {
             try {
@@ -176,12 +184,12 @@ public class SettingServiceImpl implements SettingService {
                 throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
-        if (StringUtils.isNotEmpty(jar)) {
-            Path path = Paths.get(jar);
+        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(setting.getJar())) {
+            Path path = Paths.get(setting.getJar());
             File jarFile = path.isAbsolute() ? path.toFile() :
-                    FileUtils.getFile(SettingUtils.getServerPath(server), jar);
+                    FileUtils.getFile(SettingUtils.getServerPath(server), setting.getJar());
             if (!jarFile.exists() || !jarFile.isFile()) {
-                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", setting.getJar()));
             }
         }
         return file;

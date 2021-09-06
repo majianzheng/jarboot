@@ -43,6 +43,8 @@ export default {
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
+    RUNNABLE_LABEL: 'Runnable jar file',
+    USER_DEFINE_RUN_LABEL: 'User define run argument',
     JAR_LABEL: 'Use jar to start',
     VM_OPT_LABEL: 'VM options',
     MAIN_ARGS_LABEL: 'Program arguments',

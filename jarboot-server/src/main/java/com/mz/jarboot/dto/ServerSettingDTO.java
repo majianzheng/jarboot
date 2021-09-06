@@ -14,40 +14,59 @@ public class ServerSettingDTO implements Serializable {
      * 服务名，即jar文件的上级目录的名称
      */
     private transient String server;
+    
+    /**
+     * 是否是可执行的jar
+     */
+    private Boolean runnable;
+    
+    /**
+     * 用户自定义的启动参数
+     */
+    private String userDefineRunArgument;
+    
     /**
      * 启动的主类MainClass所在的jar文件
      * 若为空，则空目录下找第一个jar文件
      */
     private String jar;
+    
     /**
      * 自定义的JVM参数
      */
     private String vm;
+    
     /**
      * 启动的优先级，从1开始，越大优先级越高，最高的优先启动
      * 未配置或小于1时，默认为1
      */
     private Integer priority;
+    
     /**
      * 传入main函数的启动参数
      */
     private String args;
+    
     /**
      * Java进程的工作目录
      */
     private String workDirectory;
+    
     /**
      * 指定使用的Jdk，默认继承父进程
      */
     private String jdkPath;
+    
     /**
      * 环境变量
      */
     private String env;
+    
     /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
      */
     private Boolean daemon;
+    
     /**
      * jar文件改动监控，启用后，若jar文件更新则自动重启，已经处于关闭状态的不会启动
      */
@@ -79,7 +98,23 @@ public class ServerSettingDTO implements Serializable {
     public void setServer(String server) {
         this.server = server;
     }
-
+    
+    public Boolean getRunnable() {
+        return runnable;
+    }
+    
+    public void setRunnable(Boolean runnable) {
+        this.runnable = runnable;
+    }
+    
+    public String getUserDefineRunArgument() {
+        return userDefineRunArgument;
+    }
+    
+    public void setUserDefineRunArgument(String userDefineRunArgument) {
+        this.userDefineRunArgument = userDefineRunArgument;
+    }
+    
     public String getJar() {
         return jar;
     }
