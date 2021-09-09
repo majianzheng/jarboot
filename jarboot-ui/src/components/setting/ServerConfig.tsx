@@ -102,7 +102,7 @@ const ServerConfig: any = memo((props: any) => {
                        label={intl.formatMessage({id: 'USER_DEFINE_RUN_LABEL'})}
                        rules={[{required: false}]}>
                 <Input.TextArea rows={2}
-                                placeholder={"1) -jar xx.jar    2) MainClassName    " +
+                                placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +
                                 "3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName"}
                                 autoComplete="off"/>
             </Form.Item>

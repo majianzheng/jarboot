@@ -116,7 +116,7 @@ public class TaskUtils {
             if (StringUtils.isBlank(setting.getUserDefineRunArgument())) {
                 return;
             }
-            cmdBuilder.append(setting.getUserDefineRunArgument()).append(StringUtils.SPACE);
+            cmdBuilder.append(setting.getUserDefineRunArgument());
         }
 
         // 传入参数
