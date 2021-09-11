@@ -30,11 +30,13 @@ public class SettingUtils {
     private static final String DEFAULT_SERVICES_DIR;
     private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
     private static final String JARBOOT_CONF;
+    private static final String BIN_DIR;
 
     private static String agentJar;
     static {
-        JARBOOT_CONF = System.getProperty(CommonConst.JARBOOT_HOME) +
-                File.separator + "conf" + File.separator + "jarboot.properties";
+        String home = System.getProperty(CommonConst.JARBOOT_HOME);
+        JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
+        BIN_DIR = home + File.separator + "bin";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
@@ -44,8 +46,7 @@ public class SettingUtils {
     }
 
     private static void initAgentJarPath() {
-        final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-        File jarFile = new File(jarbootHome, CommonConst.AGENT_JAR_NAME);
+        File jarFile = new File(BIN_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
         if (jarFile.exists()) {
             agentJar = jarFile.getPath();

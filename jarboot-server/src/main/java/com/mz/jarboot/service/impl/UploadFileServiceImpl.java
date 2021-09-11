@@ -11,8 +11,6 @@ import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +38,6 @@ import java.util.stream.Stream;
  */
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final long EXPIRED_TIME = 20000;
     private String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
     private ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
@@ -187,8 +184,6 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public void uploadJarFiles(MultipartFile file, String server) {
-        logger.info("type:{}, name:{}, size:{}, oriName:{}, server:{}", file.getContentType(),
-                file.getName(), file.getSize(), file.getOriginalFilename(), server);
         File dir = getTempCacheDir(server);
         if (dir.exists() && dir.isDirectory()) {
             String name = file.getOriginalFilename();

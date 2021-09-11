@@ -58,8 +58,8 @@ else
   JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${JAVA_HOME}/lib/ext"
   JAVA_OPT="${JAVA_OPT} -Xloggc:${BASE_DIR}/logs/jarboot_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
 fi
-
-JAVA_OPT="${JAVA_OPT} -jar ${BASE_DIR}/${SERVER}.jar"
+JAVA_OPT="${JAVA_OPT} -Dloader.path=${BASE_DIR}/plugins/server"
+JAVA_OPT="${JAVA_OPT} -jar ${BASE_DIR}/bin/${SERVER}.jar"
 
 if [ ! -d "${BASE_DIR}/logs" ]; then
   mkdir ${BASE_DIR}/logs

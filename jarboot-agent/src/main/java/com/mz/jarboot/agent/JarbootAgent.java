@@ -2,12 +2,14 @@ package com.mz.jarboot.agent;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.jar.JarFile;
 
 /**
  * @author majianzheng
@@ -59,9 +61,9 @@ public class JarbootAgent {
         return ps;
     }
 
-    private static ClassLoader getClassLoader(File jarFile) throws MalformedURLException {
+    private static ClassLoader getClassLoader(URL[] urls) throws MalformedURLException {
         if (null == jarbootClassLoader) {
-            jarbootClassLoader = new JarbootClassLoader(new URL[]{jarFile.toURI().toURL()});
+            jarbootClassLoader = new JarbootClassLoader(urls);
         }
         return jarbootClassLoader;
     }
@@ -104,7 +106,7 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
         try {
-            coreJarFile = new File(CURRENT_DIR, JARBOOT_CORE_JAR);
+            coreJarFile = new File(CURRENT_DIR + File.separator + "bin", JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
                 ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }
@@ -117,14 +119,42 @@ public class JarbootAgent {
             return;
         }
         try {
+            //初始化plugins
+            initAgentPlugins(inst);
+            //加载core
+            URL[] urls = getClassLoaderUrls(coreJarFile);
             //构造自定义的类加载器
-            ClassLoader classLoader = getClassLoader(coreJarFile);
-
+            ClassLoader classLoader = getClassLoader(urls);
             bind(classLoader, inst, args, isPremain);
             //初始化成功
             ps.println("jarboot Agent ready.");
         } catch (Throwable e) {
             e.printStackTrace(ps);
+        }
+    }
+    
+    private static URL[] getClassLoaderUrls(File coreFile) {
+        URL[] urls = new URL[1];
+        try {
+            urls[0] = coreFile.toURI().toURL();
+        } catch (MalformedURLException e) {
+            e.printStackTrace(ps);
+        }
+        return urls;
+    }
+    
+    private static void initAgentPlugins(Instrumentation inst) {
+        File agentPluginsDir = new File(CURRENT_DIR + File.separator + "plugins", "agent");
+        File[] jarFiles = agentPluginsDir.listFiles(file -> file.getName().endsWith(".jar"));
+        if (null != jarFiles && jarFiles.length > 0) {
+            for (File jarFile : jarFiles) {
+                try {
+                    JarFile jar = new JarFile(jarFile);
+                    inst.appendToSystemClassLoaderSearch(jar);
+                } catch (IOException e) {
+                    e.printStackTrace(ps);
+                }
+            }
         }
     }
     
@@ -140,7 +170,7 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            return agentJarFile.getParentFile();
+            return agentJarFile.getParentFile().getParentFile();
         } catch (Exception e) {
             e.printStackTrace(ps);
         }

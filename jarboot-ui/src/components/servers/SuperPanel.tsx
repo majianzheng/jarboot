@@ -74,6 +74,10 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         setExecuting(false);
         props.pubsub.publish(props.server, 'finishLoading', msg);
         inputRef?.current?.focus();
+        const value = inputRef?.current?.state?.value;
+        if (value && value?.length > 0) {
+            inputRef.current.setSelectionRange(0, value.length);
+        }
     };
 
     const clearDisplay = () => {

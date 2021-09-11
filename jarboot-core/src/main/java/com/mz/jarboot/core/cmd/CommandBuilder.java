@@ -31,7 +31,6 @@ public class CommandBuilder {
     public static final Map<String, CommandProcessor> EXTEND_MAP = new ConcurrentHashMap<>(16);
 
     static {
-        commandMap.put("pwd", PwdCommand.class);
         commandMap.put("bytes", BytesCommand.class);
         commandMap.put("jvm", JvmCommand.class);
         commandMap.put("stdout", StdOutCommand.class);

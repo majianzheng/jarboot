@@ -6,6 +6,7 @@ export default {
     SERVICES_MGR: 'Services',
     SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
+    PLUGINS: 'Plugins',
     SETTING: 'Setting',
     HELP_DOC: 'About',
     MENU_DOCS: 'DOCS',

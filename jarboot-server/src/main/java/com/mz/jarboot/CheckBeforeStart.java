@@ -27,9 +27,10 @@ public class CheckBeforeStart {
         String dir;
         //先检查jarboot-agent.jar文件
         File jarFile;
+        String binDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "bin";
         try {
-            String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-            jarFile = new File(jarbootHome + File.separator + CommonConst.AGENT_JAR_NAME);
+
+            jarFile = new File(binDir + File.separator + CommonConst.AGENT_JAR_NAME);
             //先尝试从当前路径下获取jar的位置，若不存在则尝试从用户目录加载
             if (!jarFile.exists()) {
                 propDialog("检查环境错误，在当前目录未发现jarboot-agent.jar。");

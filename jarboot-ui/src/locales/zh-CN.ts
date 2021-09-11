@@ -6,6 +6,7 @@ export default {
     SERVICES_MGR: '服务管理',
     SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
+    PLUGINS: '插件',
     SETTING: '设置',
     HELP_DOC: '关于',
     MENU_DOCS: '文档',

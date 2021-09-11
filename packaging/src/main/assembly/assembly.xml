@@ -11,19 +11,19 @@
   <files>
     <file>
       <source>../jarboot-agent/target/jarboot-agent-jar-with-dependencies.jar</source>
-      <destName>jarboot-agent.jar</destName>
+      <destName>bin/jarboot-agent.jar</destName>
     </file>
     <file>
       <source>../jarboot-spy/target/jarboot-spy.jar</source>
-      <destName>jarboot-spy.jar</destName>
+      <destName>bin/jarboot-spy.jar</destName>
     </file>
     <file>
       <source>../jarboot-core/target/jarboot-core.jar</source>
-      <destName>jarboot-core.jar</destName>
+      <destName>bin/jarboot-core.jar</destName>
     </file>
     <file>
       <source>../jarboot-server/target/jarboot-server.jar</source>
-      <destName>jarboot-server.jar</destName>
+      <destName>bin/jarboot-server.jar</destName>
     </file>
     <file>
       <source>../jarboot-server/src/main/resources/jarboot.properties</source>
@@ -32,6 +32,10 @@
     <file>
       <source>../demo-server/target/demo-server.jar</source>
       <destName>services/demo-server/demo-server.jar</destName>
+    </file>
+    <file>
+      <source>../jarboot-shell-plugin/target/jarboot-shell-plugin.jar</source>
+      <destName>plugins/agent/jarboot-shell-plugin.jar</destName>
     </file>
 
     <file>

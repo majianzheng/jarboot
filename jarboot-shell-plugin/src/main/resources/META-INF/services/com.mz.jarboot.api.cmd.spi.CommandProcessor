@@ -1,0 +1,3 @@
+com.mz.jarboot.plugin.CatCommandProcessor
+com.mz.jarboot.plugin.PwdCommandProcessor
+com.mz.jarboot.plugin.LsCommandProcessor

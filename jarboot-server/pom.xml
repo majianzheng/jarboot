@@ -62,10 +62,6 @@
             <artifactId>jarboot-common</artifactId>
         </dependency>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 		</dependency>
@@ -89,6 +85,9 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<layout>ZIP</layout>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -48,7 +48,7 @@ public class EnvironmentContext {
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
             File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            jarbootHome = curJar.getParent();
+            jarbootHome = curJar.getParentFile().getParent();
         } catch (URISyntaxException e) {
             //ignore
         }
