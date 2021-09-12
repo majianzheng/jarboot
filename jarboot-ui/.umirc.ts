@@ -8,6 +8,7 @@ export default defineConfig({
     routes: [
         {path: '/', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
+        {path: '/debugPlugin', component: '@/pages/plugin/DebugPlugin'},
     ],
     exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},
@@ -26,6 +27,11 @@ export default defineConfig({
             'target': 'http://localhost:9899/api/',
             'changeOrigin': true,
             'pathRewrite': {'^/api': ''}
+        },
+        '/plugins': {
+            'target': 'http://localhost:9899/plugins/',
+            'changeOrigin': true,
+            'pathRewrite': {'^/plugins': ''}
         },
     },
 });

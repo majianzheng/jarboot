@@ -1,9 +1,9 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
-import com.mz.jarboot.dto.*;
-import com.mz.jarboot.service.ServerMgrService;
+import com.mz.jarboot.api.service.ServerMgrService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +36,8 @@ public class ServerMgrController {
      */
     @GetMapping(value="/getServerList")
     @ResponseBody
-    public ResponseForList<ServerRunningDTO> getWebServerList() {
-        List<ServerRunningDTO> results = serverMgrService.getServerList();
+    public ResponseForList<ServerRunning> getWebServerList() {
+        List<ServerRunning> results = serverMgrService.getServerList();
         return new ResponseForList<>(results, results.size());
     }
 

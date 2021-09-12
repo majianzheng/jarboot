@@ -1,6 +1,6 @@
 package com.mz.jarboot;
 
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.utils.VMUtils;
 import javax.swing.*;
 import java.io.File;

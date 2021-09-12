@@ -34,8 +34,12 @@
       <destName>services/demo-server/demo-server.jar</destName>
     </file>
     <file>
-      <source>../jarboot-shell-plugin/target/jarboot-shell-plugin.jar</source>
-      <destName>plugins/agent/jarboot-shell-plugin.jar</destName>
+      <source>../plugins/shell-plugin/target/shell-plugin.jar</source>
+      <destName>plugins/agent/shell-plugin.jar</destName>
+    </file>
+    <file>
+      <source>../plugins/debug-plugin/target/debug-plugin.jar</source>
+      <destName>plugins/server/debug-plugin.jar</destName>
     </file>
 
     <file>

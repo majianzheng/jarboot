@@ -1,10 +1,10 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.*;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.constant.SettingPropConst;
-import com.mz.jarboot.dto.GlobalSettingDTO;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.SettingPropConst;
+import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -23,7 +23,7 @@ import java.util.*;
  */
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static final GlobalSettingDTO GLOBAL_SETTING = new GlobalSettingDTO();
+    private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
     private static final String BOOT_PROPERTIES = "boot.properties";
     private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
@@ -66,11 +66,11 @@ public class SettingUtils {
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
-    public static GlobalSettingDTO getGlobalSetting() {
+    public static GlobalSetting getGlobalSetting() {
         return GLOBAL_SETTING;
     }
 
-    public static void updateGlobalSetting(GlobalSettingDTO setting) {
+    public static void updateGlobalSetting(GlobalSetting setting) {
         String servicesPath = setting.getServicesPath();
         if (StringUtils.isNotEmpty(servicesPath)) {
             File dir = new File(servicesPath);
@@ -147,7 +147,7 @@ public class SettingUtils {
      * @param setting 服务配置
      * @return jar包路径
      */
-    public static String getJarPath(ServerSettingDTO setting) {
+    public static String getJarPath(ServerSetting setting) {
         String server = setting.getServer();
         String serverPath = getServerPath(server);
         File dir = FileUtils.getFile(serverPath);

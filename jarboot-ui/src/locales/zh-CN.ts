@@ -55,6 +55,11 @@ export default {
     DAEMON_LABEL: '进程守护',
     JAR_UPDATE_WATCH_LABEL: '文件路径监控',
 
+    //插件
+    PLUGIN_UPLOAD_TITLE: '上传插件',
+    PLUGIN_FILE: '文件',
+    UPLOAD_BUTTON: '点击上传',
+
     //全局配置
     SERVERS_PATH: '服务管理目录',
     DEFAULT_VM_OPT: '默认的VM参数',

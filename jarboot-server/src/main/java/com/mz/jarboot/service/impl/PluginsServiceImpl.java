@@ -1,20 +1,23 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dto.PluginInfoDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.PluginInfo;
 import com.mz.jarboot.service.PluginsService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import javax.annotation.PostConstruct;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 /**
  * @author majianzheng
@@ -22,40 +25,26 @@ import java.util.List;
 @Service
 public class PluginsServiceImpl implements PluginsService {
     private static final String AGENT_DIR = "agent";
+    private static final String SERVER_DIR = "server";
     private static final String PLUGINS_DIR = "plugins";
 
     @Value("${jarboot.home:}")
     private String jarbootHome;
 
     @Override
-    public List<PluginInfoDTO> getAgentPlugins() {
-        List<PluginInfoDTO> result = new ArrayList<>();
-        File dir = this.getPluginsDir(AGENT_DIR);
-        if (!dir.exists() || !dir.isDirectory()) {
-            return result;
-        }
-        Collection<File> files = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
-        if (CollectionUtils.isEmpty(files)) {
-            return result;
-        }
-        files.forEach(file -> {
-            PluginInfoDTO info = new PluginInfoDTO();
-            String fileName = file.getName();
-            int p = fileName.lastIndexOf("-plugin");
-            if (-1 == p) {
-                p = fileName.lastIndexOf(".jar");
-            }
-            info.setName(fileName.substring(0, p));
-            info.setFileName(fileName);
-            info.setLastModified(file.lastModified());
-            info.setType(AGENT_DIR);
-            result.add(info);
-        });
+    public List<PluginInfo> getAgentPlugins() {
+        List<PluginInfo> result = new ArrayList<>();
+        getPluginsByType(SERVER_DIR, result);
+        getPluginsByType(AGENT_DIR, result);
         return result;
     }
 
     @Override
     public void uploadPlugin(MultipartFile file, String type) {
+        String name = file.getOriginalFilename();
+        if (!StringUtils.endsWith(name, CommonConst.JAR_EXT)) {
+            return;
+        }
         File dir = this.getPluginsDir(type);
         if (!dir.exists()) {
             try {
@@ -64,7 +53,7 @@ public class PluginsServiceImpl implements PluginsService {
                 throw new JarbootException(e.getMessage(), e);
             }
         }
-        String name = file.getOriginalFilename();
+
         try {
             file.transferTo(FileUtils.getFile(dir, name));
         } catch (IOException e) {
@@ -82,7 +71,78 @@ public class PluginsServiceImpl implements PluginsService {
         }
     }
 
+    @Override
+    public void readPluginStatic(String type, String plugin, String filename, OutputStream outputStream) {
+        if (!StringUtils.endsWith(plugin, CommonConst.JAR_EXT)) {
+            plugin += CommonConst.JAR_EXT;
+        }
+        File file = getPluginFile(type, plugin);
+        String resource = "page/" + filename;
+        try (JarFile jarFile = new JarFile(file)){
+            ZipEntry entry = jarFile.getEntry(resource);
+            if (null == entry) {
+                return;
+            }
+            try(InputStream is = jarFile.getInputStream(entry)) {
+                byte[] buffer = new byte[2048];
+                int size;
+                while ((size = is.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, size);
+                }
+            }
+        } catch (IOException e) {
+            throw new JarbootException("Load plugin jar file failed!", e);
+        }
+    }
+
+    private File getPluginFile(String type, String filename) {
+        StringBuilder sb = new StringBuilder();
+        sb
+                .append(this.jarbootHome)
+                .append(File.separator)
+                .append(PLUGINS_DIR)
+                .append(File.separator)
+                .append(type);
+        return FileUtils.getFile(sb.toString(), filename);
+    }
+
+    private void getPluginsByType(String type, List<PluginInfo> list) {
+        File dir = this.getPluginsDir(type);
+        if (!dir.exists() || !dir.isDirectory()) {
+            return;
+        }
+        Collection<File> files = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
+        if (CollectionUtils.isEmpty(files)) {
+            return;
+        }
+        files.forEach(file -> {
+            PluginInfo info = new PluginInfo();
+            String fileName = file.getName();
+            int p = fileName.lastIndexOf("-plugin");
+            if (-1 == p) {
+                p = fileName.lastIndexOf(CommonConst.JAR_EXT);
+            }
+            info.setName(fileName.substring(0, p));
+            info.setFileName(fileName);
+            info.setLastModified(file.lastModified());
+            info.setType(type);
+            list.add(info);
+        });
+    }
+
     private File getPluginsDir(String type) {
         return FileUtils.getFile(this.jarbootHome + File.separator + PLUGINS_DIR, type);
+    }
+
+    @PostConstruct
+    public void init() {
+        File dir = this.getPluginsDir(SERVER_DIR);
+        Collection<File> files = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
+        if (CollectionUtils.isEmpty(files)) {
+            return;
+        }
+        files.forEach(file -> {
+
+        });
     }
 }

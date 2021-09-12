@@ -17,5 +17,5 @@ VOLUME ["conf","services","logs","data"]
 
 CMD ["jarboot.jarboot"]
 
-ENTRYPOINT ["java","-Ddocker=true","-Xms256m","-Xmx256m","-XX:+UnlockExperimentalVMOptions","-XX:+UseZGC","-XX:-OmitStackTraceInFastThrow","-XX:+HeapDumpOnOutOfMemoryError","-XX:HeapDumpPath=./logs/java_heapdump.hprof","-XX:-UseLargePages", "--class-path=./plugins/server","-jar","jarboot-server.jar"]
+ENTRYPOINT ["java","-Ddocker=true","-Xms256m","-Xmx256m","-XX:+UnlockExperimentalVMOptions","-XX:+UseZGC","-XX:-OmitStackTraceInFastThrow","-XX:+HeapDumpOnOutOfMemoryError","-XX:HeapDumpPath=./logs/java_heapdump.hprof","-XX:-UseLargePages", "-Dloader.path=./plugins/server","-jar","jarboot-server.jar"]
 LABEL jarboot.image.authors="majianzheng"

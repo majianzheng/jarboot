@@ -55,6 +55,11 @@ export default {
     DAEMON_LABEL: 'Daemon',
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',
 
+    //插件
+    PLUGIN_UPLOAD_TITLE: 'Upload plugin',
+    PLUGIN_FILE: 'file',
+    UPLOAD_BUTTON: 'Click to Upload',
+
     //全局配置界面
     SERVERS_PATH: 'Workspace',
     DEFAULT_VM_OPT: 'Default VM options',

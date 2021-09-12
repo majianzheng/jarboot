@@ -83,7 +83,7 @@ const ServerConfig: any = memo((props: any) => {
     };
 
     return (<>
-        <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit} onValuesChange={changedValues => {
+        <Form {...layout} form={form} name="server-setting" onFinish={onSubmit} onValuesChange={changedValues => {
             if (changedValues.hasOwnProperty('runnable')) {
                 setRunnable(changedValues.runnable)
             }

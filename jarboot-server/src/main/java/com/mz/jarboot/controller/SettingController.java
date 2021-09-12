@@ -1,12 +1,13 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.VersionUtils;
-import com.mz.jarboot.dto.*;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.service.SettingService;
+import com.mz.jarboot.api.service.SettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -32,9 +33,9 @@ public class SettingController {
     @GetMapping(value="/getServerSetting")
     @ResponseBody
     @Permission("Get Server Setting")
-    public ResponseForObject<ServerSettingDTO> getServerSetting(String server) {
+    public ResponseForObject<ServerSetting> getServerSetting(String server) {
         try {
-            ServerSettingDTO results = settingService.getServerSetting(server);
+            ServerSetting results = settingService.getServerSetting(server);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -51,7 +52,7 @@ public class SettingController {
     @ResponseBody
     @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestParam String server,
-                                              @RequestBody ServerSettingDTO setting) {
+                                              @RequestBody ServerSetting setting) {
         try {
             settingService.submitServerSetting(server, setting);
             return new ResponseSimple();
@@ -67,9 +68,9 @@ public class SettingController {
     @GetMapping(value="/getGlobalSetting")
     @ResponseBody
     @Permission("Get Global Setting")
-    public ResponseForObject<GlobalSettingDTO> getGlobalSetting() {
+    public ResponseForObject<GlobalSetting> getGlobalSetting() {
         try {
-            GlobalSettingDTO results = settingService.getGlobalSetting();
+            GlobalSetting results = settingService.getGlobalSetting();
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -84,7 +85,7 @@ public class SettingController {
     @PostMapping(value="/submitGlobalSetting")
     @ResponseBody
     @Permission("Submit Global Setting")
-    public ResponseSimple submitGlobalSetting(@RequestBody GlobalSettingDTO setting) {
+    public ResponseSimple submitGlobalSetting(@RequestBody GlobalSetting setting) {
         try {
             settingService.submitGlobalSetting(setting);
             return new ResponseSimple();
