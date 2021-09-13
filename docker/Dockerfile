@@ -11,7 +11,7 @@ RUN wget https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/
 
 WORKDIR jarboot
 
-ENV BASE_DIR=.
+ENV JARBOOT_HOME ./
 
 VOLUME ["conf","services","logs","data"]
 

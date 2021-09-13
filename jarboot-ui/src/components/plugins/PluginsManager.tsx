@@ -71,7 +71,7 @@ const PluginsManager = () => {
     const _onRow = (record: any) => {
         return {
             onClick: () => {
-                setSelected({keys: [record.name], rows: [record]});
+                setSelected({keys: [record.id], rows: [record]});
             },
         };
     };
@@ -97,7 +97,7 @@ const PluginsManager = () => {
             loading: loading,
             dataSource: data,
             pagination: false,
-            rowKey: 'name',
+            rowKey: 'id',
             size: 'small',
             rowSelection: _getRowSelection(),
             onRow: _onRow,

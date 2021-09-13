@@ -35,8 +35,24 @@ public class DemoServerApplication implements Runnable {
     public static void main(String[] args) {
         //打印banner
         printBanner();
-        //启动界面
-        new DemoServerApplication();
+        String ver = System.getenv("JARBOOT_VERSION");
+        if (null == ver || ver.isEmpty()) {
+            //启动界面
+            new DemoServerApplication();
+            finish();
+        } else {
+            //docker模式下
+            log("Current is runing in docker, you can open two page for test.");
+            finish();
+            try {
+                System.in.read();
+            } catch (IOException exception) {
+                log(exception.getMessage());
+            }
+        }
+    }
+
+    private static void finish() {
         log("Jarboot Demo Server started!");
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {

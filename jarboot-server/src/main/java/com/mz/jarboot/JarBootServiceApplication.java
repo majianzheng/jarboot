@@ -24,7 +24,7 @@ public class JarBootServiceApplication {
 		String wsHome = userHome + File.separator + CommonConst.JARBOOT_NAME;
 		//初始化工作目录
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
-		String homePath = System.getenv("BASE_DIR");
+		String homePath = System.getenv("JARBOOT_HOME");
 		if (null == homePath || homePath.isEmpty()) {
 			homePath = wsHome;
 		}

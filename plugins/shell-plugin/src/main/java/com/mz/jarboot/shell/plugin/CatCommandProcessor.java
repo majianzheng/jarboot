@@ -78,7 +78,7 @@ public class CatCommandProcessor implements CommandProcessor {
                 return;
             }
             if (null == this.head) {
-                this.head = Integer.MAX_VALUE;
+                this.head = Integer.MAX_VALUE - 1;
             } else {
                 if (this.head <= 0) {
                     session.end(false, "top line must big than 0");

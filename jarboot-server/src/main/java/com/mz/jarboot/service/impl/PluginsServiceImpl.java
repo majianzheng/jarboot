@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -117,6 +116,7 @@ public class PluginsServiceImpl implements PluginsService {
         }
         files.forEach(file -> {
             PluginInfo info = new PluginInfo();
+            info.setId(list.size());
             String fileName = file.getName();
             int p = fileName.lastIndexOf("-plugin");
             if (-1 == p) {
@@ -132,17 +132,5 @@ public class PluginsServiceImpl implements PluginsService {
 
     private File getPluginsDir(String type) {
         return FileUtils.getFile(this.jarbootHome + File.separator + PLUGINS_DIR, type);
-    }
-
-    @PostConstruct
-    public void init() {
-        File dir = this.getPluginsDir(SERVER_DIR);
-        Collection<File> files = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
-        if (CollectionUtils.isEmpty(files)) {
-            return;
-        }
-        files.forEach(file -> {
-
-        });
     }
 }

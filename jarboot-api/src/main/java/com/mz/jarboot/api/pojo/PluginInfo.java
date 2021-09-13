@@ -4,10 +4,19 @@ package com.mz.jarboot.api.pojo;
  * @author majianzheng
  */
 public class PluginInfo {
+    private Integer id;
     private String name;
     private String fileName;
     private String type;
     private Long lastModified;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
