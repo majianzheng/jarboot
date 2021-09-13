@@ -61,7 +61,7 @@ export default {
     UPLOAD_BUTTON: '点击上传',
 
     //全局配置
-    SERVERS_PATH: '服务管理目录',
+    SERVERS_PATH: '工作空间',
     DEFAULT_VM_OPT: '默认的VM参数',
     AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
 

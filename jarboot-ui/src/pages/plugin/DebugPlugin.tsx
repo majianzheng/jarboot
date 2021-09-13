@@ -27,8 +27,8 @@ const DebugPlugin = memo(() => {
     };
 
     return (<>
-        <h2>Jarboot debug plugin UI</h2>
-        <h3>Start server</h3>
+        <h2 style={{textAlign: "center"}}>Jarboot debug plugin UI</h2>
+        <h3 style={{textAlign: "center"}}>Start server</h3>
         <Form {...layout} onFinish={onSubmit}>
             <Form.Item name="server"
                        label={"server"}

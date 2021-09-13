@@ -8,6 +8,7 @@ import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * sh
@@ -15,9 +16,10 @@ import java.util.List;
  */
 @Name("sh")
 @Summary("Execute shell")
-@Description(" sh xxx.sh")
+@Description("Example:\n sh xxx.sh\n sh xxx.bat\n sh echo Hello\n sh ls -a")
 public class ShCommandProcessor implements CommandProcessor {
     private static final Method EXEC_METHOD;
+    private static final boolean IS_WINDOWS;
     static {
         ClassLoader classLoader = JarbootFactory.createAgentService().getJarbootClassLoader();
         Method temp = null;
@@ -28,6 +30,8 @@ public class ShCommandProcessor implements CommandProcessor {
             //ignore
         }
         EXEC_METHOD = temp;
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        IS_WINDOWS = os.startsWith("windows");
     }
 
     @Override
@@ -38,6 +42,9 @@ public class ShCommandProcessor implements CommandProcessor {
         }
         if (null != args && args.length > 0) {
             StringBuilder sb = new StringBuilder();
+            if (IS_WINDOWS) {
+                sb.append("cmd /c ");
+            }
             for (String s : args) {
                 sb.append(s).append(' ');
             }

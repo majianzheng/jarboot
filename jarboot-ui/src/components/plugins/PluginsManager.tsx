@@ -145,7 +145,8 @@ const PluginsManager = () => {
         headers: {Authorization: CommonUtils.getToken()},
         onChange(info: any) {
             if (info.file.status === 'done') {
-                CommonNotice.success(`${info.file.name} file uploaded successfully`)
+                const type = form.getFieldValue("type");
+                CommonNotice.success(`${info.file.name} file uploaded successfully, restart ${type} to effect`);
             } else if (info.file.status === 'error') {
                 CommonNotice.error(`${info.file.name} file upload failed.`);
             }

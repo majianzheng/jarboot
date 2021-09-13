@@ -13,11 +13,11 @@ import java.util.Date;
 
 /**
  * ls
- * @author jianzhengma
+ * @author majianzheng
  */
 @Name("ls")
 @Summary("show the directory files")
-@Description(" ls show current directory")
+@Description(" ls show current directory file list")
 public class LsCommandProcessor implements CommandProcessor {
     private String path;
 
