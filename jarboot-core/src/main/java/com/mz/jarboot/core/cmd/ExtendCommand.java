@@ -41,4 +41,13 @@ public class ExtendCommand extends AbstractCommand {
         }
         this.printHelp(this.processor.getClass());
     }
+    
+    /**
+     * 取消执行
+     */
+    @Override
+    public void cancel() {
+        this.processor.onCancel();
+        super.cancel();
+    }
 }

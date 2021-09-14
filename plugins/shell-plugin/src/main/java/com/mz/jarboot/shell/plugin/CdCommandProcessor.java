@@ -7,6 +7,9 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * cd
@@ -26,11 +29,16 @@ public class CdCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(CommandSession session, String[] args) {
-        File dir = new File(path);
+        Path p = Paths.get(this.path);
+        File dir = p.isAbsolute() ? p.toFile() : new File(System.getProperty("user.dir"), this.path);
         if (!dir.isDirectory() || !dir.exists()) {
             return this.path + " is not a directory.";
         }
-        System.setProperty("user.dir", dir.getAbsolutePath());
+        try {
+            System.setProperty("user.dir", dir.getCanonicalPath());
+        } catch (IOException e) {
+            session.end(false, e.getMessage());
+        }
         return "";
     }
 

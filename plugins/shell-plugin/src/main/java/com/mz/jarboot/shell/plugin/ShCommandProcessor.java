@@ -1,13 +1,14 @@
 package com.mz.jarboot.shell.plugin;
 
-import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import java.lang.reflect.Method;
-import java.util.List;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.Locale;
 
 /**
@@ -18,26 +19,17 @@ import java.util.Locale;
 @Summary("Execute shell")
 @Description("Example:\n sh xxx.sh\n sh xxx.bat\n sh echo Hello\n sh ls -a")
 public class ShCommandProcessor implements CommandProcessor {
-    private static final Method EXEC_METHOD;
     private static final boolean IS_WINDOWS;
+    private Process process;
     static {
-        ClassLoader classLoader = JarbootFactory.createAgentService().getJarbootClassLoader();
-        Method temp = null;
-        try {
-            Class<?> execClass = classLoader.loadClass("com.mz.jarboot.common.ExecNativeCmd");
-            temp = execClass.getMethod("exec", String.class);
-        } catch (Exception e) {
-            //ignore
-        }
-        EXEC_METHOD = temp;
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         IS_WINDOWS = os.startsWith("windows");
     }
 
     @Override
     public String process(CommandSession session, String[] args) {
-        if (null == EXEC_METHOD) {
-            session.end(false, "Load exec method failed!");
+        if (null != process) {
+            session.end(false, "shell process is running on other session!");
             return "";
         }
         if (null != args && args.length > 0) {
@@ -48,18 +40,36 @@ public class ShCommandProcessor implements CommandProcessor {
             for (String s : args) {
                 sb.append(s).append(' ');
             }
+            File dir = new File(new File("").getAbsolutePath());
             try {
-                Object result = EXEC_METHOD.invoke(null, sb.toString());
-                if (result instanceof List) {
-                    List<?> list = (List<?>) result;
-                    list.forEach(line -> session.console((String)line));
+                process = Runtime.getRuntime().exec(sb.toString(), null, dir);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        session.console(line);
+                    }
+                    process.waitFor();
                 }
+            } catch (InterruptedException e) {
+                session.end(false, e.getMessage());
+                Thread.currentThread().interrupt();
             } catch (Exception e) {
                 e.printStackTrace();
+                session.end(false, e.getMessage());
+            } finally {
+                this.process = null;
             }
         } else {
             session.end(false, "args is empty!");
         }
         return "";
+    }
+
+    @Override
+    public void onCancel() {
+        if (null != this.process) {
+            this.process.destroyForcibly();
+        }
+        CommandProcessor.super.onCancel();
     }
 }

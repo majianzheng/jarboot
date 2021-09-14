@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 
 /**
@@ -61,7 +63,8 @@ public class CatCommandProcessor implements CommandProcessor {
             session.end(false, "head and tail option only support one!");
             return "";
         }
-        File file = new File(this.fileName);
+        Path path = Paths.get(this.fileName);
+        File file = path.isAbsolute() ? path.toFile() : new File(System.getProperty("user.dir"), this.fileName);
         if (file.exists()) {
             this.printFile(file, session);
         } else {

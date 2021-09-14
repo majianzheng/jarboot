@@ -44,4 +44,11 @@ public interface CommandProcessor {
     default void afterProcess(String result, Throwable e) {
         //ignore
     }
+    
+    /**
+     * 取消执行
+     */
+    default void onCancel() {
+        //ignore
+    }
 }

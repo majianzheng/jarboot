@@ -8,6 +8,8 @@ import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -29,7 +31,12 @@ public class LsCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(CommandSession session, String[] args) {
-        File dir = new File(null == path ? "./" : path);
+        String userDir = System.getProperty("user.dir");
+        if (null == this.path) {
+            this.path = userDir;
+        }
+        Path p = Paths.get(this.path);
+        File dir = p.isAbsolute() ? p.toFile() : new File(userDir, this.path);
         if (!dir.isDirectory()) {
             return this.path + " is not a directory.";
         }
