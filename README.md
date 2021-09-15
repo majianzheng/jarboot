@@ -25,7 +25,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
 
-🐳 SPI Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>
+🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
@@ -37,7 +37,7 @@ In the test environment and daily built integrated environment, a series of jar 
 - ⭐   Process daemon. If the service exits abnormally after opening, it will be automatically started and notified.
 - ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
-- 💎   Support user-define command by <code>SPI</code>.
+- 💎   Support user-define command by <code>SPI</code>, support develop plugins.
 
 Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
 <code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.

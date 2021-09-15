@@ -1,6 +1,8 @@
 ## 1.0.10-SNAPSHOT (9.13, 2021)
 
 #### FEATURES:
+* 目录结构变更，jar文件放入bin文件夹中，增加插件目录plugins
+* 支持数据库驱动放入plugins/server下以支持更多数据库
 * 支持插件式开发扩展，agent类型插件可扩充命令，server类型插件可增强服务端功能
 * docker支持，识别是否在docker中运行，在docker中运行时示例程序没有界面
 * 增加自定义启动参数配置，不局限于可执行的jar文件，可以自定义执行字节码文件（***.class），可以使用classpath和-cp指定执行类

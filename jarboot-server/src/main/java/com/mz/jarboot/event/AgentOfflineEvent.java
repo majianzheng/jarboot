@@ -1,6 +1,8 @@
 package com.mz.jarboot.event;
 
 /**
+ * Spring Application Event will published when the agent task offline
+ * {@link org.springframework.context.event.EventListener}
  * @author majianzheng
  */
 public final class AgentOfflineEvent {
