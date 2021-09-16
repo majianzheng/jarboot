@@ -51,7 +51,7 @@ public class HelpCommand extends AbstractCommand {
         }
         Description description = definition.getAnnotation(Description.class);
         if (null != description) {
-            session.console("EXAMPLES:\n  " + description.value());
+            session.console(description.value());
         }
     }
 }

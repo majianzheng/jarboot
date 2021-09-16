@@ -164,6 +164,9 @@ public class CommandBuilder {
 
         ExtendCommand extendCmd = null;
         try {
+            //使用原型构建新实例，防止多会话冲突
+            processor = processor.getClass().getConstructor().newInstance();
+            //使用新构建的processor构建扩展类命令
             extendCmd = new ExtendCommand(processor);
             extendCmd.setName(cmd);
             extendCmd.setSession(session);
