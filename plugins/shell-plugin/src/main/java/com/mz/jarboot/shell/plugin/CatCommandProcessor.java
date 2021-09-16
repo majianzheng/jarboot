@@ -7,6 +7,7 @@ import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
+import com.mz.jarboot.api.exception.JarbootRunException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -22,12 +23,17 @@ import java.util.LinkedList;
  */
 @Name("cat")
 @Summary("View the file content")
-@Description("Example:\n cat fileName \n cat -n fileName\n cat -n -h[head] 10 fileName\n cat -n -t[tail] 10 fileName")
+@Description("Example:\n cat fileName \n cat -n fileName\n cat -n -h[head] 10 fileName\n" +
+        " cat -n -t[tail] 10 fileName\n cat -n file -l 10\n cat -n file -l 10:20")
 public class CatCommandProcessor implements CommandProcessor {
+    private static final int TWO = 2;
+    private static final String SPLIT_CHAR = ":";
     private boolean showLine = false;
     private String fileName;
     private Integer head;
     private Integer tail;
+    private String lineNumber;
+    private volatile boolean isCanceled = false;
 
     @Option(shortName = "n", longName = "number", flag = true)
     @Description("Show line number or not")
@@ -45,6 +51,12 @@ public class CatCommandProcessor implements CommandProcessor {
     @Description("Show lines tail")
     public void setTail(int n) {
         this.tail = n;
+    }
+
+    @Option(shortName = "l", longName = "line")
+    @Description("Read the line: -l10, -l10:20")
+    public void setLine(String line) {
+        this.lineNumber = line;
     }
     
     @Argument(argName = "file", index = 0)
@@ -66,6 +78,7 @@ public class CatCommandProcessor implements CommandProcessor {
         Path path = Paths.get(this.fileName);
         File file = path.isAbsolute() ? path.toFile() : new File(System.getProperty("user.dir"), this.fileName);
         if (file.exists()) {
+            this.isCanceled = false;
             this.printFile(file, session);
         } else {
             session.end(false, this.fileName + " is not exists!");
@@ -78,6 +91,10 @@ public class CatCommandProcessor implements CommandProcessor {
                 LineNumberReader lr = new LineNumberReader(reader)) {
             if (null != this.tail) {
                 printTailFile(session, lr);
+                return;
+            }
+            if (null != this.lineNumber) {
+                this.printMiddleFile(session, lr);
                 return;
             }
             if (null == this.head) {
@@ -100,6 +117,39 @@ public class CatCommandProcessor implements CommandProcessor {
             session.end(false, e.getMessage());
         }
     }
+    @SuppressWarnings("all")
+    private void printMiddleFile(CommandSession session, LineNumberReader lr) throws IOException {
+        String[] split = this.lineNumber.split(SPLIT_CHAR);
+        if (split.length == 1) {
+            int lineNum = Integer.parseInt(this.lineNumber);
+            String line;
+            while ((line = lr.readLine()) != null) {
+                int num = lr.getLineNumber();
+                if (num > lineNum) {
+                    break;
+                }
+                if (num == lineNum) {
+                    //读取指定行
+                    session.console(formatLine(line, num));
+                }
+            }
+        } else if (split.length == TWO) {
+            int from = Integer.parseInt(split[0]) - 1;
+            int to = Integer.parseInt(split[1]);
+            String line;
+            while ((line = lr.readLine()) != null) {
+                int num = lr.getLineNumber();
+                if (num > to) {
+                    break;
+                }
+                if (num > from) {
+                    session.console(formatLine(line, num));
+                }
+            }
+        } else {
+            session.end(false, "input error, must one ':'");
+        }
+    }
     
     private void printTailFile(CommandSession session, LineNumberReader lr) throws IOException {
         if (this.tail > 0) {
@@ -118,6 +168,9 @@ public class CatCommandProcessor implements CommandProcessor {
     }
     
     private String formatLine(String line, int num) {
+        if (this.isCanceled) {
+            throw new JarbootRunException("Reading file is canceled!");
+        }
         if (this.showLine) {
             line = String.format("<span style=\"color:gray;margin:0 20px 0 2px\">%d</span>%s", num, line);
         }
@@ -130,5 +183,13 @@ public class CatCommandProcessor implements CommandProcessor {
         this.fileName = null;
         this.tail = null;
         this.head = null;
+        this.isCanceled = false;
+        this.lineNumber = null;
+    }
+
+    @Override
+    public void onCancel() {
+        // 当文件很大时，会造成长时间文件读
+        this.isCanceled = true;
     }
 }

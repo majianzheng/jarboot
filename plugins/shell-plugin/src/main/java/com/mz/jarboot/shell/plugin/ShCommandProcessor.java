@@ -29,7 +29,7 @@ public class ShCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
         if (null != process) {
-            session.end(false, "shell process is running on other session!");
+            session.end(false, "shell process is running!");
             return "";
         }
         if (null != args && args.length > 0) {
@@ -70,6 +70,5 @@ public class ShCommandProcessor implements CommandProcessor {
         if (null != this.process) {
             this.process.destroyForcibly();
         }
-        CommandProcessor.super.onCancel();
     }
 }
