@@ -55,9 +55,4 @@ public class LsCommandProcessor implements CommandProcessor {
             return this.path + " is empty.";
         }
     }
-
-    @Override
-    public void afterProcess(String result, Throwable e) {
-        this.path = null;
-    }
 }

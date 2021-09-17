@@ -108,7 +108,7 @@ public class CatCommandProcessor implements CommandProcessor {
             String line;
             while ((line = lr.readLine()) != null) {
                 int num = lr.getLineNumber();
-                if (num > this.head) {
+                if (num > this.head || this.isCanceled) {
                     break;
                 }
                 session.console(formatLine(line, num));
@@ -125,7 +125,7 @@ public class CatCommandProcessor implements CommandProcessor {
             String line;
             while ((line = lr.readLine()) != null) {
                 int num = lr.getLineNumber();
-                if (num > lineNum) {
+                if (num > lineNum || this.isCanceled) {
                     break;
                 }
                 if (num == lineNum) {
@@ -139,7 +139,7 @@ public class CatCommandProcessor implements CommandProcessor {
             String line;
             while ((line = lr.readLine()) != null) {
                 int num = lr.getLineNumber();
-                if (num > to) {
+                if (num > to || this.isCanceled) {
                     break;
                 }
                 if (num > from) {
@@ -156,6 +156,9 @@ public class CatCommandProcessor implements CommandProcessor {
             String line;
             LinkedList<String> buffer = new LinkedList<>();
             while ((line = lr.readLine()) != null) {
+                if (this.isCanceled) {
+                    throw new JarbootRunException("Cat is canceled!");
+                }
                 buffer.add(formatLine(line, lr.getLineNumber()));
                 if (buffer.size() > this.tail) {
                     buffer.removeFirst();
@@ -168,23 +171,10 @@ public class CatCommandProcessor implements CommandProcessor {
     }
     
     private String formatLine(String line, int num) {
-        if (this.isCanceled) {
-            throw new JarbootRunException("Reading file is canceled!");
-        }
         if (this.showLine) {
             line = String.format("<span style=\"color:gray;margin:0 20px 0 2px\">%d</span>%s", num, line);
         }
         return line;
-    }
-
-    @Override
-    public void afterProcess(String result, Throwable e) {
-        this.showLine = false;
-        this.fileName = null;
-        this.tail = null;
-        this.head = null;
-        this.isCanceled = false;
-        this.lineNumber = null;
     }
 
     @Override

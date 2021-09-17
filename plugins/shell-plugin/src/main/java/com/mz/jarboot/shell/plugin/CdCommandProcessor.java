@@ -41,9 +41,4 @@ public class CdCommandProcessor implements CommandProcessor {
         }
         return "";
     }
-
-    @Override
-    public void afterProcess(String result, Throwable e) {
-        this.path = null;
-    }
 }

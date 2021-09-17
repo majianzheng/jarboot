@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import styles from './index.less';
 import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
@@ -10,17 +10,25 @@ interface ConsoleProps {
     server: string;
 }
 //最大行数
-const MAX_LINE = 20000;
+const MAX_LINE = 16384;
 //超出上限则移除最老的行数
-const AUTO_CLEAN_LINE = 8000;
+const AUTO_CLEAN_LINE = 12000;
+//渲染更新延迟
+const MAX_UPDATE_DELAY = 128;
+const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 
-const Console = (props: ConsoleProps) => { // NOSONAR
-    const id = `id-console-${props.server}`;
-    let codeDom: HTMLElement|null = null;
-    let loading = document.createElement('p');
-    let isStartLoading = false;
+class Console extends React.PureComponent<ConsoleProps> {
+    private codeDom: HTMLElement|null = null;
+    private loading = document.createElement('p');
+    private isStartLoading = false;
+    private waitToAppend = [] as string[];
+    private updateTimeoutFd: NodeJS.Timeout|null = null;
+    private finishTimeoutFd: NodeJS.Timeout|null = null;
 
-    useEffect(() => {
+    componentDidMount() {
+        this.updateTimeoutFd = null;
+        this.finishTimeoutFd = null;
+        this.waitToAppend = [];
         //初始化loading
         let three1 = document.createElement('div');
         let three2 = document.createElement('div');
@@ -28,122 +36,143 @@ const Console = (props: ConsoleProps) => { // NOSONAR
         three1.className= styles.three1;
         three2.className= styles.three2;
         three3.className= 'three3';
-        loading.append(three1);
-        loading.append(three2);
-        loading.append(three3);
-        loading.className = styles.loading;
-        const {pubsub, server} = props;
-        pubsub?.submit(server, 'appendLine', appendLine);
-        pubsub?.submit(server, 'insertLineToHeader', insertLineToHeader);
-        pubsub?.submit(server, 'startLoading', startLoading);
-        pubsub?.submit(server, 'finishLoading', finishLoading);
-        pubsub?.submit(server, 'clear', clear);
-        if (StringUtil.isNotEmpty(props.content)) {
-            _resetContent(props.content);
+        this.loading.append(three1);
+        this.loading.append(three2);
+        this.loading.append(three3);
+        this.loading.className = styles.loading;
+        const {pubsub, server} = this.props;
+        pubsub?.submit(server, 'appendLine', this.appendLine);
+        pubsub?.submit(server, 'insertLineToHeader', this.insertLineToHeader);
+        pubsub?.submit(server, 'startLoading', this.startLoading);
+        pubsub?.submit(server, 'finishLoading', this.finishLoading);
+        pubsub?.submit(server, 'clear', this.clear);
+        if (StringUtil.isNotEmpty(this.props.content)) {
+            this._resetContent(this.props.content);
         }
-    }, []);
+    }
 
-    const init = () => {
-        if (null !== codeDom) {
+    componentWillUnmount() {
+        const {pubsub, server} = this.props;
+        pubsub?.unSubmit(server, 'appendLine', this.appendLine);
+        pubsub?.unSubmit(server, 'insertLineToHeader', this.insertLineToHeader);
+        pubsub?.unSubmit(server, 'startLoading', this.startLoading);
+        pubsub?.unSubmit(server, 'finishLoading', this.finishLoading);
+        pubsub?.unSubmit(server, 'clear', this.clear);
+        this.updateTimeoutFd = null;
+        this.codeDom = null;
+    }
+
+    private init = () => {
+        if (this.codeDom) {
+            const count = this.codeDom.children.length;
+            if (count > MAX_LINE) {
+                //如果超过最大行数则移除最老的行
+                for (let i = 0; i < AUTO_CLEAN_LINE; ++i) {
+                    this.codeDom.removeChild(this.codeDom.children[0]);
+                }
+            }
             return;
         }
-        codeDom = document.querySelector(`#${id}`);
+        this.codeDom = document.querySelector(`#id-console-${this.props.server}`);
     };
-    const _resetContent = (text: string|undefined) => {
+    private _resetContent = (text: string|undefined) => {
         if (null == text) {
             return;
         }
-        init();
-        let count = codeDom?.childNodes.length;
+        this.init();
+        let count = this.codeDom?.childNodes.length;
         if (count) {
             for (let i = 0; i < count; ++i) {
-                codeDom?.removeChild(codeDom.childNodes[0]);
+                this.codeDom?.removeChild(this.codeDom.childNodes[0]);
             }
         }
-        codeDom?.append(text);
+        this.codeDom?.append(text);
     };
-    const clear = () => {
-        init();
-        if (!codeDom) {
+    private clear = () => {
+        this.init();
+        if (!this.codeDom) {
             return;
         }
-        let count = codeDom.children.length;
-        if (count > 0 && loading == codeDom.children[count - 1]) {
+        let count = this.codeDom.children.length;
+        if (count > 0 && this.loading == this.codeDom.children[count - 1]) {
             //如果处于加载中，则保留加载的动画
             --count;
         }
         for(let i = 0; i < count; ++i){
-            codeDom.removeChild(codeDom.children[0]);
+            this.codeDom.removeChild(this.codeDom.children[0]);
         }
     };
-    const startLoading = () => {
-        _initLoading();
-    };
-    const finishLoading = (str?: string) => {
-        init();
-        if (undefined !== str && StringUtil.isNotEmpty(str)) {
+    private startLoading = () => {
+        if (!this.isStartLoading) {
             try {
-                _initLoading();
-                let p = _parseLine(str);
-                loading.before(p);
-            } catch (e) {
-                // ignore
-            }
-        }
-        //停止转圈
-        try {
-            codeDom?.removeChild(loading);
-        } catch (error) {
-            //ignore
-        }
-        isStartLoading = false;
-    };
-    const appendLine = (line: string) => {
-        init();
-        if (StringUtil.isEmpty(line) || !codeDom) {
-            //忽略空字符串
-            return;
-        }
-        const count = codeDom.children.length;
-        if (count > MAX_LINE) {
-            //如果超过最大行数则移除最老的行
-            for (let i = 0; i < AUTO_CLEAN_LINE; ++i) {
-                codeDom.removeChild(codeDom.children[0]);
-            }
-        }
-        if (!isStartLoading) {
-            startLoading();
-        }
-        try {
-            let p = _parseLine(line);
-            loading.before(p);
-            codeDom.scrollTop = codeDom.scrollHeight;
-        } catch (e) {
-            Logger.error(e);
-        }
-
-    };
-
-    const insertLineToHeader = (line: string) => {
-        init();
-        if (!isStartLoading) {
-            startLoading();
-        }
-        loading.after(_parseLine(line));
-    };
-
-    const _initLoading = () => {
-        if (!isStartLoading) {
-            try {
-                codeDom?.append(loading);
-                isStartLoading = true;
+                this.codeDom?.append(this.loading);
+                this.isStartLoading = true;
             } catch (e) {
                 Logger.error(e);
             }
         }
     };
+    private finishLoading = (str?: string) => {
+        this.init();
+        if (StringUtil.isNotEmpty(str)) {
+            this.appendLine(str as string);
+        }
+        if (this.finishTimeoutFd) {
+            // 以最后一次生效，当前若存在则取消，重新计时
+            clearTimeout(this.finishTimeoutFd);
+        }
+        //延迟异步，停止转圈
+        this.finishTimeoutFd = setTimeout(() => {
+            this.finishTimeoutFd = null;
+            try {
+                this.codeDom?.removeChild(this.loading);
+            } catch (error) {
+                //ignore
+            }
+            this.isStartLoading = false;
+        }, MAX_FINISHED_DELAY);
 
-    const _parseLine = (line: string) => {
+    };
+    private appendLine = (line: string) => {
+        if (!line?.length) {
+            //忽略空字符串
+            return;
+        }
+        this.waitToAppend.push(line);
+        //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
+        if (!this.updateTimeoutFd) {
+            this.init();
+            this.updateTimeoutFd = setTimeout(() => {
+                this.updateTimeoutFd = null;
+                if (!this.isStartLoading) {
+                    this.startLoading()
+                }
+                //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
+                const fragment = document.createDocumentFragment();
+                try {
+                    this.waitToAppend.forEach(l => fragment.append(this._parseLine(l)));
+                    this.loading.before(fragment);
+                    if (this.codeDom) {
+                        this.codeDom.scrollTop = this.codeDom.scrollHeight;
+                    }
+                } catch (e) {
+                    Logger.error(e);
+                } finally {
+                    this.waitToAppend = [];
+                }
+            }, MAX_UPDATE_DELAY);
+        }
+    };
+
+    private insertLineToHeader = (line: string) => {
+        this.init();
+        if (!this.isStartLoading) {
+            this.startLoading();
+        }
+        this.loading.after(this._parseLine(line));
+    };
+
+    private _parseLine = (line: string) => {
         let p = document.createElement('p');
         line = line.replace(/ERROR/g, `<span class="error-log">ERROR</span>`).
         replace(/INFO/g, `<span class="info-log">INFO</span>`);
@@ -155,11 +184,14 @@ const Console = (props: ConsoleProps) => { // NOSONAR
         return p;
     };
 
-    let style = {display: false === props.visible ? 'none' : 'block'};
-    return (<>
-            <code id={id} style={style} className={styles.console}>
-            </code>
-        </>
-    );
+    render() {
+        let style = {display: false === this.props.visible ? 'none' : 'block'};
+        return (<>
+                <code id={`id-console-${this.props.server}`} style={style} className={styles.console}>
+                    <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>Jarboot Console</p>
+                </code>
+            </>
+        );
+    }
 }
 export default Console;
