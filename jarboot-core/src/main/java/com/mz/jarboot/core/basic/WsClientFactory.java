@@ -1,5 +1,8 @@
 package com.mz.jarboot.core.basic;
 
+import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -30,7 +33,10 @@ public class WsClientFactory {
     private final CommandDispatcher dispatcher;
     private okhttp3.WebSocketListener listener;
     private volatile boolean online = false;
-    private CountDownLatch latch = null;
+    @SuppressWarnings("all")
+    private volatile CountDownLatch latch = null;
+    @SuppressWarnings("all")
+    private volatile CountDownLatch heartbeatLatch = null;
 
     private WsClientFactory() {
         //1.命令派发器
@@ -110,6 +116,13 @@ public class WsClientFactory {
     }
 
     public synchronized void createSingletonClient() {
+        if (null != client && online) {
+            try {
+                client.close(0, "destroy and recreate");
+            } catch (Exception e) {
+                //ignore
+            }
+        }
         latch = new CountDownLatch(1);
         try {
             client = HttpUtils.HTTP_CLIENT
@@ -118,11 +131,7 @@ public class WsClientFactory {
                             .get()
                             .url(url)
                             .build(), this.listener);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-
-        try {
+            
             long b = System.currentTimeMillis();
             logger.debug("wait connected:{}", b);
             boolean r = latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
@@ -133,12 +142,52 @@ public class WsClientFactory {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         } finally {
             latch = null;
         }
     }
 
+    public void onHeartbeat() {
+        if (null == this.heartbeatLatch) {
+            logger.warn("heartbeat command executed, but check thread may timeout!");
+        } else {
+            logger.info("heartbeat command executed success!");
+            this.heartbeatLatch.countDown();
+        }
+    }
+
     public boolean isOnline() {
+        if (online) {
+            CommandResponse resp = new CommandResponse();
+            resp.setSuccess(true);
+            resp.setResponseType(ResponseType.HEARTBEAT);
+            resp.setBody("heartbeat time:" + System.currentTimeMillis());
+            resp.setSessionId(CommandConst.SESSION_COMMON);
+            heartbeatLatch = new CountDownLatch(1);
+            // 进行一次心跳检测
+            online = this.client.send(resp.toRaw());
+            logger.info("check online send heartbeat >> success: {}", online);
+            if (!online) {
+                // 发送心跳失败！
+                heartbeatLatch = null;
+                return false;
+            }
+            try {
+                // 等待jarboot-server的心跳命令触发
+                online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
+                if (online) {
+                    logger.info("wait heartbeat callback success!");
+                } else {
+                    logger.error("wait heartbeat callback timeout!");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                this.heartbeatLatch = null;
+            }
+        }
         return online;
     }
 

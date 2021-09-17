@@ -6,9 +6,9 @@ package com.mz.jarboot.common;
  */
 public enum ResponseType {
     /**
-     * 服务上线
+     * 心跳
      */
-    ONLINE,
+    HEARTBEAT,
 
     /**
      * 程序中的标准输出流

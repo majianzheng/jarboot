@@ -48,7 +48,7 @@ public class WebSocketAgentServer {
     @OnMessage
     public void onTextMessage(String message, Session session, @PathParam("server") String server) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
-        AgentManager.getInstance().handleAgentResponse(server, resp);
+        AgentManager.getInstance().handleAgentResponse(server, resp, session);
     }
 
     /**

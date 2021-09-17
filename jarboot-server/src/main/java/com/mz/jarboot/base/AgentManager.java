@@ -158,10 +158,17 @@ public class AgentManager {
         client.sendInternalCommand(command, sessionId);
     }
 
-    public void handleAgentResponse(String server, CommandResponse resp) {
+    public void handleAgentResponse(String server, CommandResponse resp, Session session) {
         ResponseType type = resp.getResponseType();
         String sessionId = resp.getSessionId();
         switch (type) {
+            case HEARTBEAT:
+                AgentClient client = clientMap.getOrDefault(server, null);
+                if (null == client || !ClientState.ONLINE.equals(client.getState())) {
+                    this.online(server, session);
+                }
+                sendInternalCommand(server, CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON);
+                break;
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;

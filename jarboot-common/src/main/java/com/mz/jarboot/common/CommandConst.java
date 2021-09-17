@@ -31,9 +31,9 @@ public class CommandConst {
     public static final char JSON_RESULT_TYPE = BASE_TYPE + 3;
 
     /**
-     * agent上线
+     * 心跳
      */
-    public static final char ONLINE_TYPE = BASE_TYPE + 4;
+    public static final char HEARTBEAT_TYPE = BASE_TYPE + 4;
 
     /**
      * 命令完成消息
@@ -55,6 +55,7 @@ public class CommandConst {
     public static final String INVALID_SESSION_CMD = "session_invalid";
     public static final String EXIT_CMD = "exit";
     public static final String CANCEL_CMD = "cancel";
+    public static final String HEARTBEAT = "heartbeat";
 
     /**
      * 广播会话ID，进程启动或退出时，广播所有客户端

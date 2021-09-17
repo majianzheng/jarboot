@@ -7,10 +7,7 @@ import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
-import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
-import com.mz.jarboot.core.cmd.internal.CancelCommand;
-import com.mz.jarboot.core.cmd.internal.ExitCommand;
-import com.mz.jarboot.core.cmd.internal.SessionInvalidCommand;
+import com.mz.jarboot.core.cmd.internal.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -56,6 +53,7 @@ public class CommandBuilder {
         //初始化内部命令实现
         commandMap.put(CommandConst.EXIT_CMD, ExitCommand.class);
         commandMap.put(CommandConst.CANCEL_CMD, CancelCommand.class);
+        commandMap.put(CommandConst.HEARTBEAT, HeartbeatCommand.class);
         commandMap.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
         //初始化jdk的spi
         initJdkSpi();
