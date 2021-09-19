@@ -51,4 +51,13 @@ public interface CommandProcessor {
     default void onCancel() {
         //ignore
     }
+
+    /**
+     * 是否为单例，若设定为单例需要注意线程安全和参数重置，默认均是多实例<br>
+     * 内置命令、shell插件中命令均采用了多实例的模式
+     * @return 是否单例
+     */
+    default boolean isSingleton() {
+        return false;
+    }
 }

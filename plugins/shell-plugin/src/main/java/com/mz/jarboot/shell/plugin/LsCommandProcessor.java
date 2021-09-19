@@ -40,14 +40,14 @@ public class LsCommandProcessor implements CommandProcessor {
         if (!dir.isDirectory()) {
             return this.path + " is not a directory.";
         }
-        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
         File[] files = dir.listFiles();
         if (null != files && files.length > 0) {
             for (File file : files) {
                 String color = file.isDirectory() ? "#3293ed" : "#52c41a";
                 String s = sdf.format(new Date(file.lastModified()));
-                String text = String.format("<span style=\"color:%s;margin-right:26px\">%s</span>%s",
-                        color, file.getName(), s);
+                String text = String.format("%s<span style=\"color:%s;margin-left:26px\">%s</span>",
+                        s, color, file.getName());
                 session.console(text);
             }
             return "total: " + files.length;
