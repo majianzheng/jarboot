@@ -166,15 +166,14 @@ public class WsClientFactory {
             resp.setBody("heartbeat time:" + System.currentTimeMillis());
             resp.setSessionId(CommandConst.SESSION_COMMON);
             heartbeatLatch = new CountDownLatch(1);
-            // 进行一次心跳检测
-            online = this.client.send(resp.toRaw());
-            logger.info("check online send heartbeat >> success: {}", online);
-            if (!online) {
-                // 发送心跳失败！
-                heartbeatLatch = null;
-                return false;
-            }
             try {
+                // 进行一次心跳检测
+                online = this.client.send(resp.toRaw());
+                logger.info("check online send heartbeat >> success: {}", online);
+                if (!online) {
+                    // 发送心跳失败！
+                    return false;
+                }
                 // 等待jarboot-server的心跳命令触发
                 online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
                 if (online) {

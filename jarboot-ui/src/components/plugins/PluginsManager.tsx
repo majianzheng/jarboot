@@ -2,7 +2,7 @@ import {Form, Select, Layout, Modal, Upload, Button} from 'antd';
 import {useEffect, useState} from "react";
 import CommonTable from "@/components/table";
 import {formatMsg} from "@/common/IntlFormat";
-import {DeleteOutlined, SyncOutlined, UploadOutlined} from "@ant-design/icons";
+import {DeleteOutlined, SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
 import PluginsService from "@/services/PluginsService";
 import CommonNotice from "@/common/CommonNotice";
 import {useIntl} from "umi";
@@ -124,10 +124,20 @@ const PluginsManager = () => {
                 onClick: () => setVisible(true),
             },
             {
-                name: 'Dashboard',
-                key: 'dashboard',
+                name: 'Delete',
+                key: 'delete',
                 icon: <DeleteOutlined style={toolButtonRedStyle}/>,
                 onClick: removePlugin,
+            },
+            {
+                name: 'Open new window',
+                key: 'open',
+                icon: <ArrowRightOutlined style={toolButtonStyle}/>,
+                onClick: () => {
+                    if (url) {
+                        window.open(url, selected.rows[0].id);
+                    }
+                },
             }
         ]
     };
@@ -153,9 +163,18 @@ const PluginsManager = () => {
         },
     };
 
+    const getUrl = () => {
+        const plugin = selected.rows[0];
+        if (plugin) {
+            return `/plugins/page/${plugin.type}/${plugin.fileName}/index.html`;
+        } else {
+            return null;
+        }
+    };
+
     let tableOption: any = _getTbProps();
     tableOption.scroll = { y: height};
-    const plugin = selected.rows[0];
+    const url = getUrl();
     return (
         <Layout>
             <Sider width={300} collapsible collapsed={collapsed} onCollapse={onCollapse}>
@@ -163,10 +182,7 @@ const PluginsManager = () => {
                              toolbar={_getTbBtnProps()} height={height}/>
             </Sider>
             <Layout>
-                {plugin && <iframe frameBorder={0}
-                                       width={'100%'}
-                                       height={'100%'}
-                                       src={`/plugins/page/${plugin.type}/${plugin.fileName}/index.html`}/>}
+                {url && <iframe frameBorder={0} width={'100%'} height={'100%'} src={url}/>}
             </Layout>
             {visible && <Modal title={intl.formatMessage({id: 'PLUGIN_UPLOAD_TITLE'})}
                                visible={true}

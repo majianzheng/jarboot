@@ -36,7 +36,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             try {
                 this.tokenManager.validateToken(jwt);
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Validate token failed.\n" + e.getMessage());
                 return;
             }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);

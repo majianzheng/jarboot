@@ -401,12 +401,12 @@ export default class ServerMgrView extends React.PureComponent {
         return (<div>
             <div style={{display: 'flex'}}>
                 <div style={{flex: 'inherit', width: '28%'}}>
+                    <CommonTable toolbarGap={5} option={tableOption}
+                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                     <OneClickButtons loading={this.state.oneClickLoading}
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
                                      oneClickStop={this.oneClickStop}/>
-                    <CommonTable toolbarGap={5} option={tableOption}
-                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
                     {(this.state.loading && 0 == this.allServerOut.length) &&

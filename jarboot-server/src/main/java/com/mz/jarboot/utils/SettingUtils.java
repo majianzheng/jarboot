@@ -25,7 +25,7 @@ public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
     private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
     private static final String BOOT_PROPERTIES = "boot.properties";
-    private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
+    private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     private static final String DEFAULT_SERVICES_DIR;
     private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";

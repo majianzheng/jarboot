@@ -44,7 +44,7 @@ public class StdOutStreamReactor {
     }
 
     private StdOutStreamReactor() {
-        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 5000);
+        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
         sos = new StdConsoleOutputStream();
         //备份默认的输出流
         defaultOut = System.out;

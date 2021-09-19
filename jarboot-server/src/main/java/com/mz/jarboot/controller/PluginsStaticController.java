@@ -32,7 +32,8 @@ public class PluginsStaticController {
             pluginsService.readPluginStatic(type, plugin, file, outputStream);
         } catch (Exception e) {
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Read plugin resource failed!\n" + e.getMessage());
             } catch (IOException exception) {
                 //ignore
             }
