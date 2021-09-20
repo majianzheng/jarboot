@@ -28,6 +28,10 @@ public class MessageQueueOperator {
         }
     }
 
+    public boolean isOpen() {
+        return this.session.isOpen();
+    }
+
     public static BlockingQueue<MessageSender> getQueue() {
         return QUEUE;
     }
