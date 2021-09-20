@@ -1,6 +1,8 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.service.PluginsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,7 @@ import java.io.OutputStream;
 @RequestMapping(value = "/plugins")
 @Controller
 public class PluginsStaticController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private PluginsService pluginsService;
 
@@ -31,9 +34,10 @@ public class PluginsStaticController {
         try (OutputStream outputStream = response.getOutputStream();) {
             pluginsService.readPluginStatic(type, plugin, file, outputStream);
         } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
             try {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "Read plugin resource failed!\n" + e.getMessage());
+                        "Read plugin resource failed!");
             } catch (IOException exception) {
                 //ignore
             }
