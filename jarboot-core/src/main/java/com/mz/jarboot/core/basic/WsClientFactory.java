@@ -160,34 +160,38 @@ public class WsClientFactory {
 
     public boolean isOnline() {
         if (online) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(true);
-            resp.setResponseType(ResponseType.HEARTBEAT);
-            resp.setBody("heartbeat time:" + System.currentTimeMillis());
-            resp.setSessionId(CommandConst.SESSION_COMMON);
-            heartbeatLatch = new CountDownLatch(1);
-            try {
-                // 进行一次心跳检测
-                online = this.client.send(resp.toRaw());
-                logger.info("check online send heartbeat >> success: {}", online);
-                if (!online) {
-                    // 发送心跳失败！
-                    return false;
-                }
-                // 等待jarboot-server的心跳命令触发
-                online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
-                if (online) {
-                    logger.info("wait heartbeat callback success!");
-                } else {
-                    logger.error("wait heartbeat callback timeout!");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                this.heartbeatLatch = null;
-            }
+            sendHeartbeat();
         }
         return online;
+    }
+
+    private void sendHeartbeat() {
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.HEARTBEAT);
+        resp.setBody("heartbeat time:" + System.currentTimeMillis());
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        heartbeatLatch = new CountDownLatch(1);
+        try {
+            // 进行一次心跳检测
+            online = this.client.send(resp.toRaw());
+            logger.info("check online send heartbeat >> success: {}", online);
+            if (!online) {
+                // 发送心跳失败！
+                return;
+            }
+            // 等待jarboot-server的心跳命令触发
+            online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
+            if (online) {
+                logger.info("wait heartbeat callback success!");
+            } else {
+                logger.error("wait heartbeat callback timeout!");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            this.heartbeatLatch = null;
+        }
     }
 
     public okhttp3.WebSocket getSingletonClient() {
