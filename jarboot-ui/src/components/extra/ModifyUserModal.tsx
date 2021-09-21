@@ -37,7 +37,7 @@ const ModifyUserModal: any = memo((props: ModifyPasswordModalProp) => {
     return <>
         {props.visible &&
         <Modal title={intl.formatMessage({id: props.isCreate ? 'CREATE_USER' : 'MODIFY_PWD'})}
-               visible={true}
+               visible={true} maskClosable={false}
                destroyOnClose={true}
                onOk={onModifyPassword}
                onCancel={onCancel}>

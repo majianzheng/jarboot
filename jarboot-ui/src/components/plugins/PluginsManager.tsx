@@ -13,8 +13,8 @@ const height = window.innerHeight - 130;
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const layout = {
-    labelCol: {span: 8},
-    wrapperCol: {span: 16},
+    labelCol: {span: 6},
+    wrapperCol: {span: 18},
 };
 
 const PluginsManager = () => {
@@ -185,8 +185,8 @@ const PluginsManager = () => {
                 {url && <iframe frameBorder={0} width={'100%'} height={'100%'} src={url}/>}
             </Layout>
             {visible && <Modal title={intl.formatMessage({id: 'PLUGIN_UPLOAD_TITLE'})}
-                               visible={true}
-                               width={860}
+                               visible={true} maskClosable={false}
+                               width={600}
                                destroyOnClose={true}
                                onOk={() => setVisible(false)}
                                onCancel={() => setVisible(false)}>

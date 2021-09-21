@@ -27,7 +27,7 @@ const FileEditModal: any = memo((props: FileEditModalProp) => {
         setContent(value);
     };
 
-    return <Modal title={props.name} visible={props.visible} width={860}
+    return <Modal title={props.name} visible={props.visible} width={860} maskClosable={false}
                   destroyOnClose={true} onOk={onOk} onCancel={closeModal}>
         <CodeEditor height={window.innerHeight - 320}
                     readOnly={false} onChange={onChange} mode={CodeMode.PROPERTY}
