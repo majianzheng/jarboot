@@ -126,10 +126,11 @@ public class TaskRunCache {
         stoppingCache.remove(server);
     }
 
-    private boolean filterExcludeDir(File dir, String name) {
+    private boolean filterExcludeDir(File dir) {
         if (!dir.isDirectory() || dir.isHidden()) {
             return false;
         }
+        final String name = dir.getName();
         if (StringUtils.startsWith(name, CommonConst.DOT)) {
             return false;
         }
