@@ -114,9 +114,7 @@ class Console extends React.PureComponent<ConsoleProps> {
     };
     private finishLoading = (str?: string) => {
         this.init();
-        if (StringUtil.isNotEmpty(str)) {
-            this.appendLine(str as string);
-        }
+        this.appendLine(str);
         if (this.finishTimeoutFd) {
             // 以最后一次生效，当前若存在则取消，重新计时
             clearTimeout(this.finishTimeoutFd);
@@ -133,9 +131,8 @@ class Console extends React.PureComponent<ConsoleProps> {
         }, MAX_FINISHED_DELAY);
 
     };
-    private appendLine = (line: string) => {
-        if (!line?.length) {
-            //忽略空字符串
+    private appendLine = (line: string | undefined) => {
+        if (typeof line !== 'string') {
             return;
         }
         this.waitToAppend.push(line);
@@ -173,6 +170,9 @@ class Console extends React.PureComponent<ConsoleProps> {
     };
 
     private _parseLine = (line: string) => {
+        if (0 === line?.length) {
+            return document.createElement('br');
+        }
         let p = document.createElement('p');
         line = line.replace(/ERROR/g, `<span class="error-log">ERROR</span>`).
         replace(/INFO/g, `<span class="info-log">INFO</span>`);

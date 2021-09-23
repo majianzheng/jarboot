@@ -172,7 +172,7 @@ public class CatCommandProcessor implements CommandProcessor {
     
     private String formatLine(String line, int num) {
         if (this.showLine) {
-            line = String.format("<span style=\"color:gray;margin:0 20px 0 2px\">%d</span>%s", num, line);
+            line = String.format("<span class=\"line-num\">%d</span>%s", num, line);
         }
         return line;
     }
