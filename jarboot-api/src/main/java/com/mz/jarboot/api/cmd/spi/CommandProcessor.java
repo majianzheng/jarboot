@@ -37,7 +37,7 @@ public interface CommandProcessor {
 
     /**
      * <h3>命令执行后</h3>
-     * 可用于参数的重置操作
+     * 可用于单例模式下的参数的重置操作
      * @param result 执行结果
      * @param e      失败时抛出的异常，执行成功为{@link null}
      */

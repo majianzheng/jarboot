@@ -24,6 +24,7 @@ export default {
     UPLOAD_STAGE_TITLE: '上传{server}文件',
     UPLOAD_TIPS: '点击或拖拽文件到此区域上传',
     FILE_SIZE_OVER_TIPS: '文件大小必须小于{size}',
+    COMMAND_PLACEHOLDER: '输入命令，示例：help',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',

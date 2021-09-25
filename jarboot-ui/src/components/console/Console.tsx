@@ -2,6 +2,7 @@ import React from 'react';
 import styles from './index.less';
 import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
+import {JarBootConst} from "@/common/JarBootConst";
 
 interface ConsoleProps {
     visible?: boolean;
@@ -41,11 +42,12 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.loading.append(three3);
         this.loading.className = styles.loading;
         const {pubsub, server} = this.props;
-        pubsub?.submit(server, 'appendLine', this.appendLine);
-        pubsub?.submit(server, 'insertLineToHeader', this.insertLineToHeader);
-        pubsub?.submit(server, 'startLoading', this.startLoading);
-        pubsub?.submit(server, 'finishLoading', this.finishLoading);
-        pubsub?.submit(server, 'clear', this.clear);
+        pubsub?.submit(server, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub?.submit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub?.submit(server, JarBootConst.INSERT_TO_HEADER, this.insertLineToHeader);
+        pubsub?.submit(server, JarBootConst.START_LOADING, this.startLoading);
+        pubsub?.submit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub?.submit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
         if (StringUtil.isNotEmpty(this.props.content)) {
             this._resetContent(this.props.content);
         }
@@ -53,11 +55,12 @@ class Console extends React.PureComponent<ConsoleProps> {
 
     componentWillUnmount() {
         const {pubsub, server} = this.props;
-        pubsub?.unSubmit(server, 'appendLine', this.appendLine);
-        pubsub?.unSubmit(server, 'insertLineToHeader', this.insertLineToHeader);
-        pubsub?.unSubmit(server, 'startLoading', this.startLoading);
-        pubsub?.unSubmit(server, 'finishLoading', this.finishLoading);
-        pubsub?.unSubmit(server, 'clear', this.clear);
+        pubsub?.unSubmit(server, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub?.unSubmit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub?.unSubmit(server, JarBootConst.INSERT_TO_HEADER, this.insertLineToHeader);
+        pubsub?.unSubmit(server, JarBootConst.START_LOADING, this.startLoading);
+        pubsub?.unSubmit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub?.unSubmit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
         this.updateTimeoutFd = null;
         this.codeDom = null;
     }
@@ -167,6 +170,21 @@ class Console extends React.PureComponent<ConsoleProps> {
             this.startLoading();
         }
         this.loading.after(this._parseLine(line));
+    };
+
+    private backspaceLine = (line?: string) => {
+        if (!this.codeDom || !this.codeDom.children.length) {
+            return;
+        }
+        const len = this.codeDom.children.length;
+        let last = this.isStartLoading ? this.codeDom.children[len - 2] : this.codeDom.children[len - 1];
+        if (last) {
+            if (line) {
+                last.innerHTML = line;
+            } else {
+                this.codeDom.removeChild(last);
+            }
+        }
     };
 
     private _parseLine = (line: string) => {

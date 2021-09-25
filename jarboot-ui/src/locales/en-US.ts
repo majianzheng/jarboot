@@ -24,6 +24,7 @@ export default {
     UPLOAD_STAGE_TITLE: 'Upload {server} files',
     UPLOAD_TIPS: 'Click or drag the file to upload to this area',
     FILE_SIZE_OVER_TIPS: 'The file size must be less than {size}',
+    COMMAND_PLACEHOLDER: 'Input command，Example: help',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',

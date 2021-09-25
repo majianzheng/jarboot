@@ -189,6 +189,9 @@ public class AgentManager {
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
+            case BACKSPACE_LINE:
+                WebSocketManager.getInstance().backspaceLine(server, resp.getBody(), sessionId);
+                break;
             case STD_OUT:
                 //启动中的控制台消息
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);

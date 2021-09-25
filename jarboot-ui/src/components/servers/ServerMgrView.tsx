@@ -49,6 +49,7 @@ export default class ServerMgrView extends React.PureComponent {
         this.refreshServerList(true);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
@@ -89,13 +90,13 @@ export default class ServerMgrView extends React.PureComponent {
                 // 激活终端显示
                 this._activeConsole(server);
                 Logger.log(`启动中${server}...`);
-                pubsub.publish(server, 'startLoading');
+                pubsub.publish(server, JarBootConst.START_LOADING);
                 this._clearDisplay(server);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
                 Logger.log(`停止中${server}...`);
-                pubsub.publish(server, 'startLoading');
+                pubsub.publish(server, JarBootConst.START_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
@@ -105,7 +106,7 @@ export default class ServerMgrView extends React.PureComponent {
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
                 Logger.log(`启动成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
@@ -115,12 +116,12 @@ export default class ServerMgrView extends React.PureComponent {
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
                 Logger.log(`停止成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
                 Logger.log(`重启成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             default:
@@ -129,7 +130,11 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private _console = (data: MsgData) => {
-        pubsub.publish(data.server, 'appendLine', data.body);
+        pubsub.publish(data.server, JarBootConst.APPEND_LINE, data.body);
+    }
+
+    private _backspaceLine = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
     }
 
     private _commandEnd = (data: MsgData) => {
@@ -361,19 +366,19 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private oneClickRestart = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Restarting all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Restarting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickRestart();
     };
 
     private oneClickStart = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Starting all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Starting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStart();
     };
 
     private oneClickStop = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Stopping all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Stopping all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStop();
     };

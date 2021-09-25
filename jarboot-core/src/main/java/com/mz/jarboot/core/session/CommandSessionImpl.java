@@ -61,6 +61,16 @@ public class CommandSessionImpl implements CommandCoreSession {
     }
 
     @Override
+    public void backspaceLine(String replacedText) {
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.BACKSPACE_LINE);
+        resp.setBody(replacedText);
+        resp.setSessionId(this.sessionId);
+        ResultStreamDistributor.write(resp);
+    }
+
+    @Override
     public void appendResult(ResultModel resultModel) {
         ResultStreamDistributor.appendResult(resultModel, this.sessionId);
     }

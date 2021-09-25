@@ -49,6 +49,9 @@ public class CommandResponse implements CmdProtocol {
             case CommandConst.CONSOLE_TYPE:
                 this.setResponseType(ResponseType.CONSOLE);
                 break;
+            case CommandConst.BACKSPACE_LINE_TYPE:
+                this.setResponseType(ResponseType.BACKSPACE_LINE);
+                break;
             case CommandConst.JSON_RESULT_TYPE:
                 this.setResponseType(ResponseType.JSON_RESULT);
                 break;
@@ -86,6 +89,8 @@ public class CommandResponse implements CmdProtocol {
                 return CommandConst.STD_OUT_TYPE;
             case CONSOLE:
                 return CommandConst.CONSOLE_TYPE;
+            case BACKSPACE_LINE:
+                return CommandConst.BACKSPACE_LINE_TYPE;
             case JSON_RESULT:
                 return CommandConst.JSON_RESULT_TYPE;
             case COMMAND_END:

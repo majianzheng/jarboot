@@ -10,6 +10,7 @@ import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
+import {JarBootConst} from "@/common/JarBootConst";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -90,7 +91,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
-        props.pubsub.publish(props.server, 'finishLoading', msg);
+        props.pubsub.publish(props.server, JarBootConst.FINISH_LOADING, msg);
         inputRef?.current?.focus();
         const value = inputRef?.current?.state?.value;
         if (value && value?.length > 0) {
@@ -99,7 +100,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const clearDisplay = () => {
-        props.pubsub.publish(props.server, 'clear');
+        props.pubsub.publish(props.server, JarBootConst.CLEAR_CONSOLE);
         inputRef?.current?.focus();
     };
 
@@ -129,7 +130,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             //切换为控制台显示
             setView('');
         }
-        props.pubsub.publish(props.server, 'appendLine', `jarboot$ ${cmd}`);
+        props.pubsub.publish(props.server, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
         const msg = {server: props.server, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
 
@@ -191,7 +192,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         <Input onPressEnter={onExecCommand} onKeyUp={onKeyUp}
                ref={inputRef}
                disabled={executing}
-               placeholder={"command..."}
+               placeholder={intl.formatMessage({id: 'COMMAND_PLACEHOLDER'})}
                autoComplete={"off"}
                autoCorrect="off"
                autoCapitalize="off"

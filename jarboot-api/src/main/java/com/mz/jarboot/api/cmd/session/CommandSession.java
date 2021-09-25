@@ -20,10 +20,16 @@ public interface CommandSession {
     String getJobId();
 
     /**
-     * 控制台消息打印
+     * 控制台消息打印一行
      * @param text 消息
      */
     void console(String text);
+
+    /**
+     * 控制台后退一行
+     * @param replacedText 若不为空则填充替换最后一行
+     */
+    void backspaceLine(String replacedText);
 
     /**
      * 取消执行
