@@ -52,9 +52,6 @@ public class StdConsoleOutputStream extends OutputStream {
             if (null != printLineHandler) {
                 printLineHandler.handle(getAndReset());
             }
-            if (sb.length() > 0) {
-                sb = new StringBuilder(2048);
-            }
         } else {
             if (sb.length() + offset > FLUSH_THRESHOLD) {
                 flush();
@@ -76,6 +73,8 @@ public class StdConsoleOutputStream extends OutputStream {
             sb.append(new String(buffer, 0, len));
         }
         offset = NO_BUFFER_OFFSET;
-        return sb.toString();
+        String text = sb.toString();
+        sb = new StringBuilder(2048);
+        return text;
     }
 }
