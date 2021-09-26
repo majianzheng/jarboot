@@ -10,10 +10,11 @@ public class StdConsoleOutputStream extends OutputStream {
     private static final int LINE_BREAK = 10;
     private static final int MIN_PRINT_UNIT = 12;
     private static final int  FLUSH_THRESHOLD = MIN_PRINT_UNIT * 128;
+    private static final int NO_BUFFER_OFFSET = -1;
     private static final byte CR = '\r';
     private StringBuilder sb = new StringBuilder(2048);
     private final byte[] buffer = new byte[MIN_PRINT_UNIT * 100];
-    private int offset = -1;
+    private int offset = NO_BUFFER_OFFSET;
     private StdPrintHandler printLineHandler;
     private StdPrintHandler printHandler;
 
@@ -63,7 +64,7 @@ public class StdConsoleOutputStream extends OutputStream {
     @Override
     public void flush() {
         //打印
-        if (null != printHandler) {
+        if (NO_BUFFER_OFFSET != offset && null != printHandler) {
             printHandler.handle(getAndReset());
         }
     }
@@ -74,7 +75,7 @@ public class StdConsoleOutputStream extends OutputStream {
         if (len > 0) {
             sb.append(new String(buffer, 0, len));
         }
-        offset = -1;
+        offset = NO_BUFFER_OFFSET;
         return sb.toString();
     }
 }
