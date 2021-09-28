@@ -68,7 +68,7 @@ public class CommandDispatcher extends Thread {
                     command.run();
                     break;
                 default:
-                    logger.debug("开始执行命令：{}, {}", type, request.getCommandLine());
+                    logger.debug("未知类型的命令：{}, {}", type, request.getCommandLine());
                     break;
             }
         } catch (Throwable e) {

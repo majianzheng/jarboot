@@ -3,7 +3,6 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.common.CmdProtocol;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
-import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
@@ -23,13 +22,16 @@ public class ResultStreamDistributor {
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 
     static {
-        EnvironmentContext.getScheduledExecutorService().execute(ResultStreamDistributor::consumer);
+        Thread thread = new Thread(ResultStreamDistributor::consumer);
+        thread.setName("jarboot-resp-distributor");
+        thread.setDaemon(true);
+        thread.start();
     }
     
     private static class ResultStreamDistributorHolder {
         static ResponseStream http = new HttpResponseStreamImpl();
         static ResponseStream socket = new SocketResponseStreamImpl();
-        static ResultViewResolver resultViewResolver = EnvironmentContext.getResultViewResolver();
+        static ResultViewResolver resultViewResolver = new ResultViewResolver();
     }
 
     /**

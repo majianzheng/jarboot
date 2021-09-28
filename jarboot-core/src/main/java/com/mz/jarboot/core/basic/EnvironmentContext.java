@@ -3,7 +3,6 @@ package com.mz.jarboot.core.basic;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -32,7 +31,6 @@ public class EnvironmentContext {
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     private static ScheduledExecutorService scheduledExecutorService;
     private static String jarbootHome = "./";
-    private static ResultViewResolver resultViewResolver;
     private EnvironmentContext() {}
 
     public static void init(String server, String host, Instrumentation inst) {
@@ -41,9 +39,9 @@ public class EnvironmentContext {
         EnvironmentContext.host = host;
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
-        EnvironmentContext.resultViewResolver = new ResultViewResolver();
 
-        scheduledExecutorService = Executors.newScheduledThreadPool(5,
+        int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 4, 2);
+        scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
         try {
@@ -93,10 +91,6 @@ public class EnvironmentContext {
         return sessionMap.computeIfAbsent(sessionId, key -> new CommandSessionImpl(sessionId));
     }
 
-    public static ResultViewResolver getResultViewResolver() {
-        return resultViewResolver;
-    }
-
     /**
      * 检查job是否已经结束
      * @return 是否结束
@@ -118,20 +112,14 @@ public class EnvironmentContext {
      * @param command 命令
      */
     public static void runCommand(AbstractCommand command) {
+        final CommandCoreSession session = command.getSession();
+        if (checkCommandRunning(session)) {
+            return;
+        }
         scheduledExecutorService.execute(() -> {
-            CommandCoreSession session = command.getSession();
-            if (session.isRunning()) {
-                AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
-                if (null == cmd) {
-                    session.end();
-                } else {
-                    String msg = String.format("当前正在执行%s命令，请等待执行完成，或取消、终止当前命令",
-                            command.getName());
-                    logger.warn(msg);
-                    return;
-                }
+            if (checkCommandRunning(session)) {
+                return;
             }
-
             //开始执行命令，更新正在执行的命令
             session.setRunning();
             runningCommandMap.put(session.getSessionId(), command);
@@ -140,6 +128,8 @@ public class EnvironmentContext {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 session.end(false, e.getMessage());
+                String msg = "命令（" + command.getName() + "）执行失败！<br>" + e.getMessage();
+                AgentServiceOperator.noticeError(msg, session.getSessionId());
             }
         });
     }
@@ -159,6 +149,23 @@ public class EnvironmentContext {
             session.cancel();
             session.end();
             sessionMap.remove(sessionId);
+        }
+    }
+
+    private static boolean checkCommandRunning(final CommandCoreSession session) {
+        if (session.isRunning()) {
+            AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
+            if (null == cmd) {
+                session.end();
+                return false;
+            } else {
+                String msg = String.format("当前正在执行%s命令，请等待执行完成，或取消、终止当前命令",
+                        cmd.getName());
+                AgentServiceOperator.noticeInfo(msg, session.getSessionId());
+                return true;
+            }
+        } else {
+            return false;
         }
     }
 }
