@@ -95,7 +95,7 @@ export default {
     NAME_NOT_EMPTY: `名字不能为空`,
     UPLOAD_FILE_EMPTY: `成功上传的文件为空`,
     SELECT_ONE_OP: '请选择要操作的项',
-    COMMAND_RUNNING: '命令执行中，请先停止命令再执行',
+    COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
 
     //帮助
     BASIC: '基础',

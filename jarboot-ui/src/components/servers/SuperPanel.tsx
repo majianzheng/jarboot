@@ -79,7 +79,8 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const onExecQuickCmd = (cmd: string) => {
-        if (executing) {
+        if (inputRef?.current?.props?.disabled) {
+            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command: inputRef.current.state?.value}));
             return;
         }
         if (StringUtil.isEmpty(cmd)) {
@@ -106,7 +107,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const closeView = () => {
         if (executing) {
-            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}));
+            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command}));
             return;
         }
         if ('' !== view) {

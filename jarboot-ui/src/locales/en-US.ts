@@ -95,7 +95,7 @@ export default {
     NAME_NOT_EMPTY: `Name can't be empty`,
     UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
     SELECT_ONE_OP: 'Please select one item to operate.',
-    COMMAND_RUNNING: 'Command is running，please stop it first.',
+    COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
 
     //帮助
     BASIC: 'Basic',
