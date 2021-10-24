@@ -94,38 +94,38 @@ export default class ServerMgrView extends React.PureComponent {
             case JarBootConst.MSG_TYPE_START:
                 // 激活终端显示
                 this._activeConsole(server);
-                Logger.log(`启动中${server}...`);
+                Logger.log(`${server}启动中...`);
                 pubsub.publish(server, JarBootConst.START_LOADING);
                 this._clearDisplay(server);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
-                Logger.log(`停止中${server}...`);
+                Logger.log(`${server}停止中...`);
                 pubsub.publish(server, JarBootConst.START_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
-                Logger.log(`启动失败${server}`);
+                Logger.log(`${server}启动失败`);
                 CommonNotice.error(`Start ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
-                Logger.log(`启动成功${server}`);
+                Logger.log(`${server}启动成功`);
                 pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
-                Logger.log(`停止失败${server}`);
+                Logger.log(`${server}停止失败`);
                 CommonNotice.error(`Stop ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
-                Logger.log(`停止成功${server}`);
+                Logger.log(`${server}停止成功`);
                 pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
-                Logger.log(`重启成功${server}`);
+                Logger.log(`${server}重启成功`);
                 pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
@@ -301,7 +301,7 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private _clearDisplay = (server: string) => {
-        pubsub.publish(server, 'clear');
+        pubsub.publish(server, JarBootConst.CLEAR_CONSOLE);
     };
 
     private stopServer = () => {

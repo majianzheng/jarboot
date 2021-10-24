@@ -1,8 +1,9 @@
-## 1.0.10-SNAPSHOT (9.19, 2021)
+## 1.0.10 (10.24, 2021)
 
 * 配置文件修改jarboot.services.root-dir -> jarboot.services.workspace
 * 目录结构变更，jar文件放入bin文件夹中，增加插件目录plugins
 #### FEATURES:
+* Console控制台支持print和退格
 * 支持数据库驱动放入plugins/server下以支持更多数据库
 * 支持插件式开发扩展，agent类型插件可扩充命令，server类型插件可增强服务端功能
 * 命令输入框支持历史记录上下翻页，快速输入历史命令

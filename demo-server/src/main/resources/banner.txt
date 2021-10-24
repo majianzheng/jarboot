@@ -11,16 +11,12 @@
 ;   :  .'    |   :    |   ;/            `----'   
 |   ,.'       \   \  /'---'                      
 '---'          `----'
-Jarboot version: v${project.version}
+Jarboot version: v${project.version} example: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example
 This application just for test, using Java Swing framework.
-
 In this test application UI you can execute some method for Jarboot tests.
-Execute command:
-help <command>
+Execute debug command example:
+<span style="color:green">help</span> [command]
 jad com.mz.jarboot.demo.DemoServerApplication
-watch, stack, trace, tt command for fib and pow method:
 watch com.mz.jarboot.demo.DemoServerApplication fib
 trace com.mz.jarboot.demo.DemoServerApplication pow
 SPI extend command （jdk SPI）: demo arg1
-More advanced application examples :
-https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example

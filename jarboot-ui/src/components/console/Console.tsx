@@ -189,13 +189,15 @@ class Console extends React.PureComponent<ConsoleProps> {
                 this.startLoading()
             }
             this.eventQueue.forEach(this.handleEvent);
-            //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
-            const fragment = document.createDocumentFragment();
             try {
-                this.lines.forEach(l => fragment.append(l));
-                this.loading.before(fragment);
-                if (this.codeDom) {
-                    this.codeDom.scrollTop = this.codeDom.scrollHeight;
+                if (this.lines.length) {
+                    //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
+                    const fragment = document.createDocumentFragment();
+                    this.lines.forEach(l => fragment.append(l));
+                    this.loading.before(fragment);
+                    if (this.codeDom) {
+                        this.codeDom.scrollTop = this.codeDom.scrollHeight;
+                    }
                 }
             } catch (e) {
                 Logger.error(e);

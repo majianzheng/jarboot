@@ -54,7 +54,6 @@ public class DemoServerApplication implements Runnable {
 
     private static void finish() {
         int len = 102;
-        log("Jarboot Demo Server started!");
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {
             JarbootFactory.createAgentService().setStarted();
