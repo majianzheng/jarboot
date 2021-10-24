@@ -53,6 +53,7 @@ public class DemoServerApplication implements Runnable {
     }
 
     private static void finish() {
+        int len = 102;
         log("Jarboot Demo Server started!");
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {
@@ -60,6 +61,24 @@ public class DemoServerApplication implements Runnable {
         } catch (Exception e) {
             log(e.getMessage());
         }
+
+        String str = "[";
+        System.out.println("Progress std demo using backspace:");
+        String p = "";
+        for (int i = 0; i < 100; ++i) {
+            str += '#';
+            for (int n = 0; n < p.length(); ++n) {
+                System.out.print('\b');
+            }
+            p = str;
+            for (int j = str.length() + 1; j < len; ++j) {
+                p += '-';
+            }
+            p += String.format("]%d%c", i + 1, '%');
+            System.out.print(p);
+            sleep(200);
+        }
+        System.out.println();
     }
     
     private void callFunc(int f) {
@@ -78,6 +97,7 @@ public class DemoServerApplication implements Runnable {
     
     private String doFib(int limit, int interval) {
         log("开始执行【斐波那契数列】计算>>>");
+        System.out.println();
         String text = fibInput.getText();
         log("输入值为：" + text);
         int n;
@@ -174,7 +194,7 @@ public class DemoServerApplication implements Runnable {
         }
     }
     
-    private void sleep(long n) {
+    private static void sleep(long n) {
         try {
             TimeUnit.MILLISECONDS.sleep(n);
         } catch (InterruptedException e) {

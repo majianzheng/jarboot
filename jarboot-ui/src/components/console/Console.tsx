@@ -10,6 +10,20 @@ interface ConsoleProps {
     pubsub?: PublishSubmit;
     server: string;
 }
+
+enum EventType {
+    LINE,
+    PRINT,
+    BACKSPACE
+}
+
+interface ConsoleEvent {
+    type: EventType,
+    text?: string,
+    backspaceNum?: number,
+    deleted?: boolean,
+}
+
 //最大行数
 const MAX_LINE = 16384;
 //超出上限则移除最老的行数
@@ -17,19 +31,21 @@ const AUTO_CLEAN_LINE = 12000;
 //渲染更新延迟
 const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
+const LINE_CUR_ATTR = 'line-cur';
 
 class Console extends React.PureComponent<ConsoleProps> {
     private codeDom: HTMLElement|null = null;
     private loading = document.createElement('p');
     private isStartLoading = false;
-    private waitToAppend = [] as string[];
+    private eventQueue = [] as ConsoleEvent[];
+    private lines = [] as HTMLElement[];
     private updateTimeoutFd: NodeJS.Timeout|null = null;
     private finishTimeoutFd: NodeJS.Timeout|null = null;
 
     componentDidMount() {
         this.updateTimeoutFd = null;
         this.finishTimeoutFd = null;
-        this.waitToAppend = [];
+        this.eventQueue = [];
         //初始化loading
         let three1 = document.createElement('div');
         let three2 = document.createElement('div');
@@ -41,28 +57,36 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.loading.append(three2);
         this.loading.append(three3);
         this.loading.className = styles.loading;
-        const {pubsub, server} = this.props;
-        pubsub?.submit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub?.submit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub?.submit(server, JarBootConst.INSERT_TO_HEADER, this.insertLineToHeader);
-        pubsub?.submit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub?.submit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub?.submit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
         if (StringUtil.isNotEmpty(this.props.content)) {
             this._resetContent(this.props.content);
         }
+        const {pubsub, server} = this.props;
+        if (!pubsub) {
+            return;
+        }
+        pubsub.submit(server, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.submit(server, JarBootConst.PRINT, this.print);
+        pubsub.submit(server, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.submit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.submit(server, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.submit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.submit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     componentWillUnmount() {
-        const {pubsub, server} = this.props;
-        pubsub?.unSubmit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub?.unSubmit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub?.unSubmit(server, JarBootConst.INSERT_TO_HEADER, this.insertLineToHeader);
-        pubsub?.unSubmit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub?.unSubmit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub?.unSubmit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
         this.updateTimeoutFd = null;
         this.codeDom = null;
+        const {pubsub, server} = this.props;
+        if (!pubsub) {
+            return;
+        }
+        pubsub.unSubmit(server, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.unSubmit(server, JarBootConst.PRINT, this.print);
+        pubsub.unSubmit(server, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.unSubmit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.unSubmit(server, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.unSubmit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.unSubmit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     private init = () => {
@@ -78,6 +102,7 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
         this.codeDom = document.querySelector(`#id-console-${this.props.server}`);
     };
+
     private _resetContent = (text: string|undefined) => {
         if (null == text) {
             return;
@@ -91,6 +116,7 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
         this.codeDom?.append(text);
     };
+
     private clear = () => {
         this.init();
         if (!this.codeDom) {
@@ -105,6 +131,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             this.codeDom.removeChild(this.codeDom.children[0]);
         }
     };
+
     private startLoading = () => {
         if (!this.isStartLoading) {
             try {
@@ -115,6 +142,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             }
         }
     };
+
     private finishLoading = (str?: string) => {
         this.init();
         this.appendLine(str);
@@ -134,58 +162,184 @@ class Console extends React.PureComponent<ConsoleProps> {
         }, MAX_FINISHED_DELAY);
 
     };
+
+    private print = (text: string | undefined) => {
+        this.eventQueue.push({type: EventType.PRINT, text});
+        this.trigEvent();
+    }
+
     private appendLine = (line: string | undefined) => {
         if (typeof line !== 'string') {
             return;
         }
-        this.waitToAppend.push(line);
+        this.eventQueue.push({type: EventType.LINE, text: line,});
         //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
-        if (!this.updateTimeoutFd) {
-            this.init();
-            this.updateTimeoutFd = setTimeout(() => {
-                this.updateTimeoutFd = null;
-                if (!this.isStartLoading) {
-                    this.startLoading()
+        this.trigEvent();
+    };
+
+    private trigEvent() {
+        if (this.updateTimeoutFd) {
+            //已经触发
+            return;
+        }
+        this.init();
+        this.updateTimeoutFd = setTimeout(() => {
+            this.updateTimeoutFd = null;
+            if (!this.isStartLoading) {
+                this.startLoading()
+            }
+            this.eventQueue.forEach(this.handleEvent);
+            //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
+            const fragment = document.createDocumentFragment();
+            try {
+                this.lines.forEach(l => fragment.append(l));
+                this.loading.before(fragment);
+                if (this.codeDom) {
+                    this.codeDom.scrollTop = this.codeDom.scrollHeight;
                 }
-                //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
-                const fragment = document.createDocumentFragment();
-                try {
-                    this.waitToAppend.forEach(l => fragment.append(this._parseLine(l)));
-                    this.loading.before(fragment);
-                    if (this.codeDom) {
-                        this.codeDom.scrollTop = this.codeDom.scrollHeight;
-                    }
-                } catch (e) {
-                    Logger.error(e);
-                } finally {
-                    this.waitToAppend = [];
-                }
-            }, MAX_UPDATE_DELAY);
+            } catch (e) {
+                Logger.error(e);
+            } finally {
+                this.eventQueue = [];
+            }
+        }, MAX_UPDATE_DELAY);
+    }
+
+    private handleEvent = (event: ConsoleEvent) => {
+        if (event.deleted) {
+            return;
+        }
+        switch (event.type) {
+            case EventType.LINE:
+                this.handlePrintln(event);
+                break;
+            case EventType.PRINT:
+                this.handlePrint(event);
+                break;
+            case EventType.BACKSPACE:
+                this.handleBackspace(event);
+                break;
+            default:
+                break;
         }
     };
 
-    private insertLineToHeader = (line: string) => {
-        this.init();
-        if (!this.isStartLoading) {
-            this.startLoading();
+    private handlePrintln(event: ConsoleEvent) {
+        if (this.lines.length > 0) {
+            let preLine = this.lines[this.lines.length - 1];
+            if (preLine.hasAttribute(LINE_CUR_ATTR)) {
+                //行未结束，将当前行附加到上一行
+                preLine.innerHTML += event.text;
+                preLine.removeAttribute(LINE_CUR_ATTR);
+                event.deleted = true;
+                return;
+            }
         }
-        this.loading.after(this._parseLine(line));
+        const line = this._parseLine(event.text as string);
+        this.lines.push(line);
+    }
+
+    private handlePrint(event: ConsoleEvent) {
+        if (this.lines.length > 0) {
+            let preLine = this.lines[this.lines.length - 1];
+            if (preLine.hasAttribute(LINE_CUR_ATTR)) {
+                //行未结束，将当前行附加到上一行
+                preLine.innerHTML += event.text;
+                event.deleted = true;
+            } else {
+                const line = this._parseLine(event.text as string);
+                line.setAttribute(LINE_CUR_ATTR, 'true');
+                this.lines.push(line);
+            }
+            return;
+        }
+
+        let last = this.getLastLine();
+        if (last && event.text) {
+            if ('BR' === last.tagName) {
+                last.replaceWith(document.createElement('p'));
+            }
+            if (last.hasAttribute(LINE_CUR_ATTR)) {
+                last.insertAdjacentHTML("beforeend", event.text);
+            } else {
+                const line = document.createElement('p');
+                line.innerHTML = event.text;
+                last.setAttribute(LINE_CUR_ATTR, 'true');
+                last.after(line);
+            }
+        } else {
+            const line = document.createElement('p');
+            line.innerHTML = event.text as string;
+            line.setAttribute(LINE_CUR_ATTR, 'true');
+            this.loading.before(line);
+        }
+    }
+
+    private handleBackspace(event: ConsoleEvent) {
+        let backspaceNum = event.backspaceNum as number;
+        while (this.lines.length > 0 && backspaceNum > 0) {
+            let pre = this.lines[this.lines.length - 1];
+            const len = pre.innerHTML.length - backspaceNum;
+            if (len > 0) {
+                pre.innerHTML = pre.innerHTML.substring(0, len);
+                backspaceNum = 0;
+            } else if (0 === len) {
+                pre.innerHTML = '';
+                backspaceNum = 0;
+            } else {
+                this.lines.pop();
+                backspaceNum = Math.abs(len + 1);
+            }
+        }
+
+        let last = this.getLastLine();
+        if (!last) {
+            return;
+        }
+        let i = last.innerHTML.length;
+        while (last && backspaceNum > 0) {
+            i = last.innerHTML.length - backspaceNum;
+            last.setAttribute(LINE_CUR_ATTR, 'true');
+            if (i > 0) {
+                last.innerHTML = last.innerHTML.substring(0, i);
+                backspaceNum = 0;
+            } else if (i === 0) {
+                last.innerHTML = '';
+                backspaceNum = 0;
+            } else {
+                this.codeDom?.removeChild(last);
+                last = this.getLastLine();
+                backspaceNum = Math.abs(i + 1);
+            }
+        }
+    }
+
+    private backspace = (num: string) => {
+        let backspaceNum = parseInt(num);
+        if (!Number.isInteger(backspaceNum)) {
+            return;
+        }
+        this.eventQueue.push({type: EventType.BACKSPACE, backspaceNum});
     };
 
     private backspaceLine = (line?: string) => {
-        if (!this.codeDom || !this.codeDom.children.length) {
-            return;
-        }
-        const len = this.codeDom.children.length;
-        let last = this.isStartLoading ? this.codeDom.children[len - 2] : this.codeDom.children[len - 1];
+        let last = this.getLastLine();
         if (last) {
             if (line) {
                 last.innerHTML = line;
             } else {
-                this.codeDom.removeChild(last);
+                this.codeDom?.removeChild(last);
             }
         }
     };
+
+    private getLastLine() {
+        if (!this.codeDom || !this.codeDom?.children?.length) {
+            return null;
+        }
+        const len = this.codeDom.children.length;
+        return this.isStartLoading ? this.codeDom.children[len - 2] : this.codeDom.children[len - 1];
+    }
 
     private _parseLine = (line: string) => {
         if (0 === line?.length) {

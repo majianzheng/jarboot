@@ -19,36 +19,41 @@ public class CommandConst {
      * 终端消息
      */
     public static final char CONSOLE_TYPE = BASE_TYPE + 1;
-
+    
+    /**
+     * 控制台退格
+     */
+    public static final char BACKSPACE_TYPE = BASE_TYPE + 2;
+    
     /**
      * 后退一行
      */
-    public static final char BACKSPACE_LINE_TYPE = BASE_TYPE + 2;
+    public static final char BACKSPACE_LINE_TYPE = BASE_TYPE + 3;
 
     /**
      * 程序的标准输出流
      */
-    public static final char STD_OUT_TYPE = BASE_TYPE + 3;
+    public static final char STD_PRINT_TYPE = BASE_TYPE + 4;
 
     /**
      * Json格式结果
      */
-    public static final char JSON_RESULT_TYPE = BASE_TYPE + 4;
+    public static final char JSON_RESULT_TYPE = BASE_TYPE + 5;
 
     /**
      * 心跳
      */
-    public static final char HEARTBEAT_TYPE = BASE_TYPE + 5;
+    public static final char HEARTBEAT_TYPE = BASE_TYPE + 6;
 
     /**
      * 命令完成消息
      */
-    public static final char CMD_END_TYPE = BASE_TYPE + 6;
+    public static final char CMD_END_TYPE = BASE_TYPE + 7;
 
     /**
      * 发送动作指令
      */
-    public static final char ACTION_TYPE = BASE_TYPE + 7;
+    public static final char ACTION_TYPE = BASE_TYPE + 8;
 
     public static final char USER_COMMAND = 0xF001;
     public static final char INTERNAL_COMMAND = 0xF002;

@@ -49,6 +49,8 @@ export default class ServerMgrView extends React.PureComponent {
         this.refreshServerList(true);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
         WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
@@ -57,6 +59,9 @@ export default class ServerMgrView extends React.PureComponent {
 
     componentWillUnmount() {
         WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_LINE);
+        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_PRINT);
+        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE);
+        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE_LINE);
         WsManager.removeMessageHandler(MSG_EVENT.RENDER_JSON);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
         WsManager.removeMessageHandler(MSG_EVENT.CMD_END);
@@ -131,6 +136,14 @@ export default class ServerMgrView extends React.PureComponent {
 
     private _console = (data: MsgData) => {
         pubsub.publish(data.server, JarBootConst.APPEND_LINE, data.body);
+    }
+
+    private _print = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.PRINT, data.body);
+    }
+
+    private _backspace = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.BACKSPACE, data.body);
     }
 
     private _backspaceLine = (data: MsgData) => {

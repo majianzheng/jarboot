@@ -76,6 +76,14 @@ public class WebSocketManager extends Thread {
     public void sendConsole(String server, String text, String sessionId) {
         this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_LINE);
     }
+    
+    public void sendPrint(String server, String text, String sessionId) {
+        this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_PRINT);
+    }
+    
+    public void backspace(String server, String num, String sessionId) {
+        this.publishEvent(server, num, sessionId, WsEventEnum.BACKSPACE);
+    }
 
     public void backspaceLine(String server, String text, String sessionId) {
         this.publishEvent(server, text, sessionId, WsEventEnum.BACKSPACE_LINE);

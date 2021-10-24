@@ -58,7 +58,7 @@ public class WebSocketAgentServer {
      */
     @OnError
     public void onError(Session session, Throwable error, @PathParam("server") String server) {
-        logger.warn( "{} socket connection error!", server, error);
+        logger.debug( "{} socket connection error!{}", server, error.getMessage());
         onClose(session, server);
     }
 }

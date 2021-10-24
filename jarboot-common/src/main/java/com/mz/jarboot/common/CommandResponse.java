@@ -43,11 +43,14 @@ public class CommandResponse implements CmdProtocol {
             case CommandConst.HEARTBEAT_TYPE:
                 this.setResponseType(ResponseType.HEARTBEAT);
                 break;
-            case CommandConst.STD_OUT_TYPE:
-                this.setResponseType(ResponseType.STD_OUT);
+            case CommandConst.STD_PRINT_TYPE:
+                this.setResponseType(ResponseType.STD_PRINT);
                 break;
             case CommandConst.CONSOLE_TYPE:
                 this.setResponseType(ResponseType.CONSOLE);
+                break;
+            case CommandConst.BACKSPACE_TYPE:
+                this.setResponseType(ResponseType.BACKSPACE);
                 break;
             case CommandConst.BACKSPACE_LINE_TYPE:
                 this.setResponseType(ResponseType.BACKSPACE_LINE);
@@ -85,10 +88,12 @@ public class CommandResponse implements CmdProtocol {
         switch (responseType) {
             case HEARTBEAT:
                 return CommandConst.HEARTBEAT_TYPE;
-            case STD_OUT:
-                return CommandConst.STD_OUT_TYPE;
+            case STD_PRINT:
+                return CommandConst.STD_PRINT_TYPE;
             case CONSOLE:
                 return CommandConst.CONSOLE_TYPE;
+            case BACKSPACE:
+                return CommandConst.BACKSPACE_TYPE;
             case BACKSPACE_LINE:
                 return CommandConst.BACKSPACE_LINE_TYPE;
             case JSON_RESULT:

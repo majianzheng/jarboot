@@ -13,12 +13,17 @@ public enum ResponseType {
     /**
      * 程序中的标准输出流
      */
-    STD_OUT,
+    STD_PRINT,
 
     /**
      * 控制台消息打印
      */
     CONSOLE,
+    
+    /**
+     * 控制台退格
+     */
+    BACKSPACE,
 
     /**
      * 控制台后退一行

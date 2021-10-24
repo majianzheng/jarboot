@@ -59,7 +59,22 @@ public class CommandSessionImpl implements CommandCoreSession {
         resp.setSessionId(this.sessionId);
         ResultStreamDistributor.write(resp);
     }
-
+    
+    /**
+     * 控制台退格
+     */
+    @Override
+    public void backspace(int i) {
+        if (i > 0) {
+            CommandResponse resp = new CommandResponse();
+            resp.setSuccess(true);
+            resp.setResponseType(ResponseType.BACKSPACE);
+            resp.setBody(String.valueOf(i));
+            resp.setSessionId(this.sessionId);
+            ResultStreamDistributor.write(resp);
+        }
+    }
+    
     @Override
     public void backspaceLine(String replacedText) {
         CommandResponse resp = new CommandResponse();

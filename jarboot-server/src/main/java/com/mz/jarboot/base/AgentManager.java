@@ -189,12 +189,15 @@ public class AgentManager {
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
+            case BACKSPACE:
+                WebSocketManager.getInstance().backspace(server, resp.getBody(), sessionId);
+                break;
             case BACKSPACE_LINE:
                 WebSocketManager.getInstance().backspaceLine(server, resp.getBody(), sessionId);
                 break;
-            case STD_OUT:
+            case STD_PRINT:
                 //启动中的控制台消息
-                WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                WebSocketManager.getInstance().sendPrint(server, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
                 WebSocketManager.getInstance().renderJson(server, resp.getBody(), sessionId);
