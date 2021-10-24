@@ -1,3 +1,16 @@
+## 1.0.10 (10.24, 2021)
+
+* 配置文件修改jarboot.services.root-dir -> jarboot.services.workspace
+* 目录结构变更，jar文件放入bin文件夹中，增加插件目录plugins
+#### FEATURES:
+* Console控制台支持print和退格
+* 支持数据库驱动放入plugins/server下以支持更多数据库
+* 支持插件式开发扩展，agent类型插件可扩充命令，server类型插件可增强服务端功能
+* 命令输入框支持历史记录上下翻页，快速输入历史命令
+* docker支持，识别是否在docker中运行，在docker中运行时示例程序没有界面
+* 增加自定义启动参数配置，不局限于可执行的jar文件，可以自定义执行字节码文件（***.class），可以使用classpath和-cp指定执行类
+* 示例程序增加2个SPI自定义命令pow和fib，在docker中可以通过开启两个浏览器界面同时测试多个调试命令
+
 ## 1.0.9 (8.14, 2021)
 
 * refactor bytes command (重构查看字节码命令)

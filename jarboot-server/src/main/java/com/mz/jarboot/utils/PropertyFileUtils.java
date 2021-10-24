@@ -1,9 +1,9 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.ResultCodeConst;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.constant.SettingPropConst;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.SettingPropConst;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.JarbootException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -68,23 +68,26 @@ public class PropertyFileUtils {
         return true;
     }
 
-    public static ServerSettingDTO getServerSetting(String server) {
-        ServerSettingDTO setting = new ServerSettingDTO(server);
+    public static ServerSetting getServerSetting(String server) {
+        ServerSetting setting = new ServerSetting(server);
         File file = SettingUtils.getServerSettingFile(server);
         Properties properties = getProperties(file);
         String serverPath = SettingUtils.getServerPath(server);
+        String runnable = properties.getProperty(SettingPropConst.RUNNABLE, SettingPropConst.VALUE_TRUE);
+        setting.setRunnable(Boolean.parseBoolean(runnable));
         if (properties.isEmpty()) {
             return setting;
         }
         String jar = properties.getProperty(SettingPropConst.JAR, StringUtils.EMPTY);
-        if (StringUtils.isNotEmpty(jar)) {
+        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(jar)) {
             if (checkFileExist(serverPath + File.separator + jar)) {
                 setting.setJar(jar);
             } else {
                 logger.warn("配置的启动jar文件({})不存在", jar);
             }
         }
-
+        String userDefineRunArg = properties.getProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, StringUtils.EMPTY);
+        setting.setUserDefineRunArgument(userDefineRunArg);
         String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);
         setting.setVm(jvm);
         String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);
@@ -115,7 +118,7 @@ public class PropertyFileUtils {
         return setting;
     }
 
-    private static void checkAndGetHome(ServerSettingDTO setting, Properties properties) {
+    private static void checkAndGetHome(ServerSetting setting, Properties properties) {
         //工作目录
         String workHome = properties.getProperty(SettingPropConst.WORK_DIR, StringUtils.EMPTY);
         if (StringUtils.isNotEmpty(workHome)) {
@@ -192,14 +195,14 @@ public class PropertyFileUtils {
      * @param servers 服务列表
      * @return 优先级排序结果
      */
-    public static Queue<ServerSettingDTO> parseStartPriority(List<String> servers) {
+    public static Queue<ServerSetting> parseStartPriority(List<String> servers) {
         //优先级最大的排在最前面
-        PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
+        PriorityQueue<ServerSetting> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
         if (CollectionUtils.isEmpty(servers)) {
             return queue;
         }
         servers.forEach(server -> {
-            ServerSettingDTO setting = getServerSetting(server);
+            ServerSetting setting = getServerSetting(server);
             queue.offer(setting);
         });
         return queue;
@@ -210,14 +213,14 @@ public class PropertyFileUtils {
      * @param servers 服务列表
      * @return 排序结果
      */
-    public static Queue<ServerSettingDTO> parseStopPriority(List<String> servers) {
+    public static Queue<ServerSetting> parseStopPriority(List<String> servers) {
         //优先级小的排在最前面
-        PriorityQueue<ServerSettingDTO> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSettingDTO::getPriority));
+        PriorityQueue<ServerSetting> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSetting::getPriority));
         if (CollectionUtils.isEmpty(servers)) {
             return queue;
         }
         servers.forEach(server -> {
-            ServerSettingDTO setting = getServerSetting(server);
+            ServerSetting setting = getServerSetting(server);
             queue.offer(setting);
         });
         return queue;

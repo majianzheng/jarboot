@@ -6,6 +6,7 @@ import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +26,37 @@ public class StdOutStreamReactor {
     private volatile boolean isOn = false;
     private volatile long lastStdTime = 0;
     private long startDetermineTime = 5000;
-    private final StdPrintHandler stdoutPrintHandler = text -> stdConsole(text);
-    private final StdPrintHandler startingPrintHandler = text -> stdStartingConsole(text);
 
     private void stdConsole(String text) {
         CommandResponse resp = new CommandResponse();
         resp.setSuccess(true);
-        resp.setResponseType(ResponseType.STD_OUT);
+        resp.setResponseType(ResponseType.CONSOLE);
         resp.setBody(text);
         resp.setSessionId(CommandConst.SESSION_COMMON);
         ResultStreamDistributor.write(resp);
+    }
+    
+    private void stdPrint(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return;
+        }
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.STD_PRINT);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        ResultStreamDistributor.write(resp);
+    }
+    
+    private void stdBackspace(int num) {
+        if (num > 0) {
+            CommandResponse resp = new CommandResponse();
+            resp.setSuccess(true);
+            resp.setResponseType(ResponseType.BACKSPACE);
+            resp.setBody(String.valueOf(num));
+            resp.setSessionId(CommandConst.SESSION_COMMON);
+            ResultStreamDistributor.write(resp);
+        }
     }
 
     private void stdStartingConsole(String text) {
@@ -42,9 +64,15 @@ public class StdOutStreamReactor {
         //更新计时
         lastStdTime = System.currentTimeMillis();
     }
+    
+    private void stdStartingPrint(String text) {
+        stdPrint(text);
+        //更新计时
+        lastStdTime = System.currentTimeMillis();
+    }
 
     private StdOutStreamReactor() {
-        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 5000);
+        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
         sos = new StdConsoleOutputStream();
         //备份默认的输出流
         defaultOut = System.out;
@@ -59,9 +87,11 @@ public class StdOutStreamReactor {
 
     private void init() {
         // 输出不满一行的字符串
-        sos.setPrintHandler(stdoutPrintHandler);
+        sos.setPrintHandler(this::stdPrint);
         //输出行
-        sos.setPrintLineHandler(stdoutPrintHandler);
+        sos.setPrintLineHandler(this::stdConsole);
+        //退格
+        sos.setBackspaceHandler(this::stdBackspace);
         //默认开启
         this.enabled(true);
     }
@@ -84,6 +114,12 @@ public class StdOutStreamReactor {
         }
     }
 
+    public void flush() {
+        if (this.isOn) {
+            sos.flush();
+        }
+    }
+
     public boolean isEnabled() {
         return isOn;
     }
@@ -93,7 +129,8 @@ public class StdOutStreamReactor {
     }
 
     public void setStarting() {
-        sos.setPrintLineHandler(startingPrintHandler);
+        sos.setPrintLineHandler(this::stdStartingConsole);
+        sos.setPrintHandler(this::stdStartingPrint);
         lastStdTime = System.currentTimeMillis();
         //启动监控线程
         EnvironmentContext.getScheduledExecutorService().execute(() -> {
@@ -105,7 +142,8 @@ public class StdOutStreamReactor {
                 }
             } while ((System.currentTimeMillis() - lastStdTime) < startDetermineTime);
             //超过一定时间没有控制台输出，判定启动成功
-            sos.setPrintLineHandler(stdoutPrintHandler);
+            sos.setPrintLineHandler(this::stdConsole);
+            sos.setPrintHandler(this::stdPrint);
             //通知Jarboot server启动完成
             try {
                 AgentServiceOperator.setStarted();

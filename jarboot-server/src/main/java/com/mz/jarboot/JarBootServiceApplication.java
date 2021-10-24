@@ -1,17 +1,14 @@
 package com.mz.jarboot;
 
 import com.mz.jarboot.common.VersionUtils;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.service.TaskWatchService;
-import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import java.io.File;
-import java.net.URISyntaxException;
-import java.security.CodeSource;
 
 /**
  * Spring boot main function.
@@ -27,8 +24,8 @@ public class JarBootServiceApplication {
 		String wsHome = userHome + File.separator + CommonConst.JARBOOT_NAME;
 		//初始化工作目录
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
-		String homePath = getCurrentPath();
-		if (null == homePath) {
+		String homePath = System.getenv("JARBOOT_HOME");
+		if (null == homePath || homePath.isEmpty()) {
 			homePath = wsHome;
 		}
 		//初始化当前目录
@@ -41,33 +38,5 @@ public class JarBootServiceApplication {
 		ApplicationContextUtils.init(context);
 		TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
 		taskWatchService.init();
-	}
-
-	private static String getCurrentPath() {
-		CodeSource codeSource = JarBootServiceApplication.class.getProtectionDomain().getCodeSource();
-		File curJar;
-		try {
-			curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-			String path = curJar.getPath();
-			int p = path.lastIndexOf(CommonConst.JAR_EXT);
-			if (-1 == p) {
-				return null;
-			}
-			//取上级目录
-			final String prefix = "file:";
-			p = path.lastIndexOf(File.separatorChar, p);
-			if (0 == path.indexOf(prefix)) {
-				if (IOUtils.DIR_SEPARATOR_WINDOWS == path.charAt(prefix.length())) {
-					return path.substring(6, p);
-				}
-				return path.substring(5, p);
-			} else {
-				return path.substring(0, p);
-			}
-		} catch (URISyntaxException e) {
-			//ignore
-		}
-		//调试环境，使用用户目录下的 WORKSPACE_HOME
-		return null;
 	}
 }

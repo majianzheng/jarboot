@@ -3,7 +3,6 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.common.CmdProtocol;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
-import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
@@ -20,16 +20,20 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class ResultStreamDistributor {
     private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final int WAIT_TIME = 100;
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 
     static {
-        EnvironmentContext.getScheduledExecutorService().execute(ResultStreamDistributor::consumer);
+        Thread thread = new Thread(ResultStreamDistributor::consumer);
+        thread.setName("jarboot-resp-distributor");
+        thread.setDaemon(true);
+        thread.start();
     }
     
     private static class ResultStreamDistributorHolder {
         static ResponseStream http = new HttpResponseStreamImpl();
         static ResponseStream socket = new SocketResponseStreamImpl();
-        static ResultViewResolver resultViewResolver = EnvironmentContext.getResultViewResolver();
+        static ResultViewResolver resultViewResolver = new ResultViewResolver();
     }
 
     /**
@@ -67,8 +71,12 @@ public class ResultStreamDistributor {
     private static void consumer() {
         for (; ; ) {
             try {
-                CmdProtocol resp = QUEUE.take();
-                sendToServer(resp);
+                CmdProtocol resp = QUEUE.poll(WAIT_TIME, TimeUnit.MILLISECONDS);
+                if (null == resp) {
+                    StdOutStreamReactor.getInstance().flush();
+                } else {
+                    sendToServer(resp);
+                }
             } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }

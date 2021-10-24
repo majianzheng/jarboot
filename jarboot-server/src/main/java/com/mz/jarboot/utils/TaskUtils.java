@@ -1,9 +1,10 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.OSUtils;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
@@ -16,6 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -27,6 +32,20 @@ public class TaskUtils {
     private static final String ADDER_ARGS_PREFIX = CommonConst.JARBOOT_NAME + CommonConst.DOT +
             "%x" + CommonConst.DOT;
     private static int maxStartTime = 12000;
+    private static final ExecutorService TASK_EXECUTOR;
+    static {
+        ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(256);
+        TASK_EXECUTOR = new ThreadPoolExecutor(8, 32,
+                32L, TimeUnit.SECONDS, taskBlockingQueue,
+                JarbootThreadFactory.createThreadFactory("jarboot-task-pool"),
+                //线程池忙碌拒绝策略
+                (Runnable r, ThreadPoolExecutor executor) ->
+                        WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
+    }
+
+    public static ExecutorService getTaskExecutor() {
+        return TASK_EXECUTOR;
+    }
 
     /**
      * 服务最大启动时间
@@ -70,12 +89,7 @@ public class TaskUtils {
      * @param server 服务名
      * @param setting 服务配置
      */
-    public static void startServer(String server, ServerSettingDTO setting) {
-        //获取启动的jar文件
-        String jar = SettingUtils.getJarPath(setting);
-        if (StringUtils.isEmpty(jar)) {
-            return;
-        }
+    public static void startServer(String server, ServerSetting setting) {
         //服务目录
         String serverPath = SettingUtils.getServerPath(server);
 
@@ -108,9 +122,21 @@ public class TaskUtils {
                 .append(jvm)
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(server))
-                .append(StringUtils.SPACE)
-                // 待执行的jar
-                .append(CommonConst.ARG_JAR).append(jar);
+                .append(StringUtils.SPACE);
+        if (Boolean.TRUE.equals(setting.getRunnable())) {
+            //获取启动的jar文件
+            String jar = SettingUtils.getJarPath(setting);
+            if (StringUtils.isBlank(jar)) {
+                return;
+            }
+            // 待执行的jar
+            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
+        } else {
+            if (StringUtils.isBlank(setting.getUserDefineRunArgument())) {
+                return;
+            }
+            cmdBuilder.append(setting.getUserDefineRunArgument());
+        }
 
         // 传入参数
         String startArg = setting.getArgs();
@@ -183,7 +209,10 @@ public class TaskUtils {
             return s;
         }
         File dir = FileUtils.getFile(serverPath, s);
-        return dir.getPath();
+        if (dir.exists() && dir.isDirectory()) {
+            return dir.getPath();
+        }
+        return serverPath;
     }
 
     /**
@@ -265,6 +294,9 @@ public class TaskUtils {
         File dir = null;
         if (StringUtils.isNotEmpty(workHome)) {
             dir = new File(workHome);
+            if (!dir.exists() || !dir.isDirectory()) {
+                dir = null;
+            }
         }
 
         try {
@@ -311,7 +343,7 @@ public class TaskUtils {
         return pidList;
     }
 
-    public static Map<String, Integer> findJavaProcess() {
+    public static Map<String, Integer> findProcess() {
         HashMap<String, Integer> pidCmdMap = new HashMap<>(32);
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         String prefix = getAdderArgsPrefix();

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jarboot shell plugin</title>
+</head>
+<body>
+<h2>The Jarboot shell plugin UI view</h2>
+<div>插件分为agent和server两种</div>
+<p>agent类型的插件可用于扩充调试命令，例如当前插件就是agent类型的，扩充了部分shell命令</p>
+<p>server类型的插件可用于扩充jarboot server的能力，利用api中的service接口，实现自定逻辑、增加后端接口等</p>
+<p>每种类型的插件都可以实现个性化的插件界面（如当前的界面），在插件包里的resource/page下使用前端技术实现</p>
+<h3>当前扩展插件扩充了调试命令系统，新增了以下命令</h3>
+<p>
+    cat 查看文件内容，cat file；显示行数：cat -n file；查看前n行：cat -n file -h 10；查看后n行：cat -n file -t 10；
+    查看指定第10行：cat -n file -l 10；查看从第10行到第20行：cat -n file -l 10:20
+</p>
+<p>ls 查看文件夹、目录信息</p>
+<p>cd 切换工作目录，注意：会改变当前进程的user.dir系统属性，慎用！等同于sysprop user.dir xx目录</p>
+<p>pwd 获取当前路径</p>
+<p>sh 执行shell脚本，如sh xxx.sh、sh xxx.bat、sh echo Hello、sh ls</p>
+<!-- js脚本资源地址，对应page/index.js -->
+<script src="/plugins/page/agent/shell-plugin/index.js"></script>
+</body>
+</html>

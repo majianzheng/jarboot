@@ -8,11 +8,12 @@ import java.io.File;
  */
 public class CoreConstant {
     public static final String EMPTY_STRING = "";
-    public static final String NULL_STRING = "null";
     public static final String LOG_NAME = "jarboot-core";
     public static final String BR = "<br/>";
 
     public static final String START_DETERMINE_TIME_KEY = "start.determine.time";
+    
+    public static final String DUMP_DIR = "classdump";
 
     /**
      * 使用websocket发送的最大字节阈值

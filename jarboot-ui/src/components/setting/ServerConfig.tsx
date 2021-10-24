@@ -20,6 +20,7 @@ const ServerConfig: any = memo((props: any) => {
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
+    let [runnable, setRunnable] = useState(true);
     const onReset = () => {
         SettingService.getServerSetting(props.server
         ).then((resp: any) => {
@@ -28,12 +29,13 @@ const ServerConfig: any = memo((props: any) => {
                 return;
             }
             form.setFieldsValue(resp.result);
+            setRunnable(!!resp.result?.runnable);
         }).catch(CommonNotice.errorFormatted);
     };
 
     useEffect(() => {
         onReset();
-    });
+    }, [props.server]);
 
     const onSubmit = (data: any) => {
         if (StringUtil.isEmpty(props.server)) {
@@ -77,17 +79,32 @@ const ServerConfig: any = memo((props: any) => {
     };
     const onArgsSave = (args: string) => {
         args = args.replaceAll('\n', ' ');
-        setTimeout(() => {
-            form.setFieldsValue({args});
-        }, 1500);
+        form.setFieldsValue({args});
     };
 
     return (<>
-        <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
-            <Form.Item name="jar"
+        <Form {...layout} form={form} name="server-setting" onFinish={onSubmit} onValuesChange={changedValues => {
+            if (changedValues.hasOwnProperty('runnable')) {
+                setRunnable(changedValues.runnable)
+            }
+        }}>
+            <Form.Item name="runnable"
+                       label={intl.formatMessage({id: 'RUNNABLE_LABEL'})}
+                       rules={[{required: false}]} valuePropName={"checked"}>
+                <Switch/>
+            </Form.Item>
+            <Form.Item name="jar" hidden={!runnable}
                        label={intl.formatMessage({id: 'JAR_LABEL'})}
                        rules={[{required: false}]}>
                 <Input placeholder={"The jar file to start"} autoComplete="off"/>
+            </Form.Item>
+            <Form.Item name="userDefineRunArgument" hidden={runnable}
+                       label={intl.formatMessage({id: 'USER_DEFINE_RUN_LABEL'})}
+                       rules={[{required: false}]}>
+                <Input.TextArea rows={2}
+                                placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +
+                                "3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName"}
+                                autoComplete="off"/>
             </Form.Item>
             <Form.Item name="vm"
                        label={intl.formatMessage({id: 'VM_OPT_LABEL'})}
@@ -138,12 +155,12 @@ const ServerConfig: any = memo((props: any) => {
             <Form.Item name="daemon"
                        label={intl.formatMessage({id: 'DAEMON_LABEL'})}
                        rules={[{required: false}]} valuePropName={"checked"}>
-                <Switch defaultChecked/>
+                <Switch/>
             </Form.Item>
             <Form.Item name="jarUpdateWatch"
                        label={intl.formatMessage({id: 'JAR_UPDATE_WATCH_LABEL'})}
                        rules={[{required: false}]} valuePropName={"checked"}>
-                <Switch defaultChecked/>
+                <Switch/>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>

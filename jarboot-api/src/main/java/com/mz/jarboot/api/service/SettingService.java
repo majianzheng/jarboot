@@ -1,6 +1,7 @@
-package com.mz.jarboot.service;
+package com.mz.jarboot.api.service;
 
-import com.mz.jarboot.dto.*;
+import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.ServerSetting;
 
 /**
  * 配置服务
@@ -13,26 +14,26 @@ public interface SettingService {
      * @param server 服务
      * @return 配置信息
      */
-    ServerSettingDTO getServerSetting(String server);
+    ServerSetting getServerSetting(String server);
 
     /**
      * 提交服务配置
      * @param server 服务
      * @param setting 配置
      */
-    void submitServerSetting(String server, ServerSettingDTO setting);
+    void submitServerSetting(String server, ServerSetting setting);
 
     /**
      * 获取全局配置
      * @return 配置
      */
-    GlobalSettingDTO getGlobalSetting();
+    GlobalSetting getGlobalSetting();
 
     /**
      * 提交全局配置
      * @param setting 配置
      */
-    void submitGlobalSetting(GlobalSettingDTO setting);
+    void submitGlobalSetting(GlobalSetting setting);
 
     /**
      * 获取vm options

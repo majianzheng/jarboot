@@ -40,14 +40,20 @@ public class CommandResponse implements CmdProtocol {
         //反向解析出类实例
         //获取响应类型
         switch (h) {
-            case CommandConst.ONLINE_TYPE:
-                this.setResponseType(ResponseType.ONLINE);
+            case CommandConst.HEARTBEAT_TYPE:
+                this.setResponseType(ResponseType.HEARTBEAT);
                 break;
-            case CommandConst.STD_OUT_TYPE:
-                this.setResponseType(ResponseType.STD_OUT);
+            case CommandConst.STD_PRINT_TYPE:
+                this.setResponseType(ResponseType.STD_PRINT);
                 break;
             case CommandConst.CONSOLE_TYPE:
                 this.setResponseType(ResponseType.CONSOLE);
+                break;
+            case CommandConst.BACKSPACE_TYPE:
+                this.setResponseType(ResponseType.BACKSPACE);
+                break;
+            case CommandConst.BACKSPACE_LINE_TYPE:
+                this.setResponseType(ResponseType.BACKSPACE_LINE);
                 break;
             case CommandConst.JSON_RESULT_TYPE:
                 this.setResponseType(ResponseType.JSON_RESULT);
@@ -80,12 +86,16 @@ public class CommandResponse implements CmdProtocol {
     }
     private char getResponseTypeChar() {
         switch (responseType) {
-            case ONLINE:
-                return CommandConst.ONLINE_TYPE;
-            case STD_OUT:
-                return CommandConst.STD_OUT_TYPE;
+            case HEARTBEAT:
+                return CommandConst.HEARTBEAT_TYPE;
+            case STD_PRINT:
+                return CommandConst.STD_PRINT_TYPE;
             case CONSOLE:
                 return CommandConst.CONSOLE_TYPE;
+            case BACKSPACE:
+                return CommandConst.BACKSPACE_TYPE;
+            case BACKSPACE_LINE:
+                return CommandConst.BACKSPACE_LINE_TYPE;
             case JSON_RESULT:
                 return CommandConst.JSON_RESULT_TYPE;
             case COMMAND_END:

@@ -6,7 +6,7 @@
     background:#263238;
     overflow-y: auto;
     overflow-x: auto;
-    font-family: Monospace Terminal Arial;
+    font-family: Monospace Terminal Arial, serif;
     color: seashell;
     white-space: pre;
     //background: rgb(30, 30, 30);
@@ -21,7 +21,20 @@
         span[class="info-log"] {
             color: #59ff23;
         }
+        span[class="line-num"] {
+            color:gray;
+            margin:0 5px 0 2px;
+            min-width: 48px;
+            display: inline-block;
+        }
     };
+    table {
+        border: inset olivedrab;
+        margin: 0 0 0 15px;
+        tr > td, tr > th {
+            padding: 0 6px 0 6px;
+        }
+    }
     .waring {
         background: #1A0037;
     }

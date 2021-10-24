@@ -3,6 +3,13 @@ import {UnControlled as CodeMirror} from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/material.css';
 import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/markdown/markdown';
+import 'codemirror/mode/shell/shell';
+import 'codemirror/mode/yaml/yaml';
+import 'codemirror/mode/properties/properties';
+import 'codemirror/mode/css/css';
+import 'codemirror/mode/htmlembedded/htmlembedded';
+import 'codemirror/mode/sql/sql';
 import 'codemirror/mode/xml/xml.js';
 import 'codemirror/mode/python/python.js';
 import 'codemirror/mode/perl/perl.js';

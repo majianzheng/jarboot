@@ -72,7 +72,7 @@ export default class ErrorUtil {
             Logger.error(resp);
         }
         Logger.error(`resultMsg:${resultMsg}, 错误码：${resultCode}`);
-        if (resultMsg.startsWith('caused: ')) {
+        if (resultMsg?.startsWith('caused: ')) {
             resultMsg = resultMsg.substring(7, resultMsg.length - 1);
         }
         return resultMsg;

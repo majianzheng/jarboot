@@ -24,7 +24,7 @@ public class AgentClientController {
     @ResponseBody
     public ResponseSimple onResponse(@RequestParam String server, @RequestBody String raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
-        AgentManager.getInstance().handleAgentResponse(server, resp);
+        AgentManager.getInstance().handleAgentResponse(server, resp, null);
         return new ResponseSimple();
     }
 

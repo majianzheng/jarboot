@@ -165,7 +165,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     };
 
     return <Modal title={getStageTitle()}
-                  visible={true}
+                  visible={true} maskClosable={false}
                   destroyOnClose={true}
                   onOk={onOk} onCancel={onCancel}>
         {UploadFileStage.SERVER_CONFIRM === stage && <Form

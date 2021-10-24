@@ -1,12 +1,13 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
-import com.mz.jarboot.dto.*;
 import com.mz.jarboot.event.TaskEvent;
-import com.mz.jarboot.service.ServerMgrService;
+import com.mz.jarboot.api.service.ServerMgrService;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -31,11 +32,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Autowired
     private TaskRunCache taskRunCache;
 
-    @Autowired
-    private ExecutorService taskExecutor;
-
     @Override
-    public List<ServerRunningDTO> getServerList() {
+    public List<ServerRunning> getServerList() {
         return taskRunCache.getServerList();
     }
 
@@ -100,17 +98,17 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        taskExecutor.execute(() -> this.startServer0(servers));
+        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(servers));
     }
 
     private void startServer0(List<String> servers) {
         //获取服务的优先级启动顺序
-        final Queue<ServerSettingDTO> priorityQueue = PropertyFileUtils.parseStartPriority(servers);
-        ArrayList<ServerSettingDTO> taskList = new ArrayList<>();
-        ServerSettingDTO setting;
+        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStartPriority(servers);
+        ArrayList<ServerSetting> taskList = new ArrayList<>();
+        ServerSetting setting;
         while (null != (setting = priorityQueue.poll())) {
             taskList.add(setting);
-            ServerSettingDTO next = priorityQueue.peek();
+            ServerSetting next = priorityQueue.peek();
             if (null != next && !next.getPriority().equals(setting.getPriority())) {
                 //同一级别的全部取出
                 startServerGroup(taskList);
@@ -126,13 +124,13 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      * 同一级别的一起启动
      * @param s 同级服务列表
      */
-    private void startServerGroup(List<ServerSettingDTO> s) {
+    private void startServerGroup(List<ServerSetting> s) {
         if (CollectionUtils.isEmpty(s)) {
             return;
         }
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(setting ->
-                taskExecutor.execute(() -> {
+                TaskUtils.getTaskExecutor().execute(() -> {
                     this.startSingleServer(setting);
                     countDownLatch.countDown();
                 }));
@@ -149,7 +147,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      * 根据服务配置，启动单个服务
      * @param setting 服务配置
      */
-    private void startSingleServer(ServerSettingDTO setting) {
+    @Override
+    public void startSingleServer(ServerSetting setting) {
         String server = setting.getServer();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
         if (this.taskRunCache.isStartingOrStopping(server)) {
@@ -204,17 +203,17 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        taskExecutor.execute(() -> this.stopServer0(servers));
+        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(servers));
     }
 
     private void stopServer0(List<String> servers) {
         //获取服务的优先级顺序，与启动相反的顺序依次终止
-        final Queue<ServerSettingDTO> priorityQueue = PropertyFileUtils.parseStopPriority(servers);
+        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStopPriority(servers);
         ArrayList<String> taskList = new ArrayList<>();
-        ServerSettingDTO setting;
+        ServerSetting setting;
         while (null != (setting = priorityQueue.poll())) {
             taskList.add(setting.getServer());
-            ServerSettingDTO next = priorityQueue.peek();
+            ServerSetting next = priorityQueue.peek();
             if (null != next && !next.getPriority().equals(setting.getPriority())) {
                 //同一级别的全部取出
                 stopServerGroup(taskList);
@@ -232,7 +231,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(server ->
-                taskExecutor.execute(() -> {
+                TaskUtils.getTaskExecutor().execute(() -> {
                     this.stopSingleServer(server);
                     countDownLatch.countDown();
                 }));
@@ -283,7 +282,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public void restartServer(List<String> servers) {
         //获取终止的顺序
-        taskExecutor.execute(() -> {
+        TaskUtils.getTaskExecutor().execute(() -> {
             //先依次终止
             stopServer0(servers);
             //再依次启动

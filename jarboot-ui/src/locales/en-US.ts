@@ -6,6 +6,7 @@ export default {
     SERVICES_MGR: 'Services',
     SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
+    PLUGINS: 'Plugins',
     SETTING: 'Setting',
     HELP_DOC: 'About',
     MENU_DOCS: 'DOCS',
@@ -23,6 +24,7 @@ export default {
     UPLOAD_STAGE_TITLE: 'Upload {server} files',
     UPLOAD_TIPS: 'Click or drag the file to upload to this area',
     FILE_SIZE_OVER_TIPS: 'The file size must be less than {size}',
+    COMMAND_PLACEHOLDER: 'Input command，Example: help',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',
@@ -43,6 +45,8 @@ export default {
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
+    RUNNABLE_LABEL: 'Runnable jar file',
+    USER_DEFINE_RUN_LABEL: 'User defined run argument',
     JAR_LABEL: 'Use jar to start',
     VM_OPT_LABEL: 'VM options',
     MAIN_ARGS_LABEL: 'Program arguments',
@@ -51,6 +55,11 @@ export default {
     PRIORITY_LABEL: 'Priority',
     DAEMON_LABEL: 'Daemon',
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',
+
+    //插件
+    PLUGIN_UPLOAD_TITLE: 'Upload plugin',
+    PLUGIN_FILE: 'file',
+    UPLOAD_BUTTON: 'Click to Upload',
 
     //全局配置界面
     SERVERS_PATH: 'Workspace',
@@ -86,7 +95,7 @@ export default {
     NAME_NOT_EMPTY: `Name can't be empty`,
     UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
     SELECT_ONE_OP: 'Please select one item to operate.',
-    COMMAND_RUNNING: 'Command is running，please stop it first.',
+    COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
 
     //帮助
     BASIC: 'Basic',

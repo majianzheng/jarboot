@@ -46,4 +46,9 @@ public class SpringEnvCommandProcessor implements CommandProcessor {
     public void afterProcess(String result, Throwable e) {
         this.propKey = null;
     }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 }

@@ -1,19 +1,17 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.service.UploadFileService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
+import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,12 +37,9 @@ import java.util.stream.Stream;
  */
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final long EXPIRED_TIME = 20000;
     private String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
     private ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
-    @Autowired
-    private ExecutorService taskExecutor;
     /** 是否启动了心跳监测 */
     private volatile boolean started = false;
 
@@ -73,7 +67,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         if (started) {
             return;
         }
-        taskExecutor.execute(() -> {
+        TaskUtils.getTaskExecutor().execute(() -> {
             //前端每隔5秒探测一次，后端每隔15秒检查一次，如果发现时间戳相差大于15则说明至少3个周期没有心跳了，判定过期
             for (;;) {
                 try {
@@ -142,7 +136,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             //zip文件处理
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
+            ServerSetting setting = PropertyFileUtils.getServerSetting(server);
             if (StringUtils.isEmpty(setting.getJar())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
@@ -187,8 +181,6 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public void uploadJarFiles(MultipartFile file, String server) {
-        logger.info("type:{}, name:{}, size:{}, oriName:{}, server:{}", file.getContentType(),
-                file.getName(), file.getSize(), file.getOriginalFilename(), server);
         File dir = getTempCacheDir(server);
         if (dir.exists() && dir.isDirectory()) {
             String name = file.getOriginalFilename();

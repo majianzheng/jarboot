@@ -2,8 +2,8 @@ package com.mz.jarboot.task;
 
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.dto.ServerRunningDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,10 +26,10 @@ public class TaskRunCache {
     private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
-    private void updateServerInfo(List<ServerRunningDTO> server) {
-        Map<String, Integer> pidCmdMap = TaskUtils.findJavaProcess();
+    private void updateServerInfo(List<ServerRunning> server) {
+        Map<String, Integer> pidCmdMap = TaskUtils.findProcess();
         server.forEach(item -> {
-            Integer pid = pidCmdMap.getOrDefault(item.getName(), -1);
+            Integer pid = pidCmdMap.remove(item.getName());
             if (null == pid || CommonConst.INVALID_PID == pid) {
                 item.setStatus(CommonConst.STATUS_STOPPED);
                 return;
@@ -43,6 +43,16 @@ public class TaskRunCache {
                 item.setStatus(CommonConst.STATUS_STOPPING);
             }
         });
+        // 如果不为空，则为自定义启动的服务
+        if (!pidCmdMap.isEmpty()) {
+            pidCmdMap.forEach((k, v) -> {
+                ServerRunning serverRunning = new ServerRunning();
+                serverRunning.setName(k);
+                serverRunning.setStatus(CommonConst.STATUS_RUNNING);
+                serverRunning.setPid(v);
+                serverRunning.setEphemeral(true);
+            });
+        }
     }
 
     public List<String> getServerNameList() {
@@ -70,13 +80,14 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
-    public List<ServerRunningDTO> getServerList() {
-        List<ServerRunningDTO> serverList = new ArrayList<>();
+    public List<ServerRunning> getServerList() {
+        List<ServerRunning> serverList = new ArrayList<>();
         File[] serviceDirs = getServerDirs();
         for (File f : serviceDirs) {
             String server = f.getName();
-            ServerRunningDTO p = new ServerRunningDTO();
+            ServerRunning p = new ServerRunning();
             p.setName(server);
+            p.setEphemeral(false);
             serverList.add(p);
         }
         updateServerInfo(serverList);
@@ -115,10 +126,11 @@ public class TaskRunCache {
         stoppingCache.remove(server);
     }
 
-    private boolean filterExcludeDir(File dir, String name) {
+    private boolean filterExcludeDir(File dir) {
         if (!dir.isDirectory() || dir.isHidden()) {
             return false;
         }
+        final String name = dir.getName();
         if (StringUtils.startsWith(name, CommonConst.DOT)) {
             return false;
         }

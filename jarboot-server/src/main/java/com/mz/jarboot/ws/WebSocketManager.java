@@ -70,39 +70,27 @@ public class WebSocketManager extends Thread {
     }
 
     public void sendConsole(String server, String text) {
-        String msg = formatMsg(server, WsEventEnum.CONSOLE_LINE, text);
-        this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
+        this.publishGlobalEvent(server, text, WsEventEnum.CONSOLE_LINE);
     }
 
     public void sendConsole(String server, String text, String sessionId) {
-        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
-            //广播session的id
-            sendConsole(server, text);
-            return;
-        }
-        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != operator) {
-            String msg = formatMsg(server, WsEventEnum.CONSOLE_LINE, text);
-            operator.newMessage(msg);
-        }
+        this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_LINE);
+    }
+    
+    public void sendPrint(String server, String text, String sessionId) {
+        this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_PRINT);
+    }
+    
+    public void backspace(String server, String num, String sessionId) {
+        this.publishEvent(server, num, sessionId, WsEventEnum.BACKSPACE);
     }
 
-    public void renderJson(String server, String text) {
-        String msg = formatMsg(server, WsEventEnum.RENDER_JSON, text);
-        this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
+    public void backspaceLine(String server, String text, String sessionId) {
+        this.publishEvent(server, text, sessionId, WsEventEnum.BACKSPACE_LINE);
     }
 
     public void renderJson(String server, String text, String sessionId) {
-        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
-            //广播session的id
-            renderJson(server, text);
-            return;
-        }
-        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != operator) {
-            String msg = formatMsg(server, WsEventEnum.RENDER_JSON, text);
-            operator.newMessage(msg);
-        }
+        this.publishEvent(server, text, sessionId, WsEventEnum.RENDER_JSON);
     }
 
     public void publishStatus(String server, TaskStatus status) {
@@ -111,22 +99,8 @@ public class WebSocketManager extends Thread {
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
-    public void commandEnd(String server, String body) {
-        String msg = formatMsg(server, WsEventEnum.CMD_END, body);
-        this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
-    }
-
     public void commandEnd(String server, String body, String sessionId) {
-        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
-            //广播session的id
-            commandEnd(server, body);
-            return;
-        }
-        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
-        if (null != operator) {
-            String msg = formatMsg(server, WsEventEnum.CMD_END, body);
-            operator.newMessage(msg);
-        }
+        this.publishEvent(server, body, sessionId, WsEventEnum.CMD_END);
     }
 
     public void notice(String text, NoticeEnum level) {
@@ -167,6 +141,24 @@ public class WebSocketManager extends Thread {
                 logger.error(e.getMessage(), e);
             }
         }
+    }
+
+    private void publishEvent(String server, String body, String sessionId, WsEventEnum event) {
+        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
+            //广播session的id
+            publishGlobalEvent(server, body, event);
+            return;
+        }
+        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
+        if (null != operator) {
+            String msg = formatMsg(server, event, body);
+            operator.newMessage(msg);
+        }
+    }
+
+    private void publishGlobalEvent(String server, String body, WsEventEnum event) {
+        String msg = formatMsg(server, event, body);
+        this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
     private static String formatMsg(String server, WsEventEnum event, String body) {

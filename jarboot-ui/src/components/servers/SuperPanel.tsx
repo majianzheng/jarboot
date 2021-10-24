@@ -1,6 +1,6 @@
 import styles from "./index.less";
 import Console from "@/components/console";
-import {memo, useEffect, useRef, useState} from "react";
+import {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
 import {Button, Card, Input} from "antd";
 import {CloseCircleOutlined, EnterOutlined, LoadingOutlined} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
@@ -10,6 +10,7 @@ import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
+import {JarBootConst} from "@/common/JarBootConst";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -28,7 +29,19 @@ enum PUB_TOPIC {
     QUICK_EXEC_CMD = "quickExecCmd",
 }
 
+/**
+ * 执行记录，上下键
+ */
+interface HistoryProp {
+    /** 当前的游标 */
+    cur: number;
+    /** 历史记录存储 */
+    history: string[];
+}
+
 const outHeight = `${window.innerHeight - 150}px`;
+const MAX_HISTORY = 100;
+const historyMap = new Map<string, HistoryProp>();
 
 const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     const intl = useIntl();
@@ -42,7 +55,13 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         props.pubsub.submit(props.server, PUB_TOPIC.CMD_END, onCmdEnd);
         props.pubsub.submit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
         props.pubsub.submit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+        historyMap.set(props.server, new class implements HistoryProp {
+            cur = 0;
+            history = [];
+        });
     }, []);
+
+    const historyProp = historyMap.get(props.server);
 
     //解析json数据的视图
     const viewResolver: any = {
@@ -60,7 +79,8 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const onExecQuickCmd = (cmd: string) => {
-        if (executing) {
+        if (inputRef?.current?.props?.disabled) {
+            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command: inputRef.current.state?.value}));
             return;
         }
         if (StringUtil.isEmpty(cmd)) {
@@ -72,18 +92,22 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
-        props.pubsub.publish(props.server, 'finishLoading', msg);
+        props.pubsub.publish(props.server, JarBootConst.FINISH_LOADING, msg);
         inputRef?.current?.focus();
+        const value = inputRef?.current?.state?.value;
+        if (value && value?.length > 0) {
+            inputRef.current.setSelectionRange(0, value.length);
+        }
     };
 
     const clearDisplay = () => {
-        props.pubsub.publish(props.server, 'clear');
+        props.pubsub.publish(props.server, JarBootConst.CLEAR_CONSOLE);
         inputRef?.current?.focus();
     };
 
     const closeView = () => {
         if (executing) {
-            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}));
+            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command}));
             return;
         }
         if ('' !== view) {
@@ -107,9 +131,21 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             //切换为控制台显示
             setView('');
         }
-        props.pubsub.publish(props.server, 'appendLine', `jarboot$ ${cmd}`);
+        props.pubsub.publish(props.server, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
         const msg = {server: props.server, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
+
+        if (historyProp) {
+            const history = historyProp.history;
+            if (history.length > 0 && history[history.length - 1] === cmd) {
+                return;
+            }
+            history.push(cmd);
+            if (history.length > MAX_HISTORY) {
+                history.shift();
+            }
+            historyProp.cur = history.length - 1;
+        }
     };
 
     const onExecCommand = () => {
@@ -125,11 +161,39 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         WsManager.sendMessage(JSON.stringify(msg));
     };
 
+    const onKeyUp = (e: KeyboardEvent) => {
+        if ('ArrowUp' === e.key && historyProp) {
+            const history = historyProp.history;
+            historyProp.cur--;
+            if (historyProp.cur < 0) {
+                historyProp.cur = 0;
+                return;
+            }
+            const value = history[historyProp.cur];
+            if (value) {
+                setCommand(value);
+            }
+            return;
+        }
+        if ('ArrowDown' === e.key && historyProp) {
+            const history = historyProp.history;
+            historyProp.cur++;
+            if (historyProp.cur >= history.length) {
+                historyProp.cur = history.length - 1;
+                return;
+            }
+            const value = history[historyProp.cur];
+            if (value) {
+                setCommand(value);
+            }
+        }
+    };
+
     const outTitle = (<>
-        <Input onPressEnter={onExecCommand}
+        <Input onPressEnter={onExecCommand} onKeyUp={onKeyUp}
                ref={inputRef}
                disabled={executing}
-               placeholder={"command..."}
+               placeholder={intl.formatMessage({id: 'COMMAND_PLACEHOLDER'})}
                autoComplete={"off"}
                autoCorrect="off"
                autoCapitalize="off"

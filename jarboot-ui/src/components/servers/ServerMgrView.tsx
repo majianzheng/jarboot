@@ -49,6 +49,9 @@ export default class ServerMgrView extends React.PureComponent {
         this.refreshServerList(true);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
@@ -56,6 +59,9 @@ export default class ServerMgrView extends React.PureComponent {
 
     componentWillUnmount() {
         WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_LINE);
+        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_PRINT);
+        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE);
+        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE_LINE);
         WsManager.removeMessageHandler(MSG_EVENT.RENDER_JSON);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
         WsManager.removeMessageHandler(MSG_EVENT.CMD_END);
@@ -88,39 +94,39 @@ export default class ServerMgrView extends React.PureComponent {
             case JarBootConst.MSG_TYPE_START:
                 // 激活终端显示
                 this._activeConsole(server);
-                Logger.log(`启动中${server}...`);
-                pubsub.publish(server, 'startLoading');
+                Logger.log(`${server}启动中...`);
+                pubsub.publish(server, JarBootConst.START_LOADING);
                 this._clearDisplay(server);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
-                Logger.log(`停止中${server}...`);
-                pubsub.publish(server, 'startLoading');
+                Logger.log(`${server}停止中...`);
+                pubsub.publish(server, JarBootConst.START_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
-                Logger.log(`启动失败${server}`);
+                Logger.log(`${server}启动失败`);
                 CommonNotice.error(`Start ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
-                Logger.log(`启动成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                Logger.log(`${server}启动成功`);
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
-                Logger.log(`停止失败${server}`);
+                Logger.log(`${server}停止失败`);
                 CommonNotice.error(`Stop ${server} failed!`);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
-                Logger.log(`停止成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                Logger.log(`${server}停止成功`);
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
-                Logger.log(`重启成功${server}`);
-                pubsub.publish(server, 'finishLoading');
+                Logger.log(`${server}重启成功`);
+                pubsub.publish(server, JarBootConst.FINISH_LOADING);
                 this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
                 break;
             default:
@@ -129,7 +135,19 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private _console = (data: MsgData) => {
-        pubsub.publish(data.server, 'appendLine', data.body);
+        pubsub.publish(data.server, JarBootConst.APPEND_LINE, data.body);
+    }
+
+    private _print = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.PRINT, data.body);
+    }
+
+    private _backspace = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.BACKSPACE, data.body);
+    }
+
+    private _backspaceLine = (data: MsgData) => {
+        pubsub.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
     }
 
     private _commandEnd = (data: MsgData) => {
@@ -283,7 +301,7 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private _clearDisplay = (server: string) => {
-        pubsub.publish(server, 'clear');
+        pubsub.publish(server, JarBootConst.CLEAR_CONSOLE);
     };
 
     private stopServer = () => {
@@ -361,19 +379,19 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private oneClickRestart = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Restarting all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Restarting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickRestart();
     };
 
     private oneClickStart = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Starting all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Starting all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStart();
     };
 
     private oneClickStop = () => {
-        pubsub.publish(this.state.current, 'appendLine', "Stopping all...");
+        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Stopping all...");
         this._disableOnClickButton();
         ServerMgrService.oneClickStop();
     };
@@ -401,12 +419,12 @@ export default class ServerMgrView extends React.PureComponent {
         return (<div>
             <div style={{display: 'flex'}}>
                 <div style={{flex: 'inherit', width: '28%'}}>
+                    <CommonTable toolbarGap={5} option={tableOption}
+                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                     <OneClickButtons loading={this.state.oneClickLoading}
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
                                      oneClickStop={this.oneClickStop}/>
-                    <CommonTable toolbarGap={5} option={tableOption}
-                                 toolbar={this._getTbBtnProps()} height={this.height}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
                     {(this.state.loading && 0 == this.allServerOut.length) &&

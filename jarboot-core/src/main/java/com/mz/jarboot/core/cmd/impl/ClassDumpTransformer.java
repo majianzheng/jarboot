@@ -56,14 +56,13 @@ class ClassDumpTransformer implements ClassFileTransformer {
     private void dumpClassIfNecessary(Class<?> clazz, byte[] data) {
         String className = clazz.getName();
         ClassLoader classLoader = clazz.getClassLoader();
-        String classDumpDir = "classdump";
 
         // 创建类所在的包路径
         File dumpDir = null;
         if (directory != null) {
             dumpDir = directory;
         } else {
-            dumpDir = new File(jarbootLogHome, classDumpDir);
+            dumpDir = new File(jarbootLogHome, CoreConstant.DUMP_DIR);
         }
         if (!dumpDir.mkdirs() && !dumpDir.exists()) {
             logger.warn("create dump directory:{} failed.", dumpDir.getAbsolutePath());

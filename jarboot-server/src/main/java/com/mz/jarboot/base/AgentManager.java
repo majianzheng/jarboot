@@ -5,7 +5,7 @@ import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseType;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.TaskUtils;
@@ -64,6 +64,7 @@ public class AgentManager {
                 client.notify();
                 clientMap.remove(server);
             } else {
+                logger.warn("{} is offlined!", server);
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(server);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
@@ -77,6 +78,10 @@ public class AgentManager {
     public boolean isOnline(String server) {
         final AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
+            return false;
+        }
+        if (!client.isOpen()) {
+            this.offline(server);
             return false;
         }
         synchronized (client) {
@@ -121,27 +126,39 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(server, null);
         if (null == client) {
-            //如果进程仍然存活
             int pid = TaskUtils.getServerPid(server);
-            if (-1 != pid) {
-                TaskUtils.attach(server, pid);
-                WebSocketManager.getInstance().commandEnd(server, "连接断开，重连中...", sessionId);
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                client = clientMap.getOrDefault(server, null);
-                if (null != client) {
-                    client.sendCommand(command, sessionId);
-                } else {
-                    WebSocketManager.getInstance().commandEnd(server, "连接断开，重连超时，请稍后重试", sessionId);
-                }
-            } else {
+            if (-1 == pid) {
+                //未在线，进程不存在
                 WebSocketManager.getInstance().commandEnd(server, "未在线，无法执行命令", sessionId);
+            } else {
+                //如果进程仍然存活，尝试使用attach重新连接
+                tryReConnect(server, sessionId, pid);
+
+                client = clientMap.getOrDefault(server, null);
+                if (null == client) {
+                    WebSocketManager.getInstance().commandEnd(server, "连接断开，重连失败，请稍后重试", sessionId);
+                } else {
+                    client.sendCommand(command, sessionId);
+                }
             }
         } else {
             client.sendCommand(command, sessionId);
+        }
+    }
+
+    private void tryReConnect(String server, String sessionId, int pid) {
+        CountDownLatch latch = startingLatchMap.computeIfAbsent(server, k -> new CountDownLatch(1));
+        try {
+            TaskUtils.attach(server, pid);
+            WebSocketManager.getInstance().sendConsole(server, "连接断开，重连中...", sessionId);
+            if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
+                logger.error("Attach and wait server connect timeout，{}", server);
+                WebSocketManager.getInstance().sendConsole(server, "Attach重连超时！", sessionId);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            startingLatchMap.remove(server);
         }
     }
 
@@ -158,16 +175,29 @@ public class AgentManager {
         client.sendInternalCommand(command, sessionId);
     }
 
-    public void handleAgentResponse(String server, CommandResponse resp) {
+    public void handleAgentResponse(String server, CommandResponse resp, Session session) {
         ResponseType type = resp.getResponseType();
         String sessionId = resp.getSessionId();
         switch (type) {
+            case HEARTBEAT:
+                AgentClient client = clientMap.getOrDefault(server, null);
+                if (null == client || !ClientState.ONLINE.equals(client.getState())) {
+                    this.online(server, session);
+                }
+                sendInternalCommand(server, CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON);
+                break;
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
                 break;
-            case STD_OUT:
+            case BACKSPACE:
+                WebSocketManager.getInstance().backspace(server, resp.getBody(), sessionId);
+                break;
+            case BACKSPACE_LINE:
+                WebSocketManager.getInstance().backspaceLine(server, resp.getBody(), sessionId);
+                break;
+            case STD_PRINT:
                 //启动中的控制台消息
-                WebSocketManager.getInstance().sendConsole(server, resp.getBody(), sessionId);
+                WebSocketManager.getInstance().sendPrint(server, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
                 WebSocketManager.getInstance().renderJson(server, resp.getBody(), sessionId);

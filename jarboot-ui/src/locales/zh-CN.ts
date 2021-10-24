@@ -6,6 +6,7 @@ export default {
     SERVICES_MGR: '服务管理',
     SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
+    PLUGINS: '插件',
     SETTING: '设置',
     HELP_DOC: '关于',
     MENU_DOCS: '文档',
@@ -23,6 +24,7 @@ export default {
     UPLOAD_STAGE_TITLE: '上传{server}文件',
     UPLOAD_TIPS: '点击或拖拽文件到此区域上传',
     FILE_SIZE_OVER_TIPS: '文件大小必须小于{size}',
+    COMMAND_PLACEHOLDER: '输入命令，示例：help',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',
@@ -43,6 +45,8 @@ export default {
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
+    RUNNABLE_LABEL: '是否可执行的JAR文件',
+    USER_DEFINE_RUN_LABEL: '自定义的启动参数',
     JAR_LABEL: '用于启动的jar文件',
     VM_OPT_LABEL: 'VM参数',
     MAIN_ARGS_LABEL: '程序传入参数',
@@ -52,8 +56,13 @@ export default {
     DAEMON_LABEL: '进程守护',
     JAR_UPDATE_WATCH_LABEL: '文件路径监控',
 
+    //插件
+    PLUGIN_UPLOAD_TITLE: '上传插件',
+    PLUGIN_FILE: '文件',
+    UPLOAD_BUTTON: '点击上传',
+
     //全局配置
-    SERVERS_PATH: '服务管理目录',
+    SERVERS_PATH: '工作空间',
     DEFAULT_VM_OPT: '默认的VM参数',
     AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
 
@@ -86,7 +95,7 @@ export default {
     NAME_NOT_EMPTY: `名字不能为空`,
     UPLOAD_FILE_EMPTY: `成功上传的文件为空`,
     SELECT_ONE_OP: '请选择要操作的项',
-    COMMAND_RUNNING: '命令执行中，请先停止命令再执行',
+    COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
 
     //帮助
     BASIC: '基础',

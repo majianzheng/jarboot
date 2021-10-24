@@ -3,11 +3,11 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResultCodeConst;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
-import com.mz.jarboot.dto.ServerRunningDTO;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
@@ -50,8 +50,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     @Autowired
     private ApplicationContext ctx;
     @Autowired
-    private ExecutorService taskExecutor;
-    @Autowired
     private TaskRunCache taskRunCache;
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
 
@@ -78,6 +76,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             modifyWaitTime = 5;
         }
         starting = true;
+        ExecutorService taskExecutor = TaskUtils.getTaskExecutor();
         //路径监控生产者
         taskExecutor.execute(this::initPathMonitor);
         //路径监控消费者
@@ -100,7 +99,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     private void attachRunningServer() {
-        List<ServerRunningDTO> runningServers = taskRunCache.getServerList();
+        List<ServerRunning> runningServers = taskRunCache.getServerList();
         if (CollectionUtils.isEmpty(runningServers)) {
             return;
         }
@@ -239,7 +238,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 //当前不处于正在运行的状态
                 return;
             }
-            ServerSettingDTO setting = PropertyFileUtils.getServerSetting(service);
+            ServerSetting setting = PropertyFileUtils.getServerSetting(service);
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(service);
@@ -284,7 +283,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         return updateFlag;
     }
 
-    private void doAttachRunningServer(ServerRunningDTO server) {
+    private void doAttachRunningServer(ServerRunning server) {
         if (null == server.getPid()) {
             return;
         }
@@ -319,11 +318,11 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
             String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
-            taskExecutor.execute(() -> TaskUtils.startTask(cmd, null, jarbootHome));
+            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, jarbootHome));
         }
 
         //获取是否开启了守护
-        ServerSettingDTO setting = PropertyFileUtils.getServerSetting(server);
+        ServerSetting setting = PropertyFileUtils.getServerSetting(server);
         final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
         String s = sdf.format(new Date(event.getOfflineTime()));
         if (Boolean.TRUE.equals(setting.getDaemon())) {

@@ -1,10 +1,10 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.*;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.constant.SettingPropConst;
-import com.mz.jarboot.dto.GlobalSettingDTO;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.SettingPropConst;
+import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -23,18 +23,20 @@ import java.util.*;
  */
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static final GlobalSettingDTO GLOBAL_SETTING = new GlobalSettingDTO();
+    private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
     private static final String BOOT_PROPERTIES = "boot.properties";
-    private static final String ROOT_DIR_KEY = "jarboot.services.root-dir";
+    private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     private static final String DEFAULT_SERVICES_DIR;
     private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
     private static final String JARBOOT_CONF;
+    private static final String BIN_DIR;
 
     private static String agentJar;
     static {
-        JARBOOT_CONF = System.getProperty(CommonConst.JARBOOT_HOME) +
-                File.separator + "conf" + File.separator + "jarboot.properties";
+        String home = System.getProperty(CommonConst.JARBOOT_HOME);
+        JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
+        BIN_DIR = home + File.separator + "bin";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
@@ -44,8 +46,7 @@ public class SettingUtils {
     }
 
     private static void initAgentJarPath() {
-        final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-        File jarFile = new File(jarbootHome, CommonConst.AGENT_JAR_NAME);
+        File jarFile = new File(BIN_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
         if (jarFile.exists()) {
             agentJar = jarFile.getPath();
@@ -65,11 +66,11 @@ public class SettingUtils {
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
-    public static GlobalSettingDTO getGlobalSetting() {
+    public static GlobalSetting getGlobalSetting() {
         return GLOBAL_SETTING;
     }
 
-    public static void updateGlobalSetting(GlobalSettingDTO setting) {
+    public static void updateGlobalSetting(GlobalSetting setting) {
         String servicesPath = setting.getServicesPath();
         if (StringUtils.isNotEmpty(servicesPath)) {
             File dir = new File(servicesPath);
@@ -146,7 +147,7 @@ public class SettingUtils {
      * @param setting 服务配置
      * @return jar包路径
      */
-    public static String getJarPath(ServerSettingDTO setting) {
+    public static String getJarPath(ServerSetting setting) {
         String server = setting.getServer();
         String serverPath = getServerPath(server);
         File dir = FileUtils.getFile(serverPath);

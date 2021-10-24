@@ -7,10 +7,7 @@ import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
-import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
-import com.mz.jarboot.core.cmd.internal.CancelCommand;
-import com.mz.jarboot.core.cmd.internal.ExitCommand;
-import com.mz.jarboot.core.cmd.internal.SessionInvalidCommand;
+import com.mz.jarboot.core.cmd.internal.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -31,7 +28,6 @@ public class CommandBuilder {
     public static final Map<String, CommandProcessor> EXTEND_MAP = new ConcurrentHashMap<>(16);
 
     static {
-        commandMap.put("pwd", PwdCommand.class);
         commandMap.put("bytes", BytesCommand.class);
         commandMap.put("jvm", JvmCommand.class);
         commandMap.put("stdout", StdOutCommand.class);
@@ -57,6 +53,7 @@ public class CommandBuilder {
         //初始化内部命令实现
         commandMap.put(CommandConst.EXIT_CMD, ExitCommand.class);
         commandMap.put(CommandConst.CANCEL_CMD, CancelCommand.class);
+        commandMap.put(CommandConst.HEARTBEAT, HeartbeatCommand.class);
         commandMap.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
         //初始化jdk的spi
         initJdkSpi();
@@ -165,6 +162,9 @@ public class CommandBuilder {
 
         ExtendCommand extendCmd = null;
         try {
+            //若非单例使用原型构建新实例，防止多会话冲突
+            processor = processor.isSingleton() ? processor : processor.getClass().getConstructor().newInstance();
+            //使用新构建的processor构建扩展类命令
             extendCmd = new ExtendCommand(processor);
             extendCmd.setName(cmd);
             extendCmd.setSession(session);

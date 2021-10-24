@@ -1,7 +1,7 @@
 package com.mz.jarboot.event;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.context.ApplicationContext;
 

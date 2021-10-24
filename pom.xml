@@ -41,11 +41,13 @@
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>
 		<module>spring-boot-starter-jarboot</module>
+		<module>plugins/debug-plugin</module>
+		<module>plugins/shell-plugin</module>
 		<module>demo-server</module>
 		<module>packaging</module>
 	</modules>
 	<properties>
-		<revision>1.0.9</revision>
+		<revision>1.0.10</revision>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>

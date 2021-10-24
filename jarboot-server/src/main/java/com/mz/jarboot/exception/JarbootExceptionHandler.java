@@ -3,7 +3,7 @@ package com.mz.jarboot.exception;
 
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResponseSimple;
-import com.mz.jarboot.constant.CommonConst;
+import com.mz.jarboot.api.constant.CommonConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

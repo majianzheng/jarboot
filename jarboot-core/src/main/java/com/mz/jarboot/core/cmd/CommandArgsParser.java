@@ -76,6 +76,9 @@ public class CommandArgsParser {
 
     private void doParse(String args) {
         splitedArgs = splitArgs(args);
+        if (optionMap.isEmpty() && argumentMap.isEmpty()) {
+            return;
+        }
         Iterator<String> iter = splitedArgs.iterator();
         Option preOp = null;
         while (iter.hasNext()) {

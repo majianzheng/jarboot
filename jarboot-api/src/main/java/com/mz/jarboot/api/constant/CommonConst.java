@@ -1,4 +1,4 @@
-package com.mz.jarboot.constant;
+package com.mz.jarboot.api.constant;
 
 
 /**

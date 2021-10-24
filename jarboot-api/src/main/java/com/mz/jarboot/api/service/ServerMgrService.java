@@ -1,6 +1,7 @@
-package com.mz.jarboot.service;
+package com.mz.jarboot.api.service;
 
-import com.mz.jarboot.dto.ServerRunningDTO;
+import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServerSetting;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public interface ServerMgrService {
      * 获取服务列表
      * @return 服务列表
      */
-    List<ServerRunningDTO> getServerList();
+    List<ServerRunning> getServerList();
 
     /**
      * 一键重启，杀死所有服务进程，根据依赖重启
@@ -48,4 +49,10 @@ public interface ServerMgrService {
      * @param p 服务列表，列表内容为jar包的上级文件夹的名称
      */
     void restartServer(List<String> p);
+
+    /**
+     * 通过服务配置启动服务
+     * @param setting 服务配置
+     */
+    void startSingleServer(ServerSetting setting);
 }

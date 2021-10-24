@@ -24,7 +24,7 @@ const GlobalSetting: any = memo(() => {
             form.setFieldsValue(resp.result);
         }).catch(CommonNotice.errorFormatted);
     };
-    useEffect(() => onReset());
+    useEffect(() => onReset(), []);
     const onSubmit = (data: any) => {
         SettingService.submitGlobalSetting(data).then(resp => {
             if (0 === resp?.resultCode) {

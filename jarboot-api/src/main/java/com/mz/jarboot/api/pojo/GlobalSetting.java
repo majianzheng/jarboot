@@ -1,11 +1,11 @@
-package com.mz.jarboot.dto;
+package com.mz.jarboot.api.pojo;
 
 import java.io.Serializable;
 
 /**
  * @author majianzheng
  */
-public class GlobalSettingDTO implements Serializable {
+public class GlobalSetting implements Serializable {
     private String servicesPath;
     private String defaultVmOptions;
     private Boolean servicesAutoStart;

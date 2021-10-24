@@ -2,12 +2,12 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
-import com.mz.jarboot.constant.CommonConst;
-import com.mz.jarboot.constant.SettingPropConst;
-import com.mz.jarboot.dto.GlobalSettingDTO;
-import com.mz.jarboot.dto.ServerSettingDTO;
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.SettingPropConst;
+import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.service.SettingService;
+import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
@@ -31,14 +31,22 @@ public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ServerSettingDTO getServerSetting(String server) {
+    public ServerSetting getServerSetting(String server) {
         return PropertyFileUtils.getServerSetting(server);
     }
 
     @Override
-    public void submitServerSetting(String server, ServerSettingDTO setting) {
-        File file = getConfAndCheck(server, setting.getJar());
+    public void submitServerSetting(String server, ServerSetting setting) {
+        File file = getConfAndCheck(server, setting);
         Properties prop = PropertyFileUtils.getProperties(file);
+        prop.setProperty(SettingPropConst.RUNNABLE, String.valueOf(setting.getRunnable()));
+        String userDefineRunArg = setting.getUserDefineRunArgument();
+        if (null == userDefineRunArg) {
+            userDefineRunArg = StringUtils.EMPTY;
+        } else {
+            userDefineRunArg = userDefineRunArg.replace('\n', ' ');
+        }
+        prop.setProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, userDefineRunArg);
         String jar = setting.getJar();
         if (null == jar) {
             jar = StringUtils.EMPTY;
@@ -75,7 +83,7 @@ public class SettingServiceImpl implements SettingService {
         PropertyFileUtils.storeProperties(file, prop);
     }
 
-    private void checkAndSetWorkHome(ServerSettingDTO setting, Properties prop) {
+    private void checkAndSetWorkHome(ServerSetting setting, Properties prop) {
         String workDirectory = setting.getWorkDirectory();
         if (StringUtils.isNotEmpty(workDirectory)) {
             checkDirExist(workDirectory);
@@ -85,7 +93,7 @@ public class SettingServiceImpl implements SettingService {
         prop.setProperty(SettingPropConst.WORK_DIR, workDirectory);
     }
 
-    private void checkAndSetJavaHome(ServerSettingDTO setting, Properties prop) {
+    private void checkAndSetJavaHome(ServerSetting setting, Properties prop) {
         String jdkPath = setting.getJdkPath();
         if (StringUtils.isNotEmpty(jdkPath)) {
             String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
@@ -100,7 +108,7 @@ public class SettingServiceImpl implements SettingService {
         prop.setProperty(SettingPropConst.JDK_PATH, jdkPath);
     }
 
-    private void checkAndSetEnv(ServerSettingDTO setting, Properties prop) {
+    private void checkAndSetEnv(ServerSetting setting, Properties prop) {
         String env = setting.getEnv();
         if (PropertyFileUtils.checkEnvironmentVar(env)) {
             if (null == env) {
@@ -114,12 +122,12 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public GlobalSettingDTO getGlobalSetting() {
+    public GlobalSetting getGlobalSetting() {
         return SettingUtils.getGlobalSetting();
     }
 
     @Override
-    public void submitGlobalSetting(GlobalSettingDTO setting) {
+    public void submitGlobalSetting(GlobalSetting setting) {
         SettingUtils.updateGlobalSetting(setting);
     }
 
@@ -164,7 +172,7 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private File getConfAndCheck(String server, String jar) {
+    private File getConfAndCheck(String server, ServerSetting setting) {
         File file = SettingUtils.getServerSettingFile(server);
         if (!file.exists()) {
             try {
@@ -176,12 +184,12 @@ public class SettingServiceImpl implements SettingService {
                 throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
             }
         }
-        if (StringUtils.isNotEmpty(jar)) {
-            Path path = Paths.get(jar);
+        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(setting.getJar())) {
+            Path path = Paths.get(setting.getJar());
             File jarFile = path.isAbsolute() ? path.toFile() :
-                    FileUtils.getFile(SettingUtils.getServerPath(server), jar);
+                    FileUtils.getFile(SettingUtils.getServerPath(server), setting.getJar());
             if (!jarFile.exists() || !jarFile.isFile()) {
-                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("jar文件(%s)不存在！", jar));
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", setting.getJar()));
             }
         }
         return file;

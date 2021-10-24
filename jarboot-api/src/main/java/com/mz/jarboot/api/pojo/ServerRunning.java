@@ -1,12 +1,14 @@
-package com.mz.jarboot.dto;
+package com.mz.jarboot.api.pojo;
 
 /**
  * @author majianzheng
  */
-public class ServerRunningDTO {
+public class ServerRunning {
     private Integer pid;
     private String status;
     private String name;
+    /** 是否临时的进程，实际存在，在工作空间中不存在 */
+    private Boolean ephemeral;
 
     public Integer getPid() {
         return pid;
@@ -32,12 +34,21 @@ public class ServerRunningDTO {
         this.name = name;
     }
 
+    public Boolean getEphemeral() {
+        return ephemeral;
+    }
+
+    public void setEphemeral(Boolean ephemeral) {
+        this.ephemeral = ephemeral;
+    }
+
     @Override
     public String toString() {
-        return "ServerRunningDTO{" +
+        return "ServerRunning{" +
                 "pid=" + pid +
                 ", status='" + status + '\'' +
                 ", name='" + name + '\'' +
+                ", debug=" + ephemeral +
                 '}';
     }
 }

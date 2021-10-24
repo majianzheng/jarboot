@@ -4,12 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.constant.AuthConst;
+import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.security.JwtTokenManager;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * 向浏览器推送消息
@@ -25,11 +31,45 @@ public class WebSocketMainServer {
     private static final String FUNC_KEY = "func";
     private static final String BODY_KEY = "body";
 
+    private static class Holder {
+        static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
+    }
+
     /**
      * 连接建立成功调用的方法
      * */
     @OnOpen
     public void onOpen(Session session) {
+        //获取token
+        List<String> array = session.getRequestParameterMap().get("token");
+        if (CollectionUtils.isEmpty(array)) {
+            logger.error("WebSocket connect failed, need token!");
+            try {
+                session.getBasicRemote().sendText("Token is empty!");
+                session.close();
+            } catch (IOException exception) {
+                logger.warn(exception.getMessage(), exception);
+            }
+            return;
+        }
+        String token = array.get(0);
+        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
+            token = token.substring(AuthConst.TOKEN_PREFIX.length());
+        }
+        //校验token合法性
+        try {
+            Holder.JWT_MGR.validateToken(token);
+        } catch (Exception e) {
+            logger.error("Validate token failed!\ntoken:{}", token, e);
+            try {
+                session.getBasicRemote().sendText("Validate token failed!");
+                session.close();
+            } catch (IOException exception) {
+                logger.warn(exception.getMessage(), exception);
+            }
+            return;
+        }
+
         WebSocketManager.getInstance().newConnect(session);
     }
 
@@ -84,7 +124,7 @@ public class WebSocketMainServer {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-        AgentManager.getInstance().releaseAgentSession(session.getId());
-        WebSocketManager.getInstance().delConnect(session.getId());
+        logger.debug(error.getMessage(), error);
+        this.onClose(session);
     }
 }

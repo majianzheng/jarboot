@@ -16,8 +16,6 @@ import java.io.IOException;
  * @author majianzheng
  */
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
-    private static final String TOKEN_PREFIX = "Bearer ";
-    
     private final JwtTokenManager tokenManager;
     private final PermissionManager permissionManager;
 
@@ -36,7 +34,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             try {
                 this.tokenManager.validateToken(jwt);
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+                logger.warn(e.getMessage(), e);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Validate token failed!");
                 return;
             }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
@@ -47,7 +46,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden!");
             }
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized!");
         }
     }
     
@@ -56,8 +55,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
      */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)) {
-            return bearerToken.substring(TOKEN_PREFIX.length());
+        if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
+            return bearerToken.substring(AuthConst.TOKEN_PREFIX.length());
         }
         String jwt = request.getParameter(AuthConst.ACCESS_TOKEN);
         if (StringUtils.isNotBlank(jwt)) {
