@@ -100,7 +100,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             }
             return;
         }
-        this.codeDom = document.querySelector(`#id-console-${this.props.server}`);
+        this.codeDom = document.querySelector(`code[id="id-console-${this.props.server}"]`);
     };
 
     private _resetContent = (text: string|undefined) => {
