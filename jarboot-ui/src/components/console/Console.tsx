@@ -14,7 +14,8 @@ interface ConsoleProps {
 enum EventType {
     LINE,
     PRINT,
-    BACKSPACE
+    BACKSPACE,
+    CLEAR
 }
 
 interface ConsoleEvent {
@@ -118,18 +119,9 @@ class Console extends React.PureComponent<ConsoleProps> {
     };
 
     private clear = () => {
-        this.init();
-        if (!this.codeDom) {
-            return;
-        }
-        let count = this.codeDom.children.length;
-        if (count > 0 && this.loading == this.codeDom.children[count - 1]) {
-            //如果处于加载中，则保留加载的动画
-            --count;
-        }
-        for(let i = 0; i < count; ++i){
-            this.codeDom.removeChild(this.codeDom.children[0]);
-        }
+        this.eventQueue.push({type: EventType.CLEAR});
+        //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
+        this.trigEvent();
     };
 
     private startLoading = () => {
@@ -203,6 +195,7 @@ class Console extends React.PureComponent<ConsoleProps> {
                 Logger.error(e);
             } finally {
                 this.eventQueue = [];
+                this.lines = [];
             }
         }, MAX_UPDATE_DELAY);
     }
@@ -221,10 +214,27 @@ class Console extends React.PureComponent<ConsoleProps> {
             case EventType.BACKSPACE:
                 this.handleBackspace(event);
                 break;
+            case EventType.CLEAR:
+                this.handleClear();
+                break;
             default:
                 break;
         }
     };
+
+    private handleClear() {
+        if (!this.codeDom) {
+            return;
+        }
+        let count = this.codeDom.children.length;
+        if (count > 0 && this.loading == this.codeDom.children[count - 1]) {
+            //如果处于加载中，则保留加载的动画
+            this.codeDom.innerHTML = "";
+            this.codeDom.append(this.loading);
+        } else {
+            this.codeDom.innerHTML = "";
+        }
+    }
 
     private handlePrintln(event: ConsoleEvent) {
         if (this.lines.length > 0) {
@@ -362,7 +372,9 @@ class Console extends React.PureComponent<ConsoleProps> {
         let style = {display: false === this.props.visible ? 'none' : 'block'};
         return (<>
                 <code id={`id-console-${this.props.server}`} style={style} className={styles.console}>
-                    <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>Jarboot Console</p>
+                    <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>
+                        Jarboot Console {this.props.server}
+                    </p>
                 </code>
             </>
         );

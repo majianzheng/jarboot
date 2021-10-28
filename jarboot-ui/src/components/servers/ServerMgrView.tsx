@@ -12,8 +12,7 @@ import {MsgData, WsManager} from "@/common/WsManager";
 import Logger from "@/common/Logger";
 import {MSG_EVENT} from "@/common/EventConst";
 import {formatMsg} from "@/common/IntlFormat";
-import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
-import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
+import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers/SuperPanel";
 import OneClickButtons from "@/components/servers/OneClickButtons";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
@@ -24,8 +23,6 @@ interface ServerRunning {
     status: string,
     pid: number
 }
-
-const pubsub: PublishSubmit = new ServerPubsubImpl();
 
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
@@ -48,33 +45,11 @@ export default class ServerMgrView extends React.PureComponent {
     componentDidMount() {
         this.refreshServerList(true);
         //初始化websocket的事件处理
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
-        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
     }
 
     componentWillUnmount() {
-        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_LINE);
-        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_PRINT);
-        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE);
-        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE_LINE);
-        WsManager.removeMessageHandler(MSG_EVENT.RENDER_JSON);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
-        WsManager.removeMessageHandler(MSG_EVENT.CMD_END);
-    }
-
-    private _renderCmdJsonResult = (data: MsgData) => {
-        if ('{' !== data.body[0]) {
-            //不是json数据时，使用console
-            this._console(data);
-            return;
-        }
-        const body = JSON.parse(data.body);
-        pubsub.publish(data.server, PUB_TOPIC.RENDER_JSON, body);
     }
 
     private _activeConsole(server: any) {
@@ -133,26 +108,6 @@ export default class ServerMgrView extends React.PureComponent {
                 break;
         }
     };
-
-    private _console = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.APPEND_LINE, data.body);
-    }
-
-    private _print = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.PRINT, data.body);
-    }
-
-    private _backspace = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.BACKSPACE, data.body);
-    }
-
-    private _backspaceLine = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
-    }
-
-    private _commandEnd = (data: MsgData) => {
-        pubsub.publish(data.server, PUB_TOPIC.CMD_END, data.body);
-    }
 
     private _updateServerStatus(server: string, status: string) {
         let data: ServerRunning[] = this.state.data;
@@ -430,7 +385,7 @@ export default class ServerMgrView extends React.PureComponent {
                     {(this.state.loading && 0 == this.allServerOut.length) &&
                     <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
                     {this.allServerOut.map((value: any) => (
-                        <SuperPanel key={value} server={value} pubsub={pubsub} visible={this.state.current === value}/>
+                        <SuperPanel key={value} server={value} visible={this.state.current === value}/>
                     ))}
                 </div>
             </div>

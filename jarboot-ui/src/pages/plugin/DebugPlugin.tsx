@@ -2,7 +2,9 @@ import {Button, Form, Input} from "antd";
 import {useIntl} from "umi";
 import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
-import {memo} from "react";
+import {memo, useState} from "react";
+import {SuperPanel} from "@/components/servers/SuperPanel";
+import {WsManager} from "@/common/WsManager";
 
 const layout = {
     labelCol: {span: 8},
@@ -12,10 +14,15 @@ const tailLayout = {
     wrapperCol: {offset: 12, span: 12},
 };
 
+WsManager.initWebsocket();
+
 const DebugPlugin = memo(() => {
     const intl = useIntl();
+    const [server, setServer] = useState('');
 
     const onSubmit = (data: any) => {
+        setServer("");
+        setServer(data.server);
         data.runnable = false;
         Request.post(`/api/jarboot/plugin/debug/startServer`, data).then(resp => {
             if (resp?.resultCode === 0) {
@@ -80,6 +87,7 @@ const DebugPlugin = memo(() => {
                 </Button>
             </Form.Item>
         </Form>
+        {server && <SuperPanel server={server} visible={true} key={server}/>}
     </>)
 });
 

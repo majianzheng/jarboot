@@ -1,3 +1,8 @@
+import {MsgData, WsManager} from "@/common/WsManager";
+import {MSG_EVENT} from "@/common/EventConst";
+import {JarBootConst} from "@/common/JarBootConst";
+import {PUB_TOPIC} from "@/components/servers/SuperPanel";
+
 /**
  * 服务订阅发布实现
  */
@@ -5,9 +10,20 @@ const TOPIC_SPLIT = '\r';
 
 export class ServerPubsubImpl implements PublishSubmit {
     private handlers = new Map<string, Set<(data: any) => void>>();
+
+    constructor() {
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
+        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
+        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
+    }
+
     private genTopicKey(namespace: string, event: string) {
         return `${namespace}${TOPIC_SPLIT}${event}`;
     }
+
     public publish(namespace: string, event: string, data?: any): void {
         const key = this.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
@@ -39,4 +55,33 @@ export class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
+    private _console = (data: MsgData) => {
+        this.publish(data.server, JarBootConst.APPEND_LINE, data.body);
+    }
+
+    private _print = (data: MsgData) => {
+        this.publish(data.server, JarBootConst.PRINT, data.body);
+    }
+
+    private _backspace = (data: MsgData) => {
+        this.publish(data.server, JarBootConst.BACKSPACE, data.body);
+    }
+
+    private _backspaceLine = (data: MsgData) => {
+        this.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
+    }
+
+    private _commandEnd = (data: MsgData) => {
+        this.publish(data.server, PUB_TOPIC.CMD_END, data.body);
+    }
+
+    private _renderCmdJsonResult = (data: MsgData) => {
+        if ('{' !== data.body[0]) {
+            //不是json数据时，使用console
+            this._console(data);
+            return;
+        }
+        const body = JSON.parse(data.body);
+        this.publish(data.server, PUB_TOPIC.RENDER_JSON, body);
+    }
 }
