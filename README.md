@@ -47,7 +47,6 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 ## Install or build
 ### Download the zip package to install or using docker.
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
-- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">Download from maven center</a>
 - 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
 Use <code>docker</code>

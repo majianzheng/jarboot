@@ -47,7 +47,6 @@ English version goes [here](README.md).
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
-- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">从maven center下载</a>
 - 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
 使用<code>Docker</code>

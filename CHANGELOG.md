@@ -1,3 +1,8 @@
+## 1.0.11 (10.28, 2021)
+
+* 修复启动服务时Console终端未清理bug
+* shell和debug插件优化修改
+
 ## 1.0.10 (10.24, 2021)
 
 * 配置文件修改jarboot.services.root-dir -> jarboot.services.workspace
