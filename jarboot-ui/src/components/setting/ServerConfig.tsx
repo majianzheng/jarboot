@@ -15,14 +15,18 @@ const tailLayout = {
     wrapperCol: {offset: 12, span: 12},
 };
 
-const ServerConfig: any = memo((props: any) => {
+interface ServerConfigProp {
+    path: string;
+}
+
+const ServerConfig: any = memo((props: ServerConfigProp) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
     let [runnable, setRunnable] = useState(true);
     const onReset = () => {
-        SettingService.getServerSetting(props.server
+        SettingService.getServerSetting(props.path
         ).then((resp: any) => {
             if (0 !== resp.resultCode) {
                 CommonNotice.errorFormatted(resp);
@@ -35,14 +39,14 @@ const ServerConfig: any = memo((props: any) => {
 
     useEffect(() => {
         onReset();
-    }, [props.server]);
+    }, [props.path]);
 
     const onSubmit = (data: any) => {
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.path)) {
             CommonNotice.info('请先选择服务');
             return;
         }
-        SettingService.submitServerSetting(props.server, data).then(resp => {
+        SettingService.submitServerSetting(props.path, data).then(resp => {
             if (0 === resp?.resultCode) {
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
             } else {
@@ -57,13 +61,13 @@ const ServerConfig: any = memo((props: any) => {
             vm = 'boot.vmoptions';
         }
         const onSave = (value: string) => {
-            SettingService.saveVmOptions(props.server, vm, value).then(resp => {
+            SettingService.saveVmOptions(props.path, vm, value).then(resp => {
                 if (resp.resultCode !== 0) {
                     CommonNotice.errorFormatted(resp);
                 }
             }).catch(CommonNotice.errorFormatted)
         };
-        SettingService.getVmOptions(props.server, vm).then(resp => {
+        SettingService.getVmOptions(props.path, vm).then(resp => {
             if (resp.resultCode !== 0) {
                 CommonNotice.errorFormatted(resp);
                 return;

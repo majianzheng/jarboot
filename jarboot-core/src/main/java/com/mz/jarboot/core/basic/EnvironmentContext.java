@@ -3,17 +3,12 @@ package com.mz.jarboot.core.basic;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
-import com.mz.jarboot.core.server.JarbootBootstrap;
 import com.mz.jarboot.core.session.CommandCoreSession;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandSessionImpl;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.net.URISyntaxException;
-import java.security.CodeSource;
 import java.util.concurrent.*;
 
 /**
@@ -21,35 +16,34 @@ import java.util.concurrent.*;
  * @author majianzheng
  */
 public class EnvironmentContext {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static Logger logger = LogUtils.getLogger();
 
     private static String server;
     private static String host;
+    private static String sid;
+    private static boolean initialized = false;
     private static TransformerManager transformerManager;
     private static Instrumentation instrumentation;
     private static ConcurrentMap<String, CommandCoreSession> sessionMap = new ConcurrentHashMap<>(16);
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     private static ScheduledExecutorService scheduledExecutorService;
-    private static String jarbootHome = "./";
+    private static String jarbootHome = ".";
     private EnvironmentContext() {}
 
-    public static void init(String server, String host, Instrumentation inst) {
+    public static void init(String home, String server, String host, String sid, Instrumentation inst) {
+        logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
+        EnvironmentContext.jarbootHome = home;
         EnvironmentContext.server = server;
         EnvironmentContext.host = host;
+        EnvironmentContext.sid = sid;
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 4, 2);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
-        CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
-        try {
-            File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            jarbootHome = curJar.getParentFile().getParent();
-        } catch (URISyntaxException e) {
-            //ignore
-        }
+        initialized = true;
     }
 
     public static String getJarbootHome() {
@@ -67,8 +61,16 @@ public class EnvironmentContext {
         }
     }
 
+    public static boolean isInitialized() {
+        return initialized;
+    }
+
     public static String getServer() {
         return server;
+    }
+
+    public static String getSid() {
+        return sid;
     }
 
     public static String getHost() {

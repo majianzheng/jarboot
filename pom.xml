@@ -47,7 +47,7 @@
 		<module>packaging</module>
 	</modules>
 	<properties>
-		<revision>1.0.10</revision>
+		<revision>1.1.0</revision>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>

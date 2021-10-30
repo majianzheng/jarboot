@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Result, Tag} from "antd";
 import { getLocale } from 'umi';
-import ServerMgrService from "@/services/ServerMgrService";
+import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
 import {
     SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
@@ -18,12 +18,6 @@ import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 
-interface ServerRunning {
-    name: string,
-    status: string,
-    pid: number
-}
-
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
@@ -37,84 +31,86 @@ const notSelectInfo = () => {
 };
 
 export default class ServerMgrView extends React.PureComponent {
-    state = {loading: false, data: new Array<any>(), uploadVisible: false,
-        selectedRowKeys: new Array<any>(),
-        selectRows: new Array<any>(), current: '', oneClickLoading: false};
-    allServerOut: any = [];
+    state = {loading: false, data: [] as ServerRunning[], uploadVisible: false,
+        selectedRowKeys: [] as string[],
+        selectRows: [] as ServerRunning[], current: '', oneClickLoading: false};
     height = window.innerHeight - 120;
     componentDidMount() {
         this.refreshServerList(true);
+        pubsub.submit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
     }
 
     componentWillUnmount() {
+        pubsub.unSubmit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
     }
 
-    private _activeConsole(server: any) {
+    private _activeConsole(sid: any) {
         let data: ServerRunning[] = this.state.data;
-        const index = data.findIndex(row => row.name === server);
+        const index = data.findIndex(row => row.sid === sid);
         if (-1 !== index) {
-            const selectedRowKeys: any = [data[index].name];
+            const selectedRowKeys: any = [data[index].sid];
             const selectRows: any = [data[index]];
             this.setState({selectedRowKeys, selectRows});
         }
     }
 
     private _serverStatusChange = (data: MsgData) => {
-        const server = data.server;
         const status = data.body;
+        const key = data.sid;
+        const s = this.state.data.find(value => value.sid === data.sid);
+        const server = s?.name as string;
         switch (status) {
             case JarBootConst.MSG_TYPE_START:
                 // 激活终端显示
-                this._activeConsole(server);
+                this._activeConsole(key);
                 Logger.log(`${server}启动中...`);
-                pubsub.publish(server, JarBootConst.START_LOADING);
-                this._clearDisplay(server);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
+                pubsub.publish(key, JarBootConst.START_LOADING);
+                this._clearDisplay({name: server, sid: key, path: ''});
+                this._updateServerStatus(key, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
                 Logger.log(`${server}停止中...`);
-                pubsub.publish(server, JarBootConst.START_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
+                pubsub.publish(key, JarBootConst.START_LOADING);
+                this._updateServerStatus(key, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
                 Logger.log(`${server}启动失败`);
                 CommonNotice.error(`Start ${server} failed!`);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPED);
+                this._updateServerStatus(key, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
                 Logger.log(`${server}启动成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
+                pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                this._updateServerStatus(key, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
                 Logger.log(`${server}停止失败`);
                 CommonNotice.error(`Stop ${server} failed!`);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED);
+                this._updateServerStatus(key, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
                 Logger.log(`${server}停止成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
+                pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                this._updateServerStatus(key, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
                 Logger.log(`${server}重启成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
+                pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                this._updateServerStatus(key, JarBootConst.STATUS_STARTED)
                 break;
             default:
                 break;
         }
     };
 
-    private _updateServerStatus(server: string, status: string) {
+    private _updateServerStatus(sid: string, status: string) {
         let data: ServerRunning[] = this.state.data;
         data = data.map((value: ServerRunning) => {
-            if (value.name === server) {
+            if (value.sid === sid) {
                 value.status = status;
-                value.pid = 0;
             }
             return value;
         });
@@ -142,7 +138,7 @@ export default class ServerMgrView extends React.PureComponent {
             loading: this.state.loading,
             dataSource: this.state.data,
             pagination: false,
-            rowKey: 'name',
+            rowKey: 'sid',
             size: 'small',
             rowSelection: this._getRowSelection(),
             onRow: this._onRow.bind(this),
@@ -176,7 +172,7 @@ export default class ServerMgrView extends React.PureComponent {
     private _getRowSelection() {
         return {
             type: 'checkbox',
-            onChange: (selectedRowKeys: any, selectedRows: any) => {
+            onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
                 let current = this.state.current;
                 if (!selectedRows || selectedRows.length <= 0) {
                     current = '';
@@ -189,25 +185,16 @@ export default class ServerMgrView extends React.PureComponent {
         };
     }
 
-    private _onRow(record: any) {
+    private _onRow(record: ServerRunning) {
         return {
             onClick: () => {
                 this.setState({
-                    selectedRowKeys: [record.name],
+                    selectedRowKeys: [record.sid],
                     selectRows: [record],
-                    current: record.name,
+                    current: record.sid,
                 });
             },
         };
-    }
-
-    private _initAllServerOut(servers: any[]) {
-        let allList = [];
-        if (servers && servers.length > 0) {
-            allList = servers.map(value => value.name);
-        }
-        allList.push("");
-        this.allServerOut = allList;
     }
 
     private refreshServerList = (init: boolean = false) => {
@@ -218,17 +205,16 @@ export default class ServerMgrView extends React.PureComponent {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            const data = resp.result;
-            this._initAllServerOut(data);
+            const data = resp.result as ServerRunning[];
             if (init) {
                 //初始化选中第一个
                 let current = '';
-                let selectedRowKeys: any = [];
+                let selectedRowKeys = [] as string[];
                 let selectRows: any = [];
                 if (data.length > 0) {
-                    const first: any = data[0];
-                    current = first.name as string;
-                    selectedRowKeys = [first.name];
+                    const first: ServerRunning = data[0];
+                    current = first.sid ;
+                    selectedRowKeys = [first.sid];
                     selectRows = [first];
                 }
                 this.setState({data, current, selectedRowKeys, selectRows});
@@ -246,38 +232,39 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private startServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+        if (this.state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
-        this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback);
+        this.setState({loading: true});
+        this.state.selectRows.forEach(this._clearDisplay);
+        ServerMgrService.startServer(this.state.selectRows, this._finishCallback);
     };
 
-    private _clearDisplay = (server: string) => {
-        pubsub.publish(server, JarBootConst.CLEAR_CONSOLE);
+    private _clearDisplay = (server: ServerRunning) => {
+        const key = server.sid;
+        pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
     };
 
     private stopServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+        if (this.state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
 
-        this.setState({out: "", loading: true});
+        this.setState({loading: true});
 
-        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback);
+        ServerMgrService.stopServer(this.state.selectRows, this._finishCallback);
     };
 
     private restartServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+        if (this.state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
-        this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback);
+        this.setState({loading: true});
+        this.state.selectRows.forEach(this._clearDisplay);
+        ServerMgrService.restartServer(this.state.selectRows, this._finishCallback);
     };
 
     private _getTbBtnProps = () => {
@@ -371,6 +358,7 @@ export default class ServerMgrView extends React.PureComponent {
     render() {
         let tableOption: any = this._getTbProps();
         tableOption.scroll = { y: this.height};
+        const loading = this.state.loading && 0 === this.state.data.length;
         return (<div>
             <div style={{display: 'flex'}}>
                 <div style={{flex: 'inherit', width: '28%'}}>
@@ -382,14 +370,16 @@ export default class ServerMgrView extends React.PureComponent {
                                      oneClickStop={this.oneClickStop}/>
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
-                    {(this.state.loading && 0 == this.allServerOut.length) &&
-                    <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
-                    {this.allServerOut.map((value: any) => (
-                        <SuperPanel key={value} server={value} visible={this.state.current === value}/>
+                    {loading && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
+                    {this.state.data.map((value: ServerRunning) => (
+                        <SuperPanel key={value.sid}
+                                    server={value.name}
+                                    sid={value.sid}
+                                    visible={this.state.current === value.sid}/>
                     ))}
                 </div>
             </div>
-            {this.state.uploadVisible && <UploadFileModal server={this.state.current}
+            {this.state.uploadVisible && <UploadFileModal server={this.state.selectRows[0].name}
                              onClose={this.onUploadClose}/>}
         </div>);
     }

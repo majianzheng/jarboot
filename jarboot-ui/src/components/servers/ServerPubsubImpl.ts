@@ -18,14 +18,15 @@ export class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
+        WsManager.addMessageHandler(MSG_EVENT.RECONNECTED, this._onReconnected);
     }
 
-    private genTopicKey(namespace: string, event: string) {
+    private static genTopicKey(namespace: string, event: string) {
         return `${namespace}${TOPIC_SPLIT}${event}`;
     }
 
     public publish(namespace: string, event: string, data?: any): void {
-        const key = this.genTopicKey(namespace, event);
+        const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
             sets.forEach(handler => handler && handler(data));
@@ -33,7 +34,7 @@ export class ServerPubsubImpl implements PublishSubmit {
     }
 
     public submit(namespace: string, event: string, handler: (data: any) => void): void {
-        const key = this.genTopicKey(namespace, event);
+        const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
             sets.add(handler);
@@ -45,7 +46,7 @@ export class ServerPubsubImpl implements PublishSubmit {
     }
 
     public unSubmit(namespace: string, event: string, handler: (data: any) => void): void {
-        const key = this.genTopicKey(namespace, event);
+        const key = ServerPubsubImpl.genTopicKey(namespace, event);
         const sets = this.handlers.get(key);
         if (sets?.size) {
             sets.delete(handler);
@@ -56,23 +57,27 @@ export class ServerPubsubImpl implements PublishSubmit {
     }
 
     private _console = (data: MsgData) => {
-        this.publish(data.server, JarBootConst.APPEND_LINE, data.body);
+        this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
     }
 
     private _print = (data: MsgData) => {
-        this.publish(data.server, JarBootConst.PRINT, data.body);
+        this.publish(data.sid, JarBootConst.PRINT, data.body);
     }
 
     private _backspace = (data: MsgData) => {
-        this.publish(data.server, JarBootConst.BACKSPACE, data.body);
+        this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
     }
 
     private _backspaceLine = (data: MsgData) => {
-        this.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
+        this.publish(data.sid, JarBootConst.BACKSPACE_LINE, data.body);
     }
 
     private _commandEnd = (data: MsgData) => {
-        this.publish(data.server, PUB_TOPIC.CMD_END, data.body);
+        this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
+    }
+
+    private _onReconnected = (data: MsgData) => {
+        this.publish('', PUB_TOPIC.RECONNECTED, data.body);
     }
 
     private _renderCmdJsonResult = (data: MsgData) => {
@@ -82,6 +87,6 @@ export class ServerPubsubImpl implements PublishSubmit {
             return;
         }
         const body = JSON.parse(data.body);
-        this.publish(data.server, PUB_TOPIC.RENDER_JSON, body);
+        this.publish(data.sid, PUB_TOPIC.RENDER_JSON, body);
     }
 }

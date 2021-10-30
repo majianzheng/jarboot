@@ -136,7 +136,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             //zip文件处理
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServerSetting setting = PropertyFileUtils.getServerSetting(server);
+            ServerSetting setting = PropertyFileUtils.getServerSetting(destPath);
             if (StringUtils.isEmpty(setting.getJar())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {

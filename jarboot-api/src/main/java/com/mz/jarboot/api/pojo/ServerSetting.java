@@ -12,6 +12,21 @@ public class ServerSetting implements Serializable {
      * 服务名，即jar文件的上级目录的名称
      */
     private transient String server;
+
+    /**
+     * sid，服务唯一标识，通过path计算得出
+     */
+    private transient String sid;
+
+    /**
+     * 最后修改时间
+     */
+    private transient long lastModified;
+
+    /**
+     * 服务的文件夹路径
+     */
+    private transient String path;
     
     /**
      * 是否是可执行的jar
@@ -96,7 +111,31 @@ public class ServerSetting implements Serializable {
     public void setServer(String server) {
         this.server = server;
     }
-    
+
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
+    }
+
+    public long getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(long lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
     public Boolean getRunnable() {
         return runnable;
     }

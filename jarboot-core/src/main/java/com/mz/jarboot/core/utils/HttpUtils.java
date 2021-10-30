@@ -4,10 +4,8 @@ import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
 import okhttp3.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 public class HttpUtils {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final String BASE_URL =String.format("http://%s", EnvironmentContext.getHost());
     public static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(30L, TimeUnit.SECONDS)

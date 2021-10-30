@@ -8,7 +8,7 @@ interface ConsoleProps {
     visible?: boolean;
     content?: string;
     pubsub?: PublishSubmit;
-    server: string;
+    id: string;
 }
 
 enum EventType {
@@ -61,33 +61,33 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (StringUtil.isNotEmpty(this.props.content)) {
             this._resetContent(this.props.content);
         }
-        const {pubsub, server} = this.props;
+        const {pubsub, id} = this.props;
         if (!pubsub) {
             return;
         }
-        pubsub.submit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.submit(server, JarBootConst.PRINT, this.print);
-        pubsub.submit(server, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.submit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.submit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.submit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.submit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.submit(id, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.submit(id, JarBootConst.PRINT, this.print);
+        pubsub.submit(id, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.submit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.submit(id, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.submit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     componentWillUnmount() {
         this.updateTimeoutFd = null;
         this.codeDom = null;
-        const {pubsub, server} = this.props;
+        const {pubsub, id} = this.props;
         if (!pubsub) {
             return;
         }
-        pubsub.unSubmit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.unSubmit(server, JarBootConst.PRINT, this.print);
-        pubsub.unSubmit(server, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.unSubmit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.unSubmit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.unSubmit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.unSubmit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.unSubmit(id, JarBootConst.PRINT, this.print);
+        pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.unSubmit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.unSubmit(id, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     private init = () => {
@@ -101,7 +101,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             }
             return;
         }
-        this.codeDom = document.querySelector(`code[id="id-console-${this.props.server}"]`);
+        this.codeDom = document.querySelector(`code[id="id-console-${this.props.id}"]`);
     };
 
     private _resetContent = (text: string|undefined) => {
@@ -371,9 +371,9 @@ class Console extends React.PureComponent<ConsoleProps> {
     render() {
         let style = {display: false === this.props.visible ? 'none' : 'block'};
         return (<>
-                <code id={`id-console-${this.props.server}`} style={style} className={styles.console}>
+                <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
                     <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>
-                        Jarboot Console {this.props.server}
+                        Jarboot Console
                     </p>
                 </code>
             </>

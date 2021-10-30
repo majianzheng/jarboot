@@ -9,15 +9,21 @@ import javax.websocket.Session;
  */
 public final class AgentClient extends MessageQueueOperator {
     private final String name;
+    private final String sid;
     private ClientState state;
-    public AgentClient(String name, final Session session) {
+    public AgentClient(String name, String sid, final Session session) {
         super(session);
         this.name = name;
+        this.sid = sid;
         this.state = ClientState.STARTING;
     }
 
     public String getName() {
         return this.name;
+    }
+
+    public String getSid() {
+        return this.sid;
     }
 
     public void setState(ClientState state) {

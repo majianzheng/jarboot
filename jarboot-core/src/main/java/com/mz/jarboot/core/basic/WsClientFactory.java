@@ -4,15 +4,14 @@ import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HttpUtils;
+import com.mz.jarboot.core.utils.LogUtils;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 public class WsClientFactory {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     @SuppressWarnings("all")
     private static volatile WsClientFactory instance = null;
     private static final int MAX_CONNECT_WAIT_SECOND = 10;
@@ -57,8 +56,8 @@ public class WsClientFactory {
             }
         }
 
-        url = String.format("ws://%s/public/jarboot/agent/ws/%s",
-                EnvironmentContext.getHost(), server);
+        url = String.format("ws://%s/public/jarboot/agent/ws/%s/%s",
+                EnvironmentContext.getHost(), server, EnvironmentContext.getSid());
         logger.debug("initClient {}", url);
     }
 

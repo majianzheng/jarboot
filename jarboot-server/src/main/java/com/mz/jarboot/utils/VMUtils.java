@@ -28,6 +28,7 @@ public class VMUtils {
     private Method getVMName;
     private static volatile VMUtils instance = null;
     private boolean initialized = false;
+
     public static VMUtils getInstance() {
         if (null == instance) {
             synchronized (VMUtils.class) {
@@ -38,9 +39,11 @@ public class VMUtils {
         }
         return instance;
     }
+
     public boolean isInitialized() {
         return initialized;
     }
+
     public Object attachVM(int pid) {
         try {
             return attach.invoke(null, String.valueOf(pid));

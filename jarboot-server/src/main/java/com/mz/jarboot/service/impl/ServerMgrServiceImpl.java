@@ -1,9 +1,9 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.event.TaskEvent;
@@ -12,12 +12,15 @@ import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -28,6 +31,9 @@ import java.util.concurrent.*;
 @Service
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Value("${jarboot.after-server-error-offline:}")
+    private String afterServerErrorOffline;
 
     @Autowired
     private TaskRunCache taskRunCache;
@@ -48,11 +54,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             return;
         }
         //获取所有的服务
-        List<String> serverList = taskRunCache.getServerNameList();
+        List<String> paths = taskRunCache.getServerPathList();
         //同步控制，保证所有的都杀死后再重启
-        if (CollectionUtils.isNotEmpty(serverList)) {
+        if (CollectionUtils.isNotEmpty(paths)) {
             //启动服务
-            this.restartServer(serverList);
+            this.restartServer(paths);
         }
     }
 
@@ -66,9 +72,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice("存在未完成的任务，请稍后启动", NoticeEnum.INFO);
             return;
         }
-        List<String> serverList = taskRunCache.getServerNameList();
+        List<String> paths = taskRunCache.getServerPathList();
         //启动服务
-        this.startServer(serverList);
+        this.startServer(paths);
     }
 
     /**
@@ -81,29 +87,29 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice("存在未完成的任务，请稍后停止", NoticeEnum.INFO);
             return;
         }
-        List<String> serverList = taskRunCache.getServerNameList();
+        List<String> paths = taskRunCache.getServerPathList();
         //启动服务
-        this.stopServer(serverList);
+        this.stopServer(paths);
     }
 
     /**
      * 启动服务
      *
-     * @param servers 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
     @Override
-    public void startServer(List<String> servers) {
-        if (CollectionUtils.isEmpty(servers)) {
+    public void startServer(List<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
             return;
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(servers));
+        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(paths));
     }
 
-    private void startServer0(List<String> servers) {
+    private void startServer0(List<String> paths) {
         //获取服务的优先级启动顺序
-        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStartPriority(servers);
+        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStartPriority(paths);
         ArrayList<ServerSetting> taskList = new ArrayList<>();
         ServerSetting setting;
         while (null != (setting = priorityQueue.poll())) {
@@ -150,22 +156,23 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public void startSingleServer(ServerSetting setting) {
         String server = setting.getServer();
+        String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
-        if (this.taskRunCache.isStartingOrStopping(server)) {
+        if (this.taskRunCache.isStartingOrStopping(sid)) {
             WebSocketManager.getInstance().notice("服务" + server + "正在启动或停止", NoticeEnum.INFO);
             return;
         }
-        if (TaskUtils.isAlive(server)) {
+        if (AgentManager.getInstance().isOnline(server, sid)) {
             //已经启动
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
 
-        this.taskRunCache.addStarting(server);
+        this.taskRunCache.addStarting(sid);
         try {
             //设定启动中，并发送前端让其转圈圈
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.START);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START);
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
@@ -173,46 +180,45 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             //记录启动结束时间，减去判定时间修正
 
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
-            int pid = TaskUtils.getServerPid(server);
             //服务是否启动成功
-            if (CommonConst.INVALID_PID == pid) {
-                //启动失败
-                WebSocketManager.getInstance().publishStatus(server, TaskStatus.START_ERROR);
-            } else {
-                WebSocketManager.getInstance().sendConsole(server,
+            if (AgentManager.getInstance().isOnline(server, sid)) {
+                WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s started cost %.3f second.", server, costTime));
-                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+            } else {
+                //启动失败
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START_ERROR);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
         } finally {
-            this.taskRunCache.removeStarting(server);
+            this.taskRunCache.removeStarting(sid);
         }
     }
 
     /**
      * 停止服务
      *
-     * @param servers 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
     @Override
-    public void stopServer(List<String> servers) {
-        if (CollectionUtils.isEmpty(servers)) {
+    public void stopServer(List<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
             return;
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(servers));
+        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(paths));
     }
 
-    private void stopServer0(List<String> servers) {
+    private void stopServer0(List<String> paths) {
         //获取服务的优先级顺序，与启动相反的顺序依次终止
-        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStopPriority(servers);
-        ArrayList<String> taskList = new ArrayList<>();
+        final Queue<ServerSetting> priorityQueue = PropertyFileUtils.parseStopPriority(paths);
+        ArrayList<ServerSetting> taskList = new ArrayList<>();
         ServerSetting setting;
         while (null != (setting = priorityQueue.poll())) {
-            taskList.add(setting.getServer());
+            taskList.add(setting);
             ServerSetting next = priorityQueue.peek();
             if (null != next && !next.getPriority().equals(setting.getPriority())) {
                 //同一级别的全部取出
@@ -225,7 +231,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         stopServerGroup(taskList);
     }
 
-    private void stopServerGroup(List<String> s) {
+    private void stopServerGroup(List<ServerSetting> s) {
         if (CollectionUtils.isEmpty(s)) {
             return;
         }
@@ -244,40 +250,42 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
     }
 
-    private void stopSingleServer(String server) {
-        if (this.taskRunCache.isStopping(server)) {
+    private void stopSingleServer(ServerSetting setting) {
+        String server = setting.getServer();
+        String sid = setting.getSid();
+        if (this.taskRunCache.isStopping(sid)) {
             WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeEnum.INFO);
             return;
         }
-        this.taskRunCache.addStopping(server);
+        this.taskRunCache.addStopping(sid);
         try {
             //发送停止中消息
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP);
             //记录开始时间
             long startTime = System.currentTimeMillis();
-            TaskUtils.killServer(server);
+            TaskUtils.killServer(server, sid);
             //耗时
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
-            if (AgentManager.getInstance().isOnline(server)) {
-                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOP_ERROR);
+            if (AgentManager.getInstance().isOnline(server, sid)) {
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP_ERROR);
             } else {
-                WebSocketManager.getInstance().sendConsole(server,
+                WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s stopped cost %.3f second.", server, costTime));
-                WebSocketManager.getInstance().publishStatus(server, TaskStatus.STOPPED);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
         } finally {
-            this.taskRunCache.removeStopping(server);
+            this.taskRunCache.removeStopping(sid);
         }
     }
 
     /**
      * 重启服务
      *
-     * @param servers 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param servers 服务列表，字符串格式：服务path
      */
     @Override
     public void restartServer(List<String> servers) {
@@ -290,17 +298,55 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         });
     }
 
+    private void onOffline(TaskEvent event) {
+        String server = event.getServer();
+        String sid = event.getSid();
+        //检查进程是否存活
+        int pid = TaskUtils.getPid(server, sid);
+        if (CommonConst.INVALID_PID != pid) {
+            //检查是否处于中间状态
+            if (taskRunCache.isStopping(sid)) {
+                //处于停止中状态，此时不做干预，守护只针对正在运行的进程
+                return;
+            }
+            //尝试重新初始化代理客户端
+            TaskUtils.attach(server, sid);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+            return;
+        }
+
+        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
+            String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
+            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
+        }
+
+        //获取是否开启了守护
+        final ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
+        String s = sdf.format(new Date());
+        if (null != setting && Boolean.TRUE.equals(setting.getDaemon())) {
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
+                    , NoticeEnum.WARN);
+            //检测配置更新，并启动
+            TaskUtils.getTaskExecutor().execute(() ->
+                    this.startSingleServer(PropertyFileUtils.getServerSetting(setting.getPath())));
+        } else {
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
+                    , NoticeEnum.WARN);
+        }
+    }
+
     @EventListener
     public void onTaskEvent(TaskEvent event) {
         switch (event.getEventType()) {
             case RESTART:
-                this.restartServer(event.getServices());
-                break;
-            case DAEMON_START:
-                this.startServer(event.getServices());
+                this.restartServer(event.getPaths());
                 break;
             case AUTO_START_ALL:
                 this.oneClickStart();
+                break;
+            case OFFLINE:
+                this.onOffline(event);
                 break;
             default:
                 logger.error("未知的消息类型");

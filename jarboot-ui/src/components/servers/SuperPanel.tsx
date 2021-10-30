@@ -20,6 +20,7 @@ import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
 
 interface SuperPanelProps {
     server: string;
+    sid: string;
     visible: boolean;
 }
 
@@ -27,6 +28,7 @@ enum PUB_TOPIC {
     CMD_END="commandEnd",
     RENDER_JSON = "renderJson",
     QUICK_EXEC_CMD = "quickExecCmd",
+    RECONNECTED = "reconnected",
 }
 
 /**
@@ -51,23 +53,24 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     const [command, setCommand] = useState("");
     const [data, setData] = useState({});
     const inputRef = useRef<any>();
+    const key = props.sid;
 
     useEffect(() => {
-        pubsub.submit(props.server, PUB_TOPIC.CMD_END, onCmdEnd);
-        pubsub.submit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
-        pubsub.submit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
-        historyMap.set(props.server, new class implements HistoryProp {
+        pubsub.submit(key, PUB_TOPIC.CMD_END, onCmdEnd);
+        pubsub.submit(key, PUB_TOPIC.RENDER_JSON, renderView);
+        pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+        historyMap.set(key, new class implements HistoryProp {
             cur = 0;
             history = [];
         });
         return () => {
-            pubsub.unSubmit(props.server, PUB_TOPIC.CMD_END, onCmdEnd);
-            pubsub.unSubmit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
-            pubsub.unSubmit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+            pubsub.unSubmit(key, PUB_TOPIC.CMD_END, onCmdEnd);
+            pubsub.unSubmit(key, PUB_TOPIC.RENDER_JSON, renderView);
+            pubsub.unSubmit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
         };
     }, []);
 
-    const historyProp = historyMap.get(props.server);
+    const historyProp = historyMap.get(key);
 
     //解析json数据的视图
     const viewResolver: any = {
@@ -98,7 +101,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
-        pubsub.publish(props.server, JarBootConst.FINISH_LOADING, msg);
+        pubsub.publish(key, JarBootConst.FINISH_LOADING, msg);
         inputRef?.current?.focus();
         const value = inputRef?.current?.state?.value;
         if (value && value?.length > 0) {
@@ -107,7 +110,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const clearDisplay = () => {
-        pubsub.publish(props.server, JarBootConst.CLEAR_CONSOLE);
+        pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
         inputRef?.current?.focus();
     };
 
@@ -137,8 +140,8 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             //切换为控制台显示
             setView('');
         }
-        pubsub.publish(props.server, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
-        const msg = {server: props.server, body: cmd, func: 1};
+        pubsub.publish(key, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
+        const msg = {server: props.server, sid: props.sid, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
 
         if (historyProp) {
@@ -163,7 +166,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
-        const msg = {server: props.server, body: '', func: 2};
+        const msg = {server: props.server, sid: props.sid, body: '', func: 2};
         WsManager.sendMessage(JSON.stringify(msg));
     };
 
@@ -221,7 +224,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
               style={{display: props.visible ? 'block' : 'none'}}
               extra={extra}>
             <div className={styles.outPanel} style={{height: outHeight}}>
-                <Console server={props.server}
+                <Console id={key}
                          visible={'' === view}
                          pubsub={pubsub}/>
                 {'' !== view && viewResolver[view]}

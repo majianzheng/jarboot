@@ -34,21 +34,21 @@ public interface ServerMgrService {
 
     /**
      * 启动服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void startServer(List<String> p);
+    void startServer(List<String> paths);
 
     /**
      * 停止服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void stopServer(List<String> p);
+    void stopServer(List<String> paths);
 
     /**
      * 重启服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void restartServer(List<String> p);
+    void restartServer(List<String> paths);
 
     /**
      * 通过服务配置启动服务

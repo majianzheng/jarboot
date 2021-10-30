@@ -13,4 +13,5 @@ export enum MSG_EVENT {
     RENDER_JSON,
     SERVER_STATUS, //服务状态改变
     CMD_END,       //命令执行完成
+    RECONNECTED  //重新连接成功
 }

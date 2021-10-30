@@ -12,7 +12,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot/agent/ws/{server}")
+@ServerEndpoint("/public/jarboot/agent/ws/{server}/{sid}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
@@ -21,19 +21,19 @@ public class WebSocketAgentServer {
      * 连接建立成功调用的方法
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("server") String server) {
-        logger.debug("{} Agent连接成功!", server);
-        AgentManager.getInstance().online(server, session);
-        WebSocketManager.getInstance().sendConsole(server, server + " connected!");
+    public void onOpen(Session session, @PathParam("server") String server, @PathParam("sid") String sid) {
+        logger.debug("{} @ {} Agent连接成功!", server, sid);
+        AgentManager.getInstance().online(server, session, sid);
+        WebSocketManager.getInstance().sendConsole(sid, server + " connected!");
     }
 
     /**
      * 连接关闭调用的方法
      */
     @OnClose
-    public void onClose( Session session, @PathParam("server") String server) {
-        logger.debug("目标进程断开连接, id:{}, server:{}", session.getId(), server);
-        AgentManager.getInstance().offline(server);
+    public void onClose( Session session, @PathParam("server") String server, @PathParam("sid") String sid) {
+        logger.debug("目标进程断开连接, id:{}, server:{}, sid:{}", session.getId(), server, sid);
+        AgentManager.getInstance().offline(server, sid);
     }
 
     /**
@@ -41,14 +41,18 @@ public class WebSocketAgentServer {
      *
      * @param message 客户端发送过来的消息*/
     @OnMessage
-    public void onBinaryMessage(byte[] message, Session session, @PathParam("server") String server) {
-        onTextMessage(new String(message), session, server);
+    public void onBinaryMessage(byte[] message, Session session,
+                                @PathParam("server") String server,
+                                @PathParam("sid") String sid) {
+        onTextMessage(new String(message), session, server, sid);
     }
 
     @OnMessage
-    public void onTextMessage(String message, Session session, @PathParam("server") String server) {
+    public void onTextMessage(String message, Session session,
+                              @PathParam("server") String server,
+                              @PathParam("sid") String sid) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
-        AgentManager.getInstance().handleAgentResponse(server, resp, session);
+        AgentManager.getInstance().handleAgentResponse(server, sid, resp, session);
     }
 
     /**
@@ -57,8 +61,10 @@ public class WebSocketAgentServer {
      * @param error 错误
      */
     @OnError
-    public void onError(Session session, Throwable error, @PathParam("server") String server) {
+    public void onError(Session session, Throwable error,
+                        @PathParam("server") String server,
+                        @PathParam("sid") String sid) {
         logger.debug( "{} socket connection error!{}", server, error.getMessage());
-        onClose(session, server);
+        onClose(session, server, sid);
     }
 }

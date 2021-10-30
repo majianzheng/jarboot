@@ -30,6 +30,7 @@ public class WebSocketMainServer {
     private static final String SERVER_KEY = "server";
     private static final String FUNC_KEY = "func";
     private static final String BODY_KEY = "body";
+    private static final String SID_KEY = "sid";
 
     private static class Holder {
         static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
@@ -104,12 +105,13 @@ public class WebSocketMainServer {
         String server = json.get(SERVER_KEY).asText(StringUtils.EMPTY);
         int func = json.get(FUNC_KEY).asInt(-1);
         String body = json.get(BODY_KEY).asText(StringUtils.EMPTY);
+        String sid = json.get(SID_KEY).asText(StringUtils.EMPTY);
         switch (func) {
             case CMD_FUNC:
-                AgentManager.getInstance().sendCommand(server, body, session.getId());
+                AgentManager.getInstance().sendCommand(server, sid, body, session.getId());
                 break;
             case CANCEL_FUNC:
-                AgentManager.getInstance().sendInternalCommand(server, CommandConst.CANCEL_CMD, session.getId());
+                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.CANCEL_CMD, session.getId());
                 break;
             default:
                 logger.debug("Unknown func, func:{}", func);

@@ -37,10 +37,10 @@ const GlobalSetting: any = memo(() => {
 
     return (
         <Form {...layout} form={form} name="global-setting-forms" onFinish={onSubmit}>
-            <Form.Item name="servicesPath"
+            <Form.Item name="workspace"
                        label={intl.formatMessage({id: 'SERVERS_PATH'})}
                        rules={[{required: false}]}>
-                <Input placeholder={"services directory"}
+                <Input placeholder={"Workspace directory"}
                        autoComplete="off" autoCorrect="off"
                        autoCapitalize="off"
                        spellCheck="false"/>

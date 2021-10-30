@@ -67,7 +67,7 @@ const index = memo(() => {
         console.log(`%c(灬°ω°灬) `, 'color:magenta');
         console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
         WsManager.initWebsocket();
-    }
+    };
     useEffect(() => {
         OAuthService.login().then(resp => {
             if (401 === resp.resultCode) {

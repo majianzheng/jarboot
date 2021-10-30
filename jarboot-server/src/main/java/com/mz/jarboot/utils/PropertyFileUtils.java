@@ -27,6 +27,7 @@ import java.util.*;
  */
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
+    private static final Map<String, ServerSetting> SETTING_CACHE = new HashMap<>(16);
 
     public static Properties getProperties(File file) {
         Properties properties = new Properties();
@@ -68,16 +69,32 @@ public class PropertyFileUtils {
         return true;
     }
 
-    public static ServerSetting getServerSetting(String server) {
-        ServerSetting setting = new ServerSetting(server);
-        File file = SettingUtils.getServerSettingFile(server);
-        Properties properties = getProperties(file);
-        String serverPath = SettingUtils.getServerPath(server);
-        String runnable = properties.getProperty(SettingPropConst.RUNNABLE, SettingPropConst.VALUE_TRUE);
-        setting.setRunnable(Boolean.parseBoolean(runnable));
-        if (properties.isEmpty()) {
+    public static ServerSetting getServerSettingBySid(String sid) {
+        return SETTING_CACHE.getOrDefault(sid, null);
+    }
+
+    /**
+     *
+     * @param serverPath 字符串格式：服务的path
+     * @return 服务配置
+     */
+    public static ServerSetting getServerSetting(String serverPath) {
+        int p = serverPath.lastIndexOf(File.separatorChar);
+        String server = serverPath.substring(p + 1);
+        String sid = SettingUtils.createSid(serverPath);
+        File file = SettingUtils.getServerSettingFile(serverPath);
+        //判定文件是否更新
+        ServerSetting setting = getServerSettingBySid(sid);
+        if (null != setting && file.lastModified() == setting.getLastModified()) {
             return setting;
         }
+
+        Properties properties = getProperties(file);
+        String runnable = properties.getProperty(SettingPropConst.RUNNABLE, SettingPropConst.VALUE_TRUE);
+        setting = new ServerSetting(server);
+        setting.setSid(sid);
+        setting.setPath(serverPath);
+        setting.setRunnable(Boolean.parseBoolean(runnable));
         String jar = properties.getProperty(SettingPropConst.JAR, StringUtils.EMPTY);
         if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(jar)) {
             if (checkFileExist(serverPath + File.separator + jar)) {
@@ -115,6 +132,7 @@ public class PropertyFileUtils {
             //初始默认true
             setting.setJarUpdateWatch(false);
         }
+        SETTING_CACHE.put(sid, setting);
         return setting;
     }
 
@@ -192,7 +210,7 @@ public class PropertyFileUtils {
 
     /**
      * 解析启动优先级配置
-     * @param servers 服务列表
+     * @param servers 服务列表，字符串：服务path
      * @return 优先级排序结果
      */
     public static Queue<ServerSetting> parseStartPriority(List<String> servers) {
@@ -201,8 +219,8 @@ public class PropertyFileUtils {
         if (CollectionUtils.isEmpty(servers)) {
             return queue;
         }
-        servers.forEach(server -> {
-            ServerSetting setting = getServerSetting(server);
+        servers.forEach(path -> {
+            ServerSetting setting = getServerSetting(path);
             queue.offer(setting);
         });
         return queue;
@@ -210,16 +228,16 @@ public class PropertyFileUtils {
 
     /**
      * 解析终止优先级配置，与启动优先级相反
-     * @param servers 服务列表
+     * @param paths 服务列表，字符串：服务path
      * @return 排序结果
      */
-    public static Queue<ServerSetting> parseStopPriority(List<String> servers) {
+    public static Queue<ServerSetting> parseStopPriority(List<String> paths) {
         //优先级小的排在最前面
         PriorityQueue<ServerSetting> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSetting::getPriority));
-        if (CollectionUtils.isEmpty(servers)) {
+        if (CollectionUtils.isEmpty(paths)) {
             return queue;
         }
-        servers.forEach(server -> {
+        paths.forEach(server -> {
             ServerSetting setting = getServerSetting(server);
             queue.offer(setting);
         });

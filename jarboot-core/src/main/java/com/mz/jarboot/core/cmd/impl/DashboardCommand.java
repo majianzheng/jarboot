@@ -11,10 +11,10 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 import com.mz.jarboot.core.utils.metrics.SumRateCounter;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.management.*;
 import java.util.*;
@@ -31,7 +31,7 @@ import java.util.*;
         "  dashboard -i 2000\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "dashboard")
 public class DashboardCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private SumRateCounter tomcatRequestCounter = new SumRateCounter();
     private SumRateCounter tomcatErrorCounter = new SumRateCounter();

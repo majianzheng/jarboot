@@ -1,18 +1,14 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
-import com.mz.jarboot.event.AgentOfflineEvent;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
-import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
@@ -26,13 +22,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -57,11 +51,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
     private String afterStartExec;
-    @Value("${jarboot.after-server-error-offline:}")
-    private String afterServerErrorOffline;
     @Value("${jarboot.services.enable-auto-start-after-start:false}")
     private boolean enableAutoStartServices;
-
+    private String curWorkspace;
     private boolean starting = false;
 
     /** 阻塞队列，监控到目录变化则放入队列 */
@@ -87,8 +79,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         if (enableAutoStartServices) {
             logger.info("Auto starting services...");
-            TaskEvent ev = new TaskEvent();
-            ev.setEventType(TaskEventEnum.AUTO_START_ALL);
+            TaskEvent ev = new TaskEvent(TaskEventEnum.AUTO_START_ALL);
             ctx.publishEvent(ev);
         }
 
@@ -107,20 +98,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     /**
-     * attach到服务
-     *
-     * @param server 服务
-     */
-    @Override
-    public void attachServer(String server) {
-        int pid = TaskUtils.getServerPid(server);
-        if (CommonConst.INVALID_PID == pid) {
-            throw new JarbootException(ResultCodeConst.VALIDATE_FAILED, "服务未启动！");
-        }
-        TaskUtils.attach(server, pid);
-    }
-
-    /**
      * 启动目录变动监控
      */
     private void initPathMonitor() {
@@ -129,8 +106,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         //启动路径监控
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             //初始化路径监控
-            String servicesPath = SettingUtils.getServicesPath();
-            final Path monitorPath = Paths.get(servicesPath);
+            curWorkspace = SettingUtils.getWorkspace();
+            final Path monitorPath = Paths.get(curWorkspace);
             //给path路径加上文件观察服务
             monitorPath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
                     StandardWatchEventKinds.ENTRY_MODIFY,
@@ -151,24 +128,22 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private void pathMonitorConsumer() {
         try {
             for (; ; ) {
-                String server = modifiedServiceQueue.take();
+                String path = modifiedServiceQueue.take();
                 //取出后
                 HashSet<String> services = new HashSet<>();
-                services.add(server);
+                services.add(path);
                 //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
-                while (null != (server = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
-                    services.add(server);
+                while (null != (path = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
+                    services.add(path);
                 }
                 //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
                 List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(list)) {
-                    TaskEvent event = new TaskEvent();
-                    event.setEventType(TaskEventEnum.RESTART);
-                    event.setServices(list);
+                    TaskEvent event = new TaskEvent(TaskEventEnum.RESTART);
+                    event.setPaths(list);
                     logger.debug("服务文件变动，启动重启！{}", list);
                     final String msg = "文件更新，开始重启...";
-                    list.forEach(s -> WebSocketManager.getInstance().sendConsole(s, s + msg));
-                    WebSocketManager.getInstance().notice(list + msg, NoticeEnum.INFO);
+                    WebSocketManager.getInstance().notice(msg, NoticeEnum.INFO);
                     ctx.publishEvent(event);
                 }
                 if (!starting) {
@@ -233,15 +208,18 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         //创建事件或修改事件
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+            String path = curWorkspace + File.separator + service;
+            String sid= SettingUtils.createSid(path);
             //创建或修改文件
-            if (!TaskUtils.isAlive(service)) {
+            if (!AgentManager.getInstance().isOnline(service, sid)) {
                 //当前不处于正在运行的状态
                 return;
             }
-            ServerSetting setting = PropertyFileUtils.getServerSetting(service);
-            if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
+            String serverPath = String.format("%s%s%s", curWorkspace, File.separator, service);
+            ServerSetting setting = PropertyFileUtils.getServerSetting(serverPath);
+            if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && StringUtils.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
-                modifiedServiceQueue.put(service);
+                modifiedServiceQueue.put(path);
             }
         }
         //删除事件
@@ -254,8 +232,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         String path = jarFile.getPath();
         return String.format("hash.%d", path.hashCode());
     }
-    private boolean checkJarUpdate(String server) {
-        String path = SettingUtils.getServerPath(server);
+    private boolean checkJarUpdate(String path) {
         File serverDir = new File(path);
         Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
         if (CollectionUtils.isEmpty(files)) {
@@ -284,59 +261,10 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     private void doAttachRunningServer(ServerRunning server) {
-        if (null == server.getPid()) {
-            return;
-        }
-        int pid = server.getPid();
-        if (CommonConst.INVALID_PID == pid) {
-            return;
-        }
-
-        if (AgentManager.getInstance().isOnline(server.getName())) {
+        if (AgentManager.getInstance().isOnline(server.getName(), server.getSid())) {
             //已经是在线状态
             return;
         }
-        TaskUtils.attach(server.getName(), pid);
-    }
-
-    @EventListener
-    public void onAgentOfflineEvent(AgentOfflineEvent event) {
-        String server = event.getServer();
-        //检查进程是否存活
-        int pid = TaskUtils.getServerPid(server);
-        if (CommonConst.INVALID_PID != pid) {
-            //检查是否处于中间状态
-            if (taskRunCache.isStopping(server)) {
-                //处于停止中状态，此时不做干预，守护只针对正在运行的进程
-                return;
-            }
-            //尝试重新初始化代理客户端
-            TaskUtils.attach(server, pid);
-            WebSocketManager.getInstance().publishStatus(server, TaskStatus.STARTED);
-            return;
-        }
-
-        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
-            String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
-            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, jarbootHome));
-        }
-
-        //获取是否开启了守护
-        ServerSetting setting = PropertyFileUtils.getServerSetting(server);
-        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
-        String s = sdf.format(new Date(event.getOfflineTime()));
-        if (Boolean.TRUE.equals(setting.getDaemon())) {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
-                    , NoticeEnum.WARN);
-            ArrayList<String> list = new ArrayList<>();
-            list.add(server);
-            TaskEvent ev = new TaskEvent();
-            ev.setEventType(TaskEventEnum.DAEMON_START);
-            ev.setServices(list);
-            ctx.publishEvent(ev);
-        } else {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
-                    , NoticeEnum.WARN);
-        }
+        TaskUtils.attach(server.getName(), server.getSid());
     }
 }

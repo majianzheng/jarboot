@@ -11,6 +11,7 @@ public class SettingPropConst {
 
     public static final char COMMENT_PREFIX = '#';
 
+    public static final String SERVER_NAME = "name";
     public static final String VM = "vm";
     public static final String RUNNABLE = "runnable";
     public static final String USER_DEFINE_RUN_ARGUMENT = "userDefineRunArgument";

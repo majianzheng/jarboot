@@ -9,7 +9,6 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.*;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -30,7 +29,7 @@ import java.util.regex.Pattern;
         "  jad -c 39eb305e -E org\\\\.apache\\\\.*\\\\.StringUtils\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "jad")
 public class JadCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static Pattern pattern = Pattern.compile("(?m)^/\\*\\s*\\*/\\s*$" + System.getProperty("line.separator"));
 
     private String classPattern;

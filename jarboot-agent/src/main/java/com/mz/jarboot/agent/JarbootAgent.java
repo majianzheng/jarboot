@@ -68,12 +68,12 @@ public class JarbootAgent {
         return jarbootClassLoader;
     }
 
-    private static void clientCheckAndInit() {
+    private static void clientCheckAndInit(String args) {
         try {
             Class<?> bootClass = jarbootClassLoader.loadClass(JARBOOT_CLASS);
             //获取实例
             Object inst = bootClass.getMethod(GET_INSTANCE).invoke(null);
-            boolean isOnline = (Boolean) bootClass.getMethod("isOnline").invoke(inst);
+            boolean isOnline = (Boolean) bootClass.getMethod("isOnline", String.class).invoke(inst, args);
             if (isOnline) {
                 ps.println("Agent客户端已经处于在线状态");
             } else {
@@ -93,7 +93,7 @@ public class JarbootAgent {
                 //非正常流程，第二次或第n次attach
                 ps.println("Jarboot Agent is already started, skip attach and check client.");
                 //检查是否在线
-                clientCheckAndInit();
+                clientCheckAndInit(args);
                 ps.flush();
                 return;
             }

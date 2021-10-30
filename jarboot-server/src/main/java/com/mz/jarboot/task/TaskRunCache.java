@@ -1,17 +1,22 @@
 package com.mz.jarboot.task;
 
+import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,46 +32,30 @@ public class TaskRunCache {
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
     private void updateServerInfo(List<ServerRunning> server) {
-        Map<String, Integer> pidCmdMap = TaskUtils.findProcess();
         server.forEach(item -> {
-            Integer pid = pidCmdMap.remove(item.getName());
-            if (null == pid || CommonConst.INVALID_PID == pid) {
-                item.setStatus(CommonConst.STATUS_STOPPED);
-                return;
+            if (AgentManager.getInstance().isOnline(item.getName(), item.getSid())) {
+                item.setStatus(CommonConst.STATUS_RUNNING);
             }
-            item.setPid(pid);
-            item.setStatus(CommonConst.STATUS_RUNNING);
-            if (startingCache.containsKey(item.getName())) {
+            if (this.isStarting(item.getSid())) {
                 item.setStatus(CommonConst.STATUS_STARTING);
             }
-            if (stoppingCache.containsKey(item.getName())) {
+            if (this.isStopping(item.getSid())) {
                 item.setStatus(CommonConst.STATUS_STOPPING);
             }
         });
-        // 如果不为空，则为自定义启动的服务
-        if (!pidCmdMap.isEmpty()) {
-            pidCmdMap.forEach((k, v) -> {
-                ServerRunning serverRunning = new ServerRunning();
-                serverRunning.setName(k);
-                serverRunning.setStatus(CommonConst.STATUS_RUNNING);
-                serverRunning.setPid(v);
-                serverRunning.setEphemeral(true);
-            });
-        }
     }
 
-    public List<String> getServerNameList() {
+    public List<String> getServerPathList() {
         File[] serviceDirs = this.getServerDirs();
-        List<String> allWebServerList = new ArrayList<>();
+        List<String> paths = new ArrayList<>();
         for (File f : serviceDirs) {
-            String server = f.getName();
-            allWebServerList.add(server);
+            paths.add(f.getPath());
         }
-        return allWebServerList;
+        return paths;
     }
 
     public File[] getServerDirs() {
-        String servicesPath = SettingUtils.getServicesPath();
+        String servicesPath = SettingUtils.getWorkspace();
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录不存在");
@@ -87,7 +76,10 @@ public class TaskRunCache {
             String server = f.getName();
             ServerRunning p = new ServerRunning();
             p.setName(server);
-            p.setEphemeral(false);
+            p.setStatus(CommonConst.STATUS_STOPPED);
+            String path = f.getPath();
+            p.setSid(SettingUtils.createSid(path));
+            p.setPath(path);
             serverList.add(p);
         }
         updateServerInfo(serverList);
@@ -98,32 +90,32 @@ public class TaskRunCache {
         return !this.startingCache.isEmpty() || !this.stoppingCache.isEmpty();
     }
 
-    public boolean isStartingOrStopping(String server) {
-        return this.isStarting(server) || this.isStopping(server);
+    public boolean isStartingOrStopping(String sid) {
+        return startingCache.containsKey(sid) || stoppingCache.containsKey(sid);
     }
 
-    public boolean isStarting(String server) {
-        return startingCache.containsKey(server);
+    public boolean isStarting(String sid) {
+        return startingCache.containsKey(sid);
     }
 
-    public void addStarting(String server) {
-        startingCache.put(server, System.currentTimeMillis());
+    public void addStarting(String sid) {
+        startingCache.put(sid, System.currentTimeMillis());
     }
 
-    public void removeStarting(String server) {
-        startingCache.remove(server);
+    public void removeStarting(String sid) {
+        startingCache.remove(sid);
     }
 
-    public boolean isStopping(String server) {
-        return stoppingCache.containsKey(server);
+    public boolean isStopping(String sid) {
+        return stoppingCache.containsKey(sid);
     }
 
-    public void addStopping(String server) {
-        stoppingCache.put(server, System.currentTimeMillis());
+    public void addStopping(String sid) {
+        stoppingCache.put(sid, System.currentTimeMillis());
     }
 
-    public void removeStopping(String server) {
-        stoppingCache.remove(server);
+    public void removeStopping(String sid) {
+        stoppingCache.remove(sid);
     }
 
     private boolean filterExcludeDir(File dir) {
@@ -137,8 +129,35 @@ public class TaskRunCache {
         return !excludeDirSet.contains(name);
     }
 
+    private void cleanPidFiles() {
+        File logDir = FileUtils.getFile(SettingUtils.getLogDir());
+        Collection<File> pidFiles = FileUtils.listFiles(logDir, new String[]{"pid"}, true);
+        if (CollectionUtils.isNotEmpty(pidFiles)) {
+            Set<Integer> allJvmPid = TaskUtils.getAllJvmPid();
+            pidFiles.forEach(file -> {
+                try {
+                    String text = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                    int pid = NumberUtils.toInt(text, CommonConst.INVALID_PID);
+                    if (allJvmPid.contains(pid)) {
+                        return;
+                    }
+                } catch (Exception exception) {
+                    //ignore
+                }
+                try {
+                    FileUtils.forceDelete(file);
+                } catch (Exception exception) {
+                    //ignore
+                }
+            });
+        }
+    }
+
     @PostConstruct
     public void init() {
+        //清理无效的pid文件
+        this.cleanPidFiles();
+
         if (StringUtils.isBlank(excludeDirs)) {
             return;
         }
