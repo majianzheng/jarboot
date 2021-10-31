@@ -15,6 +15,6 @@ import java.io.File;
 public class PwdCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
-        return new File("").getAbsolutePath();
+        return UserDirUtils.getCurrentDir();
     }
 }

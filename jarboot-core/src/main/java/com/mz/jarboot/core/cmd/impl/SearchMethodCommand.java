@@ -8,16 +8,12 @@ import com.mz.jarboot.core.cmd.model.MethodVO;
 import com.mz.jarboot.core.cmd.model.RowAffectModel;
 import com.mz.jarboot.core.cmd.model.SearchMethodModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.utils.ClassLoaderUtils;
-import com.mz.jarboot.core.utils.ClassUtils;
-import com.mz.jarboot.core.utils.SearchUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.core.utils.*;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import com.mz.jarboot.core.utils.matcher.RegexMatcher;
 import com.mz.jarboot.core.utils.matcher.WildcardMatcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Constructor;
@@ -42,7 +38,7 @@ import java.util.Set;
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "sm")
 @SuppressWarnings("all")
 public class SearchMethodCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private String classPattern;
     private String methodPattern;

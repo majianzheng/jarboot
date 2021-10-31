@@ -2,7 +2,6 @@ package com.mz.jarboot.core.utils;
 
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -16,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @SuppressWarnings("all")
 public abstract class StringUtils {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**

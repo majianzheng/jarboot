@@ -3,11 +3,10 @@ package com.mz.jarboot.core.cmd.impl;
 import com.mz.jarboot.core.advisor.Advice;
 import com.mz.jarboot.core.advisor.AdviceListenerAdapter;
 import com.mz.jarboot.core.advisor.JarbootMethod;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author majianzheng
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("all")
 public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     protected final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     protected TraceCommand command;
     protected CommandCoreSession process;

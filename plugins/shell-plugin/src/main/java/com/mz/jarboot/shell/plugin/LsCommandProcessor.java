@@ -31,7 +31,7 @@ public class LsCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(CommandSession session, String[] args) {
-        String userDir = System.getProperty("user.dir");
+        String userDir = UserDirUtils.getCurrentDir();
         if (null == this.path) {
             this.path = userDir;
         }

@@ -2,10 +2,9 @@ package com.mz.jarboot.core.cmd;
 
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -16,7 +15,7 @@ import java.util.concurrent.BlockingQueue;
  */
 @SuppressWarnings("all")
 public class CommandDispatcher extends Thread {
-    private final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private final Logger logger = LogUtils.getLogger();
     private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
 
     public CommandDispatcher() {

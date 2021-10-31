@@ -40,7 +40,7 @@ public class ShCommandProcessor implements CommandProcessor {
             for (String s : args) {
                 sb.append(s).append(' ');
             }
-            File dir = new File(new File("").getAbsolutePath());
+            File dir = new File(UserDirUtils.getCurrentDir());
             try {
                 process = Runtime.getRuntime().exec(sb.toString(), null, dir);
                 InputStream inputStream = process.getInputStream();

@@ -11,8 +11,8 @@ import com.mz.jarboot.core.cmd.model.OgnlModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.ClassLoaderUtils;
 import com.mz.jarboot.core.utils.ClassUtils;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import java.util.List;
                 + CoreConstant.WIKI + CoreConstant.WIKI_HOME + "ognl\n"
                 + "  https://commons.apache.org/proper/commons-ognl/language-guide.html")
 public class OgnlCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private String express;
     private String hashCode;

@@ -10,9 +10,9 @@ import com.mz.jarboot.core.cmd.impl.*;
 import com.mz.jarboot.core.cmd.internal.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public class CommandBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final Map<String, Class<? extends AbstractCommand>> commandMap = new ConcurrentHashMap<>(32);
     public static final Map<String, CommandProcessor> EXTEND_MAP = new ConcurrentHashMap<>(16);
 

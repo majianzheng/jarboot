@@ -1,9 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.model.ThreadVO;
-import sun.management.HotspotThreadMBean; //NOSONAR
-import sun.management.ManagementFactoryHelper; //NOSONAR
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.*;
@@ -18,14 +15,9 @@ import java.util.*;
 public class ThreadSampler {
 
     private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    private static HotspotThreadMBean hotspotThreadMBean;
-    private static boolean hotspotThreadMBeanEnable = true;
-
     private Map<ThreadVO, Long> lastCpuTimes = new HashMap<ThreadVO, Long>();
 
     private long lastSampleTimeNanos;
-    private boolean includeInternalThreads = true;
-
 
     public List<ThreadVO> sample(Collection<ThreadVO> originThreads) {
 
@@ -39,18 +31,6 @@ public class ThreadSampler {
                     long cpu = threadMXBean.getThreadCpuTime(thread.getId());
                     lastCpuTimes.put(thread, cpu);
                     thread.setTime(cpu / 1000000);
-                }
-            }
-
-            // add internal threads
-            Map<String, Long> internalThreadCpuTimes = getInternalThreadCpuTimes();
-            if (internalThreadCpuTimes != null) {
-                for (Map.Entry<String, Long> entry : internalThreadCpuTimes.entrySet()) {
-                    String key = entry.getKey();
-                    ThreadVO thread = createThreadVO(key);
-                    thread.setTime(entry.getValue() / 1000000);
-                    threads.add(thread);
-                    lastCpuTimes.put(thread, entry.getValue());
                 }
             }
 
@@ -79,15 +59,6 @@ public class ThreadSampler {
             if (thread.getId() > 0) {
                 long cpu = threadMXBean.getThreadCpuTime(thread.getId());
                 newCpuTimes.put(thread, cpu);
-            }
-        }
-        // internal threads
-        Map<String, Long> newInternalThreadCpuTimes = getInternalThreadCpuTimes();
-        if (newInternalThreadCpuTimes != null) {
-            for (Map.Entry<String, Long> entry : newInternalThreadCpuTimes.entrySet()) {
-                ThreadVO threadVO = createThreadVO(entry.getKey());
-                threads.add(threadVO);
-                newCpuTimes.put(threadVO, entry.getValue());
             }
         }
 
@@ -149,21 +120,6 @@ public class ThreadSampler {
         return threads;
     }
 
-    private Map<String, Long> getInternalThreadCpuTimes() {
-        if (hotspotThreadMBeanEnable && includeInternalThreads) {
-            try {
-                if (hotspotThreadMBean == null) {
-                    hotspotThreadMBean = ManagementFactoryHelper.getHotspotThreadMBean();
-                }
-                return hotspotThreadMBean.getInternalThreadCpuTimes();
-            } catch (Throwable e) {
-                //ignore ex
-                hotspotThreadMBeanEnable = false;
-            }
-        }
-        return null;
-    }
-
     private ThreadVO createThreadVO(String name) {
         ThreadVO threadVO = new ThreadVO();
         threadVO.setId(-1);
@@ -181,13 +137,4 @@ public class ThreadSampler {
             // ignore
         }
     }
-
-    public boolean isIncludeInternalThreads() {
-        return includeInternalThreads;
-    }
-
-    public void setIncludeInternalThreads(boolean includeInternalThreads) {
-        this.includeInternalThreads = includeInternalThreads;
-    }
-
 }

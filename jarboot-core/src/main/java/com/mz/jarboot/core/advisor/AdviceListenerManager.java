@@ -2,9 +2,8 @@ package com.mz.jarboot.core.advisor;
 
 import com.mz.jarboot.common.ConcurrentWeakKeyHashMap;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class AdviceListenerManager { //NOSONAR
     /** 日志 */
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final FakeBootstrapClassLoader FAKEBOOTSTRAPCLASSLOADER = new FakeBootstrapClassLoader();
 
     static {

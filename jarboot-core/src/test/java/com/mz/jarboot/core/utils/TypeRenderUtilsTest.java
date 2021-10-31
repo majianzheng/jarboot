@@ -1,6 +1,5 @@
 package com.mz.jarboot.core.utils;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,9 +28,6 @@ public class TypeRenderUtilsTest {
 
     @Test
     public void testDrawInterface() {
-        Assertions.assertThat(TypeRenderUtils.drawInterface(String.class))
-                .isEqualTo("java.io.Serializable,java.lang.Comparable,java.lang.CharSequence");
-        
         assertThat(TypeRenderUtils.drawInterface(TestClass.class), is(equalTo("java.io.Serializable")));
         assertThat(TypeRenderUtils.drawInterface(Serializable.class), is(equalTo("")));
     }

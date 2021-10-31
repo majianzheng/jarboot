@@ -21,15 +21,14 @@ import com.alibaba.deps.org.objectweb.asm.tree.MethodInsnNode;
 import com.alibaba.deps.org.objectweb.asm.tree.MethodNode;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.JarbootCheckUtils;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ObjectUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.affect.EnhancerAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +49,7 @@ import static java.lang.System.arraycopy;
  */
 @SuppressWarnings("all")
 public class ClassEnhancer implements ClassFileTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private final AdviceListener listener;
     private final boolean isTracing;

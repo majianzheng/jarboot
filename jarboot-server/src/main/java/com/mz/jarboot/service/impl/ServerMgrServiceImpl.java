@@ -311,7 +311,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             }
             //尝试重新初始化代理客户端
             TaskUtils.attach(server, sid);
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
             return;
         }
 
@@ -321,15 +320,17 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
 
         //获取是否开启了守护
-        final ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        ServerSetting temp = PropertyFileUtils.getServerSettingBySid(sid);
+        //检测配置更新
+        final ServerSetting setting = null == temp ? null : PropertyFileUtils.getServerSetting(temp.getPath());
         final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
         String s = sdf.format(new Date());
         if (null != setting && Boolean.TRUE.equals(setting.getDaemon())) {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
                     , NoticeEnum.WARN);
-            //检测配置更新，并启动
+            //启动
             TaskUtils.getTaskExecutor().execute(() ->
-                    this.startSingleServer(PropertyFileUtils.getServerSetting(setting.getPath())));
+                    this.startSingleServer(setting));
         } else {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
                     , NoticeEnum.WARN);

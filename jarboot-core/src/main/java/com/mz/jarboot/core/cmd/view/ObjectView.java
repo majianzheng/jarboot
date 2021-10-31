@@ -2,9 +2,8 @@ package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.core.GlobalOptions;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,7 +21,7 @@ import static java.lang.String.format;
  */
 @SuppressWarnings("all")
 public class ObjectView implements View {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private final static int MAX_OBJECT_LENGTH = 10 * 1024 * 1024; // 10M
 
     private final Object object;

@@ -1,9 +1,8 @@
 package com.mz.jarboot.core.cmd.express;
 
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import ognl.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author majianzheng
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("all")
 public class OgnlExpress implements Express {
     private static final MemberAccess MEMBER_ACCESS = new DefaultMemberAccess(true);
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private Object bindObject;
     private final OgnlContext context;

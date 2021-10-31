@@ -10,10 +10,10 @@ import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.ClassLoaderUtils;
 import com.mz.jarboot.core.utils.ClassUtils;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ResultUtils;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
@@ -39,7 +39,7 @@ import java.util.Map.Entry;
         "  classloader -c 659e0bfd --load demo.MathGame\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "classloader")
 public class ClassLoaderCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private boolean isTree = false;
     private String hashCode;
     private String classLoaderClass;
