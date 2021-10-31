@@ -36,7 +36,7 @@ export default {
     SUBMIT_BTN: 'Submit',
     RESET_BTN: 'Reset',
     REFRESH_BTN: 'Refresh',
-    SERVER_EMPTY: 'The servers is empty now, please put jar file and refresh.',
+    SERVER_EMPTY: 'Current workspace searched empty.',
     MODIFY: 'Modify',
     DELETE: 'Delete',
     CREATE: 'Create',

@@ -1,11 +1,11 @@
 import * as React from "react";
-import {Result, Tag} from "antd";
+import {Result, Tag, Input, Space, Button} from "antd";
 import { getLocale } from 'umi';
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import CommonNotice from '@/common/CommonNotice';
 import {
     SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined
+    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
 } from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
 import {MsgData, WsManager} from "@/common/WsManager";
@@ -17,6 +17,8 @@ import OneClickButtons from "@/components/servers/OneClickButtons";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
+// @ts-ignore
+import Highlighter from 'react-highlight-words';
 
 const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
@@ -32,9 +34,10 @@ const notSelectInfo = () => {
 
 export default class ServerMgrView extends React.PureComponent {
     state = {loading: false, data: [] as ServerRunning[], uploadVisible: false,
-        selectedRowKeys: [] as string[],
+        selectedRowKeys: [] as string[], searchText: '', searchedColumn: '', filteredInfo: null as any,
         selectRows: [] as ServerRunning[], current: '', oneClickLoading: false};
     height = window.innerHeight - 120;
+    searchInput = {} as any;
     componentDidMount() {
         this.refreshServerList(true);
         pubsub.submit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
@@ -47,7 +50,7 @@ export default class ServerMgrView extends React.PureComponent {
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
     }
 
-    private _activeConsole(sid: any) {
+    private _activeConsole(sid: string) {
         let data: ServerRunning[] = this.state.data;
         const index = data.findIndex(row => row.sid === sid);
         if (-1 !== index) {
@@ -68,7 +71,7 @@ export default class ServerMgrView extends React.PureComponent {
                 this._activeConsole(key);
                 Logger.log(`${server}启动中...`);
                 pubsub.publish(key, JarBootConst.START_LOADING);
-                this._clearDisplay({name: server, sid: key, path: ''});
+                this._clearDisplay({name: server, sid: key, path: '', status: ''});
                 this._updateServerStatus(key, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
@@ -117,7 +120,104 @@ export default class ServerMgrView extends React.PureComponent {
         this.setState({data});
     }
 
+    getColumnSearchProps = (dataIndex: string) => ({
+        // @ts-ignore
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+            <div style={{ padding: 8 }}>
+                <Input
+                    ref={node => {
+                        this.searchInput = node;
+                    }}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                    style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({ closeDropdown: false });
+                            this.setState({
+                                searchText: selectedKeys[0],
+                                searchedColumn: dataIndex,
+                            });
+                        }}
+                    >
+                        Filter
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+        onFilter: (value: string, record: any) =>
+            record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                : '',
+        onFilterDropdownVisibleChange: (visible: boolean) => {
+            if (visible) {
+                setTimeout(() => this.searchInput.select(), 100);
+            }
+        },
+        render: (text: string) =>
+            this.state.searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[this.state.searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
+
+    handleSearch = (selectedKeys: string[], confirm: () => void, dataIndex: string) => {
+        confirm();
+        this.setState({
+            searchText: selectedKeys[0],
+            searchedColumn: dataIndex,
+        });
+    };
+
+    handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        this.setState({ searchText: '' });
+    };
+
+    handleChange = (pagination: any, filters: any, sorter: any) => {
+        console.log('Various parameters', pagination, filters, sorter);
+        this.setState({filteredInfo: filters});
+    };
+
+    clearFilters = () => {
+        this.setState({ filteredInfo: null });
+    };
+
+    clearAll = () => {
+        this.setState({
+            filteredInfo: null,
+            sortedInfo: null,
+        });
+    };
+
     private _getTbProps() {
+        let { filteredInfo } = this.state;
+        filteredInfo = filteredInfo || {};
         return {
             columns: [
                 {
@@ -125,6 +225,9 @@ export default class ServerMgrView extends React.PureComponent {
                     dataIndex: 'name',
                     key: 'name',
                     ellipsis: true,
+                    sorter: (a: ServerRunning, b: ServerRunning) => a.name.localeCompare(b.name),
+                    sortDirections: ['descend', 'ascend'],
+                    ...this.getColumnSearchProps('name')
                 },
                 {
                     title: formatMsg('STATUS'),
@@ -132,6 +235,14 @@ export default class ServerMgrView extends React.PureComponent {
                     key: 'status',
                     ellipsis: true,
                     width: 120,
+                    filters: [
+                        { text: 'STOPPED', value: 'STOPPED' },
+                        { text: 'RUNNING', value: 'RUNNING' },
+                        { text: 'STARTING', value: 'STARTING' },
+                        { text: 'STOPPING', value: 'STOPPING' },
+                    ],
+                    filteredValue: filteredInfo.status || null,
+                    onFilter: (value: string, record: ServerRunning) => record.status.includes(value),
                     render: (text: string) => ServerMgrView.translateStatus(text),
                 },
             ],

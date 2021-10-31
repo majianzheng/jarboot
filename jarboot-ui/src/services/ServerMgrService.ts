@@ -8,7 +8,7 @@ const urlBase = "/api/jarboot/services";
 interface ServerRunning {
     name: string,
     sid: string,
-    status?: string,
+    status: string,
     path: string
 }
 export { ServerRunning };

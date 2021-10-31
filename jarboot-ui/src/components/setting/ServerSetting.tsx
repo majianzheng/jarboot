@@ -1,11 +1,12 @@
-import { Col, Row, Menu, Empty, Result, Button } from 'antd';
+import { Col, Row, Menu, Input, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
 import styles from './index.less';
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {LoadingOutlined, SyncOutlined} from '@ant-design/icons';
+import {LoadingOutlined} from '@ant-design/icons';
+import StringUtil from "@/common/StringUtil";
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
@@ -13,7 +14,7 @@ const ServerSetting = memo(() => {
     const [current, setCurrent] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const query = () => {
+    const query = (filter?: string) => {
         setLoading(true);
         ServerMgrService.getServerList((resp: any) => {
             setLoading(false);
@@ -21,10 +22,13 @@ const ServerSetting = memo(() => {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            const result = resp.result as ServerRunning[];
+            let result = resp.result as ServerRunning[];
+            if (StringUtil.isNotEmpty(filter)) {
+                result = result.filter(s => s.name.includes(filter as string))
+            }
             setData(result);
             if (result.length > 0) {
-                setCurrent(result[0].name);
+                setCurrent(result[0].path);
             }
         });
     };
@@ -34,40 +38,35 @@ const ServerSetting = memo(() => {
     const onSelect = (event: any) => {
         setCurrent(event.key);
     };
-    if (loading) {
-        return <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>;
-    }
-    return <>{(data?.length > 0) ? <Row>
+
+    const emptyIcon = loading ? <LoadingOutlined/> : <Empty/>;
+    const menuTitle = <Input.Search placeholder="input name to search" onSearch={query} allowClear enterButton/>;
+    return <Row>
         <Col span={6} className={styles.pageContainer}>
             <Menu
                 onClick={onSelect}
                 selectedKeys={[current]}
                 mode="inline"
             >
-                <Menu.ItemGroup title={<span>
-                    <span>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</span>
-                    <Button type={"link"} onClick={query} style={{marginLeft: "50px"}}
-                            icon={<SyncOutlined style={{color: 'green'}}/>}>
-                        {intl.formatMessage({id: 'REFRESH_BTN'})}
-                    </Button>
-                </span>}>
+                <Menu.ItemGroup title={menuTitle}>
                     <Menu.Divider/>
-                    {data.map((item) => {
+                    {data.length ? data.map((item) => {
                         return <Menu.Item key={item.path}>{item.name}</Menu.Item>
-                    })}
+                    }) : <Empty/>}
                 </Menu.ItemGroup>
             </Menu>
         </Col>
         <Col span={18} className={styles.pageContainer}>
             <div style={{margin: '0 30px 0 5px', width: '95%'}}>
-                <ServerConfig path={current}/>
+                {(data?.length > 0) ?
+                    <ServerConfig path={current}/> :
+                    <Result icon={emptyIcon}
+                            title={intl.formatMessage({id: 'SERVER_EMPTY'})}
+                            extra={<Button type="primary"
+                                           onClick={() => query()}>{intl.formatMessage({id: 'REFRESH_BTN'})}</Button>}/>
+                }
             </div>
         </Col>
-    </Row> : <Result icon={<Empty/>}
-                     title={intl.formatMessage({id: 'SERVER_EMPTY'})}
-                     extra={<Button type="primary" onClick={query}>
-                         {intl.formatMessage({id: 'REFRESH_BTN'})}
-                     </Button>}
-    />}</>
+    </Row>
 });
 export default ServerSetting;

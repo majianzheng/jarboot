@@ -36,7 +36,7 @@ export default {
     SUBMIT_BTN: '提交',
     RESET_BTN: '重置',
     REFRESH_BTN: '刷新',
-    SERVER_EMPTY: '服务目录下未发现任何jar启动文件，请添加后刷新。',
+    SERVER_EMPTY: '当前工作空间下未搜索到服务。',
     MODIFY: '修改',
     DELETE: '删除',
     CREATE: '新增',
