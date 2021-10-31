@@ -59,6 +59,7 @@ public class AgentManager {
             return;
         }
         WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
+        WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {

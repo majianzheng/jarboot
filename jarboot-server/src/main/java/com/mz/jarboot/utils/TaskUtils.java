@@ -67,7 +67,18 @@ public class TaskUtils {
                 WebSocketManager.getInstance().notice("服务" + server +
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
-            killByPid(getPid(server, sid));
+            int pid = getPid(server, sid);
+            if (pid > 0) {
+                killByPid(pid);
+                File pidFile = FileUtils.getFile(SettingUtils.getLogDir(), server, sid + CommonConst.PID_EXT);
+                if (pidFile.exists()) {
+                    try {
+                        FileUtils.forceDelete(pidFile);
+                    } catch (Exception exception) {
+                        //ignore
+                    }
+                }
+            }
         }
     }
 
@@ -177,7 +188,7 @@ public class TaskUtils {
     public static int getPid(String server, String sid) {
         File pidFile = FileUtils.getFile(SettingUtils.getLogDir(), server, sid + CommonConst.PID_EXT);
         int pid = CommonConst.INVALID_PID;
-        if (!pidFile.isFile()) {
+        if (!pidFile.isFile() && pidFile.exists()) {
             try {
                 FileUtils.forceDelete(pidFile);
             } catch (Exception exception) {
@@ -185,24 +196,27 @@ public class TaskUtils {
                 return pid;
             }
         }
-        if (pidFile.exists()) {
-            try {
-                String content = FileUtils.readFileToString(pidFile, StandardCharsets.UTF_8);
-                pid = NumberUtils.toInt(content, CommonConst.INVALID_PID);
-            } catch (Exception exception) {
-                //ignore
-            }
+        if (!pidFile.exists()) {
+            return pid;
+        }
+        try {
+            String content = FileUtils.readFileToString(pidFile, StandardCharsets.UTF_8);
+            pid = NumberUtils.toInt(content, CommonConst.INVALID_PID);
             if (CommonConst.INVALID_PID != pid) {
                 Map<Integer, String> vms = VMUtils.getInstance().listVM();
                 if (!vms.containsKey(pid)) {
                     pid = CommonConst.INVALID_PID;
-                    //删除，pid已经不存在
-                    try {
-                        FileUtils.forceDelete(pidFile);
-                    } catch (Exception exception) {
-                        //ignore
-                    }
                 }
+            }
+        } catch (Exception exception) {
+            //ignore
+        }
+        if (CommonConst.INVALID_PID == pid) {
+            //删除，pid已经不存在
+            try {
+                FileUtils.forceDelete(pidFile);
+            } catch (IOException e) {
+                //ignore
             }
         }
         return pid;
@@ -249,11 +263,10 @@ public class TaskUtils {
     }
 
     private static void killByPid(int pid) {
-        killByPid(String.valueOf(pid));
-    }
-
-    private static void killByPid(String pid) {
-        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
+        if (pid < 0) {
+            return;
+        }
+        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %d" : "kill -9 %d", pid);
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd);
