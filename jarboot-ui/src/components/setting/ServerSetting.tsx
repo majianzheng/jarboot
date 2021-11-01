@@ -7,15 +7,20 @@ import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import {LoadingOutlined} from '@ant-design/icons';
 import StringUtil from "@/common/StringUtil";
+import * as React from "react";
+// @ts-ignore
+import Highlighter from 'react-highlight-words';
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
     const [data, setData] = useState([] as ServerRunning[]);
     const [current, setCurrent] = useState('');
     const [loading, setLoading] = useState(true);
+    const [filterText, setFilterText] = useState('');
 
     const query = (filter?: string) => {
         setLoading(true);
+        setFilterText(filter as string);
         ServerMgrService.getServerList((resp: any) => {
             setLoading(false);
             if (resp.resultCode < 0) {
@@ -36,6 +41,7 @@ const ServerSetting = memo(() => {
     useEffect(query, []);
 
     const onSelect = (event: any) => {
+        console.info(event);
         setCurrent(event.key);
     };
 
@@ -50,9 +56,15 @@ const ServerSetting = memo(() => {
             >
                 <Menu.ItemGroup title={menuTitle}>
                     <Menu.Divider/>
-                    {data.length ? data.map((item) => {
-                        return <Menu.Item key={item.path}>{item.name}</Menu.Item>
-                    }) : <Empty/>}
+                    {data.length ? data.map((item) =>
+                        <Menu.Item key={item.path}>
+                            {filterText?.length ? <Highlighter
+                                highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                                searchWords={[filterText]}
+                                autoEscape
+                                textToHighlight={item.name || ''}
+                            /> : item.name}
+                        </Menu.Item>) : <Empty/>}
                 </Menu.ItemGroup>
             </Menu>
         </Col>

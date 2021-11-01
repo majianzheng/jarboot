@@ -229,7 +229,7 @@ public class SettingUtils {
         String vm = sb.toString();
         if (StringUtils.isBlank(vm)) {
             vm = SettingUtils.getDefaultJvmArg();
-            if (!vm.endsWith(StringUtils.SPACE)) {
+            if (!vm.isEmpty() && !vm.endsWith(StringUtils.SPACE)) {
                 vm += StringUtils.SPACE;
             }
         }

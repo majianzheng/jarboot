@@ -35,6 +35,8 @@ export default {
     TYPE: '类型',
     SUBMIT_BTN: '提交',
     RESET_BTN: '重置',
+    SEARCH_BTN: '搜索',
+    FILTER_BTN: '过滤',
     REFRESH_BTN: '刷新',
     SERVER_EMPTY: '当前工作空间下未搜索到服务。',
     MODIFY: '修改',

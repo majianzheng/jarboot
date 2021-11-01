@@ -91,7 +91,7 @@ $ sh startup.sh
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.0.10</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -138,7 +138,7 @@ $ spring.env spring.application.name
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.0.10</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 2. 实现spi接口

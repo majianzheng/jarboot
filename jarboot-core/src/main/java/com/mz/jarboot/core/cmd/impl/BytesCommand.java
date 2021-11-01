@@ -89,7 +89,7 @@ public class BytesCommand extends AbstractCommand {
             }
             file = new File(dir, cls.getSimpleName() + ".class");
             FileUtils.writeByteArrayToFile(file, classfileBuffer, false);
-            List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getName());
+            List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getAbsolutePath());
             codes.forEach(l -> session.console(l));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

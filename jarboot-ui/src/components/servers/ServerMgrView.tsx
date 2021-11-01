@@ -111,13 +111,14 @@ export default class ServerMgrView extends React.PureComponent {
 
     private _updateServerStatus(sid: string, status: string) {
         let data: ServerRunning[] = this.state.data;
-        data = data.map((value: ServerRunning) => {
+        for (let i in data) {
+            const value = data[i];
             if (value.sid === sid) {
                 value.status = status;
+                break;
             }
-            return value;
-        });
-        this.setState({data});
+        }
+        this.setState({data: [...data]});
     }
 
     getColumnSearchProps = (dataIndex: string) => ({
@@ -142,10 +143,10 @@ export default class ServerMgrView extends React.PureComponent {
                         size="small"
                         style={{ width: 90 }}
                     >
-                        Search
+                        {formatMsg('SEARCH_BTN')}
                     </Button>
                     <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-                        Reset
+                        {formatMsg('RESET_BTN')}
                     </Button>
                     <Button
                         type="link"
@@ -158,7 +159,7 @@ export default class ServerMgrView extends React.PureComponent {
                             });
                         }}
                     >
-                        Filter
+                        {formatMsg('FILTER_BTN')}
                     </Button>
                 </Space>
             </div>
@@ -200,7 +201,6 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     handleChange = (pagination: any, filters: any, sorter: any) => {
-        console.log('Various parameters', pagination, filters, sorter);
         this.setState({filteredInfo: filters});
     };
 
@@ -216,8 +216,6 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     private _getTbProps() {
-        let { filteredInfo } = this.state;
-        filteredInfo = filteredInfo || {};
         return {
             columns: [
                 {
@@ -236,13 +234,12 @@ export default class ServerMgrView extends React.PureComponent {
                     ellipsis: true,
                     width: 120,
                     filters: [
-                        { text: 'STOPPED', value: 'STOPPED' },
-                        { text: 'RUNNING', value: 'RUNNING' },
-                        { text: 'STARTING', value: 'STARTING' },
-                        { text: 'STOPPING', value: 'STOPPING' },
+                        { text: formatMsg('STOPPED'), value: 'STOPPED' },
+                        { text: formatMsg('RUNNING'), value: 'RUNNING' },
+                        { text: formatMsg('STARTING'), value: 'STARTING' },
+                        { text: formatMsg('STOPPING'), value: 'STOPPING' },
                     ],
-                    filteredValue: filteredInfo.status || null,
-                    onFilter: (value: string, record: ServerRunning) => record.status.includes(value),
+                    onFilter: (value: string, record: ServerRunning) => record.status === value,
                     render: (text: string) => ServerMgrView.translateStatus(text),
                 },
             ],
@@ -491,7 +488,7 @@ export default class ServerMgrView extends React.PureComponent {
                 </div>
             </div>
             {this.state.uploadVisible && <UploadFileModal server={this.state.selectRows[0].name}
-                             onClose={this.onUploadClose}/>}
+                                                          onClose={this.onUploadClose}/>}
         </div>);
     }
 }

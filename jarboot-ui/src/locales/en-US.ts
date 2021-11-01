@@ -35,6 +35,8 @@ export default {
     TYPE: 'Type',
     SUBMIT_BTN: 'Submit',
     RESET_BTN: 'Reset',
+    SEARCH_BTN: 'Search',
+    FILTER_BTN: 'Filter',
     REFRESH_BTN: 'Refresh',
     SERVER_EMPTY: 'Current workspace searched empty.',
     MODIFY: 'Modify',

@@ -87,7 +87,10 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
     };
 
     return (<>
-        <Form {...layout} form={form} name="server-setting" onFinish={onSubmit} onValuesChange={changedValues => {
+        <Form {...layout}
+              form={form}
+              name="server-setting"
+              onFinish={onSubmit} initialValues={{priority: 0}} onValuesChange={changedValues => {
             if (changedValues.hasOwnProperty('runnable')) {
                 setRunnable(changedValues.runnable)
             }
@@ -154,7 +157,7 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
             <Form.Item name="priority"
                        label={intl.formatMessage({id: 'PRIORITY_LABEL'})}
                        rules={[{required: false}]}>
-                <InputNumber min={0} max={9999} defaultValue={0} autoComplete="off"/>
+                <InputNumber min={0} max={9999} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="daemon"
                        label={intl.formatMessage({id: 'DAEMON_LABEL'})}
