@@ -1,14 +1,22 @@
 import {MsgData, WsManager} from "@/common/WsManager";
 import {MSG_EVENT} from "@/common/EventConst";
 import {JarBootConst} from "@/common/JarBootConst";
-import {PUB_TOPIC} from "@/components/servers/SuperPanel";
+import Logger from "@/common/Logger";
 
 /**
  * 服务订阅发布实现
  */
 const TOPIC_SPLIT = '\r';
 
-export class ServerPubsubImpl implements PublishSubmit {
+enum PUB_TOPIC {
+    CMD_END="commandEnd",
+    RENDER_JSON = "renderJson",
+    QUICK_EXEC_CMD = "quickExecCmd",
+    RECONNECTED = "reconnected",
+    WORKSPACE_CHANGE = "workspaceChange"
+}
+
+class ServerPubsubImpl implements PublishSubmit {
     private handlers = new Map<string, Set<(data: any) => void>>();
 
     constructor() {
@@ -18,7 +26,8 @@ export class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
-        WsManager.addMessageHandler(MSG_EVENT.RECONNECTED, this._onReconnected);
+        WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
+        WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this._onReconnected);
     }
 
     private static genTopicKey(namespace: string, event: string) {
@@ -76,13 +85,20 @@ export class ServerPubsubImpl implements PublishSubmit {
         this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
     }
 
+    private _workspaceChange = (data: MsgData) => {
+        this.publish("", PUB_TOPIC.WORKSPACE_CHANGE, data.body);
+        Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
+    }
+
     private _onReconnected = (data: MsgData) => {
         this.publish('', PUB_TOPIC.RECONNECTED, data.body);
+        Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
     }
 
     private _renderCmdJsonResult = (data: MsgData) => {
         if ('{' !== data.body[0]) {
             //不是json数据时，使用console
+            Logger.warn(`当前非JSON数据格式！`, data);
             this._console(data);
             return;
         }
@@ -90,3 +106,7 @@ export class ServerPubsubImpl implements PublishSubmit {
         this.publish(data.sid, PUB_TOPIC.RENDER_JSON, body);
     }
 }
+
+const pubsub: PublishSubmit = new ServerPubsubImpl();
+
+export {pubsub, PUB_TOPIC};

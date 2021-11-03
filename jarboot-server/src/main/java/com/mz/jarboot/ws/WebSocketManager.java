@@ -156,7 +156,7 @@ public class WebSocketManager extends Thread {
         }
     }
 
-    private void publishGlobalEvent(String sid, String body, WsEventEnum event) {
+    public void publishGlobalEvent(String sid, String body, WsEventEnum event) {
         String msg = formatMsg(sid, event, body);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }

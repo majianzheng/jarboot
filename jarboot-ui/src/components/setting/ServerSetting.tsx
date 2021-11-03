@@ -10,6 +10,7 @@ import StringUtil from "@/common/StringUtil";
 import * as React from "react";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
+import {PUB_TOPIC, pubsub} from "@/components/servers";
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
@@ -38,10 +39,23 @@ const ServerSetting = memo(() => {
         });
     };
 
-    useEffect(query, []);
+    const fresh = () => {
+        query(filterText);
+    };
+
+    const init = () => {
+        pubsub.submit('', PUB_TOPIC.RECONNECTED, fresh);
+        pubsub.submit('', PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        query();
+        return () => {
+            pubsub.unSubmit('', PUB_TOPIC.RECONNECTED, fresh);
+            pubsub.unSubmit('', PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        }
+    };
+
+    useEffect(init, []);
 
     const onSelect = (event: any) => {
-        console.info(event);
         setCurrent(event.key);
     };
 

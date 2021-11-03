@@ -37,21 +37,15 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitServerSetting(String path, ServerSetting setting) {
-        File file = getConfAndCheck(path, setting);
+        File file = getConfAndCheck(path);
         Properties prop = PropertyFileUtils.getProperties(file);
-        prop.setProperty(SettingPropConst.RUNNABLE, String.valueOf(setting.getRunnable()));
-        String userDefineRunArg = setting.getUserDefineRunArgument();
-        if (null == userDefineRunArg) {
-            userDefineRunArg = StringUtils.EMPTY;
+        String command = setting.getCommand();
+        if (null == command) {
+            command = StringUtils.EMPTY;
         } else {
-            userDefineRunArg = userDefineRunArg.replace('\n', ' ');
+            command = command.replace('\n', ' ');
         }
-        prop.setProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, userDefineRunArg);
-        String jar = setting.getJar();
-        if (null == jar) {
-            jar = StringUtils.EMPTY;
-        }
-        prop.setProperty(SettingPropConst.JAR, jar);
+        prop.setProperty(SettingPropConst.COMMAND, command);
         String vm = setting.getVm();
         if (null == vm) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
@@ -172,7 +166,7 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private File getConfAndCheck(String p, ServerSetting setting) {
+    private File getConfAndCheck(String p) {
         File file = SettingUtils.getServerSettingFile(p);
         if (!file.exists()) {
             try {
@@ -182,14 +176,6 @@ public class SettingServiceImpl implements SettingService {
                 }
             } catch (IOException e) {
                 throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
-        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(setting.getJar())) {
-            Path path = Paths.get(setting.getJar());
-            File jarFile = path.isAbsolute() ? path.toFile() :
-                    FileUtils.getFile(p, setting.getJar());
-            if (!jarFile.exists() || !jarFile.isFile()) {
-                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", setting.getJar()));
             }
         }
         return file;

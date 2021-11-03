@@ -12,7 +12,7 @@ import {MsgData, WsManager} from "@/common/WsManager";
 import Logger from "@/common/Logger";
 import {MSG_EVENT} from "@/common/EventConst";
 import {formatMsg} from "@/common/IntlFormat";
-import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers/SuperPanel";
+import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
 import OneClickButtons from "@/components/servers/OneClickButtons";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
@@ -41,12 +41,14 @@ export default class ServerMgrView extends React.PureComponent {
     componentDidMount() {
         this.refreshServerList(true);
         pubsub.submit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
+        pubsub.submit('', PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
         //初始化websocket的事件处理
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
     }
 
     componentWillUnmount() {
         pubsub.unSubmit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
+        pubsub.unSubmit('', PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
         WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
     }
 

@@ -18,8 +18,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -48,10 +46,6 @@ public class PropertyFileUtils {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
-    }
-
-    private static boolean checkFileExist(String file) {
-        return Files.exists(Paths.get(file));
     }
 
     public static boolean checkEnvironmentVar(String env) {
@@ -90,21 +84,11 @@ public class PropertyFileUtils {
         }
 
         Properties properties = getProperties(file);
-        String runnable = properties.getProperty(SettingPropConst.RUNNABLE, SettingPropConst.VALUE_TRUE);
         setting = new ServerSetting(server);
         setting.setSid(sid);
         setting.setPath(serverPath);
-        setting.setRunnable(Boolean.parseBoolean(runnable));
-        String jar = properties.getProperty(SettingPropConst.JAR, StringUtils.EMPTY);
-        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(jar)) {
-            if (checkFileExist(serverPath + File.separator + jar)) {
-                setting.setJar(jar);
-            } else {
-                logger.warn("配置的启动jar文件({})不存在", jar);
-            }
-        }
-        String userDefineRunArg = properties.getProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, StringUtils.EMPTY);
-        setting.setUserDefineRunArgument(userDefineRunArg);
+        String cmd = properties.getProperty(SettingPropConst.COMMAND, StringUtils.EMPTY);
+        setting.setCommand(cmd);
         String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);
         setting.setVm(jvm);
         String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);

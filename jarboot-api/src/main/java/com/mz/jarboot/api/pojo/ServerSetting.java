@@ -29,20 +29,10 @@ public class ServerSetting implements Serializable {
     private transient String path;
     
     /**
-     * 是否是可执行的jar
+     * 用户自定义的启动命令
+     * 若为空，且目录有唯一一个jar文件时，使用-jar选项启动
      */
-    private Boolean runnable;
-    
-    /**
-     * 用户自定义的启动参数
-     */
-    private String userDefineRunArgument;
-    
-    /**
-     * 启动的主类MainClass所在的jar文件
-     * 若为空，则空目录下找第一个jar文件
-     */
-    private String jar;
+    private String command;
     
     /**
      * 自定义的JVM参数
@@ -135,29 +125,13 @@ public class ServerSetting implements Serializable {
     public void setPath(String path) {
         this.path = path;
     }
-
-    public Boolean getRunnable() {
-        return runnable;
+    
+    public String getCommand() {
+        return command;
     }
     
-    public void setRunnable(Boolean runnable) {
-        this.runnable = runnable;
-    }
-    
-    public String getUserDefineRunArgument() {
-        return userDefineRunArgument;
-    }
-    
-    public void setUserDefineRunArgument(String userDefineRunArgument) {
-        this.userDefineRunArgument = userDefineRunArgument;
-    }
-    
-    public String getJar() {
-        return jar;
-    }
-
-    public void setJar(String jar) {
-        this.jar = jar;
+    public void setCommand(String command) {
+        this.command = command;
     }
 
     public String getVm() {
@@ -228,7 +202,7 @@ public class ServerSetting implements Serializable {
     public String toString() {
         return "ServerSettingDTO{" +
                 "server='" + server + '\'' +
-                ", jar='" + jar + '\'' +
+                ", command='" + command + '\'' +
                 ", vm='" + vm + '\'' +
                 ", priority=" + priority +
                 ", args='" + args + '\'' +

@@ -11,7 +11,7 @@ import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
 import {JarBootConst} from "@/common/JarBootConst";
-import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
+import {PUB_TOPIC, pubsub} from "@/components/servers";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -22,13 +22,6 @@ interface SuperPanelProps {
     server: string;
     sid: string;
     visible: boolean;
-}
-
-enum PUB_TOPIC {
-    CMD_END="commandEnd",
-    RENDER_JSON = "renderJson",
-    QUICK_EXEC_CMD = "quickExecCmd",
-    RECONNECTED = "reconnected",
 }
 
 /**
@@ -44,7 +37,6 @@ interface HistoryProp {
 const outHeight = `${window.innerHeight - 150}px`;
 const MAX_HISTORY = 100;
 const historyMap = new Map<string, HistoryProp>();
-const pubsub: PublishSubmit = new ServerPubsubImpl();
 
 const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     const intl = useIntl();
@@ -233,4 +225,4 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     </>
 });
 
-export {SuperPanel, PUB_TOPIC, pubsub};
+export {SuperPanel};

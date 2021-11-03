@@ -14,6 +14,7 @@ interface MsgData {
 }
 let msg: any = null;
 class WsManager {
+    public static readonly RECONNECTED_EVENT = -1;
     private static websocket: any = null;
     private static fd: any = null;
     private static _messageHandler = new Map<number, (data: MsgData) => void>();
@@ -110,8 +111,8 @@ class WsManager {
             msg();
             msg = null;
             //重连成功，刷新状态
-            const handler = WsManager._messageHandler.get(MSG_EVENT.RECONNECTED);
-            handler && handler({sid: '', body: '', event: MSG_EVENT.RECONNECTED});
+            const handler = WsManager._messageHandler.get(WsManager.RECONNECTED_EVENT);
+            handler && handler({sid: '', body: '', event: WsManager.RECONNECTED_EVENT});
         }
         if (null !== WsManager.fd) {
             //连接成功，取消重连机制

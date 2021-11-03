@@ -24,7 +24,6 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
-    let [runnable, setRunnable] = useState(true);
     const onReset = () => {
         SettingService.getServerSetting(props.path
         ).then((resp: any) => {
@@ -33,7 +32,6 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
                 return;
             }
             form.setFieldsValue(resp.result);
-            setRunnable(!!resp.result?.runnable);
         }).catch(CommonNotice.errorFormatted);
     };
 
@@ -90,23 +88,9 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
         <Form {...layout}
               form={form}
               name="server-setting"
-              onFinish={onSubmit} initialValues={{priority: 0}} onValuesChange={changedValues => {
-            if (changedValues.hasOwnProperty('runnable')) {
-                setRunnable(changedValues.runnable)
-            }
-        }}>
-            <Form.Item name="runnable"
-                       label={intl.formatMessage({id: 'RUNNABLE_LABEL'})}
-                       rules={[{required: false}]} valuePropName={"checked"}>
-                <Switch/>
-            </Form.Item>
-            <Form.Item name="jar" hidden={!runnable}
-                       label={intl.formatMessage({id: 'JAR_LABEL'})}
-                       rules={[{required: false}]}>
-                <Input placeholder={"The jar file to start"} autoComplete="off"/>
-            </Form.Item>
-            <Form.Item name="userDefineRunArgument" hidden={runnable}
-                       label={intl.formatMessage({id: 'USER_DEFINE_RUN_LABEL'})}
+              onFinish={onSubmit} initialValues={{priority: 0}}>
+            <Form.Item name="command"
+                       label={intl.formatMessage({id: 'COMMAND_LABEL'})}
                        rules={[{required: false}]}>
                 <Input.TextArea rows={2}
                                 placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +

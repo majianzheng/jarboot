@@ -42,8 +42,8 @@ const DebugPlugin = memo(() => {
                        rules={[{required: true}]}>
                 <Input autoComplete="off"/>
             </Form.Item>
-            <Form.Item name="userDefineRunArgument"
-                       label={intl.formatMessage({id: 'USER_DEFINE_RUN_LABEL'})}
+            <Form.Item name="command"
+                       label={intl.formatMessage({id: 'COMMAND_LABEL'})}
                        rules={[{required: true}]}>
                 <Input.TextArea rows={2}
                                 placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +
@@ -87,7 +87,7 @@ const DebugPlugin = memo(() => {
                 </Button>
             </Form.Item>
         </Form>
-        {server && <SuperPanel server={server} visible={true} key={server}/>}
+        {server && <SuperPanel server={server} sid={server} visible={true} key={server}/>}
     </>)
 });
 

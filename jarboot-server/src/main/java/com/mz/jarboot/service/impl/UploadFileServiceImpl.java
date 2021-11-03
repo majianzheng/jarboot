@@ -137,10 +137,10 @@ public class UploadFileServiceImpl implements UploadFileService {
 
             //检测多个jar文件时有没有配置启动的jar文件
             ServerSetting setting = PropertyFileUtils.getServerSetting(destPath);
-            if (StringUtils.isEmpty(setting.getJar())) {
+            if (StringUtils.isEmpty(setting.getCommand())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
-                    String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);
+                    String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的命令！", server);
                     WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
                 }
             }

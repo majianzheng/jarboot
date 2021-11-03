@@ -48,7 +48,7 @@ export default {
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
     RUNNABLE_LABEL: '是否可执行的JAR文件',
-    USER_DEFINE_RUN_LABEL: '自定义的启动参数',
+    COMMAND_LABEL: '启动命令',
     JAR_LABEL: '用于启动的jar文件',
     VM_OPT_LABEL: 'VM参数',
     MAIN_ARGS_LABEL: '程序传入参数',

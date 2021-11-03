@@ -117,7 +117,7 @@ public class TaskUtils {
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(server, sid))
                 .append(StringUtils.SPACE);
-        if (Boolean.TRUE.equals(setting.getRunnable())) {
+        if (StringUtils.isBlank(setting.getCommand())) {
             //获取启动的jar文件
             String jar = SettingUtils.getJarPath(setting);
             if (StringUtils.isBlank(jar)) {
@@ -126,10 +126,7 @@ public class TaskUtils {
             // 待执行的jar
             cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
         } else {
-            if (StringUtils.isBlank(setting.getUserDefineRunArgument())) {
-                return;
-            }
-            cmdBuilder.append(setting.getUserDefineRunArgument());
+            cmdBuilder.append(setting.getCommand());
         }
 
         // 传入参数

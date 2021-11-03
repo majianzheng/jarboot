@@ -3,7 +3,6 @@ package com.mz.jarboot.shell.plugin;
 import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import java.io.File;
 
 /**
  * pwd

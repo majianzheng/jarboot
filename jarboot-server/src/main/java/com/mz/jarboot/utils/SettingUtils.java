@@ -7,6 +7,7 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
+import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -103,6 +104,10 @@ public class SettingUtils {
             } else {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
+            if (!StringUtils.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
+                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+            }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
@@ -162,19 +167,7 @@ public class SettingUtils {
             logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包路径", NoticeEnum.WARN);
         }
-        if (StringUtils.isNotEmpty(setting.getJar())) {
-            //配置了jar文件，判定是否绝对路径
-            Path path = Paths.get(setting.getJar());
-            File jar = path.isAbsolute() ? path.toFile() : FileUtils.getFile(dir, setting.getJar());
-            if (jar.exists() && jar.isFile()) {
-                return jar.getPath();
-            } else {
-                WebSocketManager.getInstance()
-                        .notice("设置启动的jar文件不存在，请重新设置！", NoticeEnum.WARN);
-            }
-        }
 
-        //未指定时
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
         if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
@@ -182,7 +175,7 @@ public class SettingUtils {
             return StringUtils.EMPTY;
         }
         if (jarList.size() > 1) {
-            String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);
+            String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", server);
             WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
             return StringUtils.EMPTY;
         }
