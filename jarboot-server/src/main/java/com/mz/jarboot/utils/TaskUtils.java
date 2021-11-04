@@ -62,7 +62,7 @@ public class TaskUtils {
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
-            if (AgentManager.getInstance().isOnline(server, sid)) {
+            if (AgentManager.getInstance().isOnline(sid)) {
                 logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
                 WebSocketManager.getInstance().notice("服务" + server +
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
@@ -252,11 +252,6 @@ public class TaskUtils {
             logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeEnum.ERROR);
         }
-    }
-
-    public static Set<Integer> getAllJvmPid() {
-        Map<Integer, String> vms = VMUtils.getInstance().listVM();
-        return vms.keySet();
     }
 
     private static void killByPid(int pid) {

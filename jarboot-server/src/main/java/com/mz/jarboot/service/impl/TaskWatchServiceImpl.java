@@ -211,7 +211,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             String path = curWorkspace + File.separator + service;
             String sid= SettingUtils.createSid(path);
             //创建或修改文件
-            if (!AgentManager.getInstance().isOnline(service, sid)) {
+            if (!AgentManager.getInstance().isOnline(sid)) {
                 //当前不处于正在运行的状态
                 return;
             }
@@ -261,7 +261,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     }
 
     private void doAttachRunningServer(ServerRunning server) {
-        if (AgentManager.getInstance().isOnline(server.getName(), server.getSid())) {
+        if (AgentManager.getInstance().isOnline(server.getSid())) {
             //已经是在线状态
             return;
         }

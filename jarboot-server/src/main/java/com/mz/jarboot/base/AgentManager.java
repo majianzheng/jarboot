@@ -30,6 +30,7 @@ public class AgentManager {
     private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<Integer, String> serverPid = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
     private AgentManager(){}
@@ -54,12 +55,22 @@ public class AgentManager {
         } else {
             latch.countDown();
         }
+        int pid = TaskUtils.getPid(server, sid);
+        if (pid > 0) {
+            //属于受管理的服务
+            serverPid.put(pid, sid);
+            client.setPid(pid);
+        }
     }
 
     public void offline(String server, String sid) {
         final AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return;
+        }
+        int pid = client.getPid();
+        if (pid > 0) {
+            serverPid.remove(pid);
         }
         WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
         WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
@@ -81,7 +92,7 @@ public class AgentManager {
         }
     }
 
-    public boolean isOnline(String server, String sid) {
+    public boolean isOnline(String sid) {
         final AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return false;
@@ -133,7 +144,7 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            if (isOnline(server, sid)) {
+            if (isOnline(sid)) {
                 //如果进程仍然存活，尝试使用attach重新连接
                 tryReConnect(server, sid, sessionId);
 
@@ -292,6 +303,10 @@ public class AgentManager {
 
     public int getMaxGracefulExitTime() {
         return this.maxGracefulExitTime;
+    }
+
+    public boolean isManageredServer(int pid) {
+        return serverPid.containsKey(pid);
     }
 
     private void handleAction(String data, String sessionId, String sid) {

@@ -11,7 +11,15 @@ interface ServerRunning {
     status: string,
     path: string
 }
-export { ServerRunning };
+
+interface JvmProcess {
+    name: string,
+    fullName: string,
+    pid: number,
+    attached: boolean
+}
+
+export { ServerRunning, JvmProcess };
 /**
  * 服务管理
  */
@@ -90,6 +98,28 @@ export default class ServerMgrService {
             return Promise.resolve();
         }
         return Request.get(`${urlBase}/base64Encoder`, {data});
+    }
+
+    /**
+     * 获取未被服务管理的JVM进程信息
+     * @param callback
+     */
+    public static getJvmProcesses(callback: any) {
+        Request.get(`${urlBase}/getJvmProcesses`, {})
+            .then(callback)
+            .catch(CommonNotice.errorFormatted);
+    }
+
+    /**
+     * attach进程
+     * @param pid pid
+     * @param name 名字
+     */
+    public static attach(pid: number, name: string) {
+        const form = new FormData();
+        form.set("pid", pid + '');
+        form.set("name", name);
+        return Request.post(`${urlBase}/attach`, form);
     }
 
     private static parseParam(servers: ServerRunning[]): string[] {

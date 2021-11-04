@@ -162,7 +162,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice("服务" + server + "正在启动或停止", NoticeEnum.INFO);
             return;
         }
-        if (AgentManager.getInstance().isOnline(server, sid)) {
+        if (AgentManager.getInstance().isOnline(sid)) {
             //已经启动
             WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
@@ -181,7 +181,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //服务是否启动成功
-            if (AgentManager.getInstance().isOnline(server, sid)) {
+            if (AgentManager.getInstance().isOnline(sid)) {
                 WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s started cost %.3f second.", server, costTime));
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
@@ -267,7 +267,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             //耗时
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
-            if (AgentManager.getInstance().isOnline(server, sid)) {
+            if (AgentManager.getInstance().isOnline(sid)) {
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP_ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(sid,

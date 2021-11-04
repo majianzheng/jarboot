@@ -1,6 +1,8 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.service.OnlineDebugService;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.service.ServerMgrService;
@@ -29,6 +31,8 @@ import java.util.List;
 public class ServerMgrController {
     @Autowired
     private ServerMgrService serverMgrService;
+    @Autowired
+    private OnlineDebugService onlineDebugService;
 
     /**
      * 获取服务列表
@@ -36,7 +40,7 @@ public class ServerMgrController {
      */
     @GetMapping(value="/getServerList")
     @ResponseBody
-    public ResponseForList<ServerRunning> getWebServerList() {
+    public ResponseForList<ServerRunning> getServerList() {
         List<ServerRunning> results = serverMgrService.getServerList();
         return new ResponseForList<>(results, results.size());
     }
@@ -161,5 +165,28 @@ public class ServerMgrController {
         } catch ( Exception e ) {
             //
         }
+    }
+
+    /**
+     * 获取未被服务管理的JVM进程信息
+     * @return 进程列表
+     */
+    @GetMapping(value="/getJvmProcesses")
+    @ResponseBody
+    public ResponseForList<JvmProcess> getJvmProcesses() {
+        List<JvmProcess> results = onlineDebugService.getJvmProcesses();
+        return new ResponseForList<>(results, results.size());
+    }
+
+    /**
+     * attach进程
+     * @return 执行结果
+     */
+    @PostMapping(value="/attach")
+    @ResponseBody
+    @Permission
+    public ResponseSimple attach(int pid, String name) {
+        onlineDebugService.attach(pid, name);
+        return new ResponseSimple();
     }
 }

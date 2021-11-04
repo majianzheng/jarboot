@@ -6,7 +6,7 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.utils.SettingUtils;
-import com.mz.jarboot.utils.TaskUtils;
+import com.mz.jarboot.utils.VMUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +33,7 @@ public class TaskRunCache {
 
     private void updateServerInfo(List<ServerRunning> server) {
         server.forEach(item -> {
-            if (AgentManager.getInstance().isOnline(item.getName(), item.getSid())) {
+            if (AgentManager.getInstance().isOnline(item.getSid())) {
                 item.setStatus(CommonConst.STATUS_RUNNING);
             }
             if (this.isStarting(item.getSid())) {
@@ -133,12 +133,12 @@ public class TaskRunCache {
         File logDir = FileUtils.getFile(SettingUtils.getLogDir());
         Collection<File> pidFiles = FileUtils.listFiles(logDir, new String[]{"pid"}, true);
         if (CollectionUtils.isNotEmpty(pidFiles)) {
-            Set<Integer> allJvmPid = TaskUtils.getAllJvmPid();
+            Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {
                 try {
                     String text = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
                     int pid = NumberUtils.toInt(text, CommonConst.INVALID_PID);
-                    if (allJvmPid.contains(pid)) {
+                    if (allJvmPid.containsKey(pid)) {
                         return;
                     }
                 } catch (Exception exception) {
