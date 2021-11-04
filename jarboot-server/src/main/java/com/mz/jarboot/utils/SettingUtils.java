@@ -140,7 +140,6 @@ public class SettingUtils {
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
         StringBuilder sb = new StringBuilder();
         sb
-                .append("127.0.0.1:")
                 .append(port)
                 .append(CommandConst.PROTOCOL_SPLIT)
                 .append(server)

@@ -46,9 +46,12 @@ public class AgentManager {
 
     public void online(String server, Session session, String sid) {
         //目标进程上线
-        clientMap.put(sid, new AgentClient(server, sid, session));
+        AgentClient client = new AgentClient(server, sid, session);
+        clientMap.put(sid, client);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
-        if (null != latch) {
+        if (null == latch) {
+            client.setState(ClientState.ONLINE);
+        } else {
             latch.countDown();
         }
     }

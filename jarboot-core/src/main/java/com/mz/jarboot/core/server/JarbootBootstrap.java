@@ -45,7 +45,7 @@ public class JarbootBootstrap {
 
         //1.解析args，获取目标服务端口
         String[] agentArgs = parseArgs(args);
-        String host = agentArgs[0];
+        String host = "127.0.0.1:" + agentArgs[0];
         String serverName = agentArgs[1];
         String sid = agentArgs[2];
         if (EnvironmentContext.isInitialized()) {
@@ -66,8 +66,11 @@ public class JarbootBootstrap {
             } catch (Exception e) {
                 return;
             }
-            LogUtils.init(jarbootHome, serverName, sid); //初始化日志模块
+            LogUtils.init(jarbootHome, serverName, sid, isPremain); //初始化日志模块
             logger = LogUtils.getLogger();
+            if (isPremain) {
+                LogUtils.writePidFile(sid);
+            }
 
             //2.环境初始化
             EnvironmentContext.init(jarbootHome, serverName, host, sid, inst);
