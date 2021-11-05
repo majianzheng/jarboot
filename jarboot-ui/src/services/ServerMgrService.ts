@@ -116,10 +116,7 @@ export default class ServerMgrService {
      * @param name 名字
      */
     public static attach(pid: number, name: string) {
-        const form = new FormData();
-        form.set("pid", pid + '');
-        form.set("name", name);
-        return Request.post(`${urlBase}/attach`, form);
+        return Request.get(`${urlBase}/attach`, {pid, name});
     }
 
     private static parseParam(servers: ServerRunning[]): string[] {

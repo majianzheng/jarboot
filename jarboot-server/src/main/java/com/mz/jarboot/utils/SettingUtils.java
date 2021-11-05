@@ -229,7 +229,7 @@ public class SettingUtils {
     }
 
     public static String createSid(String serverPath) {
-        return String.format("%x", serverPath.hashCode());
+        return String.format("x%x", serverPath.hashCode());
     }
 
     private SettingUtils() {

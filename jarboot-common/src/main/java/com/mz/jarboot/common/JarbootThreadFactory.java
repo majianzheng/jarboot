@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JarbootThreadFactory implements ThreadFactory {
     public static final int MAX_THREAD_SIGN = 100000;
-    private AtomicInteger signGenerator = new AtomicInteger(0);
-    private String prefix;
-    private boolean daemon;
+    private final AtomicInteger signGenerator = new AtomicInteger(0);
+    private final String prefix;
+    private final boolean daemon;
 
     public static ThreadFactory createThreadFactory(String prefix) {
         return createThreadFactory(prefix, false);

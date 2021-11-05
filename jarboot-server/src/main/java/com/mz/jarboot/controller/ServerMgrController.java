@@ -2,7 +2,6 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
-import com.mz.jarboot.api.service.OnlineDebugService;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.service.ServerMgrService;
@@ -31,8 +30,6 @@ import java.util.List;
 public class ServerMgrController {
     @Autowired
     private ServerMgrService serverMgrService;
-    @Autowired
-    private OnlineDebugService onlineDebugService;
 
     /**
      * 获取服务列表
@@ -174,7 +171,7 @@ public class ServerMgrController {
     @GetMapping(value="/getJvmProcesses")
     @ResponseBody
     public ResponseForList<JvmProcess> getJvmProcesses() {
-        List<JvmProcess> results = onlineDebugService.getJvmProcesses();
+        List<JvmProcess> results = serverMgrService.getJvmProcesses();
         return new ResponseForList<>(results, results.size());
     }
 
@@ -182,11 +179,10 @@ public class ServerMgrController {
      * attach进程
      * @return 执行结果
      */
-    @PostMapping(value="/attach")
+    @GetMapping(value="/attach")
     @ResponseBody
-    @Permission
-    public ResponseSimple attach(int pid, String name) {
-        onlineDebugService.attach(pid, name);
+    public ResponseSimple attach(String pid, String name) {
+        serverMgrService.attach(Integer.parseInt(pid), name);
         return new ResponseSimple();
     }
 }

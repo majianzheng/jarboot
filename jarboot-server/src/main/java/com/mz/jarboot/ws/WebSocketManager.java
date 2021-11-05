@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 /**
@@ -76,7 +79,11 @@ public class WebSocketManager extends Thread {
     public void sendConsole(String sid, String text, String sessionId) {
         this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_LINE);
     }
-    
+
+    public void sendPrint(String sid, String text) {
+        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE_PRINT);
+    }
+
     public void sendPrint(String sid, String text, String sessionId) {
         this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_PRINT);
     }
@@ -125,6 +132,28 @@ public class WebSocketManager extends Thread {
         if (!sessionMap.isEmpty()) {
             this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
         }
+    }
+
+    public void printException(String sid, Throwable e) {
+        final byte lineBreak = '\n';
+        e.printStackTrace(new PrintStream(new OutputStream() {
+            private final byte[] buffer = new byte[1536];
+            private int index = 0;
+            @Override
+            public void write(int b) {
+                if (this.index > (this.buffer.length - 1)) {
+                    sendPrint(sid, new String(this.buffer));
+                    this.index = 0;
+                }
+                byte c = (byte) b;
+                if (lineBreak == c) {
+                    sendConsole(sid, new String(this.buffer, 0, this.index, StandardCharsets.UTF_8));
+                    this.index = 0;
+                } else {
+                    buffer[this.index++] = c;
+                }
+            }
+        }));
     }
 
     @Override

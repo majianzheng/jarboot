@@ -1,16 +1,14 @@
 import * as React from "react";
 import {Result, Tag, Input, Space, Button} from "antd";
-import { getLocale } from 'umi';
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
-import CommonNotice from '@/common/CommonNotice';
+import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
     SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
     PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
 } from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
-import {MsgData, WsManager} from "@/common/WsManager";
+import {MsgData} from "@/common/WsManager";
 import Logger from "@/common/Logger";
-import {MSG_EVENT} from "@/common/EventConst";
 import {formatMsg} from "@/common/IntlFormat";
 import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
 import OneClickButtons from "@/components/servers/OneClickButtons";
@@ -19,18 +17,7 @@ import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
-
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
-const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
-
-const notSelectInfo = () => {
-    if (JarBootConst.ZH_CN === getLocale()) {
-        CommonNotice.info('请点击选择一个服务执行');
-    } else {
-        CommonNotice.info('Please select one to operate');
-    }
-};
+import styles from "./index.less";
 
 export default class ServerMgrView extends React.PureComponent {
     state = {loading: false, data: [] as ServerRunning[], uploadVisible: false,
@@ -40,16 +27,15 @@ export default class ServerMgrView extends React.PureComponent {
     searchInput = {} as any;
     componentDidMount() {
         this.refreshServerList(true);
-        pubsub.submit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
-        pubsub.submit('', PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
-        //初始化websocket的事件处理
-        WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshServerList);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this._serverStatusChange);
     }
 
     componentWillUnmount() {
-        pubsub.unSubmit('', PUB_TOPIC.RECONNECTED, this.refreshServerList);
-        pubsub.unSubmit('', PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
-        WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
+        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshServerList);
+        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
+        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this._serverStatusChange);
     }
 
     private _activeConsole(sid: string) {
@@ -63,64 +49,60 @@ export default class ServerMgrView extends React.PureComponent {
     }
 
     private _serverStatusChange = (data: MsgData) => {
+        const item = this.state.data.find(value => value.sid === data.sid);
+        if (!item) {
+            return;
+        }
         const status = data.body;
         const key = data.sid;
-        const s = this.state.data.find(value => value.sid === data.sid);
-        const server = s?.name as string;
+        const server = item.name as string;
         switch (status) {
             case JarBootConst.MSG_TYPE_START:
                 // 激活终端显示
                 this._activeConsole(key);
                 Logger.log(`${server}启动中...`);
                 pubsub.publish(key, JarBootConst.START_LOADING);
-                this._clearDisplay({name: server, sid: key, path: '', status: ''});
-                this._updateServerStatus(key, JarBootConst.STATUS_STARTING);
+                this._clearDisplay(item);
+                this._updateServerStatus(item, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
                 Logger.log(`${server}停止中...`);
                 pubsub.publish(key, JarBootConst.START_LOADING);
-                this._updateServerStatus(key, JarBootConst.STATUS_STOPPING);
+                this._updateServerStatus(item, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
                 Logger.log(`${server}启动失败`);
                 CommonNotice.error(`Start ${server} failed!`);
-                this._updateServerStatus(key, JarBootConst.STATUS_STOPPED);
+                this._updateServerStatus(item, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
                 Logger.log(`${server}启动成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(key, JarBootConst.STATUS_STARTED)
+                this._updateServerStatus(item, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
                 Logger.log(`${server}停止失败`);
                 CommonNotice.error(`Stop ${server} failed!`);
-                this._updateServerStatus(key, JarBootConst.STATUS_STARTED);
+                this._updateServerStatus(item, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
                 Logger.log(`${server}停止成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(key, JarBootConst.STATUS_STOPPED)
+                this._updateServerStatus(item, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
                 Logger.log(`${server}重启成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(key, JarBootConst.STATUS_STARTED)
+                this._updateServerStatus(item, JarBootConst.STATUS_STARTED)
                 break;
             default:
                 break;
         }
     };
 
-    private _updateServerStatus(sid: string, status: string) {
-        let data: ServerRunning[] = this.state.data;
-        for (let i in data) {
-            const value = data[i];
-            if (value.sid === sid) {
-                value.status = status;
-                break;
-            }
-        }
-        this.setState({data: [...data]});
+    private _updateServerStatus(server: ServerRunning, status: string) {
+        server.status = status;
+        this.setState({data: [...this.state.data]});
     }
 
     getColumnSearchProps = (dataIndex: string) => ({
@@ -382,37 +364,37 @@ export default class ServerMgrView extends React.PureComponent {
             {
                 name: 'Start',
                 key: 'start ',
-                icon: <CaretRightFilled style={toolButtonGreenStyle}/>,
+                icon: <CaretRightFilled className={styles.toolButtonGreenStyle}/>,
                 onClick: this.startServer,
             },
             {
                 name: 'Stop',
                 key: 'stop',
-                icon: <PoweroffOutlined style={toolButtonRedStyle}/>,
+                icon: <PoweroffOutlined className={styles.toolButtonRedStyle}/>,
                 onClick: this.stopServer,
             },
             {
                 name: 'Restart',
                 key: 'restart',
-                icon: <ReloadOutlined style={toolButtonStyle}/>,
+                icon: <ReloadOutlined className={styles.toolButtonStyle}/>,
                 onClick: this.restartServer,
             },
             {
                 name: 'Refresh',
                 key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
+                icon: <SyncOutlined className={styles.toolButtonStyle}/>,
                 onClick: () => this.refreshServerList(),
             },
             {
                 name: 'New & update',
                 key: 'upload',
-                icon: <UploadOutlined style={toolButtonStyle}/>,
+                icon: <UploadOutlined className={styles.toolButtonStyle}/>,
                 onClick: this.uploadFile,
             },
             {
                 name: 'Dashboard',
                 key: 'dashboard',
-                icon: <DashboardOutlined style={toolButtonRedStyle}/>,
+                icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
                 onClick: this.dashboardCmd,
             }
         ]

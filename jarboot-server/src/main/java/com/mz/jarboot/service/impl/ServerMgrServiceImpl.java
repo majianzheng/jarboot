@@ -1,6 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -192,6 +194,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
+            WebSocketManager.getInstance().printException(sid, e);
         } finally {
             this.taskRunCache.removeStarting(sid);
         }
@@ -210,6 +213,61 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
         //在线程池中执行，防止前端请求阻塞超时
         TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(paths));
+    }
+
+    @Override
+    public List<JvmProcess> getJvmProcesses() {
+        List<JvmProcess> result = new ArrayList<>();
+        Map<Integer, String> vms = VMUtils.getInstance().listVM();
+        vms.forEach((k, v) -> {
+            if (AgentManager.getInstance().isManageredServer(k)) {
+                return;
+            }
+            JvmProcess process = new JvmProcess();
+            process.setPid(k);
+            process.setAttached(AgentManager.getInstance().isOnline(String.valueOf(k)));
+            process.setFullName(v);
+            //解析获取简略名字
+            process.setName(parseFullName(v));
+            result.add(process);
+        });
+        return result;
+    }
+
+    @Override
+    public void attach(int pid, String name) {
+        if (CommonConst.INVALID_PID == pid) {
+            return;
+        }
+        if (StringUtils.isEmpty(name)) {
+            name = StringUtils.SPACE;
+        }
+        Object vm = null;
+        try {
+            vm = VMUtils.getInstance().attachVM(pid);
+            String args = SettingUtils.getAgentArgs(name, String.valueOf(pid));
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
+        } catch (Exception e) {
+            String sid = String.valueOf(pid);
+            WebSocketManager.getInstance().printException(sid, e);
+        } finally {
+            if (null != vm) {
+                VMUtils.getInstance().detachVM(vm);
+            }
+        }
+    }
+
+    private String parseFullName(String fullName) {
+        int p = fullName.indexOf(' ');
+        if (p > 0) {
+            fullName = fullName.substring(0, p);
+        }
+        final char sept = (fullName.endsWith(CommonConst.JAR_EXT)) ? File.separatorChar : '.';
+        int index = fullName.lastIndexOf(sept);
+        if (index > 0) {
+            return fullName.substring(index + 1);
+        }
+        return fullName;
     }
 
     private void stopServer0(List<String> paths) {
@@ -277,6 +335,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.ERROR);
+            WebSocketManager.getInstance().printException(sid, e);
         } finally {
             this.taskRunCache.removeStopping(sid);
         }

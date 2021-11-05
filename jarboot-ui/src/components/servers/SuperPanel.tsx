@@ -122,7 +122,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         if (StringUtil.isEmpty(cmd)) {
             return;
         }
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.sid)) {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
@@ -154,7 +154,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const onCancelCommand = () => {
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.sid)) {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }

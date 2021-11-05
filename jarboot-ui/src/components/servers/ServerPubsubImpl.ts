@@ -9,11 +9,13 @@ import Logger from "@/common/Logger";
 const TOPIC_SPLIT = '\r';
 
 enum PUB_TOPIC {
-    CMD_END="commandEnd",
+    ROOT = "root",
+    CMD_END = "commandEnd",
     RENDER_JSON = "renderJson",
     QUICK_EXEC_CMD = "quickExecCmd",
     RECONNECTED = "reconnected",
-    WORKSPACE_CHANGE = "workspaceChange"
+    WORKSPACE_CHANGE = "workspaceChange",
+    STATUS_CHANGE = "statusChange",
 }
 
 class ServerPubsubImpl implements PublishSubmit {
@@ -28,6 +30,7 @@ class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
         WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
         WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this._onReconnected);
+        WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._statusChange);
     }
 
     private static genTopicKey(namespace: string, event: string) {
@@ -86,12 +89,16 @@ class ServerPubsubImpl implements PublishSubmit {
     }
 
     private _workspaceChange = (data: MsgData) => {
-        this.publish("", PUB_TOPIC.WORKSPACE_CHANGE, data.body);
+        this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, data.body);
         Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
     }
 
+    private _statusChange = (data: MsgData) => {
+        this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, data);
+    }
+
     private _onReconnected = (data: MsgData) => {
-        this.publish('', PUB_TOPIC.RECONNECTED, data.body);
+        this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, data.body);
         Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
     }
 

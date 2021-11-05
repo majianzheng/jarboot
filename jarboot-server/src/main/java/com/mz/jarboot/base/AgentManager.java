@@ -49,6 +49,7 @@ public class AgentManager {
         //目标进程上线
         AgentClient client = new AgentClient(server, sid, session);
         clientMap.put(sid, client);
+        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.ONLINE);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
@@ -68,11 +69,11 @@ public class AgentManager {
         if (null == client) {
             return;
         }
+        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.OFFLINE);
         int pid = client.getPid();
         if (pid > 0) {
             serverPid.remove(pid);
         }
-        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
         WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程

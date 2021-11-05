@@ -10,6 +10,9 @@ class JarBootConst {
     public static MSG_TYPE_STOPPED = "STOPPED";
     public static MSG_TYPE_START_ERROR = "START_ERROR";
     public static MSG_TYPE_STOP_ERROR = "STOP_ERROR";
+    public static MSG_TYPE_ONLINE = "ONLINE";
+    public static MSG_TYPE_OFFLINE = "OFFLINE";
+
     public static MSG_TYPE_OUT = "OUT";
     public static MSG_TYPE_CMD_COMPLETE = "CMD_COMPLETE";
 
