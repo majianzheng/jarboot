@@ -3,7 +3,7 @@ import {Result, Tag, Input, Space, Button} from "antd";
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
-    SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
+    SyncOutlined, CaretRightOutlined, BorderOutlined, CaretRightFilled, DashboardOutlined,
     PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
 } from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
@@ -29,16 +29,16 @@ export default class ServerMgrView extends React.PureComponent {
         this.refreshServerList(true);
         pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshServerList);
         pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
-        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this._serverStatusChange);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this.onStatusChange);
     }
 
     componentWillUnmount() {
         pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshServerList);
         pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, this.refreshServerList);
-        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this._serverStatusChange);
+        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this.onStatusChange);
     }
 
-    private _activeConsole(sid: string) {
+    private activeConsole(sid: string) {
         let data: ServerRunning[] = this.state.data;
         const index = data.findIndex(row => row.sid === sid);
         if (-1 !== index) {
@@ -48,7 +48,7 @@ export default class ServerMgrView extends React.PureComponent {
         }
     }
 
-    private _serverStatusChange = (data: MsgData) => {
+    private onStatusChange = (data: MsgData) => {
         const item = this.state.data.find(value => value.sid === data.sid);
         if (!item) {
             return;
@@ -59,48 +59,48 @@ export default class ServerMgrView extends React.PureComponent {
         switch (status) {
             case JarBootConst.MSG_TYPE_START:
                 // 激活终端显示
-                this._activeConsole(key);
+                this.activeConsole(key);
                 Logger.log(`${server}启动中...`);
                 pubsub.publish(key, JarBootConst.START_LOADING);
-                this._clearDisplay(item);
-                this._updateServerStatus(item, JarBootConst.STATUS_STARTING);
+                this.clearDisplay(item);
+                this.updateServerStatus(item, JarBootConst.STATUS_STARTING);
                 break;
             case JarBootConst.MSG_TYPE_STOP:
                 Logger.log(`${server}停止中...`);
                 pubsub.publish(key, JarBootConst.START_LOADING);
-                this._updateServerStatus(item, JarBootConst.STATUS_STOPPING);
+                this.updateServerStatus(item, JarBootConst.STATUS_STOPPING);
                 break;
             case JarBootConst.MSG_TYPE_START_ERROR:
                 Logger.log(`${server}启动失败`);
                 CommonNotice.error(`Start ${server} failed!`);
-                this._updateServerStatus(item, JarBootConst.STATUS_STOPPED);
+                this.updateServerStatus(item, JarBootConst.STATUS_STOPPED);
                 break;
             case JarBootConst.MSG_TYPE_STARTED:
                 Logger.log(`${server}启动成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(item, JarBootConst.STATUS_STARTED)
+                this.updateServerStatus(item, JarBootConst.STATUS_STARTED)
                 break;
             case JarBootConst.MSG_TYPE_STOP_ERROR:
                 Logger.log(`${server}停止失败`);
                 CommonNotice.error(`Stop ${server} failed!`);
-                this._updateServerStatus(item, JarBootConst.STATUS_STARTED);
+                this.updateServerStatus(item, JarBootConst.STATUS_STARTED);
                 break;
             case JarBootConst.MSG_TYPE_STOPPED:
                 Logger.log(`${server}停止成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(item, JarBootConst.STATUS_STOPPED)
+                this.updateServerStatus(item, JarBootConst.STATUS_STOPPED)
                 break;
             case JarBootConst.MSG_TYPE_RESTART:
                 Logger.log(`${server}重启成功`);
                 pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(item, JarBootConst.STATUS_STARTED)
+                this.updateServerStatus(item, JarBootConst.STATUS_STARTED)
                 break;
             default:
                 break;
         }
     };
 
-    private _updateServerStatus(server: ServerRunning, status: string) {
+    private updateServerStatus(server: ServerRunning, status: string) {
         server.status = status;
         this.setState({data: [...this.state.data]});
     }
@@ -193,13 +193,10 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     clearAll = () => {
-        this.setState({
-            filteredInfo: null,
-            sortedInfo: null,
-        });
+        this.setState({filteredInfo: null, sortedInfo: null,});
     };
 
-    private _getTbProps() {
+    private getTbProps() {
         return {
             columns: [
                 {
@@ -232,8 +229,8 @@ export default class ServerMgrView extends React.PureComponent {
             pagination: false,
             rowKey: 'sid',
             size: 'small',
-            rowSelection: this._getRowSelection(),
-            onRow: this._onRow.bind(this),
+            rowSelection: this.getRowSelection(),
+            onRow: this.onRow.bind(this),
             showHeader: true,
             scroll: this.height,
         };
@@ -246,7 +243,7 @@ export default class ServerMgrView extends React.PureComponent {
                 tag = <Tag icon={<CaretRightOutlined/>} color={"success"}>{s}</Tag>
                 break;
             case JarBootConst.STATUS_STOPPED:
-                tag = <Tag icon={<ExclamationCircleOutlined style={{color: '#f50'}}/>} color={"volcano"}>{s}</Tag>
+                tag = <Tag icon={<BorderOutlined style={{color: '#f50', background: '#f50'}}/>} color={"volcano"}>{s}</Tag>
                 break;
             case JarBootConst.STATUS_STARTING:
                 tag = <Tag icon={<SyncOutlined spin/>} color={"processing"}>{s}</Tag>
@@ -261,7 +258,7 @@ export default class ServerMgrView extends React.PureComponent {
         return tag;
     }
 
-    private _getRowSelection() {
+    private getRowSelection() {
         return {
             type: 'checkbox',
             onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
@@ -277,14 +274,10 @@ export default class ServerMgrView extends React.PureComponent {
         };
     }
 
-    private _onRow(record: ServerRunning) {
+    private onRow(record: ServerRunning) {
         return {
             onClick: () => {
-                this.setState({
-                    selectedRowKeys: [record.sid],
-                    selectRows: [record],
-                    current: record.sid,
-                });
+                this.setState({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid});
             },
         };
     }
@@ -316,7 +309,7 @@ export default class ServerMgrView extends React.PureComponent {
         });
     };
 
-    private _finishCallback = (resp: any) => {
+    private finishCallback = (resp: any) => {
         this.setState({loading: false});
         if (0 !== resp.resultCode) {
             CommonNotice.errorFormatted(resp);
@@ -329,13 +322,12 @@ export default class ServerMgrView extends React.PureComponent {
             return;
         }
         this.setState({loading: true});
-        this.state.selectRows.forEach(this._clearDisplay);
-        ServerMgrService.startServer(this.state.selectRows, this._finishCallback);
+        this.state.selectRows.forEach(this.clearDisplay);
+        ServerMgrService.startServer(this.state.selectRows, this.finishCallback);
     };
 
-    private _clearDisplay = (server: ServerRunning) => {
-        const key = server.sid;
-        pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
+    private clearDisplay = (server: ServerRunning) => {
+        pubsub.publish(server.sid, JarBootConst.CLEAR_CONSOLE);
     };
 
     private stopServer = () => {
@@ -346,7 +338,7 @@ export default class ServerMgrView extends React.PureComponent {
 
         this.setState({loading: true});
 
-        ServerMgrService.stopServer(this.state.selectRows, this._finishCallback);
+        ServerMgrService.stopServer(this.state.selectRows, this.finishCallback);
     };
 
     private restartServer = () => {
@@ -355,29 +347,32 @@ export default class ServerMgrView extends React.PureComponent {
             return;
         }
         this.setState({loading: true});
-        this.state.selectRows.forEach(this._clearDisplay);
-        ServerMgrService.restartServer(this.state.selectRows, this._finishCallback);
+        this.state.selectRows.forEach(this.clearDisplay);
+        ServerMgrService.restartServer(this.state.selectRows, this.finishCallback);
     };
 
-    private _getTbBtnProps = () => {
+    private getTbBtnProps = () => {
         return [
             {
                 name: 'Start',
                 key: 'start ',
                 icon: <CaretRightFilled className={styles.toolButtonGreenStyle}/>,
                 onClick: this.startServer,
+                disabled: !this.state.selectRows?.length
             },
             {
                 name: 'Stop',
                 key: 'stop',
                 icon: <PoweroffOutlined className={styles.toolButtonRedStyle}/>,
                 onClick: this.stopServer,
+                disabled: !this.state.selectRows?.length
             },
             {
                 name: 'Restart',
                 key: 'restart',
                 icon: <ReloadOutlined className={styles.toolButtonStyle}/>,
                 onClick: this.restartServer,
+                disabled: !this.state.selectRows?.length
             },
             {
                 name: 'Refresh',
@@ -396,9 +391,15 @@ export default class ServerMgrView extends React.PureComponent {
                 key: 'dashboard',
                 icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
                 onClick: this.dashboardCmd,
+                disabled: this.isCurrentNotRunning()
             }
         ]
     };
+
+    private isCurrentNotRunning = () => {
+        const item = this.state.data.find(value => value.sid === this.state.current);
+        return !(item && JarBootConst.STATUS_STARTED === item.status);
+    }
 
     private uploadFile = () => {
         this.setState({uploadVisible: true});
@@ -414,23 +415,23 @@ export default class ServerMgrView extends React.PureComponent {
 
     private oneClickRestart = () => {
         pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Restarting all...");
-        this._disableOnClickButton();
+        this.disableOnClickButton();
         ServerMgrService.oneClickRestart();
     };
 
     private oneClickStart = () => {
         pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Starting all...");
-        this._disableOnClickButton();
+        this.disableOnClickButton();
         ServerMgrService.oneClickStart();
     };
 
     private oneClickStop = () => {
         pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Stopping all...");
-        this._disableOnClickButton();
+        this.disableOnClickButton();
         ServerMgrService.oneClickStop();
     };
 
-    private _disableOnClickButton() {
+    private disableOnClickButton() {
         if (this.state.oneClickLoading) {
             return;
         }
@@ -448,14 +449,14 @@ export default class ServerMgrView extends React.PureComponent {
     };
 
     render() {
-        let tableOption: any = this._getTbProps();
+        let tableOption: any = this.getTbProps();
         tableOption.scroll = { y: this.height};
         const loading = this.state.loading && 0 === this.state.data.length;
         return (<div>
             <div style={{display: 'flex'}}>
                 <div style={{flex: 'inherit', width: '28%'}}>
                     <CommonTable toolbarGap={5} option={tableOption}
-                                 toolbar={this._getTbBtnProps()} height={this.height}/>
+                                 toolbar={this.getTbBtnProps()} height={this.height}/>
                     <OneClickButtons loading={this.state.oneClickLoading}
                                      oneClickRestart={this.oneClickRestart}
                                      oneClickStart={this.oneClickStart}
@@ -463,6 +464,10 @@ export default class ServerMgrView extends React.PureComponent {
                 </div>
                 <div style={{flex: 'inherit', width: '72%'}}>
                     {loading && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
+                    {<SuperPanel key={PUB_TOPIC.ROOT}
+                                 server={""}
+                                 sid={PUB_TOPIC.ROOT}
+                                 visible={!loading && this.state.current?.length <= 0}/>}
                     {this.state.data.map((value: ServerRunning) => (
                         <SuperPanel key={value.sid}
                                     server={value.name}

@@ -32,7 +32,7 @@ const TabPanes: any = memo((props: any) => {
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
             <ServerMgrView/>
         </TabPane>
-        <TabPane key={'8'} tab={"Online debug"}>
+        <TabPane key={'8'} tab={intl.formatMessage({id: 'ONLINE_DEBUG'})}>
             <OnlineDebugView/>
         </TabPane>
         <TabPane key={'2'} tab={intl.formatMessage({id: 'SERVICES_CONF'})}>

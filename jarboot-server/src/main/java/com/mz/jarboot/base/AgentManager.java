@@ -33,16 +33,15 @@ public class AgentManager {
     private final ConcurrentHashMap<Integer, String> serverPid = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
+
     private AgentManager(){}
+
     public static AgentManager getInstance() {
-        if (null == instance) {
-            synchronized (AgentManager.class) {
-                if (null == instance) {
-                    instance = new AgentManager();
-                }
-            }
-        }
-        return instance;
+        return AgentManagerHolder.instance;
+    }
+
+    private static class AgentManagerHolder {
+        static AgentManager instance = new AgentManager();
     }
 
     public void online(String server, Session session, String sid) {

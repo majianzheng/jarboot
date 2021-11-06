@@ -164,17 +164,12 @@ public class TaskUtils {
         if (CommonConst.INVALID_PID == pid) {
             return;
         }
-        Object vm;
+        Object vm = null;
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return;
-        }
-        try {
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server, sid));
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            WebSocketManager.getInstance().printException(sid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);

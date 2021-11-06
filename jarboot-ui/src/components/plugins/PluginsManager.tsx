@@ -20,7 +20,6 @@ const layout = {
 const PluginsManager = () => {
     const intl = useIntl();
     const [form] = Form.useForm();
-    let [collapsed, setCollapsed] = useState(false);
     let [loading, setLoading] = useState(true);
     let [data, setData] = useState([]);
     let [selected, setSelected] = useState({keys: [] as any[], rows: [] as any[]});
@@ -29,9 +28,6 @@ const PluginsManager = () => {
     useEffect(() => {
         query();
     }, []);
-    const onCollapse = (value: boolean) => {
-        setCollapsed(value);
-    };
     const query = () => {
         setLoading(true);
         PluginsService.getAgentPlugins().then(resp => {
@@ -107,9 +103,6 @@ const PluginsManager = () => {
     }
 
     const _getTbBtnProps = () => {
-        if (collapsed) {
-            return [];
-        }
         return [
             {
                 name: 'Refresh',
@@ -177,7 +170,7 @@ const PluginsManager = () => {
     const url = getUrl();
     return (
         <Layout>
-            <Sider width={300} collapsible collapsed={collapsed} onCollapse={onCollapse}>
+            <Sider width={300}>
                 <CommonTable toolbarGap={5} option={tableOption}
                              toolbar={_getTbBtnProps()} height={height}/>
             </Sider>

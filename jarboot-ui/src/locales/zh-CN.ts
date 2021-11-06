@@ -4,6 +4,7 @@ export default {
 
     //Tab标题
     SERVICES_MGR: '服务管理',
+    ONLINE_DEBUG: '在线调试',
     SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
     PLUGINS: '插件',
@@ -38,6 +39,7 @@ export default {
     SEARCH_BTN: '搜索',
     FILTER_BTN: '过滤',
     REFRESH_BTN: '刷新',
+    DASHBOARD: '仪表盘',
     SERVER_EMPTY: '当前工作空间下未搜索到服务。',
     MODIFY: '修改',
     DELETE: '删除',

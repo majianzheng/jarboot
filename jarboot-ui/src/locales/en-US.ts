@@ -4,6 +4,7 @@ export default {
 
     //Tab标题
     SERVICES_MGR: 'Services',
+    ONLINE_DEBUG: 'Online debug',
     SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
     PLUGINS: 'Plugins',
@@ -38,6 +39,7 @@ export default {
     SEARCH_BTN: 'Search',
     FILTER_BTN: 'Filter',
     REFRESH_BTN: 'Refresh',
+    DASHBOARD: 'Dashboard',
     SERVER_EMPTY: 'Current workspace searched empty.',
     MODIFY: 'Modify',
     DELETE: 'Delete',

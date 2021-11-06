@@ -38,8 +38,8 @@ import java.util.stream.Stream;
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
     private static final long EXPIRED_TIME = 20000;
-    private String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
-    private ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
+    private final String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
+    private final ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     /** 是否启动了心跳监测 */
     private volatile boolean started = false;
 

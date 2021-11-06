@@ -177,12 +177,12 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.init();
         this.updateTimeoutFd = setTimeout(() => {
             this.updateTimeoutFd = null;
-            if (!this.isStartLoading) {
-                this.startLoading()
-            }
             this.eventQueue.forEach(this.handleEvent);
             try {
                 if (this.lines.length) {
+                    if (!this.isStartLoading) {
+                        this.startLoading()
+                    }
                     //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
                     const fragment = document.createDocumentFragment();
                     this.lines.forEach(l => fragment.append(l));
@@ -226,8 +226,7 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (!this.codeDom) {
             return;
         }
-        let count = this.codeDom.children.length;
-        if (count > 0 && this.loading == this.codeDom.children[count - 1]) {
+        if (this.isStartLoading) {
             //如果处于加载中，则保留加载的动画
             this.codeDom.innerHTML = "";
             this.codeDom.append(this.loading);
@@ -370,14 +369,9 @@ class Console extends React.PureComponent<ConsoleProps> {
 
     render() {
         let style = {display: false === this.props.visible ? 'none' : 'block'};
-        return (<>
-                <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
-                    <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>
-                        Jarboot Console
-                    </p>
-                </code>
-            </>
-        );
+        return <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
+            <p className={styles.consoleTitle}>Jarboot Console</p>
+        </code>;
     }
 }
 export default Console;

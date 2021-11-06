@@ -1,7 +1,6 @@
 import CommonTable from "@/components/table";
 import {Result, Tooltip} from "antd";
-import {LoadingOutlined, BugOutlined, SyncOutlined, DashboardOutlined} from "@ant-design/icons";
-import {formatMsg} from "@/common/IntlFormat";
+import {LoadingOutlined, BugFilled, SyncOutlined, DashboardOutlined} from "@ant-design/icons";
 import ServerMgrService, {JvmProcess} from "@/services/ServerMgrService";
 import {SuperPanel} from "@/components/servers/SuperPanel";
 import * as React from "react";
@@ -10,75 +9,95 @@ import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import {MsgData} from "@/common/WsManager";
+import {useEffect, useReducer} from "react";
+import {useIntl} from "umi";
 
-export default class OnlineDebugView extends React.PureComponent {
-    state = {loading: false, data: [] as JvmProcess[],
-        selectedRowKeys: [] as number[], searchText: '', searchedColumn: '', filteredInfo: null as any,
-        selectRows: [] as JvmProcess[]};
-    height = window.innerHeight - 120;
-    componentDidMount() {
-        this.refreshProcessList(true);
-        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshProcessList);
-        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this.onStatusChange);
-    }
+interface OnlineDebugState {
+    loading: boolean;
+    data: JvmProcess[];
+    selectedRowKeys: number[];
+    selectRows: JvmProcess[];
+}
 
-    componentWillUnmount() {
-        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, this.refreshProcessList);
-        pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, this.onStatusChange);
-    }
+const OnlineDebugView = () => {
+    const intl = useIntl();
+    const initArg = {loading: true, data: [], selectedRowKeys: [], selectRows: []} as OnlineDebugState;
+    const [state, dispatch] = useReducer((state: OnlineDebugState, action: any) => {
+        if ('function' === typeof action) {
+            return {...state, ...action(state)};
+        }
+        return {...state, ...action};
+    }, initArg, arg => ({...arg}));
 
-    private refreshProcessList = (init: boolean = false) => {
-        this.setState({loading: true});
+    const height = window.innerHeight - 120;
+    useEffect(() => {
+        refreshProcessList(true);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshProcessList);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+        return () => {
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshProcessList);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+        }
+    }, []);
+
+    const refreshProcessList = (init: boolean = false) => {
+        dispatch({loading: true});
         ServerMgrService.getJvmProcesses((resp: any) => {
-            this.setState({loading: false});
             if (resp.resultCode < 0) {
+                dispatch({loading: false});
                 CommonNotice.errorFormatted(resp);
                 return;
             }
             const data = resp.result as JvmProcess[];
-            if (this.state.selectedRowKeys?.length) {
-                const pid = this.state.selectedRowKeys[0];
-                if (-1 === data.findIndex(item => pid === item.pid)) {
-                    init = true;
+            dispatch((s: OnlineDebugState) => {
+                if (s.selectedRowKeys?.length) {
+                    const pid = s.selectedRowKeys[0];
+                    if (-1 === data.findIndex(item => pid === item.pid)) {
+                        init = true;
+                    }
                 }
-            }
-            if (init) {
-                //初始化选中第一个
-                let selectedRowKeys = [] as number[];
-                let selectRows: any = [];
-                if (data.length > 0) {
-                    const first: JvmProcess = data[0];
-                    selectedRowKeys = [first.pid];
-                    selectRows = [first];
+                if (init) {
+                    //初始化选中第一个
+                    let selectedRowKeys = [] as number[];
+                    let selectRows = [] as JvmProcess[];
+                    if (data.length > 0) {
+                        const first: JvmProcess = data[0];
+                        selectedRowKeys = [first.pid];
+                        selectRows = [first];
+                    }
+                    return {loading: false, data, selectedRowKeys, selectRows};
                 }
-                this.setState({data, selectedRowKeys, selectRows});
-                return;
-            }
-            this.setState({data});
+                return {loading: false, data};
+            });
         });
     };
 
-    private onStatusChange = (data: MsgData) => {
-        const process = this.state.data.find(item => data.sid === `${item.pid}`);
-        if (!process) {
-            return;
-        }
-        const status = data.body;
-        switch (status) {
-            case JarBootConst.MSG_TYPE_ONLINE:
-                process.attached = true;
-                break;
-            case JarBootConst.MSG_TYPE_OFFLINE:
-                process.attached = false;
-                break;
-            default:
+    const onStatusChange = (msg: MsgData) => {
+        dispatch((s: OnlineDebugState) => {
+            const data = s.data;
+            const process = data.find(item => msg.sid === `${item.pid}`);
+            if (!process) {
                 return;
-        }
-        this.setState({data: [...this.state.data]});
-        pubsub.publish(data.sid, JarBootConst.FINISH_LOADING);
+            }
+            console.info(process);
+            const status = msg.body;
+            switch (status) {
+                case JarBootConst.MSG_TYPE_ONLINE:
+                    process.attached = true;
+                    break;
+                case JarBootConst.MSG_TYPE_OFFLINE:
+                    process.attached = false;
+                    refreshProcessList();
+                    break;
+                default:
+                    return;
+            }
+            return {data};
+        });
+        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
     };
 
-    private _getTbProps() {
+    const getTbProps = () => {
         return {
             columns: [
                 {
@@ -92,7 +111,7 @@ export default class OnlineDebugView extends React.PureComponent {
                     render: (value: number)=> <span style={{fontSize: '10px'}}>{value}</span>
                 },
                 {
-                    title: formatMsg('NAME'),
+                    title: intl.formatMessage({id: 'NAME'}),
                     dataIndex: 'name',
                     key: 'name',
                     ellipsis: true,
@@ -100,53 +119,50 @@ export default class OnlineDebugView extends React.PureComponent {
                     sortDirections: ['descend', 'ascend'],
                 },
             ],
-            loading: this.state.loading,
-            dataSource: this.state.data,
+            loading: state.loading,
+            dataSource: state.data,
             pagination: false,
             rowKey: 'pid',
             size: 'small',
-            rowSelection: this._getRowSelection(),
-            onRow: this._onRow.bind(this),
+            rowSelection: getRowSelection(),
+            onRow: onRow,
             showHeader: true,
-            scroll: this.height,
+            scroll: height,
         };
-    }
+    };
 
-    private _getRowSelection() {
+    const getRowSelection = () => {
         return {
             columnWidth: '60px',
             columnTitle: '',
             ellipsis: true,
             type: 'radio',
-            onChange: (selectedRowKeys: string[], selectedRows: JvmProcess[]) => {
-                this.setState({selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
+            onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) => {
+                dispatch({selectedRowKeys, selectRows});
             },
-            selectedRowKeys: this.state.selectedRowKeys,
-            renderCell: this._renderRowSelection
+            selectedRowKeys: state.selectedRowKeys,
+            renderCell: renderRowSelection
         };
-    }
+    };
 
-    private _renderRowSelection = (row: any, record: JvmProcess) => {
+    const renderRowSelection = (row: any, record: JvmProcess) => {
         const style = {fontSize: '16px', color: record.attached ? 'green' : 'grey'};
         return <Tooltip title={record.attached ? 'Attached' : 'Not attached'}
                         color={record.attached ? '#87d068' : '#2db7f5'}>
-            <BugOutlined style={style}/>
+            <BugFilled style={style}/>
         </Tooltip>;
-    }
+    };
 
-    private _onRow(record: JvmProcess) {
+    const onRow = (record: JvmProcess) => {
         return {
             onClick: () => {
-                this.setState({
-                    selectedRowKeys: [record.pid],
-                    selectRows: [record],
-                });
+                dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
             },
         };
-    }
+    };
 
-    private attach = () => {
-        const process = this.state.selectRows[0];
+    const attach = () => {
+        const process = state.selectRows[0];
         if (!process) {
             notSelectInfo();
         }
@@ -164,60 +180,59 @@ export default class OnlineDebugView extends React.PureComponent {
         }).catch(CommonNotice.errorFormatted);
     };
 
-    private dashboardCmd = () => {
-        if (this.state.selectRows?.length < 1) {
+    const dashboardCmd = () => {
+        if (state.selectRows?.length < 1) {
             notSelectInfo();
             return;
         }
-        const process = this.state.selectRows[0];
+        const process = state.selectRows[0];
         pubsub.publish(process.pid + '', PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
-    private _getTbBtnProps = () => {
+    const getTbBtnProps = () => {
         return [
             {
                 name: 'Attach',
                 key: 'attach ',
-                icon: <BugOutlined className={styles.toolButtonGreenStyle}/>,
-                onClick: this.attach,
-                disabled: !this.state.selectRows?.length || this.state.selectRows[0].attached
+                icon: <BugFilled className={styles.toolButtonGreenStyle}/>,
+                onClick: attach,
+                disabled: !state.selectRows?.length || state.selectRows[0].attached
             },
             {
-                name: 'Refresh',
+                name: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
                 icon: <SyncOutlined className={styles.toolButtonStyle}/>,
-                onClick: () => this.refreshProcessList(),
+                onClick: () => refreshProcessList(),
             },
             {
-                name: 'Dashboard',
+                name: intl.formatMessage({id: 'DASHBOARD'}),
                 key: 'dashboard',
                 icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
-                onClick: this.dashboardCmd,
-                disabled: this.state.selectRows?.length && !this.state.selectRows[0].attached
+                onClick: dashboardCmd,
+                disabled: state.selectRows?.length && !state.selectRows[0].attached
             }
         ]
     };
 
-    render() {
-        let tableOption: any = this._getTbProps();
-        tableOption.scroll = { y: this.height};
-        const loading = this.state.loading && 0 === this.state.data.length;
-        return <div style={{display: 'flex'}}>
-            <div style={{flex: 'inherit', width: '28%'}}>
-                <CommonTable toolbarGap={5} option={tableOption} toolbar={this._getTbBtnProps()}
-                             showToolbarName={true}
-                             height={this.height}/>
-            </div>
-            <div style={{flex: 'inherit', width: '72%'}}>
-                {loading && <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
-                {this.state.data.map((value: JvmProcess) => (
-                    <SuperPanel key={value.pid}
-                                server={value.name}
-                                sid={value.pid + ''}
-                                visible={this.state.selectedRowKeys[0] === value.pid}/>
-                ))}
-            </div>
-        </div>;
-    }
+    let tableOption: any = getTbProps();
+    tableOption.scroll = {y: height};
+    const showLoading = state.loading && 0 === state.data.length;
+    return <div style={{display: 'flex'}}>
+        <div style={{flex: 'inherit', width: '28%'}}>
+            <CommonTable toolbarGap={5} option={tableOption} toolbar={getTbBtnProps()}
+                         showToolbarName={true}
+                         height={height}/>
+        </div>
+        <div style={{flex: 'inherit', width: '72%'}}>
+            {showLoading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
+            {state.data.map((value: JvmProcess) => (
+                <SuperPanel key={value.pid}
+                            server={value.name}
+                            sid={value.pid + ''}
+                            visible={state.selectedRowKeys[0] === value.pid}/>
+            ))}
+        </div>
+    </div>;
 };
 
+export default OnlineDebugView;
