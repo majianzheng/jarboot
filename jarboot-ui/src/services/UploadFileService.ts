@@ -13,8 +13,8 @@ export default class UploadFileService {
      * Begin upload files
      * @param server
      */
-    public static beginUploadServerFile(server: string) {
-        return Request.get(`${baseUrl}/beginUploadServerFile`, {server});
+    public static startUploadFile(server: string) {
+        return Request.get(`${baseUrl}/start`, {server});
     }
 
     /**
@@ -22,17 +22,17 @@ export default class UploadFileService {
      * @param server
      * @returns {Promise<any>}
      */
-    public static uploadServerHeartbeat(server: string) {
-        return Request.get(`${baseUrl}/uploadServerHeartbeat`, {server});
+    public static uploadHeartbeat(server: string) {
+        return Request.get(`${baseUrl}/heartbeat`, {server});
     }
 
     /**
      * Submit upload files
-     * @param server
+     * @param settings 配置
      * @returns {Promise<any>}
      */
-    public static submitUploadFileInCache(server: string) {
-        return Request.post(`${baseUrl}/submitUploadFileInCache?server=${server}`, {});
+    public static submitUploadFile(settings: any) {
+        return Request.post(`${baseUrl}/file`, settings);
     }
 
     /**
@@ -41,8 +41,8 @@ export default class UploadFileService {
      * @param file
      * @returns {Promise<any>}
      */
-    public static deleteFileInUploadCache(server: string, file: string) {
-        return Request.delete(`${baseUrl}/deleteFileInUploadCache?server=${server}&file=${file}`, {});
+    public static deleteCacheFile(server: string, file: string) {
+        return Request.delete(`${baseUrl}/file?server=${server}&file=${file}`, {});
     }
 
     /**
@@ -50,7 +50,7 @@ export default class UploadFileService {
      * @param server
      */
     public static clearUploadFileInCache(server: string) {
-        Request.delete(`${baseUrl}/clearUploadFileInCache?server=${server}`, {})
+        Request.delete(`${baseUrl}?server=${server}`, {})
             .then(requestFinishCallback)
             .catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     }

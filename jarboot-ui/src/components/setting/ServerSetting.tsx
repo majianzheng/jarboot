@@ -44,12 +44,12 @@ const ServerSetting = memo(() => {
     };
 
     const init = () => {
-        pubsub.submit('', PUB_TOPIC.RECONNECTED, fresh);
-        pubsub.submit('', PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
         query();
         return () => {
-            pubsub.unSubmit('', PUB_TOPIC.RECONNECTED, fresh);
-            pubsub.unSubmit('', PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
         }
     };
 
@@ -60,7 +60,7 @@ const ServerSetting = memo(() => {
     };
 
     const emptyIcon = loading ? <LoadingOutlined/> : <Empty/>;
-    const menuTitle = <Input.Search placeholder="input name to search" onSearch={query} allowClear enterButton/>;
+    const menuTitle = <Input.Search placeholder="Input name to search" onSearch={query} allowClear enterButton/>;
     return <Row>
         <Col span={6} className={styles.pageContainer}>
             <Menu

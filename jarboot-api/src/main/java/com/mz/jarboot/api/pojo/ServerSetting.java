@@ -11,7 +11,7 @@ public class ServerSetting implements Serializable {
     /**
      * 服务名，即jar文件的上级目录的名称
      */
-    private transient String server;
+    private String server;
 
     /**
      * sid，服务唯一标识，通过path计算得出

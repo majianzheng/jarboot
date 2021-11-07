@@ -8,7 +8,7 @@ import {JarBootConst} from "@/common/JarBootConst";
 import {UserOutlined, LockOutlined} from "@ant-design/icons";
 import styles from "./index.less";
 
-const LoginForm: any = memo(() => {
+const LoginForm = memo(() => {
     const intl = useIntl();
     useEffect(() => {
         OAuthService.getCurrentUser().then((resp: any) => {

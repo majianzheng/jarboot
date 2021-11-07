@@ -1,7 +1,6 @@
 import {Form, Select, Layout, Modal, Upload, Button} from 'antd';
 import {useEffect, useState} from "react";
 import CommonTable from "@/components/table";
-import {formatMsg} from "@/common/IntlFormat";
 import {DeleteOutlined, SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
 import PluginsService from "@/services/PluginsService";
 import CommonNotice from "@/common/CommonNotice";
@@ -76,13 +75,13 @@ const PluginsManager = () => {
         return {
             columns: [
                 {
-                    title: formatMsg('NAME'),
+                    title: intl.formatMessage({id: 'NAME'}),
                     dataIndex: 'name',
                     key: 'name',
                     ellipsis: true,
                 },
                 {
-                    title: formatMsg('TYPE'),
+                    title: intl.formatMessage({id: 'TYPE'}),
                     dataIndex: 'type',
                     key: 'type',
                     ellipsis: true,

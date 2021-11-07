@@ -4,7 +4,7 @@ import {useIntl} from "umi";
 
 const { Title, Paragraph, Text } = Typography;
 
-const SettingDoc: any = memo(() => {
+const SettingDoc = memo(() => {
     const intl = useIntl();
     return <>
         <Typography>
@@ -30,7 +30,7 @@ const SettingDoc: any = memo(() => {
                 <Title level={2}>{intl.formatMessage({id: 'SERVICES_CONF'})}</Title>
                 <ul>
                     <li>
-                        <Text keyboard>{intl.formatMessage({id: 'JAR_LABEL'})}</Text>
+                        <Text keyboard>{intl.formatMessage({id: 'COMMAND_LABEL'})}</Text>
                         {intl.formatMessage({id: 'SETTING_P6'})}
                     </li>
                     <li>

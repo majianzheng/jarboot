@@ -11,9 +11,7 @@ const layout = {
     labelCol: {span: 8},
     wrapperCol: {span: 16},
 };
-const tailLayout = {
-    wrapperCol: {offset: 12, span: 12},
-};
+const tailLayout = {wrapperCol: {offset: 12, span: 12}};
 
 interface ServerConfigProp {
     path: string;
@@ -93,8 +91,7 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
                        label={intl.formatMessage({id: 'COMMAND_LABEL'})}
                        rules={[{required: false}]}>
                 <Input.TextArea rows={2}
-                                placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +
-                                "3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName"}
+                                placeholder={intl.formatMessage({id: 'COMMAND_EXAMPLE'})}
                                 autoComplete="off"/>
             </Form.Item>
             <Form.Item name="vm"

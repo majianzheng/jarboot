@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * @author majianzheng
  */
-public class UserDirUtils {
+public class UserDirHelper {
     private static final String USER_DIR_KEY = "user.dir";
     public static String getCurrentDir() {
         String userDir = System.getProperty(USER_DIR_KEY);
@@ -21,5 +21,5 @@ public class UserDirUtils {
         System.setProperty(USER_DIR_KEY, path);
     }
 
-    private UserDirUtils() {}
+    private UserDirHelper() {}
 }

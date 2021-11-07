@@ -14,6 +14,6 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 public class PwdCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
-        return UserDirUtils.getCurrentDir();
+        return UserDirHelper.getCurrentDir();
     }
 }

@@ -2,7 +2,6 @@ import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
-import {formatMsg} from "@/common/IntlFormat";
 import {DeleteOutlined, SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import CommonNotice from "@/common/CommonNotice";
 import RoleService from "@/services/RoleService";
@@ -58,13 +57,13 @@ const RoleMgr = memo(() => {
     let tableOption: any = {
         columns: [
             {
-                title: formatMsg('ROLE'),
+                title: intl.formatMessage({id: 'ROLE'}),
                 dataIndex: 'role',
                 key: 'role',
                 ellipsis: true,
             },
             {
-                title: formatMsg('NAME'),
+                title: intl.formatMessage({id: 'NAME'}),
                 dataIndex: 'username',
                 key: 'username',
                 ellipsis: true,

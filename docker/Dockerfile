@@ -2,7 +2,7 @@ FROM openjdk:17-jdk-alpine
 
 EXPOSE 9899
 
-ENV JARBOOT_VERSION 1.1.0
+ENV JARBOOT_VERSION 1.1.1
 
 COPY jarboot /jarboot
 

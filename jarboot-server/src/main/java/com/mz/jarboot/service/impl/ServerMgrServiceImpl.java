@@ -1,11 +1,13 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.event.NoticeEnum;
+import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.api.service.ServerMgrService;
@@ -13,6 +15,7 @@ import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -254,6 +258,25 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
             }
+        }
+    }
+
+    @Override
+    public void deleteServer(String server) {
+        String path = SettingUtils.getServerPath(server);
+        String sid = SettingUtils.createSid(path);
+        if (this.taskRunCache.isStartingOrStopping(sid)) {
+            throw new JarbootRunException(server + "在停止中或启动中，不可删除！");
+        }
+        if (AgentManager.getInstance().isOnline(sid)) {
+            throw new JarbootRunException(server + "正在运行，不可删除！");
+        }
+        try {
+            FileUtils.deleteDirectory(FileUtils.getFile(path));
+            WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                    StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+        } catch (IOException e) {
+            throw new JarbootRunException(e.getMessage(), e);
         }
     }
 

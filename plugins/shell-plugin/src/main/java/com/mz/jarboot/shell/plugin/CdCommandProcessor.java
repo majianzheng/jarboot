@@ -30,12 +30,12 @@ public class CdCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
         Path p = Paths.get(this.path);
-        File dir = p.isAbsolute() ? p.toFile() : new File(UserDirUtils.getCurrentDir(), this.path);
+        File dir = p.isAbsolute() ? p.toFile() : new File(UserDirHelper.getCurrentDir(), this.path);
         if (!dir.isDirectory() || !dir.exists()) {
             return this.path + " is not a directory.";
         }
         try {
-            UserDirUtils.setCurrentDir(dir.getCanonicalPath());
+            UserDirHelper.setCurrentDir(dir.getCanonicalPath());
         } catch (IOException e) {
             session.end(false, e.getMessage());
         }

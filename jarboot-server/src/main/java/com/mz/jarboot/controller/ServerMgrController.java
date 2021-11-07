@@ -185,4 +185,15 @@ public class ServerMgrController {
         serverMgrService.attach(Integer.parseInt(pid), name);
         return new ResponseSimple();
     }
+
+    /**
+     * 删除服务
+     * @return 执行结果
+     */
+    @GetMapping(value="/deleteServer")
+    @ResponseBody
+    public ResponseSimple deleteServer(String server) {
+        serverMgrService.deleteServer(server);
+        return new ResponseSimple();
+    }
 }

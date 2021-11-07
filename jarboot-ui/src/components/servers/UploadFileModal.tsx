@@ -1,6 +1,6 @@
-import {memo, useState} from "react";
-import { Modal, Upload, Form, Input, Result } from 'antd';
-import { InboxOutlined, LoadingOutlined } from '@ant-design/icons';
+import {memo, useEffect, useReducer, useRef} from "react";
+import { Modal, Upload, Form, Input, Result, Alert } from 'antd';
+import {InboxOutlined, LoadingOutlined, BulbOutlined} from '@ant-design/icons';
 import CommonNotice from "@/common/CommonNotice";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
@@ -10,7 +10,8 @@ import CommonUtils from "@/common/CommonUtils";
 
 interface UploadFileModalProp {
     server?: string;
-    onClose: () => void;
+    onOk: () => void;
+    onCancel: () => void;
 }
 enum UploadFileStage {
     SERVER_CONFIRM,
@@ -21,14 +22,28 @@ enum UploadFileStage {
 }
 
 const UploadFileModal = memo((props: UploadFileModalProp) => {
+    const inputRef = useRef<any>();
     //阶段，1：确定服务的名称；2：开始选择并上传文件；3：提交或清理
-    const [stage, setStage] = useState(UploadFileStage.SERVER_CONFIRM);
-    const [name, setName] = useState('');
-    const [fileList, setFileList] = useState(new Array<any>());
+    const initArg = {stage: UploadFileStage.SERVER_CONFIRM, name: '', fileList: [] as any[], exist: true};
+    const [state, dispatch] = useReducer((state: any, action: any) => {
+        if ('function' === typeof action) {
+            return {...state, ...action(state)};
+        }
+        return {...state, ...action};
+    }, initArg, arg => ({...arg}));
     const [form] = Form.useForm();
     const intl = useIntl();
+
+    useEffect(() => {
+        inputRef?.current?.focus();
+        const value = inputRef?.current?.state?.value;
+        if (value && value?.length > 0) {
+            inputRef.current.setSelectionRange(0, value.length);
+        }
+    }, []);
+
     const onOk = () => {
-        switch (stage) {
+        switch (state.stage) {
             case UploadFileStage.SERVER_CONFIRM:
                 onConfirm();
                 break;
@@ -37,7 +52,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 break;
             case UploadFileStage.SUBMIT:
             case UploadFileStage.FAILED:
-                props.onClose && props.onClose();
+                props.onOk && props.onOk();
                 break;
             default:
                 break;
@@ -49,10 +64,9 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'}));
             return;
         }
-        UploadFileService.beginUploadServerFile(server).then(resp => {
+        UploadFileService.startUploadFile(server).then(resp => {
             if (resp.resultCode === 0) {
-                setName(server);
-                setStage(UploadFileStage.UPLOAD);
+                dispatch({name: server, stage: UploadFileStage.UPLOAD, exist: resp.result});
                 UploadHeartbeat.getInstance().start(server);
             } else {
                 CommonNotice.errorFormatted(resp);
@@ -61,33 +75,33 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     };
 
     const onUpload = () => {
-        const list = fileList.filter(value => 'done' === value.status);
-        if (list.length <= 0) {
+        const list = state.fileList.filter((value: any) => 'done' === value.status);
+        if (list.length <= 0 && state.exist) {
             CommonNotice.info(intl.formatMessage({id: 'UPLOAD_FILE_EMPTY'}));
             return;
         }
         UploadHeartbeat.getInstance().stop();
-        setStage(UploadFileStage.SUBMITTING);
-        UploadFileService.submitUploadFileInCache(name)
+        dispatch({stage: UploadFileStage.SUBMITTING});
+        UploadFileService.submitUploadFile(form.getFieldsValue())
             .then(resp => {
                 if (resp.resultCode === 0) {
-                    setStage(UploadFileStage.SUBMIT);
+                    dispatch({stage: UploadFileStage.SUBMIT});
                 } else {
-                    setStage(UploadFileStage.FAILED);
+                    dispatch({stage: UploadFileStage.FAILED});
                     CommonNotice.errorFormatted(resp);
                 }
             }).catch(error => {
-                setStage(UploadFileStage.FAILED);
+                dispatch({stage: UploadFileStage.FAILED});
                 CommonNotice.errorFormatted(error);
             });
     };
 
     const onCancel = () => {
         UploadHeartbeat.getInstance().stop();
-        if (StringUtil.isNotEmpty(name)) {
-            UploadFileService.clearUploadFileInCache(name);
+        if (StringUtil.isNotEmpty(state.name)) {
+            UploadFileService.clearUploadFileInCache(state.name);
         }
-        props.onClose && props.onClose();
+        props.onCancel && props.onCancel();
     };
 
     const checkFile = (file: any, show: boolean = true) => {
@@ -96,7 +110,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             show && CommonNotice.error(intl.formatMessage({id: 'FILE_SIZE_OVER_TIPS'}, {size: '500MB'}));
             return false;
         }
-        const notUploaded = -1 === fileList.findIndex((value: any) => value.name === file.name);
+        const notUploaded = -1 === state.fileList.findIndex((value: any) => value.name === file.name);
         if (!notUploaded) {
             show && CommonNotice.error(intl.formatMessage({id: 'SUCCESS'}));
             return false;
@@ -107,12 +121,10 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
     const uploadProps = {
         name: 'file',
         multiple: true,
-        action: `/api/jarboot/upload/upload`,
+        action: `/api/jarboot/upload`,
         headers: {Authorization: CommonUtils.getToken()},
-        fileList: fileList,
-        data: () => {
-            return {server: form.getFieldValue("server")}
-        },
+        fileList: state.fileList,
+        data: () => ({server: form.getFieldValue("server")}),
         beforeUpload(file: any) {
             return checkFile(file) ? Promise.resolve(file) : Promise.reject();
         },
@@ -122,17 +134,17 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 console.log(info.file, info.fileList);
             }
             if ('done' === status || 'removed' === status) {
-                setFileList(info.fileList);
+                dispatch({fileList: info.fileList});
             } else if (status === 'error') {
                 CommonNotice.error(`${info.file.name} file upload failed.`);
             } else {
                 if (checkFile(info.file, false)) {
-                    setFileList(info.fileList);
+                    dispatch({fileList: info.fileList});
                 }
             }
         },
         onRemove(file: any) {
-            UploadFileService.deleteFileInUploadCache(form.getFieldValue("server")
+            UploadFileService.deleteCacheFile(form.getFieldValue("server")
                 , file.name)
                 .then(resp => {
                     if (resp.resultCode !== 0) {
@@ -141,14 +153,11 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 }).catch(CommonNotice.errorFormatted);
         },
     };
-    const layout = {
-        labelCol: { span: 4 },
-        wrapperCol: { span: 20 },
-    };
+    const layout = {labelCol: { span: 4 }, wrapperCol: { span: 20 }};
 
     const getStageTitle = () => {
         let title = '';
-        switch (stage) {
+        switch (state.stage) {
             case UploadFileStage.SERVER_CONFIRM:
                 title = intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'});
                 break;
@@ -156,7 +165,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             case UploadFileStage.SUBMITTING:
             case UploadFileStage.SUBMIT:
             case UploadFileStage.FAILED:
-                title = intl.formatMessage({id: 'UPLOAD_STAGE_TITLE'}, {server: name});
+                title = intl.formatMessage({id: 'UPLOAD_STAGE_TITLE'}, {server: state.name});
                 break;
             default:
                 break;
@@ -164,50 +173,73 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         return title;
     };
 
+    let okText = "";
+    switch (state.stage) {
+        case UploadFileStage.SERVER_CONFIRM:
+            okText = intl.formatMessage({id: 'NEXT_BTN'});
+            break;
+        case UploadFileStage.SUBMIT:
+        case UploadFileStage.FAILED:
+            okText = intl.formatMessage({id: 'CLOSE'});
+            break;
+        default:
+            okText = intl.formatMessage({id: 'SUBMIT_BTN'});
+            break;
+    }
+    const hidden = UploadFileStage.UPLOAD !== state.stage || state.exist;
+
     return <Modal title={getStageTitle()}
                   visible={true} maskClosable={false}
-                  destroyOnClose={true}
+                  destroyOnClose={true} width={800}
+                  okText={okText}
                   onOk={onOk} onCancel={onCancel}>
-        {UploadFileStage.SERVER_CONFIRM === stage && <Form
-            {...layout}
-            form={form}
-            initialValues={{server: props.server}}
-        >
+        <Form {...layout}
+              form={form}
+              initialValues={{server: props.server}}>
             <Form.Item label={intl.formatMessage({id: 'NAME'})} name={"server"}>
                 <Input autoComplete="off"
+                       ref={inputRef}
                        autoCorrect="off"
                        autoCapitalize="off"
                        spellCheck="false"
-                       placeholder="input update or new server name" />
+                       readOnly={UploadFileStage.SERVER_CONFIRM !== state.stage}
+                       placeholder="server name" />
             </Form.Item>
-        </Form>}
-        {UploadFileStage.UPLOAD === stage && <Upload.Dragger {...uploadProps}>
-            <p className="ant-upload-drag-icon">
-                <InboxOutlined/>
-            </p>
+            <Form.Item name="command"
+                       hidden={hidden}
+                       label={intl.formatMessage({id: 'COMMAND_LABEL'})}
+                       rules={[{required: false}]}>
+                <Input.TextArea rows={2}
+                                placeholder={intl.formatMessage({id: 'COMMAND_EXAMPLE'})}
+                                autoComplete="off"/>
+            </Form.Item>
+            <Form.Item name="args"
+                       label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
+                       hidden={hidden}
+                       rules={[{required: false}]}>
+                <Input autoComplete="off"
+                       placeholder={"Main arguments"}
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
+            </Form.Item>
+            {!hidden && <Alert icon={<BulbOutlined/>}
+                               showIcon
+                               message={intl.formatMessage({id: 'MORE_SETTING_INFO'})} type="warning"/>}
+        </Form>
+        {UploadFileStage.UPLOAD === state.stage && <Upload.Dragger {...uploadProps}>
+            <p className="ant-upload-drag-icon"><InboxOutlined/></p>
             <p className="ant-upload-text">{intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'})}</p>
-            <p className="ant-upload-hint">
-                Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-                band files
-            </p>
+            <p className="ant-upload-hint">{intl.formatMessage({id: 'UPLOAD_HINT'})}</p>
         </Upload.Dragger>}
-        {UploadFileStage.SUBMITTING === stage && <div>
-            <Result
-                icon={<LoadingOutlined />}
-                title="Submitting..."
-            />
+        {UploadFileStage.SUBMITTING === state.stage && <div>
+            <Result icon={<LoadingOutlined />} title={intl.formatMessage({id: 'SUBMITTING'})}/>
         </div>}
-        {UploadFileStage.SUBMIT === stage && <div>
-            <Result
-                status="success"
-                title="Successfully Update Server!"
-            />
+        {UploadFileStage.SUBMIT === state.stage && <div>
+            <Result status="success" title={intl.formatMessage({id: 'UPLOAD_SUCCESS'})}/>
         </div>}
-        {UploadFileStage.FAILED === stage && <div>
-            <Result
-                status="error"
-                title="Error Update Server!"
-            />
+        {UploadFileStage.FAILED === state.stage && <div>
+            <Result status="error" title={intl.formatMessage({id: 'UPLOAD_ERROR'})}/>
         </div>}
     </Modal>
 });

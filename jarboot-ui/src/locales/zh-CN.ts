@@ -26,6 +26,11 @@ export default {
     UPLOAD_TIPS: '点击或拖拽文件到此区域上传',
     FILE_SIZE_OVER_TIPS: '文件大小必须小于{size}',
     COMMAND_PLACEHOLDER: '输入命令，示例：help',
+    MORE_SETTING_INFO: '更多的配置信息，请到服务配置页面。',
+    UPLOAD_ERROR: '更新服务失败！',
+    UPLOAD_SUCCESS: '成功更新服务！',
+    UPLOAD_HINT: '支持单个或批量上传。',
+    DELETE_INFO: '该操作将会彻底删除服务的相关信息，是否继续？',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',
@@ -39,6 +44,7 @@ export default {
     SEARCH_BTN: '搜索',
     FILTER_BTN: '过滤',
     REFRESH_BTN: '刷新',
+    NEXT_BTN: '下一步',
     DASHBOARD: '仪表盘',
     SERVER_EMPTY: '当前工作空间下未搜索到服务。',
     MODIFY: '修改',
@@ -46,12 +52,12 @@ export default {
     CREATE: '新增',
     SUCCESS: '成功！',
     LOADING: '加载中...',
+    SUBMITTING: '提交中...',
+    WARN: '警告',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
-    RUNNABLE_LABEL: '是否可执行的JAR文件',
     COMMAND_LABEL: '启动命令',
-    JAR_LABEL: '用于启动的jar文件',
     VM_OPT_LABEL: 'VM参数',
     MAIN_ARGS_LABEL: '程序传入参数',
     WORK_HOME_LABEL: '工作目录',
@@ -59,6 +65,7 @@ export default {
     PRIORITY_LABEL: '启动优先级',
     DAEMON_LABEL: '进程守护',
     JAR_UPDATE_WATCH_LABEL: '文件路径监控',
+    COMMAND_EXAMPLE: "示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName",
 
     //插件
     PLUGIN_UPLOAD_TITLE: '上传插件',
@@ -102,16 +109,14 @@ export default {
     COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
 
     //帮助
-    BASIC: '基础',
+    BASIC: '帮助',
     QUICK_START: '快速开始',
-    ADVANCED: '进阶',
-    COMMAND_LIST: '命令列表',
-    PROP_FILE: '配置文件',
+    ABOUT_TEXT: 'Jarboot 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断运行的的Java进程。',
     //快速开始
     QUICK_START_P1: `项目主页：{github}或者Gitee镜像仓库`,
     QUICK_START_P2: `当你进入到这个界面时，说明你已经搭建并启动好了Jarboot，接下来你要做的是将你自己开发的jar文件放入到约定到目录下。在未做任何配置的默认情况下，在jarboot的目录下创建一个名为{dir}文件夹，作为服务的根目录。在此根目录下，创建的子文件夹的名称即为服务的名称，在子文件下放入要启动的jar文件。`,
     QUICK_START_P3: `默认的目录结构：`,
-    QUICK_START_P4: `可以通过{key1}界面中的{key2}修改默认的目录。如果有多个jar文件，则需要在{key3}界面中的{key4}设定Main Class所在的jar文件名称。`,
+    QUICK_START_P4: `可以通过{key1}界面中的{key2}修改默认的目录。可以在{key3}界面中的{key4}设定启动命令。`,
     QUICK_START_P5: `到{key}界面启动服务。`,
     QUICK_START_P6: `点击对应的按钮即可一键完成所有服务的启动与停止。`,
     QUICK_START_P7: `也可以选择一个或若干个服务后，点击对应的按钮启动与停止选择的服务。`,
@@ -120,17 +125,11 @@ export default {
     SETTING_P1: `通用配置`,
     SETTING_P2: `：服务默认根目录设置，可以更改默认的服务根目录位置，默认情况下为jarboot下的services目录。`,
     SETTING_P3: `：当服务没有设定JVM的启动参数时，会使用该默认的全局配置。`,
-    SETTING_P4: `：jarboot-server启动后是否自动启动其所管理当服务。`,
-    SETTING_P5: `：隐藏功能，可以在界面上通过第三方的Arthas对目标服务进行调试，地址为：`,
-    SETTING_P6: `：当服务目录下有多个jar文件时需要指定使用哪一个jar文件启动，即Main Class所在的jar文件的名字。`,
+    SETTING_P4: `：jarboot-server启动后是否自动启动其所管理的服务。`,
+    SETTING_P6: `：配置Java进程的启动命令。`,
     SETTING_P7: `：指定服务启动时的JVM参数，比如内存大小、垃圾收集器等。`,
     SETTING_P8: `：启动的参数，即传给Main入口函数的参数。`,
     SETTING_P9: `：启动的优先级，值越大的先启动，值相同的并行启动，会等待前一级别的服务先启动完成才会进行下一等级的启动。服务关闭时则按照相反的顺序依次停止。`,
     SETTING_P10: `：指定该服务是否需要守护，如果开启了守护，则当该服务异常关闭时jarboot会自动将它重新启动。`,
-    SETTING_P11: `：指定是否监控服务目录的更新，开启后，如果监控到服务目录下的文件有更新，会自动重启服务。如果一段时间内更新了很多次，则只会在最后重启依次（防抖动设计）。另外建议日志等临时文件不要在服务的目录下，因为子文件的更新会误判为有可执行文件的更新。`,
-    //进阶
-    USAGE_DEMO: '使用参考',
-    PROP_FILE_DESC: '配置文件jarboot.properties',
-    CMD_LIST_DESC: `执行调试命令`,
-    CMD_LIST_HELP: `支持的调试命令, 更多的帮助请访问在线文档。`,
+    SETTING_P11: `：指定是否监控服务目录的更新，开启后，如果监控到服务目录下的文件有更新，会自动重启服务。如果一段时间内更新了很多次，则只会在最后重启依次（防抖动设计）。`,
 };

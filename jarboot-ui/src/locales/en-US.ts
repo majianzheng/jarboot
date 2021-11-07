@@ -26,6 +26,11 @@ export default {
     UPLOAD_TIPS: 'Click or drag the file to upload to this area',
     FILE_SIZE_OVER_TIPS: 'The file size must be less than {size}',
     COMMAND_PLACEHOLDER: 'Input command，Example: help',
+    MORE_SETTING_INFO: 'More setting info view Service config page.',
+    UPLOAD_ERROR: 'Error update service!',
+    UPLOAD_SUCCESS: 'Successfully update service!',
+    UPLOAD_HINT: 'Support for a single or bulk upload.',
+    DELETE_INFO: 'This operation will completely delete the relevant information of the service. Do you want to continue?',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',
@@ -39,6 +44,7 @@ export default {
     SEARCH_BTN: 'Search',
     FILTER_BTN: 'Filter',
     REFRESH_BTN: 'Refresh',
+    NEXT_BTN: 'Next',
     DASHBOARD: 'Dashboard',
     SERVER_EMPTY: 'Current workspace searched empty.',
     MODIFY: 'Modify',
@@ -46,12 +52,12 @@ export default {
     CREATE: 'Create',
     SUCCESS: 'Success!',
     LOADING: 'Loading...',
+    SUBMITTING: 'Submitting...',
+    WARN: 'Warn',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
-    RUNNABLE_LABEL: 'Runnable jar file',
     COMMAND_LABEL: 'Command',
-    JAR_LABEL: 'Use jar to start',
     VM_OPT_LABEL: 'VM options',
     MAIN_ARGS_LABEL: 'Program arguments',
     WORK_HOME_LABEL: 'Working directory',
@@ -59,6 +65,7 @@ export default {
     PRIORITY_LABEL: 'Priority',
     DAEMON_LABEL: 'Daemon',
     JAR_UPDATE_WATCH_LABEL: 'File path Watch',
+    COMMAND_EXAMPLE: "Example:  1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName",
 
     //插件
     PLUGIN_UPLOAD_TITLE: 'Upload plugin',
@@ -102,16 +109,14 @@ export default {
     COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
 
     //帮助
-    BASIC: 'Basic',
+    BASIC: 'Help',
     QUICK_START: 'Quick start',
-    ADVANCED: 'Advanced',
-    COMMAND_LIST: 'Command list',
-    PROP_FILE: 'Property file',
+    ABOUT_TEXT: 'Jarboot is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.',
     //快速开始
     QUICK_START_P1: `Project homepage: {github} or Gitee image warehouse`,
     QUICK_START_P2: `When you enter this interface, it means that you have built and start it, and the next thing you need to do is put the jar files you developed into the directory. By default, no configuration is made，create a folder named {dir} in the directory jarboot as the service root path. In this path create the fold which it's name as it's service name, then put the jar files under sub file.`,
     QUICK_START_P3: `Default directory structure: `,
-    QUICK_START_P4: `You can modify the default path by {key2} in the {key1} interface. You need to set the jar file name which include the Main Class by {key4} in the {key3} interface when you have multiple jar files.`,
+    QUICK_START_P4: `You can modify the default path by {key2} in the {key1} interface. You can set the start command by {key4} in the {key3} interface.`,
     QUICK_START_P5: `Start the service in {key} interface.`,
     QUICK_START_P6: `Click the corresponding button to complete the start and stop of all services.`,
     QUICK_START_P7: `You can also select one or several services and click the corresponding button to start and stop the selected service.`,
@@ -121,16 +126,10 @@ export default {
     SETTING_P2: `:Set the default service root directory. You can change the default service root directory location. By default, it is the services directory under jarboot.`,
     SETTING_P3: `:When the service does not set the startup parameters of the JVM, the default global configuration is used.`,
     SETTING_P4: `:Auto start services after jarboot-server started.`,
-    SETTING_P5: `:Hidden function. The target service can be debugged through the third party's Arthas on the interface. The address is:`,
-    SETTING_P6: `:When there are multiple jar files in the service directory, you need to specify which jar file to start, that is, the name of the jar file where main class is located.`,
+    SETTING_P6: `:The Java process starting command.`,
     SETTING_P7: `:Specify the JVM parameters when the service starts, such as memory size, garbage collector, etc.`,
     SETTING_P8: `:The start parameter, that is, the parameter passed to the main entry function.`,
     SETTING_P9: `:The higher the start priority, the higher the start priority, and the parallel start priority with the same value will wait for the service of the previous level to start before the next level starts. When the service is shut down, it stops in reverse order.`,
     SETTING_P10: `:Specifies whether the service needs to be guarded. If it is enabled, jarboot will restart the service automatically when it is shut down abnormally.`,
-    SETTING_P11: `:Specify whether to monitor the update of the service directory. After opening, if the file under the service directory is monitored to be updated, the service will be automatically restarted. If it is updated many times in a period of time, it will only be restarted at the end (anti jitter design). In addition, it is recommended that temporary files such as logs should not be in the directory of the service, because the update of sub files will be misjudged as an update with executable files.`,
-    //进阶
-    USAGE_DEMO: 'Use reference',
-    PROP_FILE_DESC: 'Property file jarboot.properties',
-    CMD_LIST_DESC: `Execute debug command`,
-    CMD_LIST_HELP: `Debug command supported, more help goto online document.`,
+    SETTING_P11: `:Specify whether to monitor the update of the service directory. After opening, if the file under the service directory is monitored to be updated, the service will be automatically restarted. If it is updated many times in a period of time, it will only be restarted at the end (anti jitter design).`,
 };

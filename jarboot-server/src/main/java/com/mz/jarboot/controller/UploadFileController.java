@@ -1,6 +1,8 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
+import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.service.UploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ public class UploadFileController {
      * @param server 服务名
      * @return 执行结果
      */
-    @PostMapping(value="/upload")
+    @PostMapping
     @ResponseBody
     public ResponseSimple upload(@RequestParam("file") MultipartFile file, @RequestParam("server") String server) {
         uploadFileService.uploadJarFiles(file, server);
@@ -36,12 +38,12 @@ public class UploadFileController {
      * @param server 服务名
      * @return 执行结果
      */
-    @GetMapping(value="/beginUploadServerFile")
+    @GetMapping(value="/start")
     @ResponseBody
     @Permission("Upload file")
-    public ResponseSimple beginUploadServerFile(String server) {
-        uploadFileService.beginUploadServerFile(server);
-        return new ResponseSimple();
+    public ResponseForObject<Boolean> startUpload(String server) {
+        boolean exist = uploadFileService.startUpload(server);
+        return new ResponseForObject<>(exist);
     }
 
     /**
@@ -49,10 +51,10 @@ public class UploadFileController {
      * @param server 服务名
      * @return 执行结果
      */
-    @GetMapping(value="/uploadServerHeartbeat")
+    @GetMapping(value="/heartbeat")
     @ResponseBody
-    public ResponseSimple uploadServerHeartbeat(String server) {
-        uploadFileService.uploadServerHeartbeat(server);
+    public ResponseSimple uploadHeartbeat(String server) {
+        uploadFileService.uploadHeartbeat(server);
         return new ResponseSimple();
     }
 
@@ -62,22 +64,22 @@ public class UploadFileController {
      * @param file 文件
      * @return 执行结果
      */
-    @DeleteMapping(value="/deleteFileInUploadCache")
+    @DeleteMapping(value="/file")
     @ResponseBody
-    public ResponseSimple deleteFileInUploadCache(@RequestParam("server") String server, @RequestParam("file") String file) {
-        uploadFileService.deleteUploadFileInCache(server, file);
+    public ResponseSimple deleteUploadFile(@RequestParam("server") String server, @RequestParam("file") String file) {
+        uploadFileService.deleteUploadFile(server, file);
         return new ResponseSimple();
     }
 
     /**
      * 提交上传缓冲区的文件
-     * @param server 服务名
+     * @param setting 服务配置
      * @return 执行结果
      */
-    @PostMapping(value="/submitUploadFileInCache")
+    @PostMapping(value="/file")
     @ResponseBody
-    public ResponseSimple submitUploadFileInCache(@RequestParam("server") String server) {
-        uploadFileService.submitUploadFileInCache(server);
+    public ResponseSimple submitUploadFile(@RequestBody ServerSetting setting) {
+        uploadFileService.submitUploadFile(setting);
         return new ResponseSimple();
     }
 
@@ -86,10 +88,10 @@ public class UploadFileController {
      * @param server 服务名
      * @return 执行结果
      */
-    @DeleteMapping(value="/clearUploadFileInCache")
+    @DeleteMapping
     @ResponseBody
-    public ResponseSimple clearUploadFileInCache(@RequestParam("server") String server) {
-        uploadFileService.clearUploadFileInCache(server);
+    public ResponseSimple clearUploadCache(@RequestParam("server") String server) {
+        uploadFileService.clearUploadCache(server);
         return new ResponseSimple();
     }
 }

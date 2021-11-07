@@ -119,6 +119,14 @@ export default class ServerMgrService {
         return Request.get(`${urlBase}/attach`, {pid, name});
     }
 
+    /**
+     * 删除服务
+     * @param server 服务名
+     */
+    public static deleteServer(server: string) {
+        return Request.get(`${urlBase}/deleteServer`, {server});
+    }
+
     private static parseParam(servers: ServerRunning[]): string[] {
         return servers.map(server => server.path);
     }

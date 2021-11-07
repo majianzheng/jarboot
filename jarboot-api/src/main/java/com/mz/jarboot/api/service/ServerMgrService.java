@@ -69,4 +69,10 @@ public interface ServerMgrService {
      * @param name 名字
      */
     void attach(int pid, String name);
+
+    /**
+     * 删除服务
+     * @param server
+     */
+    void deleteServer(String server);
 }

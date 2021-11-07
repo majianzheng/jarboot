@@ -5,7 +5,8 @@ import styles from "../index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonTable from "@/components/table";
 
-const progressValueFormat = (percent: number|undefined) => <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
+const progressValueFormat = (percent: number|undefined) =>
+    <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
 const mu = 1024 * 1024;
 
 const cpuColorFormat = (cpu: number) => {
@@ -52,78 +53,76 @@ const DashboardView = memo((props: any) => {
         }
         return state;
     };
-    const getThreadTableProps = () => {
-        return {
-            columns: [
-                {
-                    title: 'id',
-                    dataIndex: 'id',
-                    key: 'id',
-                    width: 50,
-                },
-                {
-                    title: 'NAME',
-                    dataIndex: 'name',
-                    key: 'name',
-                    ellipsis: true,
-                },
-                {
-                    title: 'GROUP',
-                    dataIndex: 'group',
-                    key: 'group',
-                    ellipsis: true,
-                    render: (text: string) => (StringUtil.isEmpty(text)) ? '-' : text,
-                },
-                {
-                    title: 'PRIORITY',
-                    dataIndex: 'priority',
-                    key: 'priority',
-                },
-                {
-                    title: 'STATE',
-                    dataIndex: 'state',
-                    key: 'state',
-                    render: renderState,
-                },
-                {
-                    title: '%CPU',
-                    dataIndex: 'cpu',
-                    key: 'cpu',
-                    width: 50,
-                    render: cpuColorFormat,
-                },
-                {
-                    title: 'DELTA_TIME',
-                    dataIndex: 'deltaTime',
-                    key: 'deltaTime',
-                },
-                {
-                    title: 'TIME',
-                    dataIndex: 'time',
-                    key: 'time',
-                },
-                {
-                    title: 'INTERRUPTED',
-                    dataIndex: 'interrupted',
-                    key: 'interrupted',
-                    render: (interrupted: boolean) => interrupted ? "true" : "false"
-                },
-                {
-                    title: 'DAEMON',
-                    dataIndex: 'daemon',
-                    key: 'daemon',
-                    render: (daemon: boolean) => daemon ? "true" : <span style={{color: 'magenta'}}>false</span>
-                },
-            ],
-            loading: false,
-            dataSource: props.data.threads,
-            pagination: false,
-            //rowKey: 'id',
-            size: 'small',
-            showHeader: true,
-            scroll: upHeight,
-        };
-    };
+    const getThreadTableProps = () => ({
+        columns: [
+            {
+                title: 'id',
+                dataIndex: 'id',
+                key: 'id',
+                width: 50,
+            },
+            {
+                title: 'NAME',
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+            },
+            {
+                title: 'GROUP',
+                dataIndex: 'group',
+                key: 'group',
+                ellipsis: true,
+                render: (text: string) => (StringUtil.isEmpty(text)) ? '-' : text,
+            },
+            {
+                title: 'PRIORITY',
+                dataIndex: 'priority',
+                key: 'priority',
+            },
+            {
+                title: 'STATE',
+                dataIndex: 'state',
+                key: 'state',
+                render: renderState,
+            },
+            {
+                title: '%CPU',
+                dataIndex: 'cpu',
+                key: 'cpu',
+                width: 50,
+                render: cpuColorFormat,
+            },
+            {
+                title: 'DELTA_TIME',
+                dataIndex: 'deltaTime',
+                key: 'deltaTime',
+            },
+            {
+                title: 'TIME',
+                dataIndex: 'time',
+                key: 'time',
+            },
+            {
+                title: 'INTERRUPTED',
+                dataIndex: 'interrupted',
+                key: 'interrupted',
+                render: (interrupted: boolean) => interrupted ? "true" : "false"
+            },
+            {
+                title: 'DAEMON',
+                dataIndex: 'daemon',
+                key: 'daemon',
+                render: (daemon: boolean) => daemon ? "true" : <span style={{color: 'magenta'}}>false</span>
+            },
+        ],
+        loading: false,
+        dataSource: props.data.threads,
+        pagination: false,
+        //rowKey: 'id',
+        size: 'small',
+        showHeader: true,
+        scroll: upHeight,
+    });
 
     const getMemoryDataSource = () => {
         let data = new Array<any>();
@@ -156,92 +155,89 @@ const DashboardView = memo((props: any) => {
         return data;
     };
 
-    const getMemoryTableProps = () => {
-        return {
-            columns: [
-                {
-                    title: 'NAME',
-                    dataIndex: 'name',
-                    key: 'name',
-                    ellipsis: true,
-                },
-                {
-                    title: 'used(M)',
-                    dataIndex: 'used',
-                    key: 'used',
-                    ellipsis: true,
-                    render: (item: any) => (item/mu).toFixed(2)
-                },
-                {
-                    title: 'total(M)',
-                    dataIndex: 'total',
-                    key: 'total',
-                    render: (item: any) => (item/mu).toFixed(2)
-                },
-                {
-                    title: 'max(M)',
-                    dataIndex: 'max',
-                    key: 'max',
-                    render: (item: any) => (item/mu).toFixed(2)
-                },
-                {
-                    title: 'usage',
-                    dataIndex: 'usage',
-                    key: 'usage',
-                    render: (item: any, record: any) => {
-                        let percent = (record.used / record.total) * 100;
-                        percent = parseFloat(percent.toFixed(2));
-                        return <Progress size={"small"}
-                                         format={progressValueFormat}
-                                         percent={percent}/>
-                    }
-                },
-                {
-                    title: 'GC',
-                    dataIndex: 'GC',
-                    key: 'GC',
-                },
-                {
-                    title: '',
-                    dataIndex: 'GCInfo',
-                    key: 'GCInfo',
-                },
-            ],
-            loading: false,
-            dataSource: getMemoryDataSource(),
-            pagination: false,
-            rowKey: 'id',
-            size: 'small',
-            showHeader: true,
-            scroll: downHeight,
-        };
-    };
+    const getMemoryTableProps = () => ({
+        columns: [
+            {
+                title: 'NAME',
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+            },
+            {
+                title: 'used(M)',
+                dataIndex: 'used',
+                key: 'used',
+                ellipsis: true,
+                render: (item: any) => (item / mu).toFixed(2)
+            },
+            {
+                title: 'total(M)',
+                dataIndex: 'total',
+                key: 'total',
+                render: (item: any) => (item / mu).toFixed(2)
+            },
+            {
+                title: 'max(M)',
+                dataIndex: 'max',
+                key: 'max',
+                render: (item: any) => (item / mu).toFixed(2)
+            },
+            {
+                title: 'usage',
+                dataIndex: 'usage',
+                key: 'usage',
+                render: (item: any, record: any) => {
+                    let percent = (record.used / record.total) * 100;
+                    percent = parseFloat(percent.toFixed(2));
+                    return <Progress size={"small"}
+                                     format={progressValueFormat}
+                                     percent={percent}/>
+                }
+            },
+            {
+                title: 'GC',
+                dataIndex: 'GC',
+                key: 'GC',
+            },
+            {
+                title: '',
+                dataIndex: 'GCInfo',
+                key: 'GCInfo',
+            },
+        ],
+        loading: false,
+        dataSource: getMemoryDataSource(),
+        pagination: false,
+        rowKey: 'id',
+        size: 'small',
+        showHeader: true,
+        scroll: downHeight,
+    });
 
     let thrTableOption: any = getThreadTableProps();
     thrTableOption.scroll = { y: upHeight};
     let memTableOption: any = getMemoryTableProps();
     memTableOption.scroll = { y: downHeight};
     const runtimeInfo = props?.data?.runtimeInfo;
-    return <>
-        <div className={styles.smallTable}>
-            <CommonTable option={thrTableOption} height={upHeight}/>
-            <Row>
-                <Col span={16}>
-                    <CommonTable option={memTableOption} height={downHeight}/>
-                </Col>
-                <Col span={8} style={{overflowY: "auto"}}>
-                    <Descriptions size={'small'} column={1} bordered>
-                        <Descriptions.Item label="os">{runtimeInfo?.osName} {runtimeInfo?.osVersion}</Descriptions.Item>
-                        <Descriptions.Item label="average">{runtimeInfo?.systemLoadAverage}</Descriptions.Item>
-                        <Descriptions.Item label="processors">{runtimeInfo?.processors}</Descriptions.Item>
-                        <Descriptions.Item label="uptime">{runtimeInfo?.uptime}</Descriptions.Item>
-                        <Descriptions.Item label="java.version">{runtimeInfo?.javaVersion}</Descriptions.Item>
-                        <Descriptions.Item label="java.home" contentStyle={{textOverflow: "ellipsis"}}>{runtimeInfo?.javaHome}</Descriptions.Item>
-                    </Descriptions>
-                </Col>
-            </Row>
-        </div>
-    </>
+    return <div className={styles.smallTable}>
+        <CommonTable option={thrTableOption} height={upHeight}/>
+        <Row>
+            <Col span={16}>
+                <CommonTable option={memTableOption} height={downHeight}/>
+            </Col>
+            <Col span={8} style={{overflowY: "auto"}}>
+                <Descriptions size={'small'} column={1} bordered>
+                    <Descriptions.Item label="os">{runtimeInfo?.osName} {runtimeInfo?.osVersion}</Descriptions.Item>
+                    <Descriptions.Item label="average">{runtimeInfo?.systemLoadAverage}</Descriptions.Item>
+                    <Descriptions.Item label="processors">{runtimeInfo?.processors}</Descriptions.Item>
+                    <Descriptions.Item label="uptime">{runtimeInfo?.uptime}</Descriptions.Item>
+                    <Descriptions.Item label="java.version">{runtimeInfo?.javaVersion}</Descriptions.Item>
+                    <Descriptions.Item label="java.home"
+                                       contentStyle={{textOverflow: "ellipsis"}}>{runtimeInfo?.javaHome}</Descriptions.Item>
+                </Descriptions>
+            </Col>
+        </Row>
+    </div>
 });
 
 export default DashboardView;
