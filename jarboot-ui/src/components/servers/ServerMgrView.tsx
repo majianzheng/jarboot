@@ -502,7 +502,7 @@ const ServerMgrView = () => {
                 ))}
             </div>
         </div>
-        {state.uploadVisible && <UploadFileModal server={state.selectRows[0].name}
+        {state.uploadVisible && <UploadFileModal server={state.selectRows.length > 0 ? state.selectRows[0].name : ''}
                                                  onOk={onUploadClose}
                                                  onCancel={() => dispatch({uploadVisible: false})}/>}
     </div>);
