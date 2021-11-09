@@ -97,53 +97,49 @@ const OnlineDebugView = () => {
         pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
     };
 
-    const getTbProps = () => {
-        return {
-            columns: [
-                {
-                    title: 'PID',
-                    dataIndex: 'pid',
-                    key: 'pid',
-                    width: 80,
-                    ellipsis: true,
-                    sorter: (a: JvmProcess, b: JvmProcess) => a.pid - b.pid,
-                    sortDirections: ['descend', 'ascend'],
-                    render: (value: number)=> <span style={{fontSize: '10px'}}>{value}</span>
-                },
-                {
-                    title: intl.formatMessage({id: 'NAME'}),
-                    dataIndex: 'name',
-                    key: 'name',
-                    ellipsis: true,
-                    sorter: (a: JvmProcess, b: JvmProcess) => a.name.localeCompare(b.name),
-                    sortDirections: ['descend', 'ascend'],
-                },
-            ],
-            loading: state.loading,
-            dataSource: state.data,
-            pagination: false,
-            rowKey: 'pid',
-            size: 'small',
-            rowSelection: getRowSelection(),
-            onRow: onRow,
-            showHeader: true,
-            scroll: height,
-        };
-    };
-
-    const getRowSelection = () => {
-        return {
-            columnWidth: '60px',
-            columnTitle: '',
-            ellipsis: true,
-            type: 'radio',
-            onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) => {
-                dispatch({selectedRowKeys, selectRows});
+    const getTbProps = () => ({
+        columns: [
+            {
+                title: 'PID',
+                dataIndex: 'pid',
+                key: 'pid',
+                width: 80,
+                ellipsis: true,
+                sorter: (a: JvmProcess, b: JvmProcess) => a.pid - b.pid,
+                sortDirections: ['descend', 'ascend'],
+                render: (value: number) => <span style={{fontSize: '10px'}}>{value}</span>
             },
-            selectedRowKeys: state.selectedRowKeys,
-            renderCell: renderRowSelection
-        };
-    };
+            {
+                title: intl.formatMessage({id: 'NAME'}),
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+                sorter: (a: JvmProcess, b: JvmProcess) => a.name.localeCompare(b.name),
+                sortDirections: ['descend', 'ascend'],
+            },
+        ],
+        loading: state.loading,
+        dataSource: state.data,
+        pagination: false,
+        rowKey: 'pid',
+        size: 'small',
+        rowSelection: getRowSelection(),
+        onRow: onRow,
+        showHeader: true,
+        scroll: height,
+    });
+
+    const getRowSelection = () => ({
+        columnWidth: '60px',
+        columnTitle: '',
+        ellipsis: true,
+        type: 'radio',
+        onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) => {
+            dispatch({selectedRowKeys, selectRows});
+        },
+        selectedRowKeys: state.selectedRowKeys,
+        renderCell: renderRowSelection
+    });
 
     const renderRowSelection = (row: any, record: JvmProcess) => {
         const style = {fontSize: '16px', color: record.attached ? 'green' : 'grey'};
@@ -153,13 +149,11 @@ const OnlineDebugView = () => {
         </Tooltip>;
     };
 
-    const onRow = (record: JvmProcess) => {
-        return {
-            onClick: () => {
-                dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
-            },
-        };
-    };
+    const onRow = (record: JvmProcess) => ({
+        onClick: () => {
+            dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
+        },
+    });
 
     const attach = () => {
         const process = state.selectRows[0];
@@ -189,30 +183,28 @@ const OnlineDebugView = () => {
         pubsub.publish(process.pid + '', PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
-    const getTbBtnProps = () => {
-        return [
-            {
-                name: 'Attach',
-                key: 'attach ',
-                icon: <BugFilled className={styles.toolButtonGreenStyle}/>,
-                onClick: attach,
-                disabled: !state.selectRows?.length || state.selectRows[0].attached
-            },
-            {
-                name: intl.formatMessage({id: 'REFRESH_BTN'}),
-                key: 'refresh',
-                icon: <SyncOutlined className={styles.toolButtonStyle}/>,
-                onClick: () => refreshProcessList(),
-            },
-            {
-                name: intl.formatMessage({id: 'DASHBOARD'}),
-                key: 'dashboard',
-                icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
-                onClick: dashboardCmd,
-                disabled: state.selectRows?.length && !state.selectRows[0].attached
-            }
-        ]
-    };
+    const getTbBtnProps = () => ([
+        {
+            name: 'Attach',
+            key: 'attach ',
+            icon: <BugFilled className={styles.toolButtonGreenStyle}/>,
+            onClick: attach,
+            disabled: !state.selectRows?.length || state.selectRows[0].attached
+        },
+        {
+            name: intl.formatMessage({id: 'REFRESH_BTN'}),
+            key: 'refresh',
+            icon: <SyncOutlined className={styles.toolButtonStyle}/>,
+            onClick: () => refreshProcessList(),
+        },
+        {
+            name: intl.formatMessage({id: 'DASHBOARD'}),
+            key: 'dashboard',
+            icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
+            onClick: dashboardCmd,
+            disabled: state.selectRows?.length && !state.selectRows[0].attached
+        }
+    ]);
 
     let tableOption: any = getTbProps();
     tableOption.scroll = {y: height};

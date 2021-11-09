@@ -257,21 +257,19 @@ const ServerMgrView = () => {
         return tag;
     }
 
-    const getRowSelection = () => {
-        return {
-            type: 'checkbox',
-            onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
-                let current = state.current;
-                if (!selectedRows || selectedRows.length <= 0) {
-                    current = '';
-                } else {
-                    current = '' === current ? selectedRowKeys[0] : current;
-                }
-                dispatch({current, selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
-            },
-            selectedRowKeys: state.selectedRowKeys,
-        };
-    }
+    const getRowSelection = () => ({
+        type: 'checkbox',
+        onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
+            let current = state.current;
+            if (!selectedRows || selectedRows.length <= 0) {
+                current = '';
+            } else {
+                current = '' === current ? selectedRowKeys[0] : current;
+            }
+            dispatch({current, selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
+        },
+        selectedRowKeys: state.selectedRowKeys,
+    });
 
     const onRow = (record: ServerRunning) => ({
         onClick: () => dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid})
@@ -423,17 +421,15 @@ const ServerMgrView = () => {
                     }
                 }).catch(CommonNotice.errorFormatted);
             }
-        })
+        });
     };
 
     const isCurrentNotRunning = () => {
         const item = state.data.find((value: ServerRunning) => value.sid === state.current);
         return !(item && JarBootConst.STATUS_STARTED === item.status);
-    }
-
-    const uploadFile = () => {
-        dispatch({uploadVisible: true});
     };
+
+    const uploadFile = () => dispatch({uploadVisible: true});
 
     const dashboardCmd = () => {
         if (state.selectRows?.length < 1 || StringUtil.isEmpty(state.current)) {
