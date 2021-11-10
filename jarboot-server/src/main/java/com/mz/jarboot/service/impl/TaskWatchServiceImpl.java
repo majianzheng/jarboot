@@ -157,6 +157,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
     private void storeCurFileModifyTime() {
         File[] serverDirs = taskRunCache.getServerDirs();
+        if (null == serverDirs || serverDirs.length <= 0) {
+            return;
+        }
         for (File serverDir : serverDirs) {
             Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
             if (CollectionUtils.isNotEmpty(files)) {

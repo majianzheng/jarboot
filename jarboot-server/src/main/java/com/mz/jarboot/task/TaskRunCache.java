@@ -48,8 +48,10 @@ public class TaskRunCache {
     public List<String> getServerPathList() {
         File[] serviceDirs = this.getServerDirs();
         List<String> paths = new ArrayList<>();
-        for (File f : serviceDirs) {
-            paths.add(f.getPath());
+        if (null != serviceDirs && serviceDirs.length > 0) {
+            for (File f : serviceDirs) {
+                paths.add(f.getPath());
+            }
         }
         return paths;
     }
@@ -62,7 +64,7 @@ public class TaskRunCache {
         }
         File[] serviceDirs = servicesDir.listFiles(this::filterExcludeDir);
         if (null == serviceDirs || serviceDirs.length < 1) {
-            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录中不存在模块的服务");
+            return serviceDirs;
         }
         // 根据名字排序
         Arrays.sort(serviceDirs, Comparator.comparing(File::getName));
@@ -72,6 +74,9 @@ public class TaskRunCache {
     public List<ServerRunning> getServerList() {
         List<ServerRunning> serverList = new ArrayList<>();
         File[] serviceDirs = getServerDirs();
+        if (null == serviceDirs || serviceDirs.length <= 0) {
+            return serverList;
+        }
         for (File f : serviceDirs) {
             String server = f.getName();
             ServerRunning p = new ServerRunning();
