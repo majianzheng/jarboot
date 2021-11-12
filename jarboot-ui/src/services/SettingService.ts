@@ -17,11 +17,10 @@ export default class SettingService {
 
     /**
      * 提交服务配置
-     * @param path 服务路径
      * @param setting 配置信息
      */
-    public static submitServerSetting(path: string, setting: any) {
-        return Request.post(`${settingUrl}/serverSetting?path=${path}`, setting);
+    public static submitServerSetting(setting: any) {
+        return Request.post(`${settingUrl}/serverSetting`, setting);
     }
 
     /**

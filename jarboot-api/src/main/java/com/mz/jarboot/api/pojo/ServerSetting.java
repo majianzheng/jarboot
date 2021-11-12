@@ -26,7 +26,7 @@ public class ServerSetting implements Serializable {
     /**
      * 服务的文件夹路径
      */
-    private transient String path;
+    private String path;
     
     /**
      * 用户自定义的启动命令

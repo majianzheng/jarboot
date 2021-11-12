@@ -7,6 +7,7 @@ import com.alibaba.bytekit.asm.instrument.InstrumentTransformer;
 import com.alibaba.bytekit.asm.matcher.SimpleClassMatcher;
 import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
@@ -45,9 +46,9 @@ public class JarbootBootstrap {
 
         //1.解析args，获取目标服务端口
         String[] agentArgs = parseArgs(args);
-        String host = "127.0.0.1:" + agentArgs[0];
-        String serverName = agentArgs[1];
-        String sid = agentArgs[2];
+        String host = System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:" + agentArgs[0]);
+        String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, agentArgs[1]);
+        String sid = System.getProperty(CommonConst.SERVER_SID_PROP, agentArgs[2]);
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查服务名和wid是否一致
             if (!sid.equals(EnvironmentContext.getSid())) {
@@ -58,14 +59,17 @@ public class JarbootBootstrap {
                 return;
             }
         } else {
-            String jarbootHome;
-            CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
-            try {
-                File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                jarbootHome = curJar.getParentFile().getParent();
-            } catch (Exception e) {
-                return;
+            String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
+            if (null == jarbootHome || jarbootHome.isEmpty()) {
+                CodeSource codeSource = JarbootBootstrap.class.getProtectionDomain().getCodeSource();
+                try {
+                    File curJar = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
+                    jarbootHome = curJar.getParentFile().getParent();
+                } catch (Exception e) {
+                    return;
+                }
             }
+
             LogUtils.init(jarbootHome, serverName, sid, isPremain); //初始化日志模块
             logger = LogUtils.getLogger();
             if (isPremain) {
@@ -168,6 +172,13 @@ public class JarbootBootstrap {
     }
 
     private String[] parseArgs(String args) {
+        if (null == args || args.isEmpty()) {
+            String[] result = new String[3];
+            result[0] = "9899";
+            result[1] = "NoName";
+            result[2] = "None";
+            return result;
+        }
         String s = new String(Base64.getDecoder().decode(args));
         String[] agentArgs = s.split(String.valueOf(CommandConst.PROTOCOL_SPLIT));
         return agentArgs;

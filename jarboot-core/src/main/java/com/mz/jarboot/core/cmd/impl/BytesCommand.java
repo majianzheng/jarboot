@@ -45,7 +45,6 @@ public class BytesCommand extends AbstractCommand {
 
     @Override
     public void run() {
-        logger.info("bytes 开始执行>>{}", name);
         if (StringUtils.isEmpty(this.classPattern)) {
             //未指定要打印的类
             session.end(true, "用法: bytes className");

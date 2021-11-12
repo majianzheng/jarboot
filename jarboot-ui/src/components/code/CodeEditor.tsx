@@ -1,4 +1,4 @@
-import {memo, useRef} from "react";
+import React, {memo, useEffect, useRef, useState} from "react";
 import {UnControlled as CodeMirror} from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/material.css';
@@ -37,8 +37,10 @@ interface CodeEditorProps {
 const CodeEditor = (props: CodeEditorProps) => {
 
     const codeRef = useRef<any>();
+    const [code, setCode] = useState('');
 
-    const beforeChange = () => {
+    const init = () => {
+        //这里为什么这么干呢？因为CodeMirror库定死了300px的高度，要想改高度必须这么干
         if (codeRef?.current?.ref) {
             const codeDom = codeRef.current.ref;
             if (codeDom) {
@@ -54,10 +56,19 @@ const CodeEditor = (props: CodeEditorProps) => {
         }
     };
 
-    return <>
+    useEffect(init, []);
+
+    useEffect(() => {
+        //这里为什么非要加个setTimeout呢？因为CodeMirror这个库有bug，它有时候太快了会显示异常，所以这里加了个延迟更新
+        setTimeout(() => {
+            setCode(props.source || '');
+        }, 500);
+    }, [props.source]);
+
+    return <div>
         <CodeMirror
             ref={codeRef}
-            value={props?.source}
+            value={code}
             options={{
                 mode: props.mode,
                 theme: 'material',
@@ -71,10 +82,8 @@ const CodeEditor = (props: CodeEditorProps) => {
             }}
             onChange={(editor, data, value) => {
                 props?.onChange && props.onChange(editor, data, value);
-            }}
-            onUpdate={beforeChange}
-        />
-    </>
+            }}/>
+    </div>
 };
 
 CodeEditor.defaultProps = {

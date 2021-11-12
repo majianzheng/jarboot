@@ -36,8 +36,8 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public void submitServerSetting(String path, ServerSetting setting) {
-        File file = getConfAndCheck(path);
+    public void submitServerSetting(ServerSetting setting) {
+        File file = getConfAndCheck(setting.getPath());
         Properties prop = PropertyFileUtils.getProperties(file);
         String command = setting.getCommand();
         if (null == command) {

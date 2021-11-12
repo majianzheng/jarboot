@@ -1,4 +1,4 @@
-import {memo, useState} from "react";
+import React, {memo, useState} from "react";
 import {Modal} from "antd";
 import CodeEditor, {CodeMode} from "@/components/code";
 import StringUtil from "@/common/StringUtil";
@@ -27,11 +27,14 @@ const FileEditModal: any = memo((props: FileEditModalProp) => {
         setContent(value);
     };
 
+    const height = window.innerHeight - 320;
     return <Modal title={props.name} visible={props.visible} width={860} maskClosable={false}
                   destroyOnClose={true} onOk={onOk} onCancel={closeModal}>
-        <CodeEditor height={window.innerHeight - 320}
-                    readOnly={false} onChange={onChange} mode={CodeMode.PROPERTY}
-                    source={props?.content}/>
+        <div style={{width: '100%', height}}>
+            <CodeEditor height={height - 5}
+                        readOnly={false} onChange={onChange} mode={CodeMode.PROPERTY}
+                        source={props?.content}/>
+        </div>
     </Modal>
 });
 

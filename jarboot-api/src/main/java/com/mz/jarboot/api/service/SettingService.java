@@ -18,10 +18,9 @@ public interface SettingService {
 
     /**
      * 提交服务配置
-     * @param path 服务
      * @param setting 配置
      */
-    void submitServerSetting(String path, ServerSetting setting);
+    void submitServerSetting(ServerSetting setting);
 
     /**
      * 获取全局配置

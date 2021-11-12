@@ -42,7 +42,8 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
             CommonNotice.info('请先选择服务');
             return;
         }
-        SettingService.submitServerSetting(props.path, data).then(resp => {
+        data['path'] = props.path;
+        SettingService.submitServerSetting(data).then(resp => {
             if (0 === resp?.resultCode) {
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
             } else {
@@ -159,8 +160,8 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
                 </Button>
             </Form.Item>
         </Form>
-        <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
-                       visible={visible} onClose={() => setVisible(false)}/>
+        {visible && <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
+                                   visible={true} onClose={() => setVisible(false)}/>}
     </>);
 });
 export default ServerConfig;

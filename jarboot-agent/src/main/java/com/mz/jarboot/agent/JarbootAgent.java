@@ -1,5 +1,7 @@
 package com.mz.jarboot.agent;
 
+import com.mz.jarboot.api.constant.CommonConst;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,13 +22,21 @@ public class JarbootAgent {
     private static final String JARBOOT_CLASS = "com.mz.jarboot.core.server.JarbootBootstrap";
     private static final String GET_INSTANCE = "getInstance";
 
-    private static PrintStream ps = System.err;
-    private static final File CURRENT_DIR;
+    private static PrintStream ps = null;
+    private static final String CURRENT_DIR = getCurrentDir();
     private static volatile ClassLoader jarbootClassLoader = null;
 
-    static {
-        CURRENT_DIR = getCurrentDir();
+    public static void premain(String args, Instrumentation inst) {
+        callMain(args, inst, true);
+    }
+
+    public static void agentmain(String args, Instrumentation inst) {
+        callMain(args, inst, false);
+    }
+
+    private static void callMain(String args, Instrumentation inst, boolean isPremain) {
         try {
+            //初始化临时日志
             File logDir = new File(CURRENT_DIR, "logs");
             if (!logDir.exists()) {
                 logDir.mkdir();
@@ -36,17 +46,21 @@ public class JarbootAgent {
                 log.createNewFile();
             }
             ps = new PrintStream(new FileOutputStream(log, false));
+            System.setProperty(CommonConst.JARBOOT_HOME, CURRENT_DIR);
+            main(args, inst, isPremain);
         } catch (Throwable e) {
-            e.printStackTrace(ps);
+            e.printStackTrace();
+        } finally {
+            if (null != ps) {
+                try {
+                    ps.close();
+                } catch (Throwable e) {
+                    e.printStackTrace(ps);
+                } finally {
+                    ps = null;
+                }
+            }
         }
-    }
-
-    public static void premain(String args, Instrumentation inst) {
-        main(args, inst, true);
-    }
-
-    public static void agentmain(String args, Instrumentation inst) {
-        main(args, inst, false);
     }
 
     /**
@@ -166,11 +180,19 @@ public class JarbootAgent {
                 .invoke(null, inst, args, isPremain);
     }
 
-    private static File getCurrentDir() {
+    private static String getCurrentDir() {
+        //分别尝试从环境变量和系统属性中获取
+        String homePath = System.getenv(CommonConst.JARBOOT_HOME);
+        if (null == homePath || homePath.isEmpty()) {
+            homePath = System.getProperty(CommonConst.JARBOOT_HOME);
+        }
+        if (null != homePath && !homePath.isEmpty()) {
+            return homePath;
+        }
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            return agentJarFile.getParentFile().getParentFile();
+            return agentJarFile.getParentFile().getParentFile().getPath();
         } catch (Exception e) {
             e.printStackTrace(ps);
         }

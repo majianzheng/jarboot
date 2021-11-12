@@ -44,17 +44,14 @@ public class SettingController {
 
     /**
      * 提交服务配置
-     * @param path 服务路径
      * @param setting 服务配置
-     * @return
      */
     @PostMapping(value="/serverSetting")
     @ResponseBody
     @Permission("Submit Server Setting")
-    public ResponseSimple submitServerSetting(@RequestParam String path,
-                                              @RequestBody ServerSetting setting) {
+    public ResponseSimple submitServerSetting(@RequestBody ServerSetting setting) {
         try {
-            settingService.submitServerSetting(path, setting);
+            settingService.submitServerSetting(setting);
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);

@@ -15,7 +15,7 @@ import java.io.File;
  * @author majianzheng
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
-@PropertySource(value={"classpath:jarboot.properties", "file:${jarboot.home}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
+@PropertySource(value={"classpath:jarboot.properties", "file:${JARBOOT_HOME}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
 public class JarBootServiceApplication {
 
 	public static void main(String[] args) {
@@ -24,7 +24,7 @@ public class JarBootServiceApplication {
 		String wsHome = userHome + File.separator + CommonConst.JARBOOT_NAME;
 		//初始化工作目录
 		System.setProperty(CommonConst.WORKSPACE_HOME, wsHome);
-		String homePath = System.getenv("JARBOOT_HOME");
+		String homePath = System.getenv(CommonConst.JARBOOT_HOME);
 		if (null == homePath || homePath.isEmpty()) {
 			homePath = wsHome;
 		}

@@ -159,7 +159,8 @@ public class UploadFileServiceImpl implements UploadFileService {
                 }
             }
             if (!exist) {
-                settingService.submitServerSetting(destPath, setting);
+                setting.setPath(destPath);
+                settingService.submitServerSetting(setting);
                 WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
                         StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
             }
