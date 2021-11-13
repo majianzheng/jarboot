@@ -51,7 +51,7 @@ English version goes [here](README.md).
 
 使用<code>Docker</code>
 ```bash
-sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
 ### 编译源码的步骤
@@ -91,7 +91,7 @@ $ sh startup.sh
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -138,7 +138,7 @@ $ spring.env spring.application.name
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. 实现spi接口

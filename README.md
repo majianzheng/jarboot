@@ -51,7 +51,7 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 
 Use <code>docker</code>
 ```bash
-sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
 ### Code build method
@@ -92,7 +92,7 @@ Use SPI extension can implement your own command, define a command how to execut
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. Implement <code>CommandProcessor</code>SPI interface
@@ -140,7 +140,7 @@ Demonstrate how to use ordinary non springboot applications.
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. Implement spi interface

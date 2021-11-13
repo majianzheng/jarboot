@@ -29,11 +29,12 @@ const UserPopMenu: any = memo((props: any) => {
     const onClose = () => {
         setVisible(false);
     };
+    const username = JarBootConst.currentUser.username;
     return <>
         <Menu onClick={handleClick} selectedKeys={[]}
               defaultSelectedKeys={['user-title']} mode="inline"
               style={{width: 220}}>
-            <Menu.Item key={"user-title"}><UserOutlined/>{props?.username}</Menu.Item>
+            <Menu.Item key={"user-title"}><UserOutlined/>{username}</Menu.Item>
             <Menu.Divider/>
             <Menu.Item key={MODIFY_PWD_KEY}>
                 <FormOutlined />
@@ -44,24 +45,23 @@ const UserPopMenu: any = memo((props: any) => {
                 {intl.formatMessage({id: 'SIGN_OUT'})}
             </Menu.Item>
         </Menu>
-        {visible && <ModifyUserModal username={JarBootConst.currentUser.username}
+        {visible && <ModifyUserModal username={username}
                                      onClose={onClose} visible={visible}/>}
     </>;
 });
 
 interface UserMenuProp {
-    username: string;
     className?: any;
 }
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
     const icon = <DefaultUserIcon style={{ fontSize: '32px' }}/>;
-    return <Popover content={<UserPopMenu username={props.username} onHide={() => setUserMenuVisible(false)}/>}
+    return <Popover content={<UserPopMenu onHide={() => setUserMenuVisible(false)}/>}
                     visible={userMenuVisible}
                     mouseLeaveDelay={0.5}
                     onVisibleChange={(visible) => setUserMenuVisible(visible)}
                     placement="bottomRight">
-        <Avatar className={props.className} alt={props.username} icon={icon}/>
+        <Avatar className={props.className} alt={JarBootConst.currentUser.username} icon={icon}/>
         <CaretDownOutlined style={{verticalAlign: 'text-top', position: "relative", top: '-2px'}}/>
     </Popover>;
 }
