@@ -229,7 +229,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         </Form>
         {UploadFileStage.UPLOAD === state.stage && <Upload.Dragger {...uploadProps}>
             <p className="ant-upload-drag-icon"><InboxOutlined/></p>
-            <p className="ant-upload-text">{intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'})}</p>
+            <p className="ant-upload-text">{intl.formatMessage({id: 'UPLOAD_DESC'})}</p>
             <p className="ant-upload-hint">{intl.formatMessage({id: 'UPLOAD_HINT'})}</p>
         </Upload.Dragger>}
         {UploadFileStage.SUBMITTING === state.stage && <div>

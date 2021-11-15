@@ -2,7 +2,6 @@
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
-[![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.majianzheng/jarboot-all)
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)

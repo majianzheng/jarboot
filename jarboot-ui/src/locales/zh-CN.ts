@@ -31,6 +31,7 @@ export default {
     UPLOAD_SUCCESS: '成功更新服务！',
     UPLOAD_HINT: '支持单个或批量上传。',
     DELETE_INFO: '该操作将会彻底删除服务的相关信息，是否继续？',
+    UPLOAD_DESC: '点击或拖拽文件到此区域上传',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',
