@@ -11,6 +11,7 @@ import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
 import {JarBootConst} from "@/common/JarBootConst";
+import {PUB_TOPIC, pubsub} from "@/components/servers";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -19,14 +20,8 @@ import {JarBootConst} from "@/common/JarBootConst";
 
 interface SuperPanelProps {
     server: string;
+    sid: string;
     visible: boolean;
-    pubsub: PublishSubmit;
-}
-
-enum PUB_TOPIC {
-    CMD_END="commandEnd",
-    RENDER_JSON = "renderJson",
-    QUICK_EXEC_CMD = "quickExecCmd",
 }
 
 /**
@@ -50,18 +45,24 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     const [command, setCommand] = useState("");
     const [data, setData] = useState({});
     const inputRef = useRef<any>();
+    const key = props.sid;
 
     useEffect(() => {
-        props.pubsub.submit(props.server, PUB_TOPIC.CMD_END, onCmdEnd);
-        props.pubsub.submit(props.server, PUB_TOPIC.RENDER_JSON, renderView);
-        props.pubsub.submit(props.server, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
-        historyMap.set(props.server, new class implements HistoryProp {
+        pubsub.submit(key, PUB_TOPIC.CMD_END, onCmdEnd);
+        pubsub.submit(key, PUB_TOPIC.RENDER_JSON, renderView);
+        pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+        historyMap.set(key, new class implements HistoryProp {
             cur = 0;
             history = [];
         });
+        return () => {
+            pubsub.unSubmit(key, PUB_TOPIC.CMD_END, onCmdEnd);
+            pubsub.unSubmit(key, PUB_TOPIC.RENDER_JSON, renderView);
+            pubsub.unSubmit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+        };
     }, []);
 
-    const historyProp = historyMap.get(props.server);
+    const historyProp = historyMap.get(key);
 
     //解析json数据的视图
     const viewResolver: any = {
@@ -92,7 +93,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
-        props.pubsub.publish(props.server, JarBootConst.FINISH_LOADING, msg);
+        pubsub.publish(key, JarBootConst.FINISH_LOADING, msg);
         inputRef?.current?.focus();
         const value = inputRef?.current?.state?.value;
         if (value && value?.length > 0) {
@@ -101,7 +102,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const clearDisplay = () => {
-        props.pubsub.publish(props.server, JarBootConst.CLEAR_CONSOLE);
+        pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
         inputRef?.current?.focus();
     };
 
@@ -121,7 +122,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         if (StringUtil.isEmpty(cmd)) {
             return;
         }
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.sid)) {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
@@ -131,8 +132,8 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             //切换为控制台显示
             setView('');
         }
-        props.pubsub.publish(props.server, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
-        const msg = {server: props.server, body: cmd, func: 1};
+        pubsub.publish(key, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
+        const msg = {server: props.server, sid: props.sid, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
 
         if (historyProp) {
@@ -153,11 +154,11 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     };
 
     const onCancelCommand = () => {
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.sid)) {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
-        const msg = {server: props.server, body: '', func: 2};
+        const msg = {server: props.server, sid: props.sid, body: '', func: 2};
         WsManager.sendMessage(JSON.stringify(msg));
     };
 
@@ -215,13 +216,13 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
               style={{display: props.visible ? 'block' : 'none'}}
               extra={extra}>
             <div className={styles.outPanel} style={{height: outHeight}}>
-                <Console server={props.server}
+                <Console id={key}
                          visible={'' === view}
-                         pubsub={props.pubsub}/>
+                         pubsub={pubsub}/>
                 {'' !== view && viewResolver[view]}
             </div>
         </Card>
     </>
 });
 
-export {SuperPanel, PUB_TOPIC};
+export {SuperPanel};

@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
@@ -36,7 +37,7 @@ public class ServerMgrController {
      */
     @GetMapping(value="/getServerList")
     @ResponseBody
-    public ResponseForList<ServerRunning> getWebServerList() {
+    public ResponseForList<ServerRunning> getServerList() {
         List<ServerRunning> results = serverMgrService.getServerList();
         return new ResponseForList<>(results, results.size());
     }
@@ -161,5 +162,38 @@ public class ServerMgrController {
         } catch ( Exception e ) {
             //
         }
+    }
+
+    /**
+     * 获取未被服务管理的JVM进程信息
+     * @return 进程列表
+     */
+    @GetMapping(value="/getJvmProcesses")
+    @ResponseBody
+    public ResponseForList<JvmProcess> getJvmProcesses() {
+        List<JvmProcess> results = serverMgrService.getJvmProcesses();
+        return new ResponseForList<>(results, results.size());
+    }
+
+    /**
+     * attach进程
+     * @return 执行结果
+     */
+    @GetMapping(value="/attach")
+    @ResponseBody
+    public ResponseSimple attach(String pid, String name) {
+        serverMgrService.attach(Integer.parseInt(pid), name);
+        return new ResponseSimple();
+    }
+
+    /**
+     * 删除服务
+     * @return 执行结果
+     */
+    @GetMapping(value="/deleteServer")
+    @ResponseBody
+    public ResponseSimple deleteServer(String server) {
+        serverMgrService.deleteServer(server);
+        return new ResponseSimple();
     }
 }

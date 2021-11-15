@@ -31,27 +31,21 @@ public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ServerSetting getServerSetting(String server) {
-        return PropertyFileUtils.getServerSetting(server);
+    public ServerSetting getServerSetting(String path) {
+        return PropertyFileUtils.getServerSetting(path);
     }
 
     @Override
-    public void submitServerSetting(String server, ServerSetting setting) {
-        File file = getConfAndCheck(server, setting);
+    public void submitServerSetting(ServerSetting setting) {
+        File file = getConfAndCheck(setting.getPath());
         Properties prop = PropertyFileUtils.getProperties(file);
-        prop.setProperty(SettingPropConst.RUNNABLE, String.valueOf(setting.getRunnable()));
-        String userDefineRunArg = setting.getUserDefineRunArgument();
-        if (null == userDefineRunArg) {
-            userDefineRunArg = StringUtils.EMPTY;
+        String command = setting.getCommand();
+        if (null == command) {
+            command = StringUtils.EMPTY;
         } else {
-            userDefineRunArg = userDefineRunArg.replace('\n', ' ');
+            command = command.replace('\n', ' ');
         }
-        prop.setProperty(SettingPropConst.USER_DEFINE_RUN_ARGUMENT, userDefineRunArg);
-        String jar = setting.getJar();
-        if (null == jar) {
-            jar = StringUtils.EMPTY;
-        }
-        prop.setProperty(SettingPropConst.JAR, jar);
+        prop.setProperty(SettingPropConst.COMMAND, command);
         String vm = setting.getVm();
         if (null == vm) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
@@ -132,10 +126,10 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public String getVmOptions(String server, String file) {
+    public String getVmOptions(String p, String file) {
         Path path = Paths.get(file);
         if (!path.isAbsolute()) {
-            path = Paths.get(SettingUtils.getServerPath(server), file);
+            path = Paths.get(p, file);
         }
         File f = path.toFile();
         String content = StringUtils.EMPTY;
@@ -150,10 +144,10 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public void saveVmOptions(String server, String file, String content) {
+    public void saveVmOptions(String p, String file, String content) {
         Path path = Paths.get(file);
         if (!path.isAbsolute()) {
-            path = Paths.get(SettingUtils.getServerPath(server), file);
+            path = Paths.get(p, file);
         }
         File f = path.toFile();
         if (!f.exists()) {
@@ -172,8 +166,8 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private File getConfAndCheck(String server, ServerSetting setting) {
-        File file = SettingUtils.getServerSettingFile(server);
+    private File getConfAndCheck(String p) {
+        File file = SettingUtils.getServerSettingFile(p);
         if (!file.exists()) {
             try {
                 boolean rlt = file.createNewFile();
@@ -182,14 +176,6 @@ public class SettingServiceImpl implements SettingService {
                 }
             } catch (IOException e) {
                 throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
-        if (Boolean.TRUE.equals(setting.getRunnable()) && StringUtils.isNotEmpty(setting.getJar())) {
-            Path path = Paths.get(setting.getJar());
-            File jarFile = path.isAbsolute() ? path.toFile() :
-                    FileUtils.getFile(SettingUtils.getServerPath(server), setting.getJar());
-            if (!jarFile.exists() || !jarFile.isFile()) {
-                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", setting.getJar()));
             }
         }
         return file;

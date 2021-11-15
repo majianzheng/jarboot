@@ -2,7 +2,6 @@
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
-[![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.majianzheng/jarboot-all)
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
@@ -13,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> is a Java process starter，which can manage, monitor and debug a series of Java instance.
+<code>Jarboot</code> is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.
 
 In the test environment and daily built integrated environment, a series of jar files such as compilation output can be put into the agreed directory. <code>Jarboot</code> provides a friendly browser UI interface and HTTP interface to manage its start, stop and status monitoring, and execute commands to debug the target process.
 
@@ -47,12 +46,11 @@ Front-end interface adopts <code>React</code> technology, scaffold uses <code>Um
 ## Install or build
 ### Download the zip package to install or using docker.
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
-- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">Download from maven center</a>
 - 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
 Use <code>docker</code>
 ```bash
-sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
 ### Code build method
@@ -93,7 +91,7 @@ Use SPI extension can implement your own command, define a command how to execut
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. Implement <code>CommandProcessor</code>SPI interface
@@ -141,7 +139,7 @@ Demonstrate how to use ordinary non springboot applications.
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. Implement spi interface

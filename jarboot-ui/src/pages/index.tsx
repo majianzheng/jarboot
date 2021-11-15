@@ -12,7 +12,7 @@ import {JarBootConst} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
 import {SelectLang, UserMenu, ProjectHome, JarbootVersion} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
-import ServerMgrView from "@/components/servers";
+import ServerMgrView, {OnlineDebugView} from "@/components/servers";
 import {GlobalSetting, ServerSetting} from "@/components/setting";
 import AuthControl from "@/components/auth";
 import PluginsManager from "@/components/plugins";
@@ -31,6 +31,9 @@ const TabPanes: any = memo((props: any) => {
                  style={{margin: '0 15px 0 15px'}}>
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
             <ServerMgrView/>
+        </TabPane>
+        <TabPane key={'8'} tab={intl.formatMessage({id: 'ONLINE_DEBUG'})}>
+            <OnlineDebugView/>
         </TabPane>
         <TabPane key={'2'} tab={intl.formatMessage({id: 'SERVICES_CONF'})}>
             <ServerSetting/>
@@ -67,7 +70,7 @@ const index = memo(() => {
         console.log(`%c(灬°ω°灬) `, 'color:magenta');
         console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
         WsManager.initWebsocket();
-    }
+    };
     useEffect(() => {
         OAuthService.login().then(resp => {
             if (401 === resp.resultCode) {

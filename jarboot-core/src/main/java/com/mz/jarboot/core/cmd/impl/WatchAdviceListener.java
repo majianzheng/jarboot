@@ -4,12 +4,10 @@ import com.mz.jarboot.core.advisor.AccessPoint;
 import com.mz.jarboot.core.advisor.Advice;
 import com.mz.jarboot.core.advisor.AdviceListenerAdapter;
 import com.mz.jarboot.core.advisor.JarbootMethod;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Date;
 
 /**
@@ -18,7 +16,7 @@ import java.util.Date;
  */
 @SuppressWarnings("all")
 class WatchAdviceListener extends AdviceListenerAdapter {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     private com.mz.jarboot.core.cmd.impl.WatchCommand command;
     private CommandCoreSession process;

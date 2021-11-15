@@ -14,7 +14,7 @@ export default class UploadHeartbeat {
             this.stop();
             return;
         }
-        UploadFileService.uploadServerHeartbeat(this.server)
+        UploadFileService.uploadHeartbeat(this.server)
             .then(resp => {
                 if (resp.resultCode !== 0) {
                     this.stop();

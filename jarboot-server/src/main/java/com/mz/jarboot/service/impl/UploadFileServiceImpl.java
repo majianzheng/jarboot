@@ -1,9 +1,11 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.NoticeEnum;
+import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.service.UploadFileService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
@@ -12,6 +14,7 @@ import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,10 +41,13 @@ import java.util.stream.Stream;
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
     private static final long EXPIRED_TIME = 20000;
-    private String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
-    private ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
+    private final String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
+    private final ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     /** 是否启动了心跳监测 */
     private volatile boolean started = false;
+
+    @Autowired
+    private SettingService settingService;
 
     private File getTempCacheDir(String server) {
         return FileUtils.getFile(tempDir, server);
@@ -86,14 +92,14 @@ public class UploadFileServiceImpl implements UploadFileService {
                         .map(Map.Entry::getKey).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(waitDelete)) {
                     // 清理失去心跳的key
-                    waitDelete.forEach(this::clearUploadFileInCache);
+                    waitDelete.forEach(this::clearUploadCache);
                 }
             }
         });
     }
 
     @Override
-    public synchronized void beginUploadServerFile(String server) {
+    public synchronized boolean startUpload(String server) {
         if (uploadHeartbeat.containsKey(server)) {
             throw new JarbootException("已经有其他客户端在上传！");
         }
@@ -106,10 +112,12 @@ public class UploadFileServiceImpl implements UploadFileService {
         }
         uploadHeartbeat.put(server, System.currentTimeMillis());
         startMonitor();
+        String path = SettingUtils.getServerPath(server);
+        return FileUtils.getFile(path).exists();
     }
 
     @Override
-    public void uploadServerHeartbeat(String server) {
+    public void uploadHeartbeat(String server) {
         //如果存在则更新时间戳，不存在则忽略，保证原子操作
         uploadHeartbeat.computeIfPresent(server, (k, v) -> System.currentTimeMillis());
         if (!uploadHeartbeat.containsKey(server)) {
@@ -119,15 +127,21 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public synchronized void submitUploadFileInCache(String server) {
+    public synchronized void submitUploadFile(ServerSetting s) {
+        String server = s.getServer();
         if (StringUtils.isEmpty(server)) {
             throw new JarbootException("服务名为空！");
         }
         File dir = getTempCacheDir(server);
         String destPath = SettingUtils.getServerPath(server);
         File dest = FileUtils.getFile(destPath);
+        boolean exist = dest.exists();
         //开始复制前要不要先备份，以便失败后还原？文件量、体积巨大如何处理？为了性能先不做考虑
         try {
+            if (!exist && !dest.mkdir()) {
+                WebSocketManager.getInstance().notice("服务目录创建失败！", NoticeEnum.ERROR);
+                return;
+            }
             //先复制jar文件
             Collection<File> jarFiles = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
             for (File jar : jarFiles) {
@@ -136,25 +150,31 @@ public class UploadFileServiceImpl implements UploadFileService {
             //zip文件处理
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServerSetting setting = PropertyFileUtils.getServerSetting(server);
-            if (StringUtils.isEmpty(setting.getJar())) {
+            ServerSetting setting = exist ? PropertyFileUtils.getServerSetting(destPath) : s;
+            if (StringUtils.isEmpty(setting.getCommand())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
-                    String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的jar文件！", server);
+                    String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的命令！", server);
                     WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
                 }
+            }
+            if (!exist) {
+                setting.setPath(destPath);
+                settingService.submitServerSetting(setting);
+                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
             }
         } catch (Exception e) {
             //还原目录?万一体积巨大怎么处理
             throw new JarbootException(e.getMessage(), e);
         } finally {
             //清理缓存文件
-            clearUploadFileInCache(server);
+            clearUploadCache(server);
         }
     }
 
     @Override
-    public void deleteUploadFileInCache(String server, String file) {
+    public void deleteUploadFile(String server, String file) {
         File dir = getTempCacheDir(server);
         File[] find = dir.listFiles(f -> StringUtils.equals(file, f.getName()));
         if (null != find && find.length > 0) {
@@ -167,7 +187,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public synchronized void clearUploadFileInCache(String server) {
+    public synchronized void clearUploadCache(String server) {
         uploadHeartbeat.remove(server);
         File dir = getTempCacheDir(server);
         if (dir.exists() && dir.isDirectory()) {

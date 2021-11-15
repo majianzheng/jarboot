@@ -22,9 +22,9 @@ public class AgentClientController {
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple onResponse(@RequestParam String server, @RequestBody String raw) {
+    public ResponseSimple onResponse(@RequestParam String server, @RequestParam String sid, @RequestBody String raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
-        AgentManager.getInstance().handleAgentResponse(server, resp, null);
+        AgentManager.getInstance().handleAgentResponse(server, sid, resp, null);
         return new ResponseSimple();
     }
 
@@ -35,8 +35,8 @@ public class AgentClientController {
      */
     @GetMapping(value="/setStarted")
     @ResponseBody
-    public ResponseSimple setStarted(@RequestParam String server) {
-        AgentManager.getInstance().onServerStarted(server);
+    public ResponseSimple setStarted(@RequestParam String server, @RequestParam String sid) {
+        AgentManager.getInstance().onServerStarted(server, sid);
         return new ResponseSimple();
     }
 }

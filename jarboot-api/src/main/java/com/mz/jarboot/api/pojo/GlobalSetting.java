@@ -6,16 +6,16 @@ import java.io.Serializable;
  * @author majianzheng
  */
 public class GlobalSetting implements Serializable {
-    private String servicesPath;
+    private String workspace;
     private String defaultVmOptions;
     private Boolean servicesAutoStart;
 
-    public String getServicesPath() {
-        return servicesPath;
+    public String getWorkspace() {
+        return workspace;
     }
 
-    public void setServicesPath(String servicesPath) {
-        this.servicesPath = servicesPath;
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
     public String getDefaultVmOptions() {
@@ -37,7 +37,7 @@ public class GlobalSetting implements Serializable {
     @Override
     public String toString() {
         return "GlobalSettingDTO{" +
-                "servicesPath='" + servicesPath + '\'' +
+                "workspace='" + workspace + '\'' +
                 ", defaultVmOptions='" + defaultVmOptions + '\'' +
                 ", servicesAutoStart=" + servicesAutoStart +
                 '}';

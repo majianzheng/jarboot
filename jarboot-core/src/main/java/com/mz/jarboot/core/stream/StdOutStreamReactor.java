@@ -6,9 +6,9 @@ import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("all")
 public class StdOutStreamReactor {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private final StdConsoleOutputStream sos;
     private final PrintStream defaultOut;
     private final PrintStream defaultErr;

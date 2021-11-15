@@ -2,7 +2,6 @@
 
 ![logo](https://gitee.com/majz0908/jarboot/raw/develop/doc/jarboot.png)
 
-[![Java CI with Maven](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majianzheng/jarboot/actions/workflows/codeql-analysis.yml)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.majianzheng/jarboot-all)
 [![Build Status](https://travis-ci.com/majianzheng/jarboot.svg?branch=master)](https://travis-ci.com/majianzheng/jarboot)
@@ -13,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> 是一个Java进程启动器，可以管理、监控及诊断一系列的Java进程。
+<code>Jarboot</code> 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断一系列的Java进程。
 
 在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
 
@@ -47,12 +46,11 @@ English version goes [here](README.md).
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
-- <a href="https://repo1.maven.org/maven2/io/github/majianzheng/jarboot-packaging/" target="_blank">从maven center下载</a>
 - 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
 使用<code>Docker</code>
 ```bash
-sudo docker run -itd --name jarboot-test -p 9899:9899 mazheng0908/jarboot
+sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
 ### 编译源码的步骤
@@ -92,7 +90,7 @@ $ sh startup.sh
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -139,7 +137,7 @@ $ spring.env spring.application.name
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 2. 实现spi接口

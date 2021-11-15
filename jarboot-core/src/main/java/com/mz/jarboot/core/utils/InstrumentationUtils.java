@@ -1,8 +1,6 @@
 package com.mz.jarboot.core.utils;
 
-import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.util.Collection;
@@ -15,7 +13,7 @@ import java.util.Set;
  */
 @SuppressWarnings("all")
 public class InstrumentationUtils {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     public static void retransformClasses(Instrumentation inst, ClassFileTransformer transformer,
             Set<Class<?>> classes) {

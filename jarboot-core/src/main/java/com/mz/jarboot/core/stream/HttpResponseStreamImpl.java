@@ -11,7 +11,8 @@ import com.mz.jarboot.core.utils.HttpUtils;
 public class HttpResponseStreamImpl implements ResponseStream {
 
     private static class HttpResponseStreamImplHolder {
-        static String api = "/api/public/agent/response?server=" + EnvironmentContext.getServer();
+        static String api = "/api/public/agent/response?server=" + EnvironmentContext.getServer() +
+                "&sid=" + EnvironmentContext.getSid();
     }
 
     @Override

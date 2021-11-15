@@ -1,74 +1,98 @@
-import { Col, Row, Menu, Empty, Result, Button } from 'antd';
+import { Col, Row, Menu, Input, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
 import styles from './index.less';
-import ServerMgrService from "@/services/ServerMgrService";
+import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {LoadingOutlined, SyncOutlined} from '@ant-design/icons';
+import {LoadingOutlined} from '@ant-design/icons';
+import StringUtil from "@/common/StringUtil";
+import * as React from "react";
+// @ts-ignore
+import Highlighter from 'react-highlight-words';
+import {PUB_TOPIC, pubsub} from "@/components/servers";
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
-    const [data, setData] = useState([]);
+    const [data, setData] = useState([] as ServerRunning[]);
     const [current, setCurrent] = useState('');
     const [loading, setLoading] = useState(true);
+    const [filterText, setFilterText] = useState('');
 
-    const query = () => {
+    const query = (filter?: string) => {
+        setLoading(true);
+        setFilterText(filter as string);
         ServerMgrService.getServerList((resp: any) => {
             setLoading(false);
             if (resp.resultCode < 0) {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            if (!(resp?.result instanceof Array)) {
-                resp.result = new Array<any>();
+            let result = resp.result as ServerRunning[];
+            if (StringUtil.isNotEmpty(filter)) {
+                result = result.filter(s => s.name.includes(filter as string))
             }
-            setData(resp.result);
-            if (resp.result.length > 0) {
-                setCurrent(resp.result[0].name);
+            setData(result);
+            if (result.length > 0) {
+                setCurrent(result[0].path);
             }
         });
     };
 
-    useEffect(query, []);
+    const fresh = () => {
+        query(filterText);
+    };
+
+    const init = () => {
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        query();
+        return () => {
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        }
+    };
+
+    useEffect(init, []);
 
     const onSelect = (event: any) => {
         setCurrent(event.key);
     };
-    if (loading) {
-        return <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>;
-    }
-    return <>{(data?.length > 0) ? <Row>
+
+    const emptyIcon = loading ? <LoadingOutlined/> : <Empty/>;
+    const menuTitle = <Input.Search placeholder="Input name to search" onSearch={query} allowClear enterButton/>;
+    return <Row>
         <Col span={6} className={styles.pageContainer}>
             <Menu
                 onClick={onSelect}
                 selectedKeys={[current]}
                 mode="inline"
             >
-                <Menu.ItemGroup title={<span>
-                    <span>{intl.formatMessage({id: 'SERVER_LIST_TITLE'})}</span>
-                    <Button type={"link"} onClick={query} style={{marginLeft: "50px"}}
-                            icon={<SyncOutlined style={{color: 'green'}}/>}>
-                        {intl.formatMessage({id: 'REFRESH_BTN'})}
-                    </Button>
-                </span>}>
+                <Menu.ItemGroup title={menuTitle}>
                     <Menu.Divider/>
-                    {data.map((item: any) => {
-                        return <Menu.Item key={item.name}>{item.name}</Menu.Item>
-                    })}
+                    {data.length ? data.map((item) =>
+                        <Menu.Item key={item.path}>
+                            {filterText?.length ? <Highlighter
+                                highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                                searchWords={[filterText]}
+                                autoEscape
+                                textToHighlight={item.name || ''}
+                            /> : item.name}
+                        </Menu.Item>) : <Empty/>}
                 </Menu.ItemGroup>
             </Menu>
         </Col>
         <Col span={18} className={styles.pageContainer}>
             <div style={{margin: '0 30px 0 5px', width: '95%'}}>
-                <ServerConfig server={current}/>
+                {(data?.length > 0) ?
+                    <ServerConfig path={current}/> :
+                    <Result icon={emptyIcon}
+                            title={intl.formatMessage({id: 'SERVER_EMPTY'})}
+                            extra={<Button type="primary"
+                                           onClick={() => query()}>{intl.formatMessage({id: 'REFRESH_BTN'})}</Button>}/>
+                }
             </div>
         </Col>
-    </Row> : <Result icon={<Empty/>}
-                     title={intl.formatMessage({id: 'SERVER_EMPTY'})}
-                     extra={<Button type="primary" onClick={query}>
-                         {intl.formatMessage({id: 'REFRESH_BTN'})}
-                     </Button>}
-    />}</>
+    </Row>
 });
 export default ServerSetting;

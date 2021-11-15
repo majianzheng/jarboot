@@ -1,11 +1,10 @@
 package com.mz.jarboot.utils;
 
+import com.mz.jarboot.common.JarbootException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,6 +27,7 @@ public class VMUtils {
     private Method getVMName;
     private static volatile VMUtils instance = null;
     private boolean initialized = false;
+
     public static VMUtils getInstance() {
         if (null == instance) {
             synchronized (VMUtils.class) {
@@ -38,25 +38,24 @@ public class VMUtils {
         }
         return instance;
     }
+
     public boolean isInitialized() {
         return initialized;
     }
+
     public Object attachVM(int pid) {
         try {
             return attach.invoke(null, String.valueOf(pid));
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.warn("pid:{}", pid);
-            logger.warn(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new JarbootException("Attach failed! " + e.getMessage(), e);
         }
-        return null;
     }
 
     public void loadAgentToVM(Object vm, String path, String args) {
         try {
             loadAgent.invoke(vm, path, args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.warn("vm isNull:{}, path:{}, args:{}", null == vm, path, args);
-            logger.warn(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new JarbootException("loadAgent failed! " + e.getMessage(), e);
         }
     }
 

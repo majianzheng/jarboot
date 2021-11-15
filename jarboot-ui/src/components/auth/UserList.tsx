@@ -2,7 +2,6 @@ import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
-import {formatMsg} from "@/common/IntlFormat";
 import {FormOutlined, DeleteOutlined, SyncOutlined, UserAddOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import UserService from "@/services/UserService";
 import CommonNotice from "@/common/CommonNotice";
@@ -61,13 +60,13 @@ const UserList = memo(() => {
     let tableOption: any = {
         columns: [
             {
-                title: formatMsg('NAME'),
+                title: intl.formatMessage({id: 'NAME'}),
                 dataIndex: 'username',
                 key: 'username',
                 ellipsis: true,
             },
             {
-                title: formatMsg('PASSWORD'),
+                title: intl.formatMessage({id: 'PASSWORD'}),
                 dataIndex: 'password',
                 key: 'password',
                 ellipsis: true,

@@ -6,9 +6,8 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.util.Locale;
 
 /**
@@ -26,6 +25,7 @@ public class ShCommandProcessor implements CommandProcessor {
         IS_WINDOWS = os.startsWith("windows");
     }
 
+    @SuppressWarnings("all")
     @Override
     public String process(CommandSession session, String[] args) {
         if (null != process) {
@@ -40,16 +40,16 @@ public class ShCommandProcessor implements CommandProcessor {
             for (String s : args) {
                 sb.append(s).append(' ');
             }
-            File dir = new File(new File("").getAbsolutePath());
+            File dir = new File(UserDirHelper.getCurrentDir());
             try {
                 process = Runtime.getRuntime().exec(sb.toString(), null, dir);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        session.console(line);
-                    }
-                    process.waitFor();
+                InputStream inputStream = process.getInputStream();
+                int b = -1;
+                while (-1 != (b = inputStream.read())) {
+                    //最终会使用jarboot-core中的StdConsoleOutputStream来实现
+                    System.out.write(b);
                 }
+                process.waitFor();
             } catch (InterruptedException e) {
                 session.end(false, e.getMessage());
                 Thread.currentThread().interrupt();

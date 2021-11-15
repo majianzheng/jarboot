@@ -1,10 +1,9 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.util.Set;
  */
 @SuppressWarnings("all")
 class ClassDumpTransformer implements ClassFileTransformer {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private Set<Class<?>> classesToEnhance;
     private Map<Class<?>, File> dumpResult;
@@ -35,7 +34,7 @@ class ClassDumpTransformer implements ClassFileTransformer {
     public ClassDumpTransformer(Set<Class<?>> classesToEnhance, File directory) {
         this.classesToEnhance = classesToEnhance;
         this.dumpResult = new HashMap<Class<?>, File>();
-        this.jarbootLogHome = new File(EnvironmentContext.getJarbootHome() + File.separator + "logs");
+        this.jarbootLogHome = new File(LogUtils.getLogDir());
         this.directory = directory;
     }
 

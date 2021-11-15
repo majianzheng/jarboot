@@ -7,12 +7,11 @@ import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.cmd.CommandBuilder;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +20,7 @@ import java.util.Map;
  * @author jianzhengma
  */
 public class AgentServiceOperator {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final String SET_STARTED_API = "/api/public/agent/setStarted?server=";
     private static volatile boolean started = false;
 
@@ -29,7 +28,8 @@ public class AgentServiceOperator {
         if (started) {
             return;
         }
-        HttpUtils.getSimple(SET_STARTED_API + EnvironmentContext.getServer());
+        HttpUtils.getSimple(SET_STARTED_API + EnvironmentContext.getServer() +
+                "&sid=" + EnvironmentContext.getSid());
         started = true;
     }
 

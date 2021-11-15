@@ -12,12 +12,12 @@ import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.Integer.toHexString;
@@ -73,7 +73,7 @@ public class TimeTunnelCommand extends EnhancerCommand {
     private int numberOfLimit = 100;
     private int replayTimes = 1;
     private long replayInterval = 1000L;
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     @Argument(index = 0, argName = "class-pattern", required = false)
     @Description("Path and classname of Pattern Matching")

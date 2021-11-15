@@ -3,9 +3,9 @@ import {BackTop, Typography} from "antd";
 import {useIntl} from "umi";
 import {CaretRightOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
 
-const { Title, Paragraph, Text, Link } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
-const QuickStartDoc: any = memo(() => {
+const QuickStartDoc = memo(() => {
     const intl = useIntl();
     return <>
         <Typography>
@@ -23,7 +23,7 @@ const QuickStartDoc: any = memo(() => {
                         key1: <Text mark>「{intl.formatMessage({id: 'SETTING'})}」</Text>,
                         key2: <Text keyboard>{intl.formatMessage({id: 'SERVERS_PATH'})}</Text>,
                         key3: <Text mark>「{intl.formatMessage({id: 'SERVICES_CONF'})}」</Text>,
-                        key4: <Text keyboard>{intl.formatMessage({id: 'JAR_LABEL'})}</Text>
+                        key4: <Text keyboard>{intl.formatMessage({id: 'COMMAND_LABEL'})}</Text>
                     })}
             </Paragraph>
             <Paragraph>

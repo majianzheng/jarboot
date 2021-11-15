@@ -58,7 +58,7 @@ else
   JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${JAVA_HOME}/lib/ext"
   JAVA_OPT="${JAVA_OPT} -Xloggc:${JARBOOT_HOME}/logs/jarboot_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
 fi
-JAVA_OPT="${JAVA_OPT} -Dloader.path=${JARBOOT_HOME}/plugins/server"
+JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=${JARBOOT_HOME}/plugins/server"
 JAVA_OPT="${JAVA_OPT} -jar ${JARBOOT_HOME}/bin/${SERVER}.jar"
 
 if [ ! -d "${JARBOOT_HOME}/logs" ]; then

@@ -76,7 +76,7 @@ public class CatCommandProcessor implements CommandProcessor {
             return "";
         }
         Path path = Paths.get(this.fileName);
-        File file = path.isAbsolute() ? path.toFile() : new File(System.getProperty("user.dir"), this.fileName);
+        File file = path.isAbsolute() ? path.toFile() : new File(UserDirHelper.getCurrentDir(), this.fileName);
         if (file.exists()) {
             this.isCanceled = false;
             this.printFile(file, session);

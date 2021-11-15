@@ -11,38 +11,39 @@ const layout = {
     labelCol: {span: 8},
     wrapperCol: {span: 16},
 };
-const tailLayout = {
-    wrapperCol: {offset: 12, span: 12},
-};
+const tailLayout = {wrapperCol: {offset: 12, span: 12}};
 
-const ServerConfig: any = memo((props: any) => {
+interface ServerConfigProp {
+    path: string;
+}
+
+const ServerConfig: any = memo((props: ServerConfigProp) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
-    let [runnable, setRunnable] = useState(true);
     const onReset = () => {
-        SettingService.getServerSetting(props.server
+        SettingService.getServerSetting(props.path
         ).then((resp: any) => {
             if (0 !== resp.resultCode) {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
             form.setFieldsValue(resp.result);
-            setRunnable(!!resp.result?.runnable);
         }).catch(CommonNotice.errorFormatted);
     };
 
     useEffect(() => {
         onReset();
-    }, [props.server]);
+    }, [props.path]);
 
     const onSubmit = (data: any) => {
-        if (StringUtil.isEmpty(props.server)) {
+        if (StringUtil.isEmpty(props.path)) {
             CommonNotice.info('请先选择服务');
             return;
         }
-        SettingService.submitServerSetting(props.server, data).then(resp => {
+        data['path'] = props.path;
+        SettingService.submitServerSetting(data).then(resp => {
             if (0 === resp?.resultCode) {
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
             } else {
@@ -57,13 +58,13 @@ const ServerConfig: any = memo((props: any) => {
             vm = 'boot.vmoptions';
         }
         const onSave = (value: string) => {
-            SettingService.saveVmOptions(props.server, vm, value).then(resp => {
+            SettingService.saveVmOptions(props.path, vm, value).then(resp => {
                 if (resp.resultCode !== 0) {
                     CommonNotice.errorFormatted(resp);
                 }
             }).catch(CommonNotice.errorFormatted)
         };
-        SettingService.getVmOptions(props.server, vm).then(resp => {
+        SettingService.getVmOptions(props.path, vm).then(resp => {
             if (resp.resultCode !== 0) {
                 CommonNotice.errorFormatted(resp);
                 return;
@@ -83,27 +84,15 @@ const ServerConfig: any = memo((props: any) => {
     };
 
     return (<>
-        <Form {...layout} form={form} name="server-setting" onFinish={onSubmit} onValuesChange={changedValues => {
-            if (changedValues.hasOwnProperty('runnable')) {
-                setRunnable(changedValues.runnable)
-            }
-        }}>
-            <Form.Item name="runnable"
-                       label={intl.formatMessage({id: 'RUNNABLE_LABEL'})}
-                       rules={[{required: false}]} valuePropName={"checked"}>
-                <Switch/>
-            </Form.Item>
-            <Form.Item name="jar" hidden={!runnable}
-                       label={intl.formatMessage({id: 'JAR_LABEL'})}
-                       rules={[{required: false}]}>
-                <Input placeholder={"The jar file to start"} autoComplete="off"/>
-            </Form.Item>
-            <Form.Item name="userDefineRunArgument" hidden={runnable}
-                       label={intl.formatMessage({id: 'USER_DEFINE_RUN_LABEL'})}
+        <Form {...layout}
+              form={form}
+              name="server-setting"
+              onFinish={onSubmit} initialValues={{priority: 0}}>
+            <Form.Item name="command"
+                       label={intl.formatMessage({id: 'COMMAND_LABEL'})}
                        rules={[{required: false}]}>
                 <Input.TextArea rows={2}
-                                placeholder={"Example:  1) -jar xx.jar    2) MainClassName    " +
-                                "3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName"}
+                                placeholder={intl.formatMessage({id: 'COMMAND_EXAMPLE'})}
                                 autoComplete="off"/>
             </Form.Item>
             <Form.Item name="vm"
@@ -150,7 +139,7 @@ const ServerConfig: any = memo((props: any) => {
             <Form.Item name="priority"
                        label={intl.formatMessage({id: 'PRIORITY_LABEL'})}
                        rules={[{required: false}]}>
-                <InputNumber min={0} max={9999} defaultValue={0} autoComplete="off"/>
+                <InputNumber min={0} max={9999} autoComplete="off"/>
             </Form.Item>
             <Form.Item name="daemon"
                        label={intl.formatMessage({id: 'DAEMON_LABEL'})}
@@ -171,8 +160,8 @@ const ServerConfig: any = memo((props: any) => {
                 </Button>
             </Form.Item>
         </Form>
-        <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
-                       visible={visible} onClose={() => setVisible(false)}/>
+        {visible && <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
+                                   visible={true} onClose={() => setVisible(false)}/>}
     </>);
 });
 export default ServerConfig;

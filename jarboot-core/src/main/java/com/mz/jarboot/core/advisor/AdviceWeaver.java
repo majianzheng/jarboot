@@ -16,8 +16,7 @@ public class AdviceWeaver {
     /**
      * 通知监听器集合
      */
-    private static final Map<Long, AdviceListener> ADVICES
-            = new ConcurrentHashMap<>();
+    private static final Map<Long, AdviceListener> ADVICES = new ConcurrentHashMap<>();
 
     /**
      * 注册监听器

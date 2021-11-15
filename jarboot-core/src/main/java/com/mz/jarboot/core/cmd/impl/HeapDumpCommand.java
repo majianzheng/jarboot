@@ -7,10 +7,10 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.model.HeapDumpModel;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.sun.management.HotSpotDiagnosticMXBean; //NOSONAR
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Description("\nExamples:\n" + "  heapdump\n" + "  heapdump --live\n"
                 + CoreConstant.WIKI + CoreConstant.WIKI_HOME + "heapdump")
 public class HeapDumpCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private boolean live;
 
@@ -66,7 +66,7 @@ public class HeapDumpCommand extends AbstractCommand {
 
     @Override
     public void run() {
-        String outPath = "dump";
+        String outPath = LogUtils.getLogDir() + File.separator + "dump";
         try {
             String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm").format(new Date());
             String dumpFile = "heapdump" + date + (live ? "-live.hprof" : ".hprof");

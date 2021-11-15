@@ -1,9 +1,8 @@
 package com.mz.jarboot.core.advisor;
 
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.jarboot.SpyAPI;
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.regex.Pattern;
  * 以下代码基于开源项目Arthas适配修改
  */
 public class SpyImpl extends SpyAPI.AbstractSpy {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     @Override
     public void atEnter(Class<?> clazz, String methodInfo, Object target, Object[] args) {

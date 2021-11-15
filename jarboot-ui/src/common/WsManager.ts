@@ -9,11 +9,12 @@ import { getLocale } from 'umi';
 
 interface MsgData {
     event: number,
-    server: string,
+    sid: string,
     body: any
 }
 let msg: any = null;
 class WsManager {
+    public static readonly RECONNECTED_EVENT = -1;
     private static websocket: any = null;
     private static fd: any = null;
     private static _messageHandler = new Map<number, (data: MsgData) => void>();
@@ -88,7 +89,7 @@ class WsManager {
                 Logger.warn(`协议错误，${resp}`);
                 return;
             }
-            const server = 0 === i ? '' : resp.substring(0, i);
+            const sid = 0 === i ? '' : resp.substring(0, i);
             let k = resp.indexOf(JarBootConst.PROTOCOL_SPLIT, i + 1);
             if (-1 === k) {
                 Logger.warn(`协议错误，获取事件类型失败，${resp}`);
@@ -96,7 +97,7 @@ class WsManager {
             }
             const event = parseInt(resp.substring(i + 1, k));
             const body = resp.substring(k + 1);
-            let data: MsgData = {event, body, server};
+            let data: MsgData = {event, body, sid};
             const handler = WsManager._messageHandler.get(data.event);
             handler && handler(data);
         } catch (error) {
@@ -106,8 +107,13 @@ class WsManager {
 
     private static _onOpen = () => {
         Logger.log("连接Websocket服务器成功！");
-        msg && msg();
-        msg = null;
+        if (msg) {
+            msg();
+            msg = null;
+            //重连成功，刷新状态
+            const handler = WsManager._messageHandler.get(WsManager.RECONNECTED_EVENT);
+            handler && handler({sid: '', body: '', event: WsManager.RECONNECTED_EVENT});
+        }
         if (null !== WsManager.fd) {
             //连接成功，取消重连机制
             clearInterval(WsManager.fd);

@@ -3,7 +3,6 @@ package com.mz.jarboot.shell.plugin;
 import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import java.io.File;
 
 /**
  * pwd
@@ -15,6 +14,6 @@ import java.io.File;
 public class PwdCommandProcessor implements CommandProcessor {
     @Override
     public String process(CommandSession session, String[] args) {
-        return new File("").getAbsolutePath();
+        return UserDirHelper.getCurrentDir();
     }
 }

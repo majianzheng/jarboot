@@ -27,7 +27,7 @@ public class PluginsServiceImpl implements PluginsService {
     private static final String SERVER_DIR = "server";
     private static final String PLUGINS_DIR = "plugins";
 
-    @Value("${jarboot.home:}")
+    @Value("${JARBOOT_HOME:}")
     private String jarbootHome;
 
     @Override

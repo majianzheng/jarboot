@@ -23,7 +23,7 @@ const LoginMenu = memo(() => {
     </div>
 });
 
-const Login: any = memo(() => {
+const Login = memo(() => {
     const devRef: any = useRef();
     useEffect(() => {
         const bga = new BgAnimation(devRef);

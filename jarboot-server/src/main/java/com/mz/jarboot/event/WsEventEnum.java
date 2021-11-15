@@ -54,4 +54,9 @@ public enum WsEventEnum {
      * 命令执行完成
      */
     CMD_END,
+
+    /**
+     * 工作空间变更
+     */
+    WORKSPACE_CHANGE,
 }

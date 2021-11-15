@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -203,8 +204,8 @@ public class DemoServerApplication implements Runnable {
     
     private static void printBanner() {
         try (InputStream is = DemoServerApplication.class.getResourceAsStream("/banner.txt");
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);){
+             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+             BufferedReader br = new BufferedReader(isr);){
             for (;;) {
                 String line = br.readLine();
                 if (null == line) {

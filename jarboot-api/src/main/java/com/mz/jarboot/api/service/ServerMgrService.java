@@ -1,5 +1,6 @@
 package com.mz.jarboot.api.service;
 
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 
@@ -34,25 +35,44 @@ public interface ServerMgrService {
 
     /**
      * 启动服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void startServer(List<String> p);
+    void startServer(List<String> paths);
 
     /**
      * 停止服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void stopServer(List<String> p);
+    void stopServer(List<String> paths);
 
     /**
      * 重启服务
-     * @param p 服务列表，列表内容为jar包的上级文件夹的名称
+     * @param paths 服务列表，字符串格式：服务path
      */
-    void restartServer(List<String> p);
+    void restartServer(List<String> paths);
 
     /**
      * 通过服务配置启动服务
      * @param setting 服务配置
      */
     void startSingleServer(ServerSetting setting);
+
+    /**
+     * 获取未被服务管理的JVM进程信息
+     * @return jvm进程信息
+     */
+    List<JvmProcess> getJvmProcesses();
+
+    /**
+     * attach到指定的进程
+     * @param pid 进程pid
+     * @param name 名字
+     */
+    void attach(int pid, String name);
+
+    /**
+     * 删除服务
+     * @param server
+     */
+    void deleteServer(String server);
 }

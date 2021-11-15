@@ -1,5 +1,7 @@
 import {notification} from 'antd';
 import ErrorUtil from "@/common/ErrorUtil";
+import {JarBootConst} from "@/common/JarBootConst";
+import {getLocale} from "@@/plugin-locale/localeExports";
 
 /**
  * 通知组件
@@ -62,3 +64,13 @@ export default class CommonNotice {
         CommonNotice.error(ErrorUtil.formatErrResp(error));
     };
 }
+
+const notSelectInfo = () => {
+    if (JarBootConst.ZH_CN === getLocale()) {
+        CommonNotice.info('请点击选择一行执行');
+    } else {
+        CommonNotice.info('Please select one to operate');
+    }
+};
+
+export { notSelectInfo }

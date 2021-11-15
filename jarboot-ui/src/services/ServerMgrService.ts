@@ -5,6 +5,21 @@ import StringUtil from "@/common/StringUtil";
 
 const urlBase = "/api/jarboot/services";
 
+interface ServerRunning {
+    name: string,
+    sid: string,
+    status: string,
+    path: string
+}
+
+interface JvmProcess {
+    name: string,
+    fullName: string,
+    pid: number,
+    attached: boolean
+}
+
+export { ServerRunning, JvmProcess };
 /**
  * 服务管理
  */
@@ -15,33 +30,38 @@ export default class ServerMgrService {
      * @param callback
      */
     public static getServerList(callback: any) {
-        Request.get(`${urlBase}/getServerList`, {}).then(callback).catch(CommonNotice.errorFormatted);
+        Request.get(`${urlBase}/getServerList`, {})
+            .then(callback)
+            .catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 启动服务
-     * @param param
+     * @param servers
      * @param callback
      */
-    public static startServer(param: any, callback: any) {
+    public static startServer(servers: ServerRunning[], callback: any) {
+        const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/startServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 终止服务
-     * @param param
+     * @param servers
      * @param callback
      */
-    public static stopServer(param: any, callback: any) {
+    public static stopServer(servers: ServerRunning[], callback: any) {
+        const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/stopServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 重启服务
-     * @param param
+     * @param servers
      * @param callback
      */
-    public static restartServer(param: any, callback: any) {
+    public static restartServer(servers: ServerRunning[], callback: any) {
+        const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/restartServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
@@ -78,5 +98,36 @@ export default class ServerMgrService {
             return Promise.resolve();
         }
         return Request.get(`${urlBase}/base64Encoder`, {data});
+    }
+
+    /**
+     * 获取未被服务管理的JVM进程信息
+     * @param callback
+     */
+    public static getJvmProcesses(callback: any) {
+        Request.get(`${urlBase}/getJvmProcesses`, {})
+            .then(callback)
+            .catch(CommonNotice.errorFormatted);
+    }
+
+    /**
+     * attach进程
+     * @param pid pid
+     * @param name 名字
+     */
+    public static attach(pid: number, name: string) {
+        return Request.get(`${urlBase}/attach`, {pid, name});
+    }
+
+    /**
+     * 删除服务
+     * @param server 服务名
+     */
+    public static deleteServer(server: string) {
+        return Request.get(`${urlBase}/deleteServer`, {server});
+    }
+
+    private static parseParam(servers: ServerRunning[]): string[] {
+        return servers.map(server => server.path);
     }
 }

@@ -1,209 +1,248 @@
 import * as React from "react";
-import {Result, Tag} from "antd";
-import { getLocale } from 'umi';
-import ServerMgrService from "@/services/ServerMgrService";
-import CommonNotice from '@/common/CommonNotice';
+import {Result, Tag, Input, Space, Button, Modal} from "antd";
+import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
+import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
-    SyncOutlined, CaretRightOutlined, ExclamationCircleOutlined, CaretRightFilled, DashboardOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined
+    SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined, DeleteOutlined,
+    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
 } from '@ant-design/icons';
 import {JarBootConst} from '@/common/JarBootConst';
-import {MsgData, WsManager} from "@/common/WsManager";
+import {MsgData} from "@/common/WsManager";
 import Logger from "@/common/Logger";
-import {MSG_EVENT} from "@/common/EventConst";
-import {formatMsg} from "@/common/IntlFormat";
-import {ServerPubsubImpl} from "@/components/servers/ServerPubsubImpl";
-import {PUB_TOPIC, SuperPanel} from "@/components/servers/SuperPanel";
+import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
 import OneClickButtons from "@/components/servers/OneClickButtons";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
+// @ts-ignore
+import Highlighter from 'react-highlight-words';
+import styles from "./index.less";
+import {useEffect, useReducer} from "react";
+import {useIntl} from "umi";
 
-interface ServerRunning {
-    name: string,
-    status: string,
-    pid: number
-}
+let searchInput = {} as any;
 
-const pubsub: PublishSubmit = new ServerPubsubImpl();
-
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
-const toolButtonGreenStyle = {color: 'green', fontSize: '18px'};
-
-const notSelectInfo = () => {
-    if (JarBootConst.ZH_CN === getLocale()) {
-        CommonNotice.info('请点击选择一个服务执行');
-    } else {
-        CommonNotice.info('Please select one to operate');
-    }
-};
-
-export default class ServerMgrView extends React.PureComponent {
-    state = {loading: false, data: new Array<any>(), uploadVisible: false,
-        selectedRowKeys: new Array<any>(),
-        selectRows: new Array<any>(), current: '', oneClickLoading: false};
-    allServerOut: any = [];
-    height = window.innerHeight - 120;
-    componentDidMount() {
-        this.refreshServerList(true);
-        //初始化websocket的事件处理
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
-        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
-        WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._serverStatusChange);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
-    }
-
-    componentWillUnmount() {
-        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_LINE);
-        WsManager.removeMessageHandler(MSG_EVENT.CONSOLE_PRINT);
-        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE);
-        WsManager.removeMessageHandler(MSG_EVENT.BACKSPACE_LINE);
-        WsManager.removeMessageHandler(MSG_EVENT.RENDER_JSON);
-        WsManager.removeMessageHandler(MSG_EVENT.SERVER_STATUS);
-        WsManager.removeMessageHandler(MSG_EVENT.CMD_END);
-    }
-
-    private _renderCmdJsonResult = (data: MsgData) => {
-        if ('{' !== data.body[0]) {
-            //不是json数据时，使用console
-            this._console(data);
-            return;
+const ServerMgrView = () => {
+    const intl = useIntl();
+    const initArg = {
+        loading: false, data: [] as ServerRunning[], uploadVisible: false,
+        selectedRowKeys: [] as string[], searchText: '', searchedColumn: '',
+        selectRows: [] as ServerRunning[], current: '', oneClickLoading: false
+    };
+    const [state, dispatch] = useReducer((state: any, action: any) => {
+        if ('function' === typeof action) {
+            return {...state, ...action(state)};
         }
-        const body = JSON.parse(data.body);
-        pubsub.publish(data.server, PUB_TOPIC.RENDER_JSON, body);
-    }
+        return {...state, ...action};
+    }, initArg, arg => ({...arg}));
 
-    private _activeConsole(server: any) {
-        let data: ServerRunning[] = this.state.data;
-        const index = data.findIndex(row => row.name === server);
-        if (-1 !== index) {
-            const selectedRowKeys: any = [data[index].name];
-            const selectRows: any = [data[index]];
-            this.setState({selectedRowKeys, selectRows});
-        }
-    }
+    const height = window.innerHeight - 120;
 
-    private _serverStatusChange = (data: MsgData) => {
-        const server = data.server;
-        const status = data.body;
-        switch (status) {
-            case JarBootConst.MSG_TYPE_START:
-                // 激活终端显示
-                this._activeConsole(server);
-                Logger.log(`${server}启动中...`);
-                pubsub.publish(server, JarBootConst.START_LOADING);
-                this._clearDisplay(server);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTING);
-                break;
-            case JarBootConst.MSG_TYPE_STOP:
-                Logger.log(`${server}停止中...`);
-                pubsub.publish(server, JarBootConst.START_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPING);
-                break;
-            case JarBootConst.MSG_TYPE_START_ERROR:
-                Logger.log(`${server}启动失败`);
-                CommonNotice.error(`Start ${server} failed!`);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPED);
-                break;
-            case JarBootConst.MSG_TYPE_STARTED:
-                Logger.log(`${server}启动成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
-                break;
-            case JarBootConst.MSG_TYPE_STOP_ERROR:
-                Logger.log(`${server}停止失败`);
-                CommonNotice.error(`Stop ${server} failed!`);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED);
-                break;
-            case JarBootConst.MSG_TYPE_STOPPED:
-                Logger.log(`${server}停止成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STOPPED)
-                break;
-            case JarBootConst.MSG_TYPE_RESTART:
-                Logger.log(`${server}重启成功`);
-                pubsub.publish(server, JarBootConst.FINISH_LOADING);
-                this._updateServerStatus(server, JarBootConst.STATUS_STARTED)
-                break;
-            default:
-                break;
+    useEffect(() => {
+        refreshServerList(true);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshServerList);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, refreshServerList);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+        return () => {
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshServerList);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, refreshServerList);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
         }
+    }, []);
+
+    const activeConsole = (sid: string) => {
+        dispatch((preState: any) => {
+            let data: ServerRunning[] = preState.data;
+            const index = data.findIndex(row => row.sid === sid);
+            if (-1 !== index) {
+                const selectedRowKeys: any = [data[index].sid];
+                const selectRows: any = [data[index]];
+                return {selectedRowKeys, selectRows};
+            }
+            return {};
+        });
     };
 
-    private _console = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.APPEND_LINE, data.body);
-    }
-
-    private _print = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.PRINT, data.body);
-    }
-
-    private _backspace = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.BACKSPACE, data.body);
-    }
-
-    private _backspaceLine = (data: MsgData) => {
-        pubsub.publish(data.server, JarBootConst.BACKSPACE_LINE, data.body);
-    }
-
-    private _commandEnd = (data: MsgData) => {
-        pubsub.publish(data.server, PUB_TOPIC.CMD_END, data.body);
-    }
-
-    private _updateServerStatus(server: string, status: string) {
-        let data: ServerRunning[] = this.state.data;
-        data = data.map((value: ServerRunning) => {
-            if (value.name === server) {
-                value.status = status;
-                value.pid = 0;
+    const onStatusChange = (data: MsgData) => {
+        dispatch((preState: any) => {
+            const item = preState.data.find((value: ServerRunning) => value.sid === data.sid);
+            if (!item) {
+                return {};
             }
-            return value;
+            const status = data.body;
+            const key = data.sid;
+            const server = item.name as string;
+            switch (status) {
+                case JarBootConst.MSG_TYPE_START:
+                    // 激活终端显示
+                    activeConsole(key);
+                    Logger.log(`${server}启动中...`);
+                    pubsub.publish(key, JarBootConst.START_LOADING);
+                    clearDisplay(item);
+                    item.status = JarBootConst.STATUS_STARTING;
+                    break;
+                case JarBootConst.MSG_TYPE_STOP:
+                    Logger.log(`${server}停止中...`);
+                    pubsub.publish(key, JarBootConst.START_LOADING);
+                    item.status = JarBootConst.STATUS_STOPPING;
+                    break;
+                case JarBootConst.MSG_TYPE_START_ERROR:
+                    Logger.log(`${server}启动失败`);
+                    CommonNotice.error(`Start ${server} failed!`);
+                    item.status = JarBootConst.STATUS_STOPPED;
+                    break;
+                case JarBootConst.MSG_TYPE_STARTED:
+                    Logger.log(`${server}启动成功`);
+                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    item.status = JarBootConst.STATUS_STARTED;
+                    break;
+                case JarBootConst.MSG_TYPE_STOP_ERROR:
+                    Logger.log(`${server}停止失败`);
+                    CommonNotice.error(`Stop ${server} failed!`);
+                    item.status = JarBootConst.STATUS_STARTED;
+                    break;
+                case JarBootConst.MSG_TYPE_STOPPED:
+                    Logger.log(`${server}停止成功`);
+                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    item.status = JarBootConst.STATUS_STOPPED;
+                    break;
+                case JarBootConst.MSG_TYPE_RESTART:
+                    Logger.log(`${server}重启成功`);
+                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    item.status = JarBootConst.STATUS_STARTED;
+                    break;
+                default:
+                    return {};
+            }
+            return {data: [...preState.data]};
         });
-        this.setState({data});
-    }
 
-    private _getTbProps() {
-        return {
-            columns: [
-                {
-                    title: formatMsg('NAME'),
-                    dataIndex: 'name',
-                    key: 'name',
-                    ellipsis: true,
-                },
-                {
-                    title: formatMsg('STATUS'),
-                    dataIndex: 'status',
-                    key: 'status',
-                    ellipsis: true,
-                    width: 120,
-                    render: (text: string) => ServerMgrView.translateStatus(text),
-                },
-            ],
-            loading: this.state.loading,
-            dataSource: this.state.data,
-            pagination: false,
-            rowKey: 'name',
-            size: 'small',
-            rowSelection: this._getRowSelection(),
-            onRow: this._onRow.bind(this),
-            showHeader: true,
-            scroll: this.height,
-        };
-    }
-    private static translateStatus(status: string) {
+    };
+
+    const getColumnSearchProps = (dataIndex: string) => ({
+        // @ts-ignore
+        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
+            <div style={{padding: 8}}>
+                <Input
+                    ref={node => {
+                        searchInput = node;
+                    }}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+                    style={{marginBottom: 8, display: 'block'}}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined/>}
+                        size="small"
+                        style={{width: 90}}
+                    >
+                        {intl.formatMessage({id: 'SEARCH_BTN'})}
+                    </Button>
+                    <Button onClick={() => handleReset(clearFilters)} size="small" style={{width: 90}}>
+                        {intl.formatMessage({id: 'RESET_BTN'})}
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({closeDropdown: false});
+                            dispatch({searchText: selectedKeys[0], searchedColumn: dataIndex});
+                            state.searchText = selectedKeys[0];
+                            state.searchedColumn = dataIndex;
+                        }}
+                    >
+                        {intl.formatMessage({id: 'FILTER_BTN'})}
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => <SearchOutlined style={{color: filtered ? '#1890ff' : undefined}}/>,
+        onFilter: (value: string, record: any) =>
+            record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                : '',
+        onFilterDropdownVisibleChange: (visible: boolean) => {
+            if (visible) {
+                setTimeout(() => searchInput.select(), 100);
+            }
+        },
+        render: (text: string) => {
+            return state.searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{backgroundColor: '#ffc069', padding: 0}}
+                    searchWords={[state.searchText]}
+                    autoEscape
+                    textToHighlight={text || ''}
+                />
+            ) : (
+                text
+            );},
+    });
+
+    const handleSearch = (selectedKeys: string[], confirm: () => void, dataIndex: string) => {
+        confirm();
+        dispatch({searchText: selectedKeys[0], searchedColumn: dataIndex});
+        state.searchText = selectedKeys[0];
+        state.searchedColumn = dataIndex;
+    };
+
+    const handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        dispatch({searchText: ''});
+        state.searchText = '';
+    };
+
+    const getTbProps = () => ({
+        columns: [
+            {
+                title: intl.formatMessage({id: 'NAME'}),
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+                sorter: (a: ServerRunning, b: ServerRunning) => a.name.localeCompare(b.name),
+                sortDirections: ['descend', 'ascend'],
+                ...getColumnSearchProps('name')
+            },
+            {
+                title: intl.formatMessage({id: 'STATUS'}),
+                dataIndex: 'status',
+                key: 'status',
+                ellipsis: true,
+                width: 120,
+                filters: [
+                    {text: intl.formatMessage({id: 'STOPPED'}), value: 'STOPPED'},
+                    {text: intl.formatMessage({id: 'RUNNING'}), value: 'RUNNING'},
+                    {text: intl.formatMessage({id: 'STARTING'}), value: 'STARTING'},
+                    {text: intl.formatMessage({id: 'STOPPING'}), value: 'STOPPING'},
+                ],
+                onFilter: (value: string, record: ServerRunning) => record.status === value,
+                render: (text: string) => translateStatus(text),
+            },
+        ],
+        loading: state.loading,
+        dataSource: state.data,
+        pagination: false,
+        rowKey: 'sid',
+        size: 'small',
+        rowSelection: getRowSelection(),
+        onRow: onRow,
+        showHeader: true,
+        scroll: height,
+    });
+    const translateStatus = (status: string) => {
         let tag;
-        const s = formatMsg(status);
+        const s = intl.formatMessage({id: status});
         switch (status) {
             case JarBootConst.STATUS_STARTED:
                 tag = <Tag icon={<CaretRightOutlined/>} color={"success"}>{s}</Tag>
                 break;
             case JarBootConst.STATUS_STOPPED:
-                tag = <Tag icon={<ExclamationCircleOutlined style={{color: '#f50'}}/>} color={"volcano"}>{s}</Tag>
+                tag = <Tag icon={<PoweroffOutlined/>} color={"volcano"}>{s}</Tag>
                 break;
             case JarBootConst.STATUS_STARTING:
                 tag = <Tag icon={<SyncOutlined spin/>} color={"processing"}>{s}</Tag>
@@ -218,224 +257,251 @@ export default class ServerMgrView extends React.PureComponent {
         return tag;
     }
 
-    private _getRowSelection() {
-        return {
-            type: 'checkbox',
-            onChange: (selectedRowKeys: any, selectedRows: any) => {
-                let current = this.state.current;
-                if (!selectedRows || selectedRows.length <= 0) {
-                    current = '';
-                } else {
-                    current = '' === current ? selectedRowKeys[0] : current;
-                }
-                this.setState({current, selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
-            },
-            selectedRowKeys: this.state.selectedRowKeys,
-        };
-    }
+    const getRowSelection = () => ({
+        type: 'checkbox',
+        onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
+            let current = state.current;
+            if (!selectedRows || selectedRows.length <= 0) {
+                current = '';
+            } else {
+                current = '' === current ? selectedRowKeys[0] : current;
+            }
+            dispatch({current, selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
+        },
+        selectedRowKeys: state.selectedRowKeys,
+    });
 
-    private _onRow(record: any) {
-        return {
-            onClick: () => {
-                this.setState({
-                    selectedRowKeys: [record.name],
-                    selectRows: [record],
-                    current: record.name,
-                });
-            },
-        };
-    }
+    const onRow = (record: ServerRunning) => ({
+        onClick: () => dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid})
+    });
 
-    private _initAllServerOut(servers: any[]) {
-        let allList = [];
-        if (servers && servers.length > 0) {
-            allList = servers.map(value => value.name);
-        }
-        allList.push("");
-        this.allServerOut = allList;
-    }
-
-    private refreshServerList = (init: boolean = false) => {
-        this.setState({loading: true});
+    const refreshServerList = (init: boolean = false) => {
+        dispatch({loading: true});
         ServerMgrService.getServerList((resp: any) => {
-            this.setState({loading: false});
-            if (resp.resultCode < 0) {
-                CommonNotice.errorFormatted(resp);
-                return;
-            }
-            const data = resp.result;
-            this._initAllServerOut(data);
-            if (init) {
-                //初始化选中第一个
-                let current = '';
-                let selectedRowKeys: any = [];
-                let selectRows: any = [];
-                if (data.length > 0) {
-                    const first: any = data[0];
-                    current = first.name as string;
-                    selectedRowKeys = [first.name];
-                    selectRows = [first];
+            dispatch((preState: any) => {
+                if (resp.resultCode < 0) {
+                    CommonNotice.errorFormatted(resp);
+                    return {loading: false};
                 }
-                this.setState({data, current, selectedRowKeys, selectRows});
-                return;
-            }
-            this.setState({data});
+                const data = resp.result as ServerRunning[];
+                const index = data.findIndex(item => preState.current === item.sid);
+                if (init || -1 === index) {
+                    //初始化选中第一个
+                    let current = '';
+                    let selectedRowKeys = [] as string[];
+                    let selectRows: any = [];
+                    if (data.length > 0) {
+                        const first: ServerRunning = data[0];
+                        current = first.sid;
+                        selectedRowKeys = [first.sid];
+                        selectRows = [first];
+                    }
+                    return {data, current, selectedRowKeys, selectRows, loading: false};
+                }
+                return {data, loading: false};
+            });
         });
     };
 
-    private _finishCallback = (resp: any) => {
-        this.setState({loading: false});
+    const finishCallback = (resp: any) => {
+        dispatch({loading: false});
         if (0 !== resp.resultCode) {
             CommonNotice.errorFormatted(resp);
         }
     };
 
-    private startServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+    const startServer = () => {
+        if (state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
-        this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.startServer(this.state.selectedRowKeys, this._finishCallback);
+        dispatch({loading: true});
+        state.selectRows.forEach(clearDisplay);
+        ServerMgrService.startServer(state.selectRows, finishCallback);
     };
 
-    private _clearDisplay = (server: string) => {
-        pubsub.publish(server, JarBootConst.CLEAR_CONSOLE);
+    const clearDisplay = (server: ServerRunning) => {
+        pubsub.publish(server.sid, JarBootConst.CLEAR_CONSOLE);
     };
 
-    private stopServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+    const stopServer = () => {
+        if (state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
 
-        this.setState({out: "", loading: true});
+        dispatch({loading: true});
 
-        ServerMgrService.stopServer(this.state.selectedRowKeys, this._finishCallback);
+        ServerMgrService.stopServer(state.selectRows, finishCallback);
     };
 
-    private restartServer = () => {
-        if (this.state.selectedRowKeys.length < 1) {
+    const restartServer = () => {
+        if (state.selectRows.length < 1) {
             notSelectInfo();
             return;
         }
-        this.setState({out: "", loading: true});
-        this.state.selectedRowKeys.forEach(this._clearDisplay);
-        ServerMgrService.restartServer(this.state.selectedRowKeys, this._finishCallback);
+        dispatch({loading: true});
+        state.selectRows.forEach(clearDisplay);
+        ServerMgrService.restartServer(state.selectRows, finishCallback);
     };
 
-    private _getTbBtnProps = () => {
-        return [
-            {
-                name: 'Start',
-                key: 'start ',
-                icon: <CaretRightFilled style={toolButtonGreenStyle}/>,
-                onClick: this.startServer,
-            },
-            {
-                name: 'Stop',
-                key: 'stop',
-                icon: <PoweroffOutlined style={toolButtonRedStyle}/>,
-                onClick: this.stopServer,
-            },
-            {
-                name: 'Restart',
-                key: 'restart',
-                icon: <ReloadOutlined style={toolButtonStyle}/>,
-                onClick: this.restartServer,
-            },
-            {
-                name: 'Refresh',
-                key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
-                onClick: () => this.refreshServerList(),
-            },
-            {
-                name: 'New & update',
-                key: 'upload',
-                icon: <UploadOutlined style={toolButtonStyle}/>,
-                onClick: this.uploadFile,
-            },
-            {
-                name: 'Dashboard',
-                key: 'dashboard',
-                icon: <DashboardOutlined style={toolButtonRedStyle}/>,
-                onClick: this.dashboardCmd,
+    const getTbBtnProps = () => ([
+        {
+            name: 'Start',
+            key: 'start ',
+            icon: <CaretRightFilled className={styles.toolButtonGreenStyle}/>,
+            onClick: startServer,
+            disabled: !state.selectRows?.length
+        },
+        {
+            name: 'Stop',
+            key: 'stop',
+            icon: <PoweroffOutlined className={styles.toolButtonRedStyle}/>,
+            onClick: stopServer,
+            disabled: !state.selectRows?.length
+        },
+        {
+            name: 'Restart',
+            key: 'restart',
+            icon: <ReloadOutlined className={styles.toolButtonStyle}/>,
+            onClick: restartServer,
+            disabled: !state.selectRows?.length
+        },
+        {
+            name: 'Refresh',
+            key: 'refresh',
+            icon: <SyncOutlined className={styles.toolButtonStyle}/>,
+            onClick: () => refreshServerList(),
+        },
+        {
+            name: 'New & update',
+            key: 'upload',
+            icon: <UploadOutlined className={styles.toolButtonStyle}/>,
+            onClick: uploadFile,
+        },
+        {
+            name: 'Delete',
+            key: 'delete',
+            icon: <DeleteOutlined className={styles.toolButtonRedStyle}/>,
+            onClick: deleteServer,
+            disabled: isDeleteDisabled()
+        },
+        {
+            name: 'Dashboard',
+            key: 'dashboard',
+            icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
+            onClick: dashboardCmd,
+            disabled: isCurrentNotRunning()
+        }
+    ]);
+
+    const isDeleteDisabled = () => {
+        if (1 !== state.selectRows?.length) {
+            return true;
+        }
+        return JarBootConst.STATUS_STOPPED !== state.selectRows[0].status;
+    };
+
+    const deleteServer = () => {
+        if (!state.selectRows?.length) {
+            notSelectInfo();
+            return;
+        }
+        if (state.selectRows?.length > 1) {
+            CommonNotice.info("Select one to delete.");
+            return;
+        }
+        Modal.confirm({
+            title: intl.formatMessage({id: 'WARN'}),
+            content: intl.formatMessage({id: 'DELETE_INFO'}),
+            onOk: () => {
+                ServerMgrService.deleteServer(state.selectRows[0].name).then(resp => {
+                    if (0 !== resp.resultCode) {
+                        CommonNotice.errorFormatted(resp);
+                    }
+                }).catch(CommonNotice.errorFormatted);
             }
-        ]
+        });
     };
 
-    private uploadFile = () => {
-        this.setState({uploadVisible: true});
+    const isCurrentNotRunning = () => {
+        const item = state.data.find((value: ServerRunning) => value.sid === state.current);
+        return !(item && JarBootConst.STATUS_STARTED === item.status);
     };
 
-    private dashboardCmd = () => {
-        if (this.state.selectRows?.length < 1 || StringUtil.isEmpty(this.state.current)) {
+    const uploadFile = () => dispatch({uploadVisible: true});
+
+    const dashboardCmd = () => {
+        if (state.selectRows?.length < 1 || StringUtil.isEmpty(state.current)) {
             notSelectInfo();
             return;
         }
-        pubsub.publish(this.state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
+        pubsub.publish(state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
-    private oneClickRestart = () => {
-        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Restarting all...");
-        this._disableOnClickButton();
+    const oneClickRestart = () => {
+        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Restarting all...");
+        disableOnClickButton();
         ServerMgrService.oneClickRestart();
     };
 
-    private oneClickStart = () => {
-        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Starting all...");
-        this._disableOnClickButton();
+    const oneClickStart = () => {
+        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Starting all...");
+        disableOnClickButton();
         ServerMgrService.oneClickStart();
     };
 
-    private oneClickStop = () => {
-        pubsub.publish(this.state.current, JarBootConst.APPEND_LINE, "Stopping all...");
-        this._disableOnClickButton();
+    const oneClickStop = () => {
+        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Stopping all...");
+        disableOnClickButton();
         ServerMgrService.oneClickStop();
     };
 
-    private _disableOnClickButton() {
-        if (this.state.oneClickLoading) {
+    const disableOnClickButton = () => {
+        if (state.oneClickLoading) {
             return;
         }
-        this.setState({oneClickLoading: true}, () => {
-            const td = setTimeout(() => {
-                clearTimeout(td);
-                this.setState({oneClickLoading: false});
-            }, 5000);
-        });
-    }
-
-    private onUploadClose = () => {
-        this.setState({uploadVisible: false});
-        this.refreshServerList();
+        dispatch({oneClickLoading: true});
+        setTimeout(() => dispatch({oneClickLoading: false}), 5000);
     };
 
-    render() {
-        let tableOption: any = this._getTbProps();
-        tableOption.scroll = { y: this.height};
-        return (<div>
-            <div style={{display: 'flex'}}>
-                <div style={{flex: 'inherit', width: '28%'}}>
-                    <CommonTable toolbarGap={5} option={tableOption}
-                                 toolbar={this._getTbBtnProps()} height={this.height}/>
-                    <OneClickButtons loading={this.state.oneClickLoading}
-                                     oneClickRestart={this.oneClickRestart}
-                                     oneClickStart={this.oneClickStart}
-                                     oneClickStop={this.oneClickStop}/>
-                </div>
-                <div style={{flex: 'inherit', width: '72%'}}>
-                    {(this.state.loading && 0 == this.allServerOut.length) &&
-                    <Result icon={<LoadingOutlined/>} title={formatMsg('LOADING')}/>}
-                    {this.allServerOut.map((value: any) => (
-                        <SuperPanel key={value} server={value} pubsub={pubsub} visible={this.state.current === value}/>
-                    ))}
-                </div>
+    const onUploadClose = () => {
+        dispatch({uploadVisible: false});
+        refreshServerList();
+    };
+
+
+    let tableOption: any = getTbProps();
+    tableOption.scroll = {y: height};
+    const loading = state.loading && 0 === state.data.length;
+    return (<div>
+        <div style={{display: 'flex'}}>
+            <div style={{flex: 'inherit', width: '28%'}}>
+                <CommonTable toolbarGap={5} option={tableOption}
+                             toolbar={getTbBtnProps()} height={height}/>
+                <OneClickButtons loading={state.oneClickLoading}
+                                 oneClickRestart={oneClickRestart}
+                                 oneClickStart={oneClickStart}
+                                 oneClickStop={oneClickStop}/>
             </div>
-            {this.state.uploadVisible && <UploadFileModal server={this.state.current}
-                             onClose={this.onUploadClose}/>}
-        </div>);
-    }
-}
+            <div style={{flex: 'inherit', width: '72%'}}>
+                {loading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
+                {<SuperPanel key={PUB_TOPIC.ROOT}
+                             server={""}
+                             sid={PUB_TOPIC.ROOT}
+                             visible={!loading && state.current?.length <= 0}/>}
+                {state.data.map((value: ServerRunning) => (
+                    <SuperPanel key={value.sid}
+                                server={value.name}
+                                sid={value.sid}
+                                visible={state.current === value.sid}/>
+                ))}
+            </div>
+        </div>
+        {state.uploadVisible && <UploadFileModal server={state.selectRows.length > 0 ? state.selectRows[0].name : ''}
+                                                 onOk={onUploadClose}
+                                                 onCancel={() => dispatch({uploadVisible: false})}/>}
+    </div>);
+};
+
+export default ServerMgrView;

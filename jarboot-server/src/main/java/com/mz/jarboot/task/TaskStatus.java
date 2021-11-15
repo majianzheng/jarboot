@@ -28,5 +28,15 @@ public enum TaskStatus {
     /**
      * 停止错误
      */
-    STOP_ERROR
+    STOP_ERROR,
+
+    /**
+     * 上线
+     */
+    ONLINE,
+
+    /**
+     * 下线
+     */
+    OFFLINE
 }

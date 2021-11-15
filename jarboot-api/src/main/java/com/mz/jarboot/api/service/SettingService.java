@@ -11,17 +11,16 @@ public interface SettingService {
 
     /**
      * 获取服务配置
-     * @param server 服务
+     * @param path 服务路径
      * @return 配置信息
      */
-    ServerSetting getServerSetting(String server);
+    ServerSetting getServerSetting(String path);
 
     /**
      * 提交服务配置
-     * @param server 服务
      * @param setting 配置
      */
-    void submitServerSetting(String server, ServerSetting setting);
+    void submitServerSetting(ServerSetting setting);
 
     /**
      * 获取全局配置
@@ -37,11 +36,11 @@ public interface SettingService {
 
     /**
      * 获取vm options
-     * @param server 服务
+     * @param path 服务路径
      * @param file 文件
      * @return vm
      */
-    String getVmOptions(String server, String file);
+    String getVmOptions(String path, String file);
 
     /**
      * 保存vm options

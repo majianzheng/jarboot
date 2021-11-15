@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 /**
@@ -69,38 +72,42 @@ public class WebSocketManager extends Thread {
         sessionMap.remove(id);
     }
 
-    public void sendConsole(String server, String text) {
-        this.publishGlobalEvent(server, text, WsEventEnum.CONSOLE_LINE);
+    public void sendConsole(String sid, String text) {
+        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE_LINE);
     }
 
-    public void sendConsole(String server, String text, String sessionId) {
-        this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_LINE);
+    public void sendConsole(String sid, String text, String sessionId) {
+        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_LINE);
+    }
+
+    public void sendPrint(String sid, String text) {
+        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE_PRINT);
+    }
+
+    public void sendPrint(String sid, String text, String sessionId) {
+        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_PRINT);
     }
     
-    public void sendPrint(String server, String text, String sessionId) {
-        this.publishEvent(server, text, sessionId, WsEventEnum.CONSOLE_PRINT);
-    }
-    
-    public void backspace(String server, String num, String sessionId) {
-        this.publishEvent(server, num, sessionId, WsEventEnum.BACKSPACE);
+    public void backspace(String sid, String num, String sessionId) {
+        this.publishEvent(sid, num, sessionId, WsEventEnum.BACKSPACE);
     }
 
-    public void backspaceLine(String server, String text, String sessionId) {
-        this.publishEvent(server, text, sessionId, WsEventEnum.BACKSPACE_LINE);
+    public void backspaceLine(String sid, String text, String sessionId) {
+        this.publishEvent(sid, text, sessionId, WsEventEnum.BACKSPACE_LINE);
     }
 
-    public void renderJson(String server, String text, String sessionId) {
-        this.publishEvent(server, text, sessionId, WsEventEnum.RENDER_JSON);
+    public void renderJson(String sid, String text, String sessionId) {
+        this.publishEvent(sid, text, sessionId, WsEventEnum.RENDER_JSON);
     }
 
-    public void publishStatus(String server, TaskStatus status) {
+    public void publishStatus(String sid, TaskStatus status) {
         //发布状态变化
-        String msg = formatMsg(server, WsEventEnum.SERVER_STATUS, status.name());
+        String msg = formatMsg(sid, WsEventEnum.SERVER_STATUS, status.name());
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
-    public void commandEnd(String server, String body, String sessionId) {
-        this.publishEvent(server, body, sessionId, WsEventEnum.CMD_END);
+    public void commandEnd(String sid, String body, String sessionId) {
+        this.publishEvent(sid, body, sessionId, WsEventEnum.CMD_END);
     }
 
     public void notice(String text, NoticeEnum level) {
@@ -127,6 +134,28 @@ public class WebSocketManager extends Thread {
         }
     }
 
+    public void printException(String sid, Throwable e) {
+        final byte lineBreak = '\n';
+        e.printStackTrace(new PrintStream(new OutputStream() {
+            private final byte[] buffer = new byte[1536];
+            private int index = 0;
+            @Override
+            public void write(int b) {
+                if (this.index > (this.buffer.length - 1)) {
+                    sendPrint(sid, new String(this.buffer));
+                    this.index = 0;
+                }
+                byte c = (byte) b;
+                if (lineBreak == c) {
+                    sendConsole(sid, new String(this.buffer, 0, this.index, StandardCharsets.UTF_8));
+                    this.index = 0;
+                } else {
+                    buffer[this.index++] = c;
+                }
+            }
+        }));
+    }
+
     @Override
     public void run() {
         BlockingQueue<MessageSender> queue = MessageQueueOperator.getQueue();
@@ -143,28 +172,28 @@ public class WebSocketManager extends Thread {
         }
     }
 
-    private void publishEvent(String server, String body, String sessionId, WsEventEnum event) {
+    private void publishEvent(String sid, String body, String sessionId, WsEventEnum event) {
         if (CommandConst.SESSION_COMMON.equals(sessionId)) {
             //广播session的id
-            publishGlobalEvent(server, body, event);
+            publishGlobalEvent(sid, body, event);
             return;
         }
         MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
         if (null != operator) {
-            String msg = formatMsg(server, event, body);
+            String msg = formatMsg(sid, event, body);
             operator.newMessage(msg);
         }
     }
 
-    private void publishGlobalEvent(String server, String body, WsEventEnum event) {
-        String msg = formatMsg(server, event, body);
+    public void publishGlobalEvent(String sid, String body, WsEventEnum event) {
+        String msg = formatMsg(sid, event, body);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
-    private static String formatMsg(String server, WsEventEnum event, String body) {
+    private static String formatMsg(String sid, WsEventEnum event, String body) {
         StringBuilder sb = new StringBuilder();
         sb
-                .append(server)
+                .append(sid)
                 .append(CommandConst.PROTOCOL_SPLIT)
                 .append(event.ordinal())
                 .append(CommandConst.PROTOCOL_SPLIT)

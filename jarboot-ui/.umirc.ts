@@ -8,7 +8,6 @@ export default defineConfig({
     routes: [
         {path: '/', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
-        {path: '/debugPlugin', component: '@/pages/plugin/DebugPlugin'},
     ],
     exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},

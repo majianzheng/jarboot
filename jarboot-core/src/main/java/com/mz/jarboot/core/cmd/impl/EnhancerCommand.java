@@ -9,12 +9,11 @@ import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.core.cmd.model.EnhancerModel;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.affect.EnhancerAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.lang.instrument.Instrumentation;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.List;
  */
 @SuppressWarnings("all")
 public abstract class EnhancerCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     protected static final List<String> EMPTY = Collections.emptyList();
     public static final String[] EXPRESS_EXAMPLES = { "params", "returnObj", "throwExp", "target", "clazz", "method",
                                                        "{params,returnObj}", "params[0]" };

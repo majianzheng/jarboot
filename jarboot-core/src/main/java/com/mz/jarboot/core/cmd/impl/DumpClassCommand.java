@@ -5,13 +5,9 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.utils.ClassLoaderUtils;
-import com.mz.jarboot.core.utils.ClassUtils;
-import com.mz.jarboot.core.utils.InstrumentationUtils;
-import com.mz.jarboot.core.utils.SearchUtils;
+import com.mz.jarboot.core.utils.*;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -32,7 +28,7 @@ import java.util.*;
         "  dump -E org\\\\.apache\\\\.commons\\\\.lang\\\\.StringUtils\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "dump")
 public class DumpClassCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private String classPattern;
     private String code = null;

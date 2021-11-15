@@ -7,8 +7,8 @@ import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 public class ResultStreamDistributor {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private static final int WAIT_TIME = 100;
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 

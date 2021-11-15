@@ -24,6 +24,9 @@ public class DebugPluginController {
     @PostMapping("/startServer")
     @ResponseBody
     public ResponseSimple startSingleServer(@RequestBody ServerSetting setting) {
+        if (null == setting.getPath()) {
+            setting.setPath("");
+        }
         serverMgrService.startSingleServer(setting);
         return new ResponseSimple();
     }

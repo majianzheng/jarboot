@@ -19,4 +19,4 @@ Execute debug command example:
 jad com.mz.jarboot.demo.DemoServerApplication
 watch com.mz.jarboot.demo.DemoServerApplication fib
 trace com.mz.jarboot.demo.DemoServerApplication pow
-SPI extend command （jdk SPI）: demo arg1
+SPI extend command: demo arg1

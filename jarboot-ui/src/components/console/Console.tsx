@@ -8,13 +8,14 @@ interface ConsoleProps {
     visible?: boolean;
     content?: string;
     pubsub?: PublishSubmit;
-    server: string;
+    id: string;
 }
 
 enum EventType {
     LINE,
     PRINT,
-    BACKSPACE
+    BACKSPACE,
+    CLEAR
 }
 
 interface ConsoleEvent {
@@ -60,33 +61,33 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (StringUtil.isNotEmpty(this.props.content)) {
             this._resetContent(this.props.content);
         }
-        const {pubsub, server} = this.props;
+        const {pubsub, id} = this.props;
         if (!pubsub) {
             return;
         }
-        pubsub.submit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.submit(server, JarBootConst.PRINT, this.print);
-        pubsub.submit(server, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.submit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.submit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.submit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.submit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.submit(id, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.submit(id, JarBootConst.PRINT, this.print);
+        pubsub.submit(id, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.submit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.submit(id, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.submit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     componentWillUnmount() {
         this.updateTimeoutFd = null;
         this.codeDom = null;
-        const {pubsub, server} = this.props;
+        const {pubsub, id} = this.props;
         if (!pubsub) {
             return;
         }
-        pubsub.unSubmit(server, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.unSubmit(server, JarBootConst.PRINT, this.print);
-        pubsub.unSubmit(server, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.unSubmit(server, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.unSubmit(server, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.unSubmit(server, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.unSubmit(server, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.appendLine);
+        pubsub.unSubmit(id, JarBootConst.PRINT, this.print);
+        pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.backspace);
+        pubsub.unSubmit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
+        pubsub.unSubmit(id, JarBootConst.START_LOADING, this.startLoading);
+        pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
+        pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
     }
 
     private init = () => {
@@ -100,7 +101,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             }
             return;
         }
-        this.codeDom = document.querySelector(`#id-console-${this.props.server}`);
+        this.codeDom = document.querySelector(`code[id="id-console-${this.props.id}"]`);
     };
 
     private _resetContent = (text: string|undefined) => {
@@ -118,18 +119,9 @@ class Console extends React.PureComponent<ConsoleProps> {
     };
 
     private clear = () => {
-        this.init();
-        if (!this.codeDom) {
-            return;
-        }
-        let count = this.codeDom.children.length;
-        if (count > 0 && this.loading == this.codeDom.children[count - 1]) {
-            //如果处于加载中，则保留加载的动画
-            --count;
-        }
-        for(let i = 0; i < count; ++i){
-            this.codeDom.removeChild(this.codeDom.children[0]);
-        }
+        this.eventQueue.push({type: EventType.CLEAR});
+        //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
+        this.trigEvent();
     };
 
     private startLoading = () => {
@@ -185,12 +177,12 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.init();
         this.updateTimeoutFd = setTimeout(() => {
             this.updateTimeoutFd = null;
-            if (!this.isStartLoading) {
-                this.startLoading()
-            }
             this.eventQueue.forEach(this.handleEvent);
             try {
                 if (this.lines.length) {
+                    if (!this.isStartLoading) {
+                        this.startLoading()
+                    }
                     //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
                     const fragment = document.createDocumentFragment();
                     this.lines.forEach(l => fragment.append(l));
@@ -203,6 +195,7 @@ class Console extends React.PureComponent<ConsoleProps> {
                 Logger.error(e);
             } finally {
                 this.eventQueue = [];
+                this.lines = [];
             }
         }, MAX_UPDATE_DELAY);
     }
@@ -221,10 +214,26 @@ class Console extends React.PureComponent<ConsoleProps> {
             case EventType.BACKSPACE:
                 this.handleBackspace(event);
                 break;
+            case EventType.CLEAR:
+                this.handleClear();
+                break;
             default:
                 break;
         }
     };
+
+    private handleClear() {
+        if (!this.codeDom) {
+            return;
+        }
+        if (this.isStartLoading) {
+            //如果处于加载中，则保留加载的动画
+            this.codeDom.innerHTML = "";
+            this.codeDom.append(this.loading);
+        } else {
+            this.codeDom.innerHTML = "";
+        }
+    }
 
     private handlePrintln(event: ConsoleEvent) {
         if (this.lines.length > 0) {
@@ -360,12 +369,9 @@ class Console extends React.PureComponent<ConsoleProps> {
 
     render() {
         let style = {display: false === this.props.visible ? 'none' : 'block'};
-        return (<>
-                <code id={`id-console-${this.props.server}`} style={style} className={styles.console}>
-                    <p style={{fontSize: 28, textAlign: "center", color: "blueviolet"}}>Jarboot Console</p>
-                </code>
-            </>
-        );
+        return <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
+            <p className={styles.consoleTitle}>Jarboot Console</p>
+        </code>;
     }
 }
 export default Console;

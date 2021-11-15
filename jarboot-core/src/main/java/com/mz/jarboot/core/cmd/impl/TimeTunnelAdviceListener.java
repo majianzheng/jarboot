@@ -6,11 +6,10 @@ import com.mz.jarboot.core.advisor.JarbootMethod;
 import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -19,7 +18,7 @@ import java.util.Date;
  */
 @SuppressWarnings("all")
 public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocal<ObjectStack> argsRef = new ThreadLocal<ObjectStack>() {
         @Override
         protected ObjectStack initialValue() {

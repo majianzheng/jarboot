@@ -9,10 +9,10 @@ import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.Objects;
         "  bytes java.lang.String\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "bytes")
 public class BytesCommand extends AbstractCommand {
-    private static final Logger logger = LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+    private static final Logger logger = LogUtils.getLogger();
 
     private String classPattern;
 
@@ -45,7 +45,6 @@ public class BytesCommand extends AbstractCommand {
 
     @Override
     public void run() {
-        logger.info("bytes 开始执行>>{}", name);
         if (StringUtils.isEmpty(this.classPattern)) {
             //未指定要打印的类
             session.end(true, "用法: bytes className");
@@ -80,9 +79,7 @@ public class BytesCommand extends AbstractCommand {
                     .getResourceAsStream(cls.getName().replace('.', '/') + ".class")));
             StringBuilder sb = new StringBuilder();
             sb
-                    .append(EnvironmentContext.getJarbootHome())
-                    .append(File.separator)
-                    .append("logs")
+                    .append(LogUtils.getLogDir())
                     .append(File.separator)
                     .append(CoreConstant.DUMP_DIR);
             File dir = new File(sb.toString());
@@ -91,7 +88,7 @@ public class BytesCommand extends AbstractCommand {
             }
             file = new File(dir, cls.getSimpleName() + ".class");
             FileUtils.writeByteArrayToFile(file, classfileBuffer, false);
-            List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getName());
+            List<String> codes = ExecNativeCmd.exec("javap -v -c " + file.getAbsolutePath());
             codes.forEach(l -> session.console(l));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

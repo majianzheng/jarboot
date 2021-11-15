@@ -8,20 +8,19 @@ const settingUrl = "/api/jarboot/setting";
 export default class SettingService {
     /**
      * 获取服务配置
-     * @param server
+     * @param path 服务路径
      * @returns {Promise<any>}
      */
-    public static getServerSetting(server: string) {
-        return Request.get(`${settingUrl}/getServerSetting`, {server});
+    public static getServerSetting(path: string) {
+        return Request.get(`${settingUrl}/serverSetting`, {path});
     }
 
     /**
      * 提交服务配置
-     * @param server 服务名
      * @param setting 配置信息
      */
-    public static submitServerSetting(server: string, setting: any) {
-        return Request.post(`${settingUrl}/submitServerSetting?server=${server}`, setting);
+    public static submitServerSetting(setting: any) {
+        return Request.post(`${settingUrl}/serverSetting`, setting);
     }
 
     /**
@@ -29,7 +28,7 @@ export default class SettingService {
      * @returns {Promise<any>}
      */
     public static getGlobalSetting() {
-        return Request.get(`${settingUrl}/getGlobalSetting`, {});
+        return Request.get(`${settingUrl}/globalSetting`, {});
     }
 
     /**
@@ -37,24 +36,28 @@ export default class SettingService {
      * @param setting 配置信息
      */
     public static submitGlobalSetting(setting: any) {
-        return  Request.post(`${settingUrl}/submitGlobalSetting`, setting);
+        return  Request.post(`${settingUrl}/globalSetting`, setting);
     }
 
     /**
      * 获取vm配置
+     * @param path 服务路径
+     * @param file vm内容
      * @returns {Promise<any>}
      */
-    public static getVmOptions(server: string, file: string) {
-        return Request.get(`${settingUrl}/vmoptions`, {server, file});
+    public static getVmOptions(path: string, file: string) {
+        return Request.get(`${settingUrl}/vmoptions`, {path, file});
     }
 
     /**
      * 保存vm配置
-     * @param setting 配置信息
+     * @param path 服务路径
+     * @param file 文件名
+     * @param content vm内容
      */
-    public static saveVmOptions(server: string, file: string, content: string) {
+    public static saveVmOptions(path: string, file: string, content: string) {
         let form = new FormData();
-        form.append('server', server);
+        form.append('path', path);
         form.append('file', file);
         form.append('content', content);
         return Request.post(`${settingUrl}/vmoptions`, form);
