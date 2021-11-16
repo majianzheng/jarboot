@@ -5,14 +5,14 @@ import CommonNotice from "@/common/CommonNotice";
 import { useIntl } from 'umi';
 
 const layout = {
-    labelCol: {span: 8},
-    wrapperCol: {span: 16},
+    labelCol: {span: 6},
+    wrapperCol: {span: 18},
 };
 const tailLayout = {
     wrapperCol: {offset: 12, span: 12},
 };
 
-const GlobalSetting: any = memo(() => {
+const SystemSetting = memo(() => {
     const [form] = Form.useForm();
     const intl = useIntl();
     const onReset = () => {
@@ -70,4 +70,5 @@ const GlobalSetting: any = memo(() => {
         </Form>
     );
 });
-export default GlobalSetting;
+
+export default SystemSetting;

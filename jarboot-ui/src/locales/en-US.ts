@@ -9,7 +9,7 @@ export default {
     AUTH_CONTROL: 'Authority Control',
     PLUGINS: 'Plugins',
     SETTING: 'Setting',
-    HELP_DOC: 'About',
+    ABOUT: 'About',
     MENU_DOCS: 'DOCS',
 
     //服务管理
@@ -74,6 +74,7 @@ export default {
     UPLOAD_BUTTON: 'Click to Upload',
 
     //全局配置界面
+    SYSTEM_SETTING: 'System setting',
     SERVERS_PATH: 'Workspace',
     DEFAULT_VM_OPT: 'Default VM options',
     AUTO_START_AFTER_INIT: 'Auto start after jarboot started',
@@ -110,7 +111,7 @@ export default {
     COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
 
     //帮助
-    BASIC: 'Help',
+    HELP: 'Help',
     QUICK_START: 'Quick start',
     ABOUT_TEXT: 'Jarboot is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.',
     //快速开始

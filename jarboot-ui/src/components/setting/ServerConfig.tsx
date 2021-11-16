@@ -17,7 +17,7 @@ interface ServerConfigProp {
     path: string;
 }
 
-const ServerConfig: any = memo((props: ServerConfigProp) => {
+const ServerConfig = memo((props: ServerConfigProp) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);

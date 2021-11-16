@@ -197,9 +197,9 @@ public class SettingUtils {
         if (StringUtils.isBlank(file)) {
             file = SettingPropConst.DEFAULT_VM_FILE;
         }
-        Path path = Paths.get(file);
+        Path path = getPath(file);
         if (!path.isAbsolute()) {
-            path = Paths.get(serverPath, file);
+            path = getPath(serverPath, file);
         }
         File f = path.toFile();
         StringBuilder sb = new StringBuilder();
@@ -226,6 +226,15 @@ public class SettingUtils {
             }
         }
         return vm;
+    }
+
+    public static Path getPath(String file, String... more) {
+        return Paths.get(file, more);
+    }
+
+    public static boolean isAbsolutePath(String file) {
+        Path path = getPath(file);
+        return path.isAbsolute();
     }
 
     public static String createSid(String serverPath) {

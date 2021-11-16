@@ -9,7 +9,7 @@ export default {
     AUTH_CONTROL: '权限控制',
     PLUGINS: '插件',
     SETTING: '设置',
-    HELP_DOC: '关于',
+    ABOUT: '关于',
     MENU_DOCS: '文档',
 
     //服务管理
@@ -74,6 +74,7 @@ export default {
     UPLOAD_BUTTON: '点击上传',
 
     //全局配置
+    SYSTEM_SETTING: '系统设置',
     SERVERS_PATH: '工作空间',
     DEFAULT_VM_OPT: '默认的VM参数',
     AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
@@ -110,7 +111,7 @@ export default {
     COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
 
     //帮助
-    BASIC: '帮助',
+    HELP: '帮助',
     QUICK_START: '快速开始',
     ABOUT_TEXT: 'Jarboot 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断运行的的Java进程。',
     //快速开始

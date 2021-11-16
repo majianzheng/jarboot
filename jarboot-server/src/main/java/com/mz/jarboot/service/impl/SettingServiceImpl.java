@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -127,9 +126,9 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public String getVmOptions(String p, String file) {
-        Path path = Paths.get(file);
+        Path path = SettingUtils.getPath(file);
         if (!path.isAbsolute()) {
-            path = Paths.get(p, file);
+            path = SettingUtils.getPath(p, file);
         }
         File f = path.toFile();
         String content = StringUtils.EMPTY;
@@ -145,9 +144,9 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void saveVmOptions(String p, String file, String content) {
-        Path path = Paths.get(file);
+        Path path = SettingUtils.getPath(file);
         if (!path.isAbsolute()) {
-            path = Paths.get(p, file);
+            path = SettingUtils.getPath(p, file);
         }
         File f = path.toFile();
         if (!f.exists()) {

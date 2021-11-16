@@ -50,7 +50,7 @@ public class JarbootBootstrap {
         String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, agentArgs[1]);
         String sid = System.getProperty(CommonConst.SERVER_SID_PROP, agentArgs[2]);
         if (EnvironmentContext.isInitialized()) {
-            // 第二次进入，检查服务名和wid是否一致
+            // 第二次进入，检查服务名和sid是否一致
             if (!sid.equals(EnvironmentContext.getSid())) {
                 logger.error("Attach failed, server {}@{} not match current {}@{}!",
                         serverName, sid, EnvironmentContext.getServer(), EnvironmentContext.getSid());
@@ -84,7 +84,6 @@ public class JarbootBootstrap {
 
             enhanceClassLoader();
         }
-        logger.info("agent argument>>>{}, server:{}, sid:{}, args:{}", host, serverName, sid, args);
 
         //4.客户端初始化
         this.initClient();

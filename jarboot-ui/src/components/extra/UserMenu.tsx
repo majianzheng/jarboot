@@ -7,7 +7,7 @@ import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import CommonUtils from "@/common/CommonUtils";
 import DefaultUserIcon from "@/components/extra/DefaultUserIcon";
 
-const UserPopMenu: any = memo((props: any) => {
+const UserPopMenu = memo((props: any) => {
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     const SIGN_OUT_KEY = "sign-out";

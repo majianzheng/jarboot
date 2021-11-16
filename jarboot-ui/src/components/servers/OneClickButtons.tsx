@@ -2,7 +2,7 @@ import {memo} from "react";
 import {useIntl} from "umi";
 import {Button, Space} from "antd";
 
-const OneClickButtons: any = memo((props: any) => {
+const OneClickButtons = memo((props: any) => {
     const intl = useIntl();
 
     return <Space size={'middle'} style={{margin: "-20px 0 10px 20px"}}>

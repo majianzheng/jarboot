@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -99,7 +97,7 @@ public class TaskUtils {
             cmdBuilder.append(CommonConst.JAVA_CMD);
         } else {
             // 使用了指定到jdk
-            String jdkPath = getAbsPath(setting.getJdkPath(), serverPath);
+            String jdkPath = getAbsolutePath(setting.getJdkPath(), serverPath);
             cmdBuilder
                     .append(jdkPath)
                     .append( File.separator)
@@ -143,7 +141,7 @@ public class TaskUtils {
             workHome = serverPath;
         } else {
             //解析相对路径或绝对路径，得到真实路径
-            workHome = getAbsPath(workHome, serverPath);
+            workHome = getAbsolutePath(workHome, serverPath);
         }
 
         //打印命令行
@@ -214,9 +212,8 @@ public class TaskUtils {
         return pid;
     }
 
-    private static String getAbsPath(String s, String serverPath) {
-        Path path = Paths.get(s);
-        if (path.isAbsolute()) {
+    private static String getAbsolutePath(String s, String serverPath) {
+        if (SettingUtils.isAbsolutePath(s)) {
             return s;
         }
         File dir = FileUtils.getFile(serverPath, s);

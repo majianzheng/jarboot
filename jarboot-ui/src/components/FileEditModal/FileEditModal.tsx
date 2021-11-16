@@ -12,7 +12,7 @@ interface FileEditModalProp {
     onChange: (value: string) => void;
 }
 
-const FileEditModal: any = memo((props: FileEditModalProp) => {
+const FileEditModal = memo((props: FileEditModalProp) => {
     let [content, setContent] = useState("");
     const closeModal = () => {
         props?.onClose();
