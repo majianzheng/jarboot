@@ -1,5 +1,5 @@
 import {Form, Input, Button, InputNumber, Switch} from 'antd';
-import {memo, useEffect, useState} from "react";
+import React, {memo, useEffect, useState} from "react";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import { useIntl } from 'umi';

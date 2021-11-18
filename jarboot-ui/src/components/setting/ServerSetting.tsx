@@ -1,7 +1,6 @@
 import { Col, Row, Menu, Input, Empty, Result, Button } from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
-import styles from './index.less';
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
@@ -18,6 +17,7 @@ const ServerSetting = memo(() => {
     const [current, setCurrent] = useState('');
     const [loading, setLoading] = useState(true);
     const [filterText, setFilterText] = useState('');
+    const style = {height: window.innerHeight - 80, overflow: 'auto'};
 
     const query = (filter?: string) => {
         setLoading(true);
@@ -62,7 +62,7 @@ const ServerSetting = memo(() => {
     const emptyIcon = loading ? <LoadingOutlined/> : <Empty/>;
     const menuTitle = <Input.Search placeholder="Input name to search" onSearch={query} allowClear enterButton/>;
     return <Row>
-        <Col span={6} className={styles.pageContainer}>
+        <Col span={6} style={style}>
             <Menu
                 onClick={onSelect}
                 selectedKeys={[current]}
@@ -82,7 +82,7 @@ const ServerSetting = memo(() => {
                 </Menu.ItemGroup>
             </Menu>
         </Col>
-        <Col span={18} className={styles.pageContainer}>
+        <Col span={18} style={style}>
             <div style={{margin: '0 30px 0 5px', width: '95%'}}>
                 {(data?.length > 0) ?
                     <ServerConfig path={current}/> :

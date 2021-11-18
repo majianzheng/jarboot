@@ -9,7 +9,7 @@ interface FileEditModalProp {
     name: string;
     onClose: () => void;
     onSave: (value: string) => void;
-    onChange: (value: string) => void;
+    onChange?: (value: string) => void;
 }
 
 const FileEditModal = memo((props: FileEditModalProp) => {
