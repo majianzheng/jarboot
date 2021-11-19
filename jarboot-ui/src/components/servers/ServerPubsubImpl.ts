@@ -1,6 +1,6 @@
-import {MsgData, WsManager} from "@/common/WsManager";
-import {MSG_EVENT} from "@/common/EventConst";
-import {JarBootConst} from "@/common/JarBootConst";
+import { WsManager } from "@/common/WsManager";
+import { MSG_EVENT } from "@/common/EventConst";
+import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import Logger from "@/common/Logger";
 
 /**

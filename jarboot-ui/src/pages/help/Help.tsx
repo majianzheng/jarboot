@@ -21,16 +21,13 @@ const Help = memo(() => {
             <Menu onClick={handleClick} defaultSelectedKeys={['about']} mode="inline">
                 <Menu.ItemGroup title={intl.formatMessage({id: 'HELP'})}>
                     <Menu.Divider/>
-                    <Menu.Item key="about">
-                        <StarOutlined />
+                    <Menu.Item key="about" icon={<StarOutlined />}>
                         {intl.formatMessage({id: 'ABOUT'})}
                     </Menu.Item>
-                    <Menu.Item key="quick-start">
-                        <RocketOutlined />
+                    <Menu.Item key="quick-start" icon={<RocketOutlined />}>
                         {intl.formatMessage({id: 'QUICK_START'})}
                     </Menu.Item>
-                    <Menu.Item key="setting">
-                        <SettingOutlined />
+                    <Menu.Item key="setting" icon={<SettingOutlined />}>
                         {intl.formatMessage({id: 'SETTING'})}
                     </Menu.Item>
                 </Menu.ItemGroup>

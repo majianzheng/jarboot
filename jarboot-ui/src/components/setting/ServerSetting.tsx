@@ -1,15 +1,16 @@
-import { Col, Row, Menu, Input, Empty, Result, Button } from 'antd';
+import {Col, Row, Menu, Input, Empty, Result, Button, Tag} from 'antd';
 import ServerConfig from "@/components/setting/ServerConfig";
 import CommonNotice from "@/common/CommonNotice";
 import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
 import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {LoadingOutlined} from '@ant-design/icons';
+import {CaretRightOutlined, LoadingOutlined, PoweroffOutlined, SyncOutlined} from '@ant-design/icons';
 import StringUtil from "@/common/StringUtil";
 import * as React from "react";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
 import {PUB_TOPIC, pubsub} from "@/components/servers";
+import { JarBootConst, MsgData } from "@/common/JarBootConst";
 
 const ServerSetting = memo(() => {
     const intl = useIntl();
@@ -46,10 +47,12 @@ const ServerSetting = memo(() => {
     const init = () => {
         pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
         pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
         query();
         return () => {
             pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, fresh);
             pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, fresh);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
         }
     };
 
@@ -57,6 +60,44 @@ const ServerSetting = memo(() => {
 
     const onSelect = (event: any) => {
         setCurrent(event.key);
+    };
+
+    const onStatusChange = (msg: MsgData) => {
+        setData(prevState => {
+            const item = prevState.find((value: ServerRunning) => value.sid === msg.sid);
+            if (!item) {
+                return prevState;
+            }
+            item.status = msg.body;
+            return [...prevState];
+        });
+    };
+
+    const renderMenu = (item: ServerRunning) => {
+        let icon;
+        switch (item.status) {
+            case JarBootConst.STATUS_STARTED:
+                icon = <CaretRightOutlined style={{color: '#52c41a'}}/>;
+                break;
+            case JarBootConst.STATUS_STOPPED:
+                icon = <PoweroffOutlined style={{color: "#d4380d"}}/>;
+                break;
+            case JarBootConst.STATUS_STARTING:
+            case JarBootConst.STATUS_STOPPING:
+                icon = <SyncOutlined spin style={{color: '#2db7f5'}}/>;
+                break;
+            default:
+                icon = "";
+                break;
+        }
+        return (<Menu.Item key={item.path} icon={icon}>
+            {filterText?.length ? <Highlighter
+                highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                searchWords={[filterText]}
+                autoEscape
+                textToHighlight={item.name || ''}
+            /> : item.name}
+        </Menu.Item>);
     };
 
     const emptyIcon = loading ? <LoadingOutlined/> : <Empty/>;
@@ -70,15 +111,7 @@ const ServerSetting = memo(() => {
             >
                 <Menu.ItemGroup title={menuTitle}>
                     <Menu.Divider/>
-                    {data.length ? data.map((item) =>
-                        <Menu.Item key={item.path}>
-                            {filterText?.length ? <Highlighter
-                                highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                                searchWords={[filterText]}
-                                autoEscape
-                                textToHighlight={item.name || ''}
-                            /> : item.name}
-                        </Menu.Item>) : <Empty/>}
+                    {data.length ? data.map(renderMenu) : <Empty/>}
                 </Menu.ItemGroup>
             </Menu>
         </Col>

@@ -6,8 +6,7 @@ import {
     SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined, DeleteOutlined,
     PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
 } from '@ant-design/icons';
-import {JarBootConst} from '@/common/JarBootConst';
-import {MsgData} from "@/common/WsManager";
+import { JarBootConst, MsgData } from '@/common/JarBootConst';
 import Logger from "@/common/Logger";
 import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
 import OneClickButtons from "@/components/servers/OneClickButtons";
@@ -52,7 +51,7 @@ const ServerMgrView = () => {
 
     const activeConsole = (sid: string) => {
         dispatch((preState: any) => {
-            let data: ServerRunning[] = preState.data;
+            let data: ServerRunning[] = preState.data || [];
             const index = data.findIndex(row => row.sid === sid);
             if (-1 !== index) {
                 const selectedRowKeys: any = [data[index].sid];
@@ -65,51 +64,33 @@ const ServerMgrView = () => {
 
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: any) => {
-            const item = preState.data.find((value: ServerRunning) => value.sid === data.sid);
+            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
             if (!item) {
                 return {};
             }
-            const status = data.body;
             const key = data.sid;
             const server = item.name as string;
-            switch (status) {
-                case JarBootConst.MSG_TYPE_START:
+            item.status = data.body;
+            switch (item.status) {
+                case JarBootConst.STATUS_STARTING:
                     // 激活终端显示
                     activeConsole(key);
-                    Logger.log(`${server}启动中...`);
+                    Logger.log(`${server} 启动中...`);
                     pubsub.publish(key, JarBootConst.START_LOADING);
                     clearDisplay(item);
-                    item.status = JarBootConst.STATUS_STARTING;
                     break;
-                case JarBootConst.MSG_TYPE_STOP:
-                    Logger.log(`${server}停止中...`);
+                case JarBootConst.STATUS_STOPPING:
+                    Logger.log(`${server} 停止中...`);
                     pubsub.publish(key, JarBootConst.START_LOADING);
                     item.status = JarBootConst.STATUS_STOPPING;
                     break;
-                case JarBootConst.MSG_TYPE_START_ERROR:
-                    Logger.log(`${server}启动失败`);
-                    CommonNotice.error(`Start ${server} failed!`);
-                    item.status = JarBootConst.STATUS_STOPPED;
-                    break;
-                case JarBootConst.MSG_TYPE_STARTED:
-                    Logger.log(`${server}启动成功`);
+                case JarBootConst.STATUS_STARTED:
+                    Logger.log(`${server} 已启动`);
                     pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STARTED;
                     break;
-                case JarBootConst.MSG_TYPE_STOP_ERROR:
-                    Logger.log(`${server}停止失败`);
-                    CommonNotice.error(`Stop ${server} failed!`);
-                    item.status = JarBootConst.STATUS_STARTED;
-                    break;
-                case JarBootConst.MSG_TYPE_STOPPED:
-                    Logger.log(`${server}停止成功`);
+                case JarBootConst.STATUS_STOPPED:
+                    Logger.log(`${server} 已停止`);
                     pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STOPPED;
-                    break;
-                case JarBootConst.MSG_TYPE_RESTART:
-                    Logger.log(`${server}重启成功`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STARTED;
                     break;
                 default:
                     return {};

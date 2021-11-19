@@ -3,19 +3,6 @@ import ErrorUtil from "@/common/ErrorUtil";
 
 class JarBootConst {
     public static DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
-    public static MSG_TYPE_START = "START";
-    public static MSG_TYPE_STOP = "STOP";
-    public static MSG_TYPE_RESTART = "RESTART";
-    public static MSG_TYPE_STARTED = "STARTED";
-    public static MSG_TYPE_STOPPED = "STOPPED";
-    public static MSG_TYPE_START_ERROR = "START_ERROR";
-    public static MSG_TYPE_STOP_ERROR = "STOP_ERROR";
-    public static MSG_TYPE_ONLINE = "ONLINE";
-    public static MSG_TYPE_OFFLINE = "OFFLINE";
-
-    public static MSG_TYPE_OUT = "OUT";
-    public static MSG_TYPE_CMD_COMPLETE = "CMD_COMPLETE";
-
     public static PROTOCOL_SPLIT = '\r';
 
     //进程状态
@@ -23,7 +10,6 @@ class JarBootConst {
     public static STATUS_STOPPED = 'STOPPED';
     public static STATUS_STARTING = 'STARTING';
     public static STATUS_STOPPING = 'STOPPING';
-    public static STATUS_START_ERROR = '启动失败';
 
     public static NOTICE_INFO = 0;
     public static NOTICE_WARN = 1;
@@ -47,11 +33,11 @@ class JarBootConst {
     public static currentUser: any = {username: '', globalAdmin: false};
     public static ADMIN_ROLE = "ROLE_ADMIN";
 }
-interface MessageBody {
-    server: string;
-    serverType: string;
-    msgType: string;
-    text: string;
+
+interface MsgData {
+    event: number,
+    sid: string,
+    body: any
 }
 
 const requestFinishCallback = (resp: any) => {
@@ -60,4 +46,4 @@ const requestFinishCallback = (resp: any) => {
     }
 };
 
-export {JarBootConst, MessageBody, requestFinishCallback};
+export {JarBootConst, MsgData, requestFinishCallback};

@@ -6,37 +6,19 @@ package com.mz.jarboot.task;
 
 public enum TaskStatus {
     /**
-     * 开始
+     * 正在启动
      */
-    START,
+    STARTING,
     /**
-     * 已开始
+     * 正在运行
      */
-    STARTED,
+    RUNNING,
     /**
-     * 停止
+     * 正在停止
      */
-    STOP,
+    STOPPING,
     /**
      * 已停止
      */
-    STOPPED,
-    /**
-     * 启动错误
-     */
-    START_ERROR,
-    /**
-     * 停止错误
-     */
-    STOP_ERROR,
-
-    /**
-     * 上线
-     */
-    ONLINE,
-
-    /**
-     * 下线
-     */
-    OFFLINE
+    STOPPED
 }

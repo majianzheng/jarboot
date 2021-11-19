@@ -170,7 +170,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         if (AgentManager.getInstance().isOnline(sid)) {
             //已经启动
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
@@ -178,7 +178,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunCache.addStarting(sid);
         try {
             //设定启动中，并发送前端让其转圈圈
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
@@ -190,10 +190,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             if (AgentManager.getInstance().isOnline(sid)) {
                 WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s started cost %.3f second.", server, costTime));
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             } else {
                 //启动失败
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START_ERROR);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
+                WebSocketManager.getInstance().notice("启动服务" + server + "失败！", NoticeEnum.ERROR);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -341,7 +342,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunCache.addStopping(sid);
         try {
             //发送停止中消息
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
             //记录开始时间
             long startTime = System.currentTimeMillis();
             TaskUtils.killServer(server, sid);
@@ -349,7 +350,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP_ERROR);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+                WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeEnum.ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s stopped cost %.3f second.", server, costTime));

@@ -34,14 +34,12 @@ const UserPopMenu = memo((props: any) => {
         <Menu onClick={handleClick} selectedKeys={[]}
               defaultSelectedKeys={['user-title']} mode="inline"
               style={{width: 220}}>
-            <Menu.Item key={"user-title"}><UserOutlined/>{username}</Menu.Item>
+            <Menu.Item key={"user-title"} icon={<UserOutlined/>}>{username}</Menu.Item>
             <Menu.Divider/>
-            <Menu.Item key={MODIFY_PWD_KEY}>
-                <FormOutlined />
+            <Menu.Item key={MODIFY_PWD_KEY} icon={<FormOutlined />}>
                 {intl.formatMessage({id: 'MODIFY_PWD'})}
             </Menu.Item>
-            <Menu.Item key={SIGN_OUT_KEY}>
-                <LogoutOutlined />
+            <Menu.Item key={SIGN_OUT_KEY} icon={<LogoutOutlined />}>
                 {intl.formatMessage({id: 'SIGN_OUT'})}
             </Menu.Item>
         </Menu>

@@ -48,7 +48,6 @@ public class AgentManager {
         //目标进程上线
         AgentClient client = new AgentClient(server, sid, session);
         clientMap.put(sid, client);
-        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.ONLINE);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
@@ -60,6 +59,9 @@ public class AgentManager {
             //属于受管理的服务
             serverPid.put(pid, sid);
             client.setPid(pid);
+        } else {
+            //非受管理的本地进程，通知前端Attach成功
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
         }
     }
 
@@ -68,10 +70,12 @@ public class AgentManager {
         if (null == client) {
             return;
         }
-        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.OFFLINE);
         int pid = client.getPid();
         if (pid > 0) {
             serverPid.remove(pid);
+        } else {
+            //非受管理的本地进程，通知前端进程已经离线
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
         }
         WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
         synchronized (client) {
@@ -203,7 +207,7 @@ public class AgentManager {
                     this.onServerStarted(server, sid);
                     WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
                     logger.info("reconnected by heartbeat {}, {}", server, sid);
-                    WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+                    WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
                 }
                 sendInternalCommand(sid, CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON);
                 break;

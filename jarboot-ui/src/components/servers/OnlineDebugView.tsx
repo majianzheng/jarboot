@@ -7,8 +7,7 @@ import * as React from "react";
 import {PUB_TOPIC, pubsub} from "@/components/servers/ServerPubsubImpl";
 import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
-import {JarBootConst} from "@/common/JarBootConst";
-import {MsgData} from "@/common/WsManager";
+import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import {useEffect, useReducer} from "react";
 import {useIntl} from "umi";
 
@@ -48,7 +47,7 @@ const OnlineDebugView = () => {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            const data = resp.result as JvmProcess[];
+            const data = resp.result as JvmProcess[] || [];
             dispatch((s: OnlineDebugState) => {
                 if (s.selectedRowKeys?.length) {
                     const pid = s.selectedRowKeys[0];
@@ -60,7 +59,7 @@ const OnlineDebugView = () => {
                     //初始化选中第一个
                     let selectedRowKeys = [] as number[];
                     let selectRows = [] as JvmProcess[];
-                    if (data.length > 0) {
+                    if (data && data?.length > 0) {
                         const first: JvmProcess = data[0];
                         selectedRowKeys = [first.pid];
                         selectRows = [first];
@@ -74,23 +73,24 @@ const OnlineDebugView = () => {
 
     const onStatusChange = (msg: MsgData) => {
         dispatch((s: OnlineDebugState) => {
-            const data = s.data;
-            const process = data.find(item => msg.sid === `${item.pid}`);
+            const data = s.data || [];
+            const process = data?.find(item => msg.sid === `${item.pid}`);
             if (!process) {
-                return;
+                return {};
             }
-            console.info(process);
             const status = msg.body;
             switch (status) {
-                case JarBootConst.MSG_TYPE_ONLINE:
+                case JarBootConst.STATUS_STARTING:
+                case JarBootConst.STATUS_STARTED:
                     process.attached = true;
                     break;
-                case JarBootConst.MSG_TYPE_OFFLINE:
+                case JarBootConst.STATUS_STOPPING:
+                case JarBootConst.STATUS_STOPPED:
                     process.attached = false;
                     refreshProcessList();
                     break;
                 default:
-                    return;
+                    return {};
             }
             return {data};
         });
@@ -134,9 +134,8 @@ const OnlineDebugView = () => {
         columnTitle: '',
         ellipsis: true,
         type: 'radio',
-        onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) => {
-            dispatch({selectedRowKeys, selectRows});
-        },
+        onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) =>
+            dispatch({selectedRowKeys, selectRows}),
         selectedRowKeys: state.selectedRowKeys,
         renderCell: renderRowSelection
     });
@@ -150,13 +149,11 @@ const OnlineDebugView = () => {
     };
 
     const onRow = (record: JvmProcess) => ({
-        onClick: () => {
-            dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
-        },
+        onClick: () => dispatch({selectedRowKeys: [record.pid], selectRows: [record]}),
     });
 
     const attach = () => {
-        const process = state.selectRows[0];
+        const process = state?.selectRows[0];
         if (!process) {
             notSelectInfo();
         }
