@@ -21,16 +21,28 @@ enum UploadFileStage {
     FAILED
 }
 
+interface UploadFileModalState {
+    stage: UploadFileStage;
+    name: string;
+    fileList: any[];
+    exist: boolean;
+}
+
 const UploadFileModal = memo((props: UploadFileModalProp) => {
     const inputRef = useRef<any>();
     //阶段，1：确定服务的名称；2：开始选择并上传文件；3：提交或清理
-    const initArg = {stage: UploadFileStage.SERVER_CONFIRM, name: '', fileList: [] as any[], exist: true};
-    const [state, dispatch] = useReducer((state: any, action: any) => {
+    const initArg: UploadFileModalState = {
+        stage: UploadFileStage.SERVER_CONFIRM,
+        name: '',
+        fileList: [] as any[],
+        exist: true
+    };
+    const [state, dispatch] = useReducer((state: UploadFileModalState, action: any) => {
         if ('function' === typeof action) {
-            return {...state, ...action(state)};
+            return {...state, ...action(state)} as UploadFileModalState;
         }
-        return {...state, ...action};
-    }, initArg, arg => ({...arg}));
+        return {...state, ...action} as UploadFileModalState;
+    }, initArg, arg => ({...arg} as UploadFileModalState));
     const [form] = Form.useForm();
     const intl = useIntl();
 
@@ -59,15 +71,15 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         }
     };
     const onConfirm = () => {
-        const server = form.getFieldValue("server");
-        if (StringUtil.isEmpty(server)) {
+        const name = form.getFieldValue("name");
+        if (StringUtil.isEmpty(name)) {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_UPLOAD_SERVER_TITLE'}));
             return;
         }
-        UploadFileService.startUploadFile(server).then(resp => {
+        UploadFileService.startUploadFile(name).then(resp => {
             if (resp.resultCode === 0) {
-                dispatch({name: server, stage: UploadFileStage.UPLOAD, exist: resp.result});
-                UploadHeartbeat.getInstance().start(server);
+                dispatch({name: name, stage: UploadFileStage.UPLOAD, exist: resp.result});
+                UploadHeartbeat.getInstance().start(name);
             } else {
                 CommonNotice.errorFormatted(resp);
             }
@@ -124,7 +136,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         action: `/api/jarboot/upload`,
         headers: {Authorization: CommonUtils.getToken()},
         fileList: state.fileList,
-        data: () => ({server: form.getFieldValue("server")}),
+        data: () => ({server: form.getFieldValue("name")}),
         beforeUpload(file: any) {
             return checkFile(file) ? Promise.resolve(file) : Promise.reject();
         },
@@ -144,7 +156,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
             }
         },
         onRemove(file: any) {
-            UploadFileService.deleteCacheFile(form.getFieldValue("server")
+            UploadFileService.deleteCacheFile(form.getFieldValue("name")
                 , file.name)
                 .then(resp => {
                     if (resp.resultCode !== 0) {
@@ -195,8 +207,8 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                   onOk={onOk} onCancel={onCancel}>
         <Form {...layout}
               form={form}
-              initialValues={{server: props.server}}>
-            <Form.Item label={intl.formatMessage({id: 'NAME'})} name={"server"}>
+              initialValues={{name: props.server}}>
+            <Form.Item label={intl.formatMessage({id: 'NAME'})} name={"name"}>
                 <Input autoComplete="off"
                        ref={inputRef}
                        autoCorrect="off"

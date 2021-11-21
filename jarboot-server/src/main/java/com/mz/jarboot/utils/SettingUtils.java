@@ -160,7 +160,7 @@ public class SettingUtils {
      * @return jar包路径
      */
     public static String getJarPath(ServerSetting setting) {
-        String server = setting.getServer();
+        String server = setting.getName();
         File dir = FileUtils.getFile(setting.getPath());
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());

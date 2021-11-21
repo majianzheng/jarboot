@@ -161,7 +161,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void startSingleServer(ServerSetting setting) {
-        String server = setting.getServer();
+        String server = setting.getName();
         String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
         if (this.taskRunCache.isStartingOrStopping(sid)) {
@@ -333,7 +333,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     private void stopSingleServer(ServerSetting setting) {
-        String server = setting.getServer();
+        String server = setting.getName();
         String sid = setting.getSid();
         if (this.taskRunCache.isStopping(sid)) {
             WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeEnum.INFO);

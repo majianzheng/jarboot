@@ -27,7 +27,7 @@ const FileEditModal = memo((props: FileEditModalProp) => {
         setContent(value);
     };
 
-    const height = window.innerHeight - 320;
+    const height = window.innerHeight - 260;
     return <Modal title={props.name} visible={props.visible} width={860} maskClosable={false}
                   destroyOnClose={true} onOk={onOk} onCancel={closeModal}>
         <div style={{width: '100%', height}}>

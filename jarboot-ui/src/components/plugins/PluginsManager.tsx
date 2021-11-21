@@ -1,15 +1,16 @@
 import {Form, Select, Layout, Modal, Upload, Button} from 'antd';
 import {useEffect, useState} from "react";
 import CommonTable from "@/components/table";
-import {DeleteOutlined, SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
+import {SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
 import PluginsService from "@/services/PluginsService";
 import CommonNotice from "@/common/CommonNotice";
 import {useIntl} from "umi";
 import CommonUtils from "@/common/CommonUtils";
+import {DeleteIcon} from "@/components/icons";
 
 const { Sider } = Layout;
-const height = window.innerHeight - 130;
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
+const height = window.innerHeight - 70;
+const toolButtonStyle = {color: '#1DA57A', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 const layout = {
     labelCol: {span: 6},
@@ -118,7 +119,7 @@ const PluginsManager = () => {
             {
                 name: 'Delete',
                 key: 'delete',
-                icon: <DeleteOutlined style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon style={toolButtonRedStyle}/>,
                 onClick: removePlugin,
             },
             {

@@ -16,6 +16,7 @@ enum PUB_TOPIC {
     RECONNECTED = "reconnected",
     WORKSPACE_CHANGE = "workspaceChange",
     STATUS_CHANGE = "statusChange",
+    FOCUS_CMD_INPUT = "focusCmdInput",
 }
 
 class ServerPubsubImpl implements PublishSubmit {

@@ -138,10 +138,7 @@ public class WsClientFactory {
     }
 
     public void onHeartbeat() {
-        if (null == this.heartbeatLatch) {
-            logger.warn("heartbeat command executed, but check thread may timeout!");
-        } else {
-            logger.info("heartbeat command executed success!");
+        if (null != this.heartbeatLatch) {
             this.heartbeatLatch.countDown();
         }
     }

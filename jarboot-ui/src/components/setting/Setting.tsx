@@ -3,6 +3,7 @@ import styles from "@/pages/index.less";
 import React, {useState} from "react";
 import {useIntl} from "umi";
 import SystemSetting from "@/components/setting/SystemSetting";
+import PluginsManager from "@/components/plugins";
 
 const Setting = () => {
     const intl = useIntl();
@@ -19,13 +20,17 @@ const Setting = () => {
                     <Menu.Item key="sys-setting">
                         {intl.formatMessage({id: 'SYSTEM_SETTING'})}
                     </Menu.Item>
+                    <Menu.Item key="sys-plugins">
+                        {intl.formatMessage({id: 'PLUGINS'})}
+                    </Menu.Item>
                 </Menu.ItemGroup>
             </Menu>
         </Col>
-        <Col span={20}>
-            <div style={{padding: '0 5px 0 20px'}} className={styles.pageContainer}>
-                {'sys-setting' === page && <SystemSetting/>}
-            </div>
+        <Col span={20} className={styles.pageContainer}>
+            {'sys-setting' === page && <div style={{padding: '0 5px 0 20px'}}>
+                <SystemSetting/>
+            </div>}
+            {"sys-plugins" === page && <PluginsManager/>}
         </Col>
     </Row>
 };

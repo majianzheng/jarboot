@@ -2,6 +2,7 @@ import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
 import {requestFinishCallback} from "@/common/JarBootConst";
 import StringUtil from "@/common/StringUtil";
+import React from "react";
 
 const urlBase = "/api/jarboot/services";
 
@@ -9,7 +10,8 @@ interface ServerRunning {
     name: string,
     sid: string,
     status: string,
-    path: string
+    path: string,
+    group: string,
 }
 
 interface JvmProcess {
@@ -19,7 +21,15 @@ interface JvmProcess {
     attached: boolean
 }
 
-export { ServerRunning, JvmProcess };
+interface TreeNode extends ServerRunning {
+    title: string;
+    key: string;
+    isLeaf?: boolean;
+    children?: TreeNode[];
+    icon?: React.ReactNode;
+}
+
+export { ServerRunning, JvmProcess, TreeNode };
 /**
  * 服务管理
  */
@@ -40,7 +50,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static startServer(servers: ServerRunning[], callback: any) {
+    public static startServer(servers: TreeNode[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/startServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -50,7 +60,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static stopServer(servers: ServerRunning[], callback: any) {
+    public static stopServer(servers: TreeNode[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/stopServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -60,7 +70,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static restartServer(servers: ServerRunning[], callback: any) {
+    public static restartServer(servers: TreeNode[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/restartServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -127,7 +137,15 @@ export default class ServerMgrService {
         return Request.get(`${urlBase}/deleteServer`, {server});
     }
 
-    private static parseParam(servers: ServerRunning[]): string[] {
-        return servers.map(server => server.path);
+    private static parseParam(servers: TreeNode[]): string[] {
+        const set = new Set<string>();
+        servers.forEach(value => {
+            if (value.isLeaf) {
+                set.add(value.path);
+                return;
+            }
+            value.children?.length && value.children.forEach(child => set.add(child.path));
+        });
+        return Array.from(set);
     }
 }

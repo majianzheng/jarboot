@@ -5,7 +5,6 @@ export default {
     //Tab标题
     SERVICES_MGR: 'Services',
     ONLINE_DEBUG: 'Online debug',
-    SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
     PLUGINS: 'Plugins',
     SETTING: 'Setting',
@@ -20,6 +19,12 @@ export default {
     STATUS: 'Status',
     CLEAR: 'Clear',
     CLOSE: 'Close',
+    GROUP: 'Group',
+    TREE_VIEW: 'Tree',
+    LIST_VIEW: 'List',
+    CONSOLE_VIEW: 'Console',
+    SERVICES_CONF: 'Config',
+    GROUP_PLACEHOLDER: 'Enter the group name for easy management',
     CMD_PLACEHOLDER: 'Input command to execute',
     SELECT_UPLOAD_SERVER_TITLE: 'Input the server name of update or new',
     UPLOAD_STAGE_TITLE: 'Upload {server} files',
@@ -55,6 +60,7 @@ export default {
     LOADING: 'Loading...',
     SUBMITTING: 'Submitting...',
     WARN: 'Warn',
+    CANCEL: 'Cancel',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',

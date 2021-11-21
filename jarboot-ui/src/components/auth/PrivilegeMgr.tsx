@@ -15,8 +15,8 @@ const PrivilegeMgr = memo(() => {
     const intl = useIntl();
     let [loading, setLoading] = useState(true);
     let [selected, setSelected] = useState(JarBootConst.ADMIN_ROLE);
-    let [data, setData] = useState(new Array<any>());
-    let [permissionTree, setPermissionTree] = useState(new Array<any>());
+    let [data, setData] = useState([] as any[]);
+    let [permissionTree, setPermissionTree] = useState([] as any[]);
     let [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
     let [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
     let [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
@@ -152,16 +152,15 @@ const PrivilegeMgr = memo(() => {
             <Card title={intl.formatMessage({id: 'PERMISSION_CONTROL_TITLE'})}
                   size={"small"} bordered={false} loading={loading}>
                 <div style={{height: (JarBootConst.PANEL_HEIGHT - 30), overflowY: "auto"}}>
-                    <Tree
-                        checkable
-                        onExpand={onExpand}
-                        expandedKeys={expandedKeys}
-                        autoExpandParent={autoExpandParent}
-                        onCheck={onCheck}
-                        checkedKeys={checkedKeys}
-                        onSelect={onSelectPermission}
-                        selectedKeys={selectedKeys}
-                        treeData={permissionTree}
+                    <Tree checkable
+                          onExpand={onExpand}
+                          expandedKeys={expandedKeys}
+                          autoExpandParent={autoExpandParent}
+                          onCheck={onCheck}
+                          checkedKeys={checkedKeys}
+                          onSelect={onSelectPermission}
+                          selectedKeys={selectedKeys}
+                          treeData={permissionTree}
                     />
                 </div>
             </Card>

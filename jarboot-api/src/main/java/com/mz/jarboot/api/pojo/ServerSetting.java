@@ -11,7 +11,12 @@ public class ServerSetting implements Serializable {
     /**
      * 服务名，即jar文件的上级目录的名称
      */
-    private String server;
+    private String name;
+
+    /**
+     * 组名字，可为空
+     */
+    private String group;
 
     /**
      * sid，服务唯一标识，通过path计算得出
@@ -80,10 +85,10 @@ public class ServerSetting implements Serializable {
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
     }
 
-    public ServerSetting(String server) {
+    public ServerSetting(String name) {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
-        this.server = server;
+        this.name = name;
     }
 
     private ServerSetting(String vm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
@@ -94,12 +99,20 @@ public class ServerSetting implements Serializable {
         this.jarUpdateWatch = jarUpdateWatch;
     }
 
-    public String getServer() {
-        return server;
+    public String getName() {
+        return name;
     }
 
-    public void setServer(String server) {
-        this.server = server;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getSid() {
@@ -201,7 +214,7 @@ public class ServerSetting implements Serializable {
     @Override
     public String toString() {
         return "ServerSettingDTO{" +
-                "server='" + server + '\'' +
+                "server='" + name + '\'' +
                 ", command='" + command + '\'' +
                 ", vm='" + vm + '\'' +
                 ", priority=" + priority +

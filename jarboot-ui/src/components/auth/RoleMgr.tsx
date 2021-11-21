@@ -2,12 +2,13 @@ import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
-import {DeleteOutlined, SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import CommonNotice from "@/common/CommonNotice";
 import RoleService from "@/services/RoleService";
 import {Form, Input, Modal} from "antd";
+import {DeleteIcon} from "@/components/icons";
 
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
+const toolButtonStyle = {color: '#1DA57A', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 
 /**
@@ -139,7 +140,7 @@ const RoleMgr = memo(() => {
             {
                 name: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteOutlined style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon style={toolButtonRedStyle}/>,
                 onClick: onDeleteClick,
             },
             {

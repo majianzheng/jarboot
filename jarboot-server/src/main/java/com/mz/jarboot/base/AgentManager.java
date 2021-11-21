@@ -154,13 +154,13 @@ public class AgentManager {
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
-                    WebSocketManager.getInstance().commandEnd(sid, "连接断开，重连失败，请稍后重试", sessionId);
+                    WebSocketManager.getInstance().commandEnd(sid, server + "连接断开，重连失败，请稍后重试", sessionId);
                 } else {
                     client.sendCommand(command, sessionId);
                 }
             } else {
                 //未在线，进程不存在
-                WebSocketManager.getInstance().commandEnd(sid, "未在线，无法执行命令", sessionId);
+                WebSocketManager.getInstance().commandEnd(sid, server + "未在线，无法执行命令", sessionId);
             }
         } else {
             client.sendCommand(command, sessionId);
@@ -171,10 +171,10 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
             TaskUtils.attach(server, sid);
-            WebSocketManager.getInstance().sendConsole(sid, "连接断开，重连中...", sessionId);
+            WebSocketManager.getInstance().sendConsole(sid, server + "连接断开，重连中...", sessionId);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                 logger.error("Attach and wait server connect timeout，{}", server);
-                WebSocketManager.getInstance().sendConsole(sid, "Attach重连超时！", sessionId);
+                WebSocketManager.getInstance().sendConsole(sid, server + "Attach重连超时！", sessionId);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

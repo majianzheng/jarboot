@@ -83,6 +83,7 @@ const OnlineDebugView = () => {
                 case JarBootConst.STATUS_STARTING:
                 case JarBootConst.STATUS_STARTED:
                     process.attached = true;
+                    pubsub.publish(msg.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
                 case JarBootConst.STATUS_STOPPING:
                 case JarBootConst.STATUS_STOPPED:
@@ -149,7 +150,10 @@ const OnlineDebugView = () => {
     };
 
     const onRow = (record: JvmProcess) => ({
-        onClick: () => dispatch({selectedRowKeys: [record.pid], selectRows: [record]}),
+        onClick: () => {
+            dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
+            pubsub.publish(`${record.pid}`, PUB_TOPIC.FOCUS_CMD_INPUT);
+        },
     });
 
     const attach = () => {

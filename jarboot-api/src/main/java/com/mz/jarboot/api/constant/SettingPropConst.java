@@ -11,7 +11,7 @@ public class SettingPropConst {
 
     public static final char COMMENT_PREFIX = '#';
 
-    public static final String SERVER_NAME = "name";
+    public static final String GROUP = "group";
     public static final String VM = "vm";
     public static final String COMMAND = "command";
     public static final String ARGS = "args";

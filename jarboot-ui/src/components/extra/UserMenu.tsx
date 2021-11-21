@@ -5,7 +5,7 @@ import {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@an
 import {useIntl} from "umi";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import CommonUtils from "@/common/CommonUtils";
-import DefaultUserIcon from "@/components/extra/DefaultUserIcon";
+import {DefaultUserIcon} from "@/components/icons";
 
 const UserPopMenu = memo((props: any) => {
     const intl = useIntl();
@@ -53,7 +53,7 @@ interface UserMenuProp {
 }
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
-    const icon = <DefaultUserIcon style={{ fontSize: '32px' }}/>;
+    const icon = <DefaultUserIcon style={{ fontSize: '28px' }}/>;
     return <Popover content={<UserPopMenu onHide={() => setUserMenuVisible(false)}/>}
                     visible={userMenuVisible}
                     mouseLeaveDelay={0.5}

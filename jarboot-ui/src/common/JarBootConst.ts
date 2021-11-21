@@ -5,6 +5,13 @@ class JarBootConst {
     public static DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
     public static PROTOCOL_SPLIT = '\r';
 
+    public static  SIDE_VIEW = 'sideView';
+    public static  CONTENT_VIEW = 'contentView';
+    public static  TREE_VIEW = 'tree';
+    public static  LIST_VIEW = 'list';
+    public static  CONFIG_VIEW = 'config';
+    public static  CONSOLE_VIEW = 'console';
+
     //进程状态
     public static STATUS_STARTED = 'RUNNING';
     public static STATUS_STOPPED = 'STOPPED';
@@ -15,7 +22,8 @@ class JarBootConst {
     public static NOTICE_WARN = 1;
     public static NOTICE_ERROR = 2;
 
-    public static PANEL_HEIGHT = (window.innerHeight - 150);
+    public static PANEL_HEIGHT = (window.innerHeight - 90);
+    public static HIGHLIGHT_STYLE = {backgroundColor: '#ffc069', padding: 0};
 
     public static ZH_CN = 'zh-CN';
 

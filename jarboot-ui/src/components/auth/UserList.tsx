@@ -2,13 +2,14 @@ import {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
-import {FormOutlined, DeleteOutlined, SyncOutlined, UserAddOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {FormOutlined, SyncOutlined, UserAddOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import UserService from "@/services/UserService";
 import CommonNotice from "@/common/CommonNotice";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import {Modal} from "antd";
+import {DeleteIcon} from "@/components/icons";
 
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
+const toolButtonStyle = {color: '#1DA57A', fontSize: '18px'};
 const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
 
 let isCreate = true;
@@ -145,7 +146,7 @@ const UserList = memo(() => {
             {
                 name: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteOutlined style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon style={toolButtonRedStyle}/>,
                 onClick: onDelete,
             },
             {

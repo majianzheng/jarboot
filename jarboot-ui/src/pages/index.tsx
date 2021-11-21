@@ -13,9 +13,8 @@ import StringUtil from "@/common/StringUtil";
 import {SelectLang, UserMenu, ProjectHome, JarbootVersion} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
 import ServerMgrView, {OnlineDebugView} from "@/components/servers";
-import {Setting, ServerSetting} from "@/components/setting";
+import {Setting} from "@/components/setting";
 import AuthControl from "@/components/auth";
-import PluginsManager from "@/components/plugins";
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
@@ -28,18 +27,12 @@ const TabPanes = memo((props: any) => {
     const intl = useIntl();
     return <Tabs defaultActiveKey={'0'} size={'large'}
                  tabBarExtraContent={props.extra}
-                 style={{margin: '0 15px 0 15px'}}>
+                 style={{margin: '0 5px 0 5px'}}>
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
             <ServerMgrView/>
         </TabPane>
         <TabPane key={'8'} tab={intl.formatMessage({id: 'ONLINE_DEBUG'})}>
             <OnlineDebugView/>
-        </TabPane>
-        <TabPane key={'2'} tab={intl.formatMessage({id: 'SERVICES_CONF'})}>
-            <ServerSetting/>
-        </TabPane>
-        <TabPane key={'3'} tab={intl.formatMessage({id: 'PLUGINS'})}>
-            <PluginsManager/>
         </TabPane>
         <TabPane key={'4'} tab={intl.formatMessage({id: 'AUTH_CONTROL'})}>
             <AuthControl/>

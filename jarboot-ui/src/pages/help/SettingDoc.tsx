@@ -1,12 +1,22 @@
 import React, {memo} from "react";
-import {BackTop, Typography} from "antd";
+import {BackTop, Breadcrumb, Typography} from "antd";
 import {useIntl} from "umi";
+import {HomeOutlined} from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 
 const SettingDoc = memo(() => {
     const intl = useIntl();
     return <>
+        <Breadcrumb>
+            <Breadcrumb.Item><HomeOutlined /></Breadcrumb.Item>
+            <Breadcrumb.Item>
+                {intl.formatMessage({id: 'HELP'})}
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+                {intl.formatMessage({id: 'SETTING'})}
+            </Breadcrumb.Item>
+        </Breadcrumb>
         <Typography>
             <Title>{intl.formatMessage({id: 'SETTING'})}</Title>
             <Paragraph>

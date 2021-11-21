@@ -5,7 +5,6 @@ export default {
     //Tab标题
     SERVICES_MGR: '服务管理',
     ONLINE_DEBUG: '在线调试',
-    SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
     PLUGINS: '插件',
     SETTING: '设置',
@@ -20,6 +19,12 @@ export default {
     STATUS: '状态',
     CLEAR: '清空',
     CLOSE: '关闭',
+    GROUP: '组',
+    TREE_VIEW: '树',
+    LIST_VIEW: '列表',
+    CONSOLE_VIEW: '控制台',
+    SERVICES_CONF: '配置',
+    GROUP_PLACEHOLDER: '输入分组名，便于管理',
     CMD_PLACEHOLDER: '输入调试命令执行',
     SELECT_UPLOAD_SERVER_TITLE: '输入要更新或新增的服务的名称',
     UPLOAD_STAGE_TITLE: '上传{server}文件',
@@ -55,6 +60,7 @@ export default {
     LOADING: '加载中...',
     SUBMITTING: '提交中...',
     WARN: '警告',
+    CANCEL: '取消',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',

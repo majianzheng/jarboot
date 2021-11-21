@@ -1,6 +1,6 @@
 import React, {memo, useState} from "react";
-import {Row, Col, Menu, Typography} from 'antd';
-import {RocketOutlined, SettingOutlined, StarOutlined} from '@ant-design/icons';
+import {Row, Col, Menu, Typography, Breadcrumb} from 'antd';
+import {RocketOutlined, SettingOutlined, StarOutlined, HomeOutlined} from '@ant-design/icons';
 import {useIntl} from "umi";
 import QuickStartDoc from "@/pages/help/QuickStartDoc";
 import styles from "@/pages/index.less";
@@ -35,15 +35,27 @@ const Help = memo(() => {
         </Col>
         <Col span={20}>
             <div style={{padding: '0 5px 0 10px'}} className={styles.pageContainer}>
-                {"about" === page && <Typography>
-                    <Title>{intl.formatMessage({id: 'ABOUT'})}</Title>
-                    <Paragraph>
-                        {intl.formatMessage({id: 'ABOUT_TEXT'})}
-                    </Paragraph>
-                    <Paragraph>GitHub: <Link>https://github.com/majianzheng/jarboot</Link></Paragraph>
-                    <Paragraph>Gitee: <Link>https://gitee.com/majz0908/jarboot</Link></Paragraph>
-                    <Paragraph>Docker Hub: <Link>https://registry.hub.docker.com/r/mazheng0908/jarboot</Link></Paragraph>
-                </Typography>}
+                {"about" === page && <div>
+                    <Breadcrumb>
+                        <Breadcrumb.Item><HomeOutlined /></Breadcrumb.Item>
+                        <Breadcrumb.Item>
+                            {intl.formatMessage({id: 'HELP'})}
+                        </Breadcrumb.Item>
+                        <Breadcrumb.Item>
+                            {intl.formatMessage({id: 'ABOUT'})}
+                        </Breadcrumb.Item>
+                    </Breadcrumb>
+                    <Typography>
+                        <Title>{intl.formatMessage({id: 'ABOUT'})}</Title>
+                        <Paragraph>
+                            {intl.formatMessage({id: 'ABOUT_TEXT'})}
+                        </Paragraph>
+                        <Paragraph>GitHub: <Link>https://github.com/majianzheng/jarboot</Link></Paragraph>
+                        <Paragraph>Gitee: <Link>https://gitee.com/majz0908/jarboot</Link></Paragraph>
+                        <Paragraph>Docker
+                            Hub: <Link>https://registry.hub.docker.com/r/mazheng0908/jarboot</Link></Paragraph>
+                    </Typography>
+                </div>}
                 {"quick-start" === page && <QuickStartDoc/>}
                 {"setting" === page && <SettingDoc/>}
             </div>

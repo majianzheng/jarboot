@@ -9,14 +9,89 @@
     }
 }
 .toolButtonStyle {
-    color: #1890ff;
-    font-size: 18px
+    color: #1DA57A !important;
 }
 .toolButtonRedStyle {
-    color: red;
-    font-size: 18px
+    color: red !important;
 }
 .toolButtonGreenStyle {
-    color: green;
-    font-size: 18px
+    color: #52c41a !important;
+}
+.bottomBar {
+    background-color: rgb(245, 245, 245);
+    border: 1px solid #ddd;
+    border-top: none;
+    box-sizing: border-box;
+    height: 32px;
+    .bottomBarButton {
+        span[role='img'] {
+            color: #1DA57A;
+        }
+        .toolButtonConsole {
+            color: black !important;
+        }
+    }
+}
+.consoleExtra {
+    position: absolute;
+    top: 66px;
+    right: 8px;
+    z-index: 9999;
+    button {
+        font-weight: bold;
+    }
+}
+.commandInput {
+    background:#263238;
+    color: seashell;
+    font-family: Monospace Terminal Arial, serif;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    span[role='img'][aria-label='right'] {
+        color: #1890ff !important;
+    }
+    input {
+        border: none !important;
+        box-shadow: none !important;
+        background:#263238 !important;
+        color: seashell !important;
+        font-family: Monospace Terminal Arial, serif !important;
+    }
+}
+.treeView {
+    span[class='ant-tree-switcher ant-tree-switcher-noop'] {
+        display: none;
+    }
+    .ant-tree.ant-tree-directory .ant-tree-treenode-selected:hover::before, .ant-tree.ant-tree-directory .ant-tree-treenode-selected::before {
+        background: #dcf4ff !important;
+        color: black !important;
+    }
+}
+.treeToolbar {
+    flex: 0 0 32px;
+    background-color: rgb(245, 245, 245);
+    border: 1px solid #ddd;
+    border-right: none;
+    box-sizing: border-box;
+    //width: 32px;
+}
+.bottomBar, .treeToolbar {
+    button:hover {
+        background: #e6e6e6;
+        cursor: pointer;
+    }
+    button:disabled {
+        background-color: inherit;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+.commandPrefix {
+    color: lightgray;
+    margin:0 10px 0 2px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 }

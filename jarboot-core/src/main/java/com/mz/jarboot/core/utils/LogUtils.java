@@ -34,18 +34,17 @@ public class LogUtils {
                 "[%file:%line] %msg%n");
         ple.setContext(lc);
         ple.start();
-
+        StringBuilder sb = new StringBuilder();
+        sb
+                .append(home)
+                .append(File.separator)
+                .append("logs")
+                .append(File.separator)
+                .append(server);
+        logDir = sb.toString();
         Appender<ILoggingEvent> appender;
         if (persist) {
             FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
-            StringBuilder sb = new StringBuilder();
-            sb
-                    .append(home)
-                    .append(File.separator)
-                    .append("logs")
-                    .append(File.separator)
-                    .append(server);
-            logDir = sb.toString();
             sb.append(File.separator)
                     .append("jarboot-")
                     .append(server)
