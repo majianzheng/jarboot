@@ -210,13 +210,13 @@ const OnlineDebugView = () => {
     let tableOption: any = getTbProps();
     tableOption.scroll = {y: height};
     const showLoading = state.loading && 0 === state.data.length;
-    return <div style={{display: 'flex'}}>
-        <div style={{flex: 'inherit', width: '28%'}}>
-            <CommonTable toolbarGap={5} option={tableOption} toolbar={getTbBtnProps()}
+    return <div className={styles.serverMgr}>
+        <div className={styles.serverMgrSide}>
+            <CommonTable option={tableOption} toolbar={getTbBtnProps()}
                          showToolbarName={true}
                          height={height}/>
         </div>
-        <div style={{flex: 'inherit', width: '72%'}}>
+        <div className={styles.serverMgrContent}>
             {showLoading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
             {state.data.map((value: JvmProcess) => (
                 <SuperPanel key={value.pid}

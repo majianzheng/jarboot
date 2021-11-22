@@ -79,17 +79,17 @@ const BottomBar = (props: BottomBarProp) => {
         let key = '';
         switch (view) {
             case JarBootConst.LIST_VIEW:
-                icon = <BarsOutlined />;
+                icon = <BarsOutlined className={styles.toolButtonStyle}/>;
                 text = intl.formatMessage({id: 'LIST_VIEW'});
                 key = 'sideView';
                 break;
             case JarBootConst.TREE_VIEW:
-                icon = <TreeIcon />;
+                icon = <TreeIcon className={styles.toolButtonStyle}/>;
                 text = intl.formatMessage({id: 'TREE_VIEW'});
                 key = 'sideView';
                 break;
             case JarBootConst.CONFIG_VIEW:
-                icon = <SettingOutlined />;
+                icon = <SettingOutlined className={styles.toolButtonStyle}/>;
                 text = intl.formatMessage({id: 'SERVICES_CONF'});
                 key = 'contentView';
                 break;

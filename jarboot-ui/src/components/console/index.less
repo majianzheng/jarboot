@@ -1,11 +1,12 @@
 .console{
+    flex: none !important;
     height: 100%;
     width: 100%;
     //border-style: double;
     //border:1px solid #96c2f1;
     background:#263238;
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
     font-family: Monospace Terminal Arial, serif;
     color: seashell;
     line-height: 1.186;
@@ -50,6 +51,23 @@
     }
 }
 
+.console::-webkit-scrollbar {
+    /*滚动条整体样式*/
+    width : 6px;  /*高宽分别对应横竖滚动条的尺寸*/
+    height: 0;
+}
+.console::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 10px;
+    box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background   : #535353;
+}
+.console::-webkit-scrollbar-track {
+    /*滚动条里面轨道*/
+    box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    background   : rgb(0 0 0 / 25%);
+}
 .loading{
     width:150px;
     margin:2px auto;

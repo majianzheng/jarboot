@@ -1,29 +1,8 @@
 .commonTable {
     padding: 0;
-    .ant-table-container {
-        border: 1px solid #f0f0f0 !important;
-        background: white;
+
+    div[class="ant-table-body"] {
         overflow-y: auto !important;
-    }
-
-    .ant-table-body {
-        overflow-y: auto !important;
-    }
-
-    .ant-table-container .ant-table-thead > tr > th,
-    .ant-table-container .ant-table-tbody > tr > td {
-        height: 30px;
-        padding: 0 5px !important;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        background: inherit;
-    }
-
-    .ant-table-container .ant-table-thead > tr > th {
-        font-size: 15px;
-        font-weight: bold;
-        height: 35px;
     }
 
     .toolBar {
@@ -33,7 +12,7 @@
             display: inline-flex;
             align-items: center;
             height: 100%;
-            padding: 0 10px;
+            padding: 0 7px 0 5px;
             background-color: inherit;
             border: none;
             outline: none;
@@ -47,8 +26,5 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
-    }
-    .ant-select-selection {
-        border: none;
     }
 }

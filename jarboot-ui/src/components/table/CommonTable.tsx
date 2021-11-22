@@ -7,7 +7,6 @@ import {SettingOutlined} from '@ant-design/icons';
 interface CommonTableProp {
     option: any,
     toolbar?: Array<any>,
-    toolbarGap?: number,
     showToolbarName?: boolean,
     height: number,
     showSelRowNum?: boolean,
@@ -24,7 +23,6 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
     static defaultProps = {
         showSelRowNum: false,
         option: {},
-        toolbarGap: 0,
         showToolbarName: false,
     };
     tableContentHeight = 0;
@@ -120,7 +118,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
                         {this.props.toolbar && this.props.toolbar.length > 0 && this.props.toolbar.map(element =>
                             <Button onClick={element.onClick} key={element.key} type={"text"}
                                     disabled={element.disabled}
-                                    style={{marginRight: `${this.props.toolbarGap}px`}}
+                                    style={this.props.showToolbarName ? {} : {marginRight: 2}}
                                     icon={element.icon}
                                     title={element.name}>{this.props.showToolbarName && element.name}</Button>
                         )}

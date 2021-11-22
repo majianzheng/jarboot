@@ -65,7 +65,7 @@ const CodeEditor = (props: CodeEditorProps) => {
         }, 500);
     }, [props.source]);
 
-    return <div>
+    return <div style={{fontSize: '1.18em'}}>
         <CodeMirror
             ref={codeRef}
             value={code}

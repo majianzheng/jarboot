@@ -1,6 +1,6 @@
 import styles from "./index.less";
 import Console from "@/components/console";
-import {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
+import React, {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
 import {Button, Input} from "antd";
 import {CloseCircleOutlined, EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
@@ -37,7 +37,7 @@ interface HistoryProp {
 const MAX_HISTORY = 100;
 const historyMap = new Map<string, HistoryProp>();
 
-const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
+const SuperPanel = memo((props: SuperPanelProps) => {
     const intl = useIntl();
     const [view, setView] = useState('');
     const [executing, setExecuting] = useState(false);
@@ -209,7 +209,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
                    style={{width: '100%'}}
                    onChange={event => setCommand(event.target.value)}
                    value={command}
-                   prefix={<RightOutlined />}
+                   prefix={<RightOutlined className={styles.commandRightIcon}/>}
                    suffix={executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
             />);
 
@@ -238,7 +238,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
     }
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
-            <div className={styles.outPanel} style={{height: JarBootConst.PANEL_HEIGHT}}>
+            <div style={{height: JarBootConst.PANEL_HEIGHT}}>
                 <Console id={key}
                          visible={'' === view}
                          pubsub={pubsub}/>

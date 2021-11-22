@@ -39,7 +39,7 @@ let searchInput = {} as any;
 
 const getInitSideView = (): 'tree' | 'list' => {
     const sideView = localStorage.getItem(JarBootConst.SIDE_VIEW);
-    return (sideView || JarBootConst.TREE_VIEW) as ('tree' | 'list');
+    return (sideView || JarBootConst.LIST_VIEW) as ('tree' | 'list');
 };
 
 const ServerMgrView = () => {
@@ -65,7 +65,7 @@ const ServerMgrView = () => {
         return {...state, ...action} as ServerMgrViewState;
     }, initArg, (arg): ServerMgrViewState => ({...arg} as ServerMgrViewState));
 
-    const height = window.innerHeight - 90;
+    const height = window.innerHeight - 86;
 
     useEffect(() => {
         refreshServerList(true);
@@ -196,12 +196,7 @@ const ServerMgrView = () => {
                 text
             );
             if ('name' === dataIndex) {
-                return (<>
-                    <span style={{margin: '0 5px 0 0', verticalAlign: 'middle'}}>
-                        {translateStatus(row.status)}
-                    </span>
-                    {s}
-                </>);
+                return (<>{translateStatus(row.status)}{s}</>);
             }
             return s;
         },
@@ -260,7 +255,7 @@ const ServerMgrView = () => {
                 tag = <CaretRightOutlined title={title} style={{color: '#52c41a'}}/>;
                 break;
             case JarBootConst.STATUS_STOPPED:
-                tag = <StoppedIcon title={title} style={{color: '#d4380d'}}/>;
+                tag = <StoppedIcon title={title} style={{color: '#C16666', opacity: 0.5}}/>;
                 break;
             case JarBootConst.STATUS_STARTING:
                 tag = <LoadingOutlined title={title} style={{color: '#2db7f5'}}/>;
@@ -269,11 +264,10 @@ const ServerMgrView = () => {
                 tag = <LoadingOutlined title={title} style={{color: '#d4380d'}}/>;
                 break;
             default:
-                tag = undefined;
-                break;
+                return undefined;
         }
-        return tag;
-    }
+        return <span className={styles.statusIcon}>{tag}</span>;
+    };
 
     const getRowSelection = () => ({
         type: 'checkbox',
@@ -498,8 +492,8 @@ const ServerMgrView = () => {
         });
     };
 
-    const groupIcon = (props: any): React.ReactNode => {
-        return (<AppstoreOutlined className={!props?.selected && styles.toolButtonStyle}/>);
+    const groupIcon = (): React.ReactNode => {
+        return (<AppstoreOutlined className={styles.groupIcon}/>);
     };
 
     const getTreeData = (data: ServerRunning[]): TreeNode[] => {
@@ -527,12 +521,10 @@ const ServerMgrView = () => {
             children.push(child);
         });
         return treeData.sort((a, b) => a.group.localeCompare(b.group));
-    }
+    };
 
     const onTreeSearch = (searchText: string) => {
-        console.info(searchText, treeRef);
         dispatch((preState: ServerMgrViewState) => {
-            //preState.treeData
             if (searchText?.length) {
                 const text = searchText.toLowerCase();
                 const item = preState.data.find(value =>
@@ -550,18 +542,18 @@ const ServerMgrView = () => {
             autoEscape
             textToHighlight={node.title || ''}
         /> : node.title);
-    }
+    };
 
     const treeView = () => (<div>
-        <div style={{display: "flex", height: height - 6, overflow: "auto"}}>
+        <div style={{height: height - 6}} className={styles.serverTree}>
             <div className={styles.treeToolbar}>
-                {getToolBtnProps().map(props => (<Button type={"text"} {...props}/>))}
+                {getToolBtnProps().map(props => (<Button style={{marginBottom: 6, width: '100%'}} type={"text"} {...props}/>))}
             </div>
-            <div style={{flex: 1}}>
+            <div style={{height: height - 10}} className={styles.treeContent}>
                 <Spin spinning={state.loading}>
                     {state.data?.length ? <div>
                         <Input.Search placeholder="Input name to search"
-                                      style={{marginLeft: 4}}
+                                      style={{padding: "0 2px 0 2px"}}
                                       onSearch={onTreeSearch} allowClear enterButton/>
                         <Tree.DirectoryTree multiple className={styles.treeView}
                                             ref={treeRef}
@@ -581,8 +573,9 @@ const ServerMgrView = () => {
         let tableOption: any = getTbProps();
         tableOption.scroll = {y: height};
         return (<>
-            <div style={{display: JarBootConst.TREE_VIEW === state.sideView ? 'block' : 'none'}}>
-                <CommonTable toolbarGap={5} option={tableOption}
+            <div style={{display: JarBootConst.TREE_VIEW === state.sideView ? 'block' : 'none'}}
+                 className={styles.serverTable}>
+                <CommonTable option={tableOption}
                              toolbar={getToolBtnProps()} height={height}/>
             </div>
             <div style={{display: JarBootConst.LIST_VIEW === state.sideView ? 'block' : 'none'}}>
@@ -622,12 +615,12 @@ const ServerMgrView = () => {
     tableOption.scroll = {y: height};
     const loading = state.loading && 0 === state.data.length;
     return (<div>
-        <div style={{display: 'flex'}}>
-            <div style={{flex: 'inherit', width: '28%'}}>
+        <div className={styles.serverMgr}>
+            <div className={styles.serverMgrSide}>
                 {sideView()}
                 <BottomBar sideView={state.sideView} contentView={state.contentView} onViewChange={onViewChange}/>
             </div>
-            <div style={{flex: 'inherit', width: '72%'}}>
+            <div className={styles.serverMgrContent}>
                 {loading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
                 {contentView()}
             </div>
