@@ -14,6 +14,20 @@
     }
 }
 
+.statusRunning {
+    color: @status-running-color;
+}
+.statusStopped {
+    color: @status-stopped-color;
+    opacity: 0.5;
+}
+.statusStarting {
+    color: @status-starting-color;
+}
+.statusStopping {
+    color: @status-stopping-color
+}
+
 .bottomBar {
     position: fixed;
     bottom: 5px;
@@ -69,6 +83,10 @@
         .commonBar();
         border-right: none;
         box-sizing: border-box;
+        .treeToolbarBtn {
+            margin-bottom: 6px;
+            width: 100%;
+        }
     }
     .treeContent {
         flex: 1;

@@ -103,25 +103,25 @@ const PluginsManager = () => {
     const _getTbBtnProps = () => {
         return [
             {
-                name: 'Refresh',
+                title: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
                 icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
             },
             {
-                name: 'New & update',
+                title: intl.formatMessage({id: 'UPLOAD_NEW'}),
                 key: 'upload',
                 icon: <UploadOutlined className={styles.toolButtonIcon}/>,
                 onClick: () => setVisible(true),
             },
             {
-                name: 'Delete',
+                title: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
                 icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: removePlugin,
             },
             {
-                name: 'Open new window',
+                title: 'Open new window',
                 key: 'open',
                 icon: <ArrowRightOutlined className={styles.toolButtonIcon}/>,
                 onClick: () => {

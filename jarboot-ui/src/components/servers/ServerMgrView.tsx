@@ -249,24 +249,24 @@ const ServerMgrView = () => {
     });
     const translateStatus = (status: string) => {
         let tag;
-        const title = intl.formatMessage({id: status});
         switch (status) {
             case JarBootConst.STATUS_STARTED:
-                tag = <CaretRightOutlined title={title} style={{color: '#52c41a'}}/>;
+                tag = <CaretRightOutlined className={styles.statusRunning}/>;
                 break;
             case JarBootConst.STATUS_STOPPED:
-                tag = <StoppedIcon title={title} style={{color: '#C16666', opacity: 0.5}}/>;
+                tag = <StoppedIcon className={styles.statusStopped}/>;
                 break;
             case JarBootConst.STATUS_STARTING:
-                tag = <LoadingOutlined title={title} style={{color: '#2db7f5'}}/>;
+                tag = <LoadingOutlined className={styles.statusStarting}/>;
                 break;
             case JarBootConst.STATUS_STOPPING:
-                tag = <LoadingOutlined title={title} style={{color: '#d4380d'}}/>;
+                tag = <LoadingOutlined className={styles.statusStopping}/>;
                 break;
             default:
                 return undefined;
         }
-        return <span className={styles.statusIcon}>{tag}</span>;
+        const title = intl.formatMessage({id: status});
+        return <span title={title} className={styles.statusIcon}>{tag}</span>;
     };
 
     const getRowSelection = () => ({
@@ -358,47 +358,47 @@ const ServerMgrView = () => {
 
     const getToolBtnProps = () => ([
         {
-            name: 'Start',
+            title: intl.formatMessage({id: 'START'}),
             key: 'start ',
             icon: <CaretRightFilled className={styles.toolButtonIcon}/>,
             onClick: startServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Stop',
+            title: intl.formatMessage({id: 'STOP'}),
             key: 'stop',
             icon: <PoweroffOutlined className={styles.toolButtonRedIcon}/>,
             onClick: stopServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Restart',
+            title: intl.formatMessage({id: 'RESTART'}),
             key: 'restart',
             icon: <ReloadOutlined className={styles.toolButtonIcon}/>,
             onClick: restartServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Refresh',
+            title: intl.formatMessage({id: 'REFRESH_BTN'}),
             key: 'refresh',
             icon: <SyncOutlined className={styles.toolButtonIcon}/>,
             onClick: () => refreshServerList(),
         },
         {
-            name: 'New & update',
+            title: intl.formatMessage({id: 'UPLOAD_NEW'}),
             key: 'upload',
             icon: <UploadOutlined className={styles.toolButtonIcon}/>,
             onClick: uploadFile,
         },
         {
-            name: 'Delete',
+            title: intl.formatMessage({id: 'DELETE'}),
             key: 'delete',
             icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
             onClick: deleteServer,
             disabled: isDeleteDisabled()
         },
         {
-            name: 'Dashboard',
+            title: intl.formatMessage({id: 'DASHBOARD'}),
             key: 'dashboard',
             icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
@@ -547,7 +547,7 @@ const ServerMgrView = () => {
     const treeView = () => (<div>
         <div style={{height: height - 6}} className={styles.serverTree}>
             <div className={styles.treeToolbar}>
-                {getToolBtnProps().map(props => (<Button style={{marginBottom: 6, width: '100%'}} type={"text"} {...props}/>))}
+                {getToolBtnProps().map(props => (<Button className={styles.treeToolbarBtn} type={"text"} {...props}/>))}
             </div>
             <div style={{height: height - 10}} className={styles.treeContent}>
                 <Spin spinning={state.loading}>

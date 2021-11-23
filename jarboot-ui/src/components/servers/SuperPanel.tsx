@@ -246,7 +246,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             </div>
             {extraButton()}
             {commandInput()}
-            {JarBootConst.IS_SAFARI && <div className={styles.consoleScrollbarMaskForMac}/>}
+            {JarBootConst.IS_SAFARI && '' === view && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });
 

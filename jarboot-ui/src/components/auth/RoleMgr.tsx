@@ -130,19 +130,19 @@ const RoleMgr = memo(() => {
     const _getTbBtnProps = () => {
         return [
             {
-                name: intl.formatMessage({id: 'BIND_ROLE'}),
+                title: intl.formatMessage({id: 'BIND_ROLE'}),
                 key: 'banding ',
                 icon: <PlusSquareOutlined className={styles.toolButtonIcon}/>,
                 onClick: onBindClick,
             },
             {
-                name: intl.formatMessage({id: 'DELETE'}),
+                title: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
                 icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: onDeleteClick,
             },
             {
-                name: intl.formatMessage({id: 'REFRESH_BTN'}),
+                title: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
                 icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,

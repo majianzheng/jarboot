@@ -120,7 +120,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
                                     disabled={element.disabled}
                                     style={this.props.showToolbarName ? {} : {marginRight: 2}}
                                     icon={element.icon}
-                                    title={element.name}>{this.props.showToolbarName && element.name}</Button>
+                                    title={element.title}>{this.props.showToolbarName && element.title}</Button>
                         )}
                         {
                             this.props.showSelRowNum &&

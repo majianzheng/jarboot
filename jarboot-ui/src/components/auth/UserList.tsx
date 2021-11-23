@@ -130,25 +130,25 @@ const UserList = memo(() => {
     const _getTbBtnProps = () => {
         return [
             {
-                name: intl.formatMessage({id: 'CREATE'}),
+                title: intl.formatMessage({id: 'CREATE'}),
                 key: 'add ',
                 icon: <UserAddOutlined className={styles.toolButtonIcon}/>,
                 onClick: onCreate,
             },
             {
-                name: intl.formatMessage({id: 'MODIFY'}),
+                title: intl.formatMessage({id: 'MODIFY'}),
                 key: 'modify ',
                 icon: <FormOutlined className={styles.toolButtonIcon}/>,
                 onClick: onModify,
             },
             {
-                name: intl.formatMessage({id: 'DELETE'}),
+                title: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
                 icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: onDelete,
             },
             {
-                name: intl.formatMessage({id: 'REFRESH_BTN'}),
+                title: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
                 icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
