@@ -71,37 +71,37 @@ class ServerPubsubImpl implements PublishSubmit {
 
     private _console = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
-    }
+    };
 
     private _print = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.PRINT, data.body);
-    }
+    };
 
     private _backspace = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
-    }
+    };
 
     private _backspaceLine = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.BACKSPACE_LINE, data.body);
-    }
+    };
 
     private _commandEnd = (data: MsgData) => {
         this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
-    }
+    };
 
     private _workspaceChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, data.body);
         Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
-    }
+    };
 
     private _statusChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, data);
-    }
+    };
 
     private _onReconnected = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, data.body);
         Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
-    }
+    };
 
     private _renderCmdJsonResult = (data: MsgData) => {
         if ('{' !== data.body[0]) {
@@ -112,7 +112,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
         const body = JSON.parse(data.body);
         this.publish(data.sid, PUB_TOPIC.RENDER_JSON, body);
-    }
+    };
 }
 
 const pubsub: PublishSubmit = new ServerPubsubImpl();

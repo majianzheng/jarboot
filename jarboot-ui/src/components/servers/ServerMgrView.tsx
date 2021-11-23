@@ -360,47 +360,47 @@ const ServerMgrView = () => {
         {
             name: 'Start',
             key: 'start ',
-            icon: <CaretRightFilled className={styles.toolButtonGreenStyle}/>,
+            icon: <CaretRightFilled className={styles.toolButtonIcon}/>,
             onClick: startServer,
             disabled: !state.selectRows?.length
         },
         {
             name: 'Stop',
             key: 'stop',
-            icon: <PoweroffOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <PoweroffOutlined className={styles.toolButtonRedIcon}/>,
             onClick: stopServer,
             disabled: !state.selectRows?.length
         },
         {
             name: 'Restart',
             key: 'restart',
-            icon: <ReloadOutlined className={styles.toolButtonStyle}/>,
+            icon: <ReloadOutlined className={styles.toolButtonIcon}/>,
             onClick: restartServer,
             disabled: !state.selectRows?.length
         },
         {
             name: 'Refresh',
             key: 'refresh',
-            icon: <SyncOutlined className={styles.toolButtonStyle}/>,
+            icon: <SyncOutlined className={styles.toolButtonIcon}/>,
             onClick: () => refreshServerList(),
         },
         {
             name: 'New & update',
             key: 'upload',
-            icon: <UploadOutlined className={styles.toolButtonStyle}/>,
+            icon: <UploadOutlined className={styles.toolButtonIcon}/>,
             onClick: uploadFile,
         },
         {
             name: 'Delete',
             key: 'delete',
-            icon: <DeleteIcon className={styles.toolButtonRedStyle}/>,
+            icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
             onClick: deleteServer,
             disabled: isDeleteDisabled()
         },
         {
             name: 'Dashboard',
             key: 'dashboard',
-            icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
             disabled: isCurrentNotRunning()
         }

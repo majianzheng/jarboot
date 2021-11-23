@@ -1,32 +1,29 @@
+@import "../../common/global.less";
+
+@side-width: 320px;
+@tree-icon-size: 1.18em;
+@tree-toolbar-width: 32px;
+@tree-font-size: 1.12em;
+@table-font-size: 1.1em;
+@table-status-icon-size: 1.14em;
+@bottom-bar-height: 28px;
+
 .smallTable {
     th,td{
-        font-size: 10px !important;
+        font-size: 10px;
     }
 }
-.toolButtonStyle {
-    color: #1DA57A;
-}
-.toolButtonRedStyle {
-    color: red;
-}
-.toolButtonGreenStyle {
-    color: #1DA57A;
-}
-.toolButtonStyle, .toolButtonRedStyle, .toolButtonGreenStyle {
-    font-size: 18px;
-    vertical-align: middle;
-}
+
 .bottomBar {
-    background-color: rgb(245, 245, 245);
-    border: 1px solid #ddd;
+    position: fixed;
+    bottom: 5px;
+    .commonBar();
     border-top: none;
     box-sizing: border-box;
-    height: 28px;
+    height: @bottom-bar-height;
+    width: @side-width;
     .bottomBarButton {
         height: 100%;
-        .toolButtonConsole {
-            color: black !important;
-        }
     }
 }
 .consoleExtra {
@@ -38,58 +35,47 @@
         font-weight: bold;
     }
 }
+.consoleScrollbarMaskForMac {
+    position: fixed;
+    bottom: 32px;
+    right: 5px;
+    width: @scrollbar-size;
+    height: @scrollbar-size;
+    background: @console-background;
+}
 .commandInput {
-    background:#263238;
-    color: seashell;
-    font-family: Monospace Terminal Arial, serif;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    background: @console-background;
+    color: @console-color;
+    font-family: @console-font-family;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
     .commandRightIcon {
         color: #1890ff;
     }
     input {
-        border: none !important;
-        box-shadow: none !important;
-        background:#263238 !important;
-        color: seashell !important;
-        font-family: Monospace Terminal Arial, serif !important;
+        border: none;
+        box-shadow: none;
+        background: @console-background;
+        color: @console-color;
+        font-family: @console-font-family;
     }
 }
 .serverTree {
     display: flex;
     .treeToolbar {
-        flex: 0 0 32px;
-        width: 32px;
-        background-color: rgb(245, 245, 245);
-        border: 1px solid #ddd;
+        flex: 0 0 @tree-toolbar-width;
+        width: @tree-toolbar-width;
+        .commonBar();
         border-right: none;
         box-sizing: border-box;
-        overflow: hidden;
     }
     .treeContent {
         flex: 1;
         overflow: auto;
     }
-    .treeContent::-webkit-scrollbar {
-        /*滚动条整体样式*/
-        width : 5px;
-        height: 5px;
-    }
-    .treeContent::-webkit-scrollbar-thumb {
-        /*滚动条里面小方块*/
-        border-radius: 10px;
-        box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
-        background   : #535353;
-    }
-    .treeContent::-webkit-scrollbar-track {
-        /*滚动条里面轨道*/
-        box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-        background   : rgb(0 0 0 / 25%);
-    }
     .treeView {
-        font-size: 1.12em;
+        font-size: @tree-font-size;
         span[class='ant-tree-switcher ant-tree-switcher-noop'] {
             visibility: hidden;
             width: 5px;
@@ -97,51 +83,45 @@
         .statusIcon {
             margin: 0 5px 0 0;
             vertical-align: middle;
-            font-size: 1.18em;
+            font-size: @tree-icon-size;
         }
         .groupIcon {
-            color: #1DA57A;
-            font-size: 1.18em;
+            color: @primary-color;
+            font-size: @tree-icon-size;
         }
     }
 }
 .bottomBar, .treeToolbar {
     button:hover {
-        background: #e6e6e6;
-        cursor: pointer;
+        .commonBarButtonHover();
     }
     button:disabled {
-        background-color: inherit;
-        cursor: not-allowed;
-        opacity: 0.5;
+        .commonBarButtonDisable();
     }
 }
 .serverTable {
     td {
-        font-size: 1.1em !important;
+        font-size: @table-font-size;
         .statusIcon {
             margin: 0 5px 0 0;
             vertical-align: middle;
-            font-size: 1.14em !important;
+            font-size: @table-status-icon-size;
         }
     }
 }
 .commandPrefix {
     color: lightgray;
-    margin:0 10px 0 2px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+    margin: 0 10px 0 2px;
+    .textNoSelect();
 }
 .serverMgr {
     display: flex;
     .serverMgrSide {
         flex: inherit;
-        width: 320px;
+        width: @side-width;
     }
     .serverMgrContent {
         flex: inherit;
-        width: calc(100% - 320px);
+        width: calc(100% - @side-width);
     }
 }

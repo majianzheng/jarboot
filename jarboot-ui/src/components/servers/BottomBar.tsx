@@ -65,10 +65,10 @@ const BottomBar = (props: BottomBarProp) => {
     const menu = (
         <Menu>
             <Menu.Item key="1"
-                       icon={<ReloadOutlined className={styles.toolButtonStyle}/>}
+                       icon={<ReloadOutlined className={styles.toolButtonIcon}/>}
                        onClick={oneClickRestart}>{intl.formatMessage({id: 'ONE_KEY_RESTART'})}</Menu.Item>
             <Menu.Item key="2"
-                       icon={<PoweroffOutlined className={styles.toolButtonRedStyle}/>}
+                       icon={<PoweroffOutlined className={styles.toolButtonRedIcon}/>}
                        onClick={oneClickStop}>{intl.formatMessage({id: 'ONE_KEY_STOP'})}</Menu.Item>
         </Menu>
     );
@@ -79,22 +79,22 @@ const BottomBar = (props: BottomBarProp) => {
         let key = '';
         switch (view) {
             case JarBootConst.LIST_VIEW:
-                icon = <BarsOutlined className={styles.toolButtonStyle}/>;
+                icon = <BarsOutlined className={styles.toolButtonIcon}/>;
                 text = intl.formatMessage({id: 'LIST_VIEW'});
                 key = 'sideView';
                 break;
             case JarBootConst.TREE_VIEW:
-                icon = <TreeIcon className={styles.toolButtonStyle}/>;
+                icon = <TreeIcon className={styles.toolButtonIcon}/>;
                 text = intl.formatMessage({id: 'TREE_VIEW'});
                 key = 'sideView';
                 break;
             case JarBootConst.CONFIG_VIEW:
-                icon = <SettingOutlined className={styles.toolButtonStyle}/>;
+                icon = <SettingOutlined className={styles.toolButtonIcon}/>;
                 text = intl.formatMessage({id: 'SERVICES_CONF'});
                 key = 'contentView';
                 break;
             case JarBootConst.CONSOLE_VIEW:
-                icon = <CodeFilled className={styles.toolButtonConsole}/>;
+                icon = <CodeFilled className={styles.toolButtonConsoleIcon}/>;
                 text = intl.formatMessage({id: 'CONSOLE_VIEW'});
                 key = 'contentView';
                 break;
@@ -111,7 +111,7 @@ const BottomBar = (props: BottomBarProp) => {
     return (<div className={styles.bottomBar}>
         <Dropdown overlay={menu} disabled={loading} className={styles.bottomBarButton}>
             <Button type={"text"}
-                    icon={loading ? <LoadingOutlined/> : <CaretRightFilled className={styles.toolButtonGreenStyle}/>}
+                    icon={loading ? <LoadingOutlined/> : <CaretRightFilled className={styles.toolButtonIcon}/>}
                     onClick={oneClickStart}
                     disabled={loading}>
                 {intl.formatMessage({id: 'ONE_KEY_START'})}

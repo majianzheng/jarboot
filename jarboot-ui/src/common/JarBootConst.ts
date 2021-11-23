@@ -2,15 +2,15 @@ import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 
 class JarBootConst {
-    public static DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
-    public static PROTOCOL_SPLIT = '\r';
+    public static readonly DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
+    public static readonly PROTOCOL_SPLIT = '\r';
 
-    public static  SIDE_VIEW = 'sideView';
-    public static  CONTENT_VIEW = 'contentView';
-    public static  TREE_VIEW = 'tree';
-    public static  LIST_VIEW = 'list';
-    public static  CONFIG_VIEW = 'config';
-    public static  CONSOLE_VIEW = 'console';
+    public static readonly  SIDE_VIEW = 'sideView';
+    public static readonly CONTENT_VIEW = 'contentView';
+    public static readonly TREE_VIEW = 'tree';
+    public static readonly LIST_VIEW = 'list';
+    public static readonly CONFIG_VIEW = 'config';
+    public static readonly CONSOLE_VIEW = 'console';
 
     //进程状态
     public static STATUS_STARTED = 'RUNNING';
@@ -40,6 +40,8 @@ class JarBootConst {
     public static TOKEN_KEY = 'token';
     public static currentUser: any = {username: '', globalAdmin: false};
     public static ADMIN_ROLE = "ROLE_ADMIN";
+
+    public static readonly IS_SAFARI = window.hasOwnProperty('safari');
 }
 
 interface MsgData {

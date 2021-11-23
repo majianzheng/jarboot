@@ -24,6 +24,7 @@ import 'codemirror/addon/fold/comment-fold.js';
 import 'codemirror/addon/selection/active-line';
 import StringUtil from "@/common/StringUtil";
 import CodeMode from "@/components/code/CodeMode";
+import styles from "@/common/global.less";
 
 interface CodeEditorProps {
     source: string;
@@ -65,7 +66,7 @@ const CodeEditor = (props: CodeEditorProps) => {
         }, 500);
     }, [props.source]);
 
-    return <div style={{fontSize: '1.18em'}}>
+    return <div className={styles.codeEditor}>
         <CodeMirror
             ref={codeRef}
             value={code}

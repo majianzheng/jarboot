@@ -235,7 +235,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                             onClick={closeView}>{intl.formatMessage({id: 'CLOSE'})}</Button>;
         }
         return (<div className={styles.consoleExtra}>{extra}</div>);
-    }
+    };
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
             <div style={{height: JarBootConst.PANEL_HEIGHT}}>
@@ -246,6 +246,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             </div>
             {extraButton()}
             {commandInput()}
+            {JarBootConst.IS_SAFARI && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });
 

@@ -8,9 +8,7 @@ import CommonNotice from "@/common/CommonNotice";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import {Modal} from "antd";
 import {DeleteIcon} from "@/components/icons";
-
-const toolButtonStyle = {color: '#1DA57A', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
+import styles from "@/common/global.less";
 
 let isCreate = true;
 let username = '';
@@ -134,25 +132,25 @@ const UserList = memo(() => {
             {
                 name: intl.formatMessage({id: 'CREATE'}),
                 key: 'add ',
-                icon: <UserAddOutlined style={toolButtonStyle}/>,
+                icon: <UserAddOutlined className={styles.toolButtonIcon}/>,
                 onClick: onCreate,
             },
             {
                 name: intl.formatMessage({id: 'MODIFY'}),
                 key: 'modify ',
-                icon: <FormOutlined style={toolButtonStyle}/>,
+                icon: <FormOutlined className={styles.toolButtonIcon}/>,
                 onClick: onModify,
             },
             {
                 name: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteIcon style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: onDelete,
             },
             {
                 name: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
+                icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
             },
         ]

@@ -1,4 +1,4 @@
-import {memo, useEffect, useState} from "react";
+import React, {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
@@ -7,9 +7,7 @@ import CommonNotice from "@/common/CommonNotice";
 import RoleService from "@/services/RoleService";
 import {Form, Input, Modal} from "antd";
 import {DeleteIcon} from "@/components/icons";
-
-const toolButtonStyle = {color: '#1DA57A', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
+import styles from "@/common/global.less";
 
 /**
  * 角色管理
@@ -134,19 +132,19 @@ const RoleMgr = memo(() => {
             {
                 name: intl.formatMessage({id: 'BIND_ROLE'}),
                 key: 'banding ',
-                icon: <PlusSquareOutlined style={toolButtonStyle}/>,
+                icon: <PlusSquareOutlined className={styles.toolButtonIcon}/>,
                 onClick: onBindClick,
             },
             {
                 name: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteIcon style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: onDeleteClick,
             },
             {
                 name: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
+                icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
             },
         ]

@@ -188,20 +188,20 @@ const OnlineDebugView = () => {
         {
             name: 'Attach',
             key: 'attach ',
-            icon: <BugFilled className={styles.toolButtonGreenStyle}/>,
+            icon: <BugFilled className={styles.toolButtonIcon}/>,
             onClick: attach,
             disabled: !state.selectRows?.length || state.selectRows[0].attached
         },
         {
             name: intl.formatMessage({id: 'REFRESH_BTN'}),
             key: 'refresh',
-            icon: <SyncOutlined className={styles.toolButtonStyle}/>,
+            icon: <SyncOutlined className={styles.toolButtonIcon}/>,
             onClick: () => refreshProcessList(),
         },
         {
             name: intl.formatMessage({id: 'DASHBOARD'}),
             key: 'dashboard',
-            icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
             disabled: state.selectRows?.length && !state.selectRows[0].attached
         }

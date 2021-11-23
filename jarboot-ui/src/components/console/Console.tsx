@@ -357,10 +357,10 @@ class Console extends React.PureComponent<ConsoleProps> {
             return document.createElement('br');
         }
         let p = document.createElement('p');
-        line = line.replace(/ERROR/g, `<span class="error-log">ERROR</span>`).
-        replace(/INFO/g, `<span class="info-log">INFO</span>`);
+        line = line.replace(/ERROR/g, `<span class="${styles.errorLog}">ERROR</span>`).
+        replace(/INFO/g, `<span class="${styles.infoLog}">INFO</span>`);
         if (line.includes('WARN')) {
-            line = line.replace(/WARN/g, `<span class="warn-log">WARN</span>`);
+            line = line.replace(/WARN/g, `<span class="${styles.warnLog}">WARN</span>`);
             p.className = styles.waring;
         }
         p.innerHTML = line;

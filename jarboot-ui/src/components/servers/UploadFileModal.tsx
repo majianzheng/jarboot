@@ -1,4 +1,4 @@
-import {memo, useEffect, useReducer, useRef} from "react";
+import React, {memo, useEffect, useReducer, useRef} from "react";
 import { Modal, Upload, Form, Input, Result, Alert } from 'antd';
 import {InboxOutlined, LoadingOutlined, BulbOutlined} from '@ant-design/icons';
 import CommonNotice from "@/common/CommonNotice";
