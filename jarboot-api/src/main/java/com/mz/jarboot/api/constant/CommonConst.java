@@ -6,7 +6,6 @@ package com.mz.jarboot.api.constant;
  */
 @SuppressWarnings("all")
 public class CommonConst {
-    public static final String WORKSPACE_HOME= "workspace.home";
     public static final String JARBOOT_HOME= "JARBOOT_HOME";
     public static final String REMOTE_PROP = "jarboot.remote";
     public static final String SERVER_NAME_PROP = "jarboot.name";
@@ -53,6 +52,8 @@ public class CommonConst {
     public static final int MAX_AGENT_CONNECT_TIME = 15;
 
     public static final String AGENT_JAR_NAME = "jarboot-agent.jar";
+
+    public static final String REMOTE_SID_PREFIX = "remote-";
 
     private CommonConst(){}
 }

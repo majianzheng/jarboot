@@ -12,7 +12,7 @@ import ServerMgrService from "@/services/ServerMgrService";
 import styles from "./index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import * as React from "react";
-import {TreeIcon} from "@/components/icons";
+import {RestartIcon, TreeIcon} from "@/components/icons";
 
 interface BottomBarProp {
     sideView: 'tree'|'list';
@@ -65,7 +65,7 @@ const BottomBar = (props: BottomBarProp) => {
     const menu = (
         <Menu>
             <Menu.Item key="1"
-                       icon={<ReloadOutlined className={styles.toolButtonIcon}/>}
+                       icon={<RestartIcon className={styles.toolButtonIcon}/>}
                        onClick={oneClickRestart}>{intl.formatMessage({id: 'ONE_KEY_RESTART'})}</Menu.Item>
             <Menu.Item key="2"
                        icon={<PoweroffOutlined className={styles.toolButtonRedIcon}/>}

@@ -12,6 +12,10 @@
     color: @console-color;
     line-height: @console-line-height;
     white-space: pre;
+    //火狐浏览器隐藏滚动条
+    scrollbar-width: none;
+    //IE、Edge自动隐藏滚动条
+    -ms-overflow-style: -ms-autohiding-scrollbar;
     p {
         margin: 0;
         .errorLog {

@@ -17,6 +17,7 @@ enum PUB_TOPIC {
     WORKSPACE_CHANGE = "workspaceChange",
     STATUS_CHANGE = "statusChange",
     FOCUS_CMD_INPUT = "focusCmdInput",
+    ONLINE_DEBUG_EVENT = "onlineDebugEvent",
 }
 
 class ServerPubsubImpl implements PublishSubmit {
@@ -32,6 +33,7 @@ class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
         WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this._onReconnected);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._statusChange);
+        WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this._onJvmProcessChange);
     }
 
     private static genTopicKey(namespace: string, event: string) {
@@ -101,6 +103,10 @@ class ServerPubsubImpl implements PublishSubmit {
     private _onReconnected = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, data.body);
         Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
+    };
+
+    private _onJvmProcessChange = (data: MsgData) => {
+        this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, data);
     };
 
     private _renderCmdJsonResult = (data: MsgData) => {

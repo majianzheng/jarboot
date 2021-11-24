@@ -7,18 +7,21 @@ import React from "react";
 const urlBase = "/api/jarboot/services";
 
 interface ServerRunning {
-    name: string,
-    sid: string,
-    status: string,
-    path: string,
-    group: string,
+    name: string;
+    sid: string;
+    status: string;
+    path: string;
+    group: string;
 }
 
 interface JvmProcess {
-    name: string,
-    fullName: string,
-    pid: number,
-    attached: boolean
+    sid: string;
+    name: string;
+    fullName: string;
+    pid: number;
+    attached: boolean;
+    remote: string;
+    attaching: boolean;
 }
 
 interface TreeNode extends ServerRunning {

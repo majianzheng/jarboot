@@ -6,6 +6,7 @@ import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskRunCache;
@@ -222,20 +223,23 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
     @Override
     public List<JvmProcess> getJvmProcesses() {
-        List<JvmProcess> result = new ArrayList<>();
+        ArrayList<JvmProcess> result = new ArrayList<>();
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((k, v) -> {
             if (AgentManager.getInstance().isManageredServer(k)) {
                 return;
             }
             JvmProcess process = new JvmProcess();
+            String sid = String.valueOf(k);
+            process.setSid(sid);
             process.setPid(k);
-            process.setAttached(AgentManager.getInstance().isOnline(String.valueOf(k)));
+            process.setAttached(AgentManager.getInstance().isOnline(sid));
             process.setFullName(v);
             //解析获取简略名字
             process.setName(parseFullName(v));
             result.add(process);
         });
+        AgentManager.getInstance().remoteProcess(result);
         return result;
     }
 
@@ -248,12 +252,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             name = StringUtils.SPACE;
         }
         Object vm = null;
+        String sid = String.valueOf(pid);
+        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
             String args = SettingUtils.getAgentArgs(name, String.valueOf(pid));
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            String sid = String.valueOf(pid);
+            sid = String.valueOf(pid);
             WebSocketManager.getInstance().printException(sid, e);
         } finally {
             if (null != vm) {

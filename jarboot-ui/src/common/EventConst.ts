@@ -14,4 +14,5 @@ export enum MSG_EVENT {
     SERVER_STATUS, //服务状态改变
     CMD_END,       //命令执行完成
     WORKSPACE_CHANGE, //工作空间变更
+    JVM_PROCESS_CHANGE, //java进程变化事件
 }

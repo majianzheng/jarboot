@@ -1,8 +1,7 @@
 package com.mz.jarboot.core.basic;
 
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
@@ -134,6 +133,29 @@ public class WsClientFactory {
             logger.error(e.getMessage(), e);
         } finally {
             latch = null;
+        }
+    }
+
+    @SuppressWarnings("all")
+    public void remoteJvm() {
+        JvmProcess process = new JvmProcess();
+        process.setSid(EnvironmentContext.getSid());
+        process.setName(EnvironmentContext.getServer());
+        process.setAttached(true);
+        process.setPid(LogUtils.getPid());
+        ResponseForObject resp = HttpUtils.postJson("/api/public/agent/remoteJvm", process, ResponseForObject.class);
+        if (null == resp) {
+            logger.warn("remoteJvm request failed.");
+            return;
+        }
+        if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
+            logger.warn("remoteJvm request failed. {}", resp.getResultMsg());
+            return;
+        }
+        Object result = resp.getResult();
+        if (Boolean.FALSE.equals(result)) {
+            //启动监控，断开时每隔一段时间尝试重连
+            logger.info("remote jvm connect success!");
         }
     }
 

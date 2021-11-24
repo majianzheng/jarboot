@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 public class LogUtils {
     private static Logger logger;
     private static String logDir;
+    private static int pid;
 
     public static void init(String home, String server, String sid, boolean persist) {
         if (null != logger) {
@@ -81,17 +82,23 @@ public class LogUtils {
     public static void writePidFile(String sid) {
         //写入pid
         File logsDir = FileUtils.getFile(logDir);
-        File pid = FileUtils.getFile(logsDir, sid + CommonConst.PID_EXT);
+        File pidFile = FileUtils.getFile(logsDir, sid + CommonConst.PID_EXT);
         try {
             if (!logsDir.exists()) {
                 FileUtils.forceMkdir(logsDir);
             }
             String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
             int index = name.indexOf('@');
-            FileUtils.writeStringToFile(pid, name.substring(0, index), StandardCharsets.UTF_8);
+            String pidStr = name.substring(0, index);
+            pid = Integer.parseInt(pidStr);
+            FileUtils.writeStringToFile(pidFile, pidStr, StandardCharsets.UTF_8);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    public static int getPid() {
+        return pid;
     }
 
     public static void deletePidFile(String sid) {

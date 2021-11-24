@@ -1,6 +1,7 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
@@ -108,6 +109,10 @@ public class WebSocketManager extends Thread {
 
     public void commandEnd(String sid, String body, String sessionId) {
         this.publishEvent(sid, body, sessionId, WsEventEnum.CMD_END);
+    }
+
+    public void debugProcessEvent(String sid, AttachStatus event) {
+        this.publishGlobalEvent(sid, event.name(), WsEventEnum.JVM_PROCESS_CHANGE);
     }
 
     public void notice(String text, NoticeEnum level) {

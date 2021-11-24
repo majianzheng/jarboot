@@ -16,7 +16,7 @@ import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
 import ServerConfig from "@/components/setting/ServerConfig";
-import {DeleteIcon, StoppedIcon} from "@/components/icons";
+import {DeleteIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
@@ -374,7 +374,7 @@ const ServerMgrView = () => {
         {
             title: intl.formatMessage({id: 'RESTART'}),
             key: 'restart',
-            icon: <ReloadOutlined className={styles.toolButtonIcon}/>,
+            icon: <RestartIcon className={styles.toolButtonIcon}/>,
             onClick: restartServer,
             disabled: !state.selectRows?.length
         },

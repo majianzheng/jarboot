@@ -13,10 +13,15 @@ class JarBootConst {
     public static readonly CONSOLE_VIEW = 'console';
 
     //进程状态
-    public static STATUS_STARTED = 'RUNNING';
-    public static STATUS_STOPPED = 'STOPPED';
-    public static STATUS_STARTING = 'STARTING';
-    public static STATUS_STOPPING = 'STOPPING';
+    public static readonly STATUS_STARTED = 'RUNNING';
+    public static readonly STATUS_STOPPED = 'STOPPED';
+    public static readonly STATUS_STARTING = 'STARTING';
+    public static readonly STATUS_STOPPING = 'STOPPING';
+
+    //Online debug
+    public static readonly ATTACHING = 'ATTACHING';
+    public static readonly ATTACHED = 'ATTACHED';
+    public static readonly EXITED = 'EXITED';
 
     public static NOTICE_INFO = 0;
     public static NOTICE_WARN = 1;

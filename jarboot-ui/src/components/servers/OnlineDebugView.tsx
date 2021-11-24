@@ -10,11 +10,12 @@ import styles from "./index.less";
 import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import {useEffect, useReducer} from "react";
 import {useIntl} from "umi";
+import {RemoteIcon} from "@/components/icons";
 
 interface OnlineDebugState {
     loading: boolean;
     data: JvmProcess[];
-    selectedRowKeys: number[];
+    selectedRowKeys: string[];
     selectRows: JvmProcess[];
 }
 
@@ -32,10 +33,10 @@ const OnlineDebugView = () => {
     useEffect(() => {
         refreshProcessList(true);
         pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshProcessList);
-        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+        pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
         return () => {
             pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, refreshProcessList);
-            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+            pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
         }
     }, []);
 
@@ -50,18 +51,18 @@ const OnlineDebugView = () => {
             const data = resp.result as JvmProcess[] || [];
             dispatch((s: OnlineDebugState) => {
                 if (s.selectedRowKeys?.length) {
-                    const pid = s.selectedRowKeys[0];
-                    if (-1 === data.findIndex(item => pid === item.pid)) {
+                    const sid = s.selectedRowKeys[0];
+                    if (-1 === data.findIndex(item => sid === item.sid)) {
                         init = true;
                     }
                 }
                 if (init) {
                     //初始化选中第一个
-                    let selectedRowKeys = [] as number[];
+                    let selectedRowKeys = [] as string[];
                     let selectRows = [] as JvmProcess[];
                     if (data && data?.length > 0) {
                         const first: JvmProcess = data[0];
-                        selectedRowKeys = [first.pid];
+                        selectedRowKeys = [first.sid];
                         selectRows = [first];
                     }
                     return {loading: false, data, selectedRowKeys, selectRows};
@@ -74,20 +75,25 @@ const OnlineDebugView = () => {
     const onStatusChange = (msg: MsgData) => {
         dispatch((s: OnlineDebugState) => {
             const data = s.data || [];
-            const process = data?.find(item => msg.sid === `${item.pid}`);
+            const process = data?.find(item => msg.sid === item.sid);
             if (!process) {
+                refreshProcessList();
                 return {};
             }
             const status = msg.body;
             switch (status) {
-                case JarBootConst.STATUS_STARTING:
-                case JarBootConst.STATUS_STARTED:
-                    process.attached = true;
+                case JarBootConst.ATTACHING:
+                    process.attaching = true;
                     pubsub.publish(msg.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
-                case JarBootConst.STATUS_STOPPING:
-                case JarBootConst.STATUS_STOPPED:
+                case JarBootConst.ATTACHED:
+                    process.attached = true;
+                    process.attaching = false;
+                    pubsub.publish(msg.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+                    break;
+                case JarBootConst.EXITED:
                     process.attached = false;
+                    process.attaching = false;
                     refreshProcessList();
                     break;
                 default:
@@ -122,7 +128,7 @@ const OnlineDebugView = () => {
         loading: state.loading,
         dataSource: state.data,
         pagination: false,
-        rowKey: 'pid',
+        rowKey: 'sid',
         size: 'small',
         rowSelection: getRowSelection(),
         onRow: onRow,
@@ -142,17 +148,27 @@ const OnlineDebugView = () => {
     });
 
     const renderRowSelection = (row: any, record: JvmProcess) => {
-        const style = {fontSize: '16px', color: record.attached ? 'green' : 'grey'};
-        return <Tooltip title={record.attached ? 'Attached' : 'Not attached'}
-                        color={record.attached ? '#87d068' : '#2db7f5'}>
-            <BugFilled style={style}/>
-        </Tooltip>;
+        if (record.attaching) {
+            return (<Tooltip title={'Attaching'}>
+                <LoadingOutlined className={styles.statusStarting}/>
+            </Tooltip>);
+        }
+        if (record.remote) {
+            //远程vm
+            return (<Tooltip title={record.remote}>
+                <RemoteIcon className={styles.remoteOnlineStatus}/>
+            </Tooltip>);
+        }
+        const className = record.attached ? styles.attachedStatus : styles.noAttachedStatus;
+        return (<Tooltip title={record.attached ? 'Attached' : 'Not attached'}>
+            <BugFilled className={className}/>
+        </Tooltip>);
     };
 
     const onRow = (record: JvmProcess) => ({
         onClick: () => {
-            dispatch({selectedRowKeys: [record.pid], selectRows: [record]});
-            pubsub.publish(`${record.pid}`, PUB_TOPIC.FOCUS_CMD_INPUT);
+            dispatch({selectedRowKeys: [record.sid], selectRows: [record]});
+            pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
         },
     });
 
@@ -161,7 +177,7 @@ const OnlineDebugView = () => {
         if (!process) {
             notSelectInfo();
         }
-        const sid = process.pid + '';
+        const sid = process.sid;
         if (process.attached) {
             pubsub.publish(sid, JarBootConst.APPEND_LINE, "Already attached.");
             pubsub.publish(sid, JarBootConst.FINISH_LOADING);
@@ -181,7 +197,7 @@ const OnlineDebugView = () => {
             return;
         }
         const process = state.selectRows[0];
-        pubsub.publish(process.pid + '', PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
+        pubsub.publish(process.sid, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
     const getTbBtnProps = () => ([
@@ -219,10 +235,10 @@ const OnlineDebugView = () => {
         <div className={styles.serverMgrContent}>
             {showLoading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
             {state.data.map((value: JvmProcess) => (
-                <SuperPanel key={value.pid}
+                <SuperPanel key={value.sid}
                             server={value.name}
-                            sid={value.pid + ''}
-                            visible={state.selectedRowKeys[0] === value.pid}/>
+                            sid={value.sid}
+                            visible={state.selectedRowKeys[0] === value.sid}/>
             ))}
         </div>
     </div>;

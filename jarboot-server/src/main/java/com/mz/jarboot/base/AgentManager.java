@@ -1,6 +1,7 @@
 package com.mz.jarboot.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
@@ -30,7 +31,8 @@ public class AgentManager {
     private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
-    private final ConcurrentHashMap<Integer, String> serverPid = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<Integer, String> localProcesses = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
 
@@ -57,11 +59,13 @@ public class AgentManager {
         int pid = TaskUtils.getPid(server, sid);
         if (pid > 0) {
             //属于受管理的服务
-            serverPid.put(pid, sid);
+            localProcesses.put(pid, sid);
             client.setPid(pid);
         } else {
             //非受管理的本地进程，通知前端Attach成功
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
+            if (!StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
+            }
         }
     }
 
@@ -72,10 +76,13 @@ public class AgentManager {
         }
         int pid = client.getPid();
         if (pid > 0) {
-            serverPid.remove(pid);
+            localProcesses.remove(pid);
         } else {
+            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+                remoteProcesses.remove(sid);
+            }
             //非受管理的本地进程，通知前端进程已经离线
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
+            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
         }
         WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
         synchronized (client) {
@@ -108,6 +115,19 @@ public class AgentManager {
         }
         synchronized (client) {
             return ClientState.ONLINE.equals(client.getState());
+        }
+    }
+
+    public void remoteJvm(JvmProcess process) {
+        if (isOnline(process.getSid())) {
+            remoteProcesses.put(process.getSid(), process);
+            WebSocketManager.getInstance().debugProcessEvent(process.getSid(), AttachStatus.ATTACHED);
+        }
+    }
+
+    public void remoteProcess(ArrayList<JvmProcess> list) {
+        if (!remoteProcesses.isEmpty()) {
+            list.addAll(remoteProcesses.values());
         }
     }
 
@@ -310,7 +330,7 @@ public class AgentManager {
     }
 
     public boolean isManageredServer(int pid) {
-        return serverPid.containsKey(pid);
+        return localProcesses.containsKey(pid);
     }
 
     private void handleAction(String data, String sessionId, String sid) {

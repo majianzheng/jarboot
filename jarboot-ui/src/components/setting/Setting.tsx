@@ -4,6 +4,8 @@ import React, {useState} from "react";
 import {useIntl} from "umi";
 import SystemSetting from "@/components/setting/SystemSetting";
 import PluginsManager from "@/components/plugins";
+import {PluginIcon} from "@/components/icons";
+import {SettingOutlined} from "@ant-design/icons";
 
 const Setting = () => {
     const intl = useIntl();
@@ -17,10 +19,10 @@ const Setting = () => {
             <Menu onClick={handleClick} defaultSelectedKeys={['sys-setting']} mode="inline">
                 <Menu.ItemGroup title={intl.formatMessage({id: 'SETTING'})}>
                     <Menu.Divider/>
-                    <Menu.Item key="sys-setting">
+                    <Menu.Item key="sys-setting" icon={<SettingOutlined />}>
                         {intl.formatMessage({id: 'SYSTEM_SETTING'})}
                     </Menu.Item>
-                    <Menu.Item key="sys-plugins">
+                    <Menu.Item key="sys-plugins" icon={<PluginIcon/>}>
                         {intl.formatMessage({id: 'PLUGINS'})}
                     </Menu.Item>
                 </Menu.ItemGroup>

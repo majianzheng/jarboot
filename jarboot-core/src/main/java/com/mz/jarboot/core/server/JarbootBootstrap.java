@@ -24,6 +24,7 @@ import java.security.CodeSource;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.JarFile;
 
 /**
@@ -39,14 +40,11 @@ public class JarbootBootstrap {
     private InstrumentTransformer classLoaderInstrumentTransformer;
 
     private JarbootBootstrap(Instrumentation inst, String args, boolean isPremain) {
-        if (null == args || args.isEmpty()) {
-            return;
-        }
         this.instrumentation = inst;
-
         //1.解析args，获取目标服务端口
         String[] agentArgs = parseArgs(args);
-        String host = System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:" + agentArgs[0]);
+        String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
+        String host = null == remote ? ("127.0.0.1:" + agentArgs[0]) : remote;
         String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, agentArgs[1]);
         String sid = System.getProperty(CommonConst.SERVER_SID_PROP, agentArgs[2]);
         if (EnvironmentContext.isInitialized()) {
@@ -87,6 +85,9 @@ public class JarbootBootstrap {
 
         //4.客户端初始化
         this.initClient();
+        if (null != remote) {
+            WsClientFactory.getInstance().remoteJvm();
+        }
         if (isPremain) {
             //上线成功开启输出流实时显示
             StdOutStreamReactor.getInstance().setStarting();
@@ -172,12 +173,14 @@ public class JarbootBootstrap {
 
     private String[] parseArgs(String args) {
         if (null == args || args.isEmpty()) {
+            //远程服务器上的服务连接到jarboot时args为空
             String[] result = new String[3];
             result[0] = "9899";
             result[1] = "NoName";
-            result[2] = "None";
+            result[2] = CommonConst.REMOTE_SID_PREFIX + UUID.randomUUID();
             return result;
         }
+        //由jarboot本地启动
         String s = new String(Base64.getDecoder().decode(args));
         String[] agentArgs = s.split(String.valueOf(CommandConst.PROTOCOL_SPLIT));
         return agentArgs;
