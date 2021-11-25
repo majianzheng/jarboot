@@ -142,7 +142,7 @@ public class WsClientFactory {
         process.setSid(EnvironmentContext.getSid());
         process.setName(EnvironmentContext.getServer());
         process.setAttached(true);
-        process.setPid(LogUtils.getPid());
+        process.setPid(Integer.parseInt(PidFileHelper.getCurrentPid()));
         ResponseForObject resp = HttpUtils.postJson("/api/public/agent/remoteJvm", process, ResponseForObject.class);
         if (null == resp) {
             logger.warn("remoteJvm request failed.");

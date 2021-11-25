@@ -392,7 +392,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = event.getServer();
         String sid = event.getSid();
         //检查进程是否存活
-        int pid = TaskUtils.getPid(server, sid);
+        int pid = TaskUtils.getPid(sid);
         if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
             if (taskRunCache.isStopping(sid)) {

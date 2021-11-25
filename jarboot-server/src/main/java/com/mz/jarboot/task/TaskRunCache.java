@@ -2,6 +2,7 @@ package com.mz.jarboot.task;
 
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -145,8 +146,19 @@ public class TaskRunCache {
     }
 
     private void cleanPidFiles() {
-        File logDir = FileUtils.getFile(SettingUtils.getLogDir());
-        Collection<File> pidFiles = FileUtils.listFiles(logDir, new String[]{"pid"}, true);
+        File pidDir = FileUtils.getFile(PidFileHelper.getPidDir());
+        if (!pidDir.exists()) {
+            return;
+        }
+        if (!pidDir.isDirectory()) {
+            try {
+                FileUtils.forceDelete(pidDir);
+            } catch (Exception e) {
+                //ignore
+            }
+            return;
+        }
+        Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
         if (CollectionUtils.isNotEmpty(pidFiles)) {
             Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {

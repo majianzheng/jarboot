@@ -5,15 +5,14 @@ import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.OSUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -65,17 +64,10 @@ public class TaskUtils {
                 WebSocketManager.getInstance().notice("服务" + server +
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
-            int pid = getPid(server, sid);
+            int pid = getPid(sid);
             if (pid > 0) {
                 killByPid(pid);
-                File pidFile = FileUtils.getFile(SettingUtils.getLogDir(), server, sid + CommonConst.PID_EXT);
-                if (pidFile.exists()) {
-                    try {
-                        FileUtils.forceDelete(pidFile);
-                    } catch (Exception exception) {
-                        //ignore
-                    }
-                }
+                PidFileHelper.deletePidFile(sid);
             }
         }
     }
@@ -158,7 +150,7 @@ public class TaskUtils {
      * @param sid pid
      */
     public static void attach(String server, String sid) {
-        int pid = getPid(server, sid);
+        int pid = getPid(sid);
         if (CommonConst.INVALID_PID == pid) {
             return;
         }
@@ -175,39 +167,19 @@ public class TaskUtils {
         }
     }
 
-    public static int getPid(String server, String sid) {
-        File pidFile = FileUtils.getFile(SettingUtils.getLogDir(), server, sid + CommonConst.PID_EXT);
+    public static int getPid(String sid) {
         int pid = CommonConst.INVALID_PID;
-        if (!pidFile.isFile() && pidFile.exists()) {
-            try {
-                FileUtils.forceDelete(pidFile);
-            } catch (Exception exception) {
-                //ignore
-                return pid;
-            }
-        }
-        if (!pidFile.exists()) {
-            return pid;
-        }
         try {
-            String content = FileUtils.readFileToString(pidFile, StandardCharsets.UTF_8);
-            pid = NumberUtils.toInt(content, CommonConst.INVALID_PID);
+            pid = PidFileHelper.getServerPid(sid);
             if (CommonConst.INVALID_PID != pid) {
                 Map<Integer, String> vms = VMUtils.getInstance().listVM();
                 if (!vms.containsKey(pid)) {
                     pid = CommonConst.INVALID_PID;
+                    PidFileHelper.deletePidFile(sid);
                 }
             }
         } catch (Exception exception) {
             //ignore
-        }
-        if (CommonConst.INVALID_PID == pid) {
-            //删除，pid已经不存在
-            try {
-                FileUtils.forceDelete(pidFile);
-            } catch (IOException e) {
-                //ignore
-            }
         }
         return pid;
     }

@@ -56,7 +56,7 @@ public class AgentManager {
         } else {
             latch.countDown();
         }
-        int pid = TaskUtils.getPid(server, sid);
+        int pid = TaskUtils.getPid(sid);
         if (pid > 0) {
             //属于受管理的服务
             localProcesses.put(pid, sid);
