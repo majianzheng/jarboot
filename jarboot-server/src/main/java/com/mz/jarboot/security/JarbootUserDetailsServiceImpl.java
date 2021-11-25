@@ -16,7 +16,7 @@ public class JarbootUserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UserService userService;
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         User user = userService.findUserByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException(username);

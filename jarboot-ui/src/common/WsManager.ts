@@ -1,17 +1,12 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import {MSG_EVENT} from "@/common/EventConst";
-import {JarBootConst} from "@/common/JarBootConst";
+import {JarBootConst, MsgData} from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
 import { getLocale } from 'umi';
 
-interface MsgData {
-    event: number,
-    sid: string,
-    body: any
-}
 let msg: any = null;
 class WsManager {
     public static readonly RECONNECTED_EVENT = -1;
@@ -158,4 +153,4 @@ class WsManager {
     }
 }
 
-export {MsgData, WsManager}
+export { WsManager }

@@ -1,8 +1,8 @@
 import styles from "./index.less";
 import Console from "@/components/console";
-import {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
-import {Button, Card, Input} from "antd";
-import {CloseCircleOutlined, EnterOutlined, LoadingOutlined} from "@ant-design/icons";
+import React, {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
+import {Button, Input} from "antd";
+import {CloseCircleOutlined, EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
 import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
@@ -34,11 +34,10 @@ interface HistoryProp {
     history: string[];
 }
 
-const outHeight = `${window.innerHeight - 150}px`;
 const MAX_HISTORY = 100;
 const historyMap = new Map<string, HistoryProp>();
 
-const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
+const SuperPanel = memo((props: SuperPanelProps) => {
     const intl = useIntl();
     const [view, setView] = useState('');
     const [executing, setExecuting] = useState(false);
@@ -51,6 +50,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         pubsub.submit(key, PUB_TOPIC.CMD_END, onCmdEnd);
         pubsub.submit(key, PUB_TOPIC.RENDER_JSON, renderView);
         pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+        pubsub.submit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
         historyMap.set(key, new class implements HistoryProp {
             cur = 0;
             history = [];
@@ -59,6 +59,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             pubsub.unSubmit(key, PUB_TOPIC.CMD_END, onCmdEnd);
             pubsub.unSubmit(key, PUB_TOPIC.RENDER_JSON, renderView);
             pubsub.unSubmit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
+            pubsub.unSubmit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
         };
     }, []);
 
@@ -90,6 +91,10 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         setCommand(cmd);
         doExecCommand(cmd);
     };
+
+    const onFocusCommandInput = () => inputRef?.current?.focus()
+
+    useEffect(onFocusCommandInput, [props.visible]);
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
@@ -132,7 +137,7 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
             //切换为控制台显示
             setView('');
         }
-        pubsub.publish(key, JarBootConst.APPEND_LINE, `jarboot$ ${cmd}`);
+        pubsub.publish(key, JarBootConst.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
         const msg = {server: props.server, sid: props.sid, body: cmd, func: 1};
         WsManager.sendMessage(JSON.stringify(msg));
 
@@ -190,39 +195,59 @@ const SuperPanel = memo((props: SuperPanelProps) => { //NOSONAR
         }
     };
 
-    const outTitle = (<>
-        <Input onPressEnter={onExecCommand} onKeyUp={onKeyUp}
-               ref={inputRef}
-               disabled={executing}
-               placeholder={intl.formatMessage({id: 'COMMAND_PLACEHOLDER'})}
-               autoComplete={"off"}
-               autoCorrect="off"
-               autoCapitalize="off"
-               spellCheck="false"
-               style={{width: '100%'}}
-               onChange={event => setCommand(event.target.value)}
-               value={command}
-               suffix={executing ? <LoadingOutlined/> : <span/>}
-               addonAfter={executing ?
-                   <CloseCircleOutlined onClick={onCancelCommand}/> :
-                   <EnterOutlined onClick={onExecCommand}/>}/>
-    </>);
+    const commandInput = () => (
+            <Input onPressEnter={onExecCommand}
+                   onKeyUp={onKeyUp}
+                   ref={inputRef}
+                   className={styles.commandInput}
+                   disabled={executing}
+                   placeholder={intl.formatMessage({id: 'COMMAND_PLACEHOLDER'})}
+                   autoComplete={"off"}
+                   autoCorrect="off"
+                   autoCapitalize="off"
+                   spellCheck="false"
+                   style={{width: '100%'}}
+                   onChange={event => setCommand(event.target.value)}
+                   value={command}
+                   prefix={<RightOutlined className={styles.commandRightIcon}/>}
+                   suffix={executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
+            />);
 
-    const clearBtn = <Button type={"link"} onClick={clearDisplay}>{intl.formatMessage({id: 'CLEAR'})}</Button>;
-    const closeBtn = <Button type={"link"} onClick={closeView}>{intl.formatMessage({id: 'CLOSE'})}</Button>;
-    const extra = '' === view ? clearBtn : closeBtn;
-    return <>
-        <Card title={outTitle} size={"small"}
-              style={{display: props.visible ? 'block' : 'none'}}
-              extra={extra}>
-            <div className={styles.outPanel} style={{height: outHeight}}>
+    const extraButton = () => {
+        let extra;
+        if (executing) {
+            extra = <Button type={"dashed"}
+                            icon={<CloseCircleOutlined />}
+                            size={"small"}
+                            ghost danger
+                            onClick={onCancelCommand}>{intl.formatMessage({id: 'CANCEL'})}</Button>;
+        } else if ('' === view) {
+            extra = <Button type={"dashed"}
+                            icon={<ClearOutlined />}
+                            size={"small"}
+                            ghost
+                            onClick={clearDisplay}>{intl.formatMessage({id: 'CLEAR'})}</Button>;
+        } else {
+            extra = <Button type={"dashed"}
+                            icon={<CloseOutlined />}
+                            size={"small"}
+                            ghost danger
+                            onClick={closeView}>{intl.formatMessage({id: 'CLOSE'})}</Button>;
+        }
+        return (<div className={styles.consoleExtra}>{extra}</div>);
+    };
+    return (
+        <div style={{display: props.visible ? 'block' : 'none'}}>
+            <div style={{height: JarBootConst.PANEL_HEIGHT}}>
                 <Console id={key}
                          visible={'' === view}
                          pubsub={pubsub}/>
                 {'' !== view && viewResolver[view]}
             </div>
-        </Card>
-    </>
+            {extraButton()}
+            {commandInput()}
+            {JarBootConst.IS_SAFARI && '' === view && <div className={styles.consoleScrollbarMaskForMac}/>}
+        </div>);
 });
 
 export {SuperPanel};

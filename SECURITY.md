@@ -4,8 +4,9 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0.7 | :x:                |
+| 2.x.x   | :white_check_mark: |
+| 1.1.x   | :white_check_mark: |
+| < 1.1.0 | :x:                |
 
 ## How to Report bugs（如何提交Bugs）
 

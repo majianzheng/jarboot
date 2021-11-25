@@ -128,7 +128,7 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public synchronized void submitUploadFile(ServerSetting s) {
-        String server = s.getServer();
+        String server = s.getName();
         if (StringUtils.isEmpty(server)) {
             throw new JarbootException("服务名为空！");
         }

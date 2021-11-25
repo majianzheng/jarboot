@@ -1,6 +1,7 @@
 package com.mz.jarboot.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
@@ -30,7 +31,8 @@ public class AgentManager {
     private static volatile AgentManager instance = null;
     private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
-    private final ConcurrentHashMap<Integer, String> serverPid = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<Integer, String> localProcesses = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
 
@@ -48,18 +50,22 @@ public class AgentManager {
         //目标进程上线
         AgentClient client = new AgentClient(server, sid, session);
         clientMap.put(sid, client);
-        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.ONLINE);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
         } else {
             latch.countDown();
         }
-        int pid = TaskUtils.getPid(server, sid);
+        int pid = TaskUtils.getPid(sid);
         if (pid > 0) {
             //属于受管理的服务
-            serverPid.put(pid, sid);
+            localProcesses.put(pid, sid);
             client.setPid(pid);
+        } else {
+            //非受管理的本地进程，通知前端Attach成功
+            if (!StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
+            }
         }
     }
 
@@ -68,10 +74,15 @@ public class AgentManager {
         if (null == client) {
             return;
         }
-        WebSocketManager.getInstance().publishStatus(sid, TaskStatus.OFFLINE);
         int pid = client.getPid();
         if (pid > 0) {
-            serverPid.remove(pid);
+            localProcesses.remove(pid);
+        } else {
+            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+                remoteProcesses.remove(sid);
+            }
+            //非受管理的本地进程，通知前端进程已经离线
+            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
         }
         WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
         synchronized (client) {
@@ -104,6 +115,19 @@ public class AgentManager {
         }
         synchronized (client) {
             return ClientState.ONLINE.equals(client.getState());
+        }
+    }
+
+    public void remoteJvm(JvmProcess process) {
+        if (isOnline(process.getSid())) {
+            remoteProcesses.put(process.getSid(), process);
+            WebSocketManager.getInstance().debugProcessEvent(process.getSid(), AttachStatus.ATTACHED);
+        }
+    }
+
+    public void remoteProcess(ArrayList<JvmProcess> list) {
+        if (!remoteProcesses.isEmpty()) {
+            list.addAll(remoteProcesses.values());
         }
     }
 
@@ -150,13 +174,13 @@ public class AgentManager {
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
-                    WebSocketManager.getInstance().commandEnd(sid, "连接断开，重连失败，请稍后重试", sessionId);
+                    WebSocketManager.getInstance().commandEnd(sid, server + "连接断开，重连失败，请稍后重试", sessionId);
                 } else {
                     client.sendCommand(command, sessionId);
                 }
             } else {
                 //未在线，进程不存在
-                WebSocketManager.getInstance().commandEnd(sid, "未在线，无法执行命令", sessionId);
+                WebSocketManager.getInstance().commandEnd(sid, server + "未在线，无法执行命令", sessionId);
             }
         } else {
             client.sendCommand(command, sessionId);
@@ -167,10 +191,10 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
             TaskUtils.attach(server, sid);
-            WebSocketManager.getInstance().sendConsole(sid, "连接断开，重连中...", sessionId);
+            WebSocketManager.getInstance().sendConsole(sid, server + "连接断开，重连中...", sessionId);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                 logger.error("Attach and wait server connect timeout，{}", server);
-                WebSocketManager.getInstance().sendConsole(sid, "Attach重连超时！", sessionId);
+                WebSocketManager.getInstance().sendConsole(sid, server + "Attach重连超时！", sessionId);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -203,7 +227,7 @@ public class AgentManager {
                     this.onServerStarted(server, sid);
                     WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
                     logger.info("reconnected by heartbeat {}, {}", server, sid);
-                    WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+                    WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
                 }
                 sendInternalCommand(sid, CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON);
                 break;
@@ -306,7 +330,7 @@ public class AgentManager {
     }
 
     public boolean isManageredServer(int pid) {
-        return serverPid.containsKey(pid);
+        return localProcesses.containsKey(pid);
     }
 
     private void handleAction(String data, String sessionId, String sid) {

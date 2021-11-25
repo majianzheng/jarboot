@@ -21,6 +21,16 @@ export default defineConfig({
         baseNavigator: true,
         baseSeparator: '-',
     },
+    theme: {
+        "primary-color": "#1DA57A",
+        "tree-node-selected-bg": "#dcf4ff",
+        "tree-directory-selected-color": "#000",
+        "tree-directory-selected-bg": "#dcf4ff",
+    },
+    antd: {
+        //dark: true,
+        compact: true, // 开启紧凑主题
+    },
     proxy: {
         '/api': {
             'target': 'http://localhost:9899/api/',

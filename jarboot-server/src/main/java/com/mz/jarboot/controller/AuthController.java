@@ -146,7 +146,7 @@ public class AuthController {
         return request.getParameter(AuthConst.ACCESS_TOKEN);
     }
 
-    private String resolveToken(HttpServletRequest request) throws AccessException {
+    private String resolveToken(HttpServletRequest request) {
         String bearerToken = getToken(request);
         if (StringUtils.isBlank(bearerToken)) {
             String userName = request.getParameter(PARAM_USERNAME);
@@ -156,7 +156,7 @@ public class AuthController {
         return bearerToken;
     }
 
-    private String resolveTokenFromUser(String userName, String rawPassword) throws AccessException {
+    private String resolveTokenFromUser(String userName, String rawPassword) {
         String finalName;
         Authentication authenticate;
         try {

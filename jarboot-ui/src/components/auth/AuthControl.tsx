@@ -4,6 +4,8 @@ import { useIntl } from 'umi';
 import UserList from "@/components/auth/UserList";
 import RoleMgr from "@/components/auth/RoleMgr";
 import PrivilegeMgr from "@/components/auth/PrivilegeMgr";
+import {UserOutlined, TeamOutlined} from "@ant-design/icons";
+import {PrivilegeIcon} from "@/components/icons";
 
 /**
  * 权限控制
@@ -22,9 +24,15 @@ const AuthControl = memo(() => {
                     <span>{intl.formatMessage({id: 'AUTH_CONTROL'})}</span>
                 </span>}>
                     <Menu.Divider/>
-                    <Menu.Item key={'UserList'}>{intl.formatMessage({id: 'USER_LIST'})}</Menu.Item>
-                    <Menu.Item key={'RoleMgr'}>{intl.formatMessage({id: 'ROLE_MGR'})}</Menu.Item>
-                    <Menu.Item key={'PrivilegeMgr'}>{intl.formatMessage({id: 'PRIVILEGE_MGR'})}</Menu.Item>
+                    <Menu.Item key={'UserList'} icon={<UserOutlined />}>
+                        {intl.formatMessage({id: 'USER_LIST'})}
+                    </Menu.Item>
+                    <Menu.Item key={'RoleMgr'} icon={<TeamOutlined />}>
+                        {intl.formatMessage({id: 'ROLE_MGR'})}
+                    </Menu.Item>
+                    <Menu.Item key={'PrivilegeMgr'} icon={<PrivilegeIcon/>}>
+                        {intl.formatMessage({id: 'PRIVILEGE_MGR'})}
+                    </Menu.Item>
                 </Menu.ItemGroup>
             </Menu>
         </Col>

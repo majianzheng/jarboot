@@ -1,6 +1,6 @@
-import {MsgData, WsManager} from "@/common/WsManager";
-import {MSG_EVENT} from "@/common/EventConst";
-import {JarBootConst} from "@/common/JarBootConst";
+import { WsManager } from "@/common/WsManager";
+import { MSG_EVENT } from "@/common/EventConst";
+import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import Logger from "@/common/Logger";
 
 /**
@@ -16,6 +16,8 @@ enum PUB_TOPIC {
     RECONNECTED = "reconnected",
     WORKSPACE_CHANGE = "workspaceChange",
     STATUS_CHANGE = "statusChange",
+    FOCUS_CMD_INPUT = "focusCmdInput",
+    ONLINE_DEBUG_EVENT = "onlineDebugEvent",
 }
 
 class ServerPubsubImpl implements PublishSubmit {
@@ -31,6 +33,7 @@ class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
         WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this._onReconnected);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._statusChange);
+        WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this._onJvmProcessChange);
     }
 
     private static genTopicKey(namespace: string, event: string) {
@@ -70,37 +73,41 @@ class ServerPubsubImpl implements PublishSubmit {
 
     private _console = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
-    }
+    };
 
     private _print = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.PRINT, data.body);
-    }
+    };
 
     private _backspace = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
-    }
+    };
 
     private _backspaceLine = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.BACKSPACE_LINE, data.body);
-    }
+    };
 
     private _commandEnd = (data: MsgData) => {
         this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
-    }
+    };
 
     private _workspaceChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, data.body);
         Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
-    }
+    };
 
     private _statusChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, data);
-    }
+    };
 
     private _onReconnected = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, data.body);
         Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
-    }
+    };
+
+    private _onJvmProcessChange = (data: MsgData) => {
+        this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, data);
+    };
 
     private _renderCmdJsonResult = (data: MsgData) => {
         if ('{' !== data.body[0]) {
@@ -111,7 +118,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
         const body = JSON.parse(data.body);
         this.publish(data.sid, PUB_TOPIC.RENDER_JSON, body);
-    }
+    };
 }
 
 const pubsub: PublishSubmit = new ServerPubsubImpl();

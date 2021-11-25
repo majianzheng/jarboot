@@ -6,6 +6,7 @@ import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskRunCache;
@@ -161,7 +162,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      */
     @Override
     public void startSingleServer(ServerSetting setting) {
-        String server = setting.getServer();
+        String server = setting.getName();
         String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
         if (this.taskRunCache.isStartingOrStopping(sid)) {
@@ -170,7 +171,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         if (AgentManager.getInstance().isOnline(sid)) {
             //已经启动
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
@@ -178,7 +179,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunCache.addStarting(sid);
         try {
             //设定启动中，并发送前端让其转圈圈
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
@@ -190,10 +191,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             if (AgentManager.getInstance().isOnline(sid)) {
                 WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s started cost %.3f second.", server, costTime));
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTED);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             } else {
                 //启动失败
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.START_ERROR);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
+                WebSocketManager.getInstance().notice("启动服务" + server + "失败！", NoticeEnum.ERROR);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -221,20 +223,23 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
     @Override
     public List<JvmProcess> getJvmProcesses() {
-        List<JvmProcess> result = new ArrayList<>();
+        ArrayList<JvmProcess> result = new ArrayList<>();
         Map<Integer, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((k, v) -> {
             if (AgentManager.getInstance().isManageredServer(k)) {
                 return;
             }
             JvmProcess process = new JvmProcess();
+            String sid = String.valueOf(k);
+            process.setSid(sid);
             process.setPid(k);
-            process.setAttached(AgentManager.getInstance().isOnline(String.valueOf(k)));
+            process.setAttached(AgentManager.getInstance().isOnline(sid));
             process.setFullName(v);
             //解析获取简略名字
             process.setName(parseFullName(v));
             result.add(process);
         });
+        AgentManager.getInstance().remoteProcess(result);
         return result;
     }
 
@@ -247,12 +252,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             name = StringUtils.SPACE;
         }
         Object vm = null;
+        String sid = String.valueOf(pid);
+        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
             String args = SettingUtils.getAgentArgs(name, String.valueOf(pid));
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            String sid = String.valueOf(pid);
+            sid = String.valueOf(pid);
             WebSocketManager.getInstance().printException(sid, e);
         } finally {
             if (null != vm) {
@@ -332,7 +339,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     private void stopSingleServer(ServerSetting setting) {
-        String server = setting.getServer();
+        String server = setting.getName();
         String sid = setting.getSid();
         if (this.taskRunCache.isStopping(sid)) {
             WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeEnum.INFO);
@@ -341,7 +348,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         this.taskRunCache.addStopping(sid);
         try {
             //发送停止中消息
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
             //记录开始时间
             long startTime = System.currentTimeMillis();
             TaskUtils.killServer(server, sid);
@@ -349,7 +356,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOP_ERROR);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+                WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeEnum.ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(sid,
                         String.format("%s stopped cost %.3f second.", server, costTime));
@@ -384,7 +392,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = event.getServer();
         String sid = event.getSid();
         //检查进程是否存活
-        int pid = TaskUtils.getPid(server, sid);
+        int pid = TaskUtils.getPid(sid);
         if (CommonConst.INVALID_PID != pid) {
             //检查是否处于中间状态
             if (taskRunCache.isStopping(sid)) {

@@ -2,21 +2,18 @@
   .'  .' `\                   ,'  , `.           
 ,---.'     \               ,-+-,.' _ |   ,---.   
 |   |  .`\  |           ,-+-. ;   , ||  '   ,'\   Jarboot server demo ✨
-:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |
-|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :
-'   | ;  .  | /    /  |   | /  | |--' '   | |: :  Author: https://github.com/majianzheng
-|   | :  |  '.    ' / |   : |  | ,    '   | .; : 
-'   : | /  ; '   ;   /|   : |  |/     |   :    | 
-|   | '` ,/  '   |  / |   | |`-'       \   \  /  
+:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |  version: v${project.version}
+|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :  Github: https://github.com/majianzheng/jarboot
+'   | ;  .  | /    /  |   | /  | |--' '   | |: :  Gitee: https://gitee.com/majz0908/jarboot
+|   | :  |  '.    ' / |   : |  | ,    '   | .; :
+'   : | /  ; '   ;   /|   : |  |/     |   :    |  This application just for test, using Java Swing framework.
+|   | '` ,/  '   |  / |   | |`-'       \   \  /
 ;   :  .'    |   :    |   ;/            `----'   
-|   ,.'       \   \  /'---'                      
+|   ,.'       \   \  /'---'
 '---'          `----'
-Jarboot version: v${project.version} example: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example
-This application just for test, using Java Swing framework.
-In this test application UI you can execute some method for Jarboot tests.
-Execute debug command example:
-<span style="color:green">help</span> [command]
+Example: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example
+Debug command usage example:
+<span style="color:#52c41a">help</span> [command]
 jad com.mz.jarboot.demo.DemoServerApplication
 watch com.mz.jarboot.demo.DemoServerApplication fib
 trace com.mz.jarboot.demo.DemoServerApplication pow
-SPI extend command: demo arg1

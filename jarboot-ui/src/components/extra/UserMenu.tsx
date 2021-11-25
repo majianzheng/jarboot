@@ -5,9 +5,9 @@ import {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@an
 import {useIntl} from "umi";
 import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import CommonUtils from "@/common/CommonUtils";
-import DefaultUserIcon from "@/components/extra/DefaultUserIcon";
+import {DefaultUserIcon} from "@/components/icons";
 
-const UserPopMenu: any = memo((props: any) => {
+const UserPopMenu = memo((props: any) => {
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     const SIGN_OUT_KEY = "sign-out";
@@ -34,14 +34,12 @@ const UserPopMenu: any = memo((props: any) => {
         <Menu onClick={handleClick} selectedKeys={[]}
               defaultSelectedKeys={['user-title']} mode="inline"
               style={{width: 220}}>
-            <Menu.Item key={"user-title"}><UserOutlined/>{username}</Menu.Item>
+            <Menu.Item key={"user-title"} icon={<UserOutlined/>}>{username}</Menu.Item>
             <Menu.Divider/>
-            <Menu.Item key={MODIFY_PWD_KEY}>
-                <FormOutlined />
+            <Menu.Item key={MODIFY_PWD_KEY} icon={<FormOutlined />}>
                 {intl.formatMessage({id: 'MODIFY_PWD'})}
             </Menu.Item>
-            <Menu.Item key={SIGN_OUT_KEY}>
-                <LogoutOutlined />
+            <Menu.Item key={SIGN_OUT_KEY} icon={<LogoutOutlined />}>
                 {intl.formatMessage({id: 'SIGN_OUT'})}
             </Menu.Item>
         </Menu>
@@ -55,7 +53,7 @@ interface UserMenuProp {
 }
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
-    const icon = <DefaultUserIcon style={{ fontSize: '32px' }}/>;
+    const icon = <DefaultUserIcon style={{ fontSize: '28px' }}/>;
     return <Popover content={<UserPopMenu onHide={() => setUserMenuVisible(false)}/>}
                     visible={userMenuVisible}
                     mouseLeaveDelay={0.5}

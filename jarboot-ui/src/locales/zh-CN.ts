@@ -5,21 +5,30 @@ export default {
     //Tab标题
     SERVICES_MGR: '服务管理',
     ONLINE_DEBUG: '在线调试',
-    SERVICES_CONF: '服务配置',
     AUTH_CONTROL: '权限控制',
     PLUGINS: '插件',
     SETTING: '设置',
-    HELP_DOC: '关于',
+    ABOUT: '关于',
     MENU_DOCS: '文档',
 
     //服务管理
     ONE_KEY_START: '一键启动',
     ONE_KEY_STOP: '一键停止',
     ONE_KEY_RESTART: '一键重启',
+    START: '启动',
+    STOP: '停止',
+    RESTART: '重启',
+    UPLOAD_NEW: '上传或新增',
     NAME: '名字',
     STATUS: '状态',
     CLEAR: '清空',
     CLOSE: '关闭',
+    GROUP: '组',
+    TREE_VIEW: '树',
+    LIST_VIEW: '列表',
+    CONSOLE_VIEW: '控制台',
+    SERVICES_CONF: '配置',
+    GROUP_PLACEHOLDER: '输入分组名，便于管理',
     CMD_PLACEHOLDER: '输入调试命令执行',
     SELECT_UPLOAD_SERVER_TITLE: '输入要更新或新增的服务的名称',
     UPLOAD_STAGE_TITLE: '上传{server}文件',
@@ -55,6 +64,7 @@ export default {
     LOADING: '加载中...',
     SUBMITTING: '提交中...',
     WARN: '警告',
+    CANCEL: '取消',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
@@ -74,6 +84,7 @@ export default {
     UPLOAD_BUTTON: '点击上传',
 
     //全局配置
+    SYSTEM_SETTING: '系统设置',
     SERVERS_PATH: '工作空间',
     DEFAULT_VM_OPT: '默认的VM参数',
     AUTO_START_AFTER_INIT: 'jarboot启动后自动启动服务',
@@ -110,7 +121,7 @@ export default {
     COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
 
     //帮助
-    BASIC: '帮助',
+    HELP: '帮助',
     QUICK_START: '快速开始',
     ABOUT_TEXT: 'Jarboot 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断运行的的Java进程。',
     //快速开始

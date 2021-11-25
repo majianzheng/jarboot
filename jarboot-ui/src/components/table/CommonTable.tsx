@@ -6,8 +6,7 @@ import {SettingOutlined} from '@ant-design/icons';
 
 interface CommonTableProp {
     option: any,
-    toolbar?: Array<any>,
-    toolbarGap?: number,
+    toolbar?: any[],
     showToolbarName?: boolean,
     height: number,
     showSelRowNum?: boolean,
@@ -24,7 +23,6 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
     static defaultProps = {
         showSelRowNum: false,
         option: {},
-        toolbarGap: 0,
         showToolbarName: false,
     };
     tableContentHeight = 0;
@@ -46,7 +44,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
         this._resetTableHeight();
     }
 
-    _filterColumns(columns: Array<any>) {
+    _filterColumns(columns: any[]) {
         return columns.filter(column => column.visible === undefined || column.visible === true);
     }
 
@@ -116,13 +114,13 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
         return (
             <div className={`${styles.commonTable} ${this.currentTableClass} `} style={style}>
                 {hasButton && (
-                    <div className={styles.toolBar} style={{height: `${toolBarHeight}px`, background: '#f5f5f5'}}>
+                    <div className={styles.toolBar} style={{height: `${toolBarHeight}px`}}>
                         {this.props.toolbar && this.props.toolbar.length > 0 && this.props.toolbar.map(element =>
                             <Button onClick={element.onClick} key={element.key} type={"text"}
                                     disabled={element.disabled}
-                                    style={{marginRight: `${this.props.toolbarGap}px`}}
+                                    style={this.props.showToolbarName ? {} : {marginRight: 2}}
                                     icon={element.icon}
-                                    title={element.name}>{this.props.showToolbarName && element.name}</Button>
+                                    title={element.title}>{this.props.showToolbarName && element.title}</Button>
                         )}
                         {
                             this.props.showSelRowNum &&

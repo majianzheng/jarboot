@@ -1,14 +1,13 @@
-import {memo, useEffect, useState} from "react";
+import React, {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
-import {DeleteOutlined, SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import CommonNotice from "@/common/CommonNotice";
 import RoleService from "@/services/RoleService";
 import {Form, Input, Modal} from "antd";
-
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
+import {DeleteIcon} from "@/components/icons";
+import styles from "@/common/global.less";
 
 /**
  * 角色管理
@@ -131,21 +130,21 @@ const RoleMgr = memo(() => {
     const _getTbBtnProps = () => {
         return [
             {
-                name: intl.formatMessage({id: 'BIND_ROLE'}),
+                title: intl.formatMessage({id: 'BIND_ROLE'}),
                 key: 'banding ',
-                icon: <PlusSquareOutlined style={toolButtonStyle}/>,
+                icon: <PlusSquareOutlined className={styles.toolButtonIcon}/>,
                 onClick: onBindClick,
             },
             {
-                name: intl.formatMessage({id: 'DELETE'}),
+                title: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteOutlined style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: onDeleteClick,
             },
             {
-                name: intl.formatMessage({id: 'REFRESH_BTN'}),
+                title: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
+                icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
             },
         ]

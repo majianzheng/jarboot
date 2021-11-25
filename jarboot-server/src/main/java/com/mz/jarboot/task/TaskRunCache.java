@@ -1,10 +1,13 @@
 package com.mz.jarboot.task;
 
+import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.VMUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,20 +33,6 @@ public class TaskRunCache {
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
     private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>(16);
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
-
-    private void updateServerInfo(List<ServerRunning> server) {
-        server.forEach(item -> {
-            if (AgentManager.getInstance().isOnline(item.getSid())) {
-                item.setStatus(CommonConst.STATUS_RUNNING);
-            }
-            if (this.isStarting(item.getSid())) {
-                item.setStatus(CommonConst.STATUS_STARTING);
-            }
-            if (this.isStopping(item.getSid())) {
-                item.setStatus(CommonConst.STATUS_STOPPING);
-            }
-        });
-    }
 
     public List<String> getServerPathList() {
         File[] serviceDirs = this.getServerDirs();
@@ -78,16 +67,26 @@ public class TaskRunCache {
             return serverList;
         }
         for (File f : serviceDirs) {
-            String server = f.getName();
-            ServerRunning p = new ServerRunning();
-            p.setName(server);
-            p.setStatus(CommonConst.STATUS_STOPPED);
+            ServerRunning process = new ServerRunning();
+            process.setName(f.getName());
             String path = f.getPath();
-            p.setSid(SettingUtils.createSid(path));
-            p.setPath(path);
-            serverList.add(p);
+            String sid = SettingUtils.createSid(path);
+            process.setSid(sid);
+            process.setPath(path);
+            process.setGroup(this.getGroup(sid, path));
+
+            if (AgentManager.getInstance().isOnline(sid)) {
+                process.setStatus(CommonConst.STATUS_RUNNING);
+            } else if (this.isStarting(sid)) {
+                process.setStatus(CommonConst.STATUS_STARTING);
+            } else if (this.isStopping(sid)) {
+                process.setStatus(CommonConst.STATUS_STOPPING);
+            } else {
+                process.setStatus(CommonConst.STATUS_STOPPED);
+            }
+
+            serverList.add(process);
         }
-        updateServerInfo(serverList);
         return serverList;
     }
 
@@ -123,6 +122,18 @@ public class TaskRunCache {
         stoppingCache.remove(sid);
     }
 
+    private String getGroup(String sid, String path) {
+        ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        if (null != setting) {
+            return setting.getGroup();
+        }
+        setting = PropertyFileUtils.getServerSetting(path);
+        if (null == setting) {
+            return StringUtils.EMPTY;
+        }
+        return setting.getGroup();
+    }
+
     private boolean filterExcludeDir(File dir) {
         if (!dir.isDirectory() || dir.isHidden()) {
             return false;
@@ -135,8 +146,19 @@ public class TaskRunCache {
     }
 
     private void cleanPidFiles() {
-        File logDir = FileUtils.getFile(SettingUtils.getLogDir());
-        Collection<File> pidFiles = FileUtils.listFiles(logDir, new String[]{"pid"}, true);
+        File pidDir = FileUtils.getFile(PidFileHelper.getPidDir());
+        if (!pidDir.exists()) {
+            return;
+        }
+        if (!pidDir.isDirectory()) {
+            try {
+                FileUtils.forceDelete(pidDir);
+            } catch (Exception e) {
+                //ignore
+            }
+            return;
+        }
+        Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
         if (CollectionUtils.isNotEmpty(pidFiles)) {
             Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {

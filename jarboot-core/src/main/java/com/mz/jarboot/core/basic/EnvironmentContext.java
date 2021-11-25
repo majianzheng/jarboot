@@ -18,9 +18,7 @@ import java.util.concurrent.*;
 public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
-    private static String server;
-    private static String host;
-    private static String sid;
+    private static ClientData clientData;
     private static boolean initialized = false;
     private static TransformerManager transformerManager;
     private static Instrumentation instrumentation;
@@ -30,13 +28,11 @@ public class EnvironmentContext {
     private static String jarbootHome = ".";
     private EnvironmentContext() {}
 
-    public static void init(String home, String server, String host, String sid, Instrumentation inst) {
+    public static void init(String home, ClientData clientData, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
         EnvironmentContext.jarbootHome = home;
-        EnvironmentContext.server = server;
-        EnvironmentContext.host = host;
-        EnvironmentContext.sid = sid;
+        EnvironmentContext.clientData = clientData;
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
 
@@ -66,15 +62,15 @@ public class EnvironmentContext {
     }
 
     public static String getServer() {
-        return server;
+        return clientData.getServer();
     }
 
     public static String getSid() {
-        return sid;
+        return clientData.getSid();
     }
 
     public static String getHost() {
-        return host;
+        return clientData.getHost();
     }
 
     public static ScheduledExecutorService getScheduledExecutorService() {

@@ -1,8 +1,7 @@
 package com.mz.jarboot.core.basic;
 
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
@@ -58,14 +57,12 @@ public class WsClientFactory {
 
         url = String.format("ws://%s/public/jarboot/agent/ws/%s/%s",
                 EnvironmentContext.getHost(), server, EnvironmentContext.getSid());
-        logger.debug("initClient {}", url);
     }
 
     private void initMessageHandler() {
         this.listener = new WebSocketListener() {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
-                logger.debug("client connected>>>");
                 online = true;
                 if (null != latch) {
                     latch.countDown();
@@ -86,18 +83,15 @@ public class WsClientFactory {
             public void onClosing(WebSocket webSocket, int code, String reason) {
                 online = false;
                 EnvironmentContext.cleanSession();
-                logger.debug("onClosing>>>{}", reason);
             }
 
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
                 online = false;
-                logger.debug("onClosed>>>{}", reason);
             }
 
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                logger.error("onFailure>>>", t);
                 online = false;
             }
         };
@@ -130,13 +124,7 @@ public class WsClientFactory {
                             .get()
                             .url(url)
                             .build(), this.listener);
-            
-            long b = System.currentTimeMillis();
-            logger.debug("wait connected:{}", b);
-            boolean r = latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
-            if (r) {
-                logger.debug("wait time:{}", System.currentTimeMillis() - b);
-            } else {
+            if (!latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS)) {
                 logger.warn("wait connect timeout.");
             }
         } catch (InterruptedException e) {
@@ -148,11 +136,31 @@ public class WsClientFactory {
         }
     }
 
+    @SuppressWarnings("all")
+    public void remoteJvm() {
+        JvmProcess process = new JvmProcess();
+        process.setSid(EnvironmentContext.getSid());
+        process.setName(EnvironmentContext.getServer());
+        process.setAttached(true);
+        process.setPid(Integer.parseInt(PidFileHelper.getCurrentPid()));
+        ResponseForObject resp = HttpUtils.postJson("/api/public/agent/remoteJvm", process, ResponseForObject.class);
+        if (null == resp) {
+            logger.warn("remoteJvm request failed.");
+            return;
+        }
+        if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
+            logger.warn("remoteJvm request failed. {}", resp.getResultMsg());
+            return;
+        }
+        Object result = resp.getResult();
+        if (Boolean.FALSE.equals(result)) {
+            //启动监控，断开时每隔一段时间尝试重连
+            logger.info("remote jvm connect success!");
+        }
+    }
+
     public void onHeartbeat() {
-        if (null == this.heartbeatLatch) {
-            logger.warn("heartbeat command executed, but check thread may timeout!");
-        } else {
-            logger.info("heartbeat command executed success!");
+        if (null != this.heartbeatLatch) {
             this.heartbeatLatch.countDown();
         }
     }
@@ -174,9 +182,9 @@ public class WsClientFactory {
         try {
             // 进行一次心跳检测
             online = this.client.send(resp.toRaw());
-            logger.info("check online send heartbeat >> success: {}", online);
             if (!online) {
                 // 发送心跳失败！
+                logger.warn("Check online send heartbeat failed.");
                 return;
             }
             // 等待jarboot-server的心跳命令触发

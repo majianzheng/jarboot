@@ -6,6 +6,7 @@ package com.mz.jarboot.api.pojo;
 public class ServerRunning {
     private String status;
     private String name;
+    private String group;
     private String sid;
     private String path;
 
@@ -23,6 +24,14 @@ public class ServerRunning {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getSid() {

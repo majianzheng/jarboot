@@ -1,31 +1,39 @@
+@import "../../common/global.less";
+
+@console-line-height: 1.186;
+
 .console{
+    flex: none;
     height: 100%;
     width: 100%;
-    //border-style: double;
-    border:1px solid #96c2f1;
-    background:#263238;
-    overflow-y: auto;
-    overflow-x: auto;
-    font-family: Monospace Terminal Arial, serif;
-    color: seashell;
+    background: @console-background;
+    overflow: auto;
+    font-family: @console-font-family;
+    color: @console-color;
+    line-height: @console-line-height;
     white-space: pre;
-    //background: rgb(30, 30, 30);
+    //火狐浏览器隐藏滚动条
+    scrollbar-width: none;
+    //IE、Edge自动隐藏滚动条
+    -ms-overflow-style: -ms-autohiding-scrollbar;
     p {
         margin: 0;
-        span[class="error-log"] {
-            color: red;
+        .errorLog {
+            color: @console-error-color;
         }
-        span[class="warn-log"] {
-            color: #f6ff0e;
+        .warnLog {
+            color: @console-warn-color;
         }
-        span[class="info-log"] {
-            color: #59ff23;
+        .infoLog {
+            color: @console-info-color;
         }
-        span[class="line-num"] {
+        ln {
             color:gray;
-            margin:0 5px 0 2px;
-            min-width: 48px;
+            margin:0 8px 0 2px;
+            min-width: 45px;
             display: inline-block;
+            border-right: 1px solid;
+            .textNoSelect();
         }
     };
     table {
@@ -36,13 +44,19 @@
         }
     }
     .waring {
-        background: #1A0037;
+        background: @console-warn-background;
     }
     .consoleTitle {
         font-size: 28px;
         text-align: center;
         color: blueviolet;
     }
+}
+
+.console::-webkit-scrollbar {
+    /*滚动条整体样式*/
+    width : @scrollbar-size;
+    height: 0;
 }
 
 .loading{

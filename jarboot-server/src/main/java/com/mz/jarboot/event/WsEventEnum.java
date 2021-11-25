@@ -59,4 +59,9 @@ public enum WsEventEnum {
      * 工作空间变更
      */
     WORKSPACE_CHANGE,
+
+    /**
+     * java进程变化
+     */
+    JVM_PROCESS_CHANGE,
 }

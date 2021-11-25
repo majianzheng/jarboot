@@ -21,16 +21,8 @@ public class StdConsoleOutputStream extends OutputStream {
     private StdPrintHandler printHandler;
     private StdBackspaceHandler backspaceHandler;
 
-    public StdPrintHandler getPrintLineHandler() {
-        return printLineHandler;
-    }
-
     public void setPrintLineHandler(StdPrintHandler printLineHandler) {
         this.printLineHandler = printLineHandler;
-    }
-
-    public StdPrintHandler getPrintHandler() {
-        return printHandler;
     }
 
     public void setPrintHandler(StdPrintHandler printHandler) {

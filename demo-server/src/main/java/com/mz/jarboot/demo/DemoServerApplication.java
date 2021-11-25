@@ -40,10 +40,11 @@ public class DemoServerApplication implements Runnable {
         if (null == ver || ver.isEmpty()) {
             //启动界面
             new DemoServerApplication();
+            log("启动进度模拟...");
             finish();
         } else {
             //docker模式下
-            log("Current is runing in docker, you can open two page for test.");
+            log("当前正在使用Docker，启动进度模拟...");
             finish();
             try {
                 System.in.read();
@@ -54,18 +55,11 @@ public class DemoServerApplication implements Runnable {
     }
 
     private static void finish() {
-        int len = 102;
-        //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
-        try {
-            JarbootFactory.createAgentService().setStarted();
-        } catch (Exception e) {
-            log(e.getMessage());
-        }
-
+        int len = 52;
         String str = "[";
-        System.out.println("Progress std demo using backspace:");
         String p = "";
-        for (int i = 0; i < 100; ++i) {
+        //模拟启动进度
+        for (int i = 0; i < 50; ++i) {
             str += '#';
             for (int n = 0; n < p.length(); ++n) {
                 System.out.print('\b');
@@ -74,11 +68,17 @@ public class DemoServerApplication implements Runnable {
             for (int j = str.length() + 1; j < len; ++j) {
                 p += '-';
             }
-            p += String.format("]%d%c", i + 1, '%');
+            p += String.format("]%d%c", (i + 1) * 2, '%');
             System.out.print(p);
             sleep(200);
         }
-        System.out.println();
+
+        //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
+        try {
+            JarbootFactory.createAgentService().setStarted();
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
     }
     
     private void callFunc(int f) {

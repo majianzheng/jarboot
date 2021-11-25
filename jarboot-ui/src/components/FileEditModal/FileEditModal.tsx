@@ -9,10 +9,10 @@ interface FileEditModalProp {
     name: string;
     onClose: () => void;
     onSave: (value: string) => void;
-    onChange: (value: string) => void;
+    onChange?: (value: string) => void;
 }
 
-const FileEditModal: any = memo((props: FileEditModalProp) => {
+const FileEditModal = memo((props: FileEditModalProp) => {
     let [content, setContent] = useState("");
     const closeModal = () => {
         props?.onClose();
@@ -27,7 +27,7 @@ const FileEditModal: any = memo((props: FileEditModalProp) => {
         setContent(value);
     };
 
-    const height = window.innerHeight - 320;
+    const height = window.innerHeight - 288;
     return <Modal title={props.name} visible={props.visible} width={860} maskClosable={false}
                   destroyOnClose={true} onOk={onOk} onCancel={closeModal}>
         <div style={{width: '100%', height}}>

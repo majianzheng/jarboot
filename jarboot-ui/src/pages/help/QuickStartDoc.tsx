@@ -1,13 +1,22 @@
 import React, {memo} from "react";
-import {BackTop, Typography} from "antd";
+import {BackTop, Breadcrumb, Typography} from "antd";
 import {useIntl} from "umi";
-import {CaretRightOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
+import {CaretRightOutlined, HomeOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 
 const QuickStartDoc = memo(() => {
     const intl = useIntl();
     return <>
+        <Breadcrumb>
+            <Breadcrumb.Item><HomeOutlined /></Breadcrumb.Item>
+            <Breadcrumb.Item>
+                {intl.formatMessage({id: 'HELP'})}
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+                {intl.formatMessage({id: 'QUICK_START'})}
+            </Breadcrumb.Item>
+        </Breadcrumb>
         <Typography>
             <Title>{intl.formatMessage({id: 'QUICK_START'})}</Title>
             <Paragraph>

@@ -5,21 +5,30 @@ export default {
     //Tab标题
     SERVICES_MGR: 'Services',
     ONLINE_DEBUG: 'Online debug',
-    SERVICES_CONF: 'Service config',
     AUTH_CONTROL: 'Authority Control',
     PLUGINS: 'Plugins',
     SETTING: 'Setting',
-    HELP_DOC: 'About',
+    ABOUT: 'About',
     MENU_DOCS: 'DOCS',
 
     //服务管理
     ONE_KEY_START: 'Start All',
     ONE_KEY_STOP: 'Stop All',
     ONE_KEY_RESTART: 'Restart All',
+    START: 'Start',
+    STOP: 'Stop',
+    RESTART: 'Restart',
+    UPLOAD_NEW: 'Upload & New',
     NAME: 'Name',
     STATUS: 'Status',
     CLEAR: 'Clear',
     CLOSE: 'Close',
+    GROUP: 'Group',
+    TREE_VIEW: 'Tree',
+    LIST_VIEW: 'List',
+    CONSOLE_VIEW: 'Console',
+    SERVICES_CONF: 'Config',
+    GROUP_PLACEHOLDER: 'Enter the group name for easy management',
     CMD_PLACEHOLDER: 'Input command to execute',
     SELECT_UPLOAD_SERVER_TITLE: 'Input the server name of update or new',
     UPLOAD_STAGE_TITLE: 'Upload {server} files',
@@ -55,6 +64,7 @@ export default {
     LOADING: 'Loading...',
     SUBMITTING: 'Submitting...',
     WARN: 'Warn',
+    CANCEL: 'Cancel',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
@@ -74,6 +84,7 @@ export default {
     UPLOAD_BUTTON: 'Click to Upload',
 
     //全局配置界面
+    SYSTEM_SETTING: 'System setting',
     SERVERS_PATH: 'Workspace',
     DEFAULT_VM_OPT: 'Default VM options',
     AUTO_START_AFTER_INIT: 'Auto start after jarboot started',
@@ -110,7 +121,7 @@ export default {
     COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
 
     //帮助
-    BASIC: 'Help',
+    HELP: 'Help',
     QUICK_START: 'Quick start',
     ABOUT_TEXT: 'Jarboot is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.',
     //快速开始

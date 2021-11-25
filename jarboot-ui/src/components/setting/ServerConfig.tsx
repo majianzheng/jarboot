@@ -1,5 +1,5 @@
-import {Form, Input, Button, InputNumber, Switch} from 'antd';
-import {memo, useEffect, useState} from "react";
+import {Form, Input, Button, InputNumber, Switch, Row, Col} from 'antd';
+import React, {memo, useEffect, useState} from "react";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import { useIntl } from 'umi';
@@ -8,22 +8,26 @@ import {FormOutlined} from "@ant-design/icons";
 import FileEditModal from "@/components/FileEditModal";
 
 const layout = {
-    labelCol: {span: 8},
-    wrapperCol: {span: 16},
+    labelCol: {span: 6},
+    wrapperCol: {span: 18},
 };
-const tailLayout = {wrapperCol: {offset: 12, span: 12}};
+const tailLayout = {wrapperCol: {offset: 10, span: 14}};
 
 interface ServerConfigProp {
+    sid: string;
     path: string;
+    group: string;
+    onGroupChanged: (sid: string, group: string, preGroup?: string) => void;
+    onClose?: () => void;
 }
 
-const ServerConfig: any = memo((props: ServerConfigProp) => {
+const ServerConfig = memo((props: ServerConfigProp) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
     let [file, setFile] = useState({name: "", content: '', onSave: (value: string) => console.debug(value)});
     const onReset = () => {
-        SettingService.getServerSetting(props.path
+        props?.path?.length && SettingService.getServerSetting(props.path
         ).then((resp: any) => {
             if (0 !== resp.resultCode) {
                 CommonNotice.errorFormatted(resp);
@@ -46,6 +50,7 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
         SettingService.submitServerSetting(data).then(resp => {
             if (0 === resp?.resultCode) {
                 CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                props.group !== data.group && props.onGroupChanged(props.sid, data.group, props.group);
             } else {
                 CommonNotice.errorFormatted(resp);
             }
@@ -76,18 +81,46 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
     const onArgsEdit = () => {
         setVisible(true);
         const args = form.getFieldValue('args');
-        setFile({name: 'start args', content: args, onSave: onArgsSave});
+        setFile({name: intl.formatMessage({id: 'MAIN_ARGS_LABEL'}), content: args, onSave: onArgsSave});
     };
     const onArgsSave = (args: string) => {
         args = args.replaceAll('\n', ' ');
         form.setFieldsValue({args});
     };
+    const style = {height: window.innerHeight - 66, overflow: 'auto'};
 
-    return (<>
+    return (<div style={style}>
         <Form {...layout}
               form={form}
               name="server-setting"
               onFinish={onSubmit} initialValues={{priority: 0}}>
+            <Row>
+                <Col span={16}>
+                    <Form.Item name="name"
+                               labelCol={{span: 9}}
+                               wrapperCol={{span: 15}}
+                               label={intl.formatMessage({id: 'NAME'})}
+                               rules={[{required: true}, {max: 64}]}>
+                        <Input autoComplete="off"
+                               autoCorrect="off"
+                               autoCapitalize="off"
+                               spellCheck="false"/>
+                    </Form.Item>
+                </Col>
+                <Col span={8}>
+                    <Form.Item name="group"
+                               labelCol={{span: 5}}
+                               wrapperCol={{span: 19}}
+                               label={intl.formatMessage({id: 'GROUP'})}
+                               rules={[{max: 16}]}>
+                        <Input autoComplete="off"
+                               placeholder={intl.formatMessage({id: 'GROUP_PLACEHOLDER'})}
+                               autoCorrect="off"
+                               autoCapitalize="off"
+                               spellCheck="false"/>
+                    </Form.Item>
+                </Col>
+            </Row>
             <Form.Item name="command"
                        label={intl.formatMessage({id: 'COMMAND_LABEL'})}
                        rules={[{required: false}]}>
@@ -117,7 +150,7 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
             <Form.Item name="jdkPath"
                        label={"JDK"}
                        rules={[{required: false}]}>
-                <Input autoComplete="off"/>
+                <Input autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false"/>
             </Form.Item>
             <Form.Item name="workDirectory"
                        label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
@@ -155,13 +188,16 @@ const ServerConfig: any = memo((props: ServerConfigProp) => {
                 <Button type="primary" htmlType="submit" style={{marginRight: 8}}>
                     {intl.formatMessage({id: 'SUBMIT_BTN'})}
                 </Button>
-                <Button htmlType="button" onClick={onReset}>
+                <Button htmlType="button" onClick={onReset} style={{marginRight: 8}}>
                     {intl.formatMessage({id: 'RESET_BTN'})}
+                </Button>
+                <Button htmlType="button" onClick={props.onClose}>
+                    {intl.formatMessage({id: 'CLOSE'})}
                 </Button>
             </Form.Item>
         </Form>
         {visible && <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
                                    visible={true} onClose={() => setVisible(false)}/>}
-    </>);
+    </div>);
 });
 export default ServerConfig;

@@ -1,16 +1,16 @@
 import {Form, Select, Layout, Modal, Upload, Button} from 'antd';
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import CommonTable from "@/components/table";
-import {DeleteOutlined, SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
+import {SyncOutlined, UploadOutlined, ArrowRightOutlined} from "@ant-design/icons";
 import PluginsService from "@/services/PluginsService";
 import CommonNotice from "@/common/CommonNotice";
 import {useIntl} from "umi";
 import CommonUtils from "@/common/CommonUtils";
+import {DeleteIcon} from "@/components/icons";
+import styles from "@/common/global.less";
 
 const { Sider } = Layout;
-const height = window.innerHeight - 130;
-const toolButtonStyle = {color: '#1890ff', fontSize: '18px'};
-const toolButtonRedStyle = {color: 'red', fontSize: '18px'};
+const height = window.innerHeight - 70;
 const layout = {
     labelCol: {span: 6},
     wrapperCol: {span: 18},
@@ -24,9 +24,6 @@ const PluginsManager = () => {
     let [selected, setSelected] = useState({keys: [] as any[], rows: [] as any[]});
     let [visible, setVisible] = useState(false);
 
-    useEffect(() => {
-        query();
-    }, []);
     const query = () => {
         setLoading(true);
         PluginsService.getAgentPlugins().then(resp => {
@@ -38,6 +35,8 @@ const PluginsManager = () => {
             setData(resp.result);
         }).catch(CommonNotice.errorFormatted);
     };
+
+    useEffect(query, []);
 
     const removePlugin = () => {
         const type = selected.rows[0]?.type as string;
@@ -104,27 +103,27 @@ const PluginsManager = () => {
     const _getTbBtnProps = () => {
         return [
             {
-                name: 'Refresh',
+                title: intl.formatMessage({id: 'REFRESH_BTN'}),
                 key: 'refresh',
-                icon: <SyncOutlined style={toolButtonStyle}/>,
+                icon: <SyncOutlined className={styles.toolButtonIcon}/>,
                 onClick: query,
             },
             {
-                name: 'New & update',
+                title: intl.formatMessage({id: 'UPLOAD_NEW'}),
                 key: 'upload',
-                icon: <UploadOutlined style={toolButtonStyle}/>,
+                icon: <UploadOutlined className={styles.toolButtonIcon}/>,
                 onClick: () => setVisible(true),
             },
             {
-                name: 'Delete',
+                title: intl.formatMessage({id: 'DELETE'}),
                 key: 'delete',
-                icon: <DeleteOutlined style={toolButtonRedStyle}/>,
+                icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
                 onClick: removePlugin,
             },
             {
-                name: 'Open new window',
+                title: 'Open new window',
                 key: 'open',
-                icon: <ArrowRightOutlined style={toolButtonStyle}/>,
+                icon: <ArrowRightOutlined className={styles.toolButtonIcon}/>,
                 onClick: () => {
                     if (url) {
                         window.open(url, selected.rows[0].id);
@@ -170,7 +169,7 @@ const PluginsManager = () => {
     return (
         <Layout>
             <Sider width={300}>
-                <CommonTable toolbarGap={5} option={tableOption}
+                <CommonTable option={tableOption}
                              toolbar={_getTbBtnProps()} height={height}/>
             </Sider>
             <Layout>

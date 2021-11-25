@@ -74,7 +74,7 @@ public class PropertyFileUtils {
      */
     public static ServerSetting getServerSetting(String serverPath) {
         int p = serverPath.lastIndexOf(File.separatorChar);
-        String server = serverPath.substring(p + 1);
+        String name = serverPath.substring(p + 1);
         String sid = SettingUtils.createSid(serverPath);
         File file = SettingUtils.getServerSettingFile(serverPath);
         //判定文件是否更新
@@ -84,7 +84,9 @@ public class PropertyFileUtils {
         }
 
         Properties properties = getProperties(file);
-        setting = new ServerSetting(server);
+        setting = new ServerSetting(name);
+        String group = properties.getProperty(SettingPropConst.GROUP, StringUtils.EMPTY);
+        setting.setGroup(group);
         setting.setSid(sid);
         setting.setPath(serverPath);
         String cmd = properties.getProperty(SettingPropConst.COMMAND, StringUtils.EMPTY);
@@ -221,8 +223,8 @@ public class PropertyFileUtils {
         if (CollectionUtils.isEmpty(paths)) {
             return queue;
         }
-        paths.forEach(server -> {
-            ServerSetting setting = getServerSetting(server);
+        paths.forEach(path -> {
+            ServerSetting setting = getServerSetting(path);
             queue.offer(setting);
         });
         return queue;

@@ -23,19 +23,9 @@ public class NetworkUtilsTest {
         }
         boolean isLocal = NetworkUtils.hostLocal(list.get(0));
         Assert.assertTrue(isLocal);
-        try {
-            NetworkUtils.hostLocal("127.0.0.1");
-            Assert.fail("不能是环路地址");
-        } catch (Exception e) {
-            Assert.assertEquals("请输入真实IP地址或域名，而不是环路地址：127.0.0.1", e.getMessage());
-        }
-
-        try {
-            NetworkUtils.hostLocal("localhost");
-            Assert.fail("不能是环路地址");
-        } catch (Exception e) {
-            Assert.assertEquals("请输入真实IP地址或域名，而不是环路地址：localhost", e.getMessage());
-        }
+        NetworkUtils.hostLocal("127.0.0.1");
+        Assert.assertTrue(NetworkUtils.hostLocal("127.0.0.1"));
+        Assert.assertTrue(NetworkUtils.hostLocal("localhost"));
     }
 
     @Test

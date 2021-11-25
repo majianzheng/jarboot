@@ -1,42 +1,71 @@
-import * as React from "react";
-import {Result, Tag, Input, Space, Button, Modal} from "antd";
-import ServerMgrService, {ServerRunning} from "@/services/ServerMgrService";
+import React, {useEffect, useReducer, useRef} from "react";
+import {Result, Input, Space, Button, Modal, Empty, Tree, Spin} from "antd";
+import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
-    SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined, DeleteOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined
+    SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined,
+    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined, AppstoreOutlined
 } from '@ant-design/icons';
-import {JarBootConst} from '@/common/JarBootConst';
-import {MsgData} from "@/common/WsManager";
+import { JarBootConst, MsgData } from '@/common/JarBootConst';
 import Logger from "@/common/Logger";
 import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
-import OneClickButtons from "@/components/servers/OneClickButtons";
+import BottomBar from "@/components/servers/BottomBar";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
+import styles from "./index.less";
+import {useIntl} from "umi";
+import ServerConfig from "@/components/setting/ServerConfig";
+import {DeleteIcon, RestartIcon, StoppedIcon} from "@/components/icons";
+import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
-import styles from "./index.less";
-import {useEffect, useReducer} from "react";
-import {useIntl} from "umi";
+
+interface ServerMgrViewState {
+    loading: boolean;
+    data: ServerRunning[];
+    treeData: TreeNode[];
+    uploadVisible: boolean;
+    selectedRowKeys: string[];
+    searchText: string;
+    searchedColumn: string;
+    selectRows: TreeNode[];
+    current: string;
+    sideView: 'tree' | 'list';
+    contentView: 'config' | 'console';
+}
 
 let searchInput = {} as any;
 
+const getInitSideView = (): 'tree' | 'list' => {
+    const sideView = localStorage.getItem(JarBootConst.SIDE_VIEW);
+    return (sideView || JarBootConst.LIST_VIEW) as ('tree' | 'list');
+};
+
 const ServerMgrView = () => {
     const intl = useIntl();
-    const initArg = {
-        loading: false, data: [] as ServerRunning[], uploadVisible: false,
-        selectedRowKeys: [] as string[], searchText: '', searchedColumn: '',
-        selectRows: [] as ServerRunning[], current: '', oneClickLoading: false
+    const treeRef = useRef<any>();
+    const initArg: ServerMgrViewState = {
+        loading: false,
+        data: [] as ServerRunning[],
+        treeData: [] as TreeNode[],
+        uploadVisible: false,
+        selectedRowKeys: [] as string[],
+        searchText: '',
+        searchedColumn: '',
+        selectRows: [] as TreeNode[],
+        current: '',
+        sideView: getInitSideView(),
+        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console')
     };
-    const [state, dispatch] = useReducer((state: any, action: any) => {
+    const [state, dispatch] = useReducer((state: ServerMgrViewState, action: any) => {
         if ('function' === typeof action) {
-            return {...state, ...action(state)};
+            return {...state, ...action(state)} as ServerMgrViewState;
         }
-        return {...state, ...action};
-    }, initArg, arg => ({...arg}));
+        return {...state, ...action} as ServerMgrViewState;
+    }, initArg, (arg): ServerMgrViewState => ({...arg} as ServerMgrViewState));
 
-    const height = window.innerHeight - 120;
+    const height = window.innerHeight - 86;
 
     useEffect(() => {
         refreshServerList(true);
@@ -51,8 +80,8 @@ const ServerMgrView = () => {
     }, []);
 
     const activeConsole = (sid: string) => {
-        dispatch((preState: any) => {
-            let data: ServerRunning[] = preState.data;
+        dispatch((preState: ServerMgrViewState) => {
+            let data: ServerRunning[] = preState.data || [];
             const index = data.findIndex(row => row.sid === sid);
             if (-1 !== index) {
                 const selectedRowKeys: any = [data[index].sid];
@@ -64,57 +93,41 @@ const ServerMgrView = () => {
     };
 
     const onStatusChange = (data: MsgData) => {
-        dispatch((preState: any) => {
-            const item = preState.data.find((value: ServerRunning) => value.sid === data.sid);
+        dispatch((preState: ServerMgrViewState) => {
+            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid) as TreeNode;
             if (!item) {
                 return {};
             }
-            const status = data.body;
             const key = data.sid;
             const server = item.name as string;
-            switch (status) {
-                case JarBootConst.MSG_TYPE_START:
+            item.status = data.body;
+            switch (item.status) {
+                case JarBootConst.STATUS_STARTING:
                     // 激活终端显示
                     activeConsole(key);
-                    Logger.log(`${server}启动中...`);
+                    Logger.log(`${server} 启动中...`);
                     pubsub.publish(key, JarBootConst.START_LOADING);
                     clearDisplay(item);
-                    item.status = JarBootConst.STATUS_STARTING;
                     break;
-                case JarBootConst.MSG_TYPE_STOP:
-                    Logger.log(`${server}停止中...`);
+                case JarBootConst.STATUS_STOPPING:
+                    Logger.log(`${server} 停止中...`);
                     pubsub.publish(key, JarBootConst.START_LOADING);
                     item.status = JarBootConst.STATUS_STOPPING;
                     break;
-                case JarBootConst.MSG_TYPE_START_ERROR:
-                    Logger.log(`${server}启动失败`);
-                    CommonNotice.error(`Start ${server} failed!`);
-                    item.status = JarBootConst.STATUS_STOPPED;
-                    break;
-                case JarBootConst.MSG_TYPE_STARTED:
-                    Logger.log(`${server}启动成功`);
+                case JarBootConst.STATUS_STARTED:
+                    Logger.log(`${server} 已启动`);
                     pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STARTED;
+                    pubsub.publish(key, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
-                case JarBootConst.MSG_TYPE_STOP_ERROR:
-                    Logger.log(`${server}停止失败`);
-                    CommonNotice.error(`Stop ${server} failed!`);
-                    item.status = JarBootConst.STATUS_STARTED;
-                    break;
-                case JarBootConst.MSG_TYPE_STOPPED:
-                    Logger.log(`${server}停止成功`);
+                case JarBootConst.STATUS_STOPPED:
+                    Logger.log(`${server} 已停止`);
                     pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STOPPED;
-                    break;
-                case JarBootConst.MSG_TYPE_RESTART:
-                    Logger.log(`${server}重启成功`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
-                    item.status = JarBootConst.STATUS_STARTED;
                     break;
                 default:
                     return {};
             }
-            return {data: [...preState.data]};
+            item.icon = translateStatus(item.status);
+            return {data: [...preState.data], treeData: [...preState.treeData]};
         });
 
     };
@@ -171,17 +184,22 @@ const ServerMgrView = () => {
                 setTimeout(() => searchInput.select(), 100);
             }
         },
-        render: (text: string) => {
-            return state.searchedColumn === dataIndex ? (
+        render: (text: string, row: ServerRunning) => {
+            const s = state.searchedColumn === dataIndex ? (
                 <Highlighter
-                    highlightStyle={{backgroundColor: '#ffc069', padding: 0}}
+                    highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
                     searchWords={[state.searchText]}
                     autoEscape
                     textToHighlight={text || ''}
                 />
             ) : (
                 text
-            );},
+            );
+            if ('name' === dataIndex) {
+                return (<>{translateStatus(row.status)}{s}</>);
+            }
+            return s;
+        },
     });
 
     const handleSearch = (selectedKeys: string[], confirm: () => void, dataIndex: string) => {
@@ -209,19 +227,14 @@ const ServerMgrView = () => {
                 ...getColumnSearchProps('name')
             },
             {
-                title: intl.formatMessage({id: 'STATUS'}),
-                dataIndex: 'status',
-                key: 'status',
+                title: intl.formatMessage({id: 'GROUP'}),
+                dataIndex: 'group',
+                key: 'group',
                 ellipsis: true,
                 width: 120,
-                filters: [
-                    {text: intl.formatMessage({id: 'STOPPED'}), value: 'STOPPED'},
-                    {text: intl.formatMessage({id: 'RUNNING'}), value: 'RUNNING'},
-                    {text: intl.formatMessage({id: 'STARTING'}), value: 'STARTING'},
-                    {text: intl.formatMessage({id: 'STOPPING'}), value: 'STOPPING'},
-                ],
-                onFilter: (value: string, record: ServerRunning) => record.status === value,
-                render: (text: string) => translateStatus(text),
+                sorter: (a: ServerRunning, b: ServerRunning) => a.group.localeCompare(b.group),
+                sortDirections: ['descend', 'ascend'],
+                ...getColumnSearchProps('group')
             },
         ],
         loading: state.loading,
@@ -236,26 +249,25 @@ const ServerMgrView = () => {
     });
     const translateStatus = (status: string) => {
         let tag;
-        const s = intl.formatMessage({id: status});
         switch (status) {
             case JarBootConst.STATUS_STARTED:
-                tag = <Tag icon={<CaretRightOutlined/>} color={"success"}>{s}</Tag>
+                tag = <CaretRightOutlined className={styles.statusRunning}/>;
                 break;
             case JarBootConst.STATUS_STOPPED:
-                tag = <Tag icon={<PoweroffOutlined/>} color={"volcano"}>{s}</Tag>
+                tag = <StoppedIcon className={styles.statusStopped}/>;
                 break;
             case JarBootConst.STATUS_STARTING:
-                tag = <Tag icon={<SyncOutlined spin/>} color={"processing"}>{s}</Tag>
+                tag = <LoadingOutlined className={styles.statusStarting}/>;
                 break;
             case JarBootConst.STATUS_STOPPING:
-                tag = <Tag icon={<SyncOutlined spin/>} color={"default"}>{s}</Tag>
+                tag = <LoadingOutlined className={styles.statusStopping}/>;
                 break;
             default:
-                tag = <Tag color={"default"}>{s}</Tag>
-                break;
+                return undefined;
         }
-        return tag;
-    }
+        const title = intl.formatMessage({id: status});
+        return <span title={title} className={styles.statusIcon}>{tag}</span>;
+    };
 
     const getRowSelection = () => ({
         type: 'checkbox',
@@ -272,19 +284,23 @@ const ServerMgrView = () => {
     });
 
     const onRow = (record: ServerRunning) => ({
-        onClick: () => dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid})
+        onClick: () => {
+            dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid});
+            pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+        }
     });
 
     const refreshServerList = (init: boolean = false) => {
         dispatch({loading: true});
         ServerMgrService.getServerList((resp: any) => {
-            dispatch((preState: any) => {
+            dispatch((preState: ServerMgrViewState) => {
                 if (resp.resultCode < 0) {
                     CommonNotice.errorFormatted(resp);
                     return {loading: false};
                 }
                 const data = resp.result as ServerRunning[];
                 const index = data.findIndex(item => preState.current === item.sid);
+                const treeData = getTreeData(data);
                 if (init || -1 === index) {
                     //初始化选中第一个
                     let current = '';
@@ -296,15 +312,14 @@ const ServerMgrView = () => {
                         selectedRowKeys = [first.sid];
                         selectRows = [first];
                     }
-                    return {data, current, selectedRowKeys, selectRows, loading: false};
+                    return {data, treeData, current, selectedRowKeys, selectRows, loading: false};
                 }
-                return {data, loading: false};
+                return {data, treeData, loading: false};
             });
         });
     };
 
     const finishCallback = (resp: any) => {
-        dispatch({loading: false});
         if (0 !== resp.resultCode) {
             CommonNotice.errorFormatted(resp);
         }
@@ -315,7 +330,6 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        dispatch({loading: true});
         state.selectRows.forEach(clearDisplay);
         ServerMgrService.startServer(state.selectRows, finishCallback);
     };
@@ -330,8 +344,6 @@ const ServerMgrView = () => {
             return;
         }
 
-        dispatch({loading: true});
-
         ServerMgrService.stopServer(state.selectRows, finishCallback);
     };
 
@@ -340,56 +352,55 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        dispatch({loading: true});
         state.selectRows.forEach(clearDisplay);
         ServerMgrService.restartServer(state.selectRows, finishCallback);
     };
 
-    const getTbBtnProps = () => ([
+    const getToolBtnProps = () => ([
         {
-            name: 'Start',
+            title: intl.formatMessage({id: 'START'}),
             key: 'start ',
-            icon: <CaretRightFilled className={styles.toolButtonGreenStyle}/>,
+            icon: <CaretRightFilled className={styles.toolButtonIcon}/>,
             onClick: startServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Stop',
+            title: intl.formatMessage({id: 'STOP'}),
             key: 'stop',
-            icon: <PoweroffOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <PoweroffOutlined className={styles.toolButtonRedIcon}/>,
             onClick: stopServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Restart',
+            title: intl.formatMessage({id: 'RESTART'}),
             key: 'restart',
-            icon: <ReloadOutlined className={styles.toolButtonStyle}/>,
+            icon: <RestartIcon className={styles.toolButtonIcon}/>,
             onClick: restartServer,
             disabled: !state.selectRows?.length
         },
         {
-            name: 'Refresh',
+            title: intl.formatMessage({id: 'REFRESH_BTN'}),
             key: 'refresh',
-            icon: <SyncOutlined className={styles.toolButtonStyle}/>,
+            icon: <SyncOutlined className={styles.toolButtonIcon}/>,
             onClick: () => refreshServerList(),
         },
         {
-            name: 'New & update',
+            title: intl.formatMessage({id: 'UPLOAD_NEW'}),
             key: 'upload',
-            icon: <UploadOutlined className={styles.toolButtonStyle}/>,
+            icon: <UploadOutlined className={styles.toolButtonIcon}/>,
             onClick: uploadFile,
         },
         {
-            name: 'Delete',
+            title: intl.formatMessage({id: 'DELETE'}),
             key: 'delete',
-            icon: <DeleteOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
             onClick: deleteServer,
             disabled: isDeleteDisabled()
         },
         {
-            name: 'Dashboard',
+            title: intl.formatMessage({id: 'DASHBOARD'}),
             key: 'dashboard',
-            icon: <DashboardOutlined className={styles.toolButtonRedStyle}/>,
+            icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
             disabled: isCurrentNotRunning()
         }
@@ -439,53 +450,145 @@ const ServerMgrView = () => {
         pubsub.publish(state.current, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
-    const oneClickRestart = () => {
-        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Restarting all...");
-        disableOnClickButton();
-        ServerMgrService.oneClickRestart();
-    };
-
-    const oneClickStart = () => {
-        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Starting all...");
-        disableOnClickButton();
-        ServerMgrService.oneClickStart();
-    };
-
-    const oneClickStop = () => {
-        pubsub.publish(state.current, JarBootConst.APPEND_LINE, "Stopping all...");
-        disableOnClickButton();
-        ServerMgrService.oneClickStop();
-    };
-
-    const disableOnClickButton = () => {
-        if (state.oneClickLoading) {
-            return;
-        }
-        dispatch({oneClickLoading: true});
-        setTimeout(() => dispatch({oneClickLoading: false}), 5000);
-    };
-
     const onUploadClose = () => {
         dispatch({uploadVisible: false});
         refreshServerList();
     };
 
+    const onViewChange = (key: string, value: string) => {
+        dispatch({[key]: value});
+        localStorage.setItem(key, value);
+    };
 
-    let tableOption: any = getTbProps();
-    tableOption.scroll = {y: height};
-    const loading = state.loading && 0 === state.data.length;
-    return (<div>
-        <div style={{display: 'flex'}}>
-            <div style={{flex: 'inherit', width: '28%'}}>
-                <CommonTable toolbarGap={5} option={tableOption}
-                             toolbar={getTbBtnProps()} height={height}/>
-                <OneClickButtons loading={state.oneClickLoading}
-                                 oneClickRestart={oneClickRestart}
-                                 oneClickStart={oneClickStart}
-                                 oneClickStop={oneClickStop}/>
+    const onGroupChanged = (sid: string, group: string) => {
+        dispatch((preState: any) => {
+            const data = preState.data as ServerRunning[];
+            const server = data.find(value => value.sid === sid);
+            if (server) {
+                server.group = group;
+                const treeData = getTreeData(data);
+                return {data, treeData};
+            }
+            return {};
+        });
+    };
+
+    const onTreeSelect = (selectedRowKeys: Key[], info: {
+        event: 'select';
+        selected: boolean;
+        node: EventDataNode;
+        selectedNodes: DataNode[];
+        nativeEvent: MouseEvent;
+    }) => {
+        dispatch((preState: ServerMgrViewState) => {
+            const selectRows = info.selectedNodes;
+            if (info.node.isLeaf) {
+                const current = info.node.key as string;
+                pubsub.publish(current, PUB_TOPIC.FOCUS_CMD_INPUT);
+                return {selectedRowKeys, selectRows, current};
+            }
+            preState?.current?.length && pubsub.publish(preState.current, PUB_TOPIC.FOCUS_CMD_INPUT);
+            return {selectedRowKeys, selectRows};
+        });
+    };
+
+    const groupIcon = (): React.ReactNode => {
+        return (<AppstoreOutlined className={styles.groupIcon}/>);
+    };
+
+    const getTreeData = (data: ServerRunning[]): TreeNode[] => {
+        const treeData = [] as TreeNode[];
+        const groupMap = new Map<string, TreeNode[]>();
+        data.forEach(server => {
+            const group = server.group || '';
+            let children = groupMap.get(group);
+            if (!children) {
+                children = [] as TreeNode[];
+                groupMap.set(group, children);
+                treeData.push({
+                    title: group,
+                    sid: group,
+                    key: group,
+                    group,
+                    icon: groupIcon,
+                    name: "", path: "", status: "", children});
+            }
+            const child = server as TreeNode;
+            child.key = server.sid;
+            child.title = server.name;
+            child.isLeaf = true;
+            child.icon = translateStatus(server.status);
+            children.push(child);
+        });
+        return treeData.sort((a, b) => a.group.localeCompare(b.group));
+    };
+
+    const onTreeSearch = (searchText: string) => {
+        dispatch((preState: ServerMgrViewState) => {
+            if (searchText?.length) {
+                const text = searchText.toLowerCase();
+                const item = preState.data.find(value =>
+                    (value.name.toLowerCase().includes(text) || value.group.toLowerCase().includes(text)));
+                item && treeRef.current?.scrollTo({key: item.sid});
+            }
+            return {searchText};
+        });
+    };
+
+    const treeTitleRender = (node: DataNode) => {
+        return (state.searchText?.length ? <Highlighter
+            highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
+            searchWords={[state.searchText]}
+            autoEscape
+            textToHighlight={node.title || ''}
+        /> : node.title);
+    };
+
+    const treeView = () => (<div>
+        <div style={{height: height - 6}} className={styles.serverTree}>
+            <div className={styles.treeToolbar}>
+                {getToolBtnProps().map(props => (<Button className={styles.treeToolbarBtn} type={"text"} {...props}/>))}
             </div>
-            <div style={{flex: 'inherit', width: '72%'}}>
-                {loading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
+            <div style={{height: height - 10}} className={styles.treeContent}>
+                <Spin spinning={state.loading}>
+                    {state.data?.length ? <div>
+                        <Input.Search placeholder="Input name to search"
+                                      style={{padding: "0 2px 0 2px"}}
+                                      onSearch={onTreeSearch} allowClear enterButton/>
+                        <Tree.DirectoryTree multiple className={styles.treeView}
+                                            ref={treeRef}
+                                            defaultExpandAll
+                                            titleRender={treeTitleRender}
+                                            expandAction={"doubleClick"}
+                                            selectedKeys={state.selectedRowKeys}
+                                            onSelect={onTreeSelect}
+                                            treeData={state.treeData}/>
+                    </div> : <Empty/>}
+                </Spin>
+            </div>
+        </div>
+    </div>);
+
+    const sideView = () => {
+        let tableOption: any = getTbProps();
+        tableOption.scroll = {y: height};
+        return (<>
+            <div style={{display: JarBootConst.TREE_VIEW === state.sideView ? 'block' : 'none'}}
+                 className={styles.serverTable}>
+                <CommonTable option={tableOption}
+                             toolbar={getToolBtnProps()} height={height}/>
+            </div>
+            <div style={{display: JarBootConst.LIST_VIEW === state.sideView ? 'block' : 'none'}}>
+                {treeView()}
+            </div>
+        </>);
+    };
+
+    const contentView = () => {
+        //按钮为控制台，则当前为服务配置
+        const server = state.selectRows?.length ? state.selectRows[0] : null;
+        return (<div>
+            <div style={{display: JarBootConst.CONFIG_VIEW === state.contentView ? 'block' : 'none'}}>
                 {<SuperPanel key={PUB_TOPIC.ROOT}
                              server={""}
                              sid={PUB_TOPIC.ROOT}
@@ -496,6 +599,30 @@ const ServerMgrView = () => {
                                 sid={value.sid}
                                 visible={state.current === value.sid}/>
                 ))}
+            </div>
+            <div style={{display: JarBootConst.CONSOLE_VIEW === state.contentView ? 'block' : 'none', background: '#FAFAFA'}}>
+                <ServerConfig path={server?.path || ''}
+                              sid={server?.sid || ''}
+                              group={server?.group || ''}
+                              onClose={() => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW)}
+                              onGroupChanged={onGroupChanged}/>
+            </div>
+        </div>);
+    };
+
+
+    let tableOption: any = getTbProps();
+    tableOption.scroll = {y: height};
+    const loading = state.loading && 0 === state.data.length;
+    return (<div>
+        <div className={styles.serverMgr}>
+            <div className={styles.serverMgrSide}>
+                {sideView()}
+                <BottomBar sideView={state.sideView} contentView={state.contentView} onViewChange={onViewChange}/>
+            </div>
+            <div className={styles.serverMgrContent}>
+                {loading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
+                {contentView()}
             </div>
         </div>
         {state.uploadVisible && <UploadFileModal server={state.selectRows.length > 0 ? state.selectRows[0].name : ''}

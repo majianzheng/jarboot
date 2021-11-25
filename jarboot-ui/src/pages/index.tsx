@@ -2,7 +2,7 @@ import React, {memo, useEffect, useState} from "react";
 import {Tabs, ConfigProvider, Button} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import en_GB from 'antd/lib/locale-provider/en_GB';
-import About from "@/pages/help/About";
+import Help from "@/pages/help/Help";
 import styles from './index.less';
 import {WsManager} from "@/common/WsManager";
 import { useIntl, getLocale } from 'umi';
@@ -13,9 +13,8 @@ import StringUtil from "@/common/StringUtil";
 import {SelectLang, UserMenu, ProjectHome, JarbootVersion} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
 import ServerMgrView, {OnlineDebugView} from "@/components/servers";
-import {GlobalSetting, ServerSetting} from "@/components/setting";
+import {Setting} from "@/components/setting";
 import AuthControl from "@/components/auth";
-import PluginsManager from "@/components/plugins";
 
 const {TabPane} = Tabs;
 const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
@@ -24,33 +23,25 @@ const localeMap: any = {'zh-CN': zh_CN, 'en-US': en_GB};
  * 主页
  * @author majianzheng
  */
-const TabPanes: any = memo((props: any) => {
+const TabPanes = memo((props: any) => {
     const intl = useIntl();
     return <Tabs defaultActiveKey={'0'} size={'large'}
                  tabBarExtraContent={props.extra}
-                 style={{margin: '0 15px 0 15px'}}>
+                 style={{margin: '0 5px 0 5px'}}>
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
             <ServerMgrView/>
         </TabPane>
         <TabPane key={'8'} tab={intl.formatMessage({id: 'ONLINE_DEBUG'})}>
             <OnlineDebugView/>
         </TabPane>
-        <TabPane key={'2'} tab={intl.formatMessage({id: 'SERVICES_CONF'})}>
-            <ServerSetting/>
-        </TabPane>
-        <TabPane key={'3'} tab={intl.formatMessage({id: 'PLUGINS'})}>
-            <PluginsManager/>
-        </TabPane>
         <TabPane key={'4'} tab={intl.formatMessage({id: 'AUTH_CONTROL'})}>
             <AuthControl/>
         </TabPane>
         <TabPane key={'5'} tab={intl.formatMessage({id: 'SETTING'})}>
-            <div style={{width: '96%'}}>
-                <GlobalSetting/>
-            </div>
+            <Setting/>
         </TabPane>
-        <TabPane key={'6'} tab={intl.formatMessage({id: 'HELP_DOC'})}>
-            <About/>
+        <TabPane key={'6'} tab={intl.formatMessage({id: 'HELP'})}>
+            <Help/>
         </TabPane>
     </Tabs>
 });
@@ -64,7 +55,6 @@ const index = memo(() => {
     }
     const intl = useIntl();
     const [lang, setLang] = useState(getLocale());
-    const [username, setUsername] = useState("");
     const welcome = () => {
         console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
         console.log(`%c(灬°ω°灬) `, 'color:magenta');
@@ -82,9 +72,7 @@ const index = memo(() => {
                 CommonUtils.loginPage();
                 return;
             }
-            const jarbootUser: any = resp.result;
-            setUsername(jarbootUser.username);
-            JarBootConst.currentUser = jarbootUser;
+            JarBootConst.currentUser = resp.result;
             welcome();
         }).catch(CommonNotice.errorFormatted);
     }, []);
@@ -100,7 +88,7 @@ const index = memo(() => {
         </Button>
         <SelectLang onLocaleChange={_onLocaleChange}/>
         <ProjectHome iconClass={styles.githubIcon}/>
-        <UserMenu username={username} className={styles.userLogin}/>
+        <UserMenu className={styles.userLogin}/>
     </div>;
     const leftExtra = <div className={styles.leftExtra}><img src={require('@/assets/logo.png')} alt={"logo"}/></div>;
     const extra = {left: leftExtra, right: rightExtra};

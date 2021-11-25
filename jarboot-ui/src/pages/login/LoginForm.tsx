@@ -28,7 +28,6 @@ const LoginForm = memo(() => {
             location.assign("/");
         }).catch(CommonNotice.errorFormatted);
     };
-    const [form] = Form.useForm();
 
     return <div className={styles.loginForm}>
         <div className={styles.loginHeader}>{intl.formatMessage({id: 'LOGIN'})}</div>
@@ -36,8 +35,7 @@ const LoginForm = memo(() => {
             <div>{intl.formatMessage({id: 'INTERNAL_SYS_TIP'})}</div>
             <div>{intl.formatMessage({id: 'INTERNAL_SYS_TIP1'})}</div>
         </div>
-        <Form form={form}
-              name="main_login"
+        <Form name="main_login"
               className={styles.loginFormView}
               onFinish={onSubmit}>
             <Form.Item name="username"

@@ -87,7 +87,7 @@ public class NetworkUtils {
             return false;
         }
         if (inetAddress.isLoopbackAddress()) {
-            throw new JarbootException(ResultCodeConst.INVALID_PARAM, "请输入真实IP地址或域名，而不是环路地址：" + host);
+            return true;
         }
         Enumeration<NetworkInterface> ifs;
         try {

@@ -1,10 +1,15 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.NetworkUtils;
+import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 内部接口，与jarboot-core交互，非开放
@@ -38,5 +43,23 @@ public class AgentClientController {
     public ResponseSimple setStarted(@RequestParam String server, @RequestParam String sid) {
         AgentManager.getInstance().onServerStarted(server, sid);
         return new ResponseSimple();
+    }
+
+    /**
+     * 远程的Java进程连接
+     * @param request 请求
+     * @param process Jvm信息
+     * @return 是否为远程进程
+     */
+    @PostMapping(value="/remoteJvm")
+    @ResponseBody
+    public ResponseForObject<Boolean> remoteJvm(HttpServletRequest request, @RequestBody JvmProcess process) {
+        String remote = request.getRemoteAddr();
+        boolean isLocal = NetworkUtils.hostLocal(remote);
+        if (!isLocal) {
+            process.setRemote(remote);
+            AgentManager.getInstance().remoteJvm(process);
+        }
+        return new ResponseForObject<>(isLocal);
     }
 }
