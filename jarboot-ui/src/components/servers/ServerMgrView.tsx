@@ -307,7 +307,13 @@ const ServerMgrView = () => {
                     let selectedRowKeys = [] as string[];
                     let selectRows: any = [];
                     if (data.length > 0) {
-                        const first: ServerRunning = data[0];
+                        let first: ServerRunning;
+                        if (preState.sideView === JarBootConst.LIST_VIEW && treeData.length > 0) {
+                            const firstChildren = treeData[0]?.children as TreeNode[] || [];
+                            first = firstChildren[0] || data[0];
+                        } else {
+                            first = data[0];
+                        }
                         current = first.sid;
                         selectedRowKeys = [first.sid];
                         selectRows = [first];
