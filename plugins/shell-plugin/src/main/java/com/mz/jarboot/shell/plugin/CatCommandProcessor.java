@@ -171,6 +171,9 @@ public class CatCommandProcessor implements CommandProcessor {
     }
     
     private String formatLine(String line, int num) {
+        if (!line.isEmpty()) {
+            line = line.replace("<", "&lt;").replace(">", "&gt;");
+        }
         if (this.showLine) {
             line = String.format("<ln>%d</ln>%s", num, line);
         }
