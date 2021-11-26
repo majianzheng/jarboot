@@ -2,7 +2,7 @@ package com.mz.jarboot.task;
 
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.PidFileHelper;
+import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -146,7 +146,7 @@ public class TaskRunCache {
     }
 
     private void cleanPidFiles() {
-        File pidDir = FileUtils.getFile(PidFileHelper.getPidDir());
+        File pidDir = CacheDirHelper.getPidDir();
         if (!pidDir.exists()) {
             return;
         }

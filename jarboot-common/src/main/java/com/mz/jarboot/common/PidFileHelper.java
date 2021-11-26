@@ -1,5 +1,6 @@
 package com.mz.jarboot.common;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -10,10 +11,7 @@ import java.nio.charset.StandardCharsets;
  * @author majianzheng
  */
 public class PidFileHelper {
-    private static final String CACHE_DIR = System.getProperty("JARBOOT_HOME") + File.separator + ".cache";
-    private static final String PID_DIR = CACHE_DIR + File.separator + "pid";
     private static final String PID_EXT = ".pid";
-    private static final int INVALID_PID = -1;
     private static final String PID;
     static {
         String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
@@ -23,7 +21,7 @@ public class PidFileHelper {
 
     public static void writePidFile(String sid) {
         //写入pid
-        File dir = FileUtils.getFile(PID_DIR);
+        File dir = CacheDirHelper.getPidDir();
         File pidFile = FileUtils.getFile(dir, sid + PID_EXT);
         try {
             if (!dir.exists()) {
@@ -36,8 +34,8 @@ public class PidFileHelper {
     }
 
     public static int getServerPid(String sid) {
-        File pidFile = FileUtils.getFile(PID_DIR, sid + PID_EXT);
-        int pid = INVALID_PID;
+        File pidFile = FileUtils.getFile(CacheDirHelper.getPidDir(), sid + PID_EXT);
+        int pid = CommonConst.INVALID_PID;
         if (!pidFile.exists()) {
             return pid;
         }
@@ -64,7 +62,7 @@ public class PidFileHelper {
     }
 
     public static void deletePidFile(String sid) {
-        File pid = FileUtils.getFile(PID_DIR, sid + PID_EXT);
+        File pid = FileUtils.getFile(CacheDirHelper.getPidDir(), sid + PID_EXT);
         if (!pid.exists()) {
             return;
         }
@@ -73,10 +71,6 @@ public class PidFileHelper {
         } catch (Exception exception) {
             //ignore
         }
-    }
-
-    public static String getPidDir() {
-        return PID_DIR;
     }
 
     private PidFileHelper() {}
