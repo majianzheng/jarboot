@@ -1,14 +1,21 @@
 import React, {useEffect, useReducer, useRef} from "react";
-import {Result, Input, Space, Button, Modal, Empty, Tree, Spin} from "antd";
+import {Button, Empty, Input, Modal, Result, Space, Spin, Tree} from "antd";
 import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
-    SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined, AppstoreOutlined
+    AppstoreOutlined,
+    CaretRightFilled,
+    CaretRightOutlined,
+    DashboardOutlined,
+    LoadingOutlined,
+    PoweroffOutlined,
+    SearchOutlined,
+    SyncOutlined,
+    UploadOutlined
 } from '@ant-design/icons';
-import { JarBootConst, MsgData } from '@/common/JarBootConst';
+import {JarBootConst, MsgData} from '@/common/JarBootConst';
 import Logger from "@/common/Logger";
-import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
+import {PUB_TOPIC, pubsub, SuperPanel} from "@/components/servers";
 import BottomBar from "@/components/servers/BottomBar";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
@@ -16,8 +23,10 @@ import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
 import ServerConfig from "@/components/setting/ServerConfig";
-import {DeleteIcon, RestartIcon, StoppedIcon} from "@/components/icons";
+import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
+import CloudService from "@/services/CloudService";
+import CommonUtils from "@/common/CommonUtils";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
 
@@ -409,8 +418,66 @@ const ServerMgrView = () => {
             icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
             disabled: isCurrentNotRunning()
+        },
+        {
+            title: intl.formatMessage({id: 'EXPORT'}),
+            key: 'export',
+            icon: <ExportIcon className={styles.toolButtonIcon}/>,
+            onClick: onExport,
+            disabled: (1 !== state.selectRows?.length)
+        },
+        {
+            title: intl.formatMessage({id: 'IMPORT'}),
+            key: 'import',
+            icon: <ImportIcon className={styles.toolButtonIcon}/>,
+            onClick: onImport,
         }
     ]);
+
+    const onExport = () => {
+        if (1 !== state.selectRows?.length) {
+            return;
+        }
+        const name = state.selectRows[0].name;
+        Modal.confirm({
+            title: `${intl.formatMessage({id: 'EXPORT'})} ${name}?`,
+            onOk: () => CommonUtils.exportServer(name)
+        });
+    };
+
+    const onImport = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/zip';
+        input.onchange = () => {
+            if (input.files?.length) {
+                const file = input.files[0];
+                CloudService.pushServerDirectory(file).then(resp => {
+                    if (-9004 === resp.resultCode) {
+                        Modal.confirm({
+                            title: intl.formatMessage({id: 'IMPORT_INFO'}, {name: resp.resultMsg}),
+                            onOk: () => {
+                                CloudService.pushServerDirectory(file, true).then(resp => {
+                                    if (0 === resp.resultCode) {
+                                        CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                                    } else {
+                                        CommonNotice.errorFormatted(resp);
+                                    }
+                                }).catch(CommonNotice.errorFormatted);
+                            }
+                        });
+                        return;
+                    }
+                    if (0 === resp.resultCode) {
+                        CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                    } else {
+                        CommonNotice.errorFormatted(resp);
+                    }
+                }).catch(CommonNotice.errorFormatted);
+            }
+        };
+        input.click();
+    };
 
     const isDeleteDisabled = () => {
         if (1 !== state.selectRows?.length) {

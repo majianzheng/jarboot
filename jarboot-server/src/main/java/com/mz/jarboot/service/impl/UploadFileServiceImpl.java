@@ -1,6 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.service.SettingService;
+import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
@@ -41,17 +42,12 @@ import java.util.stream.Stream;
 @Service
 public class UploadFileServiceImpl implements UploadFileService {
     private static final long EXPIRED_TIME = 20000;
-    private final String tempDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "tempDir";
     private final ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     /** 是否启动了心跳监测 */
     private volatile boolean started = false;
 
     @Autowired
     private SettingService settingService;
-
-    private File getTempCacheDir(String server) {
-        return FileUtils.getFile(tempDir, server);
-    }
 
     private void cleanTempCacheDir(File dir) {
         File[] allFiles = dir.listFiles();
@@ -103,7 +99,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         if (uploadHeartbeat.containsKey(server)) {
             throw new JarbootException("已经有其他客户端在上传！");
         }
-        File dir = getTempCacheDir(server);
+        File dir = CacheDirHelper.getUploadTempServer(server);
         if (dir.exists()) {
             cleanTempCacheDir(dir);
         }
@@ -132,7 +128,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         if (StringUtils.isEmpty(server)) {
             throw new JarbootException("服务名为空！");
         }
-        File dir = getTempCacheDir(server);
+        File dir = CacheDirHelper.getUploadTempServer(server);
         String destPath = SettingUtils.getServerPath(server);
         File dest = FileUtils.getFile(destPath);
         boolean exist = dest.exists();
@@ -175,7 +171,7 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public void deleteUploadFile(String server, String file) {
-        File dir = getTempCacheDir(server);
+        File dir = CacheDirHelper.getUploadTempServer(server);
         File[] find = dir.listFiles(f -> StringUtils.equals(file, f.getName()));
         if (null != find && find.length > 0) {
             try {
@@ -189,7 +185,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public synchronized void clearUploadCache(String server) {
         uploadHeartbeat.remove(server);
-        File dir = getTempCacheDir(server);
+        File dir = CacheDirHelper.getUploadTempServer(server);
         if (dir.exists() && dir.isDirectory()) {
             try {
                 FileUtils.deleteDirectory(dir);
@@ -201,7 +197,7 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public void uploadJarFiles(MultipartFile file, String server) {
-        File dir = getTempCacheDir(server);
+        File dir = CacheDirHelper.getUploadTempServer(server);
         if (dir.exists() && dir.isDirectory()) {
             String name = file.getOriginalFilename();
             if (StringUtils.isEmpty(name)) {
@@ -219,7 +215,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @PostConstruct
     public void init() {
         //清理tempDir目录
-        File dir = new File(tempDir);
+        File dir = CacheDirHelper.getUploadTemp();
         if (dir.exists()) {
             try {
                 FileUtils.deleteDirectory(dir);

@@ -10,10 +10,11 @@ import java.io.File;
  */
 public class CacheDirHelper {
     static final String CACHE_DIR;
-    static final String PID_DIR;
+    static final String PID_DIR = "pid";
+    static final String UPLOAD_DIR = "upload-server";
+    static final String TEMP_DIR = "temp";
     static {
         CACHE_DIR = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + ".cache";
-        PID_DIR = CACHE_DIR + File.separator + "pid";
         init();
     }
 
@@ -22,7 +23,19 @@ public class CacheDirHelper {
      * @return pid文件夹
      */
     public static File getPidDir() {
-        return FileUtils.getFile(PID_DIR);
+        return FileUtils.getFile(CACHE_DIR, PID_DIR);
+    }
+
+    public static File getUploadTemp() {
+        return FileUtils.getFile(CACHE_DIR, UPLOAD_DIR);
+    }
+
+    public static File getUploadTempServer(String server) {
+        return FileUtils.getFile(CACHE_DIR, UPLOAD_DIR, server);
+    }
+
+    public static File getTempDir(String name) {
+        return FileUtils.getFile(CACHE_DIR, TEMP_DIR, name);
     }
 
     private static void init() {
@@ -34,6 +47,15 @@ public class CacheDirHelper {
                     //windows系统设为隐藏文件夹
                     ExecNativeCmd.exec(new String[]{"attrib", "\"" + cacheDir.getAbsolutePath() + "\"", "+H"});
                 }
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+        //启动时清理temp文件
+        File tempDir = FileUtils.getFile(CACHE_DIR, TEMP_DIR);
+        if (tempDir.exists()) {
+            try {
+                FileUtils.forceDelete(tempDir);
             } catch (Exception e) {
                 //ignore
             }

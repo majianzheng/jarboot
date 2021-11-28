@@ -12,7 +12,7 @@ const HeapDumpView = memo((props: any) => {
                 <Button icon={<DownloadOutlined/>}
                         type="primary"
                         key="Download"
-                        href={`/api/jarboot/services/downloadFile/${props?.data?.encodedName}`}>
+                        href={`/api/jarboot/cloud/download/${props?.data?.encodedName}`}>
                     Download
                 </Button>
             ]}/>

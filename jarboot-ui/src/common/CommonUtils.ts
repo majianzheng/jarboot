@@ -16,4 +16,10 @@ export default class CommonUtils {
         }
         return token;
     }
+
+    public static exportServer(name: string): void {
+        const a = document.createElement('a');
+        a.href = `/api/jarboot/cloud/pull/server?name=${name}`;
+        a.click();
+    }
 }
