@@ -424,7 +424,7 @@ const ServerMgrView = () => {
             key: 'export',
             icon: <ExportIcon className={styles.toolButtonIcon}/>,
             onClick: onExport,
-            disabled: (1 !== state.selectRows?.length)
+            disabled: (1 !== state.selectRows?.length || !state.selectRows[0].isLeaf)
         },
         {
             title: intl.formatMessage({id: 'IMPORT'}),
@@ -439,6 +439,9 @@ const ServerMgrView = () => {
             return;
         }
         const name = state.selectRows[0].name;
+        if (StringUtil.isEmpty(name)) {
+            return;
+        }
         Modal.confirm({
             title: `${intl.formatMessage({id: 'EXPORT'})} ${name}?`,
             onOk: () => CommonUtils.exportServer(name)
@@ -450,31 +453,32 @@ const ServerMgrView = () => {
         input.type = 'file';
         input.accept = 'application/zip';
         input.onchange = () => {
-            if (input.files?.length) {
-                const file = input.files[0];
-                CloudService.pushServerDirectory(file).then(resp => {
-                    if (-9004 === resp.resultCode) {
-                        Modal.confirm({
-                            title: intl.formatMessage({id: 'IMPORT_INFO'}, {name: resp.resultMsg}),
-                            onOk: () => {
-                                CloudService.pushServerDirectory(file, true).then(resp => {
-                                    if (0 === resp.resultCode) {
-                                        CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
-                                    } else {
-                                        CommonNotice.errorFormatted(resp);
-                                    }
-                                }).catch(CommonNotice.errorFormatted);
-                            }
-                        });
-                        return;
-                    }
-                    if (0 === resp.resultCode) {
-                        CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
-                    } else {
-                        CommonNotice.errorFormatted(resp);
-                    }
-                }).catch(CommonNotice.errorFormatted);
+            if (!input.files?.length) {
+                return;
             }
+            const file = input.files[0];
+            CloudService.pushServerDirectory(file).then(resp => {
+                if (-9004 === resp.resultCode) {
+                    Modal.confirm({
+                        title: intl.formatMessage({id: 'IMPORT_INFO'}, {name: resp.resultMsg}),
+                        onOk: () => {
+                            CloudService.pushServerDirectory(file, true).then(resp => {
+                                if (0 === resp.resultCode) {
+                                    CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                                } else {
+                                    CommonNotice.errorFormatted(resp);
+                                }
+                            }).catch(CommonNotice.errorFormatted);
+                        }
+                    });
+                    return;
+                }
+                if (0 === resp.resultCode) {
+                    CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                } else {
+                    CommonNotice.errorFormatted(resp);
+                }
+            }).catch(CommonNotice.errorFormatted);
         };
         input.click();
     };

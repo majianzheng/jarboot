@@ -31,6 +31,9 @@ public class CloudController {
      */
     @GetMapping(value="/pull/server")
     public void pullServerDirectory(String name, HttpServletResponse response) throws IOException {
+        if (StringUtils.isEmpty(name)) {
+            throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
+        }
         File dir = FileUtils.getFile(SettingUtils.getServerPath(name));
         if (!dir.exists()) {
             response.sendError(404, "服务不存在！" + name);
