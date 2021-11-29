@@ -458,23 +458,8 @@ const ServerMgrView = () => {
             }
             const file = input.files[0];
             CloudService.pushServerDirectory(file).then(resp => {
-                if (-9004 === resp.resultCode) {
-                    Modal.confirm({
-                        title: intl.formatMessage({id: 'IMPORT_INFO'}, {name: resp.resultMsg}),
-                        onOk: () => {
-                            CloudService.pushServerDirectory(file, true).then(resp => {
-                                if (0 === resp.resultCode) {
-                                    CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
-                                } else {
-                                    CommonNotice.errorFormatted(resp);
-                                }
-                            }).catch(CommonNotice.errorFormatted);
-                        }
-                    });
-                    return;
-                }
                 if (0 === resp.resultCode) {
-                    CommonNotice.info(intl.formatMessage({id: 'SUCCESS'}));
+                    CommonNotice.info(intl.formatMessage({id: 'SUBMITTING'}));
                 } else {
                     CommonNotice.errorFormatted(resp);
                 }

@@ -9,10 +9,10 @@ import java.io.File;
  * @author majianzheng
  */
 public class CacheDirHelper {
-    static final String CACHE_DIR;
-    static final String PID_DIR = "pid";
-    static final String UPLOAD_DIR = "upload-server";
-    static final String TEMP_DIR = "temp";
+    private static final String CACHE_DIR;
+    private static final String PID_DIR = "pid";
+    private static final String UPLOAD_DIR = "upload-server";
+    private static final String TEMP_DIR = "temp";
     static {
         CACHE_DIR = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + ".cache";
         init();

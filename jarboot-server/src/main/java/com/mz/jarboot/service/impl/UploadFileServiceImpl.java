@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -139,11 +138,12 @@ public class UploadFileServiceImpl implements UploadFileService {
                 return;
             }
             //先复制jar文件
-            Collection<File> jarFiles = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
-            for (File jar : jarFiles) {
-                FileUtils.copyFileToDirectory(jar, dest, true);
+            File[] files = dir.listFiles();
+            if (null != files && files.length > 0) {
+                for (File file : files) {
+                    FileUtils.copyFileToDirectory(file, dest, true);
+                }
             }
-            //zip文件处理
 
             //检测多个jar文件时有没有配置启动的jar文件
             ServerSetting setting = exist ? PropertyFileUtils.getServerSetting(destPath) : s;

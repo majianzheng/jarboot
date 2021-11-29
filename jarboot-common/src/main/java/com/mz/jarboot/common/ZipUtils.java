@@ -1,7 +1,5 @@
 package com.mz.jarboot.common;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
@@ -11,7 +9,8 @@ import java.util.zip.*;
  * @author majianzheng
  */
 public class ZipUtils {
-    private static final int  BUFFER_SIZE = 2048;
+    /** 2M */
+    private static final int  BUFFER_SIZE = 1024 * 1024 * 2;
 
     /**
      * 压缩ZIP
@@ -42,20 +41,36 @@ public class ZipUtils {
                 if (name.contains("__MACOSX")) {
                     continue;
                 }
-                File file = FileUtils.getFile(dest, name);
+                File file = new File(dest, name);
                 if (element.isDirectory()) {
-                    FileUtils.forceMkdir(file);
-                } else {
-                    InputStream in = zipFile.getInputStream(element);
-                    byte[] buffer = new byte[BUFFER_SIZE];
-                    int index = 0;
-                    while (-1 != (index = in.read(buffer))) {
-                        FileUtils.writeByteArrayToFile(file, buffer, 0, index, true);
+                    if (!file.mkdirs()) {
+                        throw new JarbootException("解压缩文件，创建目录失败！");
                     }
+                } else {
+                    writeUnZipFile(zipFile, element, file);
                 }
             }
         } catch (IOException e) {
             throw new JarbootException(e.getMessage(), e);
+        }
+    }
+
+    private static void writeUnZipFile(ZipFile zipFile, ZipEntry element, File file) throws IOException {
+        File patentDir = file.getParentFile();
+        if (!patentDir.exists() && !patentDir.mkdirs()) {
+            throw new JarbootException("解压缩文件，创建文件夹失败！");
+        }
+        if (file.createNewFile()) {
+            try (FileOutputStream fos = new FileOutputStream(file);
+                 InputStream in = zipFile.getInputStream(element)) {
+                int index = 0;
+                byte[] buffer = new byte[BUFFER_SIZE];
+                while (-1 != (index = in.read(buffer))) {
+                    fos.write(buffer, 0, index);
+                }
+            }
+        } else {
+            throw new JarbootException("解压缩文件，创建文件失败！");
         }
     }
 
