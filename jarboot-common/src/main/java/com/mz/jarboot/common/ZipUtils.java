@@ -56,21 +56,20 @@ public class ZipUtils {
         int permits = 0;
         final AtomicReference<Throwable> exceptionRef = new AtomicReference<>(null);
         while (entries.hasMoreElements() && null == exceptionRef.get()) {
-            ZipEntry element = entries.nextElement();
-            String name = element.getName();
+            ZipEntry zipEle = entries.nextElement();
             //macOS中的跳过__MACOSX
-            if (name.startsWith("..") || name.contains("__MACOSX")) {
+            File file = new File(dest, zipEle.getName());
+            if (!file.toPath().normalize().startsWith(dest.toPath()) || zipEle.getName().contains("__MACOSX")) {
                 continue;
             }
-            File file = new File(dest, name);
-            if (element.isDirectory()) {
+            if (zipEle.isDirectory()) {
                 if (!file.mkdirs()) {
                     throw new JarbootException("解压缩文件，创建目录失败！");
                 }
             } else {
                 createFile(file);
                 ++permits;
-                executor.execute(() -> writeUnZipFile(zipFile, semaphore, exceptionRef, element, file));
+                executor.execute(() -> writeUnZipFile(zipFile, semaphore, exceptionRef, zipEle, file));
             }
         }
         if (null != exceptionRef.get()) {
