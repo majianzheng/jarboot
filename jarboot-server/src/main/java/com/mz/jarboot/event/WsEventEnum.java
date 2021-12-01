@@ -64,4 +64,9 @@ public enum WsEventEnum {
      * java进程变化
      */
     JVM_PROCESS_CHANGE,
+
+    /**
+     * 全局Loading提示
+     */
+    GLOBAL_LOADING,
 }

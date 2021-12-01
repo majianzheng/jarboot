@@ -15,4 +15,5 @@ export enum MSG_EVENT {
     CMD_END,       //命令执行完成
     WORKSPACE_CHANGE, //工作空间变更
     JVM_PROCESS_CHANGE, //java进程变化事件
+    GLOBAL_LOADING, //全局Loading提示
 }

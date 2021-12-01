@@ -84,9 +84,11 @@ public class ZipUtils {
                                        ZipEntry element,
                                        File file) {
         try {
-            doWriteUnZipFile(zipFile, element, file);
+            if (null == exceptionRef.get()) {
+                doWriteUnZipFile(zipFile, element, file);
+            }
         } catch (Exception e) {
-            exceptionRef.set(e);
+            exceptionRef.compareAndSet(null, e);
         } finally {
             semaphore.release();
         }

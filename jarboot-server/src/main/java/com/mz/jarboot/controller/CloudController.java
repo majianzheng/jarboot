@@ -74,13 +74,14 @@ public class CloudController {
     }
 
     private void doPushServer(File tempDir, File zipFie) {
+        final String id = tempDir.getName();
         //开始正式导入
         try {
             final File out = FileUtils.getFile(tempDir, "out");
             if (!out.exists()) {
                 FileUtils.forceMkdir(out);
             }
-            WebSocketManager.getInstance().notice("上传成功，开始解压缩...", NoticeEnum.INFO);
+            WebSocketManager.getInstance().globalLoading(id, "上传成功，开始解压缩...");
             //解压ZIP压缩文件
             ZipUtils.unZip(zipFie, out);
             File[] dirs = out.listFiles();
@@ -102,12 +103,14 @@ public class CloudController {
                     WebSocketManager.getInstance().notice(name + " 正在运行，请先停止再导入！", NoticeEnum.INFO);
                     return;
                 }
-                WebSocketManager.getInstance().notice(name + " 已存在，将覆盖原服务目录。", NoticeEnum.INFO);
+                WebSocketManager.getInstance().globalLoading(id, name + " 已存在，正在清除原目录...");
                 //先删除
                 FileUtils.deleteDirectory(dest);
             }
             //移动到工作空间目录
+            WebSocketManager.getInstance().globalLoading(id, name + " 解压完成，开始拷贝...");
             FileUtils.copyDirectory(dir, dest);
+            WebSocketManager.getInstance().globalLoading(id, name + " 推送完成！");
             //通知前端刷新列表
             if (isExist) {
                 WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeEnum.INFO);
@@ -125,6 +128,7 @@ public class CloudController {
             } catch (Exception e) {
                 //ignore
             }
+            WebSocketManager.getInstance().globalLoading(id, StringUtils.EMPTY);
         }
     }
 

@@ -16,7 +16,7 @@ import java.util.*;
 public class ThreadSampler {
 
     private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    private static sun.management.HotspotThreadMBean hotspotThreadMBean;
+    //private static sun.management.HotspotThreadMBean hotspotThreadMBean;
     private static boolean hotspotThreadMBeanEnable = true;
 
     private Map<ThreadVO, Long> lastCpuTimes = new HashMap<ThreadVO, Long>();
@@ -148,7 +148,7 @@ public class ThreadSampler {
     }
 
     private Map<String, Long> getInternalThreadCpuTimes() {
-        if (hotspotThreadMBeanEnable && includeInternalThreads) {
+        /*if (hotspotThreadMBeanEnable && includeInternalThreads) {
             try {
                 if (hotspotThreadMBean == null) {
                     hotspotThreadMBean = sun.management.ManagementFactoryHelper.getHotspotThreadMBean();
@@ -158,7 +158,7 @@ public class ThreadSampler {
                 //ignore ex
                 hotspotThreadMBeanEnable = false;
             }
-        }
+        }*/
         return null;
     }
 

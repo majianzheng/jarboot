@@ -30,8 +30,11 @@ public class TaskUtils {
     private static final ExecutorService TASK_EXECUTOR;
     static {
         ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(256);
-        TASK_EXECUTOR = new ThreadPoolExecutor(8, 32,
-                32L, TimeUnit.SECONDS, taskBlockingQueue,
+        //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
+        int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
+        int maxSize = coreSize * 2;
+        TASK_EXECUTOR = new ThreadPoolExecutor(coreSize, maxSize,
+                16L, TimeUnit.SECONDS, taskBlockingQueue,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"),
                 //线程池忙碌拒绝策略
                 (Runnable r, ThreadPoolExecutor executor) ->

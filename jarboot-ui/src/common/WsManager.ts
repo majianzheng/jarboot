@@ -1,11 +1,12 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
-import {MSG_EVENT} from "@/common/EventConst";
-import {JarBootConst, MsgData} from "@/common/JarBootConst";
+import { MSG_EVENT } from "@/common/EventConst";
+import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
 import { getLocale } from 'umi';
+import { MessageType } from "antd/lib/message";
 
 let msg: any = null;
 class WsManager {
@@ -13,6 +14,7 @@ class WsManager {
     private static websocket: any = null;
     private static fd: any = null;
     private static _messageHandler = new Map<number, (data: MsgData) => void>();
+    private static msgLoadingMap = new Map<string, MessageType>();
 
     public static addMessageHandler(key: number, handler: (data: MsgData) => void) {
         if (handler && !WsManager._messageHandler.has(key)) {
@@ -39,9 +41,10 @@ class WsManager {
     }
 
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_INFO, WsManager._noticeInfo);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_WARN, WsManager._noticeWarn);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_ERROR, WsManager._noticeError);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_INFO, WsManager.noticeInfo);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_WARN, WsManager.noticeWarn);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE_ERROR, WsManager.noticeError);
+        WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
                 WebSocket.CONNECTING === WsManager.websocket.readyState) {
@@ -53,26 +56,44 @@ class WsManager {
             `ws://${window.location.host}/public/jarboot/service/ws?token=`;
         url += CommonUtils.getToken();
         WsManager.websocket = new WebSocket(url);
-        WsManager.websocket.onmessage = WsManager._onMessage;
-        WsManager.websocket.onopen = WsManager._onOpen;
-        WsManager.websocket.onclose = WsManager._onClose;
-        WsManager.websocket.onerror = WsManager._onError;
+        WsManager.websocket.onmessage = WsManager.onMessage;
+        WsManager.websocket.onopen = WsManager.onOpen;
+        WsManager.websocket.onclose = WsManager.onClose;
+        WsManager.websocket.onerror = WsManager.onError;
     }
 
-    private static _noticeInfo = (data: MsgData) => {
+    private static noticeInfo = (data: MsgData) => {
         const title = JarBootConst.ZH_CN === getLocale() ? "提示" : "Info";
         CommonNotice.info(title, data.body);
     };
-    private static _noticeWarn = (data: MsgData) => {
+    private static noticeWarn = (data: MsgData) => {
         const title = JarBootConst.ZH_CN === getLocale() ? "警告" : "Warn";
         CommonNotice.warn(title, data.body);
     };
-    private static _noticeError = (data: MsgData) => {
+    private static noticeError = (data: MsgData) => {
         const title = JarBootConst.ZH_CN === getLocale() ? "错误" : "Error";
         CommonNotice.error(title, data.body);
     };
+    private static globalLoading = (data: MsgData) => {
+        const body: string = data.body;
+        if (StringUtil.isEmpty(body)) {
+            return;
+        }
+        const index = body.indexOf(JarBootConst.PROTOCOL_SPLIT);
+        const hasSplit = -1 === index;
+        const key = hasSplit ? body : body.substring(0, index);
+        const handle = WsManager.msgLoadingMap.get(key);
+        WsManager.msgLoadingMap.delete(key);
+        if (hasSplit) {
+            handle && handle();
+        } else {
+            const duration = 0;
+            const content = body.substring(index + 1);
+            WsManager.msgLoadingMap.set(key, message.loading({content, key, duration}, duration));
+        }
+    };
 
-    private static _onMessage = (e: any) => {
+    private static onMessage = (e: any) => {
         if (!StringUtil.isString(e?.data)) {
             //二进制数据
             return;
@@ -100,7 +121,7 @@ class WsManager {
         }
     };
 
-    private static _onOpen = () => {
+    private static onOpen = () => {
         Logger.log("连接Websocket服务器成功！");
         if (msg) {
             msg();
@@ -116,18 +137,18 @@ class WsManager {
         }
     };
 
-    private static _onClose = () => {
+    private static onClose = () => {
         Logger.log("websocket连接关闭！");
-        WsManager._reconnect();
+        WsManager.reconnect();
     };
 
-    private static _onError = (e: Error) => {
+    private static onError = (e: Error) => {
         Logger.log("websocket异常关闭！");
         Logger.error(e);
-        WsManager._reconnect();
+        WsManager.reconnect();
     };
 
-    private static _reconnect() {
+    private static reconnect() {
         if (null !== WsManager.fd) {
             return;
         }
@@ -149,7 +170,7 @@ class WsManager {
                 return;
             }
             WsManager.initWebsocket();
-        }, 10000);
+        }, 15000);
     }
 }
 

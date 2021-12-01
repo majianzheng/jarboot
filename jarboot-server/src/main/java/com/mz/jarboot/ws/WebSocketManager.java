@@ -115,6 +115,22 @@ public class WebSocketManager extends Thread {
         this.publishGlobalEvent(sid, event.name(), WsEventEnum.JVM_PROCESS_CHANGE);
     }
 
+    /**
+     * 在浏览器界面弹出全局的loading提示，message为空时关闭
+     * @param id 唯一id
+     * @param message 消息提示，若为空{@link null}则关闭loading提示
+     */
+    public void globalLoading(String id, String message) {
+        if (StringUtils.isEmpty(id)) {
+            return;
+        }
+        String body = id;
+        if (StringUtils.isNotEmpty(message)) {
+            body += CommandConst.PROTOCOL_SPLIT + message;
+        }
+        this.publishGlobalEvent(StringUtils.EMPTY, body, WsEventEnum.GLOBAL_LOADING);
+    }
+
     public void notice(String text, NoticeEnum level) {
         if (StringUtils.isEmpty(text) || null == level) {
             return;

@@ -278,12 +278,15 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         if (AgentManager.getInstance().isOnline(sid)) {
             throw new JarbootRunException(server + "正在运行，不可删除！");
         }
+        WebSocketManager.getInstance().globalLoading(server, server + "删除中...");
         try {
             FileUtils.deleteDirectory(FileUtils.getFile(path));
             WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
                     StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
         } catch (IOException e) {
             throw new JarbootRunException(e.getMessage(), e);
+        } finally {
+            WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
         }
     }
 

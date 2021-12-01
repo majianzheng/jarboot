@@ -2,6 +2,7 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.pojo.ServerRunning;
@@ -68,14 +69,15 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             modifyWaitTime = 5;
         }
         starting = true;
-        ExecutorService taskExecutor = TaskUtils.getTaskExecutor();
+        ThreadFactory threadFactory = JarbootThreadFactory.createThreadFactory("jarboot-task-thread");
         //路径监控生产者
-        taskExecutor.execute(this::initPathMonitor);
+        threadFactory.newThread(this::initPathMonitor).start();
+
         //路径监控消费者
-        taskExecutor.execute(this::pathMonitorConsumer);
+        threadFactory.newThread(this::pathMonitorConsumer).start();
 
         //attach已经处于启动的进程
-        taskExecutor.execute(this::attachRunningServer);
+        threadFactory.newThread(this::attachRunningServer).start();
 
         if (enableAutoStartServices) {
             logger.info("Auto starting services...");
@@ -85,7 +87,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
-            taskExecutor.execute(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome));
+            threadFactory
+                    .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome))
+                    .start();
         }
     }
 

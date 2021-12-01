@@ -458,9 +458,7 @@ const ServerMgrView = () => {
             }
             const file = input.files[0];
             CloudService.pushServerDirectory(file).then(resp => {
-                if (0 === resp.resultCode) {
-                    CommonNotice.info(intl.formatMessage({id: 'SUBMITTING'}));
-                } else {
+                if (0 !== resp.resultCode) {
                     CommonNotice.errorFormatted(resp);
                 }
             }).catch(CommonNotice.errorFormatted);
