@@ -3,6 +3,11 @@ package com.mz.jarboot.common;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.*;
 
 /**
@@ -32,45 +37,90 @@ public class ZipUtils {
      * @param dest 目标目录
      */
     public static void unZip(File zip, File dest) {
+        ThreadPoolExecutor executor = getUnzipThreadPoolExecutor();
         try (ZipFile zipFile = new ZipFile(zip, StandardCharsets.UTF_8)) {
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry element = entries.nextElement();
-                String name = element.getName();
-                //macOS中的跳过__MACOSX
-                if (name.contains("__MACOSX")) {
-                    continue;
-                }
-                File file = new File(dest, name);
-                if (element.isDirectory()) {
-                    if (!file.mkdirs()) {
-                        throw new JarbootException("解压缩文件，创建目录失败！");
-                    }
-                } else {
-                    writeUnZipFile(zipFile, element, file);
-                }
-            }
+            doUnZip(dest, executor, zipFile);
         } catch (IOException e) {
             throw new JarbootException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            executor.shutdown();
         }
     }
 
-    private static void writeUnZipFile(ZipFile zipFile, ZipEntry element, File file) throws IOException {
+    private static void doUnZip(File dest, ThreadPoolExecutor executor, ZipFile zipFile)
+            throws IOException, InterruptedException {
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        Semaphore semaphore = new Semaphore(0);
+        int permits = 0;
+        final AtomicReference<Throwable> exceptionRef = new AtomicReference<>(null);
+        while (entries.hasMoreElements() && null == exceptionRef.get()) {
+            ZipEntry element = entries.nextElement();
+            String name = element.getName();
+            //macOS中的跳过__MACOSX
+            if (name.startsWith("..") || name.contains("__MACOSX")) {
+                continue;
+            }
+            File file = new File(dest, name);
+            if (element.isDirectory()) {
+                if (!file.mkdirs()) {
+                    throw new JarbootException("解压缩文件，创建目录失败！");
+                }
+            } else {
+                createFile(file);
+                ++permits;
+                executor.execute(() -> writeUnZipFile(zipFile, semaphore, exceptionRef, element, file));
+            }
+        }
+        if (null != exceptionRef.get()) {
+            throw new JarbootException("write file failed.", exceptionRef.get());
+        }
+        semaphore.acquire(permits);
+    }
+
+    private static void writeUnZipFile(ZipFile zipFile,
+                                       Semaphore semaphore,
+                                       AtomicReference<Throwable> exceptionRef,
+                                       ZipEntry element,
+                                       File file) {
+        try {
+            doWriteUnZipFile(zipFile, element, file);
+        } catch (Exception e) {
+            exceptionRef.set(e);
+        } finally {
+            semaphore.release();
+        }
+    }
+
+    private static ThreadPoolExecutor getUnzipThreadPoolExecutor() {
+        int processors = Runtime.getRuntime().availableProcessors();
+        return new ThreadPoolExecutor(processors,
+                processors * 2,
+                16,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1024 * 8),
+                JarbootThreadFactory.createThreadFactory("jarboot-unzip-pool"));
+    }
+
+    private static void createFile(File file) throws IOException {
         File patentDir = file.getParentFile();
         if (!patentDir.exists() && !patentDir.mkdirs()) {
             throw new JarbootException("解压缩文件，创建文件夹失败！");
         }
-        if (file.createNewFile()) {
-            try (FileOutputStream fos = new FileOutputStream(file);
-                 InputStream in = zipFile.getInputStream(element)) {
-                int index = 0;
-                byte[] buffer = new byte[BUFFER_SIZE];
-                while (-1 != (index = in.read(buffer))) {
-                    fos.write(buffer, 0, index);
-                }
-            }
-        } else {
+        if (!file.createNewFile()) {
             throw new JarbootException("解压缩文件，创建文件失败！");
+        }
+    }
+
+    private static void doWriteUnZipFile(ZipFile zipFile, ZipEntry element, File file) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(file);
+             InputStream in = zipFile.getInputStream(element)) {
+            int index = 0;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while (-1 != (index = in.read(buffer))) {
+                fos.write(buffer, 0, index);
+            }
         }
     }
 
