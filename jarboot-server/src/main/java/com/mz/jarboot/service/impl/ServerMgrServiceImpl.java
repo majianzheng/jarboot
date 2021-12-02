@@ -279,15 +279,22 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             throw new JarbootRunException(server + "正在运行，不可删除！");
         }
         WebSocketManager.getInstance().globalLoading(server, server + "删除中...");
-        try {
-            FileUtils.deleteDirectory(FileUtils.getFile(path));
-            WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
-                    StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
-        } catch (IOException e) {
-            throw new JarbootRunException(e.getMessage(), e);
-        } finally {
-            WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
-        }
+        TaskUtils.getTaskExecutor().execute(() -> {
+            try {
+                FileUtils.deleteDirectory(FileUtils.getFile(path));
+                WebSocketManager
+                        .getInstance()
+                        .publishGlobalEvent(StringUtils.SPACE, StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+                WebSocketManager.getInstance().notice("删除" + server + "成功！", NoticeEnum.INFO);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+                WebSocketManager
+                        .getInstance()
+                        .notice("删除" + server + "失败！" + e.getMessage(), NoticeEnum.ERROR);
+            } finally {
+                WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
+            }
+        });
     }
 
     private String parseFullName(String fullName) {
