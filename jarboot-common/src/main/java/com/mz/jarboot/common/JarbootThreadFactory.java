@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author majianzheng
  */
 public class JarbootThreadFactory implements ThreadFactory {
-    public static final int MAX_THREAD_SIGN = 100000;
+    private static final int MAX_THREAD_SIGN = 10000;
     private final AtomicInteger signGenerator = new AtomicInteger(0);
     private final String prefix;
     private final boolean daemon;

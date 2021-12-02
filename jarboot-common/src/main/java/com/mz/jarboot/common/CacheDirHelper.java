@@ -13,6 +13,7 @@ public class CacheDirHelper {
     private static final String PID_DIR = "pid";
     private static final String UPLOAD_DIR = "upload-server";
     private static final String TEMP_DIR = "temp";
+    private static final String MONITOR_RECORD_DIR = "monitor-record";
     static {
         CACHE_DIR = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + ".cache";
         init();
@@ -36,6 +37,14 @@ public class CacheDirHelper {
 
     public static File getTempDir(String name) {
         return FileUtils.getFile(CACHE_DIR, TEMP_DIR, name);
+    }
+
+    public static File getMonitorRecordDir() {
+        return FileUtils.getFile(CACHE_DIR, MONITOR_RECORD_DIR);
+    }
+
+    public static File getMonitorRecordFile(String sid) {
+        return FileUtils.getFile(CACHE_DIR, MONITOR_RECORD_DIR, sid + ".snapshot");
     }
 
     private static void init() {

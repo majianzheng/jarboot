@@ -2,8 +2,10 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.event.NoticeEnum;
+import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
@@ -38,7 +40,6 @@ import java.util.stream.Collectors;
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final String MODIFY_TIME_STORE_FILE = "file-record.temp";
     private static final int MIN_MODIFY_WAIT_TIME = 3;
     private static final int MAX_MODIFY_WAIT_TIME = 600;
 
@@ -56,6 +57,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private boolean enableAutoStartServices;
     private String curWorkspace;
     private boolean starting = false;
+    private ThreadFactory threadFactory = JarbootThreadFactory.createThreadFactory("jarboot-tws", true);
+    private Thread monitorThread = threadFactory.newThread(this::initPathMonitor);
 
     /** 阻塞队列，监控到目录变化则放入队列 */
     private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
@@ -69,9 +72,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             modifyWaitTime = 5;
         }
         starting = true;
-        ThreadFactory threadFactory = JarbootThreadFactory.createThreadFactory("jarboot-task-thread");
+        curWorkspace = SettingUtils.getWorkspace();
         //路径监控生产者
-        threadFactory.newThread(this::initPathMonitor).start();
+        this.monitorThread.start();
 
         //路径监控消费者
         threadFactory.newThread(this::pathMonitorConsumer).start();
@@ -93,6 +96,33 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
     }
 
+    /**
+     * 工作空间改变
+     *
+     * @param workspace 工作空间
+     */
+    @Override
+    public void changeWorkspace(String workspace) {
+        WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+        //中断原监控线程
+        monitorThread.interrupt();
+        try {
+            //等待原监控线程中断结束
+            monitorThread.join(10000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (monitorThread.isAlive()) {
+            logger.error("工作空间监控线程退出失败！");
+            WebSocketManager.getInstance().notice("工作空间监控线程中断失败，请重启Jarboot重试！", NoticeEnum.ERROR);
+            return;
+        }
+        this.curWorkspace = workspace;
+        this.monitorThread = threadFactory.newThread(this::initPathMonitor);
+        this.monitorThread.start();
+    }
+
     private void attachRunningServer() {
         List<ServerRunning> runningServers = taskRunCache.getServerList();
         if (CollectionUtils.isEmpty(runningServers)) {
@@ -110,7 +140,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         //启动路径监控
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             //初始化路径监控
-            curWorkspace = SettingUtils.getWorkspace();
             final Path monitorPath = Paths.get(curWorkspace);
             //给path路径加上文件观察服务
             monitorPath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
@@ -120,8 +149,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             pathWatchMonitor(watchService);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
+            WebSocketManager.getInstance().notice("工作空间监控异常：" + ex.getMessage(), NoticeEnum.ERROR);
         } catch (InterruptedException ex) {
-            logger.error(ex.getMessage(), ex);
+            //线程退出
             Thread.currentThread().interrupt();
         }
     }
@@ -145,8 +175,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 if (CollectionUtils.isNotEmpty(list)) {
                     TaskEvent event = new TaskEvent(TaskEventEnum.RESTART);
                     event.setPaths(list);
-                    logger.debug("服务文件变动，启动重启！{}", list);
-                    final String msg = "文件更新，开始重启...";
+                    final String msg = "监控到工作空间文件更新，开始重启相关服务...";
                     WebSocketManager.getInstance().notice(msg, NoticeEnum.INFO);
                     ctx.publishEvent(event);
                 }
@@ -164,11 +193,25 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (null == serverDirs || serverDirs.length <= 0) {
             return;
         }
+        File recordDir = CacheDirHelper.getMonitorRecordDir();
+        if (!recordDir.exists() && !recordDir.mkdirs()) {
+            logger.error("创建record目录（{}）失败！", recordDir.getPath());
+            return;
+        }
+        //清理失效的record文件
+        File[] recordFiles = recordDir.listFiles();
+        HashMap<String, File> recordFileMap = new HashMap<>(16);
+        if (null != recordFiles && recordFiles.length > 0) {
+            for (File recordFile : recordFiles) {
+                recordFileMap.put(recordFile.getName(), recordFile);
+            }
+        }
         for (File serverDir : serverDirs) {
             Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
             if (CollectionUtils.isNotEmpty(files)) {
-                File recordFile = getRecordFile(serverDir);
+                File recordFile = getRecordFile(serverDir.getPath());
                 if (null != recordFile) {
+                    recordFileMap.remove(recordFile.getName());
                     Properties properties = new Properties();
                     files.forEach(jarFile -> properties.put(genFileHashKey(jarFile),
                             String.valueOf(jarFile.lastModified())));
@@ -176,14 +219,18 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 }
             }
         }
+        if (!recordFileMap.isEmpty()) {
+            recordFileMap.forEach((k, v) -> FileUtils.deleteQuietly(v));
+        }
     }
 
-    private File getRecordFile(File serverDir) {
-        File recordFile = new File(serverDir, MODIFY_TIME_STORE_FILE);
+    private File getRecordFile(String serverPath) {
+        File recordFile = CacheDirHelper.getMonitorRecordFile(SettingUtils.createSid(serverPath));
         if (!recordFile.exists()) {
             try {
                 if (!recordFile.createNewFile()) {
                     logger.warn("createNewFile({}) failed.", recordFile.getPath());
+                    return null;
                 }
             } catch (IOException e) {
                 logger.warn(e.getMessage(), e);
@@ -201,6 +248,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
             if (!key.reset()) {
                 logger.error("处理失败，重置错误");
+                WebSocketManager.getInstance().notice("工作空间监控异常，请重启Jarboot解决！", NoticeEnum.ERROR);
                 break;
             }
         }
@@ -222,8 +270,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 //当前不处于正在运行的状态
                 return;
             }
-            String serverPath = String.format("%s%s%s", curWorkspace, File.separator, service);
-            ServerSetting setting = PropertyFileUtils.getServerSetting(serverPath);
+            ServerSetting setting = PropertyFileUtils.getServerSetting(path);
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && StringUtils.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(path);
@@ -245,7 +292,10 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }
-        File recordFile = getRecordFile(serverDir);
+        File recordFile = getRecordFile(path);
+        if (null == recordFile) {
+            return false;
+        }
         Properties recordProps = PropertyFileUtils.getProperties(recordFile);
         boolean updateFlag = false;
         for (File file : files) {

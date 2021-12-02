@@ -7,7 +7,7 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +73,7 @@ public class SettingUtils {
         return GLOBAL_SETTING;
     }
 
-    public static void updateGlobalSetting(GlobalSetting setting) {
+    public static synchronized void updateGlobalSetting(GlobalSetting setting) {
         String workspace = setting.getWorkspace();
         if (StringUtils.isNotEmpty(workspace)) {
             File dir = new File(workspace);
@@ -83,6 +83,7 @@ public class SettingUtils {
         }
 
         File file = FileUtils.getFile(JARBOOT_CONF);
+        boolean workspaceChanged = false;
         try {
             HashMap<String, String> props = new HashMap<>(4);
             if (null == setting.getDefaultVmOptions()) {
@@ -105,13 +106,17 @@ public class SettingUtils {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
             if (!StringUtils.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
-                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+                workspaceChanged = true;
             }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
+        } finally {
+            if (workspaceChanged) {
+                //工作空间修改，改变工作空间路径监控的目录
+                ApplicationContextUtils.getContext().getBean(TaskWatchService.class).changeWorkspace(workspace);
+            }
         }
     }
 
