@@ -20,16 +20,16 @@ English version goes [here](README.md).
 
 📚 文档：https://www.yuque.com/jarboot/usage/quick-start
 
-😊 高级应用示例: <code>Jarboot</code> 🔥 和 <code>Spring Cloud Alibaba</code> 演示示例 ⤵️
-
-🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
+🍏 最佳实践 🔥 : https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
 
 🐳 可扩展: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>，支持插件式开发。
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
-<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。
+<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和
+<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、
+监控线程状态、获取线程栈信息等。
 
 - 🌈   浏览器界面管理，一键启、停服务进程，不必挨个手动执行
 - 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
@@ -38,10 +38,11 @@ English version goes [here](README.md).
 - 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
 - 💎   支持通过<code>SPI</code>自定义调试命令实现，支持开发插件
 
+### 架构简介 
+详细架构设计[查看](jarboot-server/README.md)
+
 前端界面采用<code>React</code>技术，脚手架使用<code>UmiJs</code>，组件库使用UmiJs内置等<code>antd</code>。
 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
-
-### 架构简介 [查看](jarboot-server/README.md)。
 
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
