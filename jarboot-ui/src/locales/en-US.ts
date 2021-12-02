@@ -69,6 +69,7 @@ export default {
     IMPORT: 'Import',
     IMPORT_INFO: `The server {name} you imported which is already exist, overwrite it?`,
     UPLOAD_INFO: `Do you want to back up the service {name} before uploading updates for recovery after deployment errors?`,
+    START_UPLOAD_INFO: `Start upload file {name}...`,
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',

@@ -69,6 +69,7 @@ export default {
     IMPORT: '导入',
     IMPORT_INFO: `导入的服务{name}已经存在，是否覆盖？`,
     UPLOAD_INFO: `上传更新{name}前是否备份服务，以便部署出错后恢复？`,
+    START_UPLOAD_INFO: `开始上传文件{name}...`,
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',

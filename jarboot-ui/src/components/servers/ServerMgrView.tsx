@@ -1,5 +1,5 @@
 import React, {useEffect, useReducer, useRef} from "react";
-import {Button, Empty, Input, Modal, Result, Space, Spin, Tree} from "antd";
+import {Button, Empty, Input, message, Modal, Result, Space, Spin, Tree} from "antd";
 import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
@@ -42,6 +42,7 @@ interface ServerMgrViewState {
     current: string;
     sideView: 'tree' | 'list';
     contentView: 'config' | 'console';
+    importing: boolean;
 }
 
 let searchInput = {} as any;
@@ -65,7 +66,8 @@ const ServerMgrView = () => {
         selectRows: [] as TreeNode[],
         current: '',
         sideView: getInitSideView(),
-        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console')
+        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
+        importing: false,
     };
     const [state, dispatch] = useReducer((state: ServerMgrViewState, action: any) => {
         if ('function' === typeof action) {
@@ -429,8 +431,9 @@ const ServerMgrView = () => {
         {
             title: intl.formatMessage({id: 'IMPORT'}),
             key: 'import',
-            icon: <ImportIcon className={styles.toolButtonIcon}/>,
+            icon: state.importing ? <LoadingOutlined className={styles.toolButtonIcon}/> : <ImportIcon className={styles.toolButtonIcon}/>,
             onClick: onImport,
+            disabled: state.importing,
         }
     ]);
 
@@ -457,11 +460,20 @@ const ServerMgrView = () => {
                 return;
             }
             const file = input.files[0];
+            dispatch({importing: true});
+            const content = intl.formatMessage({id: 'START_UPLOAD_INFO'}, {name: file.name});
+            CommonNotice.info(content);
+            const key = file.name.replace('.zip', '');
+            message.loading({content, key, duration: 0}, 0).then(r => {});
             CloudService.pushServerDirectory(file).then(resp => {
                 if (0 !== resp.resultCode) {
                     CommonNotice.errorFormatted(resp);
                 }
-            }).catch(CommonNotice.errorFormatted);
+                dispatch({importing: false});
+            }).catch(error => {
+                CommonNotice.errorFormatted(error);
+                dispatch({importing: false});
+            });
         };
         input.click();
     };

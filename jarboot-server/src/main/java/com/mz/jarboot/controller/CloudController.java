@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.UUID;
 
 /**
  * @author majianzheng
@@ -59,10 +58,15 @@ public class CloudController {
     @ResponseBody
     public ResponseSimple pushServerDirectory(@RequestParam("file") MultipartFile file) {
         //临时目录，用于操作ZIP文件
-        final File tempDir = CacheDirHelper.getTempDir(UUID.randomUUID().toString());
+        String filename = file.getOriginalFilename();
+        String name = StringUtils.removeEnd(filename, ".zip");
+        final File tempDir = CacheDirHelper.getTempDir(name);
+        if (tempDir.exists()) {
+            //文件正在处理中
+            return new ResponseSimple(ResultCodeConst.ALREADY_EXIST, "文件" + filename + "正在处理中...");
+        }
         try {
             FileUtils.forceMkdir(tempDir);
-            String filename = file.getOriginalFilename();
             final File zipFie = FileUtils.getFile(tempDir, filename);
             //保持本地临时文件
             file.transferTo(zipFie);
