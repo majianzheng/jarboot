@@ -18,16 +18,29 @@ import java.util.concurrent.*;
 public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
+    /** 客户端信息 */
     private static ClientData clientData;
+    /** 是否初始化 */
     private static boolean initialized = false;
+    /** transformerManager */
     private static TransformerManager transformerManager;
+    /** instrumentation用于类查找、增强 */
     private static Instrumentation instrumentation;
+    /** 连接会话 */
     private static ConcurrentMap<String, CommandCoreSession> sessionMap = new ConcurrentHashMap<>(16);
+    /** 正在执行的命令 */
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
+    /** Schedule线程调度 */
     private static ScheduledExecutorService scheduledExecutorService;
+    /** Jarboot工作目录 */
     private static String jarbootHome = ".";
-    private EnvironmentContext() {}
 
+    /**
+     * 环境初始化
+     * @param home 工作目录
+     * @param clientData 客户端数据
+     * @param inst {@link Instrumentation}
+     */
     public static void init(String home, ClientData clientData, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
@@ -36,16 +49,23 @@ public class EnvironmentContext {
         EnvironmentContext.instrumentation = inst;
         EnvironmentContext.transformerManager =  new TransformerManager(inst);
 
-        int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 4, 2);
+        int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         initialized = true;
     }
 
+    /**
+     * 获取工作目录
+     * @return 工作目录
+     */
     public static String getJarbootHome() {
         return jarbootHome;
     }
 
+    /**
+     * 清理会话，用于连接重置时
+     */
     public static void cleanSession() {
         if (!sessionMap.isEmpty()) {
             sessionMap.forEach((k, v) -> v.cancel());
@@ -57,6 +77,10 @@ public class EnvironmentContext {
         }
     }
 
+    /**
+     * 是否初始化
+     * @return 是否初始化
+     */
     public static boolean isInitialized() {
         return initialized;
     }
@@ -67,10 +91,6 @@ public class EnvironmentContext {
 
     public static String getSid() {
         return clientData.getSid();
-    }
-
-    public static String getHost() {
-        return clientData.getHost();
     }
 
     public static ScheduledExecutorService getScheduledExecutorService() {
@@ -166,4 +186,5 @@ public class EnvironmentContext {
             return false;
         }
     }
+    private EnvironmentContext() {}
 }

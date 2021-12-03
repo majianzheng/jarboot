@@ -7,7 +7,7 @@ public class ClientData {
     private String server;
     private String sid;
     private String host;
-    private boolean hostRemoted;
+    private boolean hostRemote;
 
     public String getServer() {
         return server;
@@ -33,11 +33,11 @@ public class ClientData {
         this.host = host;
     }
 
-    public boolean isHostRemoted() {
-        return hostRemoted;
+    public boolean isHostRemote() {
+        return hostRemote;
     }
 
-    public void setHostRemoted(boolean hostRemoted) {
-        this.hostRemoted = hostRemoted;
+    public void setHostRemote(boolean hostRemote) {
+        this.hostRemote = hostRemote;
     }
 }

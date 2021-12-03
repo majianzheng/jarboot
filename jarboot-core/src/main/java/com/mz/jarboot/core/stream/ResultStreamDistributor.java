@@ -18,9 +18,13 @@ import java.util.concurrent.TimeUnit;
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
+
+    /** flush wait time */
     private static final int WAIT_TIME = 100;
+    /** Messge queue */
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 
     static {
@@ -41,7 +45,6 @@ public class ResultStreamDistributor {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings("all")
     public static void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.resultViewResolver.getResultView(model);
         if (resultView == null) {
@@ -62,12 +65,9 @@ public class ResultStreamDistributor {
      * @param resp 数据
      */
     public static void write(CmdProtocol resp) {
-        if (!QUEUE.offer(resp)) {
-            logger.trace("message queue may overflow, put failed.");
-        }
+        QUEUE.offer(resp);
     }
-    
-    @SuppressWarnings("all")
+
     private static void consumer() {
         for (; ; ) {
             try {
@@ -78,7 +78,7 @@ public class ResultStreamDistributor {
                     sendToServer(resp);
                 }
             } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
+                //ignore
             }
         }
     }

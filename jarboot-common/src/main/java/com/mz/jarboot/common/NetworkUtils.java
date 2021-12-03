@@ -48,6 +48,26 @@ public class NetworkUtils {
         return false;
     }
 
+    public static List<String> getLocalAddr4() {
+        List<String> localAddr = new ArrayList<>();
+        Enumeration<NetworkInterface> ifs;
+        try {
+            ifs = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
+        }
+        while (ifs.hasMoreElements()) {
+            Enumeration<InetAddress> address = ifs.nextElement().getInetAddresses();
+            while (address.hasMoreElements()) {
+                InetAddress addr = address.nextElement();
+                if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
+                    localAddr.add(addr.getHostAddress());
+                }
+            }
+        }
+        return localAddr;
+    }
+
     public static List<String> getLocalAddr() {
         List<String> localAddr = new ArrayList<>();
         Enumeration<NetworkInterface> ifs;

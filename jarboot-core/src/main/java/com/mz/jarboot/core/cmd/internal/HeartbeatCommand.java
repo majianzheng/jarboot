@@ -11,6 +11,6 @@ public class HeartbeatCommand extends AbstractInternalCommand {
     @Override
     public void run() {
         WsClientFactory.getInstance().onHeartbeat();
-        session.end(true, "check heartbeat success!");
+        session.end(true);
     }
 }
