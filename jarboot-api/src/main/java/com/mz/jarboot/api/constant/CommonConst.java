@@ -28,15 +28,6 @@ public class CommonConst {
     public static final String JARBOOT_NAME = "jarboot";
     public static final String SERVICES = "services";
 
-    /**
-     * 运行状态
-     */
-    public static final String STATUS_RUNNING = "RUNNING";
-    public static final String STATUS_STOPPED = "STOPPED";
-    public static final String STATUS_STARTING = "STARTING";
-    public static final String STATUS_STOPPING = "STOPPING";
-
-
     public static final int INVALID_PID = -1;
 
     /**

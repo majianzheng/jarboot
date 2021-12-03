@@ -22,8 +22,6 @@ import java.util.concurrent.*;
 public class WebSocketManager extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketManager.class);
 
-    @SuppressWarnings("all")
-    private static volatile WebSocketManager instance = null;
     private volatile boolean initialized = false;
     private final ConcurrentHashMap<String, MessageQueueOperator> sessionMap = new ConcurrentHashMap<>(32);
     /**
@@ -55,14 +53,7 @@ public class WebSocketManager extends Thread {
     }
 
     public static WebSocketManager getInstance() {
-        if (null == instance) {
-            synchronized (WebSocketManager.class) {
-                if (null == instance) {
-                    instance = new WebSocketManager();
-                }
-            }
-        }
-        return instance;
+        return WebSocketManagerHolder.INSTANCE;
     }
 
     public void newConnect(Session session) {
@@ -187,6 +178,7 @@ public class WebSocketManager extends Thread {
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);
                 Thread.currentThread().interrupt();
+                break;
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
@@ -220,5 +212,9 @@ public class WebSocketManager extends Thread {
                 .append(CommandConst.PROTOCOL_SPLIT)
                 .append(body);
         return sb.toString();
+    }
+
+    private static class WebSocketManagerHolder {
+        static final WebSocketManager INSTANCE = new WebSocketManager();
     }
 }

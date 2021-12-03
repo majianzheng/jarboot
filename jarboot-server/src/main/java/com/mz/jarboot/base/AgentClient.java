@@ -48,6 +48,7 @@ public final class AgentClient extends MessageQueueOperator {
     /**
      * 执行内部命令
      * @param command 命令
+     * @param sessionId 会话id
      */
     public void sendInternalCommand(String command, String sessionId) {
         CommandRequest request = new CommandRequest();
@@ -57,6 +58,11 @@ public final class AgentClient extends MessageQueueOperator {
         this.newMessage(request.toRaw());
     }
 
+    /**
+     * 发送命令
+     * @param command 命令
+     * @param sessionId 会话id
+     */
     public void sendCommand(String command, String sessionId) {
         CommandRequest request = new CommandRequest();
         request.setCommandType(CommandType.USER_PUBLIC);

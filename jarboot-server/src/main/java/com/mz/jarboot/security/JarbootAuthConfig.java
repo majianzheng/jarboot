@@ -23,12 +23,12 @@ import org.springframework.web.cors.CorsUtils;
  */
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
-    
-    public static final String SECURITY_IGNORE_URLS_SPILT_CHAR = ",";
-    
-    public static final String LOGIN_ENTRY_POINT = "/api/auth/login";
-    
-    public static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/auth/**";
+
+    private static final String SECURITY_IGNORE_URLS_SPILT_CHAR = ",";
+
+    private static final String LOGIN_ENTRY_POINT = "/api/auth/login";
+
+    private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/auth/**";
     
     private static final String DEFAULT_ALL_PATH_PATTERN = "/**";
     
@@ -60,8 +60,11 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
                 web.ignoring().antMatchers(each.trim());
             }
         }
-        web.ignoring().antMatchers("/api/jarboot/cloud/**");
-        web.ignoring().antMatchers("/api/jarboot/plugins/page/**");
+        web.ignoring().antMatchers(
+                TOKEN_BASED_AUTH_ENTRY_POINT,
+                "/**/public/**",
+                "/api/jarboot/cloud/**",
+                "/api/jarboot/plugins/page/**");
     }
     
     @Override

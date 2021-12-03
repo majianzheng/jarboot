@@ -26,7 +26,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
+
+    /** 服务启动超时时间 */
     private static int maxStartTime = 12000;
+    /** 任务调度线程池 */
     private static final ExecutorService TASK_EXECUTOR;
     static {
         ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(256);
@@ -41,6 +44,10 @@ public class TaskUtils {
                         WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
     }
 
+    /**
+     * 获取线程池
+     * @return 线程池
+     */
     public static ExecutorService getTaskExecutor() {
         return TASK_EXECUTOR;
     }
@@ -170,6 +177,11 @@ public class TaskUtils {
         }
     }
 
+    /**
+     * 根据sid获取服务的PID
+     * @param sid sid
+     * @return PID
+     */
     public static int getPid(String sid) {
         int pid = CommonConst.INVALID_PID;
         try {

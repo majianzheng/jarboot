@@ -1,9 +1,7 @@
 package com.mz.jarboot.controller;
 
-import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.NetworkUtils;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import org.springframework.stereotype.Controller;
@@ -46,20 +44,14 @@ public class AgentClientController {
     }
 
     /**
-     * 远程的Java进程连接
+     * 获取连接的IP地址
      * @param request 请求
-     * @param process Jvm信息
-     * @return 是否为远程进程
+     * @return IP地址
      */
-    @PostMapping(value="/remoteJvm")
+    @PostMapping(value="/remoteAddr")
     @ResponseBody
-    public ResponseForObject<Boolean> remoteJvm(HttpServletRequest request, @RequestBody JvmProcess process) {
+    public ResponseForObject<String> remoteAddr(HttpServletRequest request) {
         String remote = request.getRemoteAddr();
-        boolean isLocal = NetworkUtils.hostLocal(remote);
-        if (!isLocal) {
-            process.setRemote(remote);
-            AgentManager.getInstance().remoteJvm(process);
-        }
-        return new ResponseForObject<>(isLocal);
+        return new ResponseForObject<>(remote);
     }
 }

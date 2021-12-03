@@ -25,8 +25,14 @@ import java.util.*;
  */
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
+    /** 服务的配置缓存 <sid, 服务配置> */
     private static final Map<String, ServerSetting> SETTING_CACHE = new HashMap<>(16);
 
+    /**
+     * 读取properties文件
+     * @param file 文件
+     * @return {@link Properties}
+     */
     public static Properties getProperties(File file) {
         Properties properties = new Properties();
         if (null == file || !file.isFile() || !file.exists()) {
@@ -40,6 +46,11 @@ public class PropertyFileUtils {
         return properties;
     }
 
+    /**
+     * 保存properties文件
+     * @param file 文件
+     * @param properties {@link Properties}
+     */
     public static void storeProperties(File file, Properties properties) {
         try (FileOutputStream fos = new FileOutputStream(file, false)) {
             properties.store(fos, "Properties file Jarboot created.");
@@ -68,7 +79,7 @@ public class PropertyFileUtils {
     }
 
     /**
-     *
+     * 根据路径获取服务配置
      * @param serverPath 字符串格式：服务的path
      * @return 服务配置
      */
@@ -153,7 +164,7 @@ public class PropertyFileUtils {
 
 
     /**
-     * 写入properties或INI文件属性
+     * 写入properties或INI文件属性（保留注释等内容）
      * @param file 属性文件
      * @param props 属性
      */
