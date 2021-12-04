@@ -3,9 +3,7 @@
  * @author majianzheng
  */
 export enum MSG_EVENT {
-    NOTICE_INFO,
-    NOTICE_WARN,
-    NOTICE_ERROR,
+    NOTICE,
     CONSOLE_LINE,  //控制台输出
     CONSOLE_PRINT,  //控印制台打字符串（不换行）
     BACKSPACE,  //控制台退格

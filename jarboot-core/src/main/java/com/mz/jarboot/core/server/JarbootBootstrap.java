@@ -239,8 +239,8 @@ public class JarbootBootstrap {
                 }
             }
             for (String addr : addrList) {
-                //.0.1的可能是交换地址，如docker
-                if (!addr.endsWith(".0.1")) {
+                //.0.*的可能是交换地址，如docker
+                if (!addr.contains(".0.")) {
                     return addr;
                 }
             }

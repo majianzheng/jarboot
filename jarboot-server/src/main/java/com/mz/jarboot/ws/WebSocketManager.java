@@ -1,5 +1,6 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
@@ -123,9 +124,6 @@ public class WebSocketManager extends Thread {
     }
 
     public void notice(String text, NoticeEnum level) {
-        if (StringUtils.isEmpty(text) || null == level) {
-            return;
-        }
         String msg;
         if (null != (msg = createNoticeMsg(text, level))) {
             sessionMap.forEach((k, v) -> v.newMessage(msg));
@@ -133,32 +131,20 @@ public class WebSocketManager extends Thread {
     }
 
     public void notice(String text, NoticeEnum level, String sessionId) {
-        if (StringUtils.isEmpty(text) || null == level) {
-            return;
-        }
-        MessageQueueOperator operator = sessionMap.getOrDefault(sessionId, null);
+        MessageQueueOperator operator;
         String msg;
-        if (null != operator && null != (msg = createNoticeMsg(text, level))) {
+        if (null != (msg = createNoticeMsg(text, level)) &&
+                null != (operator = sessionMap.getOrDefault(sessionId, null))) {
             operator.newMessage(msg);
         }
     }
 
     private String createNoticeMsg(String text, NoticeEnum level) {
-        WsEventEnum type = null;
-        switch (level) {
-            case INFO:
-                type = WsEventEnum.NOTICE_INFO;
-                break;
-            case WARN:
-                type = WsEventEnum.NOTICE_WARN;
-                break;
-            case ERROR:
-                type = WsEventEnum.NOTICE_ERROR;
-                break;
-            default:
-                return null;
+        if (StringUtils.isEmpty(text) || null == level) {
+            return null;
         }
-        return formatMsg(StringUtils.EMPTY, type, text);
+        String body = level.ordinal() + CommonConst.COMMA_SPLIT + text;
+        return formatMsg(StringUtils.EMPTY, WsEventEnum.NOTICE, body);
     }
 
     public void printException(String sid, Throwable e) {

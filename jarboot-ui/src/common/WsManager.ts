@@ -5,30 +5,41 @@ import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
-import { getLocale } from 'umi';
 import { MessageType } from "antd/lib/message";
 
+enum NoticeLevel {
+    /** 提示 */
+    INFO,
+
+    /** 警告 */
+    WARN,
+
+    /** 错误 */
+    ERROR
+}
+
 let msg: any = null;
+
 class WsManager {
     public static readonly RECONNECTED_EVENT = -1;
+    private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
+    private static readonly LOADING_MAP = new Map<string, MessageType>();
     private static websocket: any = null;
     private static fd: any = null;
-    private static _messageHandler = new Map<number, (data: MsgData) => void>();
-    private static msgLoadingMap = new Map<string, MessageType>();
 
     public static addMessageHandler(key: number, handler: (data: MsgData) => void) {
-        if (handler && !WsManager._messageHandler.has(key)) {
-            WsManager._messageHandler.set(key, handler);
+        if (handler && !WsManager.HANDLERS.has(key)) {
+            WsManager.HANDLERS.set(key, handler);
         }
     }
 
     public static clearHandlers() {
-        WsManager._messageHandler.clear();
+        WsManager.HANDLERS.clear();
     }
 
     public static removeMessageHandler(key: number) {
         if (key) {
-            WsManager._messageHandler.delete(key);
+            WsManager.HANDLERS.delete(key);
         }
     }
 
@@ -41,9 +52,7 @@ class WsManager {
     }
 
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_INFO, WsManager.noticeInfo);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_WARN, WsManager.noticeWarn);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_ERROR, WsManager.noticeError);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager.notice);
         WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
@@ -62,18 +71,27 @@ class WsManager {
         WsManager.websocket.onerror = WsManager.onError;
     }
 
-    private static noticeInfo = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "提示" : "Info";
-        CommonNotice.info(title, data.body);
-    };
-    private static noticeWarn = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "警告" : "Warn";
-        CommonNotice.warn(title, data.body);
-    };
-    private static noticeError = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "错误" : "Error";
-        CommonNotice.error(title, data.body);
-    };
+    private static notice = (data: MsgData) => {
+        const body: string = data.body;
+        const index = body.indexOf(',');
+        const level = parseInt(body.substring(0, index));
+        const msg = body.substring(index + 1);
+        switch (level) {
+            case NoticeLevel.INFO:
+                CommonNotice.info(msg);
+                break;
+            case NoticeLevel.WARN:
+                CommonNotice.warn(msg);
+                break;
+            case NoticeLevel.ERROR:
+                CommonNotice.error(msg);
+                break;
+            default:
+                CommonNotice.error(`通知级别错误${level}`, msg);
+                break;
+        }
+    }
+
     private static globalLoading = (data: MsgData) => {
         const body: string = data.body;
         if (StringUtil.isEmpty(body)) {
@@ -82,14 +100,14 @@ class WsManager {
         const index = body.indexOf(JarBootConst.PROTOCOL_SPLIT);
         const hasSplit = -1 === index;
         const key = hasSplit ? body : body.substring(0, index);
-        const handle = WsManager.msgLoadingMap.get(key);
-        WsManager.msgLoadingMap.delete(key);
+        const handle = WsManager.LOADING_MAP.get(key);
+        WsManager.LOADING_MAP.delete(key);
         if (hasSplit) {
             handle && handle();
         } else {
             const duration = 0;
             const content = body.substring(index + 1);
-            WsManager.msgLoadingMap.set(key, message.loading({content, key, duration}, duration));
+            WsManager.LOADING_MAP.set(key, message.loading({content, key, duration}, duration));
         }
     };
 
@@ -114,7 +132,7 @@ class WsManager {
             const event = parseInt(resp.substring(i + 1, k));
             const body = resp.substring(k + 1);
             let data: MsgData = {event, body, sid};
-            const handler = WsManager._messageHandler.get(data.event);
+            const handler = WsManager.HANDLERS.get(data.event);
             handler && handler(data);
         } catch (error) {
             Logger.warn(error);
@@ -127,7 +145,7 @@ class WsManager {
             msg();
             msg = null;
             //重连成功，刷新状态
-            const handler = WsManager._messageHandler.get(WsManager.RECONNECTED_EVENT);
+            const handler = WsManager.HANDLERS.get(WsManager.RECONNECTED_EVENT);
             handler && handler({sid: '', body: '', event: WsManager.RECONNECTED_EVENT});
         }
         if (null !== WsManager.fd) {

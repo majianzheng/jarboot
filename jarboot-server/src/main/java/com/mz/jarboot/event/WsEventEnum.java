@@ -6,19 +6,9 @@ package com.mz.jarboot.event;
 
 public enum WsEventEnum {
     /**
-     * 提示通知
+     * 弹出提示
      */
-    NOTICE_INFO,
-
-    /**
-     * 警告通知
-     */
-    NOTICE_WARN,
-
-    /**
-     * 错误通知
-     */
-    NOTICE_ERROR,
+    NOTICE,
 
     /**
      * 控制台输出
