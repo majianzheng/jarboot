@@ -1,5 +1,6 @@
 package com.mz.jarboot.demo;
 
+import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
 
 import javax.swing.*;
@@ -21,6 +22,7 @@ public class DemoServerApplication implements Runnable {
     private static final int INVALID_NUM = -1;
     private static final int FIB_FUNC = 1;
     private static final int POW_FUNC = 2;
+    public static AgentService agentService = null;
     
     private JTextField execLimitInput;
     private JTextField execIntervalInput;
@@ -75,7 +77,9 @@ public class DemoServerApplication implements Runnable {
 
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {
-            JarbootFactory.createAgentService().setStarted();
+            agentService = JarbootFactory.createAgentService();
+            agentService.setStarted();
+            agentService.noticeInfo("启动Demo成功！", null);
         } catch (Exception e) {
             log(e.getMessage());
         }
@@ -258,6 +262,9 @@ public class DemoServerApplication implements Runnable {
         log("计算完成，" + costStr);
         costLabel.setText(costStr);
         func = INVALID_NUM;
+        if (null != agentService) {
+            agentService.noticeInfo("计算完成", null);
+        }
     }
 
     private DemoServerApplication() {
