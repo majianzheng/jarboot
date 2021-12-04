@@ -130,6 +130,9 @@ public class EnvironmentContext {
      * @param command 命令
      */
     public static void runCommand(AbstractCommand command) {
+        if (null == command) {
+            return;
+        }
         final CommandCoreSession session = command.getSession();
         if (checkCommandRunning(session)) {
             return;

@@ -16,18 +16,18 @@ public class CommandResponse implements CmdProtocol {
      */
     @Override
     public String toRaw() {
-        //格式: 前3个字符是控制位 + 数据体
         //控制位 0 响应类型、1 是否成功、2保留填-
-        char rt = this.getResponseTypeChar();
+        char cb = this.responseType.value();
         if (Boolean.TRUE.equals(success)) {
-            rt = (char)(rt | CommandConst.SUCCESS_FLAG);
+            cb = (char)(cb | CommandConst.SUCCESS_FLAG);
+        }
+        if (null == sessionId || sessionId.isEmpty()) {
+            sessionId = CommandConst.SESSION_COMMON;
         }
         return new StringBuilder()
-                //响应类型及是否成功的头
-                .append(rt)
+                .append(cb)
                 .append(body)
                 .append(CommandConst.PROTOCOL_SPLIT)
-                //最后填充sessionId
                 .append(sessionId)
                 .toString();
     }
@@ -36,76 +36,21 @@ public class CommandResponse implements CmdProtocol {
         char h = raw.charAt(0);
         this.success = CommandConst.SUCCESS_FLAG == (CommandConst.SUCCESS_FLAG & h);
         //取反再与得到真实响应类型
-        h = (char) (h & ~CommandConst.SUCCESS_FLAG);
-        //反向解析出类实例
-        //获取响应类型
-        switch (h) {
-            case CommandConst.HEARTBEAT_TYPE:
-                this.setResponseType(ResponseType.HEARTBEAT);
-                break;
-            case CommandConst.STD_PRINT_TYPE:
-                this.setResponseType(ResponseType.STD_PRINT);
-                break;
-            case CommandConst.CONSOLE_TYPE:
-                this.setResponseType(ResponseType.CONSOLE);
-                break;
-            case CommandConst.BACKSPACE_TYPE:
-                this.setResponseType(ResponseType.BACKSPACE);
-                break;
-            case CommandConst.BACKSPACE_LINE_TYPE:
-                this.setResponseType(ResponseType.BACKSPACE_LINE);
-                break;
-            case CommandConst.JSON_RESULT_TYPE:
-                this.setResponseType(ResponseType.JSON_RESULT);
-                break;
-            case CommandConst.CMD_END_TYPE:
-                this.setResponseType(ResponseType.COMMAND_END);
-                break;
-            case CommandConst.ACTION_TYPE:
-                this.setResponseType(ResponseType.ACTION);
-                break;
-            default:
-                this.setResponseType(ResponseType.UNKNOWN);
-                break;
-        }
-
-        int l = raw.lastIndexOf(CommandConst.PROTOCOL_SPLIT);
-        if (-1 == l) {
+        this.responseType = ResponseType.fromChar(h);
+        int index = raw.lastIndexOf(CommandConst.PROTOCOL_SPLIT);
+        if (-1 == index) {
             this.success = false;
             this.body = "协议错误，未发现sessionId";
             return;
         }
-        this.body = raw.substring(1, l);
-        this.sessionId = raw.substring(l + 1);
+        this.body = raw.substring(1, index);
+        this.sessionId = raw.substring(index + 1);
     }
 
     public static CommandResponse createFromRaw(String raw) {
         CommandResponse response = new CommandResponse();
         response.fromRaw(raw);
         return response;
-    }
-    private char getResponseTypeChar() {
-        switch (responseType) {
-            case HEARTBEAT:
-                return CommandConst.HEARTBEAT_TYPE;
-            case STD_PRINT:
-                return CommandConst.STD_PRINT_TYPE;
-            case CONSOLE:
-                return CommandConst.CONSOLE_TYPE;
-            case BACKSPACE:
-                return CommandConst.BACKSPACE_TYPE;
-            case BACKSPACE_LINE:
-                return CommandConst.BACKSPACE_LINE_TYPE;
-            case JSON_RESULT:
-                return CommandConst.JSON_RESULT_TYPE;
-            case COMMAND_END:
-                return CommandConst.CMD_END_TYPE;
-            case ACTION:
-                return CommandConst.ACTION_TYPE;
-            default:
-                break;
-        }
-        return '-';
     }
 
     public ResponseType getResponseType() {

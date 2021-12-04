@@ -12,11 +12,12 @@ import java.nio.charset.StandardCharsets;
  */
 public class PidFileHelper {
     private static final String PID_EXT = ".pid";
-    private static final String PID;
+    public static final String PID;
+    public static final String INSTANCE_NAME;
     static {
-        String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-        int index = name.indexOf('@');
-        PID = name.substring(0, index);
+        INSTANCE_NAME = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+        int index = INSTANCE_NAME.indexOf('@');
+        PID = INSTANCE_NAME.substring(0, index);
     }
 
     public static void writePidFile(String sid) {
@@ -55,10 +56,6 @@ public class PidFileHelper {
             //ignore
         }
         return pid;
-    }
-
-    public static String getCurrentPid() {
-        return PID;
     }
 
     public static void deletePidFile(String sid) {

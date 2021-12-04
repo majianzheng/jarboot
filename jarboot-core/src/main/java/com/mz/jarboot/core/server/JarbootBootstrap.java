@@ -178,7 +178,7 @@ public class JarbootBootstrap {
                 }
             }
             clientData.setServer(serverName);
-            String pid = PidFileHelper.getCurrentPid();
+            String pid = PidFileHelper.PID;
             //获取远程的Jarboot服务地址
             String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
             if (checkIsLacalAddr(remote)) {
@@ -186,7 +186,9 @@ public class JarbootBootstrap {
                 clientData.setSid(pid);
                 clientData.setHostRemote(false);
             } else {
-                //远程进程，使用pid + name + ip地址作为sid
+                //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
+                int h = Objects.hash(PidFileHelper.INSTANCE_NAME, System.nanoTime());
+                //远程进程，使用pid + ip + name + hash地址作为sid
                 String ip = getLocalAddr();
                 StringBuilder sb = new StringBuilder();
                 sb
@@ -198,7 +200,7 @@ public class JarbootBootstrap {
                         .append(CommonConst.COMMA_SPLIT)
                         .append(serverName)
                         .append(CommonConst.COMMA_SPLIT)
-                        .append(System.currentTimeMillis());
+                        .append(String.format("%x-%x", h, System.nanoTime()));
                 clientData.setSid(sb.toString());
                 clientData.setHostRemote(true);
             }
@@ -222,15 +224,23 @@ public class JarbootBootstrap {
         return clientData;
     }
 
+    /**
+     * 获取本机网卡的地址
+     * @return 网卡地址
+     */
     private String getLocalAddr() {
-//        String addr = WsClientFactory.getRemoteAddr();
-//        if (!StringUtils.isEmpty(addr)) {
-//            return addr;
-//        }
+        //先尝试获取IPv4的地址
         List<String> addrList = NetworkUtils.getLocalAddr4();
         if (null != addrList && !addrList.isEmpty()) {
+            for (String addr : addrList) {
+                //.0.1的可能是交换地址，如docker
+                if (!addr.endsWith(".0.1")) {
+                    return addr;
+                }
+            }
             return addrList.get(0);
         }
+        //IPv4地址为空时，使用IPv6的地址
         addrList = NetworkUtils.getLocalAddr();
         if (null == addrList || addrList.isEmpty()) {
             throw new JarbootException("获取本机IP地址异常！");

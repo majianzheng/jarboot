@@ -9,7 +9,7 @@ public class CommandResponseTest {
     @Test
     public void testFromRaw() {
         CommandResponse response = new CommandResponse();
-        char header = CommandConst.CONSOLE_TYPE | CommandConst.SUCCESS_FLAG;
+        char header = (char) (ResponseType.CONSOLE.value() | CommandConst.SUCCESS_FLAG);
         response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.CONSOLE, response.getResponseType());
         assertEquals("123", response.getSessionId());
@@ -17,7 +17,7 @@ public class CommandResponseTest {
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        header = CommandConst.CONSOLE_TYPE;
+        header = ResponseType.CONSOLE.value();
         response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.CONSOLE, response.getResponseType());
         assertEquals("123", response.getSessionId());
@@ -25,7 +25,7 @@ public class CommandResponseTest {
         assertFalse(response.getSuccess());
 
         response = new CommandResponse();
-        header = CommandConst.JSON_RESULT_TYPE | CommandConst.SUCCESS_FLAG;
+        header = (char) (ResponseType.JSON_RESULT.value() | CommandConst.SUCCESS_FLAG);
         response.fromRaw(header + "body data\r123");
         assertEquals(ResponseType.JSON_RESULT, response.getResponseType());
         assertEquals("123", response.getSessionId());
@@ -33,7 +33,7 @@ public class CommandResponseTest {
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        header = CommandConst.CMD_END_TYPE;
+        header = ResponseType.COMMAND_END.value();
         response.fromRaw(header + "body xxx data\r125663");
         assertEquals(ResponseType.COMMAND_END, response.getResponseType());
         assertEquals("125663", response.getSessionId());
@@ -48,7 +48,7 @@ public class CommandResponseTest {
 
     @Test
     public void testToRaw() {
-        char header = CommandConst.CONSOLE_TYPE | CommandConst.SUCCESS_FLAG;
+        char header = (char) (ResponseType.CONSOLE.value() | CommandConst.SUCCESS_FLAG);
         CommandResponse response = new CommandResponse();
         response.setResponseType(ResponseType.CONSOLE);
         response.setSessionId("123");
@@ -57,7 +57,7 @@ public class CommandResponseTest {
         assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
-        header = CommandConst.CONSOLE_TYPE;
+        header = ResponseType.CONSOLE.value();
         response.setResponseType(ResponseType.CONSOLE);
         response.setSessionId("123");
         response.setBody("body data");
@@ -65,7 +65,7 @@ public class CommandResponseTest {
         assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
-        header = CommandConst.JSON_RESULT_TYPE | CommandConst.SUCCESS_FLAG;
+        header = (char) (ResponseType.JSON_RESULT.value() | CommandConst.SUCCESS_FLAG);
         response.setResponseType(ResponseType.JSON_RESULT);
         response.setSessionId("123");
         response.setBody("body data");
@@ -73,7 +73,7 @@ public class CommandResponseTest {
         assertEquals(header + "body data\r123", response.toRaw());
 
         response = new CommandResponse();
-        header = CommandConst.CMD_END_TYPE;
+        header = ResponseType.COMMAND_END.value();
         response.setResponseType(ResponseType.COMMAND_END);
         response.setSessionId("125663");
         response.setBody("body xxx data");

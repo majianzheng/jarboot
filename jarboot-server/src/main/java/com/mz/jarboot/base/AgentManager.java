@@ -143,11 +143,17 @@ public class AgentManager {
      * 来自远程服务器的连接
      * @param sid 远程服务sid，格式：prefix + pid + name + uuid
      */
-    public void remoteJvm(String sid) {
-        logger.info("远程进程连接：{}", sid);
+    public void remoteJvm(final String sid) {
         JvmProcess process = new JvmProcess();
-        String[] s = sid.split(CommonConst.COMMA_SPLIT);
-        if (s.length < 4) {
+        int index = sid.lastIndexOf(',');
+        if (-1 == index) {
+            logger.warn("解析远程sid失败！sid:{}", sid);
+            return;
+        }
+        String str = sid.substring(0, index);
+        final int limit = 4;
+        String[] s = str.split(CommonConst.COMMA_SPLIT, limit);
+        if (s.length != limit) {
             logger.warn("解析远程sid失败！sid:{}", sid);
             return;
         }
@@ -229,13 +235,17 @@ public class AgentManager {
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
-                    WebSocketManager.getInstance().commandEnd(sid, server + "连接断开，重连失败，请稍后重试", sessionId);
+                    WebSocketManager
+                            .getInstance()
+                            .commandEnd(sid, server + "连接断开，重连失败，请稍后重试", sessionId);
                 } else {
                     client.sendCommand(command, sessionId);
                 }
             } else {
                 //未在线，进程不存在
-                WebSocketManager.getInstance().commandEnd(sid, server + "未在线，无法执行命令", sessionId);
+                WebSocketManager
+                        .getInstance()
+                        .commandEnd(sid, server + "未在线，无法执行命令", sessionId);
             }
         } else {
             client.sendCommand(command, sessionId);
@@ -295,15 +305,7 @@ public class AgentManager {
         String sessionId = resp.getSessionId();
         switch (type) {
             case HEARTBEAT:
-                AgentClient client = clientMap.getOrDefault(sid, null);
-                if (null == client || !ClientState.ONLINE.equals(client.getState())) {
-                    this.online(server, session, sid);
-                    this.onServerStarted(server, sid);
-                    WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
-                    logger.info("reconnected by heartbeat {}, {}", server, sid);
-                    WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
-                }
-                sendInternalCommand(sid, CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON);
+                doHeartbeat(server, sid, session);
                 break;
             case CONSOLE:
                 WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
@@ -322,19 +324,35 @@ public class AgentManager {
                 WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
                 break;
             case COMMAND_END:
-                String msg = resp.getBody();
-                if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
-                    msg = String.format("<span style=\"color:red\">%s</span>", resp.getBody());
-                }
-                WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
+                commandEnd(sid, resp, sessionId);
                 break;
             case ACTION:
                 this.handleAction(resp.getBody(), sessionId, sid);
                 break;
             default:
-                //do nothing
+                logger.error("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
                 break;
         }
+    }
+
+    private void commandEnd(String sid, CommandResponse resp, String sessionId) {
+        String msg = resp.getBody();
+        if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
+            msg = String.format("<span style=\"color:red\">%s</span>", resp.getBody());
+        }
+        WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
+    }
+
+    private void doHeartbeat(String server, String sid, Session session) {
+        AgentClient client = clientMap.getOrDefault(sid, null);
+        if (null == client || !ClientState.ONLINE.equals(client.getState())) {
+            this.online(server, session, sid);
+            this.onServerStarted(server, sid);
+            WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
+            logger.info("reconnected by heartbeat {}, {}", server, sid);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+        }
+        client.heartbeat();
     }
 
     /**
@@ -388,8 +406,10 @@ public class AgentManager {
             if (!ClientState.STARTING.equals(client.getState())) {
                 logger.info("Current server({}) is not starting now, wait server started error. statue:{}",
                         server, client.getState());
-                WebSocketManager.getInstance().sendConsole(sid,
-                        server + " is not starting, wait started error. status:" + client.getState());
+                WebSocketManager
+                        .getInstance()
+                        .sendConsole(sid,
+                                server + " is not starting, wait started error. status:" + client.getState());
                 return;
             }
             try {

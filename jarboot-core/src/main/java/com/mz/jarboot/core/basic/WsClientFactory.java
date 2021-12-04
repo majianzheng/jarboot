@@ -56,7 +56,7 @@ public class WsClientFactory {
 
     private WsClientFactory() {
         //1.命令派发器
-        dispatcher = new CommandDispatcher();
+        dispatcher = new CommandDispatcher(this::onHeartbeat);
         //2.初始化WebSocket的handler
         this.initMessageHandler();
 

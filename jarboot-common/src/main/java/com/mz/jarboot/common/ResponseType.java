@@ -48,5 +48,18 @@ public enum ResponseType {
     /**
      * 非法的未知类型
      */
-    UNKNOWN
+    UNKNOWN;
+
+    public char value() {
+        return (char)this.ordinal();
+    }
+
+    public static ResponseType fromChar(char index) {
+        index = (char) (index & ~CommandConst.SUCCESS_FLAG);
+        ResponseType[] values = ResponseType.values();
+        if (index > values.length - 1) {
+            return ResponseType.UNKNOWN;
+        }
+        return values[index];
+    }
 }
