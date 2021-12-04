@@ -131,6 +131,10 @@ public class WebSocketManager extends Thread {
     }
 
     public void notice(String text, NoticeEnum level, String sessionId) {
+        if (CommandConst.SESSION_COMMON.equals(sessionId)) {
+            notice(text, level);
+            return;
+        }
         MessageQueueOperator operator;
         String msg;
         if (null != (msg = createNoticeMsg(text, level)) &&
