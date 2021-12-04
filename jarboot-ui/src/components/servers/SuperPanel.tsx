@@ -66,10 +66,41 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const historyProp = historyMap.get(key);
 
     //解析json数据的视图
-    const viewResolver: any = {
-        'dashboard': <DashboardView data={data}/>,
-        'jad': <JadView data={data}/>,
-        'heapdump': <HeapDumpView data={data}/>,
+    const viewResolver = () => {
+        let panel;
+        switch (view) {
+            case 'dashboard':
+                panel = <DashboardView data={data}/>;
+                break;
+            case 'jad':
+                panel = <JadView data={data}/>;
+                break;
+            case 'heapdump':
+                panel = <HeapDumpView data={data}/>;
+                break;
+            default:
+                panel = <div>Unknown command view {view}</div>
+                break;
+        }
+        const buttonTitle = executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
+        return (<div style={{height: JarBootConst.PANEL_HEIGHT}}>
+            <div className={styles.viewHeader}>
+                <span className={styles.viewTitle}>
+                    <span className={styles.viewTitleContainer}>
+                       {executing && <LoadingOutlined className={styles.statusStarting}/>}
+                        <label>{command}</label>
+                    </span>
+                </span>
+                <div className={styles.viewHeaderTool}>
+                    <Button type={"link"}
+                            size={"small"}
+                            title={buttonTitle}
+                            onClick={closeView}
+                            icon={<CloseOutlined style={{fontSize: '1.28em'}}/>}/>
+                </div>
+            </div>
+            {panel}
+        </div>);
     };
 
     const renderView = (resultData: any) => {
@@ -113,7 +144,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
 
     const closeView = () => {
         if (executing) {
-            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command}));
+            onCancelCommand();
             return;
         }
         if ('' !== view) {
@@ -195,7 +226,10 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         }
     };
 
-    const commandInput = () => (
+    const consolePanel = () => {
+        const style = '' === view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
+        return (<div style={style}>
+            <Console id={key} pubsub={pubsub} height={JarBootConst.PANEL_HEIGHT - 26}/>
             <Input onPressEnter={onExecCommand}
                    onKeyUp={onKeyUp}
                    ref={inputRef}
@@ -206,12 +240,14 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                    autoCorrect="off"
                    autoCapitalize="off"
                    spellCheck="false"
-                   style={{width: '100%'}}
                    onChange={event => setCommand(event.target.value)}
                    value={command}
                    prefix={<RightOutlined className={styles.commandRightIcon}/>}
                    suffix={executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
-            />);
+            />
+            {'' === view && extraButton()}
+        </div>);
+    };
 
     const extraButton = () => {
         let extra;
@@ -238,14 +274,8 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     };
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
-            <div style={{height: JarBootConst.PANEL_HEIGHT}}>
-                <Console id={key}
-                         visible={'' === view}
-                         pubsub={pubsub}/>
-                {'' !== view && viewResolver[view]}
-            </div>
-            {extraButton()}
-            {commandInput()}
+            {consolePanel()}
+            {'' !== view && viewResolver()}
             {JarBootConst.IS_SAFARI && '' === view && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });

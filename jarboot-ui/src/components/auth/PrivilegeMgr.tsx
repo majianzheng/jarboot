@@ -138,7 +138,7 @@ const PrivilegeMgr = memo(() => {
     };
 
     return <Row>
-        <Col span={8} style={{height: (JarBootConst.PANEL_HEIGHT - 30), overflowY: "auto"}}>
+        <Col span={8} style={{height: (JarBootConst.PANEL_HEIGHT - 66), overflowY: "auto"}}>
             <Menu selectedKeys={[selected]} mode="inline" onClick={onSelect}>
                 <Menu.ItemGroup title={<span>
                     <span>{intl.formatMessage({id: 'ROLE'})}</span>
@@ -151,7 +151,7 @@ const PrivilegeMgr = memo(() => {
         <Col span={16}>
             <Card title={intl.formatMessage({id: 'PERMISSION_CONTROL_TITLE'})}
                   size={"small"} bordered={false} loading={loading}>
-                <div style={{height: (JarBootConst.PANEL_HEIGHT - 30), overflowY: "auto"}}>
+                <div style={{height: (JarBootConst.PANEL_HEIGHT - 60), overflowY: "auto"}}>
                     <Tree checkable
                           onExpand={onExpand}
                           expandedKeys={expandedKeys}

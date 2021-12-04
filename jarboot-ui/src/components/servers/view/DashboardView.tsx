@@ -5,25 +5,26 @@ import styles from "../index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import CommonTable from "@/components/table";
 
-const progressValueFormat = (percent: number|undefined) =>
-    <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
-const mu = 1024 * 1024;
-
-const cpuColorFormat = (cpu: number) => {
-    let color;
-    if (cpu <= 5) {
-        color = 'green';
-    } else if (cpu > 5 && cpu <= 15) {
-        color = 'magenta';
-    } else {
-        color = 'red';
-    }
-    return <span style={{color}}>{cpu}</span>;
-};
-const upHeight = (JarBootConst.PANEL_HEIGHT * 0.6);
-const downHeight = (JarBootConst.PANEL_HEIGHT * 0.4);
-
 const DashboardView = memo((props: any) => {
+
+    const progressValueFormat = (percent: number|undefined) =>
+        <span style={{color: percent && percent > 90 ? 'red' : 'green', fontSize: '8px'}}>{percent}%</span>;
+    const mu = 1024 * 1024;
+
+    const cpuColorFormat = (cpu: number) => {
+        let color;
+        if (cpu <= 5) {
+            color = 'green';
+        } else if (cpu > 5 && cpu <= 15) {
+            color = 'magenta';
+        } else {
+            color = 'red';
+        }
+        return <span style={{color}}>{cpu}</span>;
+    };
+    const totalHeight = JarBootConst.PANEL_HEIGHT;
+    const upHeight = (totalHeight * 0.6);
+    const downHeight = (totalHeight * 0.4);
 
     const renderState = (state: any) => {
         if (StringUtil.isEmpty(state)) {
