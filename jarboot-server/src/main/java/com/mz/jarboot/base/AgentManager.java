@@ -470,7 +470,7 @@ public class AgentManager {
             case CommandConst.ACTION_NOTICE_WARN:
             case CommandConst.ACTION_NOTICE_ERROR:
                 NoticeEnum level = EnumUtils.getEnum(NoticeEnum.class, action);
-                WebSocketManager.getInstance().notice(param, level);
+                WebSocketManager.getInstance().notice(param, level, sessionId);
                 break;
             case CommandConst.ACTION_RESTART:
                 trigRestartEvent(sid);

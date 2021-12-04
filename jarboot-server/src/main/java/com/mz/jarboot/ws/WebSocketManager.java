@@ -126,6 +126,24 @@ public class WebSocketManager extends Thread {
         if (StringUtils.isEmpty(text) || null == level) {
             return;
         }
+        String msg;
+        if (null != (msg = createNoticeMsg(text, level))) {
+            sessionMap.forEach((k, v) -> v.newMessage(msg));
+        }
+    }
+
+    public void notice(String text, NoticeEnum level, String sessionId) {
+        if (StringUtils.isEmpty(text) || null == level) {
+            return;
+        }
+        MessageQueueOperator operator = sessionMap.getOrDefault(sessionId, null);
+        String msg;
+        if (null != operator && null != (msg = createNoticeMsg(text, level))) {
+            operator.newMessage(msg);
+        }
+    }
+
+    private String createNoticeMsg(String text, NoticeEnum level) {
         WsEventEnum type = null;
         switch (level) {
             case INFO:
@@ -138,12 +156,9 @@ public class WebSocketManager extends Thread {
                 type = WsEventEnum.NOTICE_ERROR;
                 break;
             default:
-                return;
+                return null;
         }
-        String msg = formatMsg(StringUtils.EMPTY, type, text);
-        if (!sessionMap.isEmpty()) {
-            this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
-        }
+        return formatMsg(StringUtils.EMPTY, type, text);
     }
 
     public void printException(String sid, Throwable e) {

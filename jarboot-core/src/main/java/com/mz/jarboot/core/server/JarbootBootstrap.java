@@ -233,6 +233,12 @@ public class JarbootBootstrap {
         List<String> addrList = NetworkUtils.getLocalAddr4();
         if (null != addrList && !addrList.isEmpty()) {
             for (String addr : addrList) {
+                //.1结尾的可能是虚拟机的虚拟网卡地址
+                if (!addr.endsWith(".1")) {
+                    return addr;
+                }
+            }
+            for (String addr : addrList) {
                 //.0.1的可能是交换地址，如docker
                 if (!addr.endsWith(".0.1")) {
                     return addr;
