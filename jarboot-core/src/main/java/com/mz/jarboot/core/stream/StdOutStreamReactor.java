@@ -12,90 +12,68 @@ import org.slf4j.Logger;
 
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 标准输出流、错误流重定向反应器
  * @author majianzheng
  */
 @SuppressWarnings("all")
 public class StdOutStreamReactor {
     private static final Logger logger = LogUtils.getLogger();
+
+    /** flush wait time */
+    private static final int WAIT_TIME = 100;
+    /** 标准输出流实现 */
     private final StdConsoleOutputStream sos;
+    /** 默认的标准输出流备份 */
     private final PrintStream defaultOut;
+    /** 默认的错误输出流备份 */
     private final PrintStream defaultErr;
+    /** 自定义的标准输出流 */
     private final PrintStream stdRedirectStream;
+    /** 是否开启 */
     private volatile boolean isOn = false;
+    /** 上一次的打印时间 */
     private volatile long lastStdTime = 0;
+    /** 启动完成判定时间 */
     private long startDetermineTime = 5000;
+    /** 是否正在唤醒 */
+    private volatile AtomicBoolean weakuping = new AtomicBoolean(false);
 
-    private void stdConsole(String text) {
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.CONSOLE);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        ResultStreamDistributor.write(resp);
-    }
-    
-    private void stdPrint(String text) {
-        if (StringUtils.isEmpty(text)) {
-            return;
-        }
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.STD_PRINT);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        ResultStreamDistributor.write(resp);
-    }
-    
-    private void stdBackspace(int num) {
-        if (num > 0) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(true);
-            resp.setResponseType(ResponseType.BACKSPACE);
-            resp.setBody(String.valueOf(num));
-            resp.setSessionId(CommandConst.SESSION_COMMON);
-            ResultStreamDistributor.write(resp);
-        }
+    /**
+     * 标准输出流显示是否开启
+     * @return 是否开启
+     */
+    public boolean isEnabled() {
+        return isOn;
     }
 
-    private void stdStartingConsole(String text) {
-        stdConsole(text);
-        //更新计时
+    /**
+     * 获取单例
+     * @return 单例
+     */
+    public static StdOutStreamReactor getInstance() {
+        return StdOutStreamReactorHolder.INSTANCE;
+    }
+
+    /**
+     * 启动中开始，判定是否启动完成
+     */
+    public void setStarting() {
+        sos.setPrintLineHandler(this::stdStartingConsole);
+        sos.setPrintHandler(this::stdStartingPrint);
         lastStdTime = System.currentTimeMillis();
-    }
-    
-    private void stdStartingPrint(String text) {
-        stdPrint(text);
-        //更新计时
-        lastStdTime = System.currentTimeMillis();
+        //启动监控线程
+        EnvironmentContext
+                .getScheduledExecutorService()
+                .execute(this::determineStarted);
     }
 
-    private StdOutStreamReactor() {
-        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
-        sos = new StdConsoleOutputStream();
-        //备份默认的输出流
-        defaultOut = System.out;
-        defaultErr = System.err;
-        stdRedirectStream = new PrintStream(sos);
-        this.init();
-    }
-    //懒加载，私有内部类模式单例
-    private static class StdOutStreamReactorHolder {
-        static StdOutStreamReactor inst = new StdOutStreamReactor();
-    }
-
-    private void init() {
-        // 输出不满一行的字符串
-        sos.setPrintHandler(this::stdPrint);
-        //输出行
-        sos.setPrintLineHandler(this::stdConsole);
-        //退格
-        sos.setBackspaceHandler(this::stdBackspace);
-        //默认开启
-        this.enabled(true);
-    }
-
+    /**
+     * 开启、关闭终端输出显示
+     * @param b 是否开启
+     */
     public void enabled(boolean b) {
         if (b) {
             if (isOn) {
@@ -114,42 +92,148 @@ public class StdOutStreamReactor {
         }
     }
 
-    public void flush() {
-        if (this.isOn) {
+    /**
+     * 标准行输出
+     * @param text 文本
+     */
+    private void stdConsole(String text) {
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.CONSOLE);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        ResultStreamDistributor.write(resp);
+    }
+
+    /**
+     * 标准输出
+     * @param text 文本
+     */
+    private void stdPrint(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return;
+        }
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.STD_PRINT);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        ResultStreamDistributor.write(resp);
+    }
+
+    /**
+     * 标准输出，退格
+     * @param num
+     */
+    private void stdBackspace(int num) {
+        if (num > 0) {
+            CommandResponse resp = new CommandResponse();
+            resp.setSuccess(true);
+            resp.setResponseType(ResponseType.BACKSPACE);
+            resp.setBody(String.valueOf(num));
+            resp.setSessionId(CommandConst.SESSION_COMMON);
+            ResultStreamDistributor.write(resp);
+        }
+    }
+
+    /**
+     * 开始中标准行输出
+     * @param text
+     */
+    private void stdStartingConsole(String text) {
+        stdConsole(text);
+        //更新计时
+        lastStdTime = System.currentTimeMillis();
+    }
+
+    /**
+     * 开始中标准输出
+     * @param text 文本
+     */
+    private void stdStartingPrint(String text) {
+        stdPrint(text);
+        //更新计时
+        lastStdTime = System.currentTimeMillis();
+    }
+
+    /**
+     * 构造方法
+     */
+    private StdOutStreamReactor() {
+        startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
+        sos = new StdConsoleOutputStream(this::onWeakup);
+        //备份默认的输出流
+        defaultOut = System.out;
+        defaultErr = System.err;
+        stdRedirectStream = new PrintStream(sos);
+        this.init();
+    }
+
+    /**
+     * 懒加载，私有内部类模式单例
+     */
+    private static class StdOutStreamReactorHolder {
+        static StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
+    }
+
+    /**
+     * 初始化
+     */
+    private void init() {
+        // 输出不满一行的字符串
+        sos.setPrintHandler(this::stdPrint);
+        //输出行
+        sos.setPrintLineHandler(this::stdConsole);
+        //退格
+        sos.setBackspaceHandler(this::stdBackspace);
+        //默认开启
+        this.enabled(true);
+    }
+
+    /**
+     * 唤醒标准输出、错误流的IO刷新
+     */
+    private void onWeakup() {
+        //io唤醒机制，当IO第一次变动时，等待一段时间后触发刷新，忽视等待期间的事件，然后开始新的一轮
+        //检查是否正在等待weakup
+        if (weakuping.compareAndSet(false, true)) {
+            return;
+        }
+        //启动延时任务，防抖动设计，忽视中间变化
+        EnvironmentContext
+                .getScheduledExecutorService()
+                .schedule(this::flush, WAIT_TIME, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * IO刷新
+     */
+    private void flush() {
+        //CAS判定，只有启动了weakup延迟后才可刷新
+        if (weakuping.compareAndSet(true, false)) {
             sos.flush();
         }
     }
 
-    public boolean isEnabled() {
-        return isOn;
-    }
-
-    public static StdOutStreamReactor getInstance() {
-        return StdOutStreamReactorHolder.inst;
-    }
-
-    public void setStarting() {
-        sos.setPrintLineHandler(this::stdStartingConsole);
-        sos.setPrintHandler(this::stdStartingPrint);
-        lastStdTime = System.currentTimeMillis();
-        //启动监控线程
-        EnvironmentContext.getScheduledExecutorService().execute(() -> {
-            do {
-                try {
-                    TimeUnit.SECONDS.sleep(2);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            } while ((System.currentTimeMillis() - lastStdTime) < startDetermineTime);
-            //超过一定时间没有控制台输出，判定启动成功
-            sos.setPrintLineHandler(this::stdConsole);
-            sos.setPrintHandler(this::stdPrint);
-            //通知Jarboot server启动完成
+    /**
+     * 判定是否启动完成
+     */
+    private void determineStarted() {
+        do {
             try {
-                AgentServiceOperator.setStarted();
-            } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        });
+        } while ((System.currentTimeMillis() - lastStdTime) < startDetermineTime);
+        //超过一定时间没有控制台输出，判定启动成功
+        sos.setPrintLineHandler(this::stdConsole);
+        sos.setPrintHandler(this::stdPrint);
+        //通知Jarboot server启动完成
+        try {
+            AgentServiceOperator.setStarted();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 }

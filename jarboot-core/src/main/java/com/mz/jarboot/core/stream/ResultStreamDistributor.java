@@ -22,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
 
-    /** flush wait time */
-    private static final int WAIT_TIME = 100;
     /** Messge queue */
     private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 
@@ -71,12 +69,8 @@ public class ResultStreamDistributor {
     private static void consumer() {
         for (; ; ) {
             try {
-                CmdProtocol resp = QUEUE.poll(WAIT_TIME, TimeUnit.MILLISECONDS);
-                if (null == resp) {
-                    StdOutStreamReactor.getInstance().flush();
-                } else {
-                    sendToServer(resp);
-                }
+                CmdProtocol resp = QUEUE.take();
+                sendToServer(resp);
             } catch (Throwable e) {
                 //ignore
             }
