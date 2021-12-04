@@ -23,10 +23,6 @@ class JarBootConst {
     public static readonly ATTACHED = 'ATTACHED';
     public static readonly EXITED = 'EXITED';
 
-    public static NOTICE_INFO = 0;
-    public static NOTICE_WARN = 1;
-    public static NOTICE_ERROR = 2;
-
     public static PANEL_HEIGHT = (window.innerHeight - 90);
     public static HIGHLIGHT_STYLE = {backgroundColor: '#ffc069', padding: 0};
 
