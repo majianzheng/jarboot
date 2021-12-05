@@ -41,6 +41,6 @@ const AuthControl = memo(() => {
             {'RoleMgr' === selected && <RoleMgr/>}
             {'PrivilegeMgr' === selected && <PrivilegeMgr/>}
         </Col>
-    </Row>
+    </Row>;
 });
 export default AuthControl;

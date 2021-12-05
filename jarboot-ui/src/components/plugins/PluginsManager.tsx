@@ -98,7 +98,7 @@ const PluginsManager = () => {
             showHeader: true,
             scroll: height,
         };
-    }
+    };
 
     const _getTbBtnProps = () => {
         return [
@@ -137,7 +137,7 @@ const PluginsManager = () => {
         return {
             type: form.getFieldValue("type"),
         }
-    }
+    };
 
     const props = {
         name: 'file',

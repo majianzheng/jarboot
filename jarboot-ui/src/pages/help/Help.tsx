@@ -60,7 +60,7 @@ const Help = memo(() => {
                 {"setting" === page && <SettingDoc/>}
             </div>
         </Col>
-    </Row>
+    </Row>;
 });
 
 export default Help;

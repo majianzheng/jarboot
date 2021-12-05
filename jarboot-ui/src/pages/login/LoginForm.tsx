@@ -55,6 +55,7 @@ const LoginForm = memo(() => {
                 </Button>
             </Form.Item>
         </Form>
-    </div>
+    </div>;
 });
-export default LoginForm
+
+export default LoginForm;

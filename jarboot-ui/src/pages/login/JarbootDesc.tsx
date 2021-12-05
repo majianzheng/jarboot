@@ -8,7 +8,7 @@ const JarbootDesc = memo(() => {
         <div className={styles.jarbootDescription}>
             an easy-to-use Java process starter, manage, monitor and debug a series of Java instance.
         </div>
-    </div>
+    </div>;
 });
 
 export default JarbootDesc;

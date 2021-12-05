@@ -13,6 +13,6 @@ const JarbootVersion = () => {
             setVersion(resp.result);
         }).catch(CommonNotice.errorFormatted);
     }, []);
-    return <span style={{position: "relative", top: '-5px'}}>{version}</span>
+    return <span style={{position: "relative", top: '-5px'}}>{version}</span>;
 };
 export default JarbootVersion;

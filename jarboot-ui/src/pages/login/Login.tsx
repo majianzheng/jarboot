@@ -20,7 +20,7 @@ const LoginMenu = memo(() => {
             <SelectLang className={styles.loginSelectLang}/>
             <ProjectHome iconClass={styles.loginGithubIcon}/>
         </span>
-    </div>
+    </div>;
 });
 
 const Login = memo(() => {
@@ -33,6 +33,7 @@ const Login = memo(() => {
         <LoginMenu/>
         <JarbootDesc/>
         <LoginForm/>
-    </div>
+    </div>;
 });
-export default Login
+
+export default Login;

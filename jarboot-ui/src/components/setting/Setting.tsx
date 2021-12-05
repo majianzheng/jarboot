@@ -34,7 +34,7 @@ const Setting = () => {
             </div>}
             {"sys-plugins" === page && <PluginsManager/>}
         </Col>
-    </Row>
+    </Row>;
 };
 
 export default Setting;

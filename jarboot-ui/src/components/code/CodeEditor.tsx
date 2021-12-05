@@ -84,7 +84,7 @@ const CodeEditor = (props: CodeEditorProps) => {
             onChange={(editor, data, value) => {
                 props?.onChange && props.onChange(editor, data, value);
             }}/>
-    </div>
+    </div>;
 };
 
 CodeEditor.defaultProps = {

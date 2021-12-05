@@ -6,6 +6,7 @@ import Logger from "@/common/Logger";
 
 /**
  * Http请求封装
+ * @author majianzheng
  */
 export default class Request {
     private static request = extend({

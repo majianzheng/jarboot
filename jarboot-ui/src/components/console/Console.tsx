@@ -35,6 +35,10 @@ const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 const LINE_CUR_ATTR = 'line-cur';
 
+/**
+ * 控制台终端类
+ * @author majianzheng
+ */
 class Console extends React.PureComponent<ConsoleProps> {
     private codeDom: HTMLElement|null = null;
     private loading = document.createElement('p');

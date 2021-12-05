@@ -1,6 +1,10 @@
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 
+/**
+ * 通用常量定义
+ * @author majianzheng
+ */
 class JarBootConst {
     public static readonly DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
     public static readonly PROTOCOL_SPLIT = '\r';

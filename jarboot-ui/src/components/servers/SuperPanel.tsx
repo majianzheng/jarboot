@@ -123,7 +123,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         doExecCommand(cmd);
     };
 
-    const onFocusCommandInput = () => inputRef?.current?.focus()
+    const onFocusCommandInput = () => inputRef?.current?.focus();
 
     useEffect(onFocusCommandInput, [props.visible]);
 

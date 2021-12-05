@@ -20,29 +20,54 @@ enum NoticeLevel {
 
 let msg: any = null;
 
+/**
+ * Websocket实现类
+ * @author majianzheng
+ */
 class WsManager {
+    /** 重连成功事件 */
     public static readonly RECONNECTED_EVENT = -1;
+    /** 事件处理回调 */
     private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
+    /** 全局Loading事件 */
     private static readonly LOADING_MAP = new Map<string, MessageType>();
+    /** websocket句柄 */
     private static websocket: any = null;
+    /** 重连setInterval的句柄 */
     private static fd: any = null;
 
+    /**
+     * 添加消息处理
+     * @param key 事件
+     * @param handler 事件处理回调
+     */
     public static addMessageHandler(key: number, handler: (data: MsgData) => void) {
         if (handler && !WsManager.HANDLERS.has(key)) {
             WsManager.HANDLERS.set(key, handler);
         }
     }
 
+    /**
+     * 清理所有消息处理句柄
+     */
     public static clearHandlers() {
         WsManager.HANDLERS.clear();
     }
 
+    /**
+     * 移除消息处理
+     * @param key 事件
+     */
     public static removeMessageHandler(key: number) {
         if (key) {
             WsManager.HANDLERS.delete(key);
         }
     }
 
+    /**
+     * 发送消息
+     * @param text 消息内容
+     */
     public static sendMessage(text: string) {
         if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
             WsManager.websocket.send(text);
@@ -51,6 +76,9 @@ class WsManager {
         WsManager.initWebsocket();
     }
 
+    /**
+     * 初始化Websocket
+     */
     public static initWebsocket() {
         WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager.notice);
         WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
@@ -71,6 +99,10 @@ class WsManager {
         WsManager.websocket.onerror = WsManager.onError;
     }
 
+    /**
+     * Notice提示事件处理
+     * @param data 消息
+     */
     private static notice = (data: MsgData) => {
         const body: string = data.body;
         const index = body.indexOf(',');
@@ -79,19 +111,27 @@ class WsManager {
         switch (level) {
             case NoticeLevel.INFO:
                 CommonNotice.info(msg);
+                Logger.log(msg);
                 break;
             case NoticeLevel.WARN:
                 CommonNotice.warn(msg);
+                Logger.warn(msg);
                 break;
             case NoticeLevel.ERROR:
                 CommonNotice.error(msg);
+                Logger.error(msg);
                 break;
             default:
                 CommonNotice.error(`通知级别错误${level}`, msg);
+                Logger.log('未知的通知级别', body);
                 break;
         }
     }
 
+    /**
+     * 全局Loading消息处理
+     * @param data 消息
+     */
     private static globalLoading = (data: MsgData) => {
         const body: string = data.body;
         if (StringUtil.isEmpty(body)) {
@@ -111,8 +151,13 @@ class WsManager {
         }
     };
 
+    /**
+     * 响应后端消息推送处理
+     * @param e 事件
+     */
     private static onMessage = (e: any) => {
         if (!StringUtil.isString(e?.data)) {
+            Logger.error('Unknown websocket message:', e);
             //二进制数据
             return;
         }

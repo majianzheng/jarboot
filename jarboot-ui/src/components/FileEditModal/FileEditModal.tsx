@@ -35,7 +35,7 @@ const FileEditModal = memo((props: FileEditModalProp) => {
                         readOnly={false} onChange={onChange} mode={CodeMode.PROPERTY}
                         source={props?.content}/>
         </div>
-    </Modal>
+    </Modal>;
 });
 
 export default FileEditModal;
