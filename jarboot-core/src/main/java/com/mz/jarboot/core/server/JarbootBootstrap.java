@@ -76,9 +76,14 @@ public class JarbootBootstrap {
         if (clientData.isHostRemote()) {
             WsClientFactory.getInstance().remoteJvmSchedule();
         }
-        if (isPremain) {
-            //上线成功开启输出流实时显示
-            StdOutStreamReactor.getInstance().setStarting();
+
+        {
+            //fix: attach本地进程时未初始化而不显示控制台输出的问题，初始化标准输出流
+            StdOutStreamReactor reactor = StdOutStreamReactor.getInstance();
+            if (isPremain) {
+                //上线成功开启输出流实时显示
+                reactor.setStarting();
+            }
         }
     }
 
