@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -32,7 +29,7 @@ public class TaskUtils {
     /** 任务调度线程池 */
     private static final ExecutorService TASK_EXECUTOR;
     static {
-        ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(256);
+        LinkedBlockingQueue<Runnable> taskBlockingQueue = new LinkedBlockingQueue<>(16);
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         int maxSize = coreSize * 2;

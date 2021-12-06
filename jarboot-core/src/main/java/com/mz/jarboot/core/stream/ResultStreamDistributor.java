@@ -10,8 +10,7 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
@@ -23,19 +22,16 @@ public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
 
     /** Messge queue */
-    private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
-
-    static {
-        Thread thread = new Thread(ResultStreamDistributor::consumer);
-        thread.setName("jarboot-resp-distributor");
-        thread.setDaemon(true);
-        thread.start();
-    }
-    
+    private static final LinkedBlockingQueue<CmdProtocol> QUEUE = new LinkedBlockingQueue<>(16384);
+    /** instance holder */
     private static class ResultStreamDistributorHolder {
         static ResponseStream http = new HttpResponseStreamImpl();
         static ResponseStream socket = new SocketResponseStreamImpl();
         static ResultViewResolver resultViewResolver = new ResultViewResolver();
+    }
+
+    static {
+        init();
     }
 
     /**
@@ -64,6 +60,13 @@ public class ResultStreamDistributor {
      */
     public static void write(CmdProtocol resp) {
         QUEUE.offer(resp);
+    }
+
+    private static synchronized void init() {
+        Thread thread = new Thread(ResultStreamDistributor::consumer);
+        thread.setName("jarboot-resp-distributor");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static void consumer() {

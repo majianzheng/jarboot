@@ -61,7 +61,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private Thread monitorThread = threadFactory.newThread(this::initPathMonitor);
 
     /** 阻塞队列，监控到目录变化则放入队列 */
-    private final ArrayBlockingQueue<String> modifiedServiceQueue = new ArrayBlockingQueue<>(32);
+    private final LinkedBlockingQueue<String> modifiedServiceQueue = new LinkedBlockingQueue<>(1024);
 
     @Override
     public void init() {
@@ -180,6 +180,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                     ctx.publishEvent(event);
                 }
                 if (!starting) {
+                    logger.info("current is not starting");
                     break;
                 }
             }

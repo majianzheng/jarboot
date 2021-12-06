@@ -6,8 +6,7 @@ import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Command dispatch, the main loop of the logic.
@@ -18,7 +17,7 @@ public class CommandDispatcher extends Thread {
     private final Logger logger = LogUtils.getLogger();
 
     /** 消息处理队列 */
-    private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
+    private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
     /** 心跳响应 */
     private Runnable heartbeat;
 
