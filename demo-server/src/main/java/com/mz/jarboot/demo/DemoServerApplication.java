@@ -279,7 +279,7 @@ public class DemoServerApplication implements Runnable {
         String text = "使用Jarboot启动后，可执行测试的算法\n"
                 + "输出流默认会实时显示到Jarboot的界面，可使用stdout off命令关闭\n"
                 + "help  查看支持的命令列表\n"
-                + "jad com.mz.jarboot.demo.DemoServerApplication        反编译命令\n"
+                + "jad com.mz.jarboot.demo.cmd.PowCommandProcessor        反编译命令\n"
                 + "watch com.mz.jarboot.demo.DemoServerApplication fib        监控fib函数执行命令\n"
                 + "trace com.mz.jarboot.demo.DemoServerApplication fib        追踪fib函数调用栈命令\n"
                 + "watch com.mz.jarboot.demo.DemoServerApplication pow\n"
