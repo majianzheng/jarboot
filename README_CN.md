@@ -12,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断一系列的Java进程。
+<code>Jarboot</code> 是一个Java进程启停、管理、诊断的平台，可以管理、守护、监控及诊断本地和远程的Java进程。
 
 在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
 
@@ -20,7 +20,7 @@ English version goes [here](README.md).
 
 📚 文档：https://www.yuque.com/jarboot/usage/quick-start
 
-🍏 最佳实践 🔥 : https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
+🍏 最佳实践 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️
 
 🐳 可扩展: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>，支持插件式开发。
 

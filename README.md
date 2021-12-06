@@ -12,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.
+<code>Jarboot</code> is a platform for Java process startup, shutdown, management and diagnosis. It can manage, guard, monitor and diagnose local and remote Java processes.
 
 In the test environment and daily built integrated environment, a series of jar files such as compilation output can be put into the agreed directory. <code>Jarboot</code> provides a friendly browser UI interface and HTTP interface to manage its start, stop and status monitoring, and execute commands to debug the target process.
 
@@ -20,7 +20,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 📚 Document: https://www.yuque.com/jarboot/usage/quick-start
 
-🍏 Best practices 🔥 : https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
+🍏 Best practices 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️ 
 
 🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
