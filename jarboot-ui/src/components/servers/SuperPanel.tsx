@@ -123,18 +123,20 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         doExecCommand(cmd);
     };
 
-    const onFocusCommandInput = () => inputRef?.current?.focus();
+    const onFocusCommandInput = () => {
+        inputRef?.current?.focus();
+        const value = inputRef?.current?.state?.value;
+        if (value && value?.length > 0) {
+            inputRef.current.setSelectionRange(0, value.length);
+        }
+    };
 
     useEffect(onFocusCommandInput, [props.visible]);
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
         pubsub.publish(key, JarBootConst.FINISH_LOADING, msg);
-        inputRef?.current?.focus();
-        const value = inputRef?.current?.state?.value;
-        if (value && value?.length > 0) {
-            inputRef.current.setSelectionRange(0, value.length);
-        }
+        onFocusCommandInput();
     };
 
     const clearDisplay = () => {
@@ -151,7 +153,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             //切换为控制台显示
             setView('');
         }
-        inputRef?.current?.focus();
+        Promise.resolve().then(onFocusCommandInput);
     };
 
     const doExecCommand = (cmd: string) => {
