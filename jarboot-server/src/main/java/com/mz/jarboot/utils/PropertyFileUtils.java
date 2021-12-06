@@ -59,6 +59,11 @@ public class PropertyFileUtils {
         }
     }
 
+    /**
+     * 检查环境变量配置
+     * @param env 环境变量
+     * @return 是否合法
+     */
     public static boolean checkEnvironmentVar(String env) {
         if (StringUtils.isEmpty(env)) {
             return true;
@@ -74,6 +79,11 @@ public class PropertyFileUtils {
         return true;
     }
 
+    /**
+     * 根据sid获取服务配置
+     * @param sid sid
+     * @return 服务配置
+     */
     public static ServerSetting getServerSettingBySid(String sid) {
         return SETTING_CACHE.getOrDefault(sid, null);
     }

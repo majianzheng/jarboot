@@ -39,7 +39,7 @@ public class StdOutStreamReactor {
     /** 启动完成判定时间 */
     private long startDetermineTime = 5000;
     /** 是否正在唤醒 */
-    private volatile AtomicBoolean weakuping = new AtomicBoolean(false);
+    private final AtomicBoolean weakuping = new AtomicBoolean(false);
 
     /**
      * 标准输出流显示是否开启

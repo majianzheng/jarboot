@@ -57,7 +57,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private boolean enableAutoStartServices;
     private String curWorkspace;
     private boolean starting = false;
-    private ThreadFactory threadFactory = JarbootThreadFactory.createThreadFactory("jarboot-tws", true);
+    private final ThreadFactory threadFactory = JarbootThreadFactory
+            .createThreadFactory("jarboot-tws", true);
     private Thread monitorThread = threadFactory.newThread(this::initPathMonitor);
 
     /** 阻塞队列，监控到目录变化则放入队列 */
@@ -189,6 +190,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
     }
 
+    /**
+     * 缓存文件的时间戳
+     */
     private void storeCurFileModifyTime() {
         File[] serverDirs = taskRunCache.getServerDirs();
         if (null == serverDirs || serverDirs.length <= 0) {
@@ -287,6 +291,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         String path = jarFile.getPath();
         return String.format("hash.%d", path.hashCode());
     }
+
     private boolean checkJarUpdate(String path) {
         File serverDir = new File(path);
         Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);

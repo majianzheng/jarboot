@@ -28,6 +28,7 @@ public class TaskUtils {
     private static int maxStartTime = 12000;
     /** 任务调度线程池 */
     private static final ExecutorService TASK_EXECUTOR;
+
     static {
         LinkedBlockingQueue<Runnable> taskBlockingQueue = new LinkedBlockingQueue<>(16);
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
@@ -196,6 +197,12 @@ public class TaskUtils {
         return pid;
     }
 
+    /**
+     * 路径转换
+     * @param s 路径
+     * @param serverPath 服务路径
+     * @return 真实路径
+     */
     private static String getAbsolutePath(String s, String serverPath) {
         if (SettingUtils.isAbsolutePath(s)) {
             return s;
@@ -207,6 +214,12 @@ public class TaskUtils {
         return serverPath;
     }
 
+    /**
+     * 启动进程
+     * @param command 命令
+     * @param environment 环境变量
+     * @param workHome 工作目录
+     */
     public static void startTask(String command, String environment, String workHome) {
         String[] en;
         if (StringUtils.isBlank(environment)) {
@@ -230,6 +243,10 @@ public class TaskUtils {
         }
     }
 
+    /**
+     * 强制杀死进程
+     * @param pid 进程PID
+     */
     private static void killByPid(int pid) {
         if (pid < 0) {
             return;

@@ -45,6 +45,7 @@ public class SettingUtils {
     private static final String LOG_DIR;
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
+
     static {
         String home = System.getProperty(CommonConst.JARBOOT_HOME);
         JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
@@ -58,6 +59,9 @@ public class SettingUtils {
         DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
     }
 
+    /**
+     * 初始化Agent路径
+     */
     private static void initAgentJarPath() {
         File jarFile = new File(BIN_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
@@ -69,6 +73,9 @@ public class SettingUtils {
         }
     }
 
+    /**
+     * 初始化系统配置
+     */
     private static void initGlobalSetting() {
         File conf = new File(JARBOOT_CONF);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
