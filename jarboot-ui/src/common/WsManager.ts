@@ -1,7 +1,7 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
-import { JarBootConst, MsgData } from "@/common/JarBootConst";
+import { JarBootConst, MsgData, MsgReq } from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
@@ -66,13 +66,15 @@ class WsManager {
 
     /**
      * 发送消息
-     * @param text 消息内容
+     * @param msgReq 消息内容
      */
-    public static sendMessage(text: string) {
+    public static sendMessage(msgReq: MsgReq) {
         if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
+            const text = JSON.stringify(msgReq);
             WsManager.websocket.send(text);
             return;
         }
+        Logger.error('Websocket is not open, send failed.', msgReq);
         WsManager.initWebsocket();
     }
 

@@ -50,9 +50,16 @@ class JarBootConst {
 }
 
 interface MsgData {
-    event: number,
-    sid: string,
-    body: any
+    event: number;
+    sid: string;
+    body: any;
+}
+
+interface MsgReq {
+    server?: string;
+    sid?: string;
+    body: string;
+    func: number;
 }
 
 const requestFinishCallback = (resp: any) => {
@@ -61,4 +68,4 @@ const requestFinishCallback = (resp: any) => {
     }
 };
 
-export {JarBootConst, MsgData, requestFinishCallback};
+export {JarBootConst, MsgData, MsgReq, requestFinishCallback};

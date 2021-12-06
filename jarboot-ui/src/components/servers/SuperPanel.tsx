@@ -169,8 +169,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             setView('');
         }
         pubsub.publish(key, JarBootConst.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
-        const msg = {server: props.server, sid: props.sid, body: cmd, func: 1};
-        WsManager.sendMessage(JSON.stringify(msg));
+        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: 1});
 
         if (historyProp) {
             const history = historyProp.history;
@@ -195,7 +194,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             return;
         }
         const msg = {server: props.server, sid: props.sid, body: '', func: 2};
-        WsManager.sendMessage(JSON.stringify(msg));
+        WsManager.sendMessage(msg);
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
