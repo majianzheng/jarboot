@@ -1,5 +1,5 @@
-import { Row, Col, Menu } from "antd";
-import styles from "@/pages/index.less";
+import { Layout, Menu } from "antd";
+import styles from "@/common/global.less";
 import React, {useState} from "react";
 import {useIntl} from "umi";
 import SystemSetting from "@/components/setting/SystemSetting";
@@ -14,8 +14,8 @@ const Setting = () => {
         setPage(e.key);
     };
 
-    return <Row>
-        <Col span={4} className={styles.pageContainer}>
+    return <Layout>
+        <Layout.Sider width={280} className={styles.pageContainer} theme={"light"}>
             <Menu onClick={handleClick} defaultSelectedKeys={['sys-setting']} mode="inline">
                 <Menu.ItemGroup title={intl.formatMessage({id: 'SETTING'})}>
                     <Menu.Divider/>
@@ -27,14 +27,14 @@ const Setting = () => {
                     </Menu.Item>
                 </Menu.ItemGroup>
             </Menu>
-        </Col>
-        <Col span={20} className={styles.pageContainer}>
+        </Layout.Sider>
+        <Layout.Content className={styles.pageContainer}>
             {'sys-setting' === page && <div style={{padding: '0 5px 0 20px'}}>
                 <SystemSetting/>
             </div>}
             {"sys-plugins" === page && <PluginsManager/>}
-        </Col>
-    </Row>;
+        </Layout.Content>
+    </Layout>;
 };
 
 export default Setting;

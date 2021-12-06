@@ -1,9 +1,9 @@
 import React, {memo, useState} from "react";
-import {Row, Col, Menu, Typography, Breadcrumb} from 'antd';
+import {Layout, Menu, Typography, Breadcrumb} from 'antd';
 import {RocketOutlined, SettingOutlined, StarOutlined, HomeOutlined} from '@ant-design/icons';
 import {useIntl} from "umi";
 import QuickStartDoc from "@/pages/help/QuickStartDoc";
-import styles from "@/pages/index.less";
+import styles from "@/common/global.less";
 import SettingDoc from "@/pages/help/SettingDoc";
 
 const { Title, Paragraph, Link } = Typography;
@@ -16,8 +16,8 @@ const Help = memo(() => {
         setPage(e.key);
     };
 
-    return <Row>
-        <Col span={4} className={styles.pageContainer}>
+    return <Layout>
+        <Layout.Sider width={280} theme={"light"} className={styles.pageContainer}>
             <Menu onClick={handleClick} defaultSelectedKeys={['about']} mode="inline">
                 <Menu.ItemGroup title={intl.formatMessage({id: 'HELP'})}>
                     <Menu.Divider/>
@@ -32,8 +32,8 @@ const Help = memo(() => {
                     </Menu.Item>
                 </Menu.ItemGroup>
             </Menu>
-        </Col>
-        <Col span={20}>
+        </Layout.Sider>
+        <Layout.Content>
             <div style={{padding: '0 5px 0 10px'}} className={styles.pageContainer}>
                 {"about" === page && <div>
                     <Breadcrumb>
@@ -59,8 +59,8 @@ const Help = memo(() => {
                 {"quick-start" === page && <QuickStartDoc/>}
                 {"setting" === page && <SettingDoc/>}
             </div>
-        </Col>
-    </Row>;
+        </Layout.Content>
+    </Layout>;
 });
 
 export default Help;

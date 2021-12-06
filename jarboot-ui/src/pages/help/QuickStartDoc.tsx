@@ -1,7 +1,8 @@
 import React, {memo} from "react";
 import {BackTop, Breadcrumb, Typography} from "antd";
 import {useIntl} from "umi";
-import {CaretRightOutlined, HomeOutlined, PoweroffOutlined, ReloadOutlined, SyncOutlined} from "@ant-design/icons";
+import {CaretRightOutlined, HomeOutlined, PoweroffOutlined, SyncOutlined} from "@ant-design/icons";
+import {RestartIcon} from "@/components/icons";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -46,13 +47,13 @@ const QuickStartDoc = memo(() => {
                         {intl.formatMessage({id: 'QUICK_START_P6'})}
                     </li>
                     <li>
-                        <Text keyboard><CaretRightOutlined style={{color: 'green'}}/></Text>
+                        <Text keyboard><CaretRightOutlined style={{color: '#1DA57A'}}/></Text>
                         <Text keyboard><PoweroffOutlined style={{color: 'red'}}/></Text>
-                        <Text keyboard><ReloadOutlined/></Text>
+                        <Text keyboard><RestartIcon style={{color: '#1DA57A'}}/></Text>
                         {intl.formatMessage({id: 'QUICK_START_P7'})}
                     </li>
                     <li>
-                        <Text keyboard><SyncOutlined/></Text>
+                        <Text keyboard><SyncOutlined style={{color: '#1DA57A'}}/></Text>
                         {intl.formatMessage({id: 'QUICK_START_P8'})}
                     </li>
                 </ul>
