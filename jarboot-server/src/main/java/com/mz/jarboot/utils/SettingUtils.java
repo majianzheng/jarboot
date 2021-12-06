@@ -68,6 +68,7 @@ public class SettingUtils {
             System.exit(-1);
         }
     }
+
     private static void initGlobalSetting() {
         File conf = new File(JARBOOT_CONF);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?

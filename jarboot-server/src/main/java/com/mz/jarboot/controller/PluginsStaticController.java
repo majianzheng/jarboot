@@ -31,7 +31,7 @@ public class PluginsStaticController {
                      @PathVariable("plugin") String plugin,
                      @PathVariable("file") String file,
                      HttpServletResponse response) {
-        try (OutputStream outputStream = response.getOutputStream();) {
+        try (OutputStream outputStream = response.getOutputStream()) {
             pluginsService.readPluginStatic(type, plugin, file, outputStream);
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
