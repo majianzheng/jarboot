@@ -6,13 +6,14 @@ set "JAVA=%JAVA_HOME%\bin\java.exe"
 setlocal enabledelayedexpansion
 
 set JARBOOT_HOME=%~dp0
+set JARBOOT_HOME=%JARBOOT_HOME:~0,-1%
 
 set SERVER=jarboot-server
 
 rem JVM Configuration
 set "JARBOOT_JVM_OPTS=-Xms256m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=%BASE_DIR%\logs\java_heapdump.hprof -XX:-UseLargePages"
 
-set "JARBOOT_OPTS=-Djdk.attach.allowAttachSelf=true -Dloader.path=%JARBOOT_HOME%/plugins/server"
+set "JARBOOT_OPTS=-Djdk.attach.allowAttachSelf=true -Dloader.path=%JARBOOT_HOME%\plugins\server"
 set "JARBOOT_OPTS=%JARBOOT_OPTS% -jar %JARBOOT_HOME%\bin\%SERVER%.jar"
 
 
