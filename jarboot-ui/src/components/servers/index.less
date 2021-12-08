@@ -56,14 +56,37 @@
     position: fixed;
     top: 66px;
     right: 8px;
-    z-index: 9999;
     button {
         font-weight: bold;
     }
 }
+.viewHeader {
+    .commonBar();
+    display: flex;
+    height: 25px;
+    .viewTitle {
+        flex: 1 1 auto;
+        width: 100%;
+        font-size: 1.2em;
+        .viewTitleContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: center;
+            label {
+                padding: 0 0 0 6px;
+                color: @primary-color;
+                font-weight: bold;
+            }
+        }
+    }
+    .viewHeaderTool {
+        width: 28px;
+    }
+}
 .consoleScrollbarMaskForMac {
     position: fixed;
-    bottom: 32px;
+    bottom: 30px;
     right: 5px;
     width: @scrollbar-size;
     height: @scrollbar-size;
@@ -76,6 +99,7 @@
     border: none;
     box-shadow: none;
     border-radius: 0;
+    width: 100%;
     .commandRightIcon {
         color: #1890ff;
     }

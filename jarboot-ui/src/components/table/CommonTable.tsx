@@ -27,7 +27,7 @@ export default class CommonTable extends PureComponent<CommonTableProp> {
     };
     tableContentHeight = 0;
     currentTableClass = `table-${Date.now()}`;
-    state = {showColumnSetting: false, columns: new Array<any>()};
+    state = {showColumnSetting: false, columns: [] as any[]};
 
     componentDidMount() {
         this._resetTableHeight();

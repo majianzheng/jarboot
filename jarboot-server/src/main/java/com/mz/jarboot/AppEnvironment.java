@@ -1,6 +1,7 @@
 package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.utils.VMUtils;
 import javax.swing.*;
 import java.io.File;
@@ -9,10 +10,25 @@ import java.io.File;
  * check file is all exist and environment is jdk.
  * @author majianzheng
  */
-public class CheckBeforeStart {
+public class AppEnvironment {
+    /**
+     * 初始化并检查环境
+     */
+    public static void initAndCheck() {
+        //初始化工作目录
+        String homePath = System.getenv(CommonConst.JARBOOT_HOME);
+        if (null == homePath || homePath.isEmpty()) {
+            homePath = System.getProperty(CommonConst.JARBOOT_HOME, null);
+            if (null == homePath) {
+                homePath = System.getProperty("user.home") + File.separator + CommonConst.JARBOOT_NAME;
+            }
+        }
+        System.setProperty(CommonConst.JARBOOT_HOME, homePath);
+        System.setProperty("application.version", "v" + VersionUtils.version);
+        final String derbyLog = homePath + File.separator + "logs" + File.separator + "derby.log";
+        System.setProperty("derby.stream.error.file", derbyLog);
 
-    private CheckBeforeStart() { }
-    public static void check() {
+        //环境检查
         if (!checkEnvironment()) {
             System.exit(-1);
         }
@@ -30,7 +46,7 @@ public class CheckBeforeStart {
         String binDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "bin";
         try {
 
-            jarFile = new File(binDir + File.separator + CommonConst.AGENT_JAR_NAME);
+            jarFile = new File(binDir, CommonConst.AGENT_JAR_NAME);
             //先尝试从当前路径下获取jar的位置，若不存在则尝试从用户目录加载
             if (!jarFile.exists()) {
                 propDialog("检查环境错误，在当前目录未发现jarboot-agent.jar。");
@@ -43,7 +59,7 @@ public class CheckBeforeStart {
             return false;
         }
         //检查jarboot-core.jar文件，该文件必须和jarboot-agent.jar处于同一目录下
-        jarFile = new File(dir + File.separator + "jarboot-core.jar");
+        jarFile = new File(dir, "jarboot-core.jar");
         if (!jarFile.exists()) {
             propDialog("检查环境错误，未发现jarboot-core.jar。");
             return false;
@@ -53,7 +69,7 @@ public class CheckBeforeStart {
             return false;
         }
 
-        jarFile = new File(dir + File.separator + "jarboot-spy.jar");
+        jarFile = new File(dir, "jarboot-spy.jar");
         if (!jarFile.exists()) {
             propDialog("检查环境错误，未发现jarboot-spy.jar。");
             return false;
@@ -70,4 +86,6 @@ public class CheckBeforeStart {
         }
         return true;
     }
+
+    private AppEnvironment() { }
 }

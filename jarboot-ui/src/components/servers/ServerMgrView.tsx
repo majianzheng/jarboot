@@ -1,14 +1,21 @@
 import React, {useEffect, useReducer, useRef} from "react";
-import {Result, Input, Space, Button, Modal, Empty, Tree, Spin} from "antd";
+import {Button, Empty, Input, message, Modal, Result, Space, Spin, Tree} from "antd";
 import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
-    SyncOutlined, CaretRightOutlined, CaretRightFilled, DashboardOutlined,
-    PoweroffOutlined, ReloadOutlined, UploadOutlined, LoadingOutlined, SearchOutlined, AppstoreOutlined
+    AppstoreOutlined,
+    CaretRightFilled,
+    CaretRightOutlined,
+    DashboardOutlined,
+    LoadingOutlined,
+    PoweroffOutlined,
+    SearchOutlined,
+    SyncOutlined,
+    UploadOutlined
 } from '@ant-design/icons';
-import { JarBootConst, MsgData } from '@/common/JarBootConst';
+import {JarBootConst, MsgData} from '@/common/JarBootConst';
 import Logger from "@/common/Logger";
-import {PUB_TOPIC, SuperPanel, pubsub} from "@/components/servers";
+import {PUB_TOPIC, pubsub, SuperPanel} from "@/components/servers";
 import BottomBar from "@/components/servers/BottomBar";
 import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
@@ -16,8 +23,10 @@ import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
 import ServerConfig from "@/components/setting/ServerConfig";
-import {DeleteIcon, RestartIcon, StoppedIcon} from "@/components/icons";
+import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
+import CloudService from "@/services/CloudService";
+import CommonUtils from "@/common/CommonUtils";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
 
@@ -33,6 +42,7 @@ interface ServerMgrViewState {
     current: string;
     sideView: 'tree' | 'list';
     contentView: 'config' | 'console';
+    importing: boolean;
 }
 
 let searchInput = {} as any;
@@ -56,7 +66,8 @@ const ServerMgrView = () => {
         selectRows: [] as TreeNode[],
         current: '',
         sideView: getInitSideView(),
-        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console')
+        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
+        importing: false,
     };
     const [state, dispatch] = useReducer((state: ServerMgrViewState, action: any) => {
         if ('function' === typeof action) {
@@ -307,7 +318,13 @@ const ServerMgrView = () => {
                     let selectedRowKeys = [] as string[];
                     let selectRows: any = [];
                     if (data.length > 0) {
-                        const first: ServerRunning = data[0];
+                        let first: ServerRunning;
+                        if (preState.sideView === JarBootConst.LIST_VIEW && treeData.length > 0) {
+                            const firstChildren = treeData[0]?.children as TreeNode[] || [];
+                            first = firstChildren[0] || data[0];
+                        } else {
+                            first = data[0];
+                        }
                         current = first.sid;
                         selectedRowKeys = [first.sid];
                         selectRows = [first];
@@ -403,8 +420,63 @@ const ServerMgrView = () => {
             icon: <DashboardOutlined className={styles.toolButtonRedIcon}/>,
             onClick: dashboardCmd,
             disabled: isCurrentNotRunning()
+        },
+        {
+            title: intl.formatMessage({id: 'EXPORT'}),
+            key: 'export',
+            icon: <ExportIcon className={styles.toolButtonIcon}/>,
+            onClick: onExport,
+            disabled: (1 !== state.selectRows?.length || !state.selectRows[0].isLeaf)
+        },
+        {
+            title: intl.formatMessage({id: 'IMPORT'}),
+            key: 'import',
+            icon: state.importing ? <LoadingOutlined className={styles.toolButtonIcon}/> : <ImportIcon className={styles.toolButtonIcon}/>,
+            onClick: onImport,
+            disabled: state.importing,
         }
     ]);
+
+    const onExport = () => {
+        if (1 !== state.selectRows?.length) {
+            return;
+        }
+        const name = state.selectRows[0].name;
+        if (StringUtil.isEmpty(name)) {
+            return;
+        }
+        Modal.confirm({
+            title: `${intl.formatMessage({id: 'EXPORT'})} ${name}?`,
+            onOk: () => CommonUtils.exportServer(name)
+        });
+    };
+
+    const onImport = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/zip';
+        input.onchange = () => {
+            if (!input.files?.length) {
+                return;
+            }
+            const file = input.files[0];
+            dispatch({importing: true});
+            const content = intl.formatMessage({id: 'START_UPLOAD_INFO'}, {name: file.name});
+            CommonNotice.info(content);
+            const key = file.name.replace('.zip', '');
+            message.loading({content, key, duration: 0}, 0).then(r => {});
+            CloudService.pushServerDirectory(file).then(resp => {
+                if (0 !== resp.resultCode) {
+                    CommonNotice.errorFormatted(resp);
+                }
+                dispatch({importing: false});
+            }).catch(error => {
+                CommonNotice.errorFormatted(error);
+                dispatch({importing: false});
+            });
+        };
+        input.click();
+    };
 
     const isDeleteDisabled = () => {
         if (1 !== state.selectRows?.length) {

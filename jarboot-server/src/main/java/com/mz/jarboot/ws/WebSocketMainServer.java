@@ -25,11 +25,18 @@ import java.util.List;
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
+
+    /** 执行命令func */
     private static final int CMD_FUNC = 1;
+    /** 取消执行命令func */
     private static final int CANCEL_FUNC = 2;
+    /** json请求中server */
     private static final String SERVER_KEY = "server";
+    /** json请求中func */
     private static final String FUNC_KEY = "func";
+    /** json请求中body */
     private static final String BODY_KEY = "body";
+    /** json请求中sid */
     private static final String SID_KEY = "sid";
 
     private static class Holder {

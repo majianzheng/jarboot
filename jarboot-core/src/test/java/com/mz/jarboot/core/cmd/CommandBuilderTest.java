@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd;
 
-import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandRequest;
+import com.mz.jarboot.common.CommandType;
 import com.mz.jarboot.core.cmd.impl.SearchClassCommand;
 import com.mz.jarboot.core.cmd.impl.ThreadCommand;
 import com.mz.jarboot.core.cmd.impl.TraceCommand;
@@ -30,7 +30,7 @@ public class CommandBuilderTest {
     @Test
     public void testBuild() {
         //测试trace命令构建
-        String line = CommandConst.USER_COMMAND + "123\rtrace demo.Test run 'params.length>=0' -n 5";
+        String line = CommandType.USER_PUBLIC.value() + "123\rtrace demo.Test run 'params.length>=0' -n 5";
         CommandRequest request = new CommandRequest();
         CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
         request.fromRaw(line);
@@ -43,7 +43,7 @@ public class CommandBuilderTest {
         assertEquals(5, trace.getNumberOfLimit());
         assertEquals("params.length>=0", trace.getConditionExpress());
 
-        line = CommandConst.USER_COMMAND + "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3";
+        line = CommandType.USER_PUBLIC.value() + "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3";
         request = new CommandRequest();
         session = Mockito.mock(CommandCoreSession.class);
         request.fromRaw(line);
@@ -59,7 +59,7 @@ public class CommandBuilderTest {
         assertEquals(3, patterns.size());
 
         //测试thread命令构建
-        line = CommandConst.USER_COMMAND + "123\rthread 1";
+        line = CommandType.USER_PUBLIC.value() + "123\rthread 1";
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -75,7 +75,7 @@ public class CommandBuilderTest {
         }
 
         //测试thread命令构建
-        line = CommandConst.USER_COMMAND + "123\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient";
+        line = CommandType.USER_PUBLIC.value() + "123\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient";
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -102,7 +102,7 @@ public class CommandBuilderTest {
     @Test
     public void testInternalBuild() {
         //测试trace命令构建
-        String line = CommandConst.INTERNAL_COMMAND + "123\rexit";
+        String line = CommandType.USER_PUBLIC.value() + "123\rexit";
         CommandRequest request = new CommandRequest();
         CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
         request.fromRaw(line);
@@ -110,7 +110,7 @@ public class CommandBuilderTest {
         assertThat(cmd instanceof ExitCommand).isTrue();
         assertEquals("exit", cmd.getName());
 
-        line = CommandConst.INTERNAL_COMMAND + "123\rcancel ";
+        line = CommandType.INTERNAL.value() + "123\rcancel ";
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);

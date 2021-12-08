@@ -7,7 +7,7 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,17 +24,28 @@ import java.util.*;
  */
 public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
-    private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
-    private static final String BOOT_PROPERTIES = "boot.properties";
-    private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
-    private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
-    private static final String DEFAULT_WORKSPACE;
-    private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
-    private static final String JARBOOT_CONF;
-    private static final String BIN_DIR;
-    private static final String LOG_DIR;
 
+    /** 系统配置缓存 */
+    private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
+    /** Jarboot配置文件名字 */
+    private static final String BOOT_PROPERTIES = "boot.properties";
+    /** 工作空间属性key */
+    private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
+    /** 默认VM参数属性key */
+    private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
+    /** 默认的工作空间路径 */
+    private static final String DEFAULT_WORKSPACE;
+    /** Jarboot启动后自动启动其管理的服务的属性配置key */
+    private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
+    /** Jarboot配置文件路径 */
+    private static final String JARBOOT_CONF;
+    /** Jarboot的bin文件夹路径 */
+    private static final String BIN_DIR;
+    /** Jarboot的日志路径 */
+    private static final String LOG_DIR;
+    /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
+
     static {
         String home = System.getProperty(CommonConst.JARBOOT_HOME);
         JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
@@ -48,6 +59,9 @@ public class SettingUtils {
         DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
     }
 
+    /**
+     * 初始化Agent路径
+     */
     private static void initAgentJarPath() {
         File jarFile = new File(BIN_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
@@ -58,6 +72,10 @@ public class SettingUtils {
             System.exit(-1);
         }
     }
+
+    /**
+     * 初始化系统配置
+     */
     private static void initGlobalSetting() {
         File conf = new File(JARBOOT_CONF);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
@@ -69,11 +87,19 @@ public class SettingUtils {
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
+    /**
+     * 获取系统配置
+     * @return 系统配置
+     */
     public static GlobalSetting getGlobalSetting() {
         return GLOBAL_SETTING;
     }
 
-    public static void updateGlobalSetting(GlobalSetting setting) {
+    /**
+     * 更新系统配置
+     * @param setting 配置
+     */
+    public static synchronized void updateGlobalSetting(GlobalSetting setting) {
         String workspace = setting.getWorkspace();
         if (StringUtils.isNotEmpty(workspace)) {
             File dir = new File(workspace);
@@ -83,6 +109,7 @@ public class SettingUtils {
         }
 
         File file = FileUtils.getFile(JARBOOT_CONF);
+        boolean workspaceChanged = false;
         try {
             HashMap<String, String> props = new HashMap<>(4);
             if (null == setting.getDefaultVmOptions()) {
@@ -105,17 +132,25 @@ public class SettingUtils {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
             if (!StringUtils.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
-                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+                workspaceChanged = true;
             }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
+        } finally {
+            if (workspaceChanged) {
+                //工作空间修改，改变工作空间路径监控的目录
+                ApplicationContextUtils.getContext().getBean(TaskWatchService.class).changeWorkspace(workspace);
+            }
         }
     }
 
 
+    /**
+     * 获取工作空间
+     * @return 工作空间
+     */
     public static String getWorkspace() {
         String path = GLOBAL_SETTING.getWorkspace();
         if (StringUtils.isBlank(path)) {
@@ -124,10 +159,20 @@ public class SettingUtils {
         return path;
     }
 
+    /**
+     * 获取日志目录
+     * @return 日志目录
+     */
     public static String getLogDir() {
         return LOG_DIR;
     }
 
+    /**
+     * 获取agent的Attach参数
+     * @param server 服务名
+     * @param sid 服务唯一id
+     * @return 参数
+     */
     public static String getAgentStartOption(String server, String sid) {
         return "-javaagent:" + agentJar + "=" + getAgentArgs(server, sid);
     }
@@ -149,6 +194,10 @@ public class SettingUtils {
         return new String(bytes);
     }
 
+    /**
+     * 获取默认的VM参数
+     * @return VM配置
+     */
     public static String getDefaultJvmArg() {
         String defaultVmOptions = GLOBAL_SETTING.getDefaultVmOptions();
         return null == defaultVmOptions ? StringUtils.EMPTY : defaultVmOptions;
@@ -185,14 +234,30 @@ public class SettingUtils {
         return StringUtils.EMPTY;
     }
 
+    /**
+     * 获取服务工作路径
+     * @param server 服务名
+     * @return 路径
+     */
     public static String getServerPath(String server) {
         return getWorkspace() + File.separator + server;
     }
 
+    /**
+     * 获取服务启动配置文件
+     * @param path 路径
+     * @return 配置文件
+     */
     public static File getServerSettingFile(String path) {
         return FileUtils.getFile(path, BOOT_PROPERTIES);
     }
 
+    /**
+     * 获取服务VM选项配置
+     * @param serverPath 服务路径
+     * @param file 配置文件
+     * @return VM选项
+     */
     public static String getJvm(String serverPath, String file) {
         if (StringUtils.isBlank(file)) {
             file = SettingPropConst.DEFAULT_VM_FILE;
@@ -232,11 +297,21 @@ public class SettingUtils {
         return Paths.get(file, more);
     }
 
+    /**
+     * 检查是否绝对路径
+     * @param file 文件
+     * @return 是否绝对路径
+     */
     public static boolean isAbsolutePath(String file) {
         Path path = getPath(file);
         return path.isAbsolute();
     }
 
+    /**
+     * 根据路径生成sid
+     * @param serverPath 服务路径
+     * @return sid
+     */
     public static String createSid(String serverPath) {
         return String.format("x%x", serverPath.hashCode());
     }

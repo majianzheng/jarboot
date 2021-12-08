@@ -57,6 +57,9 @@ public class FibCommandProcessor implements CommandProcessor {
             }
             result = DemoServerApplication.fib(this.value);
         }
+        if (null != DemoServerApplication.agentService) {
+            DemoServerApplication.agentService.noticeInfo("计算完成", session.getSessionId());
+        }
         return "计算结果：" + result + ", 耗时(ms)：" + (System.currentTimeMillis() - b);
     }
 

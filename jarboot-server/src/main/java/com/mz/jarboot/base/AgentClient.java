@@ -48,18 +48,28 @@ public final class AgentClient extends MessageQueueOperator {
     /**
      * 执行内部命令
      * @param command 命令
+     * @param sessionId 会话id
      */
     public void sendInternalCommand(String command, String sessionId) {
-        CommandRequest request = new CommandRequest();
-        request.setCommandType(CommandType.INTERNAL);
-        request.setCommandLine(command);
-        request.setSessionId(sessionId);
-        this.newMessage(request.toRaw());
+        sendCommand(command, sessionId, CommandType.INTERNAL);
     }
 
+    /**
+     * 发送命令
+     * @param command 命令
+     * @param sessionId 会话id
+     */
     public void sendCommand(String command, String sessionId) {
+        sendCommand(command, sessionId, CommandType.USER_PUBLIC);
+    }
+
+    public void heartbeat() {
+        sendCommand(CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON, CommandType.HEARTBEAT);
+    }
+
+    private void sendCommand(String command, String sessionId, CommandType type) {
         CommandRequest request = new CommandRequest();
-        request.setCommandType(CommandType.USER_PUBLIC);
+        request.setCommandType(type);
         request.setCommandLine(command);
         request.setSessionId(sessionId);
         this.newMessage(request.toRaw());

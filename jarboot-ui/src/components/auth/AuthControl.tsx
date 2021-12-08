@@ -1,11 +1,12 @@
-import { Col, Row, Menu } from 'antd';
-import {memo, useState} from "react";
+import { Layout, Menu } from 'antd';
+import React, {memo, useState} from "react";
 import { useIntl } from 'umi';
 import UserList from "@/components/auth/UserList";
 import RoleMgr from "@/components/auth/RoleMgr";
 import PrivilegeMgr from "@/components/auth/PrivilegeMgr";
 import {UserOutlined, TeamOutlined} from "@ant-design/icons";
 import {PrivilegeIcon} from "@/components/icons";
+import styles from "@/common/global.less";
 
 /**
  * 权限控制
@@ -17,8 +18,8 @@ const AuthControl = memo(() => {
     const onSelect = (event: any) => {
         setSelected(event.key);
     };
-    return <Row>
-        <Col span={6}>
+    return <Layout>
+        <Layout.Sider width={280} theme={"light"}>
             <Menu selectedKeys={[selected]} mode="inline" onClick={onSelect}>
                 <Menu.ItemGroup title={<span>
                     <span>{intl.formatMessage({id: 'AUTH_CONTROL'})}</span>
@@ -35,12 +36,12 @@ const AuthControl = memo(() => {
                     </Menu.Item>
                 </Menu.ItemGroup>
             </Menu>
-        </Col>
-        <Col span={18}>
+        </Layout.Sider>
+        <Layout.Content className={styles.pageContainer}>
             {'UserList' === selected && <UserList/>}
             {'RoleMgr' === selected && <RoleMgr/>}
             {'PrivilegeMgr' === selected && <PrivilegeMgr/>}
-        </Col>
-    </Row>
+        </Layout.Content>
+    </Layout>;
 });
 export default AuthControl;

@@ -14,35 +14,48 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * VM操作，为了兼容多种jdk版本的编译，使用了反射的方式
  * @author majianzheng
  */
 @SuppressWarnings("all")
 public class VMUtils {
     private static final Logger logger = LoggerFactory.getLogger(VMUtils.class);
+    /** attach方法 */
     private Method attach;
+    /** loadAgent方法 */
     private Method loadAgent;
+    /** detach方法 */
     private Method detach;
+    /** 枚举本地JVM实例方法 */
     private Method listVM;
+    /** 获取JVM的PID方法 */
     private Method getVMId;
+    /** 获取JVM的名字方法 */
     private Method getVMName;
-    private static volatile VMUtils instance = null;
+    /** 是否初始化成功 */
     private boolean initialized = false;
 
+    /**
+     * 获取单例
+     * @return 单例
+     */
     public static VMUtils getInstance() {
-        if (null == instance) {
-            synchronized (VMUtils.class) {
-                if (null == instance) {
-                    instance = new VMUtils();
-                }
-            }
-        }
-        return instance;
+        return VMUtilsHolder.INSTANCE;
     }
 
+    /**
+     * 是否初始化成功
+     * @return 是否初始化成功
+     */
     public boolean isInitialized() {
         return initialized;
     }
 
+    /**
+     * Attach指定的VM
+     * @param pid 进程PID
+     * @return VM实例
+     */
     public Object attachVM(int pid) {
         try {
             return attach.invoke(null, String.valueOf(pid));
@@ -51,6 +64,12 @@ public class VMUtils {
         }
     }
 
+    /**
+     * loadAgent
+     * @param vm 指定的VM实例
+     * @param path agent的jar文件路径
+     * @param args 参数
+     */
     public void loadAgentToVM(Object vm, String path, String args) {
         try {
             loadAgent.invoke(vm, path, args);
@@ -59,6 +78,10 @@ public class VMUtils {
         }
     }
 
+    /**
+     * 枚举本地的VM实例
+     * @return VM实例列表
+     */
     public Map<Integer, String> listVM() {
         HashMap<Integer, String> vmMap = new HashMap<>();
         List<?> list;
@@ -82,6 +105,10 @@ public class VMUtils {
         return vmMap;
     }
 
+    /**
+     * Detach VM
+     * @param vm vm实例
+     */
     public void detachVM(Object vm) {
         try {
             detach.invoke(vm);
@@ -149,6 +176,9 @@ public class VMUtils {
         return tools.toURI().toURL();
     }
 
+    private static class VMUtilsHolder {
+        static final VMUtils INSTANCE = new VMUtils();
+    }
 
     private VMUtils() {
         try {

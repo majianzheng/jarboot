@@ -26,10 +26,7 @@ import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.CodeSource;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.jar.JarFile;
 
 /**
@@ -61,7 +58,8 @@ public class JarbootBootstrap {
             }
         } else {
             String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-            LogUtils.init(jarbootHome, serverName, sid, isPremain); //初始化日志模块
+            //初始化日志模块
+            LogUtils.init(jarbootHome, serverName, sid, isPremain && !clientData.isHostRemote());
             logger = LogUtils.getLogger();
 
             //2.环境初始化
@@ -75,12 +73,17 @@ public class JarbootBootstrap {
 
         //4.客户端初始化
         this.initClient();
-        if (clientData.isHostRemoted()) {
-            WsClientFactory.getInstance().remoteJvm();
+        if (clientData.isHostRemote()) {
+            WsClientFactory.getInstance().remoteJvmSchedule();
         }
-        if (isPremain) {
-            //上线成功开启输出流实时显示
-            StdOutStreamReactor.getInstance().setStarting();
+
+        {
+            //fix: attach本地进程时未初始化而不显示控制台输出的问题，初始化标准输出流
+            StdOutStreamReactor reactor = StdOutStreamReactor.getInstance();
+            if (isPremain) {
+                //上线成功开启输出流实时显示
+                reactor.setStarting();
+            }
         }
     }
 
@@ -165,17 +168,7 @@ public class JarbootBootstrap {
     private ClientData initClientData(String args, boolean isPremain) {
         ClientData clientData = new ClientData();
         if (StringUtils.isBlank(args)) {
-            String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
-            if (checkIsLacalAddr(remote)) {
-                //本地进程，使用pid作为sid
-                clientData.setSid(PidFileHelper.getCurrentPid());
-                clientData.setHostRemoted(false);
-            } else {
-                //远程进程，使用uuid作为sid
-                clientData.setSid(CommonConst.REMOTE_SID_PREFIX + UUID.randomUUID().toString());
-                clientData.setHostRemoted(true);
-            }
-            clientData.setHost(remote);
+            //获取服务名
             String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
             if (null == serverName) {
                 serverName = System.getProperty("sun.java.command", "NoName");
@@ -189,8 +182,34 @@ public class JarbootBootstrap {
                     serverName = serverName.substring(index + 1);
                 }
             }
-
             clientData.setServer(serverName);
+            String pid = PidFileHelper.PID;
+            //获取远程的Jarboot服务地址
+            String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
+            if (checkIsLacalAddr(remote)) {
+                //本地进程，使用pid作为sid
+                clientData.setSid(pid);
+                clientData.setHostRemote(false);
+            } else {
+                //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
+                int h = Objects.hash(PidFileHelper.INSTANCE_NAME, System.nanoTime());
+                //远程进程，使用pid + ip + name + hash地址作为sid
+                String ip = getLocalAddr();
+                StringBuilder sb = new StringBuilder();
+                sb
+                        .append(CommonConst.REMOTE_SID_PREFIX)
+                        .append(CommonConst.COMMA_SPLIT)
+                        .append(pid)
+                        .append(CommonConst.COMMA_SPLIT)
+                        .append(ip)
+                        .append(CommonConst.COMMA_SPLIT)
+                        .append(serverName)
+                        .append(CommonConst.COMMA_SPLIT)
+                        .append(String.format("%x-%x", h, System.nanoTime()));
+                clientData.setSid(sb.toString());
+                clientData.setHostRemote(true);
+            }
+            clientData.setHost(remote);
             return clientData;
         }
         //由jarboot本地启动
@@ -200,6 +219,7 @@ public class JarbootBootstrap {
             throw new JarbootException("解析传入传入参数错误！args:" + s);
         }
         clientData.setHost(String.format("127.0.0.1:%s", agentArgs[0]));
+        System.setProperty(CommonConst.REMOTE_PROP, clientData.getHost());
         clientData.setServer(agentArgs[1]);
         String sid = agentArgs[2];
         clientData.setSid(sid);
@@ -207,6 +227,36 @@ public class JarbootBootstrap {
             PidFileHelper.writePidFile(sid);
         }
         return clientData;
+    }
+
+    /**
+     * 获取本机网卡的地址
+     * @return 网卡地址
+     */
+    private String getLocalAddr() {
+        //先尝试获取IPv4的地址
+        List<String> addrList = NetworkUtils.getLocalAddr4();
+        if (null != addrList && !addrList.isEmpty()) {
+            for (String addr : addrList) {
+                //.1结尾的可能是虚拟机的虚拟网卡地址
+                if (!addr.endsWith(".1")) {
+                    return addr;
+                }
+            }
+            for (String addr : addrList) {
+                //.0.*的可能是交换地址，如docker
+                if (!addr.contains(".0.")) {
+                    return addr;
+                }
+            }
+            return addrList.get(0);
+        }
+        //IPv4地址为空时，使用IPv6的地址
+        addrList = NetworkUtils.getLocalAddr();
+        if (null == addrList || addrList.isEmpty()) {
+            throw new JarbootException("获取本机IP地址异常！");
+        }
+        return addrList.get(0);
     }
 
     private boolean checkIsLacalAddr(String remote) {

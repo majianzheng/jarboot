@@ -6,8 +6,7 @@ import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Command dispatch, the main loop of the logic.
@@ -16,9 +15,14 @@ import java.util.concurrent.BlockingQueue;
 @SuppressWarnings("all")
 public class CommandDispatcher extends Thread {
     private final Logger logger = LogUtils.getLogger();
-    private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
 
-    public CommandDispatcher() {
+    /** 消息处理队列 */
+    private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
+    /** 心跳响应 */
+    private Runnable heartbeat;
+
+    public CommandDispatcher(Runnable heartbeat) {
+        this.heartbeat = heartbeat;
         this.setDaemon(true);
         this.setName("jarboot.command-dispatcher");
         this.start();
@@ -54,17 +58,15 @@ public class CommandDispatcher extends Thread {
             session = EnvironmentContext.registerSession(request.getSessionId());
 
             CommandType type = request.getCommandType();
-            AbstractCommand command = CommandBuilder.build(request, session);
-
-            if (null == command) {
-                return;
-            }
             switch (type) {
                 case USER_PUBLIC:
-                    EnvironmentContext.runCommand(command);
+                    EnvironmentContext.runCommand(CommandBuilder.build(request, session));
                     break;
                 case INTERNAL:
-                    command.run();
+                    execInternalCmd(CommandBuilder.build(request, session));
+                    break;
+                case HEARTBEAT:
+                    this.heartbeat.run();
                     break;
                 default:
                     logger.debug("未知类型的命令：{}, {}", type, request.getCommandLine());
@@ -76,5 +78,12 @@ public class CommandDispatcher extends Thread {
                 session.end();
             }
         }
+    }
+
+    private void execInternalCmd(AbstractCommand command) {
+        if (null == command) {
+            return;
+        }
+        command.run();
     }
 }

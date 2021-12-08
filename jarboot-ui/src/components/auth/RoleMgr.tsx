@@ -19,7 +19,7 @@ const RoleMgr = memo(() => {
     let [loading, setLoading] = useState(false);
     let [visible, setVisible] = useState(false);
     let [selected, setSelected] = useState({
-        selectedRowKeys: new Array<any>(), selectedRows: new Array<any>()
+        selectedRowKeys: [] as any[], selectedRows: [] as any[]
     });
     let [data, setData] = useState(new Array<any>());
 

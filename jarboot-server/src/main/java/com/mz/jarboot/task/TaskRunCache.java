@@ -2,7 +2,7 @@ package com.mz.jarboot.task;
 
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.PidFileHelper;
+import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -28,12 +28,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class TaskRunCache {
+    /** 需要排除的工作空间里的目录 */
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
+    /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
+    /** 正在启动中的服务 */
     private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>(16);
+    /** 正在停止中的服务 */
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
+    /**
+     * 获取服务路径列表
+     * @return 服务路径列表
+     */
     public List<String> getServerPathList() {
         File[] serviceDirs = this.getServerDirs();
         List<String> paths = new ArrayList<>();
@@ -45,6 +53,10 @@ public class TaskRunCache {
         return paths;
     }
 
+    /**
+     * 获取服务目录列表
+     * @return 服务目录
+     */
     public File[] getServerDirs() {
         String servicesPath = SettingUtils.getWorkspace();
         File servicesDir = new File(servicesPath);
@@ -60,6 +72,10 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
+    /**
+     * 获取服务列表
+     * @return 服务列表
+     */
     public List<ServerRunning> getServerList() {
         List<ServerRunning> serverList = new ArrayList<>();
         File[] serviceDirs = getServerDirs();
@@ -76,13 +92,13 @@ public class TaskRunCache {
             process.setGroup(this.getGroup(sid, path));
 
             if (AgentManager.getInstance().isOnline(sid)) {
-                process.setStatus(CommonConst.STATUS_RUNNING);
+                process.setStatus(TaskStatus.RUNNING.name());
             } else if (this.isStarting(sid)) {
-                process.setStatus(CommonConst.STATUS_STARTING);
+                process.setStatus(TaskStatus.STARTING.name());
             } else if (this.isStopping(sid)) {
-                process.setStatus(CommonConst.STATUS_STOPPING);
+                process.setStatus(TaskStatus.STOPPING.name());
             } else {
-                process.setStatus(CommonConst.STATUS_STOPPED);
+                process.setStatus(TaskStatus.STOPPED.name());
             }
 
             serverList.add(process);
@@ -146,7 +162,7 @@ public class TaskRunCache {
     }
 
     private void cleanPidFiles() {
-        File pidDir = FileUtils.getFile(PidFileHelper.getPidDir());
+        File pidDir = CacheDirHelper.getPidDir();
         if (!pidDir.exists()) {
             return;
         }
@@ -171,11 +187,7 @@ public class TaskRunCache {
                 } catch (Exception exception) {
                     //ignore
                 }
-                try {
-                    FileUtils.forceDelete(file);
-                } catch (Exception exception) {
-                    //ignore
-                }
+                FileUtils.deleteQuietly(file);
             });
         }
     }

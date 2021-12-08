@@ -70,6 +70,14 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
                 break;
         }
     };
+
+    const noticeBackup = (name: string) => {
+        Modal.confirm({
+            title: intl.formatMessage({id: 'UPLOAD_INFO'}, {name}),
+            onOk: () => CommonUtils.exportServer(name)
+        })
+    };
+
     const onConfirm = () => {
         const name = form.getFieldValue("name");
         if (StringUtil.isEmpty(name)) {
@@ -78,6 +86,10 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         }
         UploadFileService.startUploadFile(name).then(resp => {
             if (resp.resultCode === 0) {
+                //提示是否备份
+                if (resp.result) {
+                    noticeBackup(name);
+                }
                 dispatch({name: name, stage: UploadFileStage.UPLOAD, exist: resp.result});
                 UploadHeartbeat.getInstance().start(name);
             } else {

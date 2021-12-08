@@ -9,24 +9,9 @@ public class CommandRequest implements CmdProtocol {
     private String commandLine = "";
     private String sessionId;
 
-    private char getCommandTypeChar() {
-        if (null == this.getCommandType()) {
-            return CommandConst.NONE_COMMAND;
-        }
-        switch (this.getCommandType()) {
-            case USER_PUBLIC:
-                return CommandConst.USER_COMMAND;
-            case INTERNAL:
-                return CommandConst.INTERNAL_COMMAND;
-            default:
-                break;
-        }
-        return '-';
-    }
-
     @Override
     public String toRaw() {
-        return this.getCommandTypeChar() + sessionId + CommandConst.PROTOCOL_SPLIT + this.commandLine;
+        return commandType.value() + sessionId + CommandConst.PROTOCOL_SPLIT + this.commandLine;
     }
 
     @Override
@@ -34,17 +19,7 @@ public class CommandRequest implements CmdProtocol {
         if (null == raw || raw.length() < CommandConst.MIN_CMD_LEN) {
             return;
         }
-        switch (raw.charAt(0)) {
-            case CommandConst.USER_COMMAND:
-                commandType = CommandType.USER_PUBLIC;
-                break;
-            case CommandConst.INTERNAL_COMMAND:
-                commandType  = CommandType.INTERNAL;
-                break;
-            default:
-                commandType = CommandType.UNKNOWN;
-                break;
-        }
+        commandType = CommandType.fromChar(raw.charAt(0));
         //从第二个字符到第一个空格，为sessionId
         int p = raw.indexOf(CommandConst.PROTOCOL_SPLIT);
         if (p < CommandConst.MIN_CMD_LEN - 1) {

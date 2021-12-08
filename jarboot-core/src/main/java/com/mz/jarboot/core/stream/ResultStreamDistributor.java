@@ -10,30 +10,28 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
+@SuppressWarnings("all")
 public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
-    private static final int WAIT_TIME = 100;
-    private static final ArrayBlockingQueue<CmdProtocol> QUEUE = new ArrayBlockingQueue<>(16384);
 
-    static {
-        Thread thread = new Thread(ResultStreamDistributor::consumer);
-        thread.setName("jarboot-resp-distributor");
-        thread.setDaemon(true);
-        thread.start();
-    }
-    
+    /** Messge queue */
+    private static final LinkedBlockingQueue<CmdProtocol> QUEUE = new LinkedBlockingQueue<>(16384);
+    /** instance holder */
     private static class ResultStreamDistributorHolder {
         static ResponseStream http = new HttpResponseStreamImpl();
         static ResponseStream socket = new SocketResponseStreamImpl();
         static ResultViewResolver resultViewResolver = new ResultViewResolver();
+    }
+
+    static {
+        init();
     }
 
     /**
@@ -41,7 +39,6 @@ public class ResultStreamDistributor {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings("all")
     public static void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.resultViewResolver.getResultView(model);
         if (resultView == null) {
@@ -62,23 +59,23 @@ public class ResultStreamDistributor {
      * @param resp 数据
      */
     public static void write(CmdProtocol resp) {
-        if (!QUEUE.offer(resp)) {
-            logger.trace("message queue may overflow, put failed.");
-        }
+        QUEUE.offer(resp);
     }
-    
-    @SuppressWarnings("all")
+
+    private static synchronized void init() {
+        Thread thread = new Thread(ResultStreamDistributor::consumer);
+        thread.setName("jarboot-resp-distributor");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     private static void consumer() {
         for (; ; ) {
             try {
-                CmdProtocol resp = QUEUE.poll(WAIT_TIME, TimeUnit.MILLISECONDS);
-                if (null == resp) {
-                    StdOutStreamReactor.getInstance().flush();
-                } else {
-                    sendToServer(resp);
-                }
+                CmdProtocol resp = QUEUE.take();
+                sendToServer(resp);
             } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
+                //ignore
             }
         }
     }

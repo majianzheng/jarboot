@@ -1,47 +1,89 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
-import {MSG_EVENT} from "@/common/EventConst";
-import {JarBootConst, MsgData} from "@/common/JarBootConst";
+import { MSG_EVENT } from "@/common/EventConst";
+import { JarBootConst, MsgData, MsgReq } from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
-import { getLocale } from 'umi';
+import { MessageType } from "antd/lib/message";
+
+enum NoticeLevel {
+    /** 提示 */
+    INFO,
+
+    /** 警告 */
+    WARN,
+
+    /** 错误 */
+    ERROR
+}
 
 let msg: any = null;
-class WsManager {
-    public static readonly RECONNECTED_EVENT = -1;
-    private static websocket: any = null;
-    private static fd: any = null;
-    private static _messageHandler = new Map<number, (data: MsgData) => void>();
 
+/**
+ * Websocket实现类
+ * @author majianzheng
+ */
+class WsManager {
+    /** 重连成功事件 */
+    public static readonly RECONNECTED_EVENT = -1;
+    /** 事件处理回调 */
+    private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
+    /** 全局Loading事件 */
+    private static readonly LOADING_MAP = new Map<string, MessageType>();
+    /** websocket句柄 */
+    private static websocket: any = null;
+    /** 重连setInterval的句柄 */
+    private static fd: any = null;
+
+    /**
+     * 添加消息处理
+     * @param key 事件
+     * @param handler 事件处理回调
+     */
     public static addMessageHandler(key: number, handler: (data: MsgData) => void) {
-        if (handler && !WsManager._messageHandler.has(key)) {
-            WsManager._messageHandler.set(key, handler);
+        if (handler && !WsManager.HANDLERS.has(key)) {
+            WsManager.HANDLERS.set(key, handler);
         }
     }
 
+    /**
+     * 清理所有消息处理句柄
+     */
     public static clearHandlers() {
-        WsManager._messageHandler.clear();
+        WsManager.HANDLERS.clear();
     }
 
+    /**
+     * 移除消息处理
+     * @param key 事件
+     */
     public static removeMessageHandler(key: number) {
         if (key) {
-            WsManager._messageHandler.delete(key);
+            WsManager.HANDLERS.delete(key);
         }
     }
 
-    public static sendMessage(text: string) {
+    /**
+     * 发送消息
+     * @param msgReq 消息内容
+     */
+    public static sendMessage(msgReq: MsgReq) {
         if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
+            const text = JSON.stringify(msgReq);
             WsManager.websocket.send(text);
             return;
         }
+        Logger.error('Websocket is not open, send failed.', msgReq);
         WsManager.initWebsocket();
     }
 
+    /**
+     * 初始化Websocket
+     */
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_INFO, WsManager._noticeInfo);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_WARN, WsManager._noticeWarn);
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE_ERROR, WsManager._noticeError);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager.notice);
+        WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
                 WebSocket.CONNECTING === WsManager.websocket.readyState) {
@@ -53,27 +95,71 @@ class WsManager {
             `ws://${window.location.host}/public/jarboot/service/ws?token=`;
         url += CommonUtils.getToken();
         WsManager.websocket = new WebSocket(url);
-        WsManager.websocket.onmessage = WsManager._onMessage;
-        WsManager.websocket.onopen = WsManager._onOpen;
-        WsManager.websocket.onclose = WsManager._onClose;
-        WsManager.websocket.onerror = WsManager._onError;
+        WsManager.websocket.onmessage = WsManager.onMessage;
+        WsManager.websocket.onopen = WsManager.onOpen;
+        WsManager.websocket.onclose = WsManager.onClose;
+        WsManager.websocket.onerror = WsManager.onError;
     }
 
-    private static _noticeInfo = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "提示" : "Info";
-        CommonNotice.info(title, data.body);
-    };
-    private static _noticeWarn = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "警告" : "Warn";
-        CommonNotice.warn(title, data.body);
-    };
-    private static _noticeError = (data: MsgData) => {
-        const title = JarBootConst.ZH_CN === getLocale() ? "错误" : "Error";
-        CommonNotice.error(title, data.body);
+    /**
+     * Notice提示事件处理
+     * @param data 消息
+     */
+    private static notice = (data: MsgData) => {
+        const body: string = data.body;
+        const index = body.indexOf(',');
+        const level = parseInt(body.substring(0, index));
+        const msg = body.substring(index + 1);
+        switch (level) {
+            case NoticeLevel.INFO:
+                CommonNotice.info(msg);
+                Logger.log(msg);
+                break;
+            case NoticeLevel.WARN:
+                CommonNotice.warn(msg);
+                Logger.warn(msg);
+                break;
+            case NoticeLevel.ERROR:
+                CommonNotice.error(msg);
+                Logger.error(msg);
+                break;
+            default:
+                CommonNotice.error(`通知级别错误${level}`, msg);
+                Logger.log('未知的通知级别', body);
+                break;
+        }
+    }
+
+    /**
+     * 全局Loading消息处理
+     * @param data 消息
+     */
+    private static globalLoading = (data: MsgData) => {
+        const body: string = data.body;
+        if (StringUtil.isEmpty(body)) {
+            return;
+        }
+        const index = body.indexOf(JarBootConst.PROTOCOL_SPLIT);
+        const hasSplit = -1 === index;
+        const key = hasSplit ? body : body.substring(0, index);
+        const handle = WsManager.LOADING_MAP.get(key);
+        WsManager.LOADING_MAP.delete(key);
+        if (hasSplit) {
+            handle && handle();
+        } else {
+            const duration = 0;
+            const content = body.substring(index + 1);
+            WsManager.LOADING_MAP.set(key, message.loading({content, key, duration}, duration));
+        }
     };
 
-    private static _onMessage = (e: any) => {
+    /**
+     * 响应后端消息推送处理
+     * @param e 事件
+     */
+    private static onMessage = (e: any) => {
         if (!StringUtil.isString(e?.data)) {
+            Logger.error('Unknown websocket message:', e);
             //二进制数据
             return;
         }
@@ -93,20 +179,20 @@ class WsManager {
             const event = parseInt(resp.substring(i + 1, k));
             const body = resp.substring(k + 1);
             let data: MsgData = {event, body, sid};
-            const handler = WsManager._messageHandler.get(data.event);
+            const handler = WsManager.HANDLERS.get(data.event);
             handler && handler(data);
         } catch (error) {
             Logger.warn(error);
         }
     };
 
-    private static _onOpen = () => {
+    private static onOpen = () => {
         Logger.log("连接Websocket服务器成功！");
         if (msg) {
             msg();
             msg = null;
             //重连成功，刷新状态
-            const handler = WsManager._messageHandler.get(WsManager.RECONNECTED_EVENT);
+            const handler = WsManager.HANDLERS.get(WsManager.RECONNECTED_EVENT);
             handler && handler({sid: '', body: '', event: WsManager.RECONNECTED_EVENT});
         }
         if (null !== WsManager.fd) {
@@ -116,18 +202,18 @@ class WsManager {
         }
     };
 
-    private static _onClose = () => {
+    private static onClose = () => {
         Logger.log("websocket连接关闭！");
-        WsManager._reconnect();
+        WsManager.reconnect();
     };
 
-    private static _onError = (e: Error) => {
+    private static onError = (e: Error) => {
         Logger.log("websocket异常关闭！");
         Logger.error(e);
-        WsManager._reconnect();
+        WsManager.reconnect();
     };
 
-    private static _reconnect() {
+    private static reconnect() {
         if (null !== WsManager.fd) {
             return;
         }
@@ -149,7 +235,7 @@ class WsManager {
                 return;
             }
             WsManager.initWebsocket();
-        }, 10000);
+        }, 15000);
     }
 }
 

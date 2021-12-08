@@ -127,10 +127,12 @@ public class ThreadCommand extends AbstractCommand {
             stateCountMap.put(threadState, count + 1);
         }
 
+        boolean includeInternalThreads = true;
         Collection<ThreadVO> resultThreads = new ArrayList<>();
         if (!StringUtils.isEmpty(this.state)) {
             this.state = this.state.toUpperCase();
             if (states.contains(this.state)) {
+                includeInternalThreads = false;
                 for (ThreadVO thread : threads) {
                     if (thread.getState() != null && state.equals(thread.getState().name())) {
                         resultThreads.add(thread);
@@ -146,6 +148,7 @@ public class ThreadCommand extends AbstractCommand {
 
         //thread stats
         com.mz.jarboot.core.cmd.impl.ThreadSampler threadSampler = new com.mz.jarboot.core.cmd.impl.ThreadSampler();
+        threadSampler.setIncludeInternalThreads(includeInternalThreads);
         threadSampler.sample(resultThreads);
         threadSampler.pause(sampleInterval);
         List<ThreadVO> threadStats = threadSampler.sample(resultThreads);

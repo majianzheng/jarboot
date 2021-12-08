@@ -11,12 +11,12 @@ import com.mz.jarboot.core.utils.HttpUtils;
 public class HttpResponseStreamImpl implements ResponseStream {
 
     private static class HttpResponseStreamImplHolder {
-        static String api = "/api/public/agent/response?server=" + EnvironmentContext.getServer() +
+        static final String API = "/api/public/agent/response?server=" + EnvironmentContext.getServer() +
                 "&sid=" + EnvironmentContext.getSid();
     }
 
     @Override
     public void write(String data) {
-        HttpUtils.postSimple(HttpResponseStreamImplHolder.api, data);
+        HttpUtils.postSimple(HttpResponseStreamImplHolder.API, data);
     }
 }

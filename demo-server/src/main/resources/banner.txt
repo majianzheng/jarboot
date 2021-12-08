@@ -14,6 +14,6 @@
 Example: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example
 Debug command usage example:
 <span style="color:#52c41a">help</span> [command]
-jad com.mz.jarboot.demo.DemoServerApplication
+jad com.mz.jarboot.demo.cmd.PowCommandProcessor
 watch com.mz.jarboot.demo.DemoServerApplication fib
 trace com.mz.jarboot.demo.DemoServerApplication pow

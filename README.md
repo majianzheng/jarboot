@@ -12,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.
+<code>Jarboot</code> is a platform for Java process startup, shutdown, management and diagnosis. It can manage, guard, monitor and diagnose local and remote Java processes.
 
 In the test environment and daily built integrated environment, a series of jar files such as compilation output can be put into the agreed directory. <code>Jarboot</code> provides a friendly browser UI interface and HTTP interface to manage its start, stop and status monitoring, and execute commands to debug the target process.
 
@@ -20,16 +20,17 @@ In the test environment and daily built integrated environment, a series of jar 
 
 📚 Document: https://www.yuque.com/jarboot/usage/quick-start
 
-😊 Advanced application examples: <code>Jarboot</code> 🔥 with <code>Spring Cloud Alibaba</code> Examples ⤵️ 
-
-🍏 The Example url: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️ 
+🍏 Best practices 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️ 
 
 🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
-<code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
+<code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, 
+which is non-invasive. The injected code is only used for command interaction with jarboot's service. Some commands 
+modify the bytecode of the class for class enhancement. A command system similar to <code>Arthas</code> is added, such 
+as acquiring JVM information, monitoring thread status, acquiring thread stack information, etc.
 
 - 🌈   Browser interface management, one click start, stop, do not have to manually execute one by one.
 - 🔥   Support start and stop priority configuration<sup id="a2">[[1]](#f1)</sup>, and default parallel start.
@@ -38,10 +39,11 @@ In the test environment and daily built integrated environment, a series of jar 
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 - 💎   Support user-define command by <code>SPI</code>, support develop plugins.
 
-Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses 
-<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+### Architecture brief introduction
+Detailed architecture design [view](jarboot-server/README.md)
 
-### Architecture brief introduction [view](jarboot-server/README.md).
+Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses
+<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ## Install or build
 ### Download the zip package to install or using docker.
@@ -91,7 +93,7 @@ Use SPI extension can implement your own command, define a command how to execut
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>2.0.0</version>
+    <version>${jarboot.version}</version>
 </dependency>
 ```
 2. Implement <code>CommandProcessor</code>SPI interface
@@ -139,7 +141,7 @@ Demonstrate how to use ordinary non springboot applications.
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>2.0.0</version>
+    <version>${jarboot.version}</version>
 </dependency>
 ```
 2. Implement spi interface

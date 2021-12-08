@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -26,18 +23,29 @@ import java.util.concurrent.TimeUnit;
  */
 public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
+
+    /** 服务启动超时时间 */
     private static int maxStartTime = 12000;
+    /** 任务调度线程池 */
     private static final ExecutorService TASK_EXECUTOR;
+
     static {
-        ArrayBlockingQueue<Runnable> taskBlockingQueue = new ArrayBlockingQueue<>(256);
-        TASK_EXECUTOR = new ThreadPoolExecutor(8, 32,
-                32L, TimeUnit.SECONDS, taskBlockingQueue,
+        LinkedBlockingQueue<Runnable> taskBlockingQueue = new LinkedBlockingQueue<>(16);
+        //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
+        int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
+        int maxSize = coreSize * 2;
+        TASK_EXECUTOR = new ThreadPoolExecutor(coreSize, maxSize,
+                16L, TimeUnit.SECONDS, taskBlockingQueue,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"),
                 //线程池忙碌拒绝策略
                 (Runnable r, ThreadPoolExecutor executor) ->
                         WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
     }
 
+    /**
+     * 获取线程池
+     * @return 线程池
+     */
     public static ExecutorService getTaskExecutor() {
         return TASK_EXECUTOR;
     }
@@ -167,6 +175,11 @@ public class TaskUtils {
         }
     }
 
+    /**
+     * 根据sid获取服务的PID
+     * @param sid sid
+     * @return PID
+     */
     public static int getPid(String sid) {
         int pid = CommonConst.INVALID_PID;
         try {
@@ -184,6 +197,12 @@ public class TaskUtils {
         return pid;
     }
 
+    /**
+     * 路径转换
+     * @param s 路径
+     * @param serverPath 服务路径
+     * @return 真实路径
+     */
     private static String getAbsolutePath(String s, String serverPath) {
         if (SettingUtils.isAbsolutePath(s)) {
             return s;
@@ -195,6 +214,12 @@ public class TaskUtils {
         return serverPath;
     }
 
+    /**
+     * 启动进程
+     * @param command 命令
+     * @param environment 环境变量
+     * @param workHome 工作目录
+     */
     public static void startTask(String command, String environment, String workHome) {
         String[] en;
         if (StringUtils.isBlank(environment)) {
@@ -218,6 +243,10 @@ public class TaskUtils {
         }
     }
 
+    /**
+     * 强制杀死进程
+     * @param pid 进程PID
+     */
     private static void killByPid(int pid) {
         if (pid < 0) {
             return;

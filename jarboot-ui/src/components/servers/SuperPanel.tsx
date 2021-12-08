@@ -66,10 +66,41 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const historyProp = historyMap.get(key);
 
     //解析json数据的视图
-    const viewResolver: any = {
-        'dashboard': <DashboardView data={data}/>,
-        'jad': <JadView data={data}/>,
-        'heapdump': <HeapDumpView data={data}/>,
+    const viewResolver = () => {
+        let panel;
+        switch (view) {
+            case 'dashboard':
+                panel = <DashboardView data={data}/>;
+                break;
+            case 'jad':
+                panel = <JadView data={data}/>;
+                break;
+            case 'heapdump':
+                panel = <HeapDumpView data={data}/>;
+                break;
+            default:
+                panel = <div>Unknown command view {view}</div>
+                break;
+        }
+        const buttonTitle = executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
+        return (<div style={{height: JarBootConst.PANEL_HEIGHT}}>
+            <div className={styles.viewHeader}>
+                <span className={styles.viewTitle}>
+                    <span className={styles.viewTitleContainer}>
+                       {executing && <LoadingOutlined className={styles.statusStarting}/>}
+                        <label>{command}</label>
+                    </span>
+                </span>
+                <div className={styles.viewHeaderTool}>
+                    <Button type={"link"}
+                            size={"small"}
+                            title={buttonTitle}
+                            onClick={closeView}
+                            icon={<CloseOutlined style={{fontSize: '1.28em'}}/>}/>
+                </div>
+            </div>
+            {panel}
+        </div>);
     };
 
     const renderView = (resultData: any) => {
@@ -92,18 +123,20 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         doExecCommand(cmd);
     };
 
-    const onFocusCommandInput = () => inputRef?.current?.focus()
+    const onFocusCommandInput = () => {
+        inputRef?.current?.focus();
+        const value = inputRef?.current?.state?.value;
+        if (value && value?.length > 0) {
+            inputRef.current.setSelectionRange(0, value.length);
+        }
+    };
 
     useEffect(onFocusCommandInput, [props.visible]);
 
     const onCmdEnd = (msg?: string) => {
         setExecuting(false);
         pubsub.publish(key, JarBootConst.FINISH_LOADING, msg);
-        inputRef?.current?.focus();
-        const value = inputRef?.current?.state?.value;
-        if (value && value?.length > 0) {
-            inputRef.current.setSelectionRange(0, value.length);
-        }
+        onFocusCommandInput();
     };
 
     const clearDisplay = () => {
@@ -113,14 +146,14 @@ const SuperPanel = memo((props: SuperPanelProps) => {
 
     const closeView = () => {
         if (executing) {
-            CommonNotice.info(intl.formatMessage({id: 'COMMAND_RUNNING'}, {command}));
+            onCancelCommand();
             return;
         }
         if ('' !== view) {
             //切换为控制台显示
             setView('');
         }
-        inputRef?.current?.focus();
+        Promise.resolve().then(onFocusCommandInput);
     };
 
     const doExecCommand = (cmd: string) => {
@@ -138,8 +171,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             setView('');
         }
         pubsub.publish(key, JarBootConst.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
-        const msg = {server: props.server, sid: props.sid, body: cmd, func: 1};
-        WsManager.sendMessage(JSON.stringify(msg));
+        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: 1});
 
         if (historyProp) {
             const history = historyProp.history;
@@ -164,7 +196,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             return;
         }
         const msg = {server: props.server, sid: props.sid, body: '', func: 2};
-        WsManager.sendMessage(JSON.stringify(msg));
+        WsManager.sendMessage(msg);
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
@@ -195,7 +227,10 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         }
     };
 
-    const commandInput = () => (
+    const consolePanel = () => {
+        const style = '' === view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
+        return (<div style={style}>
+            <Console id={key} pubsub={pubsub} height={JarBootConst.PANEL_HEIGHT - 26}/>
             <Input onPressEnter={onExecCommand}
                    onKeyUp={onKeyUp}
                    ref={inputRef}
@@ -206,12 +241,14 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                    autoCorrect="off"
                    autoCapitalize="off"
                    spellCheck="false"
-                   style={{width: '100%'}}
                    onChange={event => setCommand(event.target.value)}
                    value={command}
                    prefix={<RightOutlined className={styles.commandRightIcon}/>}
                    suffix={executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
-            />);
+            />
+            {'' === view && extraButton()}
+        </div>);
+    };
 
     const extraButton = () => {
         let extra;
@@ -238,14 +275,8 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     };
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
-            <div style={{height: JarBootConst.PANEL_HEIGHT}}>
-                <Console id={key}
-                         visible={'' === view}
-                         pubsub={pubsub}/>
-                {'' !== view && viewResolver[view]}
-            </div>
-            {extraButton()}
-            {commandInput()}
+            {consolePanel()}
+            {'' !== view && viewResolver()}
             {JarBootConst.IS_SAFARI && '' === view && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });

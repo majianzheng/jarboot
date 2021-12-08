@@ -43,7 +43,7 @@ const TabPanes = memo((props: any) => {
         <TabPane key={'6'} tab={intl.formatMessage({id: 'HELP'})}>
             <Help/>
         </TabPane>
-    </Tabs>
+    </Tabs>;
 });
 
 const token = CommonUtils.getToken();
@@ -55,12 +55,14 @@ const index = memo(() => {
     }
     const intl = useIntl();
     const [lang, setLang] = useState(getLocale());
+
     const welcome = () => {
         console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
         console.log(`%c(灬°ω°灬) `, 'color:magenta');
         console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
         WsManager.initWebsocket();
     };
+
     useEffect(() => {
         OAuthService.login().then(resp => {
             if (401 === resp.resultCode) {
@@ -80,6 +82,7 @@ const index = memo(() => {
     const _onLocaleChange = (s: string) => {
         setLang(s);
     };
+
     const rightExtra = <div className={styles.rightExtra}>
         <JarbootVersion/>
         <Button type={"text"} href={JarBootConst.DOCS_URL}
@@ -90,8 +93,11 @@ const index = memo(() => {
         <ProjectHome iconClass={styles.githubIcon}/>
         <UserMenu className={styles.userLogin}/>
     </div>;
+
     const leftExtra = <div className={styles.leftExtra}><img src={require('@/assets/logo.png')} alt={"logo"}/></div>;
+
     const extra = {left: leftExtra, right: rightExtra};
+
     return <ConfigProvider locale={localeMap[lang]}>
         <TabPanes extra={extra}/>
     </ConfigProvider>;

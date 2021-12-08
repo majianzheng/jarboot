@@ -7,57 +7,11 @@ package com.mz.jarboot.common;
 public class CommandConst {
     public static final int MAX_COMMAND_BUFFER = 16384;
     /**
-     * 控制位头，char占用2个自己，共16位bit
+     * 控制位头，char占用2个字节，共16位bit
      * 1000 0000 0000 0001
-     * 从左到右，第8位表示是否成功
+     * 从左到右，第1位表示是否成功，后15位表示响应类型
      */
-    private static final char BASE_TYPE = 0x8000;
-
-    public static final char SUCCESS_FLAG = 0x0100;
-
-    /**
-     * 终端消息
-     */
-    public static final char CONSOLE_TYPE = BASE_TYPE + 1;
-    
-    /**
-     * 控制台退格
-     */
-    public static final char BACKSPACE_TYPE = BASE_TYPE + 2;
-    
-    /**
-     * 后退一行
-     */
-    public static final char BACKSPACE_LINE_TYPE = BASE_TYPE + 3;
-
-    /**
-     * 程序的标准输出流
-     */
-    public static final char STD_PRINT_TYPE = BASE_TYPE + 4;
-
-    /**
-     * Json格式结果
-     */
-    public static final char JSON_RESULT_TYPE = BASE_TYPE + 5;
-
-    /**
-     * 心跳
-     */
-    public static final char HEARTBEAT_TYPE = BASE_TYPE + 6;
-
-    /**
-     * 命令完成消息
-     */
-    public static final char CMD_END_TYPE = BASE_TYPE + 7;
-
-    /**
-     * 发送动作指令
-     */
-    public static final char ACTION_TYPE = BASE_TYPE + 8;
-
-    public static final char USER_COMMAND = 0xF001;
-    public static final char INTERNAL_COMMAND = 0xF002;
-    public static final char NONE_COMMAND = 0xFF00;
+    public static final char SUCCESS_FLAG = 0x8000;
 
     /**
      * 支持的内部命令

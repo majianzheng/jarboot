@@ -12,7 +12,7 @@
 [![语雀](https://img.shields.io/badge/%E8%AF%AD%E9%9B%80-%E6%96%87%E6%A1%A3%E7%A4%BE%E5%8C%BA-brightgreen.svg)](https://www.yuque.com/jarboot/usage/quick-start)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mazheng0908/jarboot)
 
-<code>Jarboot</code> 是一个Java进程启动、调试、诊断的平台，可以管理、监控及诊断一系列的Java进程。
+<code>Jarboot</code> 是一个Java进程启停、管理、诊断的平台，可以管理、守护、监控及诊断本地和远程的Java进程。
 
 在测试环境、每日构建的集成环境，可以把一系列编译输出等jar文件放入约定的目录，由<code>Jarboot</code>提供友好的浏览器ui界面和<code>http</code>接口，统一管理它的启动、停止及状态的监控，以及执行命令对目标进程进行调试。
 
@@ -20,16 +20,16 @@ English version goes [here](README.md).
 
 📚 文档：https://www.yuque.com/jarboot/usage/quick-start
 
-😊 高级应用示例: <code>Jarboot</code> 🔥 和 <code>Spring Cloud Alibaba</code> 演示示例 ⤵️
-
-🍏 示例项目地址: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example ⭐️
+🍏 最佳实践 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️
 
 🐳 可扩展: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>，支持插件式开发。
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
-<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、监控线程状态、获取线程栈信息等。
+<code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和
+<code>Jarboot</code> 的服务实现命令交互，部分命令会修改类的字节码用于类增强，加入了与<code>Arthas</code>类似的命令系统，如获取JVM信息、
+监控线程状态、获取线程栈信息等。
 
 - 🌈   浏览器界面管理，一键启、停服务进程，不必挨个手动执行
 - 🔥   支持启动、停止优先级配置<sup id="a2">[[1]](#f1)</sup>，默认并行启动
@@ -38,10 +38,11 @@ English version goes [here](README.md).
 - 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
 - 💎   支持通过<code>SPI</code>自定义调试命令实现，支持开发插件
 
+### 架构简介 
+详细架构设计[查看](jarboot-server/README.md)
+
 前端界面采用<code>React</code>技术，脚手架使用<code>UmiJs</code>，组件库使用UmiJs内置等<code>antd</code>。
 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
-
-### 架构简介 [查看](jarboot-server/README.md)。
 
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
@@ -90,7 +91,7 @@ $ sh startup.sh
 <dependency>
     <groupId>io.github.majianzheng</groupId>
     <artifactId>spring-boot-starter-jarboot</artifactId>
-    <version>2.0.0</version>
+    <version>${jarboot.version}</version>
 </dependency>
 ```
 2. 实现<code>CommandProcessor</code>SPI接口
@@ -137,7 +138,7 @@ $ spring.env spring.application.name
     <groupId>io.github.majianzheng</groupId>
     <artifactId>jarboot-api</artifactId>
     <scope>provided</scope>
-    <version>2.0.0</version>
+    <version>${jarboot.version}</version>
 </dependency>
 ```
 2. 实现spi接口

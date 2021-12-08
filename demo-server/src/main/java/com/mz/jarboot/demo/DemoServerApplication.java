@@ -1,5 +1,6 @@
 package com.mz.jarboot.demo;
 
+import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
 
 import javax.swing.*;
@@ -21,6 +22,7 @@ public class DemoServerApplication implements Runnable {
     private static final int INVALID_NUM = -1;
     private static final int FIB_FUNC = 1;
     private static final int POW_FUNC = 2;
+    public static AgentService agentService = null;
     
     private JTextField execLimitInput;
     private JTextField execIntervalInput;
@@ -75,7 +77,9 @@ public class DemoServerApplication implements Runnable {
 
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
         try {
-            JarbootFactory.createAgentService().setStarted();
+            agentService = JarbootFactory.createAgentService();
+            agentService.setStarted();
+            agentService.noticeInfo("启动Demo成功！", null);
         } catch (Exception e) {
             log(e.getMessage());
         }
@@ -258,6 +262,9 @@ public class DemoServerApplication implements Runnable {
         log("计算完成，" + costStr);
         costLabel.setText(costStr);
         func = INVALID_NUM;
+        if (null != agentService) {
+            agentService.noticeInfo("计算完成", null);
+        }
     }
 
     private DemoServerApplication() {
@@ -272,7 +279,7 @@ public class DemoServerApplication implements Runnable {
         String text = "使用Jarboot启动后，可执行测试的算法\n"
                 + "输出流默认会实时显示到Jarboot的界面，可使用stdout off命令关闭\n"
                 + "help  查看支持的命令列表\n"
-                + "jad com.mz.jarboot.demo.DemoServerApplication        反编译命令\n"
+                + "jad com.mz.jarboot.demo.cmd.PowCommandProcessor        反编译命令\n"
                 + "watch com.mz.jarboot.demo.DemoServerApplication fib        监控fib函数执行命令\n"
                 + "trace com.mz.jarboot.demo.DemoServerApplication fib        追踪fib函数调用栈命令\n"
                 + "watch com.mz.jarboot.demo.DemoServerApplication pow\n"

@@ -40,7 +40,7 @@ const OnlineDebugView = () => {
         }
     }, []);
 
-    const refreshProcessList = (init: boolean = false) => {
+    const refreshProcessList = (init: boolean = false, callback?: (data: JvmProcess[]) => any) => {
         dispatch({loading: true});
         ServerMgrService.getJvmProcesses((resp: any) => {
             if (resp.resultCode < 0) {
@@ -56,18 +56,20 @@ const OnlineDebugView = () => {
                         init = true;
                     }
                 }
+                let selectedRowKeys = s.selectedRowKeys || [] as string[];
+                let selectRows = s.selectRows || [] as JvmProcess[];
                 if (init) {
                     //初始化选中第一个
-                    let selectedRowKeys = [] as string[];
-                    let selectRows = [] as JvmProcess[];
                     if (data && data?.length > 0) {
                         const first: JvmProcess = data[0];
                         selectedRowKeys = [first.sid];
                         selectRows = [first];
                     }
-                    return {loading: false, data, selectedRowKeys, selectRows};
                 }
-                return {loading: false, data};
+                if (callback) {
+                    return {loading: false, data, selectedRowKeys, selectRows, ...callback(data)};
+                }
+                return {loading: false, data, selectedRowKeys, selectRows};
             });
         });
     };
@@ -77,7 +79,15 @@ const OnlineDebugView = () => {
             const data = s.data || [];
             const process = data?.find(item => msg.sid === item.sid);
             if (!process) {
-                refreshProcessList();
+                refreshProcessList(false, (data) => {
+                    const item = data.find(value => msg.sid === value.sid);
+                    if (!item) {
+                        return {};
+                    }
+                    const selectedRowKeys = [msg.sid];
+                    const selectRows = [item];
+                    return {selectedRowKeys, selectRows};
+                });
                 return {};
             }
             const status = msg.body;
@@ -99,7 +109,9 @@ const OnlineDebugView = () => {
                 default:
                     return {};
             }
-            return {data};
+            const selectedRowKeys = [process.sid];
+            const selectRows = [process];
+            return {data, selectRows, selectedRowKeys};
         });
         pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
     };

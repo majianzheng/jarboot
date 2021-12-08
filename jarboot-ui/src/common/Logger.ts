@@ -1,5 +1,6 @@
 /**
  * 日志
+ * @author majianzheng
  */
 export default class Logger {
     /**

@@ -5,17 +5,11 @@ import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.service.ServerMgrService;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -130,38 +124,6 @@ public class ServerMgrController {
         }
         data = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
         return new ResponseForObject<>(data);
-    }
-
-    /**
-     * 从服务器下载文件
-     * @param file base64编码的文件全路径名
-     * @param response Servlet response
-     */
-    @GetMapping(value="/downloadFile/{file}")
-    public void downloadFile(@PathVariable("file") String file,
-                             HttpServletResponse response) {
-        //待下载文件名
-        String fileName = new String(Base64.getDecoder().decode(file));
-        File target = FileUtils.getFile(fileName);
-        if (!target.exists() || !target.isFile()) {
-            return;
-        }
-        response.setHeader("content-type", "file");
-        response.setContentType("application/octet-stream");
-        response.setHeader("Content-Disposition", "attachment; filename=" + target.getName());
-        byte[] buff = new byte[2048];
-        //创建缓冲输入流
-        try (FileInputStream fis = new FileInputStream(target);
-             OutputStream outputStream = response.getOutputStream();
-             BufferedInputStream bis = new BufferedInputStream(fis);){
-            int len = -1;
-            while (-1 != (len = bis.read(buff))) {
-                outputStream.write(buff, 0, len);
-            }
-            outputStream.flush();
-        } catch ( Exception e ) {
-            //
-        }
     }
 
     /**

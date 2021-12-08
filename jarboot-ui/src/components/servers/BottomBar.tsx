@@ -6,7 +6,8 @@ import {
     SettingOutlined,
     BarsOutlined,
     CodeFilled,
-    CaretRightFilled, PoweroffOutlined, ReloadOutlined
+    CaretRightFilled,
+    PoweroffOutlined
 } from '@ant-design/icons';
 import ServerMgrService from "@/services/ServerMgrService";
 import styles from "./index.less";

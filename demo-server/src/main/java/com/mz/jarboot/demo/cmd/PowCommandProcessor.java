@@ -63,6 +63,9 @@ public class PowCommandProcessor implements CommandProcessor {
             }
             result = DemoServerApplication.pow(this.x, this.y);
         }
+        if (null != DemoServerApplication.agentService) {
+            DemoServerApplication.agentService.noticeInfo("计算完成", session.getSessionId());
+        }
         return "计算结果：" + result + ", 耗时(ms)：" + (System.currentTimeMillis() - b);
     }
 
