@@ -11,6 +11,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.PrintStream;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,6 +41,8 @@ public class StdOutStreamReactor {
     private long startDetermineTime = 5000;
     /** 是否正在唤醒 */
     private final AtomicBoolean weakuping = new AtomicBoolean(false);
+    /** 监控终端输出的定时任务，负责判定是否启动完成 */
+    private ScheduledFuture<?> watchFuture;
 
     /**
      * 标准输出流显示是否开启
@@ -64,10 +67,11 @@ public class StdOutStreamReactor {
         sos.setPrintLineHandler(this::stdStartingConsole);
         sos.setPrintHandler(this::stdStartingPrint);
         lastStdTime = System.currentTimeMillis();
-        //启动监控线程
-        EnvironmentContext
+        //启动监控线程，监控间隔2秒
+        final long delay = 2;
+        watchFuture = EnvironmentContext
                 .getScheduledExecutorService()
-                .execute(this::determineStarted);
+                .scheduleWithFixedDelay(this::determineStarted, delay, delay, TimeUnit.SECONDS);
     }
 
     /**
@@ -219,13 +223,9 @@ public class StdOutStreamReactor {
      * 判定是否启动完成
      */
     private void determineStarted() {
-        do {
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        } while ((System.currentTimeMillis() - lastStdTime) < startDetermineTime);
+        if ((System.currentTimeMillis() - lastStdTime) < startDetermineTime) {
+            return;
+        }
         //超过一定时间没有控制台输出，判定启动成功
         sos.setPrintLineHandler(this::stdConsole);
         sos.setPrintHandler(this::stdPrint);
@@ -234,6 +234,12 @@ public class StdOutStreamReactor {
             AgentServiceOperator.setStarted();
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            if (null != watchFuture) {
+                //启动完成，取消计划任务
+                watchFuture.cancel(true);
+                watchFuture = null;
+            }
         }
     }
 }
