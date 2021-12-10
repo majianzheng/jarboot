@@ -1,27 +1,36 @@
 import CommonTable from "@/components/table";
 import {Result, Tooltip} from "antd";
-import {LoadingOutlined, BugFilled, SyncOutlined, DashboardOutlined} from "@ant-design/icons";
-import ServerMgrService, {JvmProcess} from "@/services/ServerMgrService";
+import {BugFilled, DashboardOutlined, HomeFilled, LoadingOutlined, SyncOutlined} from "@ant-design/icons";
+import ServerMgrService, {JvmProcess, TreeNode} from "@/services/ServerMgrService";
 import {SuperPanel} from "@/components/servers/SuperPanel";
 import * as React from "react";
+import {useEffect, useReducer} from "react";
 import {PUB_TOPIC, pubsub} from "@/components/servers/ServerPubsubImpl";
 import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
-import { JarBootConst, MsgData } from "@/common/JarBootConst";
-import {useEffect, useReducer} from "react";
+import {JarBootConst, MsgData} from "@/common/JarBootConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
 
 interface OnlineDebugState {
     loading: boolean;
     data: JvmProcess[];
+    list: JvmProcess[];
     selectedRowKeys: string[];
     selectRows: JvmProcess[];
+    expandedRowKeys: string[];
 }
 
 const OnlineDebugView = () => {
     const intl = useIntl();
-    const initArg = {loading: true, data: [], selectedRowKeys: [], selectRows: []} as OnlineDebugState;
+    const initArg = {
+        loading: true,
+        data: [],
+        list: [],
+        selectedRowKeys: [],
+        selectRows: [],
+        expandedRowKeys: []
+    } as OnlineDebugState;
     const [state, dispatch] = useReducer((state: OnlineDebugState, action: any) => {
         if ('function' === typeof action) {
             return {...state, ...action(state)};
@@ -48,11 +57,11 @@ const OnlineDebugView = () => {
                 CommonNotice.errorFormatted(resp);
                 return;
             }
-            const data = resp.result as JvmProcess[] || [];
+            const list = resp.result as JvmProcess[] || [];
             dispatch((s: OnlineDebugState) => {
                 if (s.selectedRowKeys?.length) {
                     const sid = s.selectedRowKeys[0];
-                    if (-1 === data.findIndex(item => sid === item.sid)) {
+                    if (-1 === list.findIndex(item => sid === item.sid)) {
                         init = true;
                     }
                 }
@@ -60,24 +69,76 @@ const OnlineDebugView = () => {
                 let selectRows = s.selectRows || [] as JvmProcess[];
                 if (init) {
                     //初始化选中第一个
-                    if (data && data?.length > 0) {
-                        const first: JvmProcess = data[0];
+                    if (list && list?.length > 0) {
+                        const first: JvmProcess = list[0];
                         selectedRowKeys = [first.sid];
                         selectRows = [first];
                     }
                 }
+                const data = getTreeData(list) as JvmProcess[];
+                const expandedRowKeys = data.map(value => value.key);
+
                 if (callback) {
-                    return {loading: false, data, selectedRowKeys, selectRows, ...callback(data)};
+                    return {loading: false, data, expandedRowKeys, list, selectedRowKeys, selectRows, ...callback(list)};
                 }
-                return {loading: false, data, selectedRowKeys, selectRows};
+                return {loading: false, data, expandedRowKeys, list, selectedRowKeys, selectRows};
             });
         });
     };
 
+    const groupIcon = (vm: JvmProcess): React.ReactNode => {
+        return <Tooltip title={vm.title}>
+            {
+                JarBootConst.LOCALHOST === vm.key ?
+                    <HomeFilled className={styles.vmTreeGroupIcon}/>
+                    :
+                    <RemoteIcon className={styles.vmTreeGroupIcon}/>
+            }
+        </Tooltip>;
+    };
+
+    const childIcon = (vm: JvmProcess): React.ReactNode => {
+        if (vm.attaching) {
+            return (<Tooltip title={'Attaching'}>
+                <LoadingOutlined className={styles.statusStarting}/>
+            </Tooltip>);
+        }
+        return <Tooltip title={vm.attached ? "Attached" : "Not attached"}>
+            <BugFilled className={vm.attached ? styles.attachedStatus : styles.noAttachedStatus}/>
+        </Tooltip>;
+    };
+
+    const getTreeData = (data: JvmProcess[]): TreeNode[] => {
+        const treeData = [] as TreeNode[];
+        const groupMap = new Map<string, JvmProcess[]>();
+        data.forEach(vm => {
+            const group = vm.remote || JarBootConst.LOCALHOST;
+            let children = groupMap.get(group);
+            if (!children) {
+                children = [] as JvmProcess[];
+                groupMap.set(group, children);
+                treeData.push({
+                    title: group,
+                    sid: group,
+                    key: group,
+                    name: group,
+                    selectable: false,
+                    children
+                });
+            }
+            const child = vm as JvmProcess;
+            child.key = vm.sid;
+            child.title = vm.name;
+            child.isLeaf = true;
+            children.push(child);
+        });
+        return treeData;
+    };
+
     const onStatusChange = (msg: MsgData) => {
         dispatch((s: OnlineDebugState) => {
-            const data = s.data || [];
-            const process = data?.find(item => msg.sid === item.sid);
+            const list = s.list || [];
+            const process = list?.find(item => msg.sid === item.sid);
             if (!process) {
                 refreshProcessList(false, (data) => {
                     const item = data.find(value => msg.sid === value.sid);
@@ -111,9 +172,19 @@ const OnlineDebugView = () => {
             }
             const selectedRowKeys = [process.sid];
             const selectRows = [process];
-            return {data, selectRows, selectedRowKeys};
+            return {data: getTreeData(list), selectRows, selectedRowKeys};
         });
         pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
+    };
+
+    const pidRender = (value: number, row: JvmProcess) => {
+        if (row.isLeaf) {
+            return value;
+        }
+        const text = <span className={styles.groupRow}>
+            {intl.formatMessage({id: JarBootConst.LOCALHOST === row.key ? 'LOCAL' : 'REMOTE'})}
+        </span>;
+        return <Tooltip title={row.name}>{text}</Tooltip>;
     };
 
     const getTbProps = () => ({
@@ -126,7 +197,7 @@ const OnlineDebugView = () => {
                 ellipsis: true,
                 sorter: (a: JvmProcess, b: JvmProcess) => a.pid - b.pid,
                 sortDirections: ['descend', 'ascend'],
-                render: (value: number) => <span style={{fontSize: '10px'}}>{value}</span>
+                render: pidRender
             },
             {
                 title: intl.formatMessage({id: 'NAME'}),
@@ -135,6 +206,8 @@ const OnlineDebugView = () => {
                 ellipsis: true,
                 sorter: (a: JvmProcess, b: JvmProcess) => a.name.localeCompare(b.name),
                 sortDirections: ['descend', 'ascend'],
+                render: (value: string, row: TreeNode) =>
+                    row.isLeaf ? value : <span className={styles.groupRow}>{value}</span>
             },
         ],
         loading: state.loading,
@@ -146,13 +219,21 @@ const OnlineDebugView = () => {
         onRow: onRow,
         showHeader: true,
         scroll: height,
+        expandable: {
+            defaultExpandAllRows: true,
+            indentSize: 5,
+            expandIconColumnIndex: 0,
+            expandedRowKeys: state.expandedRowKeys,
+            onExpandedRowsChange: (expandedRowKeys: string[]) => dispatch({expandedRowKeys}),
+        }
     });
 
     const getRowSelection = () => ({
-        columnWidth: '60px',
+        columnWidth: 60,
         columnTitle: '',
         ellipsis: true,
         type: 'radio',
+        fixed: true,
         onChange: (selectedRowKeys: number[], selectRows: JvmProcess[]) =>
             dispatch({selectedRowKeys, selectRows}),
         selectedRowKeys: state.selectedRowKeys,
@@ -160,28 +241,24 @@ const OnlineDebugView = () => {
     });
 
     const renderRowSelection = (row: any, record: JvmProcess) => {
-        if (record.attaching) {
-            return (<Tooltip title={'Attaching'}>
-                <LoadingOutlined className={styles.statusStarting}/>
-            </Tooltip>);
+        if (record.isLeaf) {
+            return childIcon(record);
         }
-        if (record.remote) {
-            //远程vm
-            return (<Tooltip title={record.remote}>
-                <RemoteIcon className={styles.remoteOnlineStatus}/>
-            </Tooltip>);
-        }
-        const className = record.attached ? styles.attachedStatus : styles.noAttachedStatus;
-        return (<Tooltip title={record.attached ? 'Attached' : 'Not attached'}>
-            <BugFilled className={className}/>
-        </Tooltip>);
+        return groupIcon(record);
     };
 
     const onRow = (record: JvmProcess) => ({
         onClick: () => {
-            dispatch({selectedRowKeys: [record.sid], selectRows: [record]});
-            pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+            if (record.isLeaf) {
+                dispatch({selectedRowKeys: [record.sid], selectRows: [record]});
+                pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+            }
         },
+        onDoubleClick: () => {
+            if (record.isLeaf && !record.attached) {
+                attach();
+            }
+        }
     });
 
     const attach = () => {
@@ -237,7 +314,7 @@ const OnlineDebugView = () => {
 
     let tableOption: any = getTbProps();
     tableOption.scroll = {y: height};
-    const showLoading = state.loading && 0 === state.data.length;
+    const showLoading = state.loading && 0 === state.list.length;
     return <div className={styles.serverMgr}>
         <div className={styles.serverMgrSide}>
             <CommonTable option={tableOption} toolbar={getTbBtnProps()}
@@ -246,7 +323,7 @@ const OnlineDebugView = () => {
         </div>
         <div className={styles.serverMgrContent}>
             {showLoading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
-            {state.data.map((value: JvmProcess) => (
+            {state.list.map((value: JvmProcess) => (
                 <SuperPanel key={value.sid}
                             server={value.name}
                             sid={value.sid}

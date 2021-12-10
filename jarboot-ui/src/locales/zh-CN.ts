@@ -4,7 +4,7 @@ export default {
 
     //Tab标题
     SERVICES_MGR: '服务管理',
-    ONLINE_DEBUG: '在线调试',
+    ONLINE_DEBUG: '在线诊断',
     AUTH_CONTROL: '权限控制',
     PLUGINS: '插件',
     SETTING: '设置',
@@ -41,6 +41,8 @@ export default {
     UPLOAD_HINT: '支持单个或批量上传。',
     DELETE_INFO: '该操作将会彻底删除服务的相关信息，是否继续？',
     UPLOAD_DESC: '点击或拖拽文件到此区域上传',
+    LOCAL: '本地',
+    REMOTE: '远程',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',

@@ -47,6 +47,8 @@ class JarBootConst {
     public static ADMIN_ROLE = "ROLE_ADMIN";
 
     public static readonly IS_SAFARI = window.hasOwnProperty('safari');
+
+    public static readonly LOCALHOST = 'localhost';
 }
 
 interface MsgData {

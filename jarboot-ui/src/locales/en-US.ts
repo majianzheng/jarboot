@@ -4,7 +4,7 @@ export default {
 
     //Tab标题
     SERVICES_MGR: 'Services',
-    ONLINE_DEBUG: 'Online debug',
+    ONLINE_DEBUG: 'Online Diagnose',
     AUTH_CONTROL: 'Authority Control',
     PLUGINS: 'Plugins',
     SETTING: 'Setting',
@@ -41,6 +41,8 @@ export default {
     UPLOAD_HINT: 'Support for a single or bulk upload.',
     DELETE_INFO: 'This operation will completely delete the relevant information of the service. Do you want to continue?',
     UPLOAD_DESC: 'Click or drag file to this area to upload',
+    LOCAL: 'Local',
+    REMOTE: 'Remote',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',

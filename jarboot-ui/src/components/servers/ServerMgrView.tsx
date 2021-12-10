@@ -38,7 +38,7 @@ interface ServerMgrViewState {
     selectedRowKeys: string[];
     searchText: string;
     searchedColumn: string;
-    selectRows: TreeNode[];
+    selectRows: ServerRunning[];
     current: string;
     sideView: 'tree' | 'list';
     contentView: 'config' | 'console';
@@ -63,7 +63,7 @@ const ServerMgrView = () => {
         selectedRowKeys: [] as string[],
         searchText: '',
         searchedColumn: '',
-        selectRows: [] as TreeNode[],
+        selectRows: [] as ServerRunning[],
         current: '',
         sideView: getInitSideView(),
         contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
@@ -105,7 +105,7 @@ const ServerMgrView = () => {
 
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: ServerMgrViewState) => {
-            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid) as TreeNode;
+            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
             if (!item) {
                 return {};
             }
@@ -294,11 +294,19 @@ const ServerMgrView = () => {
         selectedRowKeys: state.selectedRowKeys,
     });
 
+    const startSignal = (server: ServerRunning) => {
+        if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
+            clearDisplay(server);
+            ServerMgrService.startServer([server], finishCallback);
+        }
+    };
+
     const onRow = (record: ServerRunning) => ({
         onClick: () => {
             dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid});
             pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
-        }
+        },
+        onDoubleClick: () => startSignal(record)
     });
 
     const refreshServerList = (init: boolean = false) => {
@@ -320,8 +328,8 @@ const ServerMgrView = () => {
                     if (data.length > 0) {
                         let first: ServerRunning;
                         if (preState.sideView === JarBootConst.LIST_VIEW && treeData.length > 0) {
-                            const firstChildren = treeData[0]?.children as TreeNode[] || [];
-                            first = firstChildren[0] || data[0];
+                            const firstChildren = treeData[0]?.children as ServerRunning[] || [];
+                            first = (firstChildren[0] || data[0]);
                         } else {
                             first = data[0];
                         }
@@ -569,13 +577,13 @@ const ServerMgrView = () => {
     };
 
     const getTreeData = (data: ServerRunning[]): TreeNode[] => {
-        const treeData = [] as TreeNode[];
-        const groupMap = new Map<string, TreeNode[]>();
+        const treeData = [] as ServerRunning[];
+        const groupMap = new Map<string, ServerRunning[]>();
         data.forEach(server => {
             const group = server.group || '';
             let children = groupMap.get(group);
             if (!children) {
-                children = [] as TreeNode[];
+                children = [] as ServerRunning[];
                 groupMap.set(group, children);
                 treeData.push({
                     title: group,
@@ -585,9 +593,9 @@ const ServerMgrView = () => {
                     icon: groupIcon,
                     name: "", path: "", status: "", children});
             }
-            const child = server as TreeNode;
+            const child = server as ServerRunning;
             child.key = server.sid;
-            child.title = server.name;
+            child.title = <span onDoubleClick={() => startSignal(server)}>{server.name}</span>;
             child.isLeaf = true;
             child.icon = translateStatus(server.status);
             children.push(child);

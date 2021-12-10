@@ -157,7 +157,7 @@ class WsManager {
      * 响应后端消息推送处理
      * @param e 事件
      */
-    private static onMessage = (e: any) => {
+    private static onMessage = (e: MessageEvent) => {
         if (!StringUtil.isString(e?.data)) {
             Logger.error('Unknown websocket message:', e);
             //二进制数据
