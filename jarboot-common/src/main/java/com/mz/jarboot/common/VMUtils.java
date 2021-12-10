@@ -1,8 +1,5 @@
-package com.mz.jarboot.utils;
+package com.mz.jarboot.common;
 
-import com.mz.jarboot.common.JarbootException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
@@ -19,7 +16,6 @@ import java.util.Map;
  */
 @SuppressWarnings("all")
 public class VMUtils {
-    private static final Logger logger = LoggerFactory.getLogger(VMUtils.class);
     /** attach方法 */
     private Method attach;
     /** loadAgent方法 */
@@ -32,8 +28,6 @@ public class VMUtils {
     private Method getVMId;
     /** 获取JVM的名字方法 */
     private Method getVMName;
-    /** 是否初始化成功 */
-    private boolean initialized = false;
 
     /**
      * 获取单例
@@ -41,14 +35,6 @@ public class VMUtils {
      */
     public static VMUtils getInstance() {
         return VMUtilsHolder.INSTANCE;
-    }
-
-    /**
-     * 是否初始化成功
-     * @return 是否初始化成功
-     */
-    public boolean isInitialized() {
-        return initialized;
     }
 
     /**
@@ -88,7 +74,6 @@ public class VMUtils {
         try {
             list = (List<?>) listVM.invoke(null);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             return vmMap;
         }
 
@@ -99,7 +84,7 @@ public class VMUtils {
 
                 vmMap.put(Integer.parseInt(id), name);
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                //ignore
             }
         });
         return vmMap;
@@ -113,7 +98,7 @@ public class VMUtils {
         try {
             detach.invoke(vm);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            throw new JarbootException("detachVM failed! " + e.getMessage(), e);
         }
     }
 
@@ -183,10 +168,8 @@ public class VMUtils {
     private VMUtils() {
         try {
             init();
-            initialized = true;
         } catch (Exception e) {
-            //未成功加载到tools.jar，运行的可能是在jre上
-            logger.error(e.getMessage(), e);
+            //ignore 未成功加载到tools.jar，运行的可能是在jre上
         }
     }
 }

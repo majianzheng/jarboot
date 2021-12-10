@@ -2,7 +2,6 @@ package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.VersionUtils;
-import com.mz.jarboot.utils.VMUtils;
 import javax.swing.*;
 import java.io.File;
 
@@ -80,7 +79,9 @@ public class AppEnvironment {
         }
 
         //检查是否是jdk环境，是否存在tools.jar
-        if (!VMUtils.getInstance().isInitialized()) {
+        try {
+            Class.forName("com.sun.tools.attach.VirtualMachine");
+        } catch (ClassNotFoundException e) {
             propDialog("检查环境错误，当前运行环境未安装jdk，请检查环境变量是否配置，可能是使用了jre环境。");
             return false;
         }
