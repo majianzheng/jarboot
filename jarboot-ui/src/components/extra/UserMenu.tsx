@@ -13,11 +13,9 @@ const UserPopMenu = memo((props: any) => {
     const SIGN_OUT_KEY = "sign-out";
     const MODIFY_PWD_KEY = "modify-password";
     const handleClick = (event: any) => {
-        console.info(event);
         if (SIGN_OUT_KEY === event.key) {
             props.onHide && props.onHide();
             //用户注销
-            localStorage.removeItem(JarBootConst.TOKEN_KEY);
             CommonUtils.loginPage();
         }
         if (MODIFY_PWD_KEY === event.key) {

@@ -7,7 +7,9 @@ export default defineConfig({
     title: 'Jarboot',
     routes: [
         {path: '/', component: '@/pages/index'},
+        {path: '/jarboot/index', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
+        {path: '/jarboot/login', component: '@/pages/login/Login'},
     ],
     exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},

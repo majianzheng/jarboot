@@ -4,6 +4,6 @@
    [  |`'_\ : [ `/'`\] | '/'`\ \/ .'`\ \/ .'`\ \| |    ️ an easy-to-use Java process starter
  _  | |// | |, | |     |  \__/ || \__. || \__. || |,    Port: ${server.port}
 [ \_| |\'-;__/[___]   [__;.__.'  '.__.'  '.__.' \__/    Pid:  ${pid}
- \____/                                                 Home: http://127.0.0.1:${server.port}/
+ \____/                                                 Home: http://127.0.0.1:${server.port}/jarboot/index.html
 
  GitHub: https://github.com/majianzheng/jarboot
