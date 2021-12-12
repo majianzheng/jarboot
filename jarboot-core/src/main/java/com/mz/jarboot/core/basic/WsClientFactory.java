@@ -1,6 +1,5 @@
 package com.mz.jarboot.core.basic;
 
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -12,7 +11,6 @@ import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -60,23 +58,10 @@ public class WsClientFactory {
         //2.初始化WebSocket的handler
         this.initMessageHandler();
 
-        String server = EnvironmentContext.getServer();
-        //服务目录名支持中文，检查到中文后进行编码
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[\\u4e00-\\u9fa5]").matcher(server);
-        while (matcher.find()) {
-            String tmp = matcher.group();
-            try {
-                server = server.replaceAll(tmp, java.net.URLEncoder.encode(tmp, "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                logger.error(e.getMessage(), e);
-                return;
-            }
-        }
-
         url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
-                System.getProperty(CommonConst.REMOTE_PROP),
-                server,
-                EnvironmentContext.getSid());
+                EnvironmentContext.getClientData().getHost(),
+                EnvironmentContext.getClientData().getServer(),
+                EnvironmentContext.getClientData().getSid());
     }
 
     private void initMessageHandler() {

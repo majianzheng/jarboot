@@ -85,12 +85,8 @@ public class EnvironmentContext {
         return initialized;
     }
 
-    public static String getServer() {
-        return clientData.getServer();
-    }
-
-    public static String getSid() {
-        return clientData.getSid();
+    public static ClientData getClientData() {
+        return clientData;
     }
 
     public static ScheduledExecutorService getScheduledExecutorService() {

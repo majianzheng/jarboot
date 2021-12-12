@@ -9,14 +9,14 @@ import com.mz.jarboot.core.utils.HttpUtils;
  * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
-
-    private static class HttpResponseStreamImplHolder {
-        static final String API = "/api/jarboot/public/agent/response?server=" + EnvironmentContext.getServer() +
-                "&sid=" + EnvironmentContext.getSid();
-    }
+    private static final String API = "/api/jarboot/public/agent/response?server=";
 
     @Override
     public void write(String data) {
-        HttpUtils.postSimple(HttpResponseStreamImplHolder.API, data);
+        String url = API +
+                EnvironmentContext.getClientData().getServer() +
+                "&sid=" +
+                EnvironmentContext.getClientData().getSid();
+        HttpUtils.postSimple(url, data);
     }
 }

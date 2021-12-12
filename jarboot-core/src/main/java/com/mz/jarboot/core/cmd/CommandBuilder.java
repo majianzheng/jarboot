@@ -171,7 +171,9 @@ public class CommandBuilder {
             CommandArgsParser parser = new CommandArgsParser(args, processor);
             parser.postConstruct();
             extendCmd.setArgs(parser.getSplitedArgs());
-            processor.postConstruct(EnvironmentContext.getInstrumentation(), EnvironmentContext.getServer());
+            processor.postConstruct(
+                    EnvironmentContext.getInstrumentation(),
+                    EnvironmentContext.getClientData().getServer());
         } catch (Throwable e) {
             errorMsg = e.getMessage();
             if (null == extendCmd) {

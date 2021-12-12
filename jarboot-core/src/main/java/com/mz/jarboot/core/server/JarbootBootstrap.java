@@ -49,13 +49,8 @@ public class JarbootBootstrap {
         String serverName = clientData.getServer();
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查服务名和sid是否一致
-            if (!sid.equals(EnvironmentContext.getSid())) {
-                logger.error("Attach failed, server {}@{} not match current {}@{}!",
-                        serverName, sid, EnvironmentContext.getServer(), EnvironmentContext.getSid());
-                //删除pid文件
-                PidFileHelper.deletePidFile(sid);
-                return;
-            }
+            logger.warn("Jarboot is already initialized. args: {}, isPremain: {}", args, isPremain);
+            return;
         } else {
             String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
             //初始化日志模块
@@ -97,21 +92,10 @@ public class JarbootBootstrap {
         WsClientFactory.getInstance().createSingletonClient();
     }
 
-    public boolean isOnline(String args) {
-        ClientData clientData = initClientData(args, false);
-        String sid = clientData.getSid();
+    public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查服务名和sid是否一致
-            if (!sid.equals(EnvironmentContext.getSid())) {
-                logger.error("Attach failed, server {}@{} not match current {}@{}!",
-                        clientData.getServer(),
-                        sid,
-                        EnvironmentContext.getServer(),
-                        EnvironmentContext.getSid());
-                //删除pid文件
-                PidFileHelper.deletePidFile(sid);
-                return true;
-            }
+
         }
         return WsClientFactory.getInstance().isOnline();
     }
@@ -259,7 +243,7 @@ public class JarbootBootstrap {
         if (null != addrList && !addrList.isEmpty()) {
             for (String addr : addrList) {
                 //.1结尾的可能是虚拟机的虚拟网卡地址
-                if (!addr.endsWith(".1")) {
+                if (!addr.endsWith(".1") && !addr.contains(".0.")) {
                     return addr;
                 }
             }

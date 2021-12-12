@@ -28,13 +28,14 @@ public class AgentServiceOperator {
         if (started) {
             return;
         }
-        HttpUtils.getSimple(SET_STARTED_API + EnvironmentContext.getServer() +
-                "&sid=" + EnvironmentContext.getSid());
+        ClientData clientData = EnvironmentContext.getClientData();
+        HttpUtils.getSimple(SET_STARTED_API + clientData.getServer() +
+                "&sid=" + clientData.getSid());
         started = true;
     }
 
     public static String getServer() {
-        return EnvironmentContext.getServer();
+        return EnvironmentContext.getClientData().getServer();
     }
 
     public static void restartSelf() {
