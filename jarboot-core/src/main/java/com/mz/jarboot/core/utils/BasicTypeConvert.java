@@ -11,24 +11,24 @@ import java.util.stream.Collectors;
 public class BasicTypeConvert {
     private static final String ARRAY_SPLIT = ",";
 
-    public static Object convert(String s, Class cls) {
+    public static <T> T convert(String s, Class<T> cls) {
         if (StringUtils.isEmpty(s)) {
             return null;
         }
         Object val = convertBasic(s, cls);
         if (null != val) {
-            return val;
+            return (T)val;
         }
         if (cls.isArray()) {
             //数组类型
-            return s.split(ARRAY_SPLIT);
+            return (T)s.split(ARRAY_SPLIT);
         }
         //这里可以使用==直接比较引用，不必使用equals
         if (cls == Collection.class || cls == List.class) {
             //集合类型，构建ArrayList
             val = Arrays.stream(s.split(ARRAY_SPLIT)).collect(Collectors.toList());
         }
-        return val;
+        return (T)val;
     }
 
     private static Object convertBasic(String val, Class cls) {
