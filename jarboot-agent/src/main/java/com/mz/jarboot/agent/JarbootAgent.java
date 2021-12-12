@@ -194,10 +194,9 @@ public class JarbootAgent {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
             homePath = agentJarFile.getParentFile().getParentFile().getPath();
             System.setProperty(CommonConst.JARBOOT_HOME, homePath);
-            return homePath;
         } catch (Exception e) {
             e.printStackTrace(ps);
         }
-        return null;
+        return homePath;
     }
 }
