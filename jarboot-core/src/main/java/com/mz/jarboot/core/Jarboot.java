@@ -148,7 +148,7 @@ public class Jarboot {
                 jarbootHome = "bin";
             }
         }
-        if (-1 != jarbootHome.indexOf(' ')) {
+        if (jarbootHome.contains(StringUtils.SPACE)) {
             throw new JarbootException(CommonConst.JARBOOT_HOME + " path has space ` `.");
         }
     }
