@@ -6,6 +6,7 @@ import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.VMUtils;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
@@ -245,23 +246,18 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     @Override
-    public void attach(int pid, String name) {
-        if (CommonConst.INVALID_PID == pid) {
-            return;
-        }
-        if (StringUtils.isEmpty(name)) {
-            name = StringUtils.SPACE;
+    public void attach(String pid) {
+        if (StringUtils.isEmpty(pid)) {
+            throw new JarbootException("pid is empty!");
         }
         Object vm = null;
-        String sid = String.valueOf(pid);
-        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHING);
+        WebSocketManager.getInstance().debugProcessEvent(pid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-            String args = SettingUtils.getAgentArgs(name, String.valueOf(pid));
+            String args = SettingUtils.getAttachArgs();
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            sid = String.valueOf(pid);
-            WebSocketManager.getInstance().printException(sid, e);
+            WebSocketManager.getInstance().printException(pid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -411,7 +407,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 return;
             }
             //尝试重新初始化代理客户端
-            TaskUtils.attach(server, sid);
+            TaskUtils.attach(sid);
             return;
         }
 

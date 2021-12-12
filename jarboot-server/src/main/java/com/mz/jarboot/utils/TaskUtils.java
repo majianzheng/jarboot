@@ -155,18 +155,17 @@ public class TaskUtils {
 
     /**
      * 通过agent机制附加到目标进程
-     * @param server 服务名
      * @param sid pid
      */
-    public static void attach(String server, String sid) {
+    public static void attach(String sid) {
         int pid = getPid(sid);
         if (CommonConst.INVALID_PID == pid) {
             return;
         }
         Object vm = null;
         try {
-            vm = VMUtils.getInstance().attachVM(pid);
-            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAgentArgs(server, sid));
+            vm = VMUtils.getInstance().attachVM(String.valueOf(pid));
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAttachArgs());
         } catch (Exception e) {
             WebSocketManager.getInstance().printException(sid, e);
         } finally {

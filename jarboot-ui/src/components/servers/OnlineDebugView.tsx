@@ -272,7 +272,7 @@ const OnlineDebugView = () => {
             pubsub.publish(sid, JarBootConst.FINISH_LOADING);
         }
         pubsub.publish(sid, JarBootConst.APPEND_LINE, "Attaching...");
-        ServerMgrService.attach(process.pid, process.name).then(resp => {
+        ServerMgrService.attach(process.pid).then(resp => {
             if (resp.resultCode < 0) {
                 CommonNotice.errorFormatted(resp);
                 return;

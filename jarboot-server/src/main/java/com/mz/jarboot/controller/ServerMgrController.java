@@ -143,8 +143,8 @@ public class ServerMgrController {
      */
     @GetMapping(value="/attach")
     @ResponseBody
-    public ResponseSimple attach(String pid, String name) {
-        serverMgrService.attach(Integer.parseInt(pid), name);
+    public ResponseSimple attach(String pid) {
+        serverMgrService.attach(pid);
         return new ResponseSimple();
     }
 

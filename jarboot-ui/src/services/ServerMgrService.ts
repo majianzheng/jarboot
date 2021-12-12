@@ -125,10 +125,9 @@ export default class ServerMgrService {
     /**
      * attach进程
      * @param pid pid
-     * @param name 名字
      */
-    public static attach(pid: number, name: string) {
-        return Request.get(`${urlBase}/attach`, {pid, name});
+    public static attach(pid: number) {
+        return Request.get(`${urlBase}/attach`, {pid});
     }
 
     /**
