@@ -35,6 +35,61 @@ const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 const LINE_CUR_ATTR = 'line-cur';
 
+const Banner = (
+    <div className={styles.banner}>
+        <br/>
+        <p>
+            <span className={styles.red}><span>&nbsp;&nbsp; &nbsp; </span>,--.</span>
+            <span className={styles.green}><span>&nbsp; &nbsp; &nbsp; &nbsp; </span></span>
+            <span className={styles.yellow}> <span>&nbsp; &nbsp; &nbsp; </span></span>
+            <span className={styles.blue}>,--. <span>&nbsp; </span></span>
+            <span className={styles.magenta}><span>&nbsp; &nbsp; &nbsp; &nbsp;</span></span>
+            <span className={styles.cyan}> <span>&nbsp; &nbsp; &nbsp; </span></span>
+            <span className={styles.red}><span>&nbsp; </span>,--.<span>&nbsp; &nbsp;</span></span>
+        </p>
+        <p>
+            <span className={styles.red}><span>&nbsp;&nbsp; &nbsp; </span>|<span>&nbsp; </span>|</span>
+            <span className={styles.green}> ,--,--.</span>
+            <span className={styles.yellow}>,--.--.</span>
+            <span className={styles.blue}>|<span>&nbsp; </span>|-. </span>
+            <span className={styles.magenta}> ,---. </span>
+            <span className={styles.cyan}> ,---. </span>
+            <span className={styles.red}>,-'<span>&nbsp; </span>'-. </span>
+        </p>
+        <p>
+            <span className={styles.red}>,--. |<span>&nbsp; </span>|</span>
+            <span className={styles.green}>' ,-.<span>&nbsp; </span>|</span>
+            <span className={styles.yellow}>|<span>&nbsp; </span>.--'</span>
+            <span className={styles.blue}>| .-. '</span>
+            <span className={styles.magenta}>| .-. |</span>
+            <span className={styles.cyan}>| .-. |</span>
+            <span className={styles.red}>'-.<span>&nbsp; </span>.-' </span>
+        </p>
+        <p>
+            <span className={styles.red}>|<span>&nbsp; </span>'-'<span>&nbsp; </span>/</span>
+            <span className={styles.green}>\ '-'<span>&nbsp; </span>|</span>
+            <span className={styles.yellow}>|<span>&nbsp; </span>| </span>
+            <span className={styles.blue}>  | `-' |</span>
+            <span className={styles.magenta}>' '-' '</span>
+            <span className={styles.cyan}>' '-' '</span>
+            <span className={styles.red}><span>&nbsp; </span>|<span>&nbsp; </span>|<span>&nbsp; &nbsp;</span></span>
+        </p>
+        <p>
+            <span className={styles.red}> `-----' </span>
+            <span className={styles.green}> `--`--'</span>
+            <span className={styles.yellow}>`--'<span>&nbsp; &nbsp;</span></span>
+            <span className={styles.blue}> `---' </span>
+            <span className={styles.magenta}> `---' </span>
+            <span className={styles.cyan}> `---' </span>
+            <span className={styles.red}><span>&nbsp; </span>`--'<span>&nbsp; &nbsp;</span></span>
+        </p>
+        <br/>
+        <br/>
+        <p>Jarboot console, docs: <span className={styles.cyan}>{JarBootConst.DOCS_URL}</span></p>
+        <p>Diagnose command, type ‘help’ and hit ‘ENTER’ to see.</p>
+    </div>
+);
+
 /**
  * 控制台终端类
  * @author majianzheng
@@ -378,58 +433,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             style.height = this.props.height;
         }
         return <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
-            <div className={styles.banner}>
-                <br/>
-                <p>
-                    <span className={styles.red}><span>&nbsp;&nbsp; &nbsp; </span>,--.</span>
-                    <span className={styles.green}><span>&nbsp; &nbsp; &nbsp; &nbsp; </span></span>
-                    <span className={styles.yellow}> <span>&nbsp; &nbsp; &nbsp; </span></span>
-                    <span className={styles.blue}>,--. <span>&nbsp; </span></span>
-                    <span className={styles.magenta}><span>&nbsp; &nbsp; &nbsp; &nbsp;</span></span>
-                    <span className={styles.cyan}> <span>&nbsp; &nbsp; &nbsp; </span></span>
-                    <span className={styles.red}><span>&nbsp; </span>,--.<span>&nbsp; &nbsp;</span></span>
-                </p>
-                <p>
-                    <span className={styles.red}><span>&nbsp;&nbsp; &nbsp; </span>|<span>&nbsp; </span>|</span>
-                    <span className={styles.green}> ,--,--.</span>
-                    <span className={styles.yellow}>,--.--.</span>
-                    <span className={styles.blue}>|<span>&nbsp; </span>|-. </span>
-                    <span className={styles.magenta}> ,---. </span>
-                    <span className={styles.cyan}> ,---. </span>
-                    <span className={styles.red}>,-'<span>&nbsp; </span>'-. </span>
-                </p>
-                <p>
-                    <span className={styles.red}>,--. |<span>&nbsp; </span>|</span>
-                    <span className={styles.green}>' ,-.<span>&nbsp; </span>|</span>
-                    <span className={styles.yellow}>|<span>&nbsp; </span>.--'</span>
-                    <span className={styles.blue}>| .-. '</span>
-                    <span className={styles.magenta}>| .-. |</span>
-                    <span className={styles.cyan}>| .-. |</span>
-                    <span className={styles.red}>'-.<span>&nbsp; </span>.-' </span>
-                </p>
-                <p>
-                    <span className={styles.red}>|<span>&nbsp; </span>'-'<span>&nbsp; </span>/</span>
-                    <span className={styles.green}>\ '-'<span>&nbsp; </span>|</span>
-                    <span className={styles.yellow}>|<span>&nbsp; </span>| </span>
-                    <span className={styles.blue}>  | `-' |</span>
-                    <span className={styles.magenta}>' '-' '</span>
-                    <span className={styles.cyan}>' '-' '</span>
-                    <span className={styles.red}><span>&nbsp; </span>|<span>&nbsp; </span>|<span>&nbsp; &nbsp;</span></span>
-                </p>
-                <p>
-                    <span className={styles.red}> `-----' </span>
-                    <span className={styles.green}> `--`--'</span>
-                    <span className={styles.yellow}>`--'<span>&nbsp; &nbsp;</span></span>
-                    <span className={styles.blue}> `---' </span>
-                    <span className={styles.magenta}> `---' </span>
-                    <span className={styles.cyan}> `---' </span>
-                    <span className={styles.red}><span>&nbsp; </span>`--'<span>&nbsp; &nbsp;</span></span>
-                </p>
-                <br/>
-                <br/>
-                <p>Jarboot console, docs: <span className={styles.cyan}>{JarBootConst.DOCS_URL}</span></p>
-                <p>Diagnose command, type ‘help’ and hit ‘ENTER’ to see.</p>
-            </div>
+            {Banner}
         </code>;
     }
 }
