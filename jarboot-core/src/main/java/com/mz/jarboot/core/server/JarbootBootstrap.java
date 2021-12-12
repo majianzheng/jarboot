@@ -94,13 +94,17 @@ public class JarbootBootstrap {
 
     public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
+            ClientData clientData = EnvironmentContext.getClientData();
             // 第二次进入，检查是否需要变更Jarboot服务地址
-            String curHost = EnvironmentContext.getClientData().getHost();
-            String sid = EnvironmentContext.getClientData().getSid();
             //若存在pid文件，则说明是由jarboot管理的进程，忽略变化
-            if (!Objects.equals(host, curHost)) {
+            if (!Objects.equals(host, clientData.getHost())) {
+                if (checkIsLacalAddr(host)) {
+                    clientData.setSid(PidFileHelper.PID);
+                    clientData.setHostRemote(false);
+                }
                 WsClientFactory.getInstance().changeHost(host);
             }
+            String sid = clientData.getSid();
             int pid = PidFileHelper.getServerPid(sid);
             if (CommonConst.INVALID_PID != pid && !PidFileHelper.PID.equals(String.valueOf(pid))) {
                 logger.warn("pid not match current: {}, pid file: {}", PidFileHelper.PID, pid);
