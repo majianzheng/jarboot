@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
  * 内部接口，与jarboot-core交互，非开放
  * @author majianzheng
  */
-@RequestMapping(value = "/api/public/agent")
+@RequestMapping(value = "/api/jarboot/public/agent")
 @Controller
 public class AgentClientController {
 

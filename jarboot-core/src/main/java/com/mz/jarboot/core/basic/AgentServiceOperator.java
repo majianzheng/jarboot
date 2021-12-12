@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class AgentServiceOperator {
     private static final Logger logger = LogUtils.getLogger();
-    private static final String SET_STARTED_API = "/api/public/agent/setStarted?server=";
+    private static final String SET_STARTED_API = "/api/jarboot/public/agent/setStarted?server=";
     private static volatile boolean started = false;
 
     public static void setStarted() {

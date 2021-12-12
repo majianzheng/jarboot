@@ -21,7 +21,7 @@ import java.util.List;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot/service/ws")
+@ServerEndpoint("/jarboot/public/service/ws")
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);

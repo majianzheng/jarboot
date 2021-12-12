@@ -32,7 +32,7 @@ public class WsClientFactory {
     /** 重连的间隔时间，加上连接等待时间10秒，一共每隔15秒执行一次尝试连接 */
     private static final int RECONNECT_INTERVAL = 5;
     /** 获取连接的IP地址 */
-    private static final String API_REMOTE_ADDR = "/api/public/agent/remoteAddr";
+    private static final String API_REMOTE_ADDR = "/api/jarboot/public/agent/remoteAddr";
     /** WebSocket 客户端 */
     private okhttp3.WebSocket client = null;
     /** WebSocket连接串 */
@@ -73,7 +73,7 @@ public class WsClientFactory {
             }
         }
 
-        url = String.format("ws://%s/public/jarboot/agent/ws/%s/%s",
+        url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
                 System.getProperty(CommonConst.REMOTE_PROP),
                 server,
                 EnvironmentContext.getSid());
