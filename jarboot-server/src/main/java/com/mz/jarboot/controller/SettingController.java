@@ -5,11 +5,9 @@ import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
-import com.mz.jarboot.common.VersionUtils;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class SettingController {
     @Autowired
     private SettingService settingService;
-    @Value("${docker:false}")
-    private boolean isInDocker;
 
     /**
      * 获取服务配置
@@ -125,24 +121,6 @@ public class SettingController {
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);
-        }
-    }
-
-    /**
-     * 获取版本
-     * @return 版本
-     */
-    @GetMapping(value="/version")
-    @ResponseBody
-    public ResponseForObject<String> getVersion() {
-        try {
-            String results = "v" + VersionUtils.version;
-            if (isInDocker) {
-                results += "(Docker)";
-            }
-            return new ResponseForObject<>(results);
-        } catch (JarbootException e) {
-            return new ResponseForObject<>(e);
         }
     }
 }
