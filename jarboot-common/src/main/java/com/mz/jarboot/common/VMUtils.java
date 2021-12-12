@@ -42,9 +42,9 @@ public class VMUtils {
      * @param pid 进程PID
      * @return VM实例
      */
-    public Object attachVM(int pid) {
+    public Object attachVM(String pid) {
         try {
-            return attach.invoke(null, String.valueOf(pid));
+            return attach.invoke(null, pid);
         } catch (Exception e) {
             throw new JarbootException("Attach failed! " + e.getMessage(), e);
         }

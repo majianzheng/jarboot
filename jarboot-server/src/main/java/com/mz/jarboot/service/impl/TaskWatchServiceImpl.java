@@ -328,6 +328,6 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             //已经是在线状态
             return;
         }
-        TaskUtils.attach(server.getName(), server.getSid());
+        TaskUtils.attach(server.getSid());
     }
 }
