@@ -227,11 +227,7 @@ public class Jarboot {
         AnsiLog.info("Starting process: {}", command);
         //处理
         ArrayList<String> list = new ArrayList<>();
-        if (OSUtils.isWindows()) {
-            list.add("java.exe");
-        } else {
-            list.add("java");
-        }
+        list.add("java");
         list.add(String.format("-D%s=\"%s\"", CommonConst.JARBOOT_HOME, jarbootHome));
         list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
         list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
@@ -338,7 +334,7 @@ public class Jarboot {
                 .append(AnsiLog.blue(jt))
                 .append('\n')
                 .append("Start process sync or async:\nUsage: ")
-                .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -async[sync] [command eg: -jar demo.jar]"))
+                .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -async[sync] [eg: -jar demo.jar]"))
                 .append(CoreConstant.EXAMPLE)
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899 -sync -jar demo-app.jar"))
                 .append('\n')
