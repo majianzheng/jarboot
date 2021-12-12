@@ -1,7 +1,5 @@
 package com.mz.jarboot.core.constant;
 
-import java.io.File;
-
 /**
  * jarboot-service向客户端发送的指令定义
  * @author majianzheng
@@ -26,8 +24,6 @@ public class CoreConstant {
      * 方法执行耗时
      */
     public static final String COST_VARIABLE = "cost";
-
-    public static final String CMD_HISTORY_FILE = System.getProperty("user.home") + File.separator + "jarboot" + File.separator + "logs";
 
     public static final String EXPRESS_DESCRIPTION = "  The express may be one of the following expression (evaluated dynamically):\n" +
             "          target : the object\n" +
