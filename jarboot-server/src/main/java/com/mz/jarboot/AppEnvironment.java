@@ -1,6 +1,7 @@
 package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.VersionUtils;
 import javax.swing.*;
 import java.io.File;
@@ -31,6 +32,8 @@ public class AppEnvironment {
         if (!checkEnvironment()) {
             System.exit(-1);
         }
+        //初始化cache目录
+        CacheDirHelper.init();
     }
 
     private static void propDialog(String msg) {
