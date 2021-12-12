@@ -54,7 +54,8 @@ public class JarbootBootstrap {
         } else {
             String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
             //初始化日志模块
-            LogUtils.init(jarbootHome, serverName, sid, isPremain && !clientData.isHostRemote());
+            boolean persist = CommonConst.INVALID_PID != PidFileHelper.getServerPid(sid);
+            LogUtils.init(jarbootHome, serverName, sid, persist);
             logger = LogUtils.getLogger();
 
             //2.环境初始化
