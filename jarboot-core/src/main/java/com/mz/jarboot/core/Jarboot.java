@@ -148,6 +148,9 @@ public class Jarboot {
                 jarbootHome = "bin";
             }
         }
+        if (-1 != jarbootHome.indexOf(' ')) {
+            throw new JarbootException(CommonConst.JARBOOT_HOME + " path has space ` `.");
+        }
     }
 
     public static void main(String[] args) {
@@ -227,7 +230,7 @@ public class Jarboot {
         //处理
         ArrayList<String> list = new ArrayList<>();
         list.add("java");
-        list.add(String.format("-D%s=\"%s\"", CommonConst.JARBOOT_HOME, jarbootHome));
+        list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
         list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
         list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
         list.addAll(command);

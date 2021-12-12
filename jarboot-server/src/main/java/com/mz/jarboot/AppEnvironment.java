@@ -3,6 +3,8 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.VersionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.*;
 import java.io.File;
 
@@ -22,6 +24,13 @@ public class AppEnvironment {
             if (null == homePath) {
                 homePath = System.getProperty("user.home") + File.separator + CommonConst.JARBOOT_NAME;
             }
+        }
+        if (homePath.contains(StringUtils.SPACE)) {
+            JOptionPane.showConfirmDialog(
+                    null,
+                    "Jarboot路径中存在空格！" ,
+                    "错误",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
         }
         System.setProperty(CommonConst.JARBOOT_HOME, homePath);
         System.setProperty("application.version", "v" + VersionUtils.version);
