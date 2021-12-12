@@ -176,8 +176,7 @@ public class Jarboot {
             return;
         }
         AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
-        String baseUrl = String.format("http://%s", host);
-        HttpUtils.setBaseUrl(baseUrl);
+        HttpUtils.setHost(host);
         try {
             String version = HttpUtils.getJson("/api/jarboot/cloud/version", String.class);
             AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));

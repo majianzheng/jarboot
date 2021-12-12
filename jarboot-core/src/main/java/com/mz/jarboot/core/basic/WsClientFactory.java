@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.basic;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -33,8 +34,6 @@ public class WsClientFactory {
     private static final String API_REMOTE_ADDR = "/api/jarboot/public/agent/remoteAddr";
     /** WebSocket 客户端 */
     private okhttp3.WebSocket client = null;
-    /** WebSocket连接串 */
-    private String url = null;
     /** 命令派发器 */
     private final CommandDispatcher dispatcher;
     /** WebSocket事件监听 */
@@ -45,6 +44,8 @@ public class WsClientFactory {
     private volatile CountDownLatch latch = null;
     /** 心跳latch */
     private volatile CountDownLatch heartbeatLatch = null;
+    /** 销毁连接latch */
+    private volatile CountDownLatch shutdownLatch = null;
     /** 是否启动重连 */
     private boolean reconnectEnabled = false;
     /** 是否正在连接 */
@@ -57,11 +58,6 @@ public class WsClientFactory {
         dispatcher = new CommandDispatcher(this::onHeartbeat);
         //2.初始化WebSocket的handler
         this.initMessageHandler();
-
-        url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
-                EnvironmentContext.getClientData().getHost(),
-                EnvironmentContext.getClientData().getServer(),
-                EnvironmentContext.getClientData().getSid());
     }
 
     private void initMessageHandler() {
@@ -127,6 +123,10 @@ public class WsClientFactory {
         if (null != client) {
             this.destroyClient();
         }
+        final String url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
+                EnvironmentContext.getClientData().getHost(),
+                EnvironmentContext.getClientData().getServer(),
+                EnvironmentContext.getClientData().getSid());
         latch = new CountDownLatch(1);
         try {
             connectting = true;
@@ -201,6 +201,26 @@ public class WsClientFactory {
         return online;
     }
 
+    public void changeHost(String host) {
+        //修改host
+        System.setProperty(CommonConst.REMOTE_PROP, host);
+        EnvironmentContext.getClientData().setHost(host);
+        HttpUtils.setHost(host);
+        if (online) {
+            // 销毁旧的连接
+            shutdownLatch = new CountDownLatch(1);
+            try {
+                this.destroyClient();
+                shutdownLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                shutdownLatch = null;
+            }
+        }
+        createSingletonClient();
+    }
+
     private void sendHeartbeat() {
         if (null == this.client || connectting || !reconnectNotStarted) {
             return;
@@ -238,13 +258,19 @@ public class WsClientFactory {
         online = false;
         this.destroyClient();
         EnvironmentContext.cleanSession();
-        if (reconnectEnabled && reconnectNotStarted) {
-            //防止重复创建线程
-            reconnectNotStarted = false;
-            JarbootThreadFactory
-                    .createThreadFactory("reconnect-task", true)
-                    .newThread(this::reconnect)
-                    .start();
+        if (null == shutdownLatch) {
+            //非主动关闭的异常断开
+            if (reconnectEnabled && reconnectNotStarted) {
+                //防止重复创建线程
+                reconnectNotStarted = false;
+                JarbootThreadFactory
+                        .createThreadFactory("reconnect-task", true)
+                        .newThread(this::reconnect)
+                        .start();
+            }
+        } else {
+            //主动关闭连接
+            shutdownLatch.countDown();
         }
     }
 

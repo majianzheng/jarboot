@@ -88,10 +88,10 @@ public class HttpUtils {
 
     /**
      * 设定服务基址
-     * @param baseUrl 服务基址
+     * @param host Jarboot服务地址：127.0.0.1:9899
      */
-    public static void setBaseUrl(String baseUrl) {
-        HttpUtils.baseUrl = baseUrl;
+    public static void setHost(String host) {
+        HttpUtils.baseUrl = String.format("http://%s", host);
     }
 
     private static void checkSimple(ResponseSimple resp) {
