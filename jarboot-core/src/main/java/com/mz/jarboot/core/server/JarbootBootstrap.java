@@ -167,11 +167,27 @@ public class JarbootBootstrap {
 
     private ClientData initClientData(String args, boolean isPremain) {
         ClientData clientData = new ClientData();
-        if (StringUtils.isBlank(args)) {
+        if (isPremain) {
+            //由jarboot本地启动时，解析传入参数
+            initPremainArgs(args, clientData);
+        }
+
+        //设定Host
+        if (StringUtils.isBlank(clientData.getHost())) {
+            String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
+            if (StringUtils.isEmpty(remote) && !StringUtils.isEmpty(args)) {
+                remote = args;
+                System.setProperty(CommonConst.REMOTE_PROP, remote);
+            }
+            clientData.setHost(remote);
+        }
+
+        //设定服务名
+        if (StringUtils.isBlank(clientData.getServer())) {
             //获取服务名
             String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
             if (null == serverName) {
-                serverName = System.getProperty("sun.java.command", "NoName");
+                serverName = System.getProperty("sun.java.command", "Name-" + PidFileHelper.PID);
                 int p = serverName.indexOf(' ');
                 if (p > 0) {
                     serverName = serverName.substring(0, p);
@@ -183,12 +199,14 @@ public class JarbootBootstrap {
                 }
             }
             clientData.setServer(serverName);
-            String pid = PidFileHelper.PID;
+        }
+
+        //设定sid
+        if (StringUtils.isBlank(clientData.getSid())) {
             //获取远程的Jarboot服务地址
-            String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
-            if (checkIsLacalAddr(remote)) {
+            if (checkIsLacalAddr(clientData.getHost())) {
                 //本地进程，使用pid作为sid
-                clientData.setSid(pid);
+                clientData.setSid(PidFileHelper.PID);
                 clientData.setHostRemote(false);
             } else {
                 //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
@@ -199,20 +217,25 @@ public class JarbootBootstrap {
                 sb
                         .append(CommonConst.REMOTE_SID_PREFIX)
                         .append(CommonConst.COMMA_SPLIT)
-                        .append(pid)
+                        .append(PidFileHelper.PID)
                         .append(CommonConst.COMMA_SPLIT)
                         .append(ip)
                         .append(CommonConst.COMMA_SPLIT)
-                        .append(serverName)
+                        .append(clientData.getServer())
                         .append(CommonConst.COMMA_SPLIT)
                         .append(String.format("%x-%x", h, System.nanoTime()));
                 clientData.setSid(sb.toString());
                 clientData.setHostRemote(true);
             }
-            clientData.setHost(remote);
-            return clientData;
         }
-        //由jarboot本地启动
+
+        return clientData;
+    }
+
+    private void initPremainArgs(String args, ClientData clientData) {
+        if (StringUtils.isBlank(args)) {
+            return;
+        }
         String s = new String(Base64.getDecoder().decode(args));
         String[] agentArgs = s.split(String.valueOf(CommandConst.PROTOCOL_SPLIT));
         if (agentArgs.length != 3) {
@@ -223,10 +246,7 @@ public class JarbootBootstrap {
         clientData.setServer(agentArgs[1]);
         String sid = agentArgs[2];
         clientData.setSid(sid);
-        if (isPremain) {
-            PidFileHelper.writePidFile(sid);
-        }
-        return clientData;
+        PidFileHelper.writePidFile(sid);
     }
 
     /**
