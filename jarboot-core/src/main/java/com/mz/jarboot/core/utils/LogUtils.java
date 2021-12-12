@@ -4,8 +4,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.LoggerFactory;
@@ -23,13 +21,6 @@ public class LogUtils {
         if (null != logger) {
             return;
         }
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        PatternLayoutEncoder ple = new PatternLayoutEncoder();
-
-        ple.setPattern("%date %level [%thread] " +
-                "[%file:%line] %msg%n");
-        ple.setContext(lc);
-        ple.start();
         StringBuilder sb = new StringBuilder();
         sb
                 .append(home)
@@ -38,8 +29,16 @@ public class LogUtils {
                 .append(File.separator)
                 .append(server);
         logDir = sb.toString();
-        Appender<ILoggingEvent> appender;
+        //模块中所有日志均使用该名字获取
+        logger = (Logger) LoggerFactory.getLogger(CoreConstant.LOG_NAME);
         if (persist) {
+            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+            PatternLayoutEncoder ple = new PatternLayoutEncoder();
+
+            ple.setPattern("%date %level [%thread] " +
+                    "[%file:%line] %msg%n");
+            ple.setContext(lc);
+            ple.start();
             FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
             sb.append(File.separator)
                     .append("jarboot-")
@@ -52,18 +51,8 @@ public class LogUtils {
             fileAppender.setEncoder(ple);
             fileAppender.setContext(lc);
             fileAppender.start();
-            appender = fileAppender;
-        } else {
-            ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
-            consoleAppender.setEncoder(ple);
-            consoleAppender.setContext(lc);
-            consoleAppender.start();
-            appender = consoleAppender;
+            logger.addAppender(fileAppender);
         }
-
-        //模块中所有日志均使用该名字获取
-        logger = (Logger) LoggerFactory.getLogger(CoreConstant.LOG_NAME);
-        logger.addAppender(appender);
     }
 
     public static Logger getLogger() {
