@@ -181,7 +181,7 @@ public class SettingUtils {
         return agentJar;
     }
 
-    public static String getAgentArgs(String server, String sid) {
+    private static String getAgentArgs(String server, String sid) {
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
         StringBuilder sb = new StringBuilder();
         sb
@@ -192,6 +192,11 @@ public class SettingUtils {
                 .append(sid);
         byte[] bytes = Base64.getEncoder().encode(sb.toString().getBytes());
         return new String(bytes);
+    }
+
+    public static String getAttachArgs() {
+        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
+        return String.format("127.0.0.1:%s", port);
     }
 
     /**
