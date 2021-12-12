@@ -261,7 +261,7 @@ public class AgentManager {
     private void tryReConnect(String server, String sid, String sessionId) {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
-            TaskUtils.attach(server, sid);
+            TaskUtils.attach(sid);
             WebSocketManager.getInstance().sendConsole(sid, server + "连接断开，重连中...", sessionId);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                 logger.error("Attach and wait server connect timeout，{}", server);
@@ -363,7 +363,7 @@ public class AgentManager {
     public void onServerStarted(final String server, final String sid) {
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            logger.error("Server {} in offline already!", server);
+            logger.error("Server {} is offline already!", server);
             WebSocketManager.getInstance().sendConsole(sid, server + " is offline now！");
             return;
         }
