@@ -40,4 +40,14 @@ public class ClientData {
     public void setHostRemote(boolean hostRemote) {
         this.hostRemote = hostRemote;
     }
+
+    @Override
+    public String toString() {
+        return "ClientData{" +
+                "server='" + server + '\'' +
+                ", sid='" + sid + '\'' +
+                ", host='" + host + '\'' +
+                ", hostRemote=" + hostRemote +
+                '}';
+    }
 }
