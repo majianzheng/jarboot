@@ -98,8 +98,9 @@ public class JarbootBootstrap {
             // 第二次进入，检查是否需要变更Jarboot服务地址
             ClientData clientData = EnvironmentContext.getClientData();
             if (!Objects.equals(host, clientData.getHost())) {
-                if (checkIsLacalAddr(host) && clientData.isDiagnose()) {
-                    clientData.setSid(PidFileHelper.PID);
+                if (clientData.isDiagnose()) {
+                    ClientData client = this.initClientData(host, false);
+                    clientData.setSid(client.getSid());
                 }
                 WsClientFactory.getInstance().changeHost(host);
             }
@@ -171,12 +172,17 @@ public class JarbootBootstrap {
 
         //设定Host
         if (StringUtils.isBlank(clientData.getHost())) {
-            String remote = System.getProperty(CommonConst.REMOTE_PROP, null);
-            if (StringUtils.isEmpty(remote) && !StringUtils.isEmpty(args)) {
-                remote = args;
-                System.setProperty(CommonConst.REMOTE_PROP, remote);
+            String host;
+            if (StringUtils.isEmpty(args)) {
+                host = System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899");
+            } else {
+                host = args;
             }
-            clientData.setHost(remote);
+            if (null == System.getProperty(CommonConst.REMOTE_PROP, null)) {
+                System.setProperty(CommonConst.REMOTE_PROP, host);
+            }
+
+            clientData.setHost(host);
         }
 
         //设定服务名
@@ -287,10 +293,7 @@ public class JarbootBootstrap {
             throw new JarbootException("未指定要连接的jarboot服务，jarboot.remote为空！");
         }
         int index = remote.lastIndexOf(':');
-        if (-1 == index) {
-            throw new JarbootException("传入的jarboot.remote格式错误，remote:" + remote);
-        }
-        String addr = remote.substring(0, index);
+        String addr = (-1 == index) ? remote : remote.substring(0, index);
         return NetworkUtils.hostLocal(addr);
     }
 
