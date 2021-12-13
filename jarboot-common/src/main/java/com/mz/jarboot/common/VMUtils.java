@@ -102,6 +102,10 @@ public class VMUtils {
         }
     }
 
+    public boolean check() {
+        return null != listVM;
+    }
+
     private void init() {
         final String vmClassName = "com.sun.tools.attach.VirtualMachine";
         final String vmdClassName = "com.sun.tools.attach.VirtualMachineDescriptor";
