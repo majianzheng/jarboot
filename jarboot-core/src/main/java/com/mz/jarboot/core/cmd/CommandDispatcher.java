@@ -12,14 +12,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Command dispatch, the main loop of the logic.
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class CommandDispatcher extends Thread {
     private final Logger logger = LogUtils.getLogger();
 
     /** 消息处理队列 */
     private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
     /** 心跳响应 */
-    private Runnable heartbeat;
+    private final Runnable heartbeat;
 
     public CommandDispatcher(Runnable heartbeat) {
         this.heartbeat = heartbeat;
@@ -42,9 +41,10 @@ public class CommandDispatcher extends Thread {
                 String raw = queue.take();
                 execute(raw);
             } catch (InterruptedException e) {
-                logger.error(e.getMessage(), e);
+                logger.info(e.getMessage(), e);
                 Thread.currentThread().interrupt();
-            } catch (Throwable e) {
+                break;
+            } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
@@ -72,7 +72,7 @@ public class CommandDispatcher extends Thread {
                     logger.debug("未知类型的命令：{}, {}", type, request.getCommandLine());
                     break;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             if (null != session) {
                 session.end();

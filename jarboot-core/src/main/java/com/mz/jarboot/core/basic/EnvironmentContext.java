@@ -41,18 +41,34 @@ public class EnvironmentContext {
      * @param clientData 客户端数据
      * @param inst {@link Instrumentation}
      */
-    public static void init(String home, ClientData clientData, Instrumentation inst) {
+    public static synchronized void init(String home, ClientData clientData, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
-        EnvironmentContext.jarbootHome = home;
-        EnvironmentContext.clientData = clientData;
-        EnvironmentContext.instrumentation = inst;
-        EnvironmentContext.transformerManager =  new TransformerManager(inst);
+        if (null != home) {
+            EnvironmentContext.jarbootHome = home;
+        }
+        if (null != clientData) {
+            EnvironmentContext.clientData = clientData;
+        }
+        if (null != inst) {
+            EnvironmentContext.instrumentation = inst;
+        }
+        EnvironmentContext.transformerManager =  new TransformerManager(EnvironmentContext.instrumentation);
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         initialized = true;
+    }
+
+    public static synchronized void destroy() {
+        cleanSession();
+        scheduledExecutorService.shutdown();
+        EnvironmentContext.clientData = null;
+        EnvironmentContext.transformerManager.destroy();
+        EnvironmentContext.transformerManager = null;
+        scheduledExecutorService = null;
+        initialized = false;
     }
 
     /**

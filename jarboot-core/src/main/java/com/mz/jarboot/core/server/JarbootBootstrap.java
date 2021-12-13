@@ -110,6 +110,16 @@ public class JarbootBootstrap {
                 logger.warn("pid not match current: {}, pid file: {}", PidFileHelper.PID, pid);
                 PidFileHelper.writePidFile(sid);
             }
+        } else {
+            //以及被执行了shutdown或close命令，此时要重新初始化
+            ClientData client = this.initClientData(host, false);
+            //环境重新初始化
+            EnvironmentContext.init(null, client, null);
+            enhanceClassLoader();
+            //连接
+            WsClientFactory.getInstance().changeHost(client.getHost());
+            //开启输出流
+            StdOutStreamReactor.getInstance().enabled(true);
         }
         return WsClientFactory.getInstance().isOnline();
     }
