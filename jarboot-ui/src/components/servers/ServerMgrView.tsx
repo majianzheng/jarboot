@@ -29,6 +29,7 @@ import CloudService from "@/services/CloudService";
 import CommonUtils from "@/common/CommonUtils";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
+import IntlText from "@/common/IntlText";
 
 interface ServerMgrViewState {
     loading: boolean;
@@ -229,7 +230,7 @@ const ServerMgrView = () => {
     const getTbProps = () => ({
         columns: [
             {
-                title: intl.formatMessage({id: 'NAME'}),
+                title: <IntlText id={"NAME"}/>,
                 dataIndex: 'name',
                 key: 'name',
                 ellipsis: true,
@@ -238,7 +239,7 @@ const ServerMgrView = () => {
                 ...getColumnSearchProps('name')
             },
             {
-                title: intl.formatMessage({id: 'GROUP'}),
+                title: <IntlText id={"GROUP"}/>,
                 dataIndex: 'group',
                 key: 'group',
                 ellipsis: true,

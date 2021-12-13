@@ -8,6 +8,7 @@ import {useIntl} from "umi";
 import CommonUtils from "@/common/CommonUtils";
 import {DeleteIcon} from "@/components/icons";
 import styles from "@/common/global.less";
+import IntlText from "@/common/IntlText";
 
 const { Sider } = Layout;
 const height = window.innerHeight - 70;
@@ -54,90 +55,80 @@ const PluginsManager = () => {
         })
     };
 
-    const _getRowSelection = () => {
-        return {
-            type: 'radio',
-            onChange: (keys: any, rows: any) => setSelected({keys, rows}),
-            selectedRowKeys: selected.keys,
-        };
-    };
+    const getRowSelection = () => ({
+        type: 'radio',
+        onChange: (keys: any, rows: any) => setSelected({keys, rows}),
+        selectedRowKeys: selected.keys,
+    });
 
-    const _onRow = (record: any) => {
-        return {
+    const onRow = (record: any) => ({
+        onClick: () => {
+            setSelected({keys: [record.id], rows: [record]});
+        },
+    });
+
+    const getTbProps = () => ({
+        columns: [
+            {
+                title: <IntlText id={'NAME'}/>,
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+            },
+            {
+                title: <IntlText id={'TYPE'}/>,
+                dataIndex: 'type',
+                key: 'type',
+                ellipsis: true,
+                width: 120,
+                visible: false,
+            },
+        ],
+        loading: loading,
+        dataSource: data,
+        pagination: false,
+        rowKey: 'id',
+        size: 'small',
+        rowSelection: getRowSelection(),
+        onRow,
+        showHeader: true,
+        scroll: height,
+    });
+
+    const getTbBtnProps = () => ([
+        {
+            title: intl.formatMessage({id: 'REFRESH_BTN'}),
+            key: 'refresh',
+            icon: <SyncOutlined className={styles.toolButtonIcon}/>,
+            onClick: query,
+        },
+        {
+            title: intl.formatMessage({id: 'UPLOAD_NEW'}),
+            key: 'upload',
+            icon: <UploadOutlined className={styles.toolButtonIcon}/>,
+            onClick: () => setVisible(true),
+        },
+        {
+            title: intl.formatMessage({id: 'DELETE'}),
+            key: 'delete',
+            icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
+            onClick: removePlugin,
+        },
+        {
+            title: 'Open new window',
+            key: 'open',
+            icon: <ArrowRightOutlined className={styles.toolButtonIcon}/>,
             onClick: () => {
-                setSelected({keys: [record.id], rows: [record]});
+                if (url) {
+                    window.open(url, selected.rows[0].id);
+                }
             },
-        };
-    };
-
-    const _getTbProps = () => {
-        return {
-            columns: [
-                {
-                    title: intl.formatMessage({id: 'NAME'}),
-                    dataIndex: 'name',
-                    key: 'name',
-                    ellipsis: true,
-                },
-                {
-                    title: intl.formatMessage({id: 'TYPE'}),
-                    dataIndex: 'type',
-                    key: 'type',
-                    ellipsis: true,
-                    width: 120,
-                    visible: false,
-                },
-            ],
-            loading: loading,
-            dataSource: data,
-            pagination: false,
-            rowKey: 'id',
-            size: 'small',
-            rowSelection: _getRowSelection(),
-            onRow: _onRow,
-            showHeader: true,
-            scroll: height,
-        };
-    };
-
-    const _getTbBtnProps = () => {
-        return [
-            {
-                title: intl.formatMessage({id: 'REFRESH_BTN'}),
-                key: 'refresh',
-                icon: <SyncOutlined className={styles.toolButtonIcon}/>,
-                onClick: query,
-            },
-            {
-                title: intl.formatMessage({id: 'UPLOAD_NEW'}),
-                key: 'upload',
-                icon: <UploadOutlined className={styles.toolButtonIcon}/>,
-                onClick: () => setVisible(true),
-            },
-            {
-                title: intl.formatMessage({id: 'DELETE'}),
-                key: 'delete',
-                icon: <DeleteIcon className={styles.toolButtonRedIcon}/>,
-                onClick: removePlugin,
-            },
-            {
-                title: 'Open new window',
-                key: 'open',
-                icon: <ArrowRightOutlined className={styles.toolButtonIcon}/>,
-                onClick: () => {
-                    if (url) {
-                        window.open(url, selected.rows[0].id);
-                    }
-                },
-            }
-        ]
-    };
-
-    const formData = () => {
-        return {
-            type: form.getFieldValue("type"),
         }
-    };
+    ]);
+
+    const formData = () => ({
+        type: form.getFieldValue("type"),
+    });
 
     const props = {
         name: 'file',
@@ -157,20 +148,20 @@ const PluginsManager = () => {
     const getUrl = () => {
         const plugin = selected.rows[0];
         if (plugin) {
-            return `/plugins/page/${plugin.type}/${plugin.fileName}/index.html`;
+            return `/jarboot/plugins/page/${plugin.type}/${plugin.fileName}/index.html`;
         } else {
             return null;
         }
     };
 
-    let tableOption: any = _getTbProps();
+    let tableOption: any = getTbProps();
     tableOption.scroll = { y: height};
     const url = getUrl();
     return (
         <Layout>
             <Sider width={300}>
                 <CommonTable option={tableOption}
-                             toolbar={_getTbBtnProps()} height={height}/>
+                             toolbar={getTbBtnProps()} height={height}/>
             </Sider>
             <Layout>
                 {url && <iframe frameBorder={0} width={'100%'} height={'100%'} src={url}/>}

@@ -11,6 +11,7 @@ import styles from "./index.less";
 import {JarBootConst, MsgData} from "@/common/JarBootConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
+import IntlText from "@/common/IntlText";
 
 interface OnlineDebugState {
     loading: boolean;
@@ -181,8 +182,9 @@ const OnlineDebugView = () => {
         if (row.isLeaf) {
             return value;
         }
+        const id = JarBootConst.LOCALHOST === row.key ? 'LOCAL' : 'REMOTE';
         const text = <span className={styles.groupRow}>
-            {intl.formatMessage({id: JarBootConst.LOCALHOST === row.key ? 'LOCAL' : 'REMOTE'})}
+            <IntlText id={id}/>
         </span>;
         return <Tooltip title={row.name}>{text}</Tooltip>;
     };
@@ -200,7 +202,7 @@ const OnlineDebugView = () => {
                 render: pidRender
             },
             {
-                title: intl.formatMessage({id: 'NAME'}),
+                title: <IntlText id={"NAME"}/>,
                 dataIndex: 'name',
                 key: 'name',
                 ellipsis: true,

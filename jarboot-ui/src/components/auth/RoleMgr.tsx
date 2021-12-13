@@ -8,6 +8,7 @@ import RoleService from "@/services/RoleService";
 import {Form, Input, Modal} from "antd";
 import {DeleteIcon} from "@/components/icons";
 import styles from "@/common/global.less";
+import IntlText from "@/common/IntlText";
 
 /**
  * 角色管理
@@ -56,13 +57,13 @@ const RoleMgr = memo(() => {
     let tableOption: any = {
         columns: [
             {
-                title: intl.formatMessage({id: 'ROLE'}),
+                title: <IntlText id={'ROLE'}/>,
                 dataIndex: 'role',
                 key: 'role',
                 ellipsis: true,
             },
             {
-                title: intl.formatMessage({id: 'NAME'}),
+                title: <IntlText id={'NAME'}/>,
                 dataIndex: 'username',
                 key: 'username',
                 ellipsis: true,
