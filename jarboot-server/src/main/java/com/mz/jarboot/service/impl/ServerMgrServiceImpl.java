@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -299,8 +298,15 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         if (p > 0) {
             fullName = fullName.substring(0, p);
         }
-        final char sept = (fullName.endsWith(CommonConst.JAR_EXT)) ? File.separatorChar : '.';
-        int index = fullName.lastIndexOf(sept);
+        int index = -1;
+        if (fullName.endsWith(CommonConst.JAR_EXT)) {
+            index = fullName.lastIndexOf('/');
+            if (-1 == index) {
+                index = fullName.lastIndexOf('\\');
+            }
+        } else {
+            index = fullName.lastIndexOf('.');
+        }
         if (index > 0) {
             return fullName.substring(index + 1);
         }
