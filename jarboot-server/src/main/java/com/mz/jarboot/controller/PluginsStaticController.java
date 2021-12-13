@@ -18,7 +18,7 @@ import java.io.OutputStream;
  * 插件界面静态资源访问
  * @author majianzheng
  */
-@RequestMapping(value = "/plugins")
+@RequestMapping(value = "/jarboot/plugins")
 @Controller
 public class PluginsStaticController {
     private final Logger logger = LoggerFactory.getLogger(getClass());

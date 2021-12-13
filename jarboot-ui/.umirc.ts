@@ -39,10 +39,10 @@ export default defineConfig({
             'changeOrigin': true,
             'pathRewrite': {'^/api': ''}
         },
-        '/plugins': {
-            'target': 'http://localhost:9899/plugins/',
+        '/jarboot/plugins': {
+            'target': 'http://localhost:9899/jarboot/plugins/',
             'changeOrigin': true,
-            'pathRewrite': {'^/plugins': ''}
+            'pathRewrite': {'^/jarboot/plugins': ''}
         },
     },
 });
