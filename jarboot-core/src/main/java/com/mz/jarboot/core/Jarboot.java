@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.CodeSource;
 import java.util.*;
@@ -47,9 +48,9 @@ public class Jarboot {
     private Jarboot(String [] args) {
         this.args = args;
         initJarbootHome();
-        String h = System.getenv(JARBOOT_HOST_ENV);
-        if (!StringUtils.isEmpty(h)) {
-            this.host = h;
+        String hostEnv = System.getenv(JARBOOT_HOST_ENV);
+        if (!StringUtils.isEmpty(hostEnv)) {
+            this.host = hostEnv;
         }
         try {
             initArgs();
@@ -145,11 +146,11 @@ public class Jarboot {
                 File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
                 jarbootHome = agentJarFile.getParentFile().getParentFile().getPath();
             } catch (Exception e) {
-                jarbootHome = "bin";
+                throw new JarbootException("Get current path failed!" + e.getMessage(), e);
             }
         }
-        if (jarbootHome.contains(StringUtils.SPACE)) {
-            throw new JarbootException(CommonConst.JARBOOT_HOME + " path has space ` `.");
+        if (StringUtils.containsWhitespace(jarbootHome)) {
+            throw new JarbootException(CommonConst.JARBOOT_HOME + " path has white space ` `");
         }
     }
 
@@ -158,6 +159,7 @@ public class Jarboot {
             Jarboot jarboot = new Jarboot(args);
             jarboot.run();
         } catch (Exception e) {
+            AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
             AnsiLog.error(e);
         }
     }
@@ -236,18 +238,23 @@ public class Jarboot {
         list.addAll(command);
         String[] cmd = list.toArray(new String[0]);
         try {
-            AnsiLog.info("cmd: {}", list);
-            Process p = Runtime.getRuntime().exec(cmd);
+            Process process = Runtime.getRuntime().exec(cmd);
             if (Boolean.TRUE.equals(this.sync)) {
                 AnsiLog.info("Sync execute command waiting command exit.");
                 printHomePage();
-                p.waitFor();
+                InputStream inputStream = process.getInputStream();
+                int b = -1;
+                while (-1 != (b = inputStream.read())) {
+                    AnsiLog.write(b);
+                }
+                process.waitFor();
             } else {
                 Thread.sleep(3000);
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
+            AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
             AnsiLog.error(e);
         } finally {
             AnsiLog.info("Start process finished.");
@@ -298,6 +305,7 @@ public class Jarboot {
         } catch (NumberFormatException e) {
             AnsiLog.println("Please input an integer to select pid.");
         } catch (Exception e) {
+            AnsiLog.error(e.getMessage());
             AnsiLog.error(e);
         }
     }
