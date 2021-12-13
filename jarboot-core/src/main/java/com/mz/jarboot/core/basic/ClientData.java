@@ -7,7 +7,7 @@ public class ClientData {
     private String server;
     private String sid;
     private String host;
-    private boolean hostRemote;
+    private boolean diagnose;
 
     public String getServer() {
         return server;
@@ -33,12 +33,12 @@ public class ClientData {
         this.host = host;
     }
 
-    public boolean isHostRemote() {
-        return hostRemote;
+    public boolean isDiagnose() {
+        return diagnose;
     }
 
-    public void setHostRemote(boolean hostRemote) {
-        this.hostRemote = hostRemote;
+    public void setDiagnose(boolean diagnose) {
+        this.diagnose = diagnose;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ClientData {
                 "server='" + server + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
-                ", hostRemote=" + hostRemote +
+                ", diagnose=" + diagnose +
                 '}';
     }
 }

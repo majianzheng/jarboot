@@ -2,6 +2,8 @@
 
 - fix: #29 jarboot用nginx发布后，首页加载js和css错误无法打开页面。
   注意：Nginx除了普通HTTP外，还需要配置Websocket代理
+- 安装目录全路径中存在空白字符时报错并退出
+- 服务管理排除含有空白字符的名称
 - 后端代码性能优化，可读性优化，增加注释
 #### FEATURES:
 - 增加jt.sh、jt.cmd脚本，可以快捷的Attach和启动Java进程

@@ -69,8 +69,8 @@ public class JarbootBootstrap {
 
         //4.客户端初始化
         this.initClient();
-        if (clientData.isHostRemote()) {
-            WsClientFactory.getInstance().remoteJvmSchedule();
+        if (clientData.isDiagnose()) {
+            WsClientFactory.getInstance().scheduleHeartbeat();
         }
 
         {
@@ -95,13 +95,11 @@ public class JarbootBootstrap {
 
     public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
-            ClientData clientData = EnvironmentContext.getClientData();
             // 第二次进入，检查是否需要变更Jarboot服务地址
-            //若存在pid文件，则说明是由jarboot管理的进程，忽略变化
+            ClientData clientData = EnvironmentContext.getClientData();
             if (!Objects.equals(host, clientData.getHost())) {
-                if (checkIsLacalAddr(host)) {
+                if (checkIsLacalAddr(host) && clientData.isDiagnose()) {
                     clientData.setSid(PidFileHelper.PID);
-                    clientData.setHostRemote(false);
                 }
                 WsClientFactory.getInstance().changeHost(host);
             }
@@ -191,8 +189,15 @@ public class JarbootBootstrap {
                 if (p > 0) {
                     serverName = serverName.substring(0, p);
                 }
-                final char sept = (serverName.endsWith(CommonConst.JAR_EXT)) ? File.separatorChar : '.';
-                int index = serverName.lastIndexOf(sept);
+                int index = -1;
+                if (serverName.endsWith(CommonConst.JAR_EXT)) {
+                    index = serverName.lastIndexOf('/');
+                    if (-1 == index) {
+                        index = serverName.lastIndexOf('\\');
+                    }
+                } else {
+                    index = serverName.lastIndexOf('.');
+                }
                 if (index > 0) {
                     serverName = serverName.substring(index + 1);
                 }
@@ -200,13 +205,13 @@ public class JarbootBootstrap {
             clientData.setServer(serverName);
         }
 
-        //设定sid
+        //设定诊断进程的sid
         if (StringUtils.isBlank(clientData.getSid())) {
+            clientData.setDiagnose(true);
             //获取远程的Jarboot服务地址
             if (checkIsLacalAddr(clientData.getHost())) {
                 //本地进程，使用pid作为sid
                 clientData.setSid(PidFileHelper.PID);
-                clientData.setHostRemote(false);
             } else {
                 //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
                 int h = Objects.hash(PidFileHelper.INSTANCE_NAME, System.nanoTime());
@@ -224,7 +229,6 @@ public class JarbootBootstrap {
                         .append(CommonConst.COMMA_SPLIT)
                         .append(String.format("%x-%x", h, System.nanoTime()));
                 clientData.setSid(sb.toString());
-                clientData.setHostRemote(true);
             }
         }
 

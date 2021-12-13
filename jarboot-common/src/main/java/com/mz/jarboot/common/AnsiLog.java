@@ -277,6 +277,10 @@ public abstract class AnsiLog {
         System.out.println(format(format, arguments));
     }
 
+    public static void write(int c) {
+        System.out.write(c);
+    }
+
     private static String format(String from, Object... arguments) {
         if (from != null) {
             String computed = from;
