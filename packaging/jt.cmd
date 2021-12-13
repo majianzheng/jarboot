@@ -41,10 +41,10 @@ goto Win9xApp
 
 :endInit
 
+set CLASS_PATH=%JARBOOT_HOME%\bin\jarboot-core.jar;%JARBOOT_HOME%\bin\jarboot-agent.jar
+set MAIN=com.mz.jarboot.core.Jarboot
 
-set SERVER=jarboot-server
-
-set COMMAND="%JAVA%" -classpath %JARBOOT_HOME%\bin\jarboot-core.jar;%JARBOOT_HOME%\bin\jarboot-agent.jar com.mz.jarboot.core.Jarboot %CMD_LINE_ARGS%
+set COMMAND="%JAVA%" -classpath "%CLASS_PATH%" %MAIN% %CMD_LINE_ARGS%
 
 rem start jarboot command
 %COMMAND%

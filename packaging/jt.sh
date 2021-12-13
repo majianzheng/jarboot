@@ -38,11 +38,9 @@ if [ -z "$JAVA_HOME" ]; then
   fi
 fi
 
-export SERVER="jarboot-server"
-
 export JAVA_HOME
 export JAVA="$JAVA_HOME/bin/java"
 export JARBOOT_HOME=`cd $(dirname $0); pwd`
-
+CLASS_PATH="${JARBOOT_HOME}/bin/jarboot-core.jar:${JARBOOT_HOME}/bin/jarboot-agent.jar"
 # start
-$JAVA -classpath ${JARBOOT_HOME}/bin/jarboot-core.jar:${JARBOOT_HOME}/bin/jarboot-agent.jar com.mz.jarboot.core.Jarboot "$@"
+$JAVA -classpath "${CLASS_PATH}" com.mz.jarboot.core.Jarboot "$@"

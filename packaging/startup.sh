@@ -39,30 +39,33 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 
 export SERVER="jarboot-server"
-
+CUR_DIR=`pwd`
 export JAVA_HOME
 export JAVA="$JAVA_HOME/bin/java"
 export JARBOOT_HOME=`cd $(dirname $0); pwd`
-
+cd "${JARBOOT_HOME}"
 #===========================================================================================
 # JVM Configuration
 #===========================================================================================
 JAVA_OPT="${JAVA_OPT} -Xms256m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=500"
-JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${JARBOOT_HOME}/logs/java_heapdump.hprof"
+JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=logs/java_heapdump.hprof"
 JAVA_OPT="${JAVA_OPT} -XX:-UseLargePages"
 
 JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([0-9]*).*$/\1/p')
 if [[ "$JAVA_MAJOR_VERSION" -ge "9" ]] ; then
-  JAVA_OPT="${JAVA_OPT} -Xlog:gc*:file=${JARBOOT_HOME}/logs/jarboot_gc.log:time,tags:filecount=10,filesize=102400"
+  JAVA_OPT="${JAVA_OPT} -Xlog:gc*:file=logs/jarboot_gc.log:time,tags:filecount=10,filesize=102400"
 else
   JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${JAVA_HOME}/lib/ext"
-  JAVA_OPT="${JAVA_OPT} -Xloggc:${JARBOOT_HOME}/logs/jarboot_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
+  JAVA_OPT="${JAVA_OPT} -Xloggc:logs/jarboot_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
 fi
-JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=${JARBOOT_HOME}/plugins/server"
-JAVA_OPT="${JAVA_OPT} -jar ${JARBOOT_HOME}/bin/${SERVER}.jar"
+JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=plugins/server"
+
+JAR_FILE=bin/${SERVER}.jar
+
+JAVA_OPT="${JAVA_OPT} -jar ${JAR_FILE}"
 
 if [ ! -d "${JARBOOT_HOME}/logs" ]; then
-  mkdir ${JARBOOT_HOME}/logs
+  mkdir "${JARBOOT_HOME}/logs"
 fi
 
 echo "$JAVA ${JAVA_OPT}"
@@ -74,6 +77,7 @@ if [ ! -f "${JARBOOT_HOME}/logs/start.out" ]; then
   touch "${JARBOOT_HOME}/logs/start.out"
 fi
 # start
-echo "$JAVA ${JAVA_OPT}" > ${JARBOOT_HOME}/logs/start.out 2>&1 &
-nohup $JAVA ${JAVA_OPT} jarboot.jarboot >> ${JARBOOT_HOME}/logs/start.out 2>&1 &
+echo "$JAVA ${JAVA_OPT}" > logs/start.out 2>&1 &
+nohup $JAVA ${JAVA_OPT} jarboot.jarboot >> logs/start.out 2>&1 &
 echo "jarboot is starting，you can check the ${JARBOOT_HOME}/logs/start.out"
+cd "${CUR_DIR}"
