@@ -119,7 +119,7 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
         try {
-            coreJarFile = new File(CURRENT_DIR + File.separator + "bin", JARBOOT_CORE_JAR);
+            coreJarFile = new File(CURRENT_DIR + File.separator + CommonConst.BIN_NAME, JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
                 ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }

@@ -231,7 +231,7 @@ public class Jarboot {
         AnsiLog.info("Starting process: {}", command);
         //处理
         ArrayList<String> list = new ArrayList<>();
-        list.add("java");
+        list.add(CommonConst.JAVA_CMD);
         list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
         list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
         list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
@@ -311,7 +311,7 @@ public class Jarboot {
     }
 
     private String getJarbootAgentPath() {
-        File agentJar = FileUtils.getFile(jarbootHome, "bin", CommonConst.AGENT_JAR_NAME);
+        File agentJar = FileUtils.getFile(jarbootHome, CommonConst.BIN_NAME, CommonConst.AGENT_JAR_NAME);
         if (agentJar.exists()) {
             return agentJar.getPath();
         } else {
