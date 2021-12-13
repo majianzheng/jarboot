@@ -158,6 +158,9 @@ public class TaskRunCache {
         if (StringUtils.startsWith(name, CommonConst.DOT)) {
             return false;
         }
+        if (StringUtils.containsWhitespace(name)) {
+            return false;
+        }
         return !excludeDirSet.contains(name);
     }
 
