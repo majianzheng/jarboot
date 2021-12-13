@@ -2,12 +2,9 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * 内部接口，与jarboot-core交互，非开放
@@ -41,17 +38,5 @@ public class AgentClientController {
     public ResponseSimple setStarted(@RequestParam String server, @RequestParam String sid) {
         AgentManager.getInstance().onServerStarted(server, sid);
         return new ResponseSimple();
-    }
-
-    /**
-     * 获取连接的IP地址
-     * @param request 请求
-     * @return IP地址
-     */
-    @PostMapping(value="/remoteAddr")
-    @ResponseBody
-    public ResponseForObject<String> remoteAddr(HttpServletRequest request) {
-        String remote = request.getRemoteAddr();
-        return new ResponseForObject<>(remote);
     }
 }
