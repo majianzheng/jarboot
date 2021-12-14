@@ -288,12 +288,12 @@ public class SettingUtils {
                     .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
                     .forEach(line -> sb.append(line).append(StringUtils.SPACE));
         }
-        String vm = sb.toString();
+        String vm = sb.toString().trim();
         if (StringUtils.isBlank(vm)) {
-            vm = SettingUtils.getDefaultJvmArg();
-            if (!vm.isEmpty() && !vm.endsWith(StringUtils.SPACE)) {
-                vm += StringUtils.SPACE;
-            }
+            vm = SettingUtils.getDefaultJvmArg().trim();
+        }
+        if (!vm.contains("-Dfile.encoding=")) {
+            vm += "-Dfile.encoding=UTF-8";
         }
         return vm;
     }

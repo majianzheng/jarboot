@@ -113,6 +113,10 @@ public class TaskUtils {
                 .append(StringUtils.SPACE)
                 // jvm 配置
                 .append(jvm)
+                .append(StringUtils.SPACE)
+                //忽略字节码校验，提高启动速度；彩色日志启动
+                .append("-noverify -Dspring.output.ansi.enabled=always")
+                .append(StringUtils.SPACE)
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(server, sid))
                 .append(StringUtils.SPACE);
