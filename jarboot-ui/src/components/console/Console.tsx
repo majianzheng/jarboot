@@ -33,6 +33,19 @@ interface ConsoleEvent {
     deleted?: boolean,
 }
 
+interface SgrOption {
+    /** 前景色 */
+    foregroundColor: string;
+    /** 背景色 */
+    backgroundColor: string;
+    /** 是否粗体 */
+    bold: boolean;
+    /** 是否因此 */
+    hide: boolean;
+    /** 反显，前景色和背景色掉换 */
+    exchange: boolean;
+}
+
 //最大行数
 const MAX_LINE = 16384;
 //超出上限则移除最老的行数
@@ -110,7 +123,13 @@ class Console extends React.PureComponent<ConsoleProps> {
     private lines = [] as HTMLElement[];
     private updateTimeoutFd: NodeJS.Timeout|null = null;
     private finishTimeoutFd: NodeJS.Timeout|null = null;
-    private currentStyle: string|null = null;
+    private sgrOption: SgrOption = {
+        backgroundColor: '',
+        exchange: false,
+        foregroundColor: '',
+        hide: false,
+        bold: false,
+    };
 
     componentDidMount() {
         this.updateTimeoutFd = null;
@@ -429,62 +448,37 @@ class Console extends React.PureComponent<ConsoleProps> {
         //色彩支持： \033[31m 文字 \033[0m
         const BEGIN = '[';
         let begin = line.indexOf(BEGIN);
-        let end = 0;
         let preIndex = 0;
-        let preLength = line.length;
-        const noBegin = -1 === begin;
+        let preBegin = -1;
         while(-1 !== begin) {
             const mBegin = begin + BEGIN.length;
             const mIndex = line.indexOf('m', mBegin);
             if (-1 == mIndex) {
                 break;
             }
+            const preStyle = this.toStyle();
             const termStyle = line.substring(mBegin, mIndex);
-            //解析termStyle: 32m、 48;5;4m
-            switch (this.parseTermStyle(termStyle)) {
-                case ParseStyleState.FAILED:
-                    begin = line.indexOf(BEGIN, begin + BEGIN.length);
-                    continue;
-                case ParseStyleState.RESETED:
-                    const text = this.colorText(line.substring(preIndex, begin));
-                    this.currentStyle = null;
-                    preLength = line.length;
-                    line = text + line.substring(mIndex + 1);
-                    begin = text.length + preIndex;
-                    break;
-                case ParseStyleState.SUCCESS:
-                    break;
-                default:
-                    break;
-            }
-
-            end = line.indexOf(RESET, begin + BEGIN.length);
-            if (-1 === end) {
-                //未结束，将开始后的都染色
-                const start = begin + BEGIN.length + 3;
-                line = (line.substring(0, begin) + this.colorText(line.substring(start)));
-                break;
-            }
-            if (null !== this.currentStyle) {
-                const start = begin + BEGIN.length + 3;
-                const text = this.colorText(line.substring(start, end));
-                line = (line.substring(0, begin) + text + line.substring(end + RESET.length));
-                end = start + text.length;
-            }
-            this.currentStyle = null;
-            preIndex = begin;
-            preLength = line.length;
-            begin = line.indexOf(BEGIN, end);
-        }
-        if (null !== this.currentStyle) {
-            end = line.indexOf(RESET);
-            if (-1 === end) {
-                noBegin && (line = this.colorText(line));
+            //格式控制
+            if (StringUtil.isNotEmpty(preStyle)) {
+                const styled = this.styleText(line.substring(preIndex, begin), preStyle);
+                const text = (preIndex > 0 && -1 !== preBegin) ? (line.substring(0, preBegin) + styled) : styled;
+                line = (text + line.substring(mIndex + 1));
+                preIndex = text.length;
             } else {
-                const text = this.colorText(line.substring(0, end));
-                line = (text + line.substring(end + RESET.length));
-                this.currentStyle = null;
+                const text = line.substring(0, begin);
+                line = (text + line.substring(mIndex + 1));
+                preIndex = text.length;
             }
+            //解析termStyle: 32m、 48;5;4m
+            if (!this.parseTermStyle(termStyle)) {
+                Logger.error('parseTermStyle failed.', termStyle, line);
+            }
+            preBegin = begin;
+            begin = line.indexOf(BEGIN, preIndex);
+        }
+        const style = this.toStyle();
+        if (StringUtil.isNotEmpty(style)) {
+            line = this.styleText(line, style);
         }
         p.innerHTML = line;
         return p;
@@ -495,86 +489,136 @@ class Console extends React.PureComponent<ConsoleProps> {
      * @return 是否成功
      * @param styles
      */
-    private parseTermStyle(styles: string): ParseStyleState {
+    private parseTermStyle(styles: string): boolean {
         if (StringUtil.isEmpty(styles)) {
-            return ParseStyleState.FAILED;
+            return false;
         }
         const list = styles.split(';');
-        let style = '';
-        let reset = false;
-        list.forEach(s => {
-            const number = parseInt(s);
+        for (let i = 0; i < list.length; ++i) {
+            const number = parseInt(list[i]);
             if (isNaN(number)) {
-                return;
+                return false;
             }
             const index = (number % 10);
             const type = Math.floor((number / 10));
             switch (type) {
                 case 0:
                     //特殊格式控制
-                    switch (index) {
-                        case 0:
-                            //关闭所有格式，还原为初始状态
-                            reset = true;
-                            break;
-                        case 1:
-                            //粗体/高亮显示
-                            style += `font-weight:bold;`;
-                            break;
-                        case 2:
-                            //模糊（※）
-                            break;
-                        case 3:
-                            //斜体（※）
-                            break;
-                        case 4:
-                            //下划线
-                            break;
-                        case 5:
-                            //闪烁（慢）
-                            break;
-                        case 6:
-                            //闪烁（快）（※）
-                            break;
-                        case 7:
-                            //交换背景色与前景色
-                            break;
-                        case 8:
-                            //隐藏（伸手不见五指，啥也看不见）（※）
-                            break;
-                        default:
-                            break;
-                    }
+                    this.specCtl(index);
                     break;
                 case 3:
                     //前景色
-                    const fontColor = BasicColor[index];
-                    fontColor && (style += `color:${fontColor};`);
+                    switch (index) {
+                        case 8:
+                            break;
+                        case 9:
+                            //恢复默认
+                            this.sgrOption.foregroundColor = '';
+                            break;
+                        default:
+                            const fontColor = BasicColor[index];
+                            this.sgrOption.foregroundColor = fontColor;
+                            break;
+                    }
                     break;
                 case 4:
                     //背景色
-                    const bgColor = BasicColor[index];
-                    bgColor && (style += `background:${bgColor};`);
+                    this.setBackground(index);
                     break;
                 default:
                     //todo 其他情况暂未支持
                     break;
             }
-        });
-        if (StringUtil.isNotEmpty(style)) {
-            this.currentStyle = style;
         }
-        if (reset && 1 === list.length) {
-            return ParseStyleState.RESETED;
+        return true;
+    }
+
+    private specCtl(index: number) {
+        switch (index) {
+            case 0:
+                //关闭所有格式，还原为初始状态
+                this.sgrOption.bold = false;
+                this.sgrOption.backgroundColor = '';
+                this.sgrOption.foregroundColor = '';
+                this.sgrOption.hide = false;
+                this.sgrOption.exchange = false;
+                break;
+            case 1:
+                //粗体/高亮显示
+                this.sgrOption.bold = true;
+                break;
+            case 2:
+                //模糊（※）
+                break;
+            case 3:
+                //斜体（※）
+                break;
+            case 4:
+                //下划线
+                break;
+            case 5:
+                //闪烁（慢）
+                break;
+            case 6:
+                //闪烁（快）（※）
+                break;
+            case 7:
+                //交换背景色与前景色
+                break;
+            case 8:
+                //隐藏（伸手不见五指，啥也看不见）（※）
+                break;
+            default:
+                break;
         }
-        return ParseStyleState.SUCCESS;
+    }
+
+    private setBackground(index: number) {
+        switch (index) {
+            case 8:
+                break;
+            case 9:
+                //恢复默认
+                this.sgrOption.backgroundColor = '';
+                break;
+            default:
+                const bgColor = BasicColor[index];
+                this.sgrOption.backgroundColor = bgColor;
+                break;
+        }
+    }
+
+    private toStyle(): string {
+        let style = '';
+        if (this.sgrOption.hide) {
+            style += `visibility: hidden;`;
+        }
+        if (this.sgrOption.exchange) {
+            //前景色、背景色调用
+            const foregroundColor = StringUtil.isEmpty(this.sgrOption.backgroundColor) ? '#263238' : this.sgrOption.backgroundColor;
+            const backgroundColor = StringUtil.isEmpty(this.sgrOption.foregroundColor) ? 'seashell' : this.sgrOption.foregroundColor;
+            style += `color:${foregroundColor};background:${backgroundColor};`;
+        } else {
+            if (StringUtil.isNotEmpty(this.sgrOption.backgroundColor)) {
+                style += `background:${this.sgrOption.backgroundColor};`;
+            }
+            if (StringUtil.isNotEmpty(this.sgrOption.foregroundColor)) {
+                style += `color:${this.sgrOption.foregroundColor};`;
+            }
+        }
+        return style;
+    }
+
+    private styleText(text: string, style: string): string {
+        if (StringUtil.isEmpty(style)) {
+            return text;
+        }
+        return `<span style="${style}">${text}</span>`;
     }
 
     private colorText(text: string): string {
-        if (StringUtil.isEmpty(this.currentStyle)) {
-            return text;
-        }
-        return `<span style="${this.currentStyle}">${text}</span>`;
+        const style = this.toStyle();
+        return this.styleText(text, style);
     }
 
     render() {
