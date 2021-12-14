@@ -1,6 +1,6 @@
 import CommonTable from "@/components/table";
 import {Result, Tooltip} from "antd";
-import {BugFilled, DashboardOutlined, HomeFilled, LoadingOutlined, SyncOutlined} from "@ant-design/icons";
+import {BugFilled, DashboardOutlined, HomeFilled, LoadingOutlined, SyncOutlined, CloseCircleFilled} from "@ant-design/icons";
 import ServerMgrService, {JvmProcess, TreeNode} from "@/services/ServerMgrService";
 import {SuperPanel} from "@/components/servers/SuperPanel";
 import * as React from "react";
@@ -263,6 +263,15 @@ const OnlineDebugView = () => {
         }
     });
 
+    const detach = () => {
+        if (state.selectRows?.length < 1) {
+            notSelectInfo();
+            return;
+        }
+        const process = state.selectRows[0];
+        pubsub.publish(process.sid, PUB_TOPIC.QUICK_EXEC_CMD, "shutdown");
+    };
+
     const attach = () => {
         const process = state?.selectRows[0];
         if (!process) {
@@ -291,13 +300,14 @@ const OnlineDebugView = () => {
         pubsub.publish(process.sid, PUB_TOPIC.QUICK_EXEC_CMD, "dashboard");
     };
 
+    const isAttached = (!state.selectRows?.length || state.selectRows[0].attached);
+
     const getTbBtnProps = () => ([
         {
-            title: 'Attach',
-            key: 'attach ',
-            icon: <BugFilled className={styles.toolButtonIcon}/>,
-            onClick: attach,
-            disabled: !state.selectRows?.length || state.selectRows[0].attached
+            title: isAttached? 'Detach' : 'Attach',
+            key: 'attach-detach',
+            icon: isAttached ? <CloseCircleFilled className={styles.toolButtonIcon}/> : <BugFilled className={styles.toolButtonIcon}/>,
+            onClick: isAttached ? detach : attach,
         },
         {
             title: intl.formatMessage({id: 'REFRESH_BTN'}),
