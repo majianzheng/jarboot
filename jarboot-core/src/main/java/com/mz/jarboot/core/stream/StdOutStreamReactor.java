@@ -10,7 +10,10 @@ import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -93,6 +96,18 @@ public class StdOutStreamReactor {
                 System.setOut(defaultOut);
                 this.isOn = false;
             }
+        }
+        this.enableColor();
+    }
+
+    private void enableColor() {
+        try {
+            Class<?> cls = Class.forName("com.mz.jarboot.common.AnsiLog");
+            Field field = cls.getDeclaredField("enableColor");
+            field.setAccessible(true);
+            field.setBoolean(null, this.isOn);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
     }
 

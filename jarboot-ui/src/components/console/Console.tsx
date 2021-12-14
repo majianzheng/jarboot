@@ -3,6 +3,7 @@ import styles from './index.less';
 import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
 import {JarBootConst} from "@/common/JarBootConst";
+import {BasicColor} from "@/components/console/ColorTable";
 
 interface ConsoleProps {
     visible?: boolean;
@@ -17,6 +18,12 @@ enum EventType {
     PRINT,
     BACKSPACE,
     CLEAR
+}
+
+enum ParseStyleState {
+    FAILED,
+    SUCCESS,
+    RESETED
 }
 
 interface ConsoleEvent {
@@ -34,6 +41,7 @@ const AUTO_CLEAN_LINE = 12000;
 const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 const LINE_CUR_ATTR = 'line-cur';
+const RESET = "[0m";
 
 const Banner = (
     <div className={styles.banner}>
@@ -102,6 +110,7 @@ class Console extends React.PureComponent<ConsoleProps> {
     private lines = [] as HTMLElement[];
     private updateTimeoutFd: NodeJS.Timeout|null = null;
     private finishTimeoutFd: NodeJS.Timeout|null = null;
+    private currentStyle: string|null = null;
 
     componentDidMount() {
         this.updateTimeoutFd = null;
@@ -417,15 +426,156 @@ class Console extends React.PureComponent<ConsoleProps> {
             return document.createElement('br');
         }
         let p = document.createElement('p');
-        line = line.replace(/ERROR/g, `<span class="${styles.errorLog}">ERROR</span>`).
-        replace(/INFO/g, `<span class="${styles.infoLog}">INFO</span>`);
-        if (line.includes('WARN')) {
-            line = line.replace(/WARN/g, `<span class="${styles.warnLog}">WARN</span>`);
-            p.className = styles.waring;
+        //色彩支持： \033[31m 文字 \033[0m
+        const BEGIN = '[';
+        let begin = line.indexOf(BEGIN);
+        let end = 0;
+        let preIndex = 0;
+        let preLength = line.length;
+        const noBegin = -1 === begin;
+        while(-1 !== begin) {
+            const mBegin = begin + BEGIN.length;
+            const mIndex = line.indexOf('m', mBegin);
+            if (-1 == mIndex) {
+                break;
+            }
+            const termStyle = line.substring(mBegin, mIndex);
+            //解析termStyle: 32m、 48;5;4m
+            switch (this.parseTermStyle(termStyle)) {
+                case ParseStyleState.FAILED:
+                    begin = line.indexOf(BEGIN, begin + BEGIN.length);
+                    continue;
+                case ParseStyleState.RESETED:
+                    const text = this.colorText(line.substring(preIndex, begin));
+                    this.currentStyle = null;
+                    preLength = line.length;
+                    line = text + line.substring(mIndex + 1);
+                    begin = text.length + preIndex;
+                    break;
+                case ParseStyleState.SUCCESS:
+                    break;
+                default:
+                    break;
+            }
+
+            end = line.indexOf(RESET, begin + BEGIN.length);
+            if (-1 === end) {
+                //未结束，将开始后的都染色
+                const start = begin + BEGIN.length + 3;
+                line = (line.substring(0, begin) + this.colorText(line.substring(start)));
+                break;
+            }
+            if (null !== this.currentStyle) {
+                const start = begin + BEGIN.length + 3;
+                const text = this.colorText(line.substring(start, end));
+                line = (line.substring(0, begin) + text + line.substring(end + RESET.length));
+                end = start + text.length;
+            }
+            this.currentStyle = null;
+            preIndex = begin;
+            preLength = line.length;
+            begin = line.indexOf(BEGIN, end);
+        }
+        if (null !== this.currentStyle) {
+            end = line.indexOf(RESET);
+            if (-1 === end) {
+                noBegin && (line = this.colorText(line));
+            } else {
+                const text = this.colorText(line.substring(0, end));
+                line = (text + line.substring(end + RESET.length));
+                this.currentStyle = null;
+            }
         }
         p.innerHTML = line;
         return p;
     };
+
+    /**
+     * ig: \033[32m、 \033[48;5;4m
+     * @return 是否成功
+     * @param styles
+     */
+    private parseTermStyle(styles: string): ParseStyleState {
+        if (StringUtil.isEmpty(styles)) {
+            return ParseStyleState.FAILED;
+        }
+        const list = styles.split(';');
+        let style = '';
+        let reset = false;
+        list.forEach(s => {
+            const number = parseInt(s);
+            if (isNaN(number)) {
+                return;
+            }
+            const index = (number % 10);
+            const type = Math.floor((number / 10));
+            switch (type) {
+                case 0:
+                    //特殊格式控制
+                    switch (index) {
+                        case 0:
+                            //关闭所有格式，还原为初始状态
+                            reset = true;
+                            break;
+                        case 1:
+                            //粗体/高亮显示
+                            style += `font-weight:bold;`;
+                            break;
+                        case 2:
+                            //模糊（※）
+                            break;
+                        case 3:
+                            //斜体（※）
+                            break;
+                        case 4:
+                            //下划线
+                            break;
+                        case 5:
+                            //闪烁（慢）
+                            break;
+                        case 6:
+                            //闪烁（快）（※）
+                            break;
+                        case 7:
+                            //交换背景色与前景色
+                            break;
+                        case 8:
+                            //隐藏（伸手不见五指，啥也看不见）（※）
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 3:
+                    //前景色
+                    const fontColor = BasicColor[index];
+                    fontColor && (style += `color:${fontColor};`);
+                    break;
+                case 4:
+                    //背景色
+                    const bgColor = BasicColor[index];
+                    bgColor && (style += `background:${bgColor};`);
+                    break;
+                default:
+                    //todo 其他情况暂未支持
+                    break;
+            }
+        });
+        if (StringUtil.isNotEmpty(style)) {
+            this.currentStyle = style;
+        }
+        if (reset && 1 === list.length) {
+            return ParseStyleState.RESETED;
+        }
+        return ParseStyleState.SUCCESS;
+    }
+
+    private colorText(text: string): string {
+        if (StringUtil.isEmpty(this.currentStyle)) {
+            return text;
+        }
+        return `<span style="${this.currentStyle}">${text}</span>`;
+    }
 
     render() {
         const style: any = {display: false === this.props.visible ? 'none' : 'block'};
