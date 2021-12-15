@@ -1,19 +1,19 @@
     ,---,                       ____             
   .'  .' `\                   ,'  , `.           
 ,---.'     \               ,-+-,.' _ |   ,---.   
-|   |  .`\  |           ,-+-. ;   , ||  '   ,'\   Jarboot server demo ✨
-:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |  version: v${project.version}
-|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :  Github: https://github.com/majianzheng/jarboot
-'   | ;  .  | /    /  |   | /  | |--' '   | |: :  Gitee: https://gitee.com/majz0908/jarboot
-|   | :  |  '.    ' / |   : |  | ,    '   | .; :
-'   : | /  ; '   ;   /|   : |  |/     |   :    |  This application just for test, using Java Swing framework.
-|   | '` ,/  '   |  / |   | |`-'       \   \  /
-;   :  .'    |   :    |   ;/            `----'   
-|   ,.'       \   \  /'---'
-'---'          `----'
-Example: https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example
-Debug command usage example:
-<span style="color:#52c41a">help</span> [command]
-jad com.mz.jarboot.demo.cmd.PowCommandProcessor
-watch com.mz.jarboot.demo.DemoServerApplication fib
-trace com.mz.jarboot.demo.DemoServerApplication pow
+|   |  .`\  |           ,-+-. ;   , ||  '   ,'\   [1;4;95mJarboot server demo[0m ✨
+:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |  version: [35mv${project.version}[0m
+|   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :  Github: [36mhttps://github.com/majianzheng/jarboot[0m
+'   | ;  .  | /    /  |   | /  | |--' '   | |: :  Gitee: [36mhttps://gitee.com/majz0908/jarboot[0m
+|   | :  |  '.    ' / |   : |  | ,    '   | .; :[31m
+'   : | /  ; '   ;   /|   : |  |/     |   :    |[0m  This application just for test, using Java Swing framework.[36m
+|   | '` ,/  '   |  / |   | |`-'       \   \  /[33m
+;   :  .'    |   :    |   ;/            `----'   [0m[38;5;94m
+|   ,.'       \   \  /'---'[0m[32m
+'---'          `----'[0m
+Example: [36mhttps://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example[0m
+[1mDebug command usage example:[0m
+[32mhelp[0m [35mcommand[0m
+[35mjad[0m [33mcom.mz.jarboot.demo.cmd.PowCommandProcessor[0m
+[35mwatch[0m [33mcom.mz.jarboot.demo.DemoServerApplication[0m [94mfib[0m
+[35mtrace[0m [33mcom.mz.jarboot.demo.DemoServerApplication[0m [94mpow[0m

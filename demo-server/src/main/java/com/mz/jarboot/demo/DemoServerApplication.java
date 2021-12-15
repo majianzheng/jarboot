@@ -42,17 +42,12 @@ public class DemoServerApplication implements Runnable {
         if (null == ver || ver.isEmpty()) {
             //启动界面
             new DemoServerApplication();
-            log("启动进度模拟...");
+            log("\033[95m启动进度\033[0m模拟中...");
             finish();
         } else {
             //docker模式下
-            log("当前正在使用Docker，启动进度模拟...");
+            log("当前正在使用\033[36mDocker\033[0m，\033[95m启动进度\033[0m模拟中...");
             finish();
-            try {
-                System.in.read();
-            } catch (IOException exception) {
-                log(exception.getMessage());
-            }
         }
     }
 
@@ -61,8 +56,9 @@ public class DemoServerApplication implements Runnable {
         String str = "[";
         String p = "";
         //模拟启动进度
+        int u = 256 / 50;
         for (int i = 0; i < 50; ++i) {
-            str += '#';
+            str += "#";
             for (int n = 0; n < p.length(); ++n) {
                 System.out.print('\b');
             }
@@ -96,7 +92,7 @@ public class DemoServerApplication implements Runnable {
     }
 
     public static void log(String text) {
-        System.out.println(text);
+        System.out.println("[\033[32mINFO\033[0m] " + text);
     }
     
     private String doFib(int limit, int interval) {
@@ -215,7 +211,7 @@ public class DemoServerApplication implements Runnable {
                 if (null == line) {
                     return;
                 }
-                log(line);
+                System.out.println(line);
             }
         } catch (IOException e) {
             e.printStackTrace();
