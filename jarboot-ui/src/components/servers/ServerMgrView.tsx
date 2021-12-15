@@ -119,7 +119,6 @@ const ServerMgrView = () => {
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
                     pubsub.publish(key, JarBootConst.START_LOADING);
-                    clearDisplay(item);
                     break;
                 case JarBootConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
@@ -297,7 +296,6 @@ const ServerMgrView = () => {
 
     const startSignal = (server: ServerRunning) => {
         if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
-            clearDisplay(server);
             ServerMgrService.startServer([server], finishCallback);
         }
     };
@@ -356,12 +354,7 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        state.selectRows.forEach(clearDisplay);
         ServerMgrService.startServer(state.selectRows, finishCallback);
-    };
-
-    const clearDisplay = (server: ServerRunning) => {
-        pubsub.publish(server.sid, JarBootConst.CLEAR_CONSOLE);
     };
 
     const stopServer = () => {
@@ -378,7 +371,6 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        state.selectRows.forEach(clearDisplay);
         ServerMgrService.restartServer(state.selectRows, finishCallback);
     };
 
