@@ -356,6 +356,7 @@ jarboot$ sysprop user.home
 
 ## 联系
 - 邮箱: 282295811@qq.com
+- QQ群: 663881845
 
 ![QQ group](https://gitee.com/majz0908/jarboot/raw/develop/doc/qq-group.png)
 

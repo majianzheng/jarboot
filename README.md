@@ -365,6 +365,7 @@ jarboot$ sysprop user.home
 
 ## Contact
 - Mail: 282295811@qq.com
+- QQ group: 663881845
 
 ![QQ group](https://gitee.com/majz0908/jarboot/raw/develop/doc/qq-group.png)
 
