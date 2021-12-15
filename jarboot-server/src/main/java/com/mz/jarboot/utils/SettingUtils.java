@@ -295,7 +295,7 @@ public class SettingUtils {
             vm = SettingUtils.getDefaultJvmArg().trim();
         }
         if (!vm.contains(FILE_ENCODING_OPTION)) {
-            vm += (FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
+            vm += (StringUtils.SPACE + FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
         }
         return vm;
     }
