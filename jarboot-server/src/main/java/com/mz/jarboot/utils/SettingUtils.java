@@ -45,6 +45,8 @@ public class SettingUtils {
     private static final String LOG_DIR;
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
+    /** file encoding选项 */
+    private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
 
     static {
         String home = System.getProperty(CommonConst.JARBOOT_HOME);
@@ -292,8 +294,8 @@ public class SettingUtils {
         if (StringUtils.isBlank(vm)) {
             vm = SettingUtils.getDefaultJvmArg().trim();
         }
-        if (!vm.contains("-Dfile.encoding=")) {
-            vm += "-Dfile.encoding=UTF-8";
+        if (!vm.contains(FILE_ENCODING_OPTION)) {
+            vm += (FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
         }
         return vm;
     }

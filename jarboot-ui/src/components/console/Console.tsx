@@ -20,12 +20,6 @@ enum EventType {
     CLEAR
 }
 
-enum ParseStyleState {
-    FAILED,
-    SUCCESS,
-    RESETED
-}
-
 interface ConsoleEvent {
     type: EventType,
     text?: string,
@@ -54,7 +48,7 @@ const AUTO_CLEAN_LINE = 12000;
 const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 const LINE_CUR_ATTR = 'line-cur';
-const RESET = "[0m";
+const BEGIN = '[';
 
 const Banner = (
     <div className={styles.banner}>
@@ -446,7 +440,6 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
         let p = document.createElement('p');
         //色彩支持： \033[31m 文字 \033[0m
-        const BEGIN = '[';
         let begin = line.indexOf(BEGIN);
         let preIndex = 0;
         let preBegin = -1;
@@ -614,11 +607,6 @@ class Console extends React.PureComponent<ConsoleProps> {
             return text;
         }
         return `<span style="${style}">${text}</span>`;
-    }
-
-    private colorText(text: string): string {
-        const style = this.toStyle();
-        return this.styleText(text, style);
     }
 
     render() {
