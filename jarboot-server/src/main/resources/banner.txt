@@ -3,6 +3,7 @@
 ,--. |  |' ,-.  ||  .--'| .-. '| .-. || .-. |'-.  .-' Jarboot ${application.version} ✨
 |  '-'  /\ '-'  ||  |   | `-' |' '-' '' '-' '  |  |   Port: ${server.port}
  `-----'  `--`--'`--'    `---'  `---'  `---'   `--'   Pid:  ${pid}
+
 🌟 GitHub: https://github.com/majianzheng/jarboot
    an easy-to-use Java process starter diagnose-tool
 👉 Visit home: http://127.0.0.1:${server.port}/jarboot/index.html
