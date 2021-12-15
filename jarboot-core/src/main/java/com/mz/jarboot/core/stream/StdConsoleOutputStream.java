@@ -21,10 +21,14 @@ public class StdConsoleOutputStream extends OutputStream {
     private static final byte CR = '\r';
     /** 退格键 */
     private static final byte BACKSPACE = '\b';
+    /** ESC控制符 */
+    private static final String ESC = "\003";
+    /** m字符 */
+    private static final String M = "m";
     /** IO 字符缓存 */
-    private byte[] buffer = new byte[FLUSH_THRESHOLD];
+    private byte[] buffer = new byte[FLUSH_THRESHOLD + MIN_PRINT_UNIT];
     /** buffer当前索引位置 */
-    private volatile int offset = NO_BUFFER_OFFSET;
+    private int offset = NO_BUFFER_OFFSET;
     /** 退格的计数值 */
     private AtomicInteger backspaceNum = new AtomicInteger(0);
     /** 行处理接口 */
@@ -73,10 +77,10 @@ public class StdConsoleOutputStream extends OutputStream {
      * @param b byte字节
      */
     @Override
-    public void write(int b) {
+    public synchronized void write(int b) {
         if ((offset + 1) >= buffer.length) {
             if (CR == buffer[buffer.length - 1]) {
-                offset = buffer.length - 2;
+                offset = (buffer.length - 2);
                 this.print();
                 offset = 0;
                 buffer[0] = buffer[buffer.length - 1];
@@ -95,7 +99,7 @@ public class StdConsoleOutputStream extends OutputStream {
         if (LINE_BREAK == b) {
             this.println();
         } else {
-            if (offset >= (FLUSH_THRESHOLD - 1)) {
+            if (offset > FLUSH_THRESHOLD) {
                 this.flush();
             } else {
                 weakup.run();
@@ -107,7 +111,7 @@ public class StdConsoleOutputStream extends OutputStream {
      * IO 刷新
      */
     @Override
-    public void flush() {
+    public synchronized void flush() {
         this.backspace();
         //打印
         this.print();
@@ -119,7 +123,8 @@ public class StdConsoleOutputStream extends OutputStream {
     private void println() {
         String text = "";
         //一行，清空buffer，打印一行
-        int len = offset > 1 && (CR == buffer[offset - 1]) ? offset - 1 : offset;
+        int index = offset;
+        int len = index > 1 && (CR == buffer[index - 1]) ? index - 1 : index;
         if (len > 0) {
             text = new String(buffer, 0, len);
         }
@@ -134,6 +139,15 @@ public class StdConsoleOutputStream extends OutputStream {
         //一行，清空buffer，打印一行
         if (offset > 0) {
             String text = new String(buffer, 0, offset + 1);
+            int index = text.indexOf(ESC);
+            while (-1 != index) {
+                //控制符未完成
+                index = text.indexOf(M, index);
+                if (-1 == index) {
+                    return;
+                }
+                index = text.indexOf(ESC, index);
+            }
             offset = NO_BUFFER_OFFSET;
             printHandler.handle(text);
         }

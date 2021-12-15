@@ -10,8 +10,6 @@ import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledFuture;
@@ -27,7 +25,7 @@ public class StdOutStreamReactor {
     private static final Logger logger = LogUtils.getLogger();
 
     /** flush wait time */
-    private static final int WAIT_TIME = 100;
+    private static final int WAIT_TIME = 120;
     /** 标准输出流实现 */
     private final StdConsoleOutputStream sos;
     /** 默认的标准输出流备份 */
