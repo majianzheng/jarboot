@@ -313,12 +313,9 @@ public class AgentManager {
             case BACKSPACE:
                 WebSocketManager.getInstance().backspace(sid, resp.getBody(), sessionId);
                 break;
-            case BACKSPACE_LINE:
-                WebSocketManager.getInstance().backspaceLine(sid, resp.getBody(), sessionId);
-                break;
             case STD_PRINT:
                 //启动中的控制台消息
-                WebSocketManager.getInstance().sendPrint(sid, resp.getBody(), sessionId);
+                WebSocketManager.getInstance().stdPrint(sid, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
                 WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);

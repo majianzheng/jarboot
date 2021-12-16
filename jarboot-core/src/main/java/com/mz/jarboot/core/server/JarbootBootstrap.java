@@ -84,7 +84,7 @@ public class JarbootBootstrap {
     }
 
     public void initClient() {
-        if (WsClientFactory.getInstance().isOnline()) {
+        if (WsClientFactory.getInstance().checkOnline()) {
             logger.warn("当前已经处于在线状态，不需要重新连接");
             return;
         }
@@ -121,7 +121,7 @@ public class JarbootBootstrap {
             //开启输出流
             StdOutStreamReactor.getInstance().enabled(true);
         }
-        return WsClientFactory.getInstance().isOnline();
+        return WsClientFactory.getInstance().checkOnline();
     }
 
     public static synchronized JarbootBootstrap getInstance(Instrumentation inst, String args, boolean isPremain) {

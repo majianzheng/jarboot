@@ -24,10 +24,9 @@ class ServerPubsubImpl implements PublishSubmit {
     private handlers = new Map<string, Set<(data: any) => void>>();
 
     constructor() {
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this._console);
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this._print);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this._backspace);
-        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE_LINE, this._backspaceLine);
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this.console);
+        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this.stdPrint);
+        WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this.backspace);
         WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
         WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
         WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
@@ -71,20 +70,16 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    private _console = (data: MsgData) => {
+    private console = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
     };
 
-    private _print = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.PRINT, data.body);
+    private stdPrint = (data: MsgData) => {
+        this.publish(data.sid, JarBootConst.STD_PRINT, data.body);
     };
 
-    private _backspace = (data: MsgData) => {
+    private backspace = (data: MsgData) => {
         this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
-    };
-
-    private _backspaceLine = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.BACKSPACE_LINE, data.body);
     };
 
     private _commandEnd = (data: MsgData) => {
@@ -113,7 +108,7 @@ class ServerPubsubImpl implements PublishSubmit {
         if ('{' !== data.body[0]) {
             //不是json数据时，使用console
             Logger.warn(`当前非JSON数据格式！`, data);
-            this._console(data);
+            this.console(data);
             return;
         }
         const body = JSON.parse(data.body);

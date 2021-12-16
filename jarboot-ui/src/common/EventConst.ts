@@ -7,7 +7,6 @@ export enum MSG_EVENT {
     CONSOLE_LINE,  //控制台输出
     CONSOLE_PRINT,  //控印制台打字符串（不换行）
     BACKSPACE,  //控制台退格
-    BACKSPACE_LINE,//控制台后退一行
     RENDER_JSON,
     SERVER_STATUS, //服务状态改变
     CMD_END,       //命令执行完成

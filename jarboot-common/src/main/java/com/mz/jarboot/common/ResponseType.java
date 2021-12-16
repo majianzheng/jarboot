@@ -26,11 +26,6 @@ public enum ResponseType {
     BACKSPACE,
 
     /**
-     * 控制台后退一行
-     */
-    BACKSPACE_LINE,
-
-    /**
      * Json类型的执行结果
      */
     JSON_RESULT,

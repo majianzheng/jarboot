@@ -14,10 +14,10 @@ interface ConsoleProps {
 }
 
 enum EventType {
-    LINE,
-    PRINT,
-    BACKSPACE,
-    CLEAR
+    CONSOLE_EVENT,
+    STD_PRINT_EVENT,
+    BACKSPACE_EVENT,
+    CLEAR_EVENT
 }
 
 interface ConsoleEvent {
@@ -61,7 +61,6 @@ const AUTO_CLEAN_LINE = 12000;
 //渲染更新延迟
 const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
-const LINE_CUR_ATTR = 'line-cur';
 const BEGIN = '[';
 const DEFAULT_SGR_OPTION: SgrOption = {
     backgroundColor: '',
@@ -143,13 +142,13 @@ class Console extends React.PureComponent<ConsoleProps> {
     private isStartLoading = false;
     private eventQueue = [] as ConsoleEvent[];
     private lines = [] as HTMLElement[];
-    private intavalHandle: NodeJS.Timeout|null = null;
-    private finishTimeoutFd: NodeJS.Timeout|null = null;
+    private intervalHandle: NodeJS.Timeout|null = null;
+    private finishHandle: NodeJS.Timeout|null = null;
     private sgrOption: SgrOption = {...DEFAULT_SGR_OPTION};
 
     componentDidMount() {
-        this.intavalHandle = null;
-        this.finishTimeoutFd = null;
+        this.intervalHandle = null;
+        this.finishHandle = null;
         this.eventQueue = [];
         //初始化loading
         let three1 = document.createElement('div');
@@ -169,28 +168,26 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (!pubsub) {
             return;
         }
-        pubsub.submit(id, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.submit(id, JarBootConst.PRINT, this.print);
-        pubsub.submit(id, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.submit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.submit(id, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.submit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.submit(id, JarBootConst.APPEND_LINE, this.onConsole);
+        pubsub.submit(id, JarBootConst.STD_PRINT, this.onStdPrint);
+        pubsub.submit(id, JarBootConst.BACKSPACE, this.onBackspace);
+        pubsub.submit(id, JarBootConst.START_LOADING, this.onStartLoading);
+        pubsub.submit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
+        pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
     }
 
     componentWillUnmount() {
-        this.intavalHandle = null;
+        this.intervalHandle = null;
         const {pubsub, id} = this.props;
         if (!pubsub) {
             return;
         }
-        pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.appendLine);
-        pubsub.unSubmit(id, JarBootConst.PRINT, this.print);
-        pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.backspace);
-        pubsub.unSubmit(id, JarBootConst.BACKSPACE_LINE, this.backspaceLine);
-        pubsub.unSubmit(id, JarBootConst.START_LOADING, this.startLoading);
-        pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.finishLoading);
-        pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.clear);
+        pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.onConsole);
+        pubsub.unSubmit(id, JarBootConst.STD_PRINT, this.onStdPrint);
+        pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.onBackspace);
+        pubsub.unSubmit(id, JarBootConst.START_LOADING, this.onStartLoading);
+        pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
+        pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
     }
 
     private init = () => {
@@ -215,13 +212,25 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.codeDom && (this.codeDom.innerHTML = this.ansiCompile(text as string));
     };
 
-    private clear = () => {
-        this.eventQueue.push({type: EventType.CLEAR});
+    private onClear = () => {
+        if (!this.codeDom?.children?.length) {
+            return;
+        }
+        if (this.isStartLoading) {
+            if (this.codeDom.children.length === 2) {
+                return;
+            }
+        } else {
+            if (this.codeDom.children.length === 1) {
+                return;
+            }
+        }
+        this.eventQueue.push({type: EventType.CLEAR_EVENT});
         //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
         this.trigEvent();
     };
 
-    private startLoading = () => {
+    private onStartLoading = () => {
         if (!this.isStartLoading) {
             try {
                 this.codeDom.append(this.loading);
@@ -232,16 +241,16 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     };
 
-    private finishLoading = (str?: string) => {
+    private onFinishLoading = (str?: string) => {
         this.init();
-        this.appendLine(str);
-        if (this.finishTimeoutFd) {
+        this.onConsole(str);
+        if (this.finishHandle) {
             // 以最后一次生效，当前若存在则取消，重新计时
-            clearTimeout(this.finishTimeoutFd);
+            clearTimeout(this.finishHandle);
         }
         //延迟异步，停止转圈
-        this.finishTimeoutFd = setTimeout(() => {
-            this.finishTimeoutFd = null;
+        this.finishHandle = setTimeout(() => {
+            this.finishHandle = null;
             try {
                 this.codeDom.removeChild(this.loading);
             } catch (error) {
@@ -251,38 +260,39 @@ class Console extends React.PureComponent<ConsoleProps> {
         }, MAX_FINISHED_DELAY);
     };
 
-    private print = (text: string | undefined) => {
-        this.eventQueue.push({type: EventType.PRINT, text});
+    private onStdPrint = (text: string | undefined) => {
+        this.eventQueue.push({type: EventType.STD_PRINT_EVENT, text});
         this.trigEvent();
     };
 
-    private appendLine = (line: string | undefined) => {
+    private onConsole = (line: string | undefined) => {
         if (StringUtil.isString(line)) {
-            this.eventQueue.push({type: EventType.LINE, text: line,});
+            this.eventQueue.push({type: EventType.CONSOLE_EVENT, text: line,});
             //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
             this.trigEvent();
         }
     };
 
     private trigEvent() {
-        if (this.intavalHandle) {
+        if (this.intervalHandle) {
             //已经触发
             return;
         }
         this.init();
-        this.intavalHandle = setTimeout(() => {
-            this.intavalHandle = null;
+        this.intervalHandle = setTimeout(() => {
+            this.intervalHandle = null;
             this.eventQueue.forEach(this.handleEvent);
             try {
                 if (this.lines.length) {
                     if (!this.isStartLoading) {
-                        this.startLoading()
+                        this.onStartLoading()
                     }
                     //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
                     const fragment = document.createDocumentFragment();
                     this.lines.forEach(l => fragment.append(l));
                     this.loading.before(fragment);
                     this.codeDom.scrollTop = this.codeDom.scrollHeight;
+                    this.scrollToEnd();
                 }
             } catch (e) {
                 Logger.error(e);
@@ -293,6 +303,10 @@ class Console extends React.PureComponent<ConsoleProps> {
         }, MAX_UPDATE_DELAY);
     }
 
+    private scrollToEnd() {
+        this.codeDom.scrollTop = this.codeDom.scrollHeight;
+    }
+
     private handleEvent = (event: ConsoleEvent) => {
         if (event.deleted) {
             return;
@@ -301,16 +315,16 @@ class Console extends React.PureComponent<ConsoleProps> {
             event.text = this.ansiCompile(event.text as string);
         }
         switch (event.type) {
-            case EventType.LINE:
-                this.handlePrintln(event);
+            case EventType.CONSOLE_EVENT:
+                this.handleConsole(event);
                 break;
-            case EventType.PRINT:
-                this.handlePrint(event);
+            case EventType.STD_PRINT_EVENT:
+                this.handleStdPrint(event);
                 break;
-            case EventType.BACKSPACE:
+            case EventType.BACKSPACE_EVENT:
                 this.handleBackspace(event);
                 break;
-            case EventType.CLEAR:
+            case EventType.CLEAR_EVENT:
                 this.handleClear();
                 break;
             default:
@@ -328,55 +342,68 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     }
 
-    private handlePrintln(event: ConsoleEvent) {
+    private handleConsole(event: ConsoleEvent) {
         if (this.lines.length > 0) {
-            let preLine = this.lines[this.lines.length - 1];
-            if (preLine.hasAttribute(LINE_CUR_ATTR)) {
+            const lastIndex = this.lines.length - 1;
+            let preLine = this.lines[lastIndex];
+            if ('BR' === preLine.tagName) {
                 //行未结束，将当前行附加到上一行
-                preLine.innerHTML += event.text;
-                preLine.removeAttribute(LINE_CUR_ATTR);
+                const div = document.createElement('div');
+                div.innerHTML = event.text as string;
+                this.lines[lastIndex] = div;
                 event.deleted = true;
                 return;
             }
         }
-        const line = this.createLine(event.text as string);
-        this.lines.push(line);
+        if (StringUtil.isEmpty(event.text)) {
+            this.lines.push(document.createElement('br'));
+        } else {
+            let line = document.createElement('div');
+            line.innerHTML = event.text as string;
+            this.lines.push(line);
+        }
     }
 
-    private handlePrint(event: ConsoleEvent) {
+    private handleStdPrint(event: ConsoleEvent) {
+        if (!event.text?.length) {
+            return;
+        }
+
         if (this.lines.length > 0) {
             let preLine = this.lines[this.lines.length - 1];
-            if (preLine.hasAttribute(LINE_CUR_ATTR)) {
+            if ('P' === preLine.tagName) {
                 //行未结束，将当前行附加到上一行
                 preLine.innerHTML += event.text as string;
                 event.deleted = true;
+            } else if ('BR' === preLine.tagName) {
+                this.lines[this.lines.length - 1] = this.createNewLine(event.text as string);
             } else {
-                const line = this.createLine(event.text as string);
-                line.setAttribute(LINE_CUR_ATTR, 'true');
-                this.lines.push(line);
+                //行结束，创建一行
+                this.lines.push(this.createNewLine(event.text as string));
             }
             return;
         }
 
         let last = this.getLastLine();
-        if (last && event.text) {
+        if (last) {
             if ('BR' === last.tagName) {
                 last.replaceWith(document.createElement('p'));
             }
-            if (last.hasAttribute(LINE_CUR_ATTR)) {
+            if ('P' === last.tagName) {
                 last.insertAdjacentHTML("beforeend", event.text);
             } else {
-                const line = document.createElement('p');
-                line.innerHTML = event.text;
-                last.setAttribute(LINE_CUR_ATTR, 'true');
-                last.after(line);
+                last.after(this.createNewLine(event.text));
             }
         } else {
-            const line = document.createElement('p');
-            line.innerHTML = event.text as string;
-            line.setAttribute(LINE_CUR_ATTR, 'true');
-            this.loading.before(line);
+            this.loading.before(this.createNewLine(event.text));
         }
+        this.scrollToEnd();
+    }
+
+    private createNewLine(content: string) {
+        const line = document.createElement('p');
+        line.innerHTML = content;
+        return line;
     }
 
     private handleBackspace(event: ConsoleEvent) {
@@ -403,7 +430,6 @@ class Console extends React.PureComponent<ConsoleProps> {
         let i = last.innerHTML.length;
         while (last && backspaceNum > 0) {
             i = last.innerHTML.length - backspaceNum;
-            last.setAttribute(LINE_CUR_ATTR, 'true');
             if (i > 0) {
                 last.innerHTML = last.innerHTML.substring(0, i);
                 backspaceNum = 0;
@@ -411,31 +437,20 @@ class Console extends React.PureComponent<ConsoleProps> {
                 last.innerHTML = '';
                 backspaceNum = 0;
             } else {
-                this.codeDom?.removeChild(last);
+                this.codeDom.removeChild(last);
                 last = this.getLastLine();
                 backspaceNum = Math.abs(i + 1);
             }
         }
     }
 
-    private backspace = (num: string) => {
+    private onBackspace = (num: string) => {
         let backspaceNum = parseInt(num);
         if (!Number.isInteger(backspaceNum)) {
             return;
         }
-        this.eventQueue.push({type: EventType.BACKSPACE, backspaceNum});
+        this.eventQueue.push({type: EventType.BACKSPACE_EVENT, backspaceNum});
         this.trigEvent();
-    };
-
-    private backspaceLine = (line?: string) => {
-        let last = this.getLastLine();
-        if (last) {
-            if (line) {
-                last.innerHTML = line;
-            } else {
-                this.codeDom?.removeChild(last);
-            }
-        }
     };
 
     private getLastLine() {
@@ -445,15 +460,6 @@ class Console extends React.PureComponent<ConsoleProps> {
         const len = this.codeDom.children.length;
         return this.isStartLoading ? this.codeDom.children[len - 2] : this.codeDom.children[len - 1];
     }
-
-    private createLine = (line: string) => {
-        if (0 === line?.length) {
-            return document.createElement('br');
-        }
-        let p = document.createElement('p');
-        p.innerHTML = line;
-        return p;
-    };
 
     private ansiCompile(line: string) {
         //色彩支持： \033[31m 文字 \033[0m

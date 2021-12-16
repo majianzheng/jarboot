@@ -81,7 +81,7 @@ public class WebSocketManager extends Thread {
      * @param text 文本
      */
     public void sendConsole(String sid, String text) {
-        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE_LINE);
+        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE);
     }
 
     /**
@@ -91,16 +91,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 指定的浏览器会话
      */
     public void sendConsole(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_LINE);
-    }
-
-    /**
-     * 所有浏览器客户端的控制台打印文本
-     * @param sid sid
-     * @param text 文本
-     */
-    public void sendPrint(String sid, String text) {
-        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE_PRINT);
+        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE);
     }
 
     /**
@@ -109,8 +100,8 @@ public class WebSocketManager extends Thread {
      * @param text 文本
      * @param sessionId 指定的浏览器会话
      */
-    public void sendPrint(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE_PRINT);
+    public void stdPrint(String sid, String text, String sessionId) {
+        this.publishEvent(sid, text, sessionId, WsEventEnum.STD_PRINT);
     }
 
     /**
@@ -121,16 +112,6 @@ public class WebSocketManager extends Thread {
      */
     public void backspace(String sid, String num, String sessionId) {
         this.publishEvent(sid, num, sessionId, WsEventEnum.BACKSPACE);
-    }
-
-    /**
-     * 浏览器控制台退格一行并用text替换
-     * @param sid sid
-     * @param text 替换的文本
-     * @param sessionId 指定的浏览器会话
-     */
-    public void backspaceLine(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.BACKSPACE_LINE);
     }
 
     /**
@@ -243,10 +224,6 @@ public class WebSocketManager extends Thread {
             private int index = 0;
             @Override
             public void write(int b) {
-                if (this.index > (this.buffer.length - 1)) {
-                    sendPrint(sid, new String(this.buffer));
-                    this.index = 0;
-                }
                 byte c = (byte) b;
                 if (lineBreak == c) {
                     sendConsole(sid, new String(this.buffer, 0, this.index, StandardCharsets.UTF_8));

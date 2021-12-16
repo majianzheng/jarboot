@@ -182,11 +182,15 @@ public class WsClientFactory {
      * 是否在线
      * @return 是否在线
      */
-    public boolean isOnline() {
+    public boolean checkOnline() {
         if (online) {
             sendHeartbeat();
         }
         return online;
+    }
+
+    public boolean isOnline() {
+        return this.online;
     }
 
     /**

@@ -24,18 +24,6 @@ public interface CommandSession {
      * @param text 消息
      */
     void console(String text);
-    
-    /**
-     * 控制台退格
-     * @param i 次数
-     */
-    void backspace(int i);
-
-    /**
-     * 控制台后退一行
-     * @param replacedText 若不为空则填充替换最后一行
-     */
-    void backspaceLine(String replacedText);
 
     /**
      * 取消执行

@@ -297,7 +297,7 @@ public class SettingUtils {
         if (!vm.contains(FILE_ENCODING_OPTION)) {
             vm += (StringUtils.SPACE + FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
         }
-        return vm;
+        return vm.trim();
     }
 
     public static Path getPath(String file, String... more) {

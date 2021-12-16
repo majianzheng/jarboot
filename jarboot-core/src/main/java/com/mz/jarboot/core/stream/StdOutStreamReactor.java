@@ -25,23 +25,23 @@ public class StdOutStreamReactor {
     private static final Logger logger = LogUtils.getLogger();
 
     /** flush wait time */
-    private static final int WAIT_TIME = 120;
+    private static final int WAIT_TIME = 800;
     /** 标准输出流实现 */
-    private final StdConsoleOutputStream sos;
+    private final StdConsoleOutputStream consoleOutputStream;
     /** 默认的标准输出流备份 */
     private final PrintStream defaultOut;
     /** 默认的错误输出流备份 */
     private final PrintStream defaultErr;
     /** 自定义的标准输出流 */
-    private final PrintStream stdRedirectStream;
+    private final PrintStream stdOutPrintStream;
     /** 是否开启 */
-    private volatile boolean isOn = false;
+    private boolean isOn = false;
     /** 上一次的打印时间 */
     private volatile long lastStdTime = 0;
     /** 启动完成判定时间 */
     private long startDetermineTime = 5000;
     /** 是否正在唤醒 */
-    private final AtomicBoolean weakuping = new AtomicBoolean(false);
+    private final AtomicBoolean wakeuping = new AtomicBoolean(false);
     /** 监控终端输出的定时任务，负责判定是否启动完成 */
     private ScheduledFuture<?> watchFuture;
 
@@ -65,8 +65,7 @@ public class StdOutStreamReactor {
      * 启动中开始，判定是否启动完成
      */
     public void setStarting() {
-        sos.setPrintLineHandler(this::stdStartingConsole);
-        sos.setPrintHandler(this::stdStartingPrint);
+        consoleOutputStream.setPrintHandler(this::stdStartingPrint);
         lastStdTime = System.currentTimeMillis();
         //启动监控线程，监控间隔2秒
         final long delay = 2;
@@ -84,8 +83,8 @@ public class StdOutStreamReactor {
             if (isOn) {
                 return;
             }
-            System.setOut(stdRedirectStream);
-            System.setErr(stdRedirectStream);
+            System.setOut(stdOutPrintStream);
+            System.setErr(stdOutPrintStream);
             this.isOn = true;
         } else {
             if (this.isOn) {
@@ -95,7 +94,6 @@ public class StdOutStreamReactor {
                 this.isOn = false;
             }
         }
-        this.enableColor();
     }
 
     private void enableColor() {
@@ -103,23 +101,10 @@ public class StdOutStreamReactor {
             Class<?> cls = Class.forName("com.mz.jarboot.common.AnsiLog");
             Field field = cls.getDeclaredField("enableColor");
             field.setAccessible(true);
-            field.setBoolean(null, this.isOn);
+            field.setBoolean(null, true);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-    }
-
-    /**
-     * 标准行输出
-     * @param text 文本
-     */
-    private void stdConsole(String text) {
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.CONSOLE);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        ResultStreamDistributor.write(resp);
     }
 
     /**
@@ -154,16 +139,6 @@ public class StdOutStreamReactor {
     }
 
     /**
-     * 开始中标准行输出
-     * @param text
-     */
-    private void stdStartingConsole(String text) {
-        stdConsole(text);
-        //更新计时
-        lastStdTime = System.currentTimeMillis();
-    }
-
-    /**
      * 开始中标准输出
      * @param text 文本
      */
@@ -178,12 +153,13 @@ public class StdOutStreamReactor {
      */
     private StdOutStreamReactor() {
         startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
-        sos = new StdConsoleOutputStream(this::onWeakup);
+        consoleOutputStream = new StdConsoleOutputStream(this::onWakeup);
         //备份默认的输出流
         defaultOut = System.out;
         defaultErr = System.err;
-        stdRedirectStream = new PrintStream(sos);
+        stdOutPrintStream = new PrintStream(consoleOutputStream, true);
         this.init();
+        this.enableColor();
     }
 
     /**
@@ -198,11 +174,9 @@ public class StdOutStreamReactor {
      */
     private void init() {
         // 输出不满一行的字符串
-        sos.setPrintHandler(this::stdPrint);
-        //输出行
-        sos.setPrintLineHandler(this::stdConsole);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //退格
-        sos.setBackspaceHandler(this::stdBackspace);
+        consoleOutputStream.setBackspaceHandler(this::stdBackspace);
         //默认开启
         this.enabled(true);
     }
@@ -210,10 +184,10 @@ public class StdOutStreamReactor {
     /**
      * 唤醒标准输出、错误流的IO刷新
      */
-    private void onWeakup() {
+    private void onWakeup() {
         //io唤醒机制，当IO第一次变动时，等待一段时间后触发刷新，忽视等待期间的事件，然后开始新的一轮
         //检查是否正在等待weakup
-        if (weakuping.compareAndSet(false, true)) {
+        if (wakeuping.compareAndSet(false, true)) {
             return;
         }
         //启动延时任务，防抖动设计，忽视中间变化
@@ -227,8 +201,8 @@ public class StdOutStreamReactor {
      */
     private void flush() {
         //CAS判定，只有启动了weakup延迟后才可刷新
-        if (weakuping.compareAndSet(true, false)) {
-            sos.flush();
+        if (wakeuping.compareAndSet(true, false)) {
+            stdOutPrintStream.flush();
         }
     }
 
@@ -240,8 +214,7 @@ public class StdOutStreamReactor {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功
-        sos.setPrintLineHandler(this::stdConsole);
-        sos.setPrintHandler(this::stdPrint);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //通知Jarboot server启动完成
         try {
             AgentServiceOperator.setStarted();

@@ -118,6 +118,7 @@ const ServerMgrView = () => {
                     // 激活终端显示
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
+                    pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
                     pubsub.publish(key, JarBootConst.START_LOADING);
                     break;
                 case JarBootConst.STATUS_STOPPING:
