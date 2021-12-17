@@ -311,9 +311,6 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (event.deleted) {
             return;
         }
-        if (event.text) {
-            event.text = this.ansiCompile(event.text as string);
-        }
         switch (event.type) {
             case EventType.CONSOLE_EVENT:
                 this.handleConsole(event);
@@ -348,9 +345,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             let preLine = this.lines[lastIndex];
             if ('BR' === preLine.tagName) {
                 //行未结束，将当前行附加到上一行
-                const div = document.createElement('div');
-                div.innerHTML = event.text as string;
-                this.lines[lastIndex] = div;
+                this.lines[lastIndex] = this.createConsoleDiv(event);
                 event.deleted = true;
                 return;
             }
@@ -358,10 +353,15 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (StringUtil.isEmpty(event.text)) {
             this.lines.push(document.createElement('br'));
         } else {
-            let line = document.createElement('div');
-            line.innerHTML = event.text as string;
-            this.lines.push(line);
+            this.lines.push(this.createConsoleDiv(event));
         }
+    }
+
+    private createConsoleDiv(event: ConsoleEvent) {
+        const text = this.ansiCompile(event.text as string);
+        const div = document.createElement('div');
+        div.innerHTML = text;
+        return div;
     }
 
     private handleStdPrint(event: ConsoleEvent) {
@@ -370,34 +370,64 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
 
         if (this.lines.length > 0) {
-            let preLine = this.lines[this.lines.length - 1];
-            if ('P' === preLine.tagName) {
-                //行未结束，将当前行附加到上一行
-                preLine.innerHTML += event.text as string;
-                event.deleted = true;
-            } else if ('BR' === preLine.tagName) {
-                this.lines[this.lines.length - 1] = this.createNewLine(event.text as string);
-            } else {
-                //行结束，创建一行
-                this.lines.push(this.createNewLine(event.text as string));
+            const fragment = document.createDocumentFragment();
+            this.lines.forEach(l => fragment.append(l));
+            if (!this.isStartLoading) {
+                this.onStartLoading();
             }
+            this.loading.before(fragment);
+            this.lines = [];
+        }
+        let text = event.text;
+        let index = text.indexOf('\n');
+        if (-1 == index) {
+            this.updateStdPrint(text);
             return;
         }
-
-        let last = this.getLastLine();
-        if (last) {
-            if ('BR' === last.tagName) {
-                last.replaceWith(document.createElement('p'));
-            }
-            if ('P' === last.tagName) {
-                last.insertAdjacentHTML("beforeend", event.text);
+        //换行处理算法，解析字符串中的换行符，替换为p标签，行未结束为p标签，行结束标识为br
+        while (-1 !== index) {
+            let last = this.getLastLine() as HTMLElement;
+            const left = this.ansiCompile(text.substring(0, index));
+            text = text.substring(index + 1);
+            if (last) {
+                if ('BR' === last.tagName) {
+                    last.insertAdjacentHTML('afterend', '<br/>');
+                    if (left.length) {
+                        last.replaceWith(this.createNewLine(left));
+                    }
+                } else if ('P' === last.tagName) {
+                    last.insertAdjacentHTML("beforeend", left);
+                    last.insertAdjacentHTML('afterend', '<br/>');
+                } else {
+                    //其它标签
+                    last.insertAdjacentHTML("afterend", `<p>${left}</p><br/>`);
+                }
             } else {
-                last.after(this.createNewLine(event.text));
+                this.codeDom.insertAdjacentHTML('afterbegin', `<p>${left}</p><br/>`);
             }
-        } else {
-            this.loading.before(this.createNewLine(event.text));
+            index = text.indexOf('\n');
+        }
+        if (text.length) {
+            this.updateStdPrint(text);
         }
         this.scrollToEnd();
+    }
+
+    private updateStdPrint(text: string) {
+        text = this.ansiCompile(text);
+        let last = this.getLastLine() as HTMLElement;
+        if (last) {
+            if ('BR' === last.tagName) {
+                last.replaceWith(this.createNewLine(text));
+            }
+            if ('P' === last.tagName) {
+                last.insertAdjacentHTML("beforeend", text);
+            } else {
+                last.after(this.createNewLine(text));
+            }
+        } else {
+            this.loading.before(this.createNewLine(text));
+        }
     }
 
     private createNewLine(content: string) {
@@ -408,38 +438,31 @@ class Console extends React.PureComponent<ConsoleProps> {
 
     private handleBackspace(event: ConsoleEvent) {
         let backspaceNum = event.backspaceNum as number;
-        while (this.lines.length > 0 && backspaceNum > 0) {
-            let pre = this.lines[this.lines.length - 1];
-            const len = pre.innerHTML.length - backspaceNum;
-            if (len > 0) {
-                pre.innerHTML = pre.innerHTML.substring(0, len);
-                backspaceNum = 0;
-            } else if (0 === len) {
-                pre.innerHTML = '';
-                backspaceNum = 0;
-            } else {
-                this.lines.pop();
-                backspaceNum = Math.abs(len + 1);
-            }
-        }
-
         let last = this.getLastLine();
         if (!last) {
             return;
         }
         let i = last.innerHTML.length;
         while (last && backspaceNum > 0) {
-            i = last.innerHTML.length - backspaceNum;
-            if (i > 0) {
-                last.innerHTML = last.innerHTML.substring(0, i);
-                backspaceNum = 0;
-            } else if (i === 0) {
-                last.innerHTML = '';
-                backspaceNum = 0;
-            } else {
+            if ('P' === last.tagName) {
+                i = last.innerHTML.length - backspaceNum;
+                if (i > 0) {
+                    last.innerHTML = last.innerHTML.substring(0, i);
+                    backspaceNum = 0;
+                } else if (i === 0) {
+                    last.innerHTML = '';
+                    backspaceNum = 0;
+                } else {
+                    this.codeDom.removeChild(last);
+                    last = this.getLastLine();
+                    backspaceNum = Math.abs(i + 1);
+                }
+            } else if ('BR' === last.tagName) {
+                --backspaceNum;
                 this.codeDom.removeChild(last);
                 last = this.getLastLine();
-                backspaceNum = Math.abs(i + 1);
+            } else {
+                last = this.getLastLine();
             }
         }
     }
@@ -453,8 +476,8 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.trigEvent();
     };
 
-    private getLastLine() {
-        if (!this.codeDom?.children?.length) {
+    private getLastLine(): HTMLElement|null {
+        if (!this.codeDom.children?.length) {
             return null;
         }
         const len = this.codeDom.children.length;
@@ -475,7 +498,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             const preStyle = this.toStyle();
             const termStyle = line.substring(mBegin, mIndex);
             //格式控制
-            if (StringUtil.isNotEmpty(preStyle)) {
+            if (preStyle.length) {
                 const styled = this.styleText(line.substring(preIndex, begin), preStyle);
                 const text = (preIndex > 0 && -1 !== preBegin) ? (line.substring(0, preBegin) + styled) : styled;
                 line = (text + line.substring(mIndex + 1));
@@ -493,7 +516,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             begin = line.indexOf(BEGIN, preIndex);
         }
         const style = this.toStyle();
-        if (StringUtil.isNotEmpty(style)) {
+        if (style.length) {
             if (preIndex > 0) {
                 line = (line.substring(0, preIndex) + this.styleText(line.substring(preIndex), style));
             } else {
@@ -743,11 +766,11 @@ class Console extends React.PureComponent<ConsoleProps> {
         let animation = '';
         if (this.sgrOption.slowBlink) {
             const blink = styles['blink'];
-            animation += `${blink} 600ms infinite `;
+            animation += `${blink} 1000ms infinite `;
         }
         if (this.sgrOption.fastBlink) {
             const blink = styles['blink'];
-            animation += `${blink} 120ms infinite `;
+            animation += `${blink} 256ms infinite `;
         }
         if (animation.length) {
             style += `animation:${animation};-webkit-animation:${animation};`
