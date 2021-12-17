@@ -25,6 +25,7 @@ English version goes [here](README.md).
 🐳 可扩展: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>，支持插件式开发。
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
+![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
 
 ## 技术背景及目标
 <code>Jarboot</code> 使用<code>Java Agent</code>和<code>ASM</code>技术往目标Java进程注入代码，无业务侵入性，注入的代码仅用于和

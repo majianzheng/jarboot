@@ -25,6 +25,7 @@ In the test environment and daily built integrated environment, a series of jar 
 🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
+![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, 
