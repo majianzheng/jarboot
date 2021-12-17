@@ -237,7 +237,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             process.setAttached(AgentManager.getInstance().isOnline(sid));
             process.setFullName(v);
             //解析获取简略名字
-            process.setName(parseFullName(v));
+            process.setName(TaskUtils.parseCommandSimple(v));
             result.add(process);
         });
         AgentManager.getInstance().remoteProcess(result);
@@ -291,26 +291,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
             }
         });
-    }
-
-    private String parseFullName(String fullName) {
-        int p = fullName.indexOf(' ');
-        if (p > 0) {
-            fullName = fullName.substring(0, p);
-        }
-        int index = -1;
-        if (fullName.endsWith(CommonConst.JAR_EXT)) {
-            index = fullName.lastIndexOf('/');
-            if (-1 == index) {
-                index = fullName.lastIndexOf('\\');
-            }
-        } else {
-            index = fullName.lastIndexOf('.');
-        }
-        if (index > 0) {
-            return fullName.substring(index + 1);
-        }
-        return fullName;
     }
 
     private void stopServer0(List<String> paths) {

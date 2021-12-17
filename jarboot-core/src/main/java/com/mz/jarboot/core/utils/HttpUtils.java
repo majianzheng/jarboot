@@ -31,14 +31,13 @@ public class HttpUtils {
 
     /**
      * Post请求
-     * @param api api接口
+     * @param url api接口
      * @param object 传入的参数
      * @param type 期望的结果类型
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T postJson(String api, Object object, Class<T> type) {
-        String url = baseUrl + api;
+    public static <T> T postJson(String url, Object object, Class<T> type) {
         String json = object instanceof String ? (String)object : JsonUtils.toJsonString(object);
         if (null == json) {
             json = "";
@@ -57,19 +56,19 @@ public class HttpUtils {
      * @param json 传入的参数
      */
     public static void postSimple(String api, String json) {
-        ResponseSimple resp = postJson(api, json, ResponseSimple.class);
+        String url = baseUrl + api;
+        ResponseSimple resp = postJson(url, json, ResponseSimple.class);
         checkSimple(resp);
     }
 
     /**
      * Get请求
-     * @param api api接口
+     * @param url api接口
      * @param type 期望的结果类型
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T getJson(String api, Class<T> type) {
-        String url = baseUrl + api;
+    public static <T> T getJson(String url, Class<T> type) {
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
@@ -82,16 +81,17 @@ public class HttpUtils {
      * @param api api接口
      */
     public static void getSimple(String api) {
-        ResponseSimple resp = getJson(api, ResponseSimple.class);
+        String url = baseUrl + api;
+        ResponseSimple resp = getJson(url, ResponseSimple.class);
         checkSimple(resp);
     }
 
     /**
      * 设定服务基址
-     * @param host Jarboot服务地址：127.0.0.1:9899
+     * @param baseUrl Jarboot服务地址：http://127.0.0.1:9899
      */
-    public static void setHost(String host) {
-        HttpUtils.baseUrl = String.format("http://%s", host);
+    public static void setBaseUrl(String baseUrl) {
+        HttpUtils.baseUrl = baseUrl;
     }
 
     private static void checkSimple(ResponseSimple resp) {

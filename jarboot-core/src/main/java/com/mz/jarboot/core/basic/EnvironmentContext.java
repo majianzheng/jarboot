@@ -19,7 +19,7 @@ public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
     /** 客户端信息 */
-    private static ClientData clientData;
+    private static AgentClientPojo clientData;
     /** 是否初始化 */
     private static boolean initialized = false;
     /** transformerManager */
@@ -41,7 +41,7 @@ public class EnvironmentContext {
      * @param clientData 客户端数据
      * @param inst {@link Instrumentation}
      */
-    public static synchronized void init(String home, ClientData clientData, Instrumentation inst) {
+    public static synchronized void init(String home, AgentClientPojo clientData, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
         if (null != home) {
@@ -101,7 +101,7 @@ public class EnvironmentContext {
         return initialized;
     }
 
-    public static ClientData getClientData() {
+    public static AgentClientPojo getClientData() {
         return clientData;
     }
 

@@ -8,14 +8,11 @@ import com.alibaba.bytekit.asm.matcher.SimpleClassMatcher;
 import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.NetworkUtils;
-import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.core.basic.ClientData;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
+import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -25,6 +22,7 @@ import java.io.IOException;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -44,7 +42,7 @@ public class JarbootBootstrap {
     private JarbootBootstrap(Instrumentation inst, String args, boolean isPremain) {
         this.instrumentation = inst;
         //1.解析args，获取目标服务端口
-        ClientData clientData = this.initClientData(args, isPremain);
+        AgentClientPojo clientData = this.initClientData(args, isPremain);
         String sid = clientData.getSid();
         String serverName = clientData.getServer();
         if (EnvironmentContext.isInitialized()) {
@@ -69,7 +67,7 @@ public class JarbootBootstrap {
 
         //4.客户端初始化
         this.initClient();
-        if (clientData.isDiagnose()) {
+        if (Boolean.TRUE.equals(clientData.getDiagnose())) {
             WsClientFactory.getInstance().scheduleHeartbeat();
         }
 
@@ -96,10 +94,10 @@ public class JarbootBootstrap {
     public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查是否需要变更Jarboot服务地址
-            ClientData clientData = EnvironmentContext.getClientData();
+            AgentClientPojo clientData = EnvironmentContext.getClientData();
             if (!Objects.equals(host, clientData.getHost())) {
-                if (clientData.isDiagnose()) {
-                    ClientData client = this.initClientData(host, false);
+                if (Boolean.TRUE.equals(clientData.getDiagnose())) {
+                    AgentClientPojo client = this.initClientData(host, false);
                     clientData.setSid(client.getSid());
                 }
                 WsClientFactory.getInstance().changeHost(host);
@@ -112,7 +110,7 @@ public class JarbootBootstrap {
             }
         } else {
             //以及被执行了shutdown或close命令，此时要重新初始化
-            ClientData client = this.initClientData(host, false);
+            AgentClientPojo client = this.initClientData(host, false);
             //环境重新初始化
             EnvironmentContext.init(null, client, null);
             enhanceClassLoader();
@@ -173,87 +171,54 @@ public class JarbootBootstrap {
         }
     }
 
-    private ClientData initClientData(String args, boolean isPremain) {
-        ClientData clientData = new ClientData();
-        if (isPremain) {
+    private AgentClientPojo initClientData(String args, boolean isPremain) {
+        AgentClientPojo clientData = new AgentClientPojo();
+        if (isPremain && initPremainArgs(args, clientData)) {
             //由jarboot本地启动时，解析传入参数
-            initPremainArgs(args, clientData);
+            return clientData;
         }
-
+        //args是host的情况
         //设定Host
-        if (StringUtils.isBlank(clientData.getHost())) {
-            String host;
-            if (StringUtils.isEmpty(args)) {
-                host = System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899");
-            } else {
-                host = args;
-            }
-            if (null == System.getProperty(CommonConst.REMOTE_PROP, null)) {
-                System.setProperty(CommonConst.REMOTE_PROP, host);
-            }
-
-            clientData.setHost(host);
+        String host;
+        if (StringUtils.isEmpty(args)) {
+            host = System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899");
+        } else {
+            host = args;
+        }
+        if (null == System.getProperty(CommonConst.REMOTE_PROP, null)) {
+            System.setProperty(CommonConst.REMOTE_PROP, host);
+        }
+        String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
+        if (null == serverName) {
+            serverName = System.getProperty("sun.java.command", "Name-" + PidFileHelper.PID);
         }
 
-        //设定服务名
-        if (StringUtils.isBlank(clientData.getServer())) {
-            //获取服务名
-            String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
-            if (null == serverName) {
-                serverName = System.getProperty("sun.java.command", "Name-" + PidFileHelper.PID);
-                int p = serverName.indexOf(' ');
-                if (p > 0) {
-                    serverName = serverName.substring(0, p);
-                }
-                int index = -1;
-                if (serverName.endsWith(CommonConst.JAR_EXT)) {
-                    index = serverName.lastIndexOf('/');
-                    if (-1 == index) {
-                        index = serverName.lastIndexOf('\\');
-                    }
-                } else {
-                    index = serverName.lastIndexOf('.');
-                }
-                if (index > 0) {
-                    serverName = serverName.substring(index + 1);
-                }
-            }
-            clientData.setServer(serverName);
-        }
+        StringBuilder sb = new StringBuilder();
+        sb
+                .append(PidFileHelper.PID)
+                .append(CommonConst.COMMA_SPLIT)
+                .append(PidFileHelper.INSTANCE_NAME)
+                .append(CommonConst.COMMA_SPLIT)
+                .append(serverName);
 
-        //设定诊断进程的sid
-        if (StringUtils.isBlank(clientData.getSid())) {
-            clientData.setDiagnose(true);
-            //获取远程的Jarboot服务地址
-            if (checkIsLacalAddr(clientData.getHost())) {
-                //本地进程，使用pid作为sid
-                clientData.setSid(PidFileHelper.PID);
-            } else {
-                //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
-                int h = Objects.hash(PidFileHelper.INSTANCE_NAME, System.nanoTime());
-                //远程进程，使用pid + ip + name + hash地址作为sid
-                String ip = getLocalAddr();
-                StringBuilder sb = new StringBuilder();
-                sb
-                        .append(CommonConst.REMOTE_SID_PREFIX)
-                        .append(CommonConst.COMMA_SPLIT)
-                        .append(PidFileHelper.PID)
-                        .append(CommonConst.COMMA_SPLIT)
-                        .append(ip)
-                        .append(CommonConst.COMMA_SPLIT)
-                        .append(clientData.getServer())
-                        .append(CommonConst.COMMA_SPLIT)
-                        .append(String.format("%x-%x", h, System.nanoTime()));
-                clientData.setSid(sb.toString());
-            }
+        byte[] encoded = Base64.getEncoder().encode(sb.toString().getBytes(StandardCharsets.UTF_8));
+        String code = new String(encoded, StandardCharsets.UTF_8);
+        String url = String.format("http://%s/api/jarboot/public/agent/agentClient?code=%s",
+                host, code);
+        clientData = HttpUtils.getJson(url, AgentClientPojo.class);
+        if (null == clientData) {
+            throw new JarbootException("Request Jarboot server failed! url:" + url);
         }
-
+        if (0 != clientData.getResultCode()) {
+            throw new JarbootException(clientData.getResultCode(), clientData.getResultMsg());
+        }
+        clientData.setHost(host);
         return clientData;
     }
 
-    private void initPremainArgs(String args, ClientData clientData) {
+    private boolean initPremainArgs(String args, AgentClientPojo clientData) {
         if (StringUtils.isBlank(args)) {
-            return;
+            return false;
         }
         String s = new String(Base64.getDecoder().decode(args));
         String[] agentArgs = s.split(String.valueOf(CommandConst.PROTOCOL_SPLIT));
@@ -266,45 +231,7 @@ public class JarbootBootstrap {
         String sid = agentArgs[2];
         clientData.setSid(sid);
         PidFileHelper.writePidFile(sid);
-    }
-
-    /**
-     * 获取本机网卡的地址
-     * @return 网卡地址
-     */
-    private String getLocalAddr() {
-        //先尝试获取IPv4的地址
-        List<String> addrList = NetworkUtils.getLocalAddr4();
-        if (null != addrList && !addrList.isEmpty()) {
-            for (String addr : addrList) {
-                //.1结尾的可能是虚拟机的虚拟网卡地址
-                if (!addr.endsWith(".1") && !addr.contains(".0.")) {
-                    return addr;
-                }
-            }
-            for (String addr : addrList) {
-                //.0.*的可能是交换地址，如docker
-                if (!addr.contains(".0.")) {
-                    return addr;
-                }
-            }
-            return addrList.get(0);
-        }
-        //IPv4地址为空时，使用IPv6的地址
-        addrList = NetworkUtils.getLocalAddr();
-        if (null == addrList || addrList.isEmpty()) {
-            throw new JarbootException("获取本机IP地址异常！");
-        }
-        return addrList.get(0);
-    }
-
-    private boolean checkIsLacalAddr(String remote) {
-        if (StringUtils.isBlank(remote)) {
-            throw new JarbootException("未指定要连接的jarboot服务，jarboot.remote为空！");
-        }
-        int index = remote.lastIndexOf(':');
-        String addr = (-1 == index) ? remote : remote.substring(0, index);
-        return NetworkUtils.hostLocal(addr);
+        return true;
     }
 
     void enhanceClassLoader() {

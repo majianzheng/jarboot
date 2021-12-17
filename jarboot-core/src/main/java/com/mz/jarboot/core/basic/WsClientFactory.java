@@ -201,10 +201,10 @@ public class WsClientFactory {
         //修改host
         System.setProperty(CommonConst.REMOTE_PROP, host);
         EnvironmentContext.getClientData().setHost(host);
-        HttpUtils.setHost(host);
+        HttpUtils.setBaseUrl(String.format("http://%s", host));
         closeSession();
         createSingletonClient();
-        if (EnvironmentContext.getClientData().isDiagnose()) {
+        if (Boolean.TRUE.equals(EnvironmentContext.getClientData().getDiagnose())) {
             scheduleHeartbeat();
         }
     }

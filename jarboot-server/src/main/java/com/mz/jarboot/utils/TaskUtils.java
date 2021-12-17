@@ -247,6 +247,26 @@ public class TaskUtils {
         }
     }
 
+    public static String parseCommandSimple(String command) {
+        int p = command.indexOf(' ');
+        if (p > 0) {
+            command = command.substring(0, p);
+        }
+        int index = -1;
+        if (command.endsWith(CommonConst.JAR_EXT)) {
+            index = command.lastIndexOf('/');
+            if (-1 == index) {
+                index = command.lastIndexOf('\\');
+            }
+        } else {
+            index = command.lastIndexOf('.');
+        }
+        if (index > 0) {
+            return command.substring(index + 1);
+        }
+        return command;
+    }
+
     /**
      * 强制杀死进程
      * @param pid 进程PID

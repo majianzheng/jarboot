@@ -181,9 +181,9 @@ public class Jarboot {
             return;
         }
         AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
-        HttpUtils.setHost(host);
+        String url = String.format("http://%s/api/jarboot/cloud/version", host);
         try {
-            String version = HttpUtils.getJson("/api/jarboot/cloud/version", String.class);
+            String version = HttpUtils.getJson(url, String.class);
             AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
         } catch (Exception e) {
             AnsiLog.error(e);
@@ -234,6 +234,8 @@ public class Jarboot {
         list.add(CommonConst.JAVA_CMD);
         list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
         list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
+        list.add("-noverify");
+        list.add("-Dspring.output.ansi.enabled=always");
         list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
         list.addAll(command);
         String[] cmd = list.toArray(new String[0]);

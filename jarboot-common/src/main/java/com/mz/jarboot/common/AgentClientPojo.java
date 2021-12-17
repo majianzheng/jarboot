@@ -1,13 +1,32 @@
-package com.mz.jarboot.core.basic;
+package com.mz.jarboot.common;
 
 /**
+ * Agent客户端信息
  * @author majianzheng
  */
-public class ClientData {
+public class AgentClientPojo extends ResponseSimple {
+    private String clientAddr;
+    private Boolean local;
     private String server;
     private String sid;
     private String host;
-    private boolean diagnose;
+    private Boolean diagnose;
+
+    public String getClientAddr() {
+        return clientAddr;
+    }
+
+    public void setClientAddr(String clientAddr) {
+        this.clientAddr = clientAddr;
+    }
+
+    public Boolean getLocal() {
+        return local;
+    }
+
+    public void setLocal(Boolean local) {
+        this.local = local;
+    }
 
     public String getServer() {
         return server;
@@ -33,18 +52,20 @@ public class ClientData {
         this.host = host;
     }
 
-    public boolean isDiagnose() {
+    public Boolean getDiagnose() {
         return diagnose;
     }
 
-    public void setDiagnose(boolean diagnose) {
+    public void setDiagnose(Boolean diagnose) {
         this.diagnose = diagnose;
     }
 
     @Override
     public String toString() {
-        return "ClientData{" +
-                "server='" + server + '\'' +
+        return "AgentClientPojo{" +
+                "clientAddr='" + clientAddr + '\'' +
+                ", local=" + local +
+                ", server='" + server + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +

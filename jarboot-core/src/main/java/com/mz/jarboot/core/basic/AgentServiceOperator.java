@@ -2,10 +2,7 @@ package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -28,7 +25,7 @@ public class AgentServiceOperator {
         if (started) {
             return;
         }
-        ClientData clientData = EnvironmentContext.getClientData();
+        AgentClientPojo clientData = EnvironmentContext.getClientData();
         HttpUtils.getSimple(SET_STARTED_API + clientData.getServer() +
                 "&sid=" + clientData.getSid());
         started = true;
