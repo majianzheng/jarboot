@@ -43,7 +43,7 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
     public String process(CommandSession session, String[] args) {
         if (null == beanName || beanName.isEmpty()) {
             String[] beans = context.getBeanDefinitionNames();
-            session.console("<span style=\"color:green;font-weight:bold;\">All spring bean definition names:</span>");
+            session.console("\033[32;1mAll spring bean definition names:\033[0m");
             for (String bean : beans) {
                 session.console(bean);
             }

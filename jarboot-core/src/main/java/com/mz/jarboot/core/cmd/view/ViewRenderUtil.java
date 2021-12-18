@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.model.ChangeResultVO;
 import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
@@ -123,11 +124,11 @@ public class ViewRenderUtil {
 
             String daemonLabel = Boolean.toString(thread.isDaemon());
             if (!thread.isDaemon()) {
-                daemonLabel = HtmlNodeUtils.magenta(daemonLabel);
+                daemonLabel = AnsiLog.magenta(daemonLabel);
             }
             String stateElement = "-";
             if (thread.getState() != null) {
-                stateElement = HtmlNodeUtils.createSpan(thread.getState().toString(), color);
+                stateElement = HtmlNodeUtils.span(thread.getState().toString(), color);
             }
             row.add(String.valueOf(thread.getId()));
             row.add(thread.getName());

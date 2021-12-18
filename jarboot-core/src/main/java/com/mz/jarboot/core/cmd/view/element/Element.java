@@ -36,6 +36,6 @@ public class Element {
         if (this.color.isEmpty()) {
             return this.text;
         }
-        return HtmlNodeUtils.createSpan(this.text, this.color);
+        return HtmlNodeUtils.span(this.text, this.color);
     }
 }
