@@ -6,25 +6,38 @@ import {JarBootConst} from "@/common/JarBootConst";
 import {ColorBasic, Color256, ColorBrightness} from "@/components/console/ColorTable";
 
 interface ConsoleProps {
+    /** 是否显示 */
     visible?: boolean;
+    /** 初始内容 */
     content?: string;
+    /** 订阅发布 */
     pubsub?: PublishSubmit;
+    /** 唯一id */
     id: string;
+    /** 高度 */
     height?: string | number;
+    /** 是否自动滚动到底部，暂不实现 */
+    autoScrollEnd?: boolean;
 }
 
 enum EventType {
+    /** Console一行 */
     CONSOLE_EVENT,
+    /** Std标准输出 */
     STD_PRINT_EVENT,
+    /** std退格 */
     BACKSPACE_EVENT,
+    /** 清屏 */
     CLEAR_EVENT
 }
 
 interface ConsoleEvent {
+    /** 是否显示 */
     type: EventType,
+    /** 是否显示 */
     text?: string,
+    /** 是否显示 */
     backspaceNum?: number,
-    deleted?: boolean,
 }
 
 interface SgrOption {
@@ -161,55 +174,42 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.loading.append(three2);
         this.loading.append(three3);
         this.loading.className = styles.loading;
-        if (StringUtil.isNotEmpty(this.props.content)) {
+
+        const {pubsub, id, content} = this.props;
+        //初始化code dom
+        this.codeDom = document.querySelector(`#id-console-${id}`) as Element;
+        if (content?.length) {
             this.resetContent(this.props.content);
         }
-        const {pubsub, id} = this.props;
-        if (!pubsub) {
-            return;
+
+        if (pubsub) {
+            //初始化事件订阅
+            pubsub.submit(id, JarBootConst.APPEND_LINE, this.onConsole);
+            pubsub.submit(id, JarBootConst.STD_PRINT, this.onStdPrint);
+            pubsub.submit(id, JarBootConst.BACKSPACE, this.onBackspace);
+            pubsub.submit(id, JarBootConst.START_LOADING, this.onStartLoading);
+            pubsub.submit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
+            pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
         }
-        pubsub.submit(id, JarBootConst.APPEND_LINE, this.onConsole);
-        pubsub.submit(id, JarBootConst.STD_PRINT, this.onStdPrint);
-        pubsub.submit(id, JarBootConst.BACKSPACE, this.onBackspace);
-        pubsub.submit(id, JarBootConst.START_LOADING, this.onStartLoading);
-        pubsub.submit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
-        pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
     }
 
     componentWillUnmount() {
         this.intervalHandle = null;
         const {pubsub, id} = this.props;
-        if (!pubsub) {
-            return;
+        if (pubsub) {
+            pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.onConsole);
+            pubsub.unSubmit(id, JarBootConst.STD_PRINT, this.onStdPrint);
+            pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.onBackspace);
+            pubsub.unSubmit(id, JarBootConst.START_LOADING, this.onStartLoading);
+            pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
+            pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
         }
-        pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.onConsole);
-        pubsub.unSubmit(id, JarBootConst.STD_PRINT, this.onStdPrint);
-        pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.onBackspace);
-        pubsub.unSubmit(id, JarBootConst.START_LOADING, this.onStartLoading);
-        pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
-        pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
     }
 
-    private init = () => {
-        if (this.codeDom) {
-            const count = this.codeDom.children.length;
-            if (count > MAX_LINE) {
-                //如果超过最大行数则移除最老的行
-                for (let i = 0; i < AUTO_CLEAN_LINE; ++i) {
-                    this.codeDom.removeChild(this.codeDom.children[0]);
-                }
-            }
-            return;
-        }
-        this.codeDom = document.querySelector(`code[id="id-console-${this.props.id}"]`) as Element;
-    };
-
     private resetContent = (text: string|undefined) => {
-        if (StringUtil.isEmpty(text)) {
-            return;
+        if (text?.length) {
+            this.codeDom && (this.codeDom.innerHTML = this.ansiCompile(text as string));
         }
-        this.init();
-        this.codeDom && (this.codeDom.innerHTML = this.ansiCompile(text as string));
     };
 
     private onClear = () => {
@@ -231,18 +231,18 @@ class Console extends React.PureComponent<ConsoleProps> {
     };
 
     private onStartLoading = () => {
-        if (!this.isStartLoading) {
-            try {
-                this.codeDom.append(this.loading);
-                this.isStartLoading = true;
-            } catch (e) {
-                Logger.error(e);
-            }
+        if (this.isStartLoading) {
+            return;
+        }
+        try {
+            this.codeDom.append(this.loading);
+            this.isStartLoading = true;
+        } catch (e) {
+            Logger.error(e);
         }
     };
 
     private onFinishLoading = (str?: string) => {
-        this.init();
         this.onConsole(str);
         if (this.finishHandle) {
             // 以最后一次生效，当前若存在则取消，重新计时
@@ -273,62 +273,100 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     };
 
+    private onBackspace = (num: string) => {
+        let backspaceNum = parseInt(num);
+        if (!Number.isInteger(backspaceNum)) {
+            return;
+        }
+        this.eventQueue.push({type: EventType.BACKSPACE_EVENT, backspaceNum});
+        this.trigEvent();
+    };
+
+    /**
+     * 滚动到最后
+     */
+    private scrollToEnd = () => {
+        this.codeDom.scrollTop = this.codeDom.scrollHeight;
+    };
+
+    /**
+     * 触发事件
+     * @private
+     */
     private trigEvent() {
         if (this.intervalHandle) {
             //已经触发
             return;
         }
-        this.init();
-        this.intervalHandle = setTimeout(() => {
-            this.intervalHandle = null;
+        this.intervalHandle = setTimeout(this.eventLoop, MAX_UPDATE_DELAY);
+    }
+
+    /**
+     * 事件循环，将一段时间内的事件收集起来统一处理
+     */
+    private eventLoop = () => {
+        this.intervalHandle = null;
+        try {
             this.eventQueue.forEach(this.handleEvent);
-            try {
-                if (this.lines.length) {
-                    if (!this.isStartLoading) {
-                        this.onStartLoading()
-                    }
-                    //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
-                    const fragment = document.createDocumentFragment();
-                    this.lines.forEach(l => fragment.append(l));
-                    this.loading.before(fragment);
-                    this.codeDom.scrollTop = this.codeDom.scrollHeight;
-                    this.scrollToEnd();
+            if (this.lines.length) {
+                if (!this.isStartLoading) {
+                    this.onStartLoading()
                 }
-            } catch (e) {
-                Logger.error(e);
-            } finally {
-                this.eventQueue = [];
-                this.lines = [];
+                //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
+                const fragment = document.createDocumentFragment();
+                this.lines.forEach(l => fragment.append(l));
+                this.loading.before(fragment);
+                this.codeDom.scrollTop = this.codeDom.scrollHeight;
+                this.scrollToEnd();
             }
-        }, MAX_UPDATE_DELAY);
-    }
-
-    private scrollToEnd() {
-        this.codeDom.scrollTop = this.codeDom.scrollHeight;
-    }
-
-    private handleEvent = (event: ConsoleEvent) => {
-        if (event.deleted) {
-            return;
-        }
-        switch (event.type) {
-            case EventType.CONSOLE_EVENT:
-                this.handleConsole(event);
-                break;
-            case EventType.STD_PRINT_EVENT:
-                this.handleStdPrint(event);
-                break;
-            case EventType.BACKSPACE_EVENT:
-                this.handleBackspace(event);
-                break;
-            case EventType.CLEAR_EVENT:
-                this.handleClear();
-                break;
-            default:
-                break;
+        } catch (e) {
+            Logger.error(e);
+        } finally {
+            this.eventQueue = [];
+            this.lines = [];
+            //检查是否需要清理，如果超过最大行数则移除最老的行
+            const count = this.codeDom.children.length;
+            if (count > MAX_LINE) {
+                //超出的行数加上一次性清理的行
+                const waitDeleteLineCount = count - MAX_LINE + AUTO_CLEAN_LINE;
+                for (let i = 0; i < waitDeleteLineCount; ++i) {
+                    this.codeDom.removeChild(this.codeDom.children[0]);
+                }
+            }
         }
     };
 
+    /**
+     * 事件处理
+     * @param event 事件
+     */
+    private handleEvent = (event: ConsoleEvent) => {
+        try {
+            switch (event.type) {
+                case EventType.CONSOLE_EVENT:
+                    this.handleConsole(event);
+                    break;
+                case EventType.STD_PRINT_EVENT:
+                    this.handleStdPrint(event);
+                    break;
+                case EventType.BACKSPACE_EVENT:
+                    this.handleBackspace(event);
+                    break;
+                case EventType.CLEAR_EVENT:
+                    this.handleClear();
+                    break;
+                default:
+                    break;
+            }
+        } catch (e) {
+            Logger.error(e);
+        }
+    };
+
+    /**
+     * 处理清屏事件
+     * @private
+     */
     private handleClear() {
         if (this.isStartLoading) {
             //如果处于加载中，则保留加载的动画
@@ -339,36 +377,41 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     }
 
+    /**
+     * 处理Console事件
+     * @param event 事件
+     * @private
+     */
     private handleConsole(event: ConsoleEvent) {
-        if (this.lines.length > 0) {
-            const lastIndex = this.lines.length - 1;
-            let preLine = this.lines[lastIndex];
-            if ('BR' === preLine.tagName) {
-                //行未结束，将当前行附加到上一行
-                this.lines[lastIndex] = this.createConsoleDiv(event);
-                event.deleted = true;
-                return;
-            }
-        }
-        if (StringUtil.isEmpty(event.text)) {
-            this.lines.push(document.createElement('br'));
-        } else {
-            this.lines.push(this.createConsoleDiv(event));
-        }
+        this.lines.push(this.createConsoleDiv(event));
     }
 
+    /**
+     * 创建一行Console容器
+     * @param event 事件
+     * @private
+     */
     private createConsoleDiv(event: ConsoleEvent) {
-        const text = this.ansiCompile(event.text as string);
-        const div = document.createElement('div');
-        div.innerHTML = text;
-        return div;
+        if (event.text?.length) {
+            const text = this.ansiCompile(event.text as string);
+            const div = document.createElement('div');
+            div.innerHTML = text;
+            return div;
+        }
+        return document.createElement('br');
     }
 
+    /**
+     * 处理STD print事件，STD核心算法
+     * @param event 事件
+     * @private
+     */
     private handleStdPrint(event: ConsoleEvent) {
         if (!event.text?.length) {
             return;
         }
 
+        //先处理待添加的Console行
         if (this.lines.length > 0) {
             const fragment = document.createDocumentFragment();
             this.lines.forEach(l => fragment.append(l));
@@ -378,24 +421,24 @@ class Console extends React.PureComponent<ConsoleProps> {
             this.loading.before(fragment);
             this.lines = [];
         }
+
         let text = event.text;
         let index = text.indexOf('\n');
         if (-1 == index) {
+            //没有换行符时
             this.updateStdPrint(text);
             return;
         }
+
         //换行处理算法，解析字符串中的换行符，替换为p标签，行未结束为p标签，行结束标识为br
         while (-1 !== index) {
             let last = this.getLastLine() as HTMLElement;
-            const left = this.ansiCompile(text.substring(0, index));
-            text = text.substring(index + 1);
+            //1、截断一行；2、去掉左右尖括号"<>"；3、Ansi编译
+            const left = this.ansiCompile(this.rawText(text.substring(0, index)));
             if (last) {
-                if ('BR' === last.tagName) {
-                    last.insertAdjacentHTML('afterend', '<br/>');
-                    if (left.length) {
-                        last.replaceWith(this.createNewLine(left));
-                    }
-                } else if ('P' === last.tagName) {
+                if ('BR' === last.nodeName) {
+                    last.before(this.createNewLine(left));
+                } else if ('P' === last.nodeName) {
                     last.insertAdjacentHTML("beforeend", left);
                     last.insertAdjacentHTML('afterend', '<br/>');
                 } else {
@@ -403,79 +446,110 @@ class Console extends React.PureComponent<ConsoleProps> {
                     last.insertAdjacentHTML("afterend", `<p>${left}</p><br/>`);
                 }
             } else {
+                //当前为空时，插入新的p和br
                 this.codeDom.insertAdjacentHTML('afterbegin', `<p>${left}</p><br/>`);
             }
+            //得到下一个待处理的子串
+            text = text.substring(index + 1);
             index = text.indexOf('\n');
         }
         if (text.length) {
+            //换行符不在最后一位时，会剩下最后一个子字符串
             this.updateStdPrint(text);
         }
         this.scrollToEnd();
     }
 
+    /**
+     * STD print更新最后一行内容
+     * @param text 内容
+     * @private
+     */
     private updateStdPrint(text: string) {
-        text = this.ansiCompile(text);
+        text = this.ansiCompile(this.rawText(text));
         let last = this.getLastLine() as HTMLElement;
         if (last) {
-            if ('BR' === last.tagName) {
+            if ('BR' === last.nodeName) {
                 last.replaceWith(this.createNewLine(text));
             }
-            if ('P' === last.tagName) {
+            if ('P' === last.nodeName) {
                 last.insertAdjacentHTML("beforeend", text);
             } else {
                 last.after(this.createNewLine(text));
             }
         } else {
-            this.loading.before(this.createNewLine(text));
+            this.codeDom.insertAdjacentHTML('afterbegin', `<p>${text}</p>`);
         }
     }
 
-    private createNewLine(content: string) {
+    /**
+     * 创建STD print一行
+     * @param content 内容
+     */
+    private createNewLine = (content: string) => {
         const line = document.createElement('p');
         line.innerHTML = content;
         return line;
-    }
+    };
 
+    /**
+     * 处理退格事件，退格核心算法入口
+     * @param event 事件
+     * @private
+     */
     private handleBackspace(event: ConsoleEvent) {
-        let backspaceNum = event.backspaceNum as number;
-        let last = this.getLastLine();
-        if (!last) {
+        let last = this.getLastLine() as HTMLElement;
+        //backspace操作只会作用于最后一行，因此只认p标签
+        if (!last || 'P' !== last.nodeName) {
             return;
         }
-        let i = last.innerHTML.length;
-        while (last && backspaceNum > 0) {
-            if ('P' === last.tagName) {
-                i = last.innerHTML.length - backspaceNum;
-                if (i > 0) {
-                    last.innerHTML = last.innerHTML.substring(0, i);
-                    backspaceNum = 0;
-                } else if (i === 0) {
-                    last.innerHTML = '';
-                    backspaceNum = 0;
-                } else {
-                    this.codeDom.removeChild(last);
-                    last = this.getLastLine();
-                    backspaceNum = Math.abs(i + 1);
-                }
-            } else if ('BR' === last.tagName) {
-                --backspaceNum;
-                this.codeDom.removeChild(last);
-                last = this.getLastLine();
+        let backspaceNum = event.backspaceNum as number;
+        if (backspaceNum > 0) {
+            const len = last.innerText.length - backspaceNum;
+            if (len > 0) {
+                //行内容未被全部删除时
+                this.removeDeleted(last, len);
             } else {
-                last = this.getLastLine();
+                //行内容被全部清除时，保留一个换行符
+                last.replaceWith(document.createElement('br'));
             }
         }
     }
 
-    private onBackspace = (num: string) => {
-        let backspaceNum = parseInt(num);
-        if (!Number.isInteger(backspaceNum)) {
-            return;
+    /**
+     * 退格删除算法，留下保留的长度，剩下的去除
+     * @param line p节点
+     * @param len 保留的长度
+     */
+    private removeDeleted = (line: HTMLElement, len: number) => {
+        let html = '';
+        let nodes = line.childNodes;
+        for(let i = 0; i < nodes.length; ++i){
+            const node = nodes[i];
+            const isText = ('#text' === node.nodeName);
+            let text = isText ? (node.nodeValue || '') : ((node as HTMLElement).innerText);
+            const remained = len - text.length;
+            if (remained > 0) {
+                html += (isText ? text : ((node as HTMLElement).outerHTML));
+                len = remained;
+            } else {
+                text = (0 === remained) ? text : text.substring(0, len);
+                if (isText) {
+                    html += text;
+                } else {
+                    (node as HTMLElement).innerText = text;
+                    html += ((node as HTMLElement).outerHTML);
+                }
+                break;
+            }
         }
-        this.eventQueue.push({type: EventType.BACKSPACE_EVENT, backspaceNum});
-        this.trigEvent();
+        line.innerHTML = html;
     };
 
+    /**
+     * 获取最后一行
+     * @private
+     */
     private getLastLine(): HTMLElement|null {
         if (!this.codeDom.children?.length) {
             return null;
@@ -484,52 +558,82 @@ class Console extends React.PureComponent<ConsoleProps> {
         return this.isStartLoading ? this.codeDom.children[len - 2] : this.codeDom.children[len - 1];
     }
 
-    private ansiCompile(line: string) {
+    /**
+     * Ansi核心算法入口
+     * @param content 待解析的内容
+     * @return {string} 解析后内容
+     * @private
+     */
+    private ansiCompile(content: string): string {
         //色彩支持： \033[31m 文字 \033[0m
-        let begin = line.indexOf(BEGIN);
+        let begin = content.indexOf(BEGIN);
         let preIndex = 0;
         let preBegin = -1;
         while (-1 !== begin) {
             const mBegin = begin + BEGIN.length;
-            const mIndex = line.indexOf('m', mBegin);
+            const mIndex = content.indexOf('m', mBegin);
             if (-1 == mIndex) {
                 break;
             }
             const preStyle = this.toStyle();
-            const termStyle = line.substring(mBegin, mIndex);
+            const termStyle = content.substring(mBegin, mIndex);
             //格式控制
             if (preStyle.length) {
-                const styled = this.styleText(line.substring(preIndex, begin), preStyle);
-                const text = (preIndex > 0 && -1 !== preBegin) ? (line.substring(0, preBegin) + styled) : styled;
-                line = (text + line.substring(mIndex + 1));
+                const styled = this.styleText(content.substring(preIndex, begin), preStyle);
+                const text = (preIndex > 0 && -1 !== preBegin) ? (content.substring(0, preBegin) + styled) : styled;
+                content = (text + content.substring(mIndex + 1));
                 preIndex = text.length;
             } else {
-                const text = line.substring(0, begin);
-                line = (text + line.substring(mIndex + 1));
+                const text = content.substring(0, begin);
+                content = (text + content.substring(mIndex + 1));
                 preIndex = text.length;
             }
             //解析termStyle: 32m、 48;5;4m
             if (!this.parseTermStyle(termStyle)) {
-                Logger.error('parseTermStyle failed.', termStyle, line);
+                Logger.error('parseTermStyle failed.', termStyle, content);
             }
             preBegin = begin;
-            begin = line.indexOf(BEGIN, preIndex);
+            begin = content.indexOf(BEGIN, preIndex);
         }
         const style = this.toStyle();
         if (style.length) {
             if (preIndex > 0) {
-                line = (line.substring(0, preIndex) + this.styleText(line.substring(preIndex), style));
+                content = (content.substring(0, preIndex) + this.styleText(content.substring(preIndex), style));
             } else {
-                line = this.styleText(line, style);
+                content = this.styleText(content, style);
             }
         }
-        return line;
+        return content;
     }
+
+    /**
+     * 尖括号转义
+     * @param text 字符串
+     * @return {string}
+     */
+    private rawText = (text: string): string => {
+        if (text.length) {
+            return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+        }
+        return text;
+    }
+
+    /**
+     * 样式包裹
+     * @param text 文本
+     * @param style 样式
+     */
+    private styleText = (text: string, style: string): string => {
+        if (style.length) {
+            return `<span style="${style}">${this.rawText(text)}</span>`;
+        }
+        return text;
+    };
 
     /**
      * ig: \033[32m、 \033[48;5;4m
      * @return 是否成功
-     * @param styles
+     * @param styles 以分号分隔的数字字符串
      */
     private parseTermStyle(styles: string): boolean {
         if (StringUtil.isEmpty(styles)) {
@@ -605,13 +709,20 @@ class Console extends React.PureComponent<ConsoleProps> {
         return true;
     }
 
-    private parseSgr256Or24Color(sgrList: string[]) {
+    /**
+     * 256色、24位色解析
+     * @param sgrList 颜色参数
+     * @return {string} color
+     */
+    private parseSgr256Or24Color = (sgrList: string[]): string => {
         //如果是2，则使用24位色彩格式，格式为：2;r;g;b
         //如果是5，则使用256色彩索引表
         const type = sgrList.shift();
         let color = '';
         switch (type) {
             case '2':
+                //使用24位色彩格式，格式为：2;r;g;b
+                //依次取出r、g、b的值
                 const r = parseInt(sgrList.shift() as string);
                 if (isNaN(r)) {
                     return color;
@@ -627,18 +738,25 @@ class Console extends React.PureComponent<ConsoleProps> {
                 color = `rgb(${r},${g},${b})`;
                 break;
             case '5':
+                //使用256色彩索引表
                 const index = parseInt(sgrList.shift() as string);
                 if (isNaN(index)) {
                     return color;
                 }
-                color = Color256[index];
+                color = Color256[index] || '';
                 break;
             default:
                 break;
         }
         return color;
-    }
+    };
 
+    /**
+     * 特殊格式设置
+     * @param index {number} 类型
+     * @param value {boolean} 是否启用
+     * @private
+     */
     private specCtl(index: number, value: boolean) {
         switch (index) {
             case 0:
@@ -688,6 +806,13 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     }
 
+    /**
+     * 前景色设置
+     * @param index {number} 类型
+     * @param sgrList {string[]} 颜色配置
+     * @param basic {boolean} 是否是基本色
+     * @private
+     */
     private setForeground(index: number, sgrList: string[], basic: boolean) {
         switch (index) {
             case 8:
@@ -706,6 +831,13 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     }
 
+    /**
+     * 背景色设置
+     * @param index {number} 类型
+     * @param sgrList {string[]} 颜色配置
+     * @param basic {boolean} 是否是基本色
+     * @private
+     */
     private setBackground(index: number, sgrList: string[], basic: boolean) {
         switch (index) {
             case 8:
@@ -723,13 +855,18 @@ class Console extends React.PureComponent<ConsoleProps> {
         }
     }
 
+    /**
+     * 将Ansi的配置转换为css样式
+     * @private
+     */
     private toStyle(): string {
         let style = '';
         if (this.sgrOption.hide) {
+            //隐藏，但需要保留位置
             style += `visibility:hidden;`;
         }
         if (this.sgrOption.exchange) {
-            //前景色、背景色调用
+            //前景色、背景色掉换
             const foregroundColor = StringUtil.isEmpty(this.sgrOption.backgroundColor) ? '#263238' : this.sgrOption.backgroundColor;
             const backgroundColor = StringUtil.isEmpty(this.sgrOption.foregroundColor) ? 'seashell' : this.sgrOption.foregroundColor;
             style += `color:${foregroundColor};background:${backgroundColor};`;
@@ -766,23 +903,17 @@ class Console extends React.PureComponent<ConsoleProps> {
         let animation = '';
         if (this.sgrOption.slowBlink) {
             const blink = styles['blink'];
-            animation += `${blink} 1000ms infinite `;
+            animation = `${blink} 800ms infinite `;
         }
         if (this.sgrOption.fastBlink) {
             const blink = styles['blink'];
-            animation += `${blink} 256ms infinite `;
+            //同时存在慢闪烁和快闪烁时，使用快的
+            animation = `${blink} 200ms infinite `;
         }
         if (animation.length) {
             style += `animation:${animation};-webkit-animation:${animation};`
         }
         return style;
-    }
-
-    private styleText(text: string, style: string): string {
-        if (StringUtil.isEmpty(style)) {
-            return text;
-        }
-        return `<span style="${style}">${text}</span>`;
     }
 
     render() {
@@ -795,4 +926,5 @@ class Console extends React.PureComponent<ConsoleProps> {
         </code>;
     }
 }
+
 export default Console;
