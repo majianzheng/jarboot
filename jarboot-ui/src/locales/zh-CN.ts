@@ -43,6 +43,7 @@ export default {
     UPLOAD_DESC: '点击或拖拽文件到此区域上传',
     LOCAL: '本地',
     REMOTE: '远程',
+    DEFAULT_GROUP: '默认组',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',

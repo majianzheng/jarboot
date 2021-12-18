@@ -43,6 +43,7 @@ export default {
     UPLOAD_DESC: 'Click or drag file to this area to upload',
     LOCAL: 'Local',
     REMOTE: 'Remote',
+    DEFAULT_GROUP: 'Default group',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',

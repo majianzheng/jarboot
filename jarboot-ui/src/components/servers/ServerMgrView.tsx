@@ -580,8 +580,11 @@ const ServerMgrView = () => {
             if (!children) {
                 children = [] as ServerRunning[];
                 groupMap.set(group, children);
+                const title = (<span className={styles.groupRow}>
+                    {group.length ? group : <IntlText id={'DEFAULT_GROUP'}/>}
+                </span>);
                 treeData.push({
-                    title: <span className={styles.groupRow}>{group.length ? group : '默认组'}</span>,
+                    title,
                     sid: group,
                     key: group,
                     group,
