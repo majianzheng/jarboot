@@ -38,7 +38,7 @@ public class DemoServerApplication implements Runnable {
     public static void main(String[] args) {
         //打印banner
         printBanner();
-        String ver = System.getenv("JARBOOT_VERSION");
+        String ver = System.getenv("JARBOOT_DOCKER");
         if (null == ver || ver.isEmpty()) {
             //启动界面
             new DemoServerApplication();
@@ -57,7 +57,7 @@ public class DemoServerApplication implements Runnable {
         //模拟启动进度
         StringBuilder percent = new StringBuilder(64);
         for (int i = 0; i < 50; ++i) {
-            int color = (50 + i * 2);
+            int color = (52 + i * 3);
             percent.append("\033[48;5;" + color + "m \033[0m");
             if (i > 0) {
                 System.out.print(back);
