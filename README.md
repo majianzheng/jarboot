@@ -25,7 +25,6 @@ In the test environment and daily built integrated environment, a series of jar 
 🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
-![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
 
 ## Background and objectives
 <code>Jarboot</code> uses Java agent and <code>ASM</code> technology to inject code into the target java process, 
@@ -39,6 +38,8 @@ as acquiring JVM information, monitoring thread status, acquiring thread stack i
 - ☀️   Support file update monitoring, and restart automatically if jar file is updated after opening.<sup id="a3">[[2]](#f2)</sup>
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 - 💎   Support user-define command by <code>SPI</code>, support develop plugins.
+
+![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
 
 ### Architecture brief introduction
 Detailed architecture design [view](jarboot-server/README.md)
