@@ -2,6 +2,7 @@ import React from "react";
 import styles from "@/components/servers/index.less";
 import {CloseOutlined} from "@ant-design/icons";
 import {Button} from "antd";
+import {useIntl} from "umi";
 
 interface TopTitleBarProp {
     icon?: React.ReactNode;
@@ -11,7 +12,7 @@ interface TopTitleBarProp {
 }
 
 const TopTitleBar = (props: TopTitleBarProp) => {
-
+    const intl = useIntl();
     return (<div className={styles.viewHeader}>
                 <span className={styles.viewTitle}>
                     <span className={styles.viewTitleContainer}>
@@ -21,7 +22,7 @@ const TopTitleBar = (props: TopTitleBarProp) => {
         <div className={styles.viewHeaderTool}>
             <Button type={"link"}
                     size={"small"}
-                    title={props.closeButtonTitle}
+                    title={props.closeButtonTitle || intl.formatMessage({id: 'CLOSE'})}
                     onClick={props.onClose}
                     icon={<CloseOutlined style={{fontSize: '1.28em'}}/>}/>
         </div>
