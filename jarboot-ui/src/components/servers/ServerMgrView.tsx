@@ -22,7 +22,7 @@ import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
-import ServerConfig from "@/components/setting/ServerConfig";
+import ServerConfig from "@/components/servers/ServerConfig";
 import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 import CloudService from "@/services/CloudService";
@@ -30,6 +30,7 @@ import CommonUtils from "@/common/CommonUtils";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
 import IntlText from "@/common/IntlText";
+import TopTitleBar from "@/components/servers/TopTitleBar";
 
 interface ServerMgrViewState {
     loading: boolean;
@@ -580,7 +581,7 @@ const ServerMgrView = () => {
                 children = [] as ServerRunning[];
                 groupMap.set(group, children);
                 treeData.push({
-                    title: group,
+                    title: <span className={styles.groupRow}>{group.length ? group : '默认组'}</span>,
                     sid: group,
                     key: group,
                     group,
@@ -659,8 +660,20 @@ const ServerMgrView = () => {
     };
 
     const contentView = () => {
+        const configView = JarBootConst.CONSOLE_VIEW === state.contentView;
         //按钮为控制台，则当前为服务配置
-        const server = state.selectRows?.length ? state.selectRows[0] : null;
+        let server = {} as ServerRunning;
+        let configTitle = '';
+        if (configView) {
+            server = state.data.find(value => state.current === value.sid) as ServerRunning;
+            const conf = intl.formatMessage({id: 'SERVICES_CONF'});
+            if (server) {
+                configTitle = `${server?.name || ''} - ${conf}`;
+            } else {
+                configTitle = `- ${conf}`;
+            }
+        }
+        const closeConfig = () => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW);
         return (<div>
             <div style={{display: JarBootConst.CONFIG_VIEW === state.contentView ? 'block' : 'none'}}>
                 {<SuperPanel key={PUB_TOPIC.ROOT}
@@ -674,11 +687,13 @@ const ServerMgrView = () => {
                                 visible={state.current === value.sid}/>
                 ))}
             </div>
-            <div style={{display: JarBootConst.CONSOLE_VIEW === state.contentView ? 'block' : 'none', background: '#FAFAFA'}}>
+            <div style={{display: configView ? 'block' : 'none', background: '#FAFAFA'}}>
+                <TopTitleBar title={configTitle}
+                             onClose={closeConfig}/>
                 <ServerConfig path={server?.path || ''}
-                              sid={server?.sid || ''}
+                              sid={state.current || ''}
                               group={server?.group || ''}
-                              onClose={() => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW)}
+                              onClose={closeConfig}
                               onGroupChanged={onGroupChanged}/>
             </div>
         </div>);
