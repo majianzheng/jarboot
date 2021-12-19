@@ -159,6 +159,14 @@ public abstract class AnsiLog {
         }
     }
 
+    public static String bold(String msg) {
+        if (enableColor) {
+            return colorStr(msg, 1);
+        } else {
+            return msg;
+        }
+    }
+
     private static String colorStr(String msg, int colorCode) {
         return "\033[" + colorCode + "m" + msg + RESET;
     }

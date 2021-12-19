@@ -177,7 +177,7 @@ class Console extends React.PureComponent<ConsoleProps> {
 
         const {pubsub, id, content} = this.props;
         //初始化code dom
-        this.codeDom = document.querySelector(`#id-console-${id}`) as Element;
+        this.codeDom = document.querySelector(`code[id="id-console-${id}"]`) as Element;
         if (content?.length) {
             this.resetContent(this.props.content);
         }
@@ -317,8 +317,8 @@ class Console extends React.PureComponent<ConsoleProps> {
                 this.lines.forEach(l => fragment.append(l));
                 this.loading.before(fragment);
                 this.codeDom.scrollTop = this.codeDom.scrollHeight;
-                this.scrollToEnd();
             }
+            this.scrollToEnd();
         } catch (e) {
             Logger.error(e);
         } finally {
@@ -457,7 +457,6 @@ class Console extends React.PureComponent<ConsoleProps> {
             //换行符不在最后一位时，会剩下最后一个子字符串
             this.updateStdPrint(text);
         }
-        this.scrollToEnd();
     }
 
     /**

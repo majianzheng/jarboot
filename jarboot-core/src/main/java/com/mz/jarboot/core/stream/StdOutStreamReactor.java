@@ -1,13 +1,9 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.PrintStream;
@@ -96,7 +92,7 @@ public class StdOutStreamReactor {
         }
     }
 
-    private void enableColor() {
+    private void enableAnsiLogColor() {
         try {
             Class<?> cls = Class.forName("com.mz.jarboot.common.AnsiLog");
             Field field = cls.getDeclaredField("enableColor");
@@ -108,42 +104,11 @@ public class StdOutStreamReactor {
     }
 
     /**
-     * 标准输出
-     * @param text 文本
-     */
-    private void stdPrint(String text) {
-        if (StringUtils.isEmpty(text)) {
-            return;
-        }
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.STD_PRINT);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        ResultStreamDistributor.write(resp);
-    }
-
-    /**
-     * 标准输出，退格
-     * @param num
-     */
-    private void stdBackspace(int num) {
-        if (num > 0) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(true);
-            resp.setResponseType(ResponseType.BACKSPACE);
-            resp.setBody(String.valueOf(num));
-            resp.setSessionId(CommandConst.SESSION_COMMON);
-            ResultStreamDistributor.write(resp);
-        }
-    }
-
-    /**
      * 开始中标准输出
      * @param text 文本
      */
     private void stdStartingPrint(String text) {
-        stdPrint(text);
+        ResultStreamDistributor.stdPrint(text);
         //更新计时
         lastStdTime = System.currentTimeMillis();
     }
@@ -159,7 +124,7 @@ public class StdOutStreamReactor {
         defaultErr = System.err;
         stdOutPrintStream = new PrintStream(consoleOutputStream, true);
         this.init();
-        this.enableColor();
+        this.enableAnsiLogColor();
     }
 
     /**
@@ -174,9 +139,9 @@ public class StdOutStreamReactor {
      */
     private void init() {
         // 输出不满一行的字符串
-        consoleOutputStream.setPrintHandler(this::stdPrint);
+        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
         //退格
-        consoleOutputStream.setBackspaceHandler(this::stdBackspace);
+        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor::stdBackspace);
         //默认开启
         this.enabled(true);
     }
@@ -214,7 +179,7 @@ public class StdOutStreamReactor {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功
-        consoleOutputStream.setPrintHandler(this::stdPrint);
+        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
         //通知Jarboot server启动完成
         try {
             AgentServiceOperator.setStarted();

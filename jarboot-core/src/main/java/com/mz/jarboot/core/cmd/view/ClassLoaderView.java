@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.impl.ClassLoaderCommand;
 import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderModel;
@@ -116,7 +117,11 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
      */
     private static TableElement renderTable(Collection<ClassLoaderVO> classLoaderInfos) {
         TableElement table = new TableElement();
-        table.row("name", "loadedCount", "hash", "parent");
+        table.row(
+                AnsiLog.bold("name"),
+                AnsiLog.bold("loadedCount"),
+                AnsiLog.bold("hash"),
+                AnsiLog.bold("parent"));
         for (ClassLoaderVO classLoaderVO : classLoaderInfos) {
             table.row(classLoaderVO.getName(), "" + classLoaderVO.getLoadedCount(), classLoaderVO.getHash(), classLoaderVO.getParent());
         }

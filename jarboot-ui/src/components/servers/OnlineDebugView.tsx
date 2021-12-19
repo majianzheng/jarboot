@@ -218,7 +218,7 @@ const OnlineDebugView = () => {
         rowKey: 'sid',
         size: 'small',
         rowSelection: getRowSelection(),
-        onRow: onRow,
+        onRow,
         showHeader: true,
         scroll: height,
         expandable: {

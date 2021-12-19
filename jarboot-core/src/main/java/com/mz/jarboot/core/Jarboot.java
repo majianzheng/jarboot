@@ -7,10 +7,8 @@ import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -293,9 +291,8 @@ public class Jarboot {
             indexToPid.put(i, k);
         });
 
-        try (InputStreamReader in = new InputStreamReader(System.in);
-             BufferedReader br = new BufferedReader(in)){
-            String line = br.readLine();
+        try {
+            String line = System.console().readLine();
             int i = StringUtils.isBlank(line) ? 1 : Integer.parseInt(line);
             Integer select = indexToPid.getOrDefault(i, null);
             if (null == select) {

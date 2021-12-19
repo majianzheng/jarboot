@@ -24,7 +24,8 @@ public class WebSocketAgentServer {
     public void onOpen(Session session, @PathParam("server") String server, @PathParam("sid") String sid) {
         logger.debug("{} @ {} Agent连接成功!", server, sid);
         AgentManager.getInstance().online(server, session, sid);
-        WebSocketManager.getInstance().sendConsole(sid, server + " connected!");
+        String msg = String.format("\033[1;96m%s\033[0m connected!", server);
+        WebSocketManager.getInstance().sendConsole(sid, msg);
     }
 
     /**

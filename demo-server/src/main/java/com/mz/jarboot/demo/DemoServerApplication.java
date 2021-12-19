@@ -55,14 +55,14 @@ public class DemoServerApplication implements Runnable {
         final String back = "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" +
                 "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
         //模拟启动进度
-        StringBuilder percent = new StringBuilder(64);
+        StringBuilder percent = new StringBuilder(1024);
         for (int i = 0; i < 50; ++i) {
             int color = (52 + i * 3);
             percent.append("\033[48;5;" + color + "m \033[0m");
+            StringBuilder sb = new StringBuilder(1024);
             if (i > 0) {
-                System.out.print(back);
+                sb.append(back);
             }
-            StringBuilder sb = new StringBuilder(64);
             sb
                     .append(percent.toString())
                     .append("\033[2;48;5;239m");

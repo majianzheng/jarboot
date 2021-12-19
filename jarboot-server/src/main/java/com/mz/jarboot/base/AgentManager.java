@@ -97,7 +97,8 @@ public class AgentManager {
             //非受管理的本地进程，通知前端进程已经离线
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
         }
-        WebSocketManager.getInstance().sendConsole(sid, server + "下线！");
+        String msg = String.format("\033[1;96m%s\033[0m 下线！", server);
+        WebSocketManager.getInstance().sendConsole(sid, msg);
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
@@ -232,17 +233,19 @@ public class AgentManager {
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
+                    String msg = formatErrorMsg(server, "连接断开，重连失败，请稍后重试");
                     WebSocketManager
                             .getInstance()
-                            .commandEnd(sid, server + "连接断开，重连失败，请稍后重试", sessionId);
+                            .commandEnd(sid, msg, sessionId);
                 } else {
                     client.sendCommand(command, sessionId);
                 }
             } else {
+                String msg = formatErrorMsg(server, "未在线，无法执行命令");
                 //未在线，进程不存在
                 WebSocketManager
                         .getInstance()
-                        .commandEnd(sid, server + "未在线，无法执行命令", sessionId);
+                        .commandEnd(sid, msg, sessionId);
             }
         } else {
             client.sendCommand(command, sessionId);
@@ -259,10 +262,12 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
             TaskUtils.attach(sid);
-            WebSocketManager.getInstance().sendConsole(sid, server + "连接断开，重连中...", sessionId);
+            String msg = formatErrorMsg(server, "连接断开，重连中...");
+            WebSocketManager.getInstance().sendConsole(sid, msg, sessionId);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                 logger.error("Attach and wait server connect timeout，{}", server);
-                WebSocketManager.getInstance().sendConsole(sid, server + "Attach重连超时！", sessionId);
+                msg = formatErrorMsg(server, "Attach重连超时！");
+                WebSocketManager.getInstance().sendConsole(sid, msg, sessionId);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -358,7 +363,8 @@ public class AgentManager {
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             logger.error("Server {} is offline already!", server);
-            WebSocketManager.getInstance().sendConsole(sid, server + " is offline now！");
+            String msg = formatErrorMsg(server, "is offline now！");
+            WebSocketManager.getInstance().sendConsole(sid, msg);
             return;
         }
         synchronized (client) {
@@ -391,6 +397,7 @@ public class AgentManager {
             }
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
+                String msg = formatErrorMsg(server, "is offline now！");
                 WebSocketManager.getInstance().sendConsole(sid, server + " connect timeout！");
                 return;
             }
@@ -472,6 +479,10 @@ public class AgentManager {
             default:
                 break;
         }
+    }
+
+    private String formatErrorMsg(String server, String msg) {
+        return String.format("\033[96;1m%s\033[0m \033[31m%s\033[0m", server, msg);
     }
 
     private void trigRestartEvent(String sid) {

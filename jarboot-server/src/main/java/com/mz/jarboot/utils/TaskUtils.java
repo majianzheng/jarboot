@@ -248,21 +248,20 @@ public class TaskUtils {
     }
 
     public static String parseCommandSimple(String command) {
+        command = command.trim();
         int p = command.indexOf(' ');
         if (p > 0) {
             command = command.substring(0, p);
         }
-        int index = -1;
-        if (command.endsWith(CommonConst.JAR_EXT)) {
-            index = command.lastIndexOf('/');
-            if (-1 == index) {
-                index = command.lastIndexOf('\\');
-            }
-        } else {
-            index = command.lastIndexOf('.');
+        int index = Math.max(command.lastIndexOf('/'), command.lastIndexOf('\\'));
+        if (-1 != index) {
+            command = command.substring(index + 1);
         }
-        if (index > 0) {
-            return command.substring(index + 1);
+        if (!command.endsWith(CommonConst.JAR_EXT)) {
+            index = command.lastIndexOf('.');
+            if (-1 != index) {
+                command = command.substring(index + 1);
+            }
         }
         return command;
     }

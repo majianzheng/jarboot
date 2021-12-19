@@ -40,6 +40,9 @@ import java.util.concurrent.*;
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final String STARTED_MSG = "\033[96;1m%s\033[0m started cost \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m";
+    private static final String STOPPED_MSG = "\033[96;1m%s\033[0m stopped cost \033[91;1m%.3f\033[0m second.";
+
     @Value("${jarboot.after-server-error-offline:}")
     private String afterServerErrorOffline;
 
@@ -190,8 +193,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //服务是否启动成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager.getInstance().sendConsole(sid,
-                        String.format("%s started cost %.3f second.", server, costTime));
+                WebSocketManager
+                        .getInstance()
+                        .sendConsole(sid, String.format(STARTED_MSG, server, costTime));
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             } else {
                 //启动失败
@@ -352,8 +356,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
                 WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeEnum.ERROR);
             } else {
-                WebSocketManager.getInstance().sendConsole(sid,
-                        String.format("%s stopped cost %.3f second.", server, costTime));
+                WebSocketManager.getInstance().sendConsole(sid, String.format(STOPPED_MSG, server, costTime));
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         } catch (Exception e) {
@@ -412,8 +415,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
                     , NoticeEnum.WARN);
             //启动
-            TaskUtils.getTaskExecutor().execute(() ->
-                    this.startSingleServer(setting));
+            TaskUtils.getTaskExecutor().execute(() -> this.startSingleServer(setting));
         } else {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
                     , NoticeEnum.WARN);

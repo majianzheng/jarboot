@@ -70,7 +70,7 @@ public class AgentClientController {
         agentClientPojo.setDiagnose(true);
         String server = StringUtils.isEmpty(command) ? ("NoName-" + pid) : TaskUtils.parseCommandSimple(command);
         agentClientPojo.setServer(server);
-        String clientAddr = this.getActualIP(request);
+        String clientAddr = this.getActualAddr(request);
         agentClientPojo.setClientAddr(clientAddr);
         final char atSplit = '@';
         int i = instanceName.indexOf(atSplit);
@@ -117,7 +117,7 @@ public class AgentClientController {
      * @param request 请求
      * @return 真实客户端IP
      */
-    public String getActualIP(HttpServletRequest request) {
+    public String getActualAddr(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
         final String unknown = "unknown";
         if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {

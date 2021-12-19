@@ -154,6 +154,7 @@ public class ServerMgrController {
      */
     @GetMapping(value="/deleteServer")
     @ResponseBody
+    @Permission
     public ResponseSimple deleteServer(String server) {
         serverMgrService.deleteServer(server);
         return new ResponseSimple();

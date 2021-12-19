@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.stream;
 
 import com.mz.jarboot.common.CmdProtocol;
+import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.CommandResponse;
 import com.mz.jarboot.common.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
@@ -9,6 +10,7 @@ import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
+import com.mz.jarboot.core.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,11 +20,10 @@ import java.util.concurrent.LinkedBlockingQueue;
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class ResultStreamDistributor extends Thread {
     private static final Logger logger = LogUtils.getLogger();
 
-    /** Messge queue */
+    /** Message queue */
     private final LinkedBlockingQueue<CmdProtocol> queue = new LinkedBlockingQueue<>(16384);
     private final ResponseStream http = new HttpResponseStreamImpl();
     private final ResponseStream socket = new SocketResponseStreamImpl();
@@ -38,6 +39,7 @@ public class ResultStreamDistributor extends Thread {
      * @param model   数据
      * @param session 会话
      */
+    @SuppressWarnings("all")
     public static void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {
@@ -54,9 +56,41 @@ public class ResultStreamDistributor extends Thread {
     }
 
     /**
+     * 标准输出，忽略格式，html代码会以纯文本的形式打印出来
+     * @param text 文本
+     */
+    public static void stdPrint(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return;
+        }
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.STD_PRINT);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        write(resp);
+    }
+
+    /**
+     * 标准输出，退格
+     * @param num 次数
+     */
+    public static void stdBackspace(int num) {
+        if (num > 0) {
+            CommandResponse resp = new CommandResponse();
+            resp.setSuccess(true);
+            resp.setResponseType(ResponseType.BACKSPACE);
+            resp.setBody(String.valueOf(num));
+            resp.setSessionId(CommandConst.SESSION_COMMON);
+            write(resp);
+        }
+    }
+
+    /**
      * 发送数据
      * @param resp 数据
      */
+    @SuppressWarnings("all")
     public static void write(CmdProtocol resp) {
         ResultStreamDistributorHolder.INST.queue.offer(resp);
     }

@@ -219,6 +219,7 @@ public class WebSocketManager extends Thread {
      */
     public void printException(String sid, Throwable e) {
         final byte lineBreak = '\n';
+        sendConsole(sid, "\033[31m" + e.getMessage() + "\033[0m");
         e.printStackTrace(new PrintStream(new OutputStream() {
             private final byte[] buffer = new byte[1536];
             private int index = 0;
