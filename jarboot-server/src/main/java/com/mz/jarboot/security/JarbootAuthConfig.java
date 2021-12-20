@@ -26,9 +26,9 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
 
     private static final String SECURITY_IGNORE_URLS_SPILT_CHAR = ",";
 
-    private static final String LOGIN_ENTRY_POINT = "/api/auth/login";
+    private static final String LOGIN_ENTRY_POINT = "/api/jarboot/auth/login";
 
-    private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/auth/**";
+    private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/jarboot/auth/**";
     
     private static final String DEFAULT_ALL_PATH_PATTERN = "/**";
     

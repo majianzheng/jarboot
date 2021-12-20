@@ -31,7 +31,7 @@ import java.util.List;
  * 鉴权接口
  * @author majianzheng
  */
-@RequestMapping(value = "/api/auth")
+@RequestMapping(value = "/api/jarboot/auth")
 @Controller
 public class AuthController {
     private static final int DEFAULT_PAGE_NO = 1;
