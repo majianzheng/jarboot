@@ -47,7 +47,7 @@
 		<module>packaging</module>
 	</modules>
 	<properties>
-		<revision>2.2.2-SNAPSHOT</revision>
+		<revision>2.2.2</revision>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
@@ -55,7 +55,7 @@
 		<!-- dependency version -->
 		<spring.version>2.5.2</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
-		<netty.version>4.1.65.Final</netty.version>
+		<netty.version>4.1.71.Final</netty.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<jjwt.version>0.11.2</jjwt.version>

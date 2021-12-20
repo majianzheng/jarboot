@@ -1,11 +1,11 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.model.MethodNode;
 import com.mz.jarboot.core.cmd.model.ThreadNode;
 import com.mz.jarboot.core.cmd.model.TraceNode;
 import com.mz.jarboot.core.cmd.model.ThrowNode;
 import com.mz.jarboot.core.utils.DateUtils;
-import com.mz.jarboot.core.utils.HtmlNodeUtils;
 import com.mz.jarboot.core.utils.StringUtils;
 
 import java.util.List;
@@ -59,7 +59,7 @@ public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.Trace
             String costStr = renderCost(methodNode);
             if (node == maxCostNode) {
                 // the node with max cost will be highlighted
-                sb.append(HtmlNodeUtils.red(costStr));
+                sb.append(AnsiLog.red(costStr));
             } else {
                 sb.append(costStr);
             }

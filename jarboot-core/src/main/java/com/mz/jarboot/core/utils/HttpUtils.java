@@ -1,11 +1,11 @@
 package com.mz.jarboot.core.utils;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import okhttp3.*;
-import org.slf4j.Logger;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,17 +14,30 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 public class HttpUtils {
-    private static final Logger logger = LogUtils.getLogger();
-    private static final String BASE_URL =String.format("http://%s", System.getProperty(CommonConst.REMOTE_PROP));
+    /** 服务基址 */
+    private static String baseUrl =String.format("http://%s",
+            System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899"));
+    /** 连接超时 */
+    private static final long CONNECT_TIMEOUT = 10L;
+    /** 写超时 */
+    private static final long READ_WRITE_TIMEOUT = 5L;
+    /** 连接池实例 */
     public static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
-            .connectTimeout(30L, TimeUnit.SECONDS)
-            .readTimeout(30L, TimeUnit.SECONDS)
-            .writeTimeout(30L, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+            .readTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
+            .writeTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
             .followRedirects(false)
             .build();
 
-    public static <T> T postJson(String api, Object object, Class<T> type) {
-        String url = BASE_URL + api;
+    /**
+     * Post请求
+     * @param url api接口
+     * @param object 传入的参数
+     * @param type 期望的结果类型
+     * @param <T> 范型类
+     * @return 期望的结构
+     */
+    public static <T> T postJson(String url, Object object, Class<T> type) {
         String json = object instanceof String ? (String)object : JsonUtils.toJsonString(object);
         if (null == json) {
             json = "";
@@ -37,28 +50,56 @@ public class HttpUtils {
         return doRequest(requestBuilder, type);
     }
 
+    /**
+     * Post请求Simple
+     * @param api api接口
+     * @param json 传入的参数
+     */
     public static void postSimple(String api, String json) {
-        ResponseSimple resp = postJson(api, json, ResponseSimple.class);
+        String url = baseUrl + api;
+        ResponseSimple resp = postJson(url, json, ResponseSimple.class);
         checkSimple(resp);
     }
 
-    public static void getSimple(String api) {
-        String url = BASE_URL + api;
+    /**
+     * Get请求
+     * @param url api接口
+     * @param type 期望的结果类型
+     * @param <T> 范型类
+     * @return 期望的结构
+     */
+    public static <T> T getJson(String url, Class<T> type) {
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
                 .get();
-        ResponseSimple resp = doRequest(requestBuilder, ResponseSimple.class);
+        return doRequest(requestBuilder, type);
+    }
+
+    /**
+     * Get请求Simple
+     * @param api api接口
+     */
+    public static void getSimple(String api) {
+        String url = baseUrl + api;
+        ResponseSimple resp = getJson(url, ResponseSimple.class);
         checkSimple(resp);
+    }
+
+    /**
+     * 设定服务基址
+     * @param baseUrl Jarboot服务地址：http://127.0.0.1:9899
+     */
+    public static void setBaseUrl(String baseUrl) {
+        HttpUtils.baseUrl = baseUrl;
     }
 
     private static void checkSimple(ResponseSimple resp) {
         if (null == resp) {
-            logger.error("返回结果解析json失败!");
-            return;
+            throw new JarbootException("返回结果解析json失败!");
         }
         if (resp.getResultCode() != ResultCodeConst.SUCCESS) {
-            logger.error(resp.getResultMsg());
+            throw new JarbootException(resp.getResultCode(), resp.getResultMsg());
         }
     }
 
@@ -74,10 +115,16 @@ public class HttpUtils {
             ResponseBody response = call.execute().body();
             if (null != response) {
                 String body = response.string();
+                if (type.isPrimitive()) {
+                    return BasicTypeConvert.convert(body, type);
+                }
+                if (String.class.equals(type)) {
+                    return (T) body;
+                }
                 resp = JsonUtils.readValue(body, type);
             }
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            throw new JarbootException(e.getMessage(), e);
         }
         return resp;
     }

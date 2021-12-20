@@ -7,7 +7,9 @@ export default defineConfig({
     title: 'Jarboot',
     routes: [
         {path: '/', component: '@/pages/index'},
+        {path: '/jarboot/index', component: '@/pages/index'},
         {path: '/login', component: '@/pages/login/Login'},
+        {path: '/jarboot/login', component: '@/pages/login/Login'},
     ],
     exportStatic: {dynamicRoot: false, htmlSuffix: true},
     fastRefresh: {},
@@ -37,10 +39,10 @@ export default defineConfig({
             'changeOrigin': true,
             'pathRewrite': {'^/api': ''}
         },
-        '/plugins': {
-            'target': 'http://localhost:9899/plugins/',
+        '/jarboot/plugins': {
+            'target': 'http://localhost:9899/jarboot/plugins/',
             'changeOrigin': true,
-            'pathRewrite': {'^/plugins': ''}
+            'pathRewrite': {'^/jarboot/plugins': ''}
         },
     },
 });

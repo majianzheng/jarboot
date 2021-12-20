@@ -22,13 +22,15 @@ import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
-import ServerConfig from "@/components/setting/ServerConfig";
+import ServerConfig from "@/components/servers/ServerConfig";
 import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 import CloudService from "@/services/CloudService";
 import CommonUtils from "@/common/CommonUtils";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
+import IntlText from "@/common/IntlText";
+import TopTitleBar from "@/components/servers/TopTitleBar";
 
 interface ServerMgrViewState {
     loading: boolean;
@@ -38,7 +40,7 @@ interface ServerMgrViewState {
     selectedRowKeys: string[];
     searchText: string;
     searchedColumn: string;
-    selectRows: TreeNode[];
+    selectRows: ServerRunning[];
     current: string;
     sideView: 'tree' | 'list';
     contentView: 'config' | 'console';
@@ -63,7 +65,7 @@ const ServerMgrView = () => {
         selectedRowKeys: [] as string[],
         searchText: '',
         searchedColumn: '',
-        selectRows: [] as TreeNode[],
+        selectRows: [] as ServerRunning[],
         current: '',
         sideView: getInitSideView(),
         contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
@@ -105,7 +107,7 @@ const ServerMgrView = () => {
 
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: ServerMgrViewState) => {
-            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid) as TreeNode;
+            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
             if (!item) {
                 return {};
             }
@@ -117,8 +119,8 @@ const ServerMgrView = () => {
                     // 激活终端显示
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
+                    pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
                     pubsub.publish(key, JarBootConst.START_LOADING);
-                    clearDisplay(item);
                     break;
                 case JarBootConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
@@ -229,7 +231,7 @@ const ServerMgrView = () => {
     const getTbProps = () => ({
         columns: [
             {
-                title: intl.formatMessage({id: 'NAME'}),
+                title: <IntlText id={"NAME"}/>,
                 dataIndex: 'name',
                 key: 'name',
                 ellipsis: true,
@@ -238,7 +240,7 @@ const ServerMgrView = () => {
                 ...getColumnSearchProps('name')
             },
             {
-                title: intl.formatMessage({id: 'GROUP'}),
+                title: <IntlText id={"GROUP"}/>,
                 dataIndex: 'group',
                 key: 'group',
                 ellipsis: true,
@@ -294,11 +296,18 @@ const ServerMgrView = () => {
         selectedRowKeys: state.selectedRowKeys,
     });
 
+    const startSignal = (server: ServerRunning) => {
+        if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
+            ServerMgrService.startServer([server], finishCallback);
+        }
+    };
+
     const onRow = (record: ServerRunning) => ({
         onClick: () => {
             dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid});
             pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
-        }
+        },
+        onDoubleClick: () => startSignal(record)
     });
 
     const refreshServerList = (init: boolean = false) => {
@@ -320,8 +329,8 @@ const ServerMgrView = () => {
                     if (data.length > 0) {
                         let first: ServerRunning;
                         if (preState.sideView === JarBootConst.LIST_VIEW && treeData.length > 0) {
-                            const firstChildren = treeData[0]?.children as TreeNode[] || [];
-                            first = firstChildren[0] || data[0];
+                            const firstChildren = treeData[0]?.children as ServerRunning[] || [];
+                            first = (firstChildren[0] || data[0]);
                         } else {
                             first = data[0];
                         }
@@ -347,12 +356,7 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        state.selectRows.forEach(clearDisplay);
         ServerMgrService.startServer(state.selectRows, finishCallback);
-    };
-
-    const clearDisplay = (server: ServerRunning) => {
-        pubsub.publish(server.sid, JarBootConst.CLEAR_CONSOLE);
     };
 
     const stopServer = () => {
@@ -369,7 +373,6 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        state.selectRows.forEach(clearDisplay);
         ServerMgrService.restartServer(state.selectRows, finishCallback);
     };
 
@@ -569,25 +572,28 @@ const ServerMgrView = () => {
     };
 
     const getTreeData = (data: ServerRunning[]): TreeNode[] => {
-        const treeData = [] as TreeNode[];
-        const groupMap = new Map<string, TreeNode[]>();
+        const treeData = [] as ServerRunning[];
+        const groupMap = new Map<string, ServerRunning[]>();
         data.forEach(server => {
             const group = server.group || '';
             let children = groupMap.get(group);
             if (!children) {
-                children = [] as TreeNode[];
+                children = [] as ServerRunning[];
                 groupMap.set(group, children);
+                const title = (<span className={styles.groupRow}>
+                    {group.length ? group : <IntlText id={'DEFAULT_GROUP'}/>}
+                </span>);
                 treeData.push({
-                    title: group,
+                    title,
                     sid: group,
                     key: group,
                     group,
                     icon: groupIcon,
                     name: "", path: "", status: "", children});
             }
-            const child = server as TreeNode;
+            const child = server as ServerRunning;
             child.key = server.sid;
-            child.title = server.name;
+            child.title = <span onDoubleClick={() => startSignal(server)}>{server.name}</span>;
             child.isLeaf = true;
             child.icon = translateStatus(server.status);
             children.push(child);
@@ -657,8 +663,20 @@ const ServerMgrView = () => {
     };
 
     const contentView = () => {
+        const configView = JarBootConst.CONSOLE_VIEW === state.contentView;
         //按钮为控制台，则当前为服务配置
-        const server = state.selectRows?.length ? state.selectRows[0] : null;
+        let server = {} as ServerRunning;
+        let configTitle = '';
+        if (configView) {
+            server = state.data.find(value => state.current === value.sid) as ServerRunning;
+            const conf = intl.formatMessage({id: 'SERVICES_CONF'});
+            if (server) {
+                configTitle = `${server?.name || ''} - ${conf}`;
+            } else {
+                configTitle = `- ${conf}`;
+            }
+        }
+        const closeConfig = () => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW);
         return (<div>
             <div style={{display: JarBootConst.CONFIG_VIEW === state.contentView ? 'block' : 'none'}}>
                 {<SuperPanel key={PUB_TOPIC.ROOT}
@@ -672,11 +690,13 @@ const ServerMgrView = () => {
                                 visible={state.current === value.sid}/>
                 ))}
             </div>
-            <div style={{display: JarBootConst.CONSOLE_VIEW === state.contentView ? 'block' : 'none', background: '#FAFAFA'}}>
+            <div style={{display: configView ? 'block' : 'none', background: '#FAFAFA'}}>
+                <TopTitleBar title={configTitle}
+                             onClose={closeConfig}/>
                 <ServerConfig path={server?.path || ''}
-                              sid={server?.sid || ''}
+                              sid={state.current || ''}
                               group={server?.group || ''}
-                              onClose={() => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW)}
+                              onClose={closeConfig}
                               onGroupChanged={onGroupChanged}/>
             </div>
         </div>);

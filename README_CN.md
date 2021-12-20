@@ -38,6 +38,8 @@ English version goes [here](README.md).
 - 🚀   调试命令执行，同时远程调试多个Java进程，界面更友好
 - 💎   支持通过<code>SPI</code>自定义调试命令实现，支持开发插件
 
+![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
+
 ### 架构简介 
 详细架构设计[查看](jarboot-server/README.md)
 
@@ -353,6 +355,12 @@ jarboot$ sysprop user.home
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) 部分命令在<code>Arthas</code>源码的基础上二次开发。
+
+## 联系
+- 邮箱: 282295811@qq.com
+- QQ群: 663881845
+
+![QQ group](https://gitee.com/majz0908/jarboot/raw/develop/doc/qq-group.png)
 
 ## 仓库镜像
 

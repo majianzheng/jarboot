@@ -18,7 +18,7 @@ interface ServerConfigProp {
     path: string;
     group: string;
     onGroupChanged: (sid: string, group: string, preGroup?: string) => void;
-    onClose?: () => void;
+    onClose: () => void;
 }
 
 const ServerConfig = memo((props: ServerConfigProp) => {
@@ -87,7 +87,7 @@ const ServerConfig = memo((props: ServerConfigProp) => {
         args = args.replaceAll('\n', ' ');
         form.setFieldsValue({args});
     };
-    const style = {height: window.innerHeight - 66, overflow: 'auto'};
+    const style = {height: window.innerHeight - 100, marginTop: 5, overflow: 'auto'};
 
     return (<div style={style}>
         <Form {...layout}

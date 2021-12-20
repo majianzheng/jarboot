@@ -40,7 +40,7 @@ public class JarbootRunListener implements SpringApplicationRunListener {
     @Override
     public void running(ConfigurableApplicationContext context) {
         if (startByJarboot) {
-            logger.info("Spring boot application is running with jarboot.");
+            logger.info("\u001B[1;92mSpring boot application is running with jarboot\u001B[0m \u001B[5m✨ \u001B[0m");
             try {
                 AgentService agentService = JarbootFactory.createAgentService();
                 agentService.setStarted();

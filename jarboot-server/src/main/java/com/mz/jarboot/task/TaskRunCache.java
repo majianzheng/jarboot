@@ -9,7 +9,7 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
-import com.mz.jarboot.utils.VMUtils;
+import com.mz.jarboot.common.VMUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -156,6 +156,9 @@ public class TaskRunCache {
         }
         final String name = dir.getName();
         if (StringUtils.startsWith(name, CommonConst.DOT)) {
+            return false;
+        }
+        if (StringUtils.containsWhitespace(name)) {
             return false;
         }
         return !excludeDirSet.contains(name);

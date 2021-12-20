@@ -39,6 +39,8 @@ as acquiring JVM information, monitoring thread status, acquiring thread stack i
 - 🚀   Debug command execution, remote debugging multiple Java processes at the same time, the interface is more friendly.
 - 💎   Support user-define command by <code>SPI</code>, support develop plugins.
 
+![online diagnose](https://gitee.com/majz0908/jarboot/raw/develop/doc/online-diagnose.png)
+
 ### Architecture brief introduction
 Detailed architecture design [view](jarboot-server/README.md)
 
@@ -362,6 +364,12 @@ jarboot$ sysprop user.home
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) Some command is developed on the source of <code>Arthas</code>.
+
+## Contact
+- Mail: 282295811@qq.com
+- QQ group: 663881845
+
+![QQ group](https://gitee.com/majz0908/jarboot/raw/develop/doc/qq-group.png)
 
 ## 仓库镜像
 

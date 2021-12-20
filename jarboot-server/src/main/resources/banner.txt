@@ -1,9 +1,9 @@
-     _                 __                        _
-    (_)               [  |                      / |_   　  (^з^)-☆
-    __  ,--.   _ .--.  | |.--.    .--.    .--. `| |-'   Jarboot ${application.version} ✨
-   [  |`'_\ : [ `/'`\] | '/'`\ \/ .'`\ \/ .'`\ \| |    ️ an easy-to-use Java process starter
- _  | |// | |, | |     |  \__/ || \__. || \__. || |,    Port: ${server.port}
-[ \_| |\'-;__/[___]   [__;.__.'  '.__.'  '.__.' \__/    Pid:  ${pid}
- \____/                                                 Home: http://127.0.0.1:${server.port}/
+     ,--.               ,--.                   ,--.
+     |  | ,--,--.,--.--.|  |-.  ,---.  ,---. ,-'  '-. 🚀 (^з^)-☆
+,--. |  |' ,-.  ||  .--'| .-. '| .-. || .-. |'-.  .-' Jarboot ${application.version} ✨
+|  '-'  /\ '-'  ||  |   | `-' |' '-' '' '-' '  |  |   Port: ${server.port}
+ `-----'  `--`--'`--'    `---'  `---'  `---'   `--'   Pid:  ${pid}
 
- GitHub: https://github.com/majianzheng/jarboot
+🌟 GitHub: https://github.com/majianzheng/jarboot
+   an easy-to-use Java process starter diagnose-tool
+👉 Visit home: http://127.0.0.1:${server.port}/jarboot/index.html

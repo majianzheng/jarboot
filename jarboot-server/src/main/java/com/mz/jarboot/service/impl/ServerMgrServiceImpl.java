@@ -6,6 +6,8 @@ import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.VMUtils;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
@@ -25,7 +27,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -38,6 +39,9 @@ import java.util.concurrent.*;
 @Service
 public class ServerMgrServiceImpl implements ServerMgrService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final String STARTED_MSG = "\033[96;1m%s\033[0m started cost \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m";
+    private static final String STOPPED_MSG = "\033[96;1m%s\033[0m stopped cost \033[91;1m%.3f\033[0m second.";
 
     @Value("${jarboot.after-server-error-offline:}")
     private String afterServerErrorOffline;
@@ -189,8 +193,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //服务是否启动成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager.getInstance().sendConsole(sid,
-                        String.format("%s started cost %.3f second.", server, costTime));
+                WebSocketManager
+                        .getInstance()
+                        .sendConsole(sid, String.format(STARTED_MSG, server, costTime));
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
             } else {
                 //启动失败
@@ -236,7 +241,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             process.setAttached(AgentManager.getInstance().isOnline(sid));
             process.setFullName(v);
             //解析获取简略名字
-            process.setName(parseFullName(v));
+            process.setName(TaskUtils.parseCommandSimple(v));
             result.add(process);
         });
         AgentManager.getInstance().remoteProcess(result);
@@ -244,23 +249,18 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     @Override
-    public void attach(int pid, String name) {
-        if (CommonConst.INVALID_PID == pid) {
-            return;
-        }
-        if (StringUtils.isEmpty(name)) {
-            name = StringUtils.SPACE;
+    public void attach(String pid) {
+        if (StringUtils.isEmpty(pid)) {
+            throw new JarbootException("pid is empty!");
         }
         Object vm = null;
-        String sid = String.valueOf(pid);
-        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHING);
+        WebSocketManager.getInstance().debugProcessEvent(pid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-            String args = SettingUtils.getAgentArgs(name, String.valueOf(pid));
+            String args = SettingUtils.getAttachArgs();
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            sid = String.valueOf(pid);
-            WebSocketManager.getInstance().printException(sid, e);
+            WebSocketManager.getInstance().printException(pid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -295,19 +295,6 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
             }
         });
-    }
-
-    private String parseFullName(String fullName) {
-        int p = fullName.indexOf(' ');
-        if (p > 0) {
-            fullName = fullName.substring(0, p);
-        }
-        final char sept = (fullName.endsWith(CommonConst.JAR_EXT)) ? File.separatorChar : '.';
-        int index = fullName.lastIndexOf(sept);
-        if (index > 0) {
-            return fullName.substring(index + 1);
-        }
-        return fullName;
     }
 
     private void stopServer0(List<String> paths) {
@@ -369,8 +356,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
                 WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeEnum.ERROR);
             } else {
-                WebSocketManager.getInstance().sendConsole(sid,
-                        String.format("%s stopped cost %.3f second.", server, costTime));
+                WebSocketManager.getInstance().sendConsole(sid, String.format(STOPPED_MSG, server, costTime));
                 WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         } catch (Exception e) {
@@ -410,7 +396,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 return;
             }
             //尝试重新初始化代理客户端
-            TaskUtils.attach(server, sid);
+            TaskUtils.attach(sid);
             return;
         }
 
@@ -429,8 +415,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
                     , NoticeEnum.WARN);
             //启动
-            TaskUtils.getTaskExecutor().execute(() ->
-                    this.startSingleServer(setting));
+            TaskUtils.getTaskExecutor().execute(() -> this.startSingleServer(setting));
         } else {
             WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
                     , NoticeEnum.WARN);

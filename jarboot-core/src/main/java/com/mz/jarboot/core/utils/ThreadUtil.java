@@ -189,7 +189,7 @@ abstract public class ThreadUtil {
             sb.append(" time=").append(time).append("ms");
         }
 
-        sb.append(" ").append(threadInfo.getThreadState());
+        sb.append(StringUtils.SPACE).append(threadInfo.getThreadState());
 
         if (threadInfo.getLockName() != null) {
             sb.append(" on ").append(threadInfo.getLockName());
@@ -284,7 +284,7 @@ abstract public class ThreadUtil {
             return sb.toString();
         }
 
-        sb.append(" ").append(threadInfo.getState());
+        sb.append(StringUtils.SPACE).append(threadInfo.getState());
 
         if (threadInfo.getLockName() != null) {
             sb.append(" on ").append(threadInfo.getLockName());

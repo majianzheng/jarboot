@@ -12,9 +12,9 @@ import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,12 +31,8 @@ public class WsClientFactory {
     private static final int HEARTBEAT_INTERVAL = 15;
     /** 重连的间隔时间，加上连接等待时间10秒，一共每隔15秒执行一次尝试连接 */
     private static final int RECONNECT_INTERVAL = 5;
-    /** 获取连接的IP地址 */
-    private static final String API_REMOTE_ADDR = "/api/public/agent/remoteAddr";
     /** WebSocket 客户端 */
     private okhttp3.WebSocket client = null;
-    /** WebSocket连接串 */
-    private String url = null;
     /** 命令派发器 */
     private final CommandDispatcher dispatcher;
     /** WebSocket事件监听 */
@@ -47,36 +43,22 @@ public class WsClientFactory {
     private volatile CountDownLatch latch = null;
     /** 心跳latch */
     private volatile CountDownLatch heartbeatLatch = null;
+    /** 销毁连接latch */
+    private volatile CountDownLatch shutdownLatch = null;
     /** 是否启动重连 */
     private boolean reconnectEnabled = false;
     /** 是否正在连接 */
     private boolean connectting = false;
     /** 重连未开始标志 */
     private boolean reconnectNotStarted = true;
+    /** 心跳Future */
+    private ScheduledFuture<?> heartbeatFuture = null;
 
     private WsClientFactory() {
         //1.命令派发器
         dispatcher = new CommandDispatcher(this::onHeartbeat);
         //2.初始化WebSocket的handler
         this.initMessageHandler();
-
-        String server = EnvironmentContext.getServer();
-        //服务目录名支持中文，检查到中文后进行编码
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[\\u4e00-\\u9fa5]").matcher(server);
-        while (matcher.find()) {
-            String tmp = matcher.group();
-            try {
-                server = server.replaceAll(tmp, java.net.URLEncoder.encode(tmp, "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                logger.error(e.getMessage(), e);
-                return;
-            }
-        }
-
-        url = String.format("ws://%s/public/jarboot/agent/ws/%s/%s",
-                System.getProperty(CommonConst.REMOTE_PROP),
-                server,
-                EnvironmentContext.getSid());
     }
 
     private void initMessageHandler() {
@@ -142,6 +124,11 @@ public class WsClientFactory {
         if (null != client) {
             this.destroyClient();
         }
+        final String url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
+                EnvironmentContext.getClientData().getHost(),
+                EnvironmentContext.getClientData().getServer(),
+                EnvironmentContext.getClientData().getSid());
+        AnsiLog.info("connectting to jarboot {}", url);
         latch = new CountDownLatch(1);
         try {
             connectting = true;
@@ -165,35 +152,21 @@ public class WsClientFactory {
         }
     }
 
-    public static String getRemoteAddr() {
-        ResponseForObject resp = HttpUtils
-                .postJson(API_REMOTE_ADDR, "", ResponseForObject.class);
-        if (null == resp) {
-            logger.warn("remoteJvm request failed.");
-            return null;
-        }
-        if (ResultCodeConst.SUCCESS != resp.getResultCode()) {
-            logger.warn("remoteJvm request failed. {}", resp.getResultMsg());
-            return null;
-        }
-        Object result = resp.getResult();
-        if (result instanceof String) {
-            return (String)result;
-        }
-        return null;
-    }
-
     /**
-     * 远程连接间隔心跳探测
+     * 连接间隔心跳探测
      */
-    public void remoteJvmSchedule() {
+    public void scheduleHeartbeat() {
+        if (!online) {
+            AnsiLog.error("Client is not online can't start schedule heartbeat.");
+            return;
+        }
         //启动监控，断开时每隔一段时间尝试重连
-        logger.info("remote jvm connect success! reconnect enabled.");
+        AnsiLog.info("init client success! reconnect enabled, start heartbeat.");
         reconnectEnabled = true;
         //每隔一段时间进行一次心跳探测
-        EnvironmentContext
+        heartbeatFuture = EnvironmentContext
                 .getScheduledExecutorService()
-                .scheduleAtFixedRate(this::sendHeartbeat, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
+                .scheduleWithFixedDelay(this::sendHeartbeat, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
     }
 
     /**
@@ -209,11 +182,53 @@ public class WsClientFactory {
      * 是否在线
      * @return 是否在线
      */
-    public boolean isOnline() {
+    public boolean checkOnline() {
         if (online) {
             sendHeartbeat();
         }
         return online;
+    }
+
+    public boolean isOnline() {
+        return this.online;
+    }
+
+    /**
+     * Jarboot服务地址更新
+     * @param host jarboot服务地址，eg: 192.168.1.88:9899
+     */
+    public void changeHost(String host) {
+        //修改host
+        System.setProperty(CommonConst.REMOTE_PROP, host);
+        EnvironmentContext.getClientData().setHost(host);
+        HttpUtils.setBaseUrl(String.format("http://%s", host));
+        closeSession();
+        createSingletonClient();
+        if (Boolean.TRUE.equals(EnvironmentContext.getClientData().getDiagnose())) {
+            scheduleHeartbeat();
+        }
+    }
+
+    /**
+     * 主动关闭会话
+     */
+    public void closeSession() {
+        if (null != heartbeatFuture) {
+            heartbeatFuture.cancel(true);
+            heartbeatFuture = null;
+        }
+        if (online) {
+            // 销毁旧的连接
+            shutdownLatch = new CountDownLatch(1);
+            try {
+                this.destroyClient();
+                shutdownLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                shutdownLatch = null;
+            }
+        }
     }
 
     private void sendHeartbeat() {
@@ -253,13 +268,19 @@ public class WsClientFactory {
         online = false;
         this.destroyClient();
         EnvironmentContext.cleanSession();
-        if (reconnectEnabled && reconnectNotStarted) {
-            //防止重复创建线程
-            reconnectNotStarted = false;
-            JarbootThreadFactory
-                    .createThreadFactory("reconnect-task", true)
-                    .newThread(this::reconnect)
-                    .start();
+        if (null == shutdownLatch) {
+            //非主动关闭的异常断开
+            if (reconnectEnabled && reconnectNotStarted) {
+                //防止重复创建线程
+                reconnectNotStarted = false;
+                JarbootThreadFactory
+                        .createThreadFactory("reconnect-task", true)
+                        .newThread(this::reconnect)
+                        .start();
+            }
+        } else {
+            //主动关闭连接
+            shutdownLatch.countDown();
         }
     }
 

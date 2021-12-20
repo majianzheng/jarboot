@@ -19,7 +19,7 @@ public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
     /** 客户端信息 */
-    private static ClientData clientData;
+    private static AgentClientPojo clientData;
     /** 是否初始化 */
     private static boolean initialized = false;
     /** transformerManager */
@@ -41,18 +41,34 @@ public class EnvironmentContext {
      * @param clientData 客户端数据
      * @param inst {@link Instrumentation}
      */
-    public static void init(String home, ClientData clientData, Instrumentation inst) {
+    public static synchronized void init(String home, AgentClientPojo clientData, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
-        EnvironmentContext.jarbootHome = home;
-        EnvironmentContext.clientData = clientData;
-        EnvironmentContext.instrumentation = inst;
-        EnvironmentContext.transformerManager =  new TransformerManager(inst);
+        if (null != home) {
+            EnvironmentContext.jarbootHome = home;
+        }
+        if (null != clientData) {
+            EnvironmentContext.clientData = clientData;
+        }
+        if (null != inst) {
+            EnvironmentContext.instrumentation = inst;
+        }
+        EnvironmentContext.transformerManager =  new TransformerManager(EnvironmentContext.instrumentation);
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
         initialized = true;
+    }
+
+    public static synchronized void destroy() {
+        cleanSession();
+        scheduledExecutorService.shutdown();
+        EnvironmentContext.clientData = null;
+        EnvironmentContext.transformerManager.destroy();
+        EnvironmentContext.transformerManager = null;
+        scheduledExecutorService = null;
+        initialized = false;
     }
 
     /**
@@ -85,12 +101,8 @@ public class EnvironmentContext {
         return initialized;
     }
 
-    public static String getServer() {
-        return clientData.getServer();
-    }
-
-    public static String getSid() {
-        return clientData.getSid();
+    public static AgentClientPojo getClientData() {
+        return clientData;
     }
 
     public static ScheduledExecutorService getScheduledExecutorService() {

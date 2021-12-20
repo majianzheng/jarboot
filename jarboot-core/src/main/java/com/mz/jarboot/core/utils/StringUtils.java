@@ -16,6 +16,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @SuppressWarnings("all")
 public abstract class StringUtils {
     private static final Logger logger = LogUtils.getLogger();
+
+    public static final String SPACE = " ";
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**

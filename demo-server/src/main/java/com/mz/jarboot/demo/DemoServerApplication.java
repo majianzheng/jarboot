@@ -38,41 +38,45 @@ public class DemoServerApplication implements Runnable {
     public static void main(String[] args) {
         //打印banner
         printBanner();
-        String ver = System.getenv("JARBOOT_VERSION");
+        String ver = System.getenv("JARBOOT_DOCKER");
         if (null == ver || ver.isEmpty()) {
             //启动界面
             new DemoServerApplication();
-            log("启动进度模拟...");
+            log("\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
             finish();
         } else {
             //docker模式下
-            log("当前正在使用Docker，启动进度模拟...");
+            log("当前正在使用\033[1;36mDocker\033[0m，\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
             finish();
-            try {
-                System.in.read();
-            } catch (IOException exception) {
-                log(exception.getMessage());
-            }
         }
     }
 
     private static void finish() {
-        int len = 52;
-        String str = "[";
-        String p = "";
+        final String back = "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" +
+                "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
         //模拟启动进度
+        StringBuilder percent = new StringBuilder(1024);
         for (int i = 0; i < 50; ++i) {
-            str += '#';
-            for (int n = 0; n < p.length(); ++n) {
-                System.out.print('\b');
+            int color = (52 + i * 3);
+            percent.append("\033[48;5;" + color + "m \033[0m");
+            StringBuilder sb = new StringBuilder(1024);
+            if (i > 0) {
+                sb.append(back);
             }
-            p = str;
-            for (int j = str.length() + 1; j < len; ++j) {
-                p += '-';
+            sb
+                    .append(percent.toString())
+                    .append("\033[2;48;5;239m");
+            for (int j = i + 1; j < 50; ++j) {
+                sb.append(' ');
             }
-            p += String.format("]%d%c", (i + 1) * 2, '%');
-            System.out.print(p);
-            sleep(200);
+            sb
+                    .append("\033[0m \033[1;38;5;")
+                    .append(color)
+                    .append("m")
+                    .append((i + 1) * 2)
+                    .append("%\033[0m");
+            System.out.print(sb.toString());
+            sleep(188);
         }
 
         //启动完成可主动调用setStarted通知Jarboot完成，否则将会在没有控制台输出的一段时间后才判定为完成。
@@ -80,8 +84,8 @@ public class DemoServerApplication implements Runnable {
             agentService = JarbootFactory.createAgentService();
             agentService.setStarted();
             agentService.noticeInfo("启动Demo成功！", null);
-        } catch (Exception e) {
-            log(e.getMessage());
+        } catch (Throwable e) {
+            //ignore
         }
     }
     
@@ -96,7 +100,7 @@ public class DemoServerApplication implements Runnable {
     }
 
     public static void log(String text) {
-        System.out.println(text);
+        System.out.println("[\033[32mINFO\033[0m] " + text);
     }
     
     private String doFib(int limit, int interval) {
@@ -215,7 +219,7 @@ public class DemoServerApplication implements Runnable {
                 if (null == line) {
                     return;
                 }
-                log(line);
+                System.out.println(line);
             }
         } catch (IOException e) {
             e.printStackTrace();

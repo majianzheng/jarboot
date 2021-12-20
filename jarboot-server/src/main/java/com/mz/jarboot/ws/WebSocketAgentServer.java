@@ -12,7 +12,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/public/jarboot/agent/ws/{server}/{sid}")
+@ServerEndpoint("/jarboot/public/agent/ws/{server}/{sid}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
@@ -24,7 +24,8 @@ public class WebSocketAgentServer {
     public void onOpen(Session session, @PathParam("server") String server, @PathParam("sid") String sid) {
         logger.debug("{} @ {} Agent连接成功!", server, sid);
         AgentManager.getInstance().online(server, session, sid);
-        WebSocketManager.getInstance().sendConsole(sid, server + " connected!");
+        String msg = String.format("\033[1;96m%s\033[0m connected!", server);
+        WebSocketManager.getInstance().sendConsole(sid, msg);
     }
 
     /**

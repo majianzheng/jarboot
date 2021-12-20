@@ -45,6 +45,8 @@ public class SettingUtils {
     private static final String LOG_DIR;
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
+    /** file encoding选项 */
+    private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
 
     static {
         String home = System.getProperty(CommonConst.JARBOOT_HOME);
@@ -181,7 +183,7 @@ public class SettingUtils {
         return agentJar;
     }
 
-    public static String getAgentArgs(String server, String sid) {
+    private static String getAgentArgs(String server, String sid) {
         String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
         StringBuilder sb = new StringBuilder();
         sb
@@ -192,6 +194,11 @@ public class SettingUtils {
                 .append(sid);
         byte[] bytes = Base64.getEncoder().encode(sb.toString().getBytes());
         return new String(bytes);
+    }
+
+    public static String getAttachArgs() {
+        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
+        return String.format("127.0.0.1:%s", port);
     }
 
     /**
@@ -283,14 +290,14 @@ public class SettingUtils {
                     .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
                     .forEach(line -> sb.append(line).append(StringUtils.SPACE));
         }
-        String vm = sb.toString();
+        String vm = sb.toString().trim();
         if (StringUtils.isBlank(vm)) {
-            vm = SettingUtils.getDefaultJvmArg();
-            if (!vm.isEmpty() && !vm.endsWith(StringUtils.SPACE)) {
-                vm += StringUtils.SPACE;
-            }
+            vm = SettingUtils.getDefaultJvmArg().trim();
         }
-        return vm;
+        if (!vm.contains(FILE_ENCODING_OPTION)) {
+            vm += (StringUtils.SPACE + FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
+        }
+        return vm.trim();
     }
 
     public static Path getPath(String file, String... more) {

@@ -2,10 +2,7 @@ package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -21,20 +18,21 @@ import java.util.Map;
  */
 public class AgentServiceOperator {
     private static final Logger logger = LogUtils.getLogger();
-    private static final String SET_STARTED_API = "/api/public/agent/setStarted?server=";
+    private static final String SET_STARTED_API = "/api/jarboot/public/agent/setStarted?server=";
     private static volatile boolean started = false;
 
     public static void setStarted() {
         if (started) {
             return;
         }
-        HttpUtils.getSimple(SET_STARTED_API + EnvironmentContext.getServer() +
-                "&sid=" + EnvironmentContext.getSid());
+        AgentClientPojo clientData = EnvironmentContext.getClientData();
+        HttpUtils.getSimple(SET_STARTED_API + clientData.getServer() +
+                "&sid=" + clientData.getSid());
         started = true;
     }
 
     public static String getServer() {
-        return EnvironmentContext.getServer();
+        return EnvironmentContext.getClientData().getServer();
     }
 
     public static void restartSelf() {

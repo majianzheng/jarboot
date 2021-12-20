@@ -10,8 +10,8 @@ import com.mz.jarboot.core.basic.EnvironmentContext;
 public class ExitCommand extends AbstractInternalCommand {
     @Override
     public void run() {
-        session.console(EnvironmentContext.getServer() + "即将退出");
-        PidFileHelper.deletePidFile(EnvironmentContext.getSid());
+        session.console(EnvironmentContext.getClientData().getServer() + "即将退出");
+        PidFileHelper.deletePidFile(EnvironmentContext.getClientData().getSid());
         session.end(true, "Application exiting...");
         System.exit(0);
     }

@@ -55,6 +55,8 @@ public class CommandBuilder {
         commandMap.put(CommandConst.CANCEL_CMD, CancelCommand.class);
         commandMap.put(CommandConst.HEARTBEAT, HeartbeatCommand.class);
         commandMap.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
+        commandMap.put(CommandConst.SHUTDOWN, ShutdownCommand.class);
+        commandMap.put("close", ShutdownCommand.class);
         //初始化jdk的spi
         initJdkSpi();
     }
@@ -171,7 +173,9 @@ public class CommandBuilder {
             CommandArgsParser parser = new CommandArgsParser(args, processor);
             parser.postConstruct();
             extendCmd.setArgs(parser.getSplitedArgs());
-            processor.postConstruct(EnvironmentContext.getInstrumentation(), EnvironmentContext.getServer());
+            processor.postConstruct(
+                    EnvironmentContext.getInstrumentation(),
+                    EnvironmentContext.getClientData().getServer());
         } catch (Throwable e) {
             errorMsg = e.getMessage();
             if (null == extendCmd) {

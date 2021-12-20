@@ -13,22 +13,17 @@ public enum WsEventEnum {
     /**
      * 控制台输出
      */
-    CONSOLE_LINE,
+    CONSOLE,
     
     /**
-     * 控制台打印字符串（不换行）
+     * 控制台打印字符串
      */
-    CONSOLE_PRINT,
+    STD_PRINT,
     
     /**
      * 控制台退格
      */
     BACKSPACE,
-    
-    /**
-     * 控制台后退一行
-     */
-    BACKSPACE_LINE,
 
     /**
      * 渲染Json

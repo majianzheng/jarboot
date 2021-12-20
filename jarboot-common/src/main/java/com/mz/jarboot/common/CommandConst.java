@@ -20,6 +20,7 @@ public class CommandConst {
     public static final String EXIT_CMD = "exit";
     public static final String CANCEL_CMD = "cancel";
     public static final String HEARTBEAT = "heartbeat";
+    public static final String SHUTDOWN = "shutdown";
 
     /**
      * 广播会话ID，进程启动或退出时，广播所有客户端

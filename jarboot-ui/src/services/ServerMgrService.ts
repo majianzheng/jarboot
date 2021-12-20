@@ -6,30 +6,29 @@ import React from "react";
 
 const urlBase = "/api/jarboot/services";
 
-interface ServerRunning {
-    name: string;
-    sid: string;
-    status: string;
-    path: string;
-    group: string;
-}
-
-interface JvmProcess {
+interface TreeNode {
     sid: string;
     name: string;
-    fullName: string;
-    pid: number;
-    attached: boolean;
-    remote: string;
-    attaching: boolean;
-}
-
-interface TreeNode extends ServerRunning {
-    title: string;
+    title: string | React.ReactNode;
     key: string;
     isLeaf?: boolean;
     children?: TreeNode[];
     icon?: React.ReactNode;
+    selectable?: boolean;
+}
+
+interface ServerRunning extends TreeNode {
+    status: string;
+    group: string;
+    path: string;
+}
+
+interface JvmProcess extends TreeNode {
+    fullName?: string;
+    pid: number;
+    attached: boolean;
+    remote: string;
+    attaching: boolean;
 }
 
 export { ServerRunning, JvmProcess, TreeNode };
@@ -53,7 +52,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static startServer(servers: TreeNode[], callback: any) {
+    public static startServer(servers: ServerRunning[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/startServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -63,7 +62,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static stopServer(servers: TreeNode[], callback: any) {
+    public static stopServer(servers: ServerRunning[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/stopServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -73,7 +72,7 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static restartServer(servers: TreeNode[], callback: any) {
+    public static restartServer(servers: ServerRunning[], callback: any) {
         const param = ServerMgrService.parseParam(servers);
         Request.post(`${urlBase}/restartServer`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
@@ -126,10 +125,9 @@ export default class ServerMgrService {
     /**
      * attach进程
      * @param pid pid
-     * @param name 名字
      */
-    public static attach(pid: number, name: string) {
-        return Request.get(`${urlBase}/attach`, {pid, name});
+    public static attach(pid: number) {
+        return Request.get(`${urlBase}/attach`, {pid});
     }
 
     /**
@@ -140,14 +138,15 @@ export default class ServerMgrService {
         return Request.get(`${urlBase}/deleteServer`, {server});
     }
 
-    private static parseParam(servers: TreeNode[]): string[] {
+    private static parseParam(servers: ServerRunning[]): string[] {
         const set = new Set<string>();
         servers.forEach(value => {
             if (value.isLeaf) {
-                set.add(value.path);
+                set.add(value.path as string);
                 return;
             }
-            value.children?.length && value.children.forEach(child => set.add(child.path));
+            const children = value.children as ServerRunning[];
+            children?.length && children.forEach(child => set.add(child.path as string));
         });
         return Array.from(set);
     }

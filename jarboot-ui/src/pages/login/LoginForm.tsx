@@ -7,13 +7,14 @@ import CommonNotice from "@/common/CommonNotice";
 import {JarBootConst} from "@/common/JarBootConst";
 import {UserOutlined, LockOutlined} from "@ant-design/icons";
 import styles from "./index.less";
+import CommonUtils from "@/common/CommonUtils";
 
 const LoginForm = memo(() => {
     const intl = useIntl();
     useEffect(() => {
         OAuthService.getCurrentUser().then((resp: any) => {
             if (0 === resp?.resultCode && StringUtil.isNotEmpty(resp?.result?.username)) {
-                location.assign("/");
+                CommonUtils.homePage();
             }
         });
     }, []);
@@ -25,7 +26,7 @@ const LoginForm = memo(() => {
             }
             const jarbootUser: any = resp.result;
             localStorage.setItem(JarBootConst.TOKEN_KEY, "Bearer " + jarbootUser.accessToken);
-            location.assign("/");
+            CommonUtils.homePage();
         }).catch(CommonNotice.errorFormatted);
     };
 

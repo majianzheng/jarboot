@@ -12,6 +12,7 @@ import com.mz.jarboot.core.utils.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The command line param parser, command builder get param by annotations.
@@ -38,7 +39,14 @@ public class CommandArgsParser {
         this.init(obj);
 
         // 解析命令行
-        this.doParse(args.trim());
+        splitedArgs = splitArgs(args.trim());
+        this.doParse();
+    }
+
+    public CommandArgsParser(String[] args, Object obj) {
+        this.init(obj);
+        splitedArgs = Arrays.stream(args).collect(Collectors.toList());
+        this.doParse();
     }
 
     public void postConstruct() {
@@ -74,8 +82,7 @@ public class CommandArgsParser {
         }
     }
 
-    private void doParse(String args) {
-        splitedArgs = splitArgs(args);
+    private void doParse() {
         if (optionMap.isEmpty() && argumentMap.isEmpty()) {
             return;
         }

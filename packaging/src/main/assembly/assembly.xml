@@ -56,5 +56,12 @@
     <file>
       <source>startup.cmd</source>
     </file>
+    <file>
+      <source>jt.sh</source>
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>jt.cmd</source>
+    </file>
   </files>
 </assembly>

@@ -4,9 +4,22 @@ import {JarBootConst} from "@/common/JarBootConst";
  * @author majianzheng
  */
 export default class CommonUtils {
+    private static readonly HOME_PREFIX = '/jarboot/';
     public static loginPage() {
         localStorage.removeItem(JarBootConst.TOKEN_KEY);
+        if (0 === window.location.pathname.indexOf(CommonUtils.HOME_PREFIX)) {
+            location.assign('/jarboot/login.html');
+            return;
+        }
         location.assign('/login.html');
+    }
+
+    public static homePage() {
+        if (0 === window.location.pathname.indexOf(CommonUtils.HOME_PREFIX)) {
+            location.assign('/jarboot/index.html');
+            return;
+        }
+        location.assign('/');
     }
 
     public static getToken(): string {

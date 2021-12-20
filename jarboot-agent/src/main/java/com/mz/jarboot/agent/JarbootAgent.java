@@ -46,7 +46,6 @@ public class JarbootAgent {
                 log.createNewFile();
             }
             ps = new PrintStream(new FileOutputStream(log, false));
-            System.setProperty(CommonConst.JARBOOT_HOME, CURRENT_DIR);
             main(args, inst, isPremain);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -120,7 +119,7 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
         try {
-            coreJarFile = new File(CURRENT_DIR + File.separator + "bin", JARBOOT_CORE_JAR);
+            coreJarFile = new File(CURRENT_DIR + File.separator + CommonConst.BIN_NAME, JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
                 ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }
@@ -181,21 +180,23 @@ public class JarbootAgent {
     }
 
     private static String getCurrentDir() {
-        //分别尝试从环境变量和系统属性中获取
-        String homePath = System.getenv(CommonConst.JARBOOT_HOME);
-        if (null == homePath || homePath.isEmpty()) {
-            homePath = System.getProperty(CommonConst.JARBOOT_HOME);
-        }
+        //分别尝试从系统属性和环境变量中获取
+        String homePath = System.getProperty(CommonConst.JARBOOT_HOME, System.getenv(CommonConst.JARBOOT_HOME));
         if (null != homePath && !homePath.isEmpty()) {
+            if (null == System.getProperty(CommonConst.JARBOOT_HOME, null)) {
+                //将环境变量中的设置
+                System.setProperty(CommonConst.JARBOOT_HOME, homePath);
+            }
             return homePath;
         }
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            return agentJarFile.getParentFile().getParentFile().getPath();
+            homePath = agentJarFile.getParentFile().getParentFile().getPath();
+            System.setProperty(CommonConst.JARBOOT_HOME, homePath);
         } catch (Exception e) {
             e.printStackTrace(ps);
         }
-        return null;
+        return homePath;
     }
 }

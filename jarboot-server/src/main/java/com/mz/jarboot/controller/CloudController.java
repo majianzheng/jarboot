@@ -10,6 +10,7 @@ import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,23 @@ import java.util.Base64;
 @RequestMapping(value = "/api/jarboot/cloud")
 @Controller
 public class CloudController {
+    @Value("${docker:false}")
+    private boolean isInDocker;
+
+    /**
+     * 获取版本
+     * @return 版本
+     */
+    @GetMapping(value="/version")
+    @ResponseBody
+    public String getVersion() {
+        String results = "v" + VersionUtils.version;
+        if (isInDocker) {
+            results += "(Docker)";
+        }
+        return results;
+    }
+
     /**
      * 拉取服务目录
      * @param name 服务名

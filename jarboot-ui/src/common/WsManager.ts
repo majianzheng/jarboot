@@ -91,8 +91,8 @@ class WsManager {
             }
         }
         let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/public/jarboot/service/ws?token=` :
-            `ws://${window.location.host}/public/jarboot/service/ws?token=`;
+            `ws://${window.location.hostname}:9899/jarboot/public/service/ws?token=` :
+            `ws://${window.location.host}/jarboot/public/service/ws?token=`;
         url += CommonUtils.getToken();
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager.onMessage;
@@ -157,7 +157,7 @@ class WsManager {
      * 响应后端消息推送处理
      * @param e 事件
      */
-    private static onMessage = (e: any) => {
+    private static onMessage = (e: MessageEvent) => {
         if (!StringUtil.isString(e?.data)) {
             Logger.error('Unknown websocket message:', e);
             //二进制数据

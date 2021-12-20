@@ -1,4 +1,4 @@
-import {memo, useEffect, useState} from "react";
+import {memo, default as React, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
 import {JarBootConst} from "@/common/JarBootConst";
@@ -9,6 +9,7 @@ import ModifyUserModal from "@/components/extra/ModifyUserModal";
 import {Modal} from "antd";
 import {DeleteIcon} from "@/components/icons";
 import styles from "@/common/global.less";
+import IntlText from "@/common/IntlText";
 
 let isCreate = true;
 let username = '';
@@ -59,13 +60,13 @@ const UserList = memo(() => {
     let tableOption: any = {
         columns: [
             {
-                title: intl.formatMessage({id: 'NAME'}),
+                title: <IntlText id={'NAME'}/>,
                 dataIndex: 'username',
                 key: 'username',
                 ellipsis: true,
             },
             {
-                title: intl.formatMessage({id: 'PASSWORD'}),
+                title: <IntlText id={'PASSWORD'}/>,
                 dataIndex: 'password',
                 key: 'password',
                 ellipsis: true,

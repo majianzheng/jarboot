@@ -12,6 +12,7 @@ import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
 import {JarBootConst} from "@/common/JarBootConst";
 import {PUB_TOPIC, pubsub} from "@/components/servers";
+import TopTitleBar from "@/components/servers/TopTitleBar";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -84,21 +85,10 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         }
         const buttonTitle = executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
         return (<div style={{height: JarBootConst.PANEL_HEIGHT}}>
-            <div className={styles.viewHeader}>
-                <span className={styles.viewTitle}>
-                    <span className={styles.viewTitleContainer}>
-                       {executing && <LoadingOutlined className={styles.statusStarting}/>}
-                        <label>{command}</label>
-                    </span>
-                </span>
-                <div className={styles.viewHeaderTool}>
-                    <Button type={"link"}
-                            size={"small"}
-                            title={buttonTitle}
-                            onClick={closeView}
-                            icon={<CloseOutlined style={{fontSize: '1.28em'}}/>}/>
-                </div>
-            </div>
+            <TopTitleBar title={command}
+                         icon={executing && <LoadingOutlined className={styles.statusStarting}/>}
+                         onClose={closeView}
+                         closeButtonTitle={buttonTitle}/>
             {panel}
         </div>);
     };

@@ -33,13 +33,13 @@
 .noAttachedStatus {
     color: gray;
 }
-.remoteOnlineStatus {
+.vmTreeGroupIcon {
     color: @primary-color;
+    font-size: 1.268em;
 }
-.attachedStatus, .noAttachedStatus, .remoteOnlineStatus {
-    font-size: 16px;
+.attachedStatus, .noAttachedStatus {
+    font-size: @tree-icon-size;
 }
-
 .bottomBar {
     position: fixed;
     bottom: 5px;
@@ -142,6 +142,10 @@
         .groupIcon {
             color: @primary-color;
             font-size: @tree-icon-size;
+            margin-top: 2px;
+        }
+        .groupRow {
+            margin-left: 5px;
         }
     }
 }
@@ -178,4 +182,8 @@
         flex: inherit;
         width: calc(100% - @side-width);
     }
+}
+.groupRow {
+    color: @primary-color;
+    font-weight: bold;
 }

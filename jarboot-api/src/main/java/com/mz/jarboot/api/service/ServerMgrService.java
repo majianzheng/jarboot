@@ -66,9 +66,8 @@ public interface ServerMgrService {
     /**
      * attach到指定的进程
      * @param pid 进程pid
-     * @param name 名字
      */
-    void attach(int pid, String name);
+    void attach(String pid);
 
     /**
      * 删除服务
