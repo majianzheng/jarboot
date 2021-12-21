@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CommandConst;
 import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.apache.commons.collections.CollectionUtils;
@@ -61,9 +60,6 @@ public class WebSocketMainServer {
             return;
         }
         String token = array.get(0);
-        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
-            token = token.substring(AuthConst.TOKEN_PREFIX.length());
-        }
         //校验token合法性
         try {
             Holder.JWT_MGR.validateToken(token);

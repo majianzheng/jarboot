@@ -108,7 +108,7 @@ public class UserController {
     private String getCurrentLoginName(HttpServletRequest request) {
         String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
         if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
-            token =  token.substring(7);
+            token =  token.substring(AuthConst.TOKEN_PREFIX.length());
         }
         Authentication authentication = jwtTokenManager.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);

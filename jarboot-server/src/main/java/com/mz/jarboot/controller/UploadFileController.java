@@ -40,7 +40,7 @@ public class UploadFileController {
      */
     @GetMapping(value="/start")
     @ResponseBody
-    @Permission("Upload file")
+    @Permission("Upload server file")
     public ResponseForObject<Boolean> startUpload(String server) {
         boolean exist = uploadFileService.startUpload(server);
         return new ResponseForObject<>(exist);

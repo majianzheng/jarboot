@@ -4,7 +4,6 @@ import OAuthService from "@/services/OAuthService";
 import StringUtil from "@/common/StringUtil";
 import {useIntl} from "umi";
 import CommonNotice from "@/common/CommonNotice";
-import {JarBootConst} from "@/common/JarBootConst";
 import {UserOutlined, LockOutlined} from "@ant-design/icons";
 import styles from "./index.less";
 import CommonUtils from "@/common/CommonUtils";
@@ -25,7 +24,7 @@ const LoginForm = memo(() => {
                 return;
             }
             const jarbootUser: any = resp.result;
-            localStorage.setItem(JarBootConst.TOKEN_KEY, "Bearer " + jarbootUser.accessToken);
+            CommonUtils.storeToken(jarbootUser.accessToken);
             CommonUtils.homePage();
         }).catch(CommonNotice.errorFormatted);
     };

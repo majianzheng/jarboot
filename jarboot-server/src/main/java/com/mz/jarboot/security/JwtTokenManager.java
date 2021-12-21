@@ -1,5 +1,6 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.constant.AuthConst;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -90,6 +91,9 @@ public class JwtTokenManager {
      * @param token token
      */
     public void validateToken(String token) {
+        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
+            token = token.substring(AuthConst.TOKEN_PREFIX.length());
+        }
         Jwts.parserBuilder().setSigningKey(getSecretKeyBytes()).build().parseClaimsJws(token);
     }
     

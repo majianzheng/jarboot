@@ -93,7 +93,7 @@ class WsManager {
         let url = process.env.NODE_ENV === 'development' ?
             `ws://${window.location.hostname}:9899/jarboot/public/service/ws?token=` :
             `ws://${window.location.host}/jarboot/public/service/ws?token=`;
-        url += CommonUtils.getToken();
+        url += CommonUtils.getRawToken();
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager.onMessage;
         WsManager.websocket.onopen = WsManager.onOpen;

@@ -191,6 +191,7 @@ public class JarbootBootstrap {
         String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
         if (null == serverName) {
             serverName = System.getProperty("sun.java.command", "Name-" + PidFileHelper.PID);
+            serverName = serverName.split(StringUtils.SPACE, 2)[0];
         }
 
         StringBuilder sb = new StringBuilder();
@@ -201,11 +202,8 @@ public class JarbootBootstrap {
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
 
-        byte[] encoded = Base64.getEncoder().encode(sb.toString().getBytes(StandardCharsets.UTF_8));
-        String code = new String(encoded, StandardCharsets.UTF_8);
-        String url = String.format("http://%s/api/jarboot/public/agent/agentClient?code=%s",
-                host, code);
-        clientData = HttpUtils.getJson(url, AgentClientPojo.class);
+        String url = String.format("http://%s/api/jarboot/public/agent/agentClient", host);
+        clientData = HttpUtils.postJson(url, sb.toString(), AgentClientPojo.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }

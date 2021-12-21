@@ -23,6 +23,7 @@ interface SuperPanelProps {
     server: string;
     sid: string;
     visible: boolean;
+    remote?: string;
 }
 
 /**
@@ -77,10 +78,10 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                 panel = <JadView data={data}/>;
                 break;
             case 'heapdump':
-                panel = <HeapDumpView data={data}/>;
+                panel = <HeapDumpView data={data} remote={props.remote}/>;
                 break;
             default:
-                panel = <div>Unknown command view {view}</div>
+                panel = <div>Unknown command view {view}</div>;
                 break;
         }
         const buttonTitle = executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});

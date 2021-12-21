@@ -9,8 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Objects;
 
 /**
@@ -52,13 +50,11 @@ public class AgentClientController {
      * @param code 加密码
      * @return Agent客户端信息
      */
-    @GetMapping(value="/agentClient")
+    @PostMapping(value="/agentClient")
     @ResponseBody
-    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestParam String code) {
-        byte[] decoded = Base64.getDecoder().decode(code.getBytes(StandardCharsets.UTF_8));
-        String str = new String(decoded, StandardCharsets.UTF_8);
+    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
         final int limit = 3;
-        String[] array = str.split(CommonConst.COMMA_SPLIT, limit);
+        String[] array = code.split(CommonConst.COMMA_SPLIT, limit);
         if (limit != array.length) {
             throw new JarbootException("协议格式错误，无法找到分隔符！");
         }
