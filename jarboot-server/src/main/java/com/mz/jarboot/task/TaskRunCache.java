@@ -10,12 +10,12 @@ import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.VMUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -178,7 +178,7 @@ public class TaskRunCache {
             return;
         }
         Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
-        if (CollectionUtils.isNotEmpty(pidFiles)) {
+        if (!CollectionUtils.isEmpty(pidFiles)) {
             Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {
                 try {

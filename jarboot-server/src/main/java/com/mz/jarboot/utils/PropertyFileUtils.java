@@ -5,13 +5,12 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.JarbootException;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -179,7 +178,7 @@ public class PropertyFileUtils {
      * @param props 属性
      */
     public static void writeProperty(File file, Map<String, String> props) {
-        if (null == file || MapUtils.isEmpty(props)) {
+        if (null == file || null == props || props.isEmpty()) {
             return;
         }
         if (!file.isFile() || !file.exists()) {
@@ -190,9 +189,10 @@ public class PropertyFileUtils {
             lines = FileUtils.readLines(file, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             logger.info(e.getMessage(), e);
+            return;
         }
         HashMap<String, String> copy = new HashMap<>(props);
-        if (CollectionUtils.isNotEmpty(lines)) {
+        if (!CollectionUtils.isEmpty(lines)) {
             for (int i = 0; i < lines.size(); ++i) {
                 String line = lines.get(i);
                 try {

@@ -17,7 +17,6 @@ import com.mz.jarboot.api.service.ServerMgrService;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -67,7 +67,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         //获取所有的服务
         List<String> paths = taskRunCache.getServerPathList();
         //同步控制，保证所有的都杀死后再重启
-        if (CollectionUtils.isNotEmpty(paths)) {
+        if (!CollectionUtils.isEmpty(paths)) {
             //启动服务
             this.restartServer(paths);
         }

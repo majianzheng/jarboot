@@ -16,7 +16,6 @@ import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -173,7 +173,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 }
                 //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
                 List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(list)) {
+                if (!CollectionUtils.isEmpty(list)) {
                     TaskEvent event = new TaskEvent(TaskEventEnum.RESTART);
                     event.setPaths(list);
                     final String msg = "监控到工作空间文件更新，开始重启相关服务...";
@@ -213,7 +213,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
         for (File serverDir : serverDirs) {
             Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
-            if (CollectionUtils.isNotEmpty(files)) {
+            if (!CollectionUtils.isEmpty(files)) {
                 File recordFile = getRecordFile(serverDir.getPath());
                 if (null != recordFile) {
                     recordFileMap.remove(recordFile.getName());

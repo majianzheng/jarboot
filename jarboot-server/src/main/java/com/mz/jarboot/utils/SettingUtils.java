@@ -13,6 +13,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -224,7 +226,7 @@ public class SettingUtils {
         }
 
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
+        if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
             return StringUtils.EMPTY;

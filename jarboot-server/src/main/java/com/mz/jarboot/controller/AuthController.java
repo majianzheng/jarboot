@@ -10,7 +10,6 @@ import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.RoleService;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -107,7 +107,7 @@ public class AuthController {
         user.setAccessToken(token);
         user.setTokenTtl(expireSeconds);
         List<RoleInfo> roleInfoInfoList = getRoles(username);
-        if (CollectionUtils.isNotEmpty(roleInfoInfoList)) {
+        if (!CollectionUtils.isEmpty(roleInfoInfoList)) {
             for (RoleInfo roleInfo : roleInfoInfoList) {
                 if (roleInfo.getRole().equals(AuthConst.ADMIN_ROLE)) {
                     user.setGlobalAdmin(true);

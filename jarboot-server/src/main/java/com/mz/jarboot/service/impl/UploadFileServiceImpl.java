@@ -12,11 +12,11 @@ import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
@@ -85,7 +85,7 @@ public class UploadFileServiceImpl implements UploadFileService {
                 Stream<Map.Entry<String, Long>> entries = uploadHeartbeat.entrySet().stream();
                 List<String> waitDelete = entries.filter(entry -> (currentTime - entry.getValue()) > EXPIRED_TIME)
                         .map(Map.Entry::getKey).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(waitDelete)) {
+                if (!CollectionUtils.isEmpty(waitDelete)) {
                     // 清理失去心跳的key
                     waitDelete.forEach(this::clearUploadCache);
                 }

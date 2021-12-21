@@ -3,12 +3,12 @@ package com.mz.jarboot.base;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.security.PermissionInfo;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;

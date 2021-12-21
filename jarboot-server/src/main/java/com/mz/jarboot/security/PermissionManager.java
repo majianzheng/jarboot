@@ -7,9 +7,9 @@ import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.PrivilegeService;
 import com.mz.jarboot.service.RoleService;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
