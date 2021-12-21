@@ -47,7 +47,7 @@
 		<module>packaging</module>
 	</modules>
 	<properties>
-		<revision>2.2.2</revision>
+		<revision>2.2.3-SNAPSHOT</revision>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
@@ -55,21 +55,11 @@
 		<!-- dependency version -->
 		<spring.version>2.5.2</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
-		<netty.version>4.1.71.Final</netty.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<commons-collections.version>3.2.2</commons-collections.version>
 		<jjwt.version>0.11.2</jjwt.version>
-		<logback.version>1.2.3</logback.version>
-		<slf4j.version>1.7.31</slf4j.version>
-		<okhttp.version>3.14.9</okhttp.version>
 		<cfr.version>0.151</cfr.version>
 		<olgn.version>3.1.19</olgn.version>
-		<jackson-core.version>2.12.3</jackson-core.version>
-		<jackson-databind.version>2.12.3</jackson-databind.version>
-		<jackson.annotations.version>2.12.3</jackson.annotations.version>
-		<!-- jdbc lib version -->
-		<mysql-connector-java.version>8.0.21</mysql-connector-java.version>
-		<derby.version>10.14.2.0</derby.version>
 
 		<!-- plugin version -->
 		<maven-flatten-version>1.2.7</maven-flatten-version>
@@ -162,23 +152,6 @@
 				<version>${commons-io.version}</version>
 			</dependency>
 
-			<!-- Logging libs -->
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>${logback.version}</version>
-			</dependency>
-
 			<!-- Third-party libs -->
 			<dependency>
 				<groupId>io.jsonwebtoken</groupId>
@@ -198,26 +171,6 @@
 				<scope>runtime</scope>
 			</dependency>
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
-				<version>${jackson-core.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson-databind.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson.annotations.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.squareup.okhttp3</groupId>
-				<artifactId>okhttp</artifactId>
-				<version>${okhttp.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>com.alibaba</groupId>
 				<artifactId>bytekit-core</artifactId>
 				<version>${bytekit.version}</version>
@@ -228,26 +181,9 @@
 				<version>${cfr.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty-codec-http</artifactId>
-				<version>${netty.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>ognl</groupId>
 				<artifactId>ognl</artifactId>
 				<version>${olgn.version}</version>
-			</dependency>
-
-			<!-- JDBC libs -->
-			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<version>${mysql-connector-java.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.derby</groupId>
-				<artifactId>derby</artifactId>
-				<version>${derby.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
