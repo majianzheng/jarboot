@@ -56,7 +56,6 @@
 		<spring.version>2.5.2</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
 		<commons-io.version>2.11.0</commons-io.version>
-		<commons-collections.version>3.2.2</commons-collections.version>
 		<jjwt.version>0.11.2</jjwt.version>
 		<cfr.version>0.151</cfr.version>
 		<olgn.version>3.1.19</olgn.version>
@@ -67,19 +66,12 @@
 		<maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-		<maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-		<maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
 		<maven-pmd-plugin.version>3.8</maven-pmd-plugin.version>
 		<cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-		<maven-antrun-plugin.version>3.0.0</maven-antrun-plugin.version>
 		<maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version>
-		<maven-assembly-plugin.version>3.2.0</maven-assembly-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-		<maven-shade-plugin.version>3.2.3</maven-shade-plugin.version>
 		<findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
 		<sonar-maven-plugin.version>3.0.2</sonar-maven-plugin.version>
 		<!-- dependency version related to plugin -->
@@ -141,11 +133,6 @@
 			</dependency>
 
 			<!-- Apache commons -->
-			<dependency>
-				<groupId>commons-collections</groupId>
-				<artifactId>commons-collections</artifactId>
-				<version>${commons-collections.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
@@ -211,33 +198,8 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven-compiler-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>${maven-jar-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>${maven-assembly-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-shade-plugin</artifactId>
-					<version>${maven-shade-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>${maven-release-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-antrun-plugin</artifactId>
-					<version>${maven-antrun-plugin.version}</version>
 				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings
                     only. It has no influence on the Maven build itself. -->
@@ -464,7 +426,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
-						<version>${maven-source-plugin.version}</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
@@ -477,7 +438,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>${maven-javadoc-plugin.version}</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
