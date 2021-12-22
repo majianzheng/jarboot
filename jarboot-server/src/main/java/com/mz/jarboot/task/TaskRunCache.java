@@ -12,7 +12,6 @@ import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.VMUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -91,12 +90,12 @@ public class TaskRunCache {
             process.setPath(path);
             process.setGroup(this.getGroup(sid, path));
 
-            if (AgentManager.getInstance().isOnline(sid)) {
-                process.setStatus(TaskStatus.RUNNING.name());
-            } else if (this.isStarting(sid)) {
+            if (this.isStarting(sid)) {
                 process.setStatus(TaskStatus.STARTING.name());
             } else if (this.isStopping(sid)) {
                 process.setStatus(TaskStatus.STOPPING.name());
+            } else if (AgentManager.getInstance().isOnline(sid)) {
+                process.setStatus(TaskStatus.RUNNING.name());
             } else {
                 process.setStatus(TaskStatus.STOPPED.name());
             }
@@ -179,12 +178,11 @@ public class TaskRunCache {
         }
         Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
         if (!CollectionUtils.isEmpty(pidFiles)) {
-            Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
+            Map<String, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {
                 try {
                     String text = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-                    int pid = NumberUtils.toInt(text, CommonConst.INVALID_PID);
-                    if (allJvmPid.containsKey(pid)) {
+                    if (allJvmPid.containsKey(text)) {
                         return;
                     }
                 } catch (Exception exception) {

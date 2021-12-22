@@ -63,8 +63,8 @@ public class TimeTunnelCommand extends EnhancerCommand {
     /** upper size limit */
     private Integer sizeLimit = 10 * 1024 * 1024;
     /** watch the index TimeTunnel */
-    private String watchExpress = CoreConstant.EMPTY_STRING;
-    private String searchExpress = CoreConstant.EMPTY_STRING;
+    private String watchExpress = StringUtils.EMPTY;
+    private String searchExpress = StringUtils.EMPTY;
     /** play the index TimeTunnel */
     private boolean isPlay = false;
     /** delete the index TimeTunnel */

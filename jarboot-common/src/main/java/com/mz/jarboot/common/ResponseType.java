@@ -36,6 +36,11 @@ public enum ResponseType {
     COMMAND_END,
 
     /**
+     * 日志记录
+     */
+    LOG_APPENDER,
+
+    /**
      * 动作，请求jarboot server执行
      */
     ACTION,

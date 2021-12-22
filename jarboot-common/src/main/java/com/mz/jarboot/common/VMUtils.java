@@ -66,10 +66,10 @@ public class VMUtils {
 
     /**
      * 枚举本地的VM实例
-     * @return VM实例列表
+     * @return VM实例列表 <pid, command>
      */
-    public Map<Integer, String> listVM() {
-        HashMap<Integer, String> vmMap = new HashMap<>();
+    public Map<String, String> listVM() {
+        HashMap<String, String> vmMap = new HashMap<>();
         List<?> list;
         try {
             list = (List<?>) listVM.invoke(null);
@@ -81,8 +81,7 @@ public class VMUtils {
             try {
                 String id = (String) getVMId.invoke(vmd);
                 String name = (String) getVMName.invoke(vmd);
-
-                vmMap.put(Integer.parseInt(id), name);
+                vmMap.put(id, name);
             } catch (Exception e) {
                 //ignore
             }

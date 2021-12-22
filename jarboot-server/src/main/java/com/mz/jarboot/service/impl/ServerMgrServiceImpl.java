@@ -1,6 +1,5 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
@@ -229,16 +228,15 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public List<JvmProcess> getJvmProcesses() {
         ArrayList<JvmProcess> result = new ArrayList<>();
-        Map<Integer, String> vms = VMUtils.getInstance().listVM();
-        vms.forEach((k, v) -> {
-            if (AgentManager.getInstance().isManageredServer(k)) {
+        Map<String, String> vms = VMUtils.getInstance().listVM();
+        vms.forEach((pid, v) -> {
+            if (AgentManager.getInstance().isManageredServer(pid)) {
                 return;
             }
             JvmProcess process = new JvmProcess();
-            String sid = String.valueOf(k);
-            process.setSid(sid);
-            process.setPid(k);
-            process.setAttached(AgentManager.getInstance().isOnline(sid));
+            process.setSid(pid);
+            process.setPid(pid);
+            process.setAttached(AgentManager.getInstance().isOnline(pid));
             process.setFullName(v);
             //解析获取简略名字
             process.setName(TaskUtils.parseCommandSimple(v));
@@ -388,8 +386,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = event.getServer();
         String sid = event.getSid();
         //检查进程是否存活
-        int pid = TaskUtils.getPid(sid);
-        if (CommonConst.INVALID_PID != pid) {
+        String pid = TaskUtils.getPid(sid);
+        if (!pid.isEmpty()) {
             //检查是否处于中间状态
             if (taskRunCache.isStopping(sid)) {
                 //处于停止中状态，此时不做干预，守护只针对正在运行的进程

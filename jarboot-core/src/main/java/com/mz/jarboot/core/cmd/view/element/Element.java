@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.view.element;
 
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
+import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * @author majianzheng
@@ -11,12 +11,12 @@ public class Element {
     protected String color;
 
     public Element() {
-        this(CoreConstant.EMPTY_STRING);
+        this(StringUtils.EMPTY);
     }
 
     public Element(String text) {
         this.text = text;
-        this.color = CoreConstant.EMPTY_STRING;
+        this.color = StringUtils.EMPTY;
     }
 
     public Element setText(String text) {
@@ -31,7 +31,7 @@ public class Element {
 
     public String toHtml() {
         if (null == this.text) {
-            return CoreConstant.EMPTY_STRING;
+            return StringUtils.EMPTY;
         }
         if (this.color.isEmpty()) {
             return this.text;

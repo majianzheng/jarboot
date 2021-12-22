@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.view;
 import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class ThreadView implements ResultView<ThreadModel> {
             StringBuilder sb = new StringBuilder();
             for (BusyThreadInfo info : threadInfos) {
                 String stacktrace = ThreadUtil.getFullStacktrace(info, -1, -1);
-                sb.append(stacktrace).append(CoreConstant.BR);
+                sb.append(stacktrace).append(StringUtils.LF);
             }
             return sb.toString();
         } else if (result.getBlockingLockInfo() != null) {
@@ -74,6 +74,6 @@ public class ThreadView implements ResultView<ThreadModel> {
             String content = ViewRenderUtil.drawThreadInfo(threadStats, height);
             return stat + content;
         }
-        return CoreConstant.EMPTY_STRING;
+        return StringUtils.EMPTY;
     }
 }

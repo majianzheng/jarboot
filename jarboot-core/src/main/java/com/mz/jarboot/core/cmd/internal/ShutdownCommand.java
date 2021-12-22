@@ -3,7 +3,6 @@ package com.mz.jarboot.core.cmd.internal;
 import ch.qos.logback.classic.Logger;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.core.advisor.ClassEnhancer;
@@ -29,8 +28,7 @@ public class ShutdownCommand extends AbstractInternalCommand {
     @Override
     public void run() {
         //尽可用于在线诊断进程
-        if (CommonConst.INVALID_PID != PidFileHelper
-                .getServerPid(EnvironmentContext.getClientData().getSid())) {
+        if (!PidFileHelper.getServerPidString(EnvironmentContext.getClientData().getSid()).isEmpty()) {
             session.console("This command only use in `online diagnose` process.");
             session.console("命令仅可用于`在线诊断`的进程。");
             session.end();

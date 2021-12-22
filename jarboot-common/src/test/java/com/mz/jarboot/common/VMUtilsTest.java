@@ -11,7 +11,7 @@ import java.util.Map;
 public class VMUtilsTest {
     @Test
     public void test() {
-        Map<Integer, String> listVm = VMUtils.getInstance().listVM();
+        Map<String, String> listVm = VMUtils.getInstance().listVM();
         Assert.assertFalse(listVm.isEmpty());
     }
 }

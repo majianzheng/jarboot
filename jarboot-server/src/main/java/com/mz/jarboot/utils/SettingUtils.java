@@ -49,6 +49,8 @@ public class SettingUtils {
     private static String agentJar;
     /** file encoding选项 */
     private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
+    /** 本地地址 */
+    private static String localHost = null;
 
     static {
         String home = System.getProperty(CommonConst.JARBOOT_HOME);
@@ -199,8 +201,11 @@ public class SettingUtils {
     }
 
     public static String getAttachArgs() {
-        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
-        return String.format("127.0.0.1:%s", port);
+        if (null == localHost) {
+            String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
+            localHost = String.format("127.0.0.1:%s", port);
+        }
+        return localHost;
     }
 
     /**

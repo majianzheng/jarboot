@@ -1,8 +1,9 @@
 package com.mz.jarboot.base;
 
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.ws.MessageQueueOperator;
+import org.apache.commons.lang3.StringUtils;
+
 import javax.websocket.Session;
 
 /**
@@ -12,13 +13,13 @@ public final class AgentClient extends MessageQueueOperator {
     private final String name;
     private final String sid;
     private ClientState state;
-    private int pid;
+    private String pid;
     public AgentClient(String name, String sid, final Session session) {
         super(session);
         this.name = name;
         this.sid = sid;
         this.state = ClientState.STARTING;
-        this.pid = CommonConst.INVALID_PID;
+        this.pid = StringUtils.EMPTY;
     }
 
     public String getName() {
@@ -37,11 +38,11 @@ public final class AgentClient extends MessageQueueOperator {
         return this.state;
     }
 
-    public int getPid() {
+    public String getPid() {
         return pid;
     }
 
-    public void setPid(int pid) {
+    public void setPid(String pid) {
         this.pid = pid;
     }
 

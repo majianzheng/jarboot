@@ -26,7 +26,7 @@ public class ClassUtils {
 
     public static String getCodeSource(final CodeSource cs) {
         if (null == cs || null == cs.getLocation() || null == cs.getLocation().getFile()) {
-            return com.mz.jarboot.core.constant.CoreConstant.EMPTY_STRING;
+            return StringUtils.EMPTY;
         }
 
         return cs.getLocation().getFile();

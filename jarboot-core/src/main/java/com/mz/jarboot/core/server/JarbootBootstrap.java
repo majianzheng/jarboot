@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -52,8 +51,7 @@ public class JarbootBootstrap {
         } else {
             String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
             //初始化日志模块
-            boolean persist = CommonConst.INVALID_PID != PidFileHelper.getServerPid(sid);
-            LogUtils.init(jarbootHome, serverName, sid, persist);
+            LogUtils.init(jarbootHome, serverName);
             logger = LogUtils.getLogger();
 
             //2.环境初始化
@@ -103,8 +101,8 @@ public class JarbootBootstrap {
                 WsClientFactory.getInstance().changeHost(host);
             }
             String sid = clientData.getSid();
-            int pid = PidFileHelper.getServerPid(sid);
-            if (CommonConst.INVALID_PID != pid && !PidFileHelper.PID.equals(String.valueOf(pid))) {
+            String pid = PidFileHelper.getServerPidString(sid);
+            if (!pid.isEmpty() && !PidFileHelper.PID.equals(pid)) {
                 logger.warn("pid not match current: {}, pid file: {}", PidFileHelper.PID, pid);
                 PidFileHelper.writePidFile(sid);
             }

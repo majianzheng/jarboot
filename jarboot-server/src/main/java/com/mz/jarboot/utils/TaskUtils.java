@@ -73,8 +73,8 @@ public class TaskUtils {
                 WebSocketManager.getInstance().notice("服务" + server +
                         "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
             }
-            int pid = getPid(sid);
-            if (pid > 0) {
+            String pid = getPid(sid);
+            if (!pid.isEmpty()) {
                 killByPid(pid);
                 PidFileHelper.deletePidFile(sid);
             }
@@ -162,13 +162,13 @@ public class TaskUtils {
      * @param sid pid
      */
     public static void attach(String sid) {
-        int pid = getPid(sid);
-        if (CommonConst.INVALID_PID == pid) {
+        String pid = getPid(sid);
+        if (pid.isEmpty()) {
             return;
         }
         Object vm = null;
         try {
-            vm = VMUtils.getInstance().attachVM(String.valueOf(pid));
+            vm = VMUtils.getInstance().attachVM(pid);
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAttachArgs());
         } catch (Exception e) {
             WebSocketManager.getInstance().printException(sid, e);
@@ -184,14 +184,14 @@ public class TaskUtils {
      * @param sid sid
      * @return PID
      */
-    public static int getPid(String sid) {
-        int pid = CommonConst.INVALID_PID;
+    public static String getPid(String sid) {
+        String pid = StringUtils.EMPTY;
         try {
-            pid = PidFileHelper.getServerPid(sid);
-            if (CommonConst.INVALID_PID != pid) {
-                Map<Integer, String> vms = VMUtils.getInstance().listVM();
+            pid = PidFileHelper.getServerPidString(sid);
+            if (!pid.isEmpty()) {
+                Map<String, String> vms = VMUtils.getInstance().listVM();
                 if (!vms.containsKey(pid)) {
-                    pid = CommonConst.INVALID_PID;
+                    pid = StringUtils.EMPTY;
                     PidFileHelper.deletePidFile(sid);
                 }
             }
@@ -270,11 +270,11 @@ public class TaskUtils {
      * 强制杀死进程
      * @param pid 进程PID
      */
-    private static void killByPid(int pid) {
-        if (pid < 0) {
+    private static void killByPid(String pid) {
+        if (pid.isEmpty()) {
             return;
         }
-        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %d" : "kill -9 %d", pid);
+        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd);

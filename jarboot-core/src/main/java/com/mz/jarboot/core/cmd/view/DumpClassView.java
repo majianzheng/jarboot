@@ -4,8 +4,8 @@ import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.model.DumpClassVO;
 import com.mz.jarboot.core.cmd.view.element.Element;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.ClassUtils;
+import com.mz.jarboot.core.utils.StringUtils;
 import com.mz.jarboot.core.utils.TypeRenderUtils;
 
 import java.util.List;
@@ -21,14 +21,14 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
         if (result.getMatchedClassLoaders() != null) {
             sb.append("Matched classloaders: \n");
             ClassLoaderView.drawClassLoaders(sb, result.getMatchedClassLoaders(), false);
-            sb.append(CoreConstant.BR);
+            sb.append(StringUtils.LF);
             return sb.toString();
         }
         if (result.getDumpedClasses() != null) {
             drawDumpedClasses(sb, result.getDumpedClasses());
         } else if (result.getMatchedClasses() != null) {
             Element table = ClassUtils.renderMatchedClasses(result.getMatchedClasses());
-            sb.append(table.toHtml()).append(CoreConstant.BR);
+            sb.append(table.toHtml()).append(StringUtils.LF);
         }
         return sb.toString();
     }
@@ -45,6 +45,6 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
 
         process
                 .append(table.toHtml())
-                .append(CoreConstant.EMPTY_STRING);
+                .append(StringUtils.EMPTY);
     }
 }

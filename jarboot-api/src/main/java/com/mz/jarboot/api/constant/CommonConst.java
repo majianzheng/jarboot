@@ -28,8 +28,6 @@ public class CommonConst {
     public static final String JARBOOT_NAME = "jarboot";
     public static final String SERVICES = "services";
 
-    public static final int INVALID_PID = -1;
-
     /**
      * 等待目标进程优雅退出的最大时间，毫秒
      */

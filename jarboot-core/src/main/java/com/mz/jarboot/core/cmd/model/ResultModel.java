@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.model;
 
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * @author majianzheng
@@ -12,7 +12,7 @@ public abstract class ResultModel {
      * @return
      */
     public String getId() {
-        return CoreConstant.EMPTY_STRING;
+        return StringUtils.EMPTY;
     }
 
     /**

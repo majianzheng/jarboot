@@ -5,7 +5,6 @@ import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
 import com.mz.jarboot.core.cmd.view.element.Element;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.StringUtils;
 
 /**
@@ -41,9 +40,9 @@ public class TimeTunnelView implements ResultView<TimeTunnelModel> {
             //watch single TimeFragment: tt -i 1000 -w 'params'
             Object value = timeTunnelModel.getWatchValue();
             if (isNeedExpand) {
-                sb.append(new ObjectView(value, expand, sizeLimit).draw()).append(CoreConstant.BR);
+                sb.append(new ObjectView(value, expand, sizeLimit).draw()).append(StringUtils.LF);
             } else {
-                sb.append(StringUtils.objectToString(value)).append(CoreConstant.BR);
+                sb.append(StringUtils.objectToString(value)).append(StringUtils.LF);
             }
 
         } else if (timeTunnelModel.getWatchResults() != null) {

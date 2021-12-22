@@ -3,16 +3,16 @@ package com.mz.jarboot.core.cmd;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.session.Completion;
+import com.mz.jarboot.core.utils.StringUtils;
 
 /**
  * The command abstract class which defined the common behave.
  * @author majianzheng
  */
 public abstract class AbstractCommand {
-    protected String name = CoreConstant.EMPTY_STRING;
+    protected String name = StringUtils.EMPTY;
     protected CommandCoreSession session;
 
     /**
@@ -71,14 +71,14 @@ public abstract class AbstractCommand {
         if (null == session) {
             return;
         }
-        session.console("Usage:" + CoreConstant.BR);
+        session.console("Usage:" + StringUtils.LF);
         Name cmd = cls.getAnnotation(Name.class);
         if (null != cmd) {
-            session.console("Command: " + cmd.value() + CoreConstant.BR);
+            session.console("Command: " + cmd.value() + StringUtils.LF);
         }
         Summary summary = cls.getAnnotation(Summary.class);
         if (null != summary) {
-            session.console(summary.value() + CoreConstant.BR);
+            session.console(summary.value() + StringUtils.LF);
         }
         Description description = cls.getAnnotation(Description.class);
         if (null != description) {

@@ -8,7 +8,6 @@ import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
 import com.mz.jarboot.core.cmd.internal.*;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.StringUtils;
@@ -69,7 +68,7 @@ public class CommandBuilder {
         String args;
         if (-1 == p) {
             name = commandLine;
-            args = CoreConstant.EMPTY_STRING;
+            args = StringUtils.EMPTY;
         } else {
             name = commandLine.substring(0, p);
             args = commandLine.substring(p + 1);
@@ -77,7 +76,7 @@ public class CommandBuilder {
         name = name.toLowerCase();
         AbstractCommand command = null;
         Class<? extends AbstractCommand> cls = commandMap.getOrDefault(name, null);
-        String errorMsg = CoreConstant.EMPTY_STRING;
+        String errorMsg = StringUtils.EMPTY;
         if (null == cls) {
             // 尝试从SPI加载扩展命令
             return createFromSpi(name, args, session);
@@ -117,7 +116,7 @@ public class CommandBuilder {
                 .forEachOrdered(v -> {
                     Class<?> cls = v.getValue();
                     Summary summary = cls.getAnnotation(Summary.class);
-                    String desc = CoreConstant.EMPTY_STRING;
+                    String desc = StringUtils.EMPTY;
                     if (null != summary) {
                         desc = summary.value();
                     }
@@ -130,7 +129,7 @@ public class CommandBuilder {
                 .forEach(v -> {
                     Class<?> cls = v.getValue().getClass();
                     Summary summary = cls.getAnnotation(Summary.class);
-                    String desc = CoreConstant.EMPTY_STRING;
+                    String desc = StringUtils.EMPTY;
                     if (null != summary) {
                         desc = summary.value();
                     }

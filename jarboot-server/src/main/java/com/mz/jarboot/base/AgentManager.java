@@ -10,12 +10,12 @@ import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -32,11 +32,13 @@ public class AgentManager {
     /** 启动中的latch */
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     /** 本地进程的pid列表 */
-    private final ConcurrentHashMap<Integer, String> localProcesses = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, String> localProcesses = new ConcurrentHashMap<>(16);
     /** 远程进程列表 */
     private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     /** 优雅退出最大等待时间 */
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
+    /** 日志文件 */
+    private java.io.File logFile;
 
     /**
      * 单例获取
@@ -62,18 +64,18 @@ public class AgentManager {
         } else {
             latch.countDown();
         }
-        int pid = TaskUtils.getPid(sid);
-        if (pid > 0) {
-            //属于受管理的服务
-            localProcesses.put(pid, sid);
-            client.setPid(pid);
-        } else {
+        String pid = TaskUtils.getPid(sid);
+        if (pid.isEmpty()) {
             //非受管理的本地进程，通知前端Attach成功
             if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
                 this.remoteJvm(sid);
             } else {
                 WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
             }
+        } else {
+            //属于受管理的服务
+            localProcesses.put(pid, sid);
+            client.setPid(pid);
         }
     }
 
@@ -87,15 +89,15 @@ public class AgentManager {
         if (null == client) {
             return;
         }
-        int pid = client.getPid();
-        if (pid > 0) {
-            localProcesses.remove(pid);
-        } else {
+        String pid = client.getPid();
+        if (pid.isEmpty()) {
             if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
                 remoteProcesses.remove(sid);
             }
             //非受管理的本地进程，通知前端进程已经离线
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
+        } else {
+            localProcesses.remove(pid);
         }
         String msg = String.format("\033[1;96m%s\033[0m 下线！", server);
         WebSocketManager.getInstance().sendConsole(sid, msg);
@@ -159,7 +161,7 @@ public class AgentManager {
         String remoteIp = s[2];
         String name = s[3];
         process.setAttached(true);
-        process.setPid(NumberUtils.toInt(pid, CommonConst.INVALID_PID));
+        process.setPid(pid);
         process.setName(name);
         process.setSid(sid);
         process.setRemote(remoteIp);
@@ -325,12 +327,23 @@ public class AgentManager {
             case COMMAND_END:
                 commandEnd(sid, resp, sessionId);
                 break;
+            case LOG_APPENDER:
+                onAgentLog(resp.getBody());
+                break;
             case ACTION:
                 this.handleAction(resp.getBody(), sessionId, sid);
                 break;
             default:
                 logger.error("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
                 break;
+        }
+    }
+
+    private synchronized void onAgentLog(String msg) {
+        try {
+            FileUtils.write(logFile, msg, StandardCharsets.UTF_8, true);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
         }
     }
 
@@ -452,7 +465,7 @@ public class AgentManager {
      * @param pid 进程pid
      * @return 是否为受Jarboot管理的进程
      */
-    public boolean isManageredServer(int pid) {
+    public boolean isManageredServer(String pid) {
         return localProcesses.containsKey(pid);
     }
 
@@ -470,7 +483,7 @@ public class AgentManager {
             case CommandConst.ACTION_NOTICE_INFO:
             case CommandConst.ACTION_NOTICE_WARN:
             case CommandConst.ACTION_NOTICE_ERROR:
-                NoticeEnum level = EnumUtils.getEnum(NoticeEnum.class, action);
+                NoticeEnum level = Enum.valueOf(NoticeEnum.class, action);
                 WebSocketManager.getInstance().notice(param, level, sessionId);
                 break;
             case CommandConst.ACTION_RESTART:
@@ -498,5 +511,8 @@ public class AgentManager {
         static final AgentManager INSTANCE = new AgentManager();
     }
 
-    private AgentManager(){}
+    private AgentManager(){
+        String logFileName = ApplicationContextUtils.getEnv("logging.file.name");
+        logFile = FileUtils.getFile(logFileName);
+    }
 }

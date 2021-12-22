@@ -189,7 +189,6 @@ public class PropertyFileUtils {
             lines = FileUtils.readLines(file, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             logger.info(e.getMessage(), e);
-            return;
         }
         HashMap<String, String> copy = new HashMap<>(props);
         if (!CollectionUtils.isEmpty(lines)) {

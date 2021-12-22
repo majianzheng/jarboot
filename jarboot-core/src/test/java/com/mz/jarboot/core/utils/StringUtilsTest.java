@@ -141,7 +141,6 @@ public class StringUtilsTest {
 
     @Test
     public void testIsEmpty() {
-        Assert.assertFalse(StringUtils.isEmpty(-2147483647));
         Assert.assertFalse(StringUtils.isEmpty("foo"));
         Assert.assertTrue(StringUtils.isEmpty(""));
     }

@@ -1,6 +1,5 @@
 package com.mz.jarboot.common;
 
-import com.mz.jarboot.api.constant.CommonConst;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -34,9 +33,9 @@ public class PidFileHelper {
         }
     }
 
-    public static int getServerPid(String sid) {
+    public static String getServerPidString(String sid) {
         File pidFile = FileUtils.getFile(CacheDirHelper.getPidDir(), sid + PID_EXT);
-        int pid = CommonConst.INVALID_PID;
+        String pid = "";
         if (!pidFile.exists()) {
             return pid;
         }
@@ -50,8 +49,7 @@ public class PidFileHelper {
             }
         }
         try {
-            String content = FileUtils.readFileToString(pidFile, StandardCharsets.UTF_8);
-            pid = Integer.parseInt(content);
+            return FileUtils.readFileToString(pidFile, StandardCharsets.UTF_8);
         } catch (Exception exception) {
             //ignore
         }
