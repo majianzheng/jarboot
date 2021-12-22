@@ -37,6 +37,8 @@ public class WebSocketMainServer {
     private static final String BODY_KEY = "body";
     /** json请求中sid */
     private static final String SID_KEY = "sid";
+    /** 心跳ping */
+    private static final String PING = "ping";
 
     private static class Holder {
         static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
@@ -98,6 +100,9 @@ public class WebSocketMainServer {
     @OnMessage
     public void onTextMessage(String message, Session session) {
         if (StringUtils.isEmpty(message)) {
+            return;
+        }
+        if (PING.equals(message)) {
             return;
         }
         JsonNode json = JsonUtils.readAsJsonNode(message);

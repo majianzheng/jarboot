@@ -128,7 +128,7 @@ class WsManager {
                 Logger.log('未知的通知级别', body);
                 break;
         }
-    }
+    };
 
     /**
      * 全局Loading消息处理
@@ -200,6 +200,7 @@ class WsManager {
             clearInterval(WsManager.fd);
             WsManager.fd = null;
         }
+        setTimeout(WsManager.ping, 300000);
     };
 
     private static onClose = () => {
@@ -211,6 +212,13 @@ class WsManager {
         Logger.log("websocket异常关闭！");
         Logger.error(e);
         WsManager.reconnect();
+    };
+
+    private static ping = () => {
+        if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
+            WsManager.websocket.send('ping');
+            setTimeout(WsManager.ping, 300000);
+        }
     };
 
     private static reconnect() {
