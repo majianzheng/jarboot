@@ -2,11 +2,11 @@ package com.mz.jarboot.utils;
 
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootThreadFactory;
-import com.mz.jarboot.common.OSUtils;
+import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.common.VMUtils;
+import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;

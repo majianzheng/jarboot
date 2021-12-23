@@ -1,7 +1,7 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.protocol.CommandResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;

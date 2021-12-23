@@ -1,7 +1,7 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.common.CommandConst;
+import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;

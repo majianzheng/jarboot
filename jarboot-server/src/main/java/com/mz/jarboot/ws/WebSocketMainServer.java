@@ -2,8 +2,8 @@ package com.mz.jarboot.ws;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.apache.commons.lang3.StringUtils;

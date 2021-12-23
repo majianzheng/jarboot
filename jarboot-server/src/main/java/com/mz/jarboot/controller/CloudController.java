@@ -3,6 +3,8 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.VersionUtils;
+import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;

@@ -2,7 +2,7 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.OSUtils;
+import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
