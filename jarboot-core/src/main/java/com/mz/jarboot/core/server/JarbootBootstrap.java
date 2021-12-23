@@ -9,6 +9,7 @@ import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;

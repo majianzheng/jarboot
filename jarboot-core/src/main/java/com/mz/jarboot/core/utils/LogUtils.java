@@ -4,7 +4,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.mz.jarboot.core.constant.CoreConstant;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -22,20 +21,30 @@ public class LogUtils {
         }
         logDir = home + File.separator + "logs";
         //模块中所有日志均使用该名字获取
-        logger = (Logger) LoggerFactory.getLogger(CoreConstant.LOG_NAME);
+        logger = (Logger) LoggerFactory.getLogger("ROOT");
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        PatternLayoutEncoder ple = new PatternLayoutEncoder();
-
-        ple.setPattern("[" + server + "] %date %level [%thread] " +
-                "[%file:%line] %msg%n");
-        ple.setContext(lc);
-        ple.start();
+        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+        String serverName = String.format("[%s] ", server);
+        encoder.setPattern("%date  %level " + serverName + "[%thread] [%file:%line] %msg%n");
+        encoder.setContext(lc);
+        encoder.start();
         StreamCrossLogAppender<ILoggingEvent> appender = new StreamCrossLogAppender<>();
-        appender.setEncoder(ple);
+        appender.setEncoder(encoder);
         appender.setContext(lc);
-        appender.setName(CoreConstant.LOG_NAME);
         appender.start();
         logger.addAppender(appender);
+        //Console日志语法高亮
+        ch.qos.logback.core.ConsoleAppender<ILoggingEvent> console =
+                (ch.qos.logback.core.ConsoleAppender<ILoggingEvent>)logger.getAppender("console");
+        if (null != console) {
+            console.stop();
+            PatternLayoutEncoder colorEncoder = new PatternLayoutEncoder();
+            colorEncoder.setPattern("%date %highlight(%-5level) [%thread] [%cyan(%file:%line)] %msg%n");
+            colorEncoder.setContext(lc);
+            colorEncoder.start();
+            console.setEncoder(colorEncoder);
+            console.start();
+        }
     }
 
     public static Logger getLogger() {

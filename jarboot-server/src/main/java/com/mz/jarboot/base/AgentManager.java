@@ -10,7 +10,6 @@ import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +31,15 @@ public class AgentManager {
     /** 启动中的latch */
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     /** 本地进程的pid列表 */
-    private final ConcurrentHashMap<String, String> localProcesses = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, String> localServers = new ConcurrentHashMap<>(16);
     /** 远程进程列表 */
     private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     /** 优雅退出最大等待时间 */
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
-    /** 日志文件 */
-    private java.io.File logFile;
+    /** 写日志方法 */
+    private java.lang.reflect.Method writeBytes = null;
+    /** 当前默认的日志Appender */
+    private ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender = null;
 
     /**
      * 单例获取
@@ -61,6 +62,7 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
         } else {
             latch.countDown();
         }
@@ -74,7 +76,7 @@ public class AgentManager {
             }
         } else {
             //属于受管理的服务
-            localProcesses.put(pid, sid);
+            localServers.put(pid, sid);
             client.setPid(pid);
         }
     }
@@ -97,7 +99,7 @@ public class AgentManager {
             //非受管理的本地进程，通知前端进程已经离线
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
         } else {
-            localProcesses.remove(pid);
+            localServers.remove(pid);
         }
         String msg = String.format("\033[1;96m%s\033[0m 下线！", server);
         WebSocketManager.getInstance().sendConsole(sid, msg);
@@ -115,6 +117,7 @@ public class AgentManager {
                 TaskEvent event = new TaskEvent(TaskEventEnum.OFFLINE, server, sid);
                 ApplicationContextUtils.publish(event);
                 client.setState(ClientState.OFFLINE);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         }
     }
@@ -339,11 +342,13 @@ public class AgentManager {
         }
     }
 
-    private synchronized void onAgentLog(String msg) {
-        try {
-            FileUtils.write(logFile, msg, StandardCharsets.UTF_8, true);
-        } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
+    private void onAgentLog(String msg) {
+        if (null != writeBytes) {
+            try {
+                writeBytes.invoke(appender, msg.getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                //ignore
+            }
         }
     }
 
@@ -466,7 +471,7 @@ public class AgentManager {
      * @return 是否为受Jarboot管理的进程
      */
     public boolean isManageredServer(String pid) {
-        return localProcesses.containsKey(pid);
+        return localServers.containsKey(pid);
     }
 
     private void handleAction(String data, String sessionId, String sid) {
@@ -511,8 +516,18 @@ public class AgentManager {
         static final AgentManager INSTANCE = new AgentManager();
     }
 
-    private AgentManager(){
-        String logFileName = ApplicationContextUtils.getEnv("logging.file.name");
-        logFile = FileUtils.getFile(logFileName);
+    private AgentManager() {
+        //获取日志的appender，当宿主服务发来日志时，使用当前服务的日志系统记录
+        //这里解读了logback日志源码，反射获取写日志文件的类方法
+        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger("ROOT");
+        appender = (ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent>) root
+                .getAppender("FILE");
+        try {
+            writeBytes = ch.qos.logback.core.OutputStreamAppender.class
+                    .getDeclaredMethod("writeBytes", byte[].class);
+            writeBytes.setAccessible(true);
+        } catch (Exception e) {
+            //ignore
+        }
     }
 }

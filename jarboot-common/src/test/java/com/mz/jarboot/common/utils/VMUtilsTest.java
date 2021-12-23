@@ -1,5 +1,6 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.utils;
 
+import com.mz.jarboot.common.utils.VMUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

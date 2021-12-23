@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.session;
 
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.advisor.AdviceWeaver;
 import com.mz.jarboot.core.advisor.JobAware;

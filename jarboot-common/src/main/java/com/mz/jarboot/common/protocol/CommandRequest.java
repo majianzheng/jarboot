@@ -1,4 +1,6 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocol;
+
+import com.mz.jarboot.common.JarbootException;
 
 /**
  * 命令请求

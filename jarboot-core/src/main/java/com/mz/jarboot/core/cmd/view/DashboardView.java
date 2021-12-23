@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.view;
 
 
-import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.common.utils.JsonUtils;
 
 /**
  * View of 'dashboard' command

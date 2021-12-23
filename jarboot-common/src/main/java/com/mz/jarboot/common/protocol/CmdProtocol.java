@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocol;
 
 /**
  * 命令交互协议

@@ -5,8 +5,6 @@ package com.mz.jarboot.core.constant;
  * @author majianzheng
  */
 public class CoreConstant {
-    public static final String LOG_NAME = "jarboot-core";
-
     public static final String START_DETERMINE_TIME_KEY = "start.determine.time";
     
     public static final String DUMP_DIR = "classdump";

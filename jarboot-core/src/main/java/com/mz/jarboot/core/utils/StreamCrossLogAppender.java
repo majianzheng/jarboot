@@ -1,18 +1,15 @@
 package com.mz.jarboot.core.utils;
 
-import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
-import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 
 import java.nio.charset.StandardCharsets;
 
-import static ch.qos.logback.core.CoreConstants.CODES_URL;
 
 /**
  * 自定义日志Appender，集中管控，统一记录
@@ -21,20 +18,13 @@ import static ch.qos.logback.core.CoreConstants.CODES_URL;
 public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
     protected Encoder<E> encoder;
 
-    public void setLayout(Layout<E> layout) {
-        addWarn("This appender no longer admits a layout as a sub-component, set an encoder instead.");
-        addWarn("To ensure compatibility, wrapping your layout in LayoutWrappingEncoder.");
-        addWarn("See also " + CODES_URL + "#layoutInsteadOfEncoder for details");
-        LayoutWrappingEncoder<E> lwe = new LayoutWrappingEncoder<>();
-        lwe.setLayout(layout);
-        lwe.setContext(context);
-        this.encoder = lwe;
-    }
-
     public Encoder<E> getEncoder() {
         return encoder;
     }
 
+    public StreamCrossLogAppender() {
+        this.setName("jarboot.stream.log");
+    }
     public void setEncoder(Encoder<E> encoder) {
         this.encoder = encoder;
     }

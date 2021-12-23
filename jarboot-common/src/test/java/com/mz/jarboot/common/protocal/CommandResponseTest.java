@@ -1,5 +1,8 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocal;
 
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.ResponseType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

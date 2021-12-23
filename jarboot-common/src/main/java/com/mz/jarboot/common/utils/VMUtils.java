@@ -1,4 +1,6 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.utils;
+
+import com.mz.jarboot.common.JarbootException;
 
 import java.io.File;
 import java.io.FileNotFoundException;

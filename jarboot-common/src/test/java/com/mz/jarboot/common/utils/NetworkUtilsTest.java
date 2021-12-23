@@ -1,5 +1,6 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.utils;
 
+import com.mz.jarboot.common.utils.NetworkUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,6 +32,6 @@ public class NetworkUtilsTest {
     @Test
     public void testGetLocalAddr() {
         List<String> list = NetworkUtils.getLocalAddr();
-        Assert.assertTrue(!list.isEmpty());
+        Assert.assertFalse(list.isEmpty());
     }
 }

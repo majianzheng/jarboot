@@ -2,6 +2,8 @@ package com.mz.jarboot.core;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.OSUtils;
+import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.StringUtils;
