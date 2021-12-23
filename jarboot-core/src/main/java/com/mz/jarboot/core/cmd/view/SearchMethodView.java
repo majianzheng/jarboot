@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.view;
 import com.mz.jarboot.core.cmd.model.MethodVO;
 import com.mz.jarboot.core.cmd.model.SearchMethodModel;
 import com.mz.jarboot.core.utils.ClassUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * render for SearchMethodCommand

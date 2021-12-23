@@ -6,7 +6,7 @@ import com.mz.jarboot.api.cmd.annotation.DefaultValue;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.core.utils.BasicTypeConvert;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

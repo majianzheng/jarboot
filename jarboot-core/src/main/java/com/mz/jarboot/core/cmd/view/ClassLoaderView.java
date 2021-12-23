@@ -10,7 +10,7 @@ import com.mz.jarboot.core.cmd.view.element.Element;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.core.cmd.view.element.TreeElement;
 import com.mz.jarboot.core.utils.ClassUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.util.Collection;
 import java.util.List;

@@ -5,11 +5,11 @@ import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.UserService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,7 +71,7 @@ public class UserController {
         String currentLoginUser = getCurrentLoginName(request);
         ResponseSimple result = new ResponseSimple();
         //只有ADMIN和自己可修改
-        if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || StringUtils.equals(username, currentLoginUser)) {
+        if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || java.util.Objects.equals(username, currentLoginUser)) {
             userService.updateUserPassword(username, password);
         } else {
             result.setResultCode(ResultCodeConst.VALIDATE_FAILED);
@@ -107,7 +107,7 @@ public class UserController {
 
     private String getCurrentLoginName(HttpServletRequest request) {
         String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
+        if (!StringUtils.isBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
             token =  token.substring(AuthConst.TOKEN_PREFIX.length());
         }
         Authentication authentication = jwtTokenManager.getAuthentication(token);

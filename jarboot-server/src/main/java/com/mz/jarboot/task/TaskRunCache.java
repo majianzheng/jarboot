@@ -7,11 +7,11 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -154,7 +154,7 @@ public class TaskRunCache {
             return false;
         }
         final String name = dir.getName();
-        if (StringUtils.startsWith(name, CommonConst.DOT)) {
+        if (name.startsWith(CommonConst.DOT)) {
             return false;
         }
         if (StringUtils.containsWhitespace(name)) {
@@ -203,9 +203,8 @@ public class TaskRunCache {
         }
         String[] dirs = excludeDirs.split(CommonConst.COMMA_SPLIT);
         for (String s : dirs) {
-            if (StringUtils.isNotBlank(s)) {
-                s = StringUtils.trim(s);
-                excludeDirSet.add(s);
+            if (!StringUtils.isBlank(s)) {
+                excludeDirSet.add(s.trim());
             }
         }
     }

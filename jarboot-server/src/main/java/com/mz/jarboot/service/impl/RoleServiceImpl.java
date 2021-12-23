@@ -1,6 +1,8 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
 import com.mz.jarboot.dao.RoleDao;
@@ -8,7 +10,6 @@ import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.RoleService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,17 +48,17 @@ public class RoleServiceImpl implements RoleService {
     @Transactional(rollbackFor = Throwable.class)
     public void addRole(String role, String username) {
         if (StringUtils.isEmpty(role) || StringUtils.isEmpty(username)) {
-            throw new IllegalArgumentException("Argument can't be empty！");
+            throw new JarbootException("Argument can't be empty！");
         }
         if (AuthConst.ADMIN_ROLE.equalsIgnoreCase(role)) {
-            throw new IllegalArgumentException("Role Admin is not permit to create！");
+            throw new JarbootException("Role Admin is not permit to create！");
         }
         User user = userDao.findFirstByUsername(username);
         if (null == user) {
-            throw new IllegalArgumentException("User name is not exist！");
+            throw new JarbootException("User name is not exist！");
         }
         if (null == roleDao.findFirstByRole(role) && roleDao.countRoles() > AuthConst.MAX_ROLE) {
-            throw new IllegalArgumentException("Role number exceed " + AuthConst.MAX_ROLE + "!");
+            throw new JarbootException("Role number exceed " + AuthConst.MAX_ROLE + "!");
         }
         RoleInfo r = new RoleInfo();
         r.setRole(role);
@@ -69,10 +70,10 @@ public class RoleServiceImpl implements RoleService {
     @Transactional(rollbackFor = Throwable.class)
     public void deleteRole(String role) {
         if (StringUtils.isEmpty(role)) {
-            throw new IllegalArgumentException("Argument role can't be empty！");
+            throw new JarbootException("Argument role can't be empty！");
         }
         if (AuthConst.ADMIN_ROLE.equals(role)) {
-            throw new IllegalArgumentException("The internal role, can't delete.");
+            throw new JarbootException("The internal role, can't delete.");
         }
         roleDao.deleteAllByRole(role);
         // 当前role已经没有任何关联的user，删除相关的权限
@@ -83,10 +84,10 @@ public class RoleServiceImpl implements RoleService {
     @Transactional(rollbackFor = Throwable.class)
     public void deleteRole(String role, String username) {
         if (StringUtils.isEmpty(role) || StringUtils.isEmpty(username)) {
-            throw new IllegalArgumentException("Argument role or name can't be empty！");
+            throw new JarbootException("Argument role or name can't be empty！");
         }
         if (AuthConst.ADMIN_ROLE.equals(role) && AuthConst.JARBOOT_USER.equals(username)) {
-            throw new IllegalArgumentException("The internal role, can't delete.");
+            throw new JarbootException("The internal role, can't delete.");
         }
         roleDao.deleteByRoleAndUsername(role, username);
         if (null == roleDao.findFirstByRole(role)) {

@@ -4,9 +4,9 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.CacheDirHelper;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 

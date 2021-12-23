@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.view;
 import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 
 import java.util.List;

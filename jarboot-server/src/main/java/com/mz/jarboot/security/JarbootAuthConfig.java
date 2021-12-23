@@ -1,6 +1,6 @@
 package com.mz.jarboot.security;
 
-import org.apache.commons.lang3.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -55,7 +55,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         String ignoreUrls = env.getProperty(PROPERTY_IGNORE_URLS, DEFAULT_ALL_PATH_PATTERN);
-        if (StringUtils.isNotBlank(ignoreUrls)) {
+        if (!StringUtils.isBlank(ignoreUrls)) {
             for (String each : ignoreUrls.trim().split(SECURITY_IGNORE_URLS_SPILT_CHAR)) {
                 web.ignoring().antMatchers(each.trim());
             }

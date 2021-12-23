@@ -16,7 +16,7 @@ import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;

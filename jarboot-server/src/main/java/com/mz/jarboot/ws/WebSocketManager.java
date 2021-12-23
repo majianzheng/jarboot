@@ -2,11 +2,11 @@ package com.mz.jarboot.ws;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskStatus;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.websocket.Session;
 import java.io.OutputStream;

@@ -10,7 +10,7 @@ import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.LinkedBlockingQueue;

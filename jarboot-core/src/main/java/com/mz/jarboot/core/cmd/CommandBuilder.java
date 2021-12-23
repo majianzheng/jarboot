@@ -12,7 +12,7 @@ import com.mz.jarboot.core.cmd.impl.*;
 import com.mz.jarboot.core.cmd.internal.*;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.*;

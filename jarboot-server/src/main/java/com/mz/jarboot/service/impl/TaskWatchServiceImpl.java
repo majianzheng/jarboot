@@ -4,6 +4,7 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.task.TaskRunCache;
@@ -17,8 +18,6 @@ import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -276,7 +275,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 return;
             }
             ServerSetting setting = PropertyFileUtils.getServerSetting(path);
-            if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && StringUtils.equals(sid, setting.getSid())) {
+            if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && Objects.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(path);
             }
@@ -306,11 +305,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         boolean updateFlag = false;
         for (File file : files) {
             String key = genFileHashKey(file);
-            Object value = recordProps.get(key);
-            long lastModifyTime = -1L;
-            if (value instanceof String) {
-                lastModifyTime = NumberUtils.toLong((String)value, -1L);
-            }
+            String value = recordProps.getProperty(key, "-1");
+            long lastModifyTime = Long.parseLong(value);
             if (lastModifyTime != file.lastModified()) {
                 recordProps.setProperty(key, String.valueOf(file.lastModified()));
                 updateFlag = true;

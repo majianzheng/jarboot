@@ -1,12 +1,12 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -91,7 +91,7 @@ public class JwtTokenManager {
      * @param token token
      */
     public void validateToken(String token) {
-        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
+        if (!StringUtils.isBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
             token = token.substring(AuthConst.TOKEN_PREFIX.length());
         }
         Jwts.parserBuilder().setSigningKey(getSecretKeyBytes()).build().parseClaimsJws(token);

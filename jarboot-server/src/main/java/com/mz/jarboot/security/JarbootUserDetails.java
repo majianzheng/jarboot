@@ -1,7 +1,7 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.User;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -10,7 +10,7 @@ import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 

@@ -5,7 +5,7 @@ import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.session.Completion;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * The command abstract class which defined the common behave.

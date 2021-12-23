@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.advisor;
 
 import com.alibaba.deps.org.objectweb.asm.Type;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

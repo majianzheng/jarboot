@@ -11,7 +11,7 @@ import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.HashMap;

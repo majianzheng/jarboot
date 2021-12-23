@@ -6,7 +6,7 @@ import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HttpUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;

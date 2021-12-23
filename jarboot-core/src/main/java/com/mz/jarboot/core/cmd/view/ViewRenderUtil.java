@@ -6,7 +6,7 @@ import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;

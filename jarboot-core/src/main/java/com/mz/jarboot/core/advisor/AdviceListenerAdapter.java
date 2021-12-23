@@ -4,7 +4,7 @@ import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.express.ExpressFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
 

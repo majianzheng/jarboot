@@ -7,12 +7,12 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.utils.OSUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -91,7 +91,7 @@ public class SettingUtils {
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
         String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
-        boolean servicesAutoStart = StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_TRUE, s);
+        boolean servicesAutoStart = SettingPropConst.VALUE_TRUE.equalsIgnoreCase(s);
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
@@ -139,7 +139,7 @@ public class SettingUtils {
             } else {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
-            if (!StringUtils.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
+            if (!java.util.Objects.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
                 workspaceChanged = true;
             }
             GLOBAL_SETTING.setWorkspace(workspace);
@@ -294,7 +294,7 @@ public class SettingUtils {
             }
             lines.stream()
                     //去除首尾空格
-                    .map(StringUtils::trim)
+                    .map(String::trim)
                     //以#开头的视为注释
                     .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
                     .forEach(line -> sb.append(line).append(StringUtils.SPACE));

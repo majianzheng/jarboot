@@ -12,7 +12,7 @@ import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 import com.mz.jarboot.core.utils.metrics.SumRateCounter;
 import org.slf4j.Logger;

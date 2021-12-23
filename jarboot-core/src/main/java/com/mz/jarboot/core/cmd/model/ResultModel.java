@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.model;
 
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * @author majianzheng

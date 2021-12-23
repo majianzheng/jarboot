@@ -5,7 +5,7 @@ import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
 import com.mz.jarboot.core.cmd.view.element.Element;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * Term view for TimeTunnelCommand

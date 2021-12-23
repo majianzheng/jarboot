@@ -3,6 +3,7 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
@@ -13,7 +14,6 @@ import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -99,7 +99,7 @@ public class CloudController {
         jwtTokenManager.validateToken(token);
         //临时目录，用于操作ZIP文件
         String filename = file.getOriginalFilename();
-        String name = StringUtils.removeEnd(filename, ".zip");
+        String name = StringUtils.stripEnd(filename, ".zip");
         final File tempDir = CacheDirHelper.getTempDir(name);
         if (tempDir.exists()) {
             //文件正在处理中

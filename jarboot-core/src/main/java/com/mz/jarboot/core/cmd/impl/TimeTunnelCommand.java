@@ -14,7 +14,7 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.slf4j.Logger;

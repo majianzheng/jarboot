@@ -3,6 +3,7 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.exception.AccessException;
@@ -10,7 +11,6 @@ import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.RoleService;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -81,7 +81,7 @@ public class AuthController {
         ResponseForObject<JarbootUser> result = new ResponseForObject<>();
 
         String username = request.getParameter(PARAM_USERNAME);
-        if (StringUtils.isEmpty(username) && StringUtils.isNotBlank(token)) {
+        if (StringUtils.isEmpty(username) && !StringUtils.isBlank(token)) {
             // 已经登录了，鉴定权限
             try {
                 jwtTokenManager.validateToken(token);
@@ -140,7 +140,7 @@ public class AuthController {
 
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
+        if (!StringUtils.isBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
             return bearerToken.substring(7);
         }
         return request.getParameter(AuthConst.ACCESS_TOKEN);

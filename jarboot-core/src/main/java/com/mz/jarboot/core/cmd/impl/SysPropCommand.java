@@ -7,7 +7,7 @@ import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.core.cmd.model.SysPropModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * show the system property

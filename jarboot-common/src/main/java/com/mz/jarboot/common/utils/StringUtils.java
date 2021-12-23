@@ -1,6 +1,5 @@
-package com.mz.jarboot.core.utils;
+package com.mz.jarboot.common.utils;
 
-import org.slf4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -13,8 +12,6 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @SuppressWarnings("all")
 public abstract class StringUtils {
-    private static final Logger logger = LogUtils.getLogger();
-
     public static final String SPACE = " ";
     public static final String EMPTY = "";
     public static final String LF = "\n";
@@ -46,7 +43,6 @@ public abstract class StringUtils {
         try {
             return obj.toString();
         } catch (Throwable t) {
-            logger.error("objectToString error, obj class: {}", obj.getClass(), t);
             return "ERROR DATA!!! Method toString() throw exception. obj class: " + obj.getClass()
                     + ", exception class: " + t.getClass()
                     + ", exception message: " + t.getMessage();
@@ -572,7 +568,7 @@ public abstract class StringUtils {
     }
 
     public static Properties splitArrayElementsIntoProperties(String[] array, String delimiter, String charsToDelete) {
-        if(ObjectUtils.isEmpty(array)) {
+        if(null == array || 0 == array.length) {
             return null;
         } else {
             Properties result = new Properties();

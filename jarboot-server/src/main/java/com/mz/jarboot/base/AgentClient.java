@@ -1,8 +1,8 @@
 package com.mz.jarboot.base;
 
 import com.mz.jarboot.common.protocol.*;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.ws.MessageQueueOperator;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.websocket.Session;
 

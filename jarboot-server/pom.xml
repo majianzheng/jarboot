@@ -49,10 +49,6 @@
 			<artifactId>jjwt-jackson</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
         <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-common</artifactId>

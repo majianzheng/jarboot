@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.JvmItem;
 import com.mz.jarboot.core.cmd.model.JvmModel;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;

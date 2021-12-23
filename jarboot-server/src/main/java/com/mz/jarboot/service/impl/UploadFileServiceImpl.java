@@ -5,6 +5,7 @@ import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.service.UploadFileService;
@@ -13,7 +14,6 @@ import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -172,7 +172,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public void deleteUploadFile(String server, String file) {
         File dir = CacheDirHelper.getUploadTempServer(server);
-        File[] find = dir.listFiles(f -> StringUtils.equals(file, f.getName()));
+        File[] find = dir.listFiles(f -> java.util.Objects.equals(file, f.getName()));
         if (null != find && find.length > 0) {
             try {
                 FileUtils.forceDelete(find[0]);

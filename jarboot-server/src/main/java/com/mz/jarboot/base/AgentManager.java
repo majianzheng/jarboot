@@ -7,12 +7,12 @@ import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.utils.JsonUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
@@ -71,7 +71,7 @@ public class AgentManager {
         String pid = TaskUtils.getPid(sid);
         if (pid.isEmpty()) {
             //非受管理的本地进程，通知前端Attach成功
-            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+            if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
                 this.remoteJvm(sid);
             } else {
                 WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
@@ -95,7 +95,7 @@ public class AgentManager {
         }
         String pid = client.getPid();
         if (pid.isEmpty()) {
-            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+            if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
                 remoteProcesses.remove(sid);
             }
             //非受管理的本地进程，通知前端进程已经离线
