@@ -3,9 +3,6 @@ package com.mz.jarboot.core.utils;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
-import com.mz.jarboot.common.protocol.CommandConst;
-import com.mz.jarboot.common.protocol.CommandResponse;
-import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +22,7 @@ public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
     public StreamCrossLogAppender() {
         this.setName("jarboot.stream.log");
     }
+
     public void setEncoder(Encoder<E> encoder) {
         this.encoder = encoder;
     }
@@ -39,11 +37,6 @@ public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
         }
         byte[] byteArray = this.encoder.encode(event);
         String msg = new String(byteArray, StandardCharsets.UTF_8);
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.LOG_APPENDER);
-        resp.setBody(msg);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        ResultStreamDistributor.write(resp);
+        ResultStreamDistributor.log(msg);
     }
 }

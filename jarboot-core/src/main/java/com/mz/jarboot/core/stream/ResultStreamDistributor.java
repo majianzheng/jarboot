@@ -87,6 +87,19 @@ public class ResultStreamDistributor extends Thread {
     }
 
     /**
+     * 分布式日志记录
+     * @param text 日志
+     */
+    public static void log(String text) {
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.LOG_APPENDER);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        write(resp);
+    }
+
+    /**
      * 发送数据
      * @param resp 数据
      */
