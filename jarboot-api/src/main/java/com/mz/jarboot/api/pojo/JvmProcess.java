@@ -12,6 +12,7 @@ public class JvmProcess {
     private String fullName;
     private Boolean attached;
     private String remote;
+    private Boolean trusted;
 
     public String getSid() {
         return sid;
@@ -61,6 +62,14 @@ public class JvmProcess {
         this.remote = remote;
     }
 
+    public Boolean getTrusted() {
+        return trusted;
+    }
+
+    public void setTrusted(Boolean trusted) {
+        this.trusted = trusted;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -82,11 +91,12 @@ public class JvmProcess {
     public String toString() {
         return "JvmProcess{" +
                 "sid='" + sid + '\'' +
-                ", pid=" + pid +
+                ", pid='" + pid + '\'' +
                 ", name='" + name + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", attached=" + attached +
                 ", remote='" + remote + '\'' +
+                ", trusted=" + trusted +
                 '}';
     }
 }

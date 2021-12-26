@@ -62,4 +62,14 @@ export default class SettingService {
         form.append('content', content);
         return Request.post(`${settingUrl}/vmoptions`, form);
     }
+
+    /**
+     * 添加信任的远程主机
+     * @param host 地址
+     */
+    public static addTrustedHost(host: string) {
+        let form = new FormData();
+        form.append('host', host);
+        return Request.post(`${settingUrl}/trustedHost`, form);
+    }
 }

@@ -7,26 +7,20 @@ const path = require('path');
  * @author majianzheng
  */
 
+const meta = '<meta charset="utf-8"/>\n    ' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1, ' +
+    'maximum-scale=1, minimum-scale=1, user-scalable=no"/>';
+
 const template = (cssFile, jsFile) => (`<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
-    />
-    <link rel="stylesheet" href="/jarboot/${cssFile}" />
-    <script>
-      window.routerBase = "/";
-    </script>
-    <script>
-      //! umi version: 3.5.20
-    </script>
+    ${meta}
+    <link rel="stylesheet" href="/jarboot/${cssFile}"/>
+    <script>window.routerBase = "/";</script>
     <title>Jarboot</title>
   </head>
   <body>
     <div id="root"></div>
-
     <script src="/jarboot/${jsFile}"></script>
   </body>
 </html>`);

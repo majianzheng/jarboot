@@ -6,6 +6,7 @@ import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,10 @@ public class WebSocketMainServer {
     private static final int CMD_FUNC = 1;
     /** 取消执行命令func */
     private static final int CANCEL_FUNC = 2;
+    /** 信任主机func */
+    private static final int TRUST_ONCE_FUNC = 3;
+    /** 检查是否信任主机func */
+    private static final int CHECK_TRUSTED_FUNC = 4;
     /** json请求中server */
     private static final String SERVER_KEY = "server";
     /** json请求中func */
@@ -120,6 +125,14 @@ public class WebSocketMainServer {
                 break;
             case CANCEL_FUNC:
                 AgentManager.getInstance().sendInternalCommand(sid, CommandConst.CANCEL_CMD, session.getId());
+                break;
+            case TRUST_ONCE_FUNC:
+                AgentManager.getInstance().trustOnce(sid);
+                break;
+            case CHECK_TRUSTED_FUNC:
+                if (AgentManager.getInstance().checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+                }
                 break;
             default:
                 logger.debug("Unknown func, func:{}", func);

@@ -14,12 +14,14 @@ public final class AgentClient extends MessageQueueOperator {
     private final String sid;
     private ClientState state;
     private String pid;
+    private boolean trusted;
     public AgentClient(String name, String sid, final Session session) {
         super(session);
         this.name = name;
         this.sid = sid;
         this.state = ClientState.STARTING;
         this.pid = StringUtils.EMPTY;
+        this.trusted = false;
     }
 
     public String getName() {
@@ -66,6 +68,14 @@ public final class AgentClient extends MessageQueueOperator {
 
     public void heartbeat() {
         sendCommand(CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON, CommandType.HEARTBEAT);
+    }
+
+    public boolean isTrusted() {
+        return trusted;
+    }
+
+    public void setTrusted(boolean trusted) {
+        this.trusted = trusted;
     }
 
     private void sendCommand(String command, String sessionId, CommandType type) {

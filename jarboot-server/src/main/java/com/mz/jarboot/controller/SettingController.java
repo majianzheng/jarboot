@@ -3,12 +3,16 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
+import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
+import com.mz.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 /**
  * 系统配置
@@ -122,5 +126,14 @@ public class SettingController {
         } catch (JarbootException e) {
             return new ResponseSimple(e);
         }
+    }
+
+    @PostMapping(value="/trustedHost")
+    @ResponseBody
+    @Permission("Add trusted host")
+    public ResponseSimple addTrustedHost(String host) throws IOException {
+        SettingUtils.addTrustedHost(host);
+        AgentManager.getInstance().onAddTrustedHost(host);
+        return new ResponseSimple();
     }
 }

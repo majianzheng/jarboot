@@ -29,6 +29,7 @@ interface JvmProcess extends TreeNode {
     attached: boolean;
     remote: string;
     attaching: boolean;
+    trusted: boolean;
 }
 
 export { ServerRunning, JvmProcess, TreeNode };

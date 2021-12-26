@@ -26,6 +26,8 @@ class JarBootConst {
     public static readonly ATTACHING = 'ATTACHING';
     public static readonly ATTACHED = 'ATTACHED';
     public static readonly EXITED = 'EXITED';
+    public static readonly NOT_TRUSTED = 'NOT_TRUSTED';
+    public static readonly TRUSTED = 'TRUSTED';
 
     public static PANEL_HEIGHT = (window.innerHeight - 62);
     public static HIGHLIGHT_STYLE = {backgroundColor: '#ffc069', padding: 0};

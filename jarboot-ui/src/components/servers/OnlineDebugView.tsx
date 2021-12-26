@@ -1,5 +1,5 @@
 import CommonTable from "@/components/table";
-import {Result, Tooltip} from "antd";
+import {Button, Modal, Result, Tooltip} from "antd";
 import {BugFilled, DashboardOutlined, HomeFilled, LoadingOutlined, SyncOutlined, CloseCircleFilled} from "@ant-design/icons";
 import ServerMgrService, {JvmProcess, TreeNode} from "@/services/ServerMgrService";
 import {SuperPanel} from "@/components/servers/SuperPanel";
@@ -12,6 +12,8 @@ import {JarBootConst, MsgData} from "@/common/JarBootConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
 import IntlText from "@/common/IntlText";
+import SettingService from "@/services/SettingService";
+import {WsManager} from "@/common/WsManager";
 
 interface OnlineDebugState {
     loading: boolean;
@@ -20,6 +22,9 @@ interface OnlineDebugState {
     selectedRowKeys: string[];
     selectRows: JvmProcess[];
     expandedRowKeys: string[];
+    visible: boolean;
+    unTrustedHost: string;
+    submitting: boolean;
 }
 
 const OnlineDebugView = () => {
@@ -30,7 +35,10 @@ const OnlineDebugView = () => {
         list: [],
         selectedRowKeys: [],
         selectRows: [],
-        expandedRowKeys: []
+        expandedRowKeys: [],
+        visible: false,
+        unTrustedHost: '',
+        submitting: false,
     } as OnlineDebugState;
     const [state, dispatch] = useReducer((state: OnlineDebugState, action: any) => {
         if ('function' === typeof action) {
@@ -168,6 +176,15 @@ const OnlineDebugView = () => {
                     process.attaching = false;
                     refreshProcessList();
                     break;
+                case JarBootConst.NOT_TRUSTED:
+                    return confirmTrusted(msg.sid, s);
+                case JarBootConst.TRUSTED:
+                    if (!process.trusted) {
+                        process.trusted = true;
+                        const trustedSuccessMsg = intl.formatMessage({id: 'TRUSTED_SUCCESS'});
+                        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING, trustedSuccessMsg);
+                    }
+                    break;
                 default:
                     return {};
             }
@@ -176,6 +193,14 @@ const OnlineDebugView = () => {
             return {data: getTreeData(list), selectRows, selectedRowKeys};
         });
         pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
+    };
+
+    const confirmTrusted = (sid: string, preState: OnlineDebugState) => {
+        const vm = preState.list.find((value: JvmProcess) => sid === value.sid);
+        if (!vm?.remote) {
+            return {};
+        }
+        return {unTrustedHost: vm.remote, visible: true};
     };
 
     const pidRender = (value: number, row: JvmProcess) => {
@@ -254,6 +279,10 @@ const OnlineDebugView = () => {
             if (record.isLeaf) {
                 dispatch({selectedRowKeys: [record.sid], selectRows: [record]});
                 pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+                if (record.remote && !record.trusted) {
+                    //检查是否受信任
+                    WsManager.sendMessage({sid: record.sid, func: 4, body: '', server: record.name});
+                }
             }
         },
         onDoubleClick: () => {
@@ -324,6 +353,25 @@ const OnlineDebugView = () => {
         }
     ]);
 
+    const onTrustOnce = () => {
+        const sid = state.selectedRowKeys[0];
+        sid && WsManager.sendMessage({sid, func: 3, body: '', server: ''});
+        dispatch({visible: false});
+    };
+
+    const onTrustAlways = () => {
+        dispatch({submitting: true});
+
+        SettingService.addTrustedHost(state.unTrustedHost)
+            .then(resp => {
+                if (0 !== resp.resultCode) {
+                    CommonNotice.errorFormatted(resp);
+                }
+            })
+            .catch(CommonNotice.errorFormatted)
+            .finally(() => dispatch({submitting: false, visible: false}));
+    };
+
     let tableOption: any = getTbProps();
     tableOption.scroll = {y: height};
     const showLoading = state.loading && 0 === state.list.length;
@@ -342,6 +390,26 @@ const OnlineDebugView = () => {
                             visible={state.selectedRowKeys[0] === value.sid}/>
             ))}
         </div>
+        <Modal visible={state.visible}
+               title={intl.formatMessage({id: 'WARN'})}
+               destroyOnClose={true}
+               onCancel={() => dispatch({visible: false})}
+               footer={[
+                   <Button key="cancel" onClick={() => dispatch({visible: false})}>
+                       {intl.formatMessage({id: 'CANCEL'})}
+                   </Button>,
+                   <Button key="submit" type="primary" loading={state.submitting}
+                           onClick={onTrustOnce}>
+                       {intl.formatMessage({id: 'TRUST_ONCE'})}
+                   </Button>,
+                   <Button key="always" type="primary" loading={state.submitting}
+                           onClick={onTrustAlways}>
+                       {intl.formatMessage({id: 'TRUST_ALWAYS'})}
+                   </Button>,
+               ]}
+        >
+            <p>{intl.formatMessage({id: 'UNTRUSTED_MODEL_BODY'}, {host: state.unTrustedHost})}</p>
+        </Modal>
     </div>;
 };
 

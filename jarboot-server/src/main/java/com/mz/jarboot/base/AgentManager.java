@@ -11,6 +11,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
+import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.slf4j.Logger;
@@ -72,14 +73,17 @@ public class AgentManager {
         if (pid.isEmpty()) {
             //非受管理的本地进程，通知前端Attach成功
             if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
-                this.remoteJvm(sid);
+                this.remoteJvm(client);
             } else {
+                //本地进程默认受信任
+                client.setTrusted(true);
                 WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
             }
         } else {
             //属于受管理的服务
             localServers.put(pid, sid);
             client.setPid(pid);
+            client.setTrusted(true);
         }
     }
 
@@ -146,9 +150,10 @@ public class AgentManager {
 
     /**
      * 来自远程服务器的连接
-     * @param sid 远程服务sid，格式：prefix + pid + name + uuid
+     * @param client 远程服务sid，格式：prefix + pid + name + uuid
      */
-    public void remoteJvm(final String sid) {
+    public void remoteJvm(final AgentClient client) {
+        String sid = client.getSid();
         JvmProcess process = new JvmProcess();
         int index = sid.lastIndexOf(',');
         if (-1 == index) {
@@ -170,6 +175,8 @@ public class AgentManager {
         process.setName(name);
         process.setSid(sid);
         process.setRemote(remoteIp);
+        boolean isTrusted = SettingUtils.isTrustedHost(remoteIp);
+        client.setTrusted(isTrusted);
         remoteProcesses.put(sid, process);
         WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
     }
@@ -255,7 +262,13 @@ public class AgentManager {
                         .commandEnd(sid, msg, sessionId);
             }
         } else {
-            client.sendCommand(command, sessionId);
+            if (client.isTrusted()) {
+                client.sendCommand(command, sessionId);
+            } else {
+                String msg = formatErrorMsg(server, "not trusted!");
+                WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
+                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+            }
         }
     }
 
@@ -317,7 +330,9 @@ public class AgentManager {
                 doHeartbeat(server, sid, session);
                 break;
             case CONSOLE:
-                WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
+                if (!checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
+                }
                 break;
             case BACKSPACE:
                 WebSocketManager.getInstance().backspace(sid, resp.getBody(), sessionId);
@@ -327,24 +342,74 @@ public class AgentManager {
                 WebSocketManager.getInstance().stdPrint(sid, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
-                WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
+                if (!checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
+                }
                 break;
             case COMMAND_END:
                 commandEnd(sid, resp, sessionId);
                 break;
             case LOG_APPENDER:
-                onAgentLog(resp.getBody());
+                onAgentLog(sid, resp.getBody());
                 break;
             case ACTION:
                 this.handleAction(resp.getBody(), sessionId, sid);
                 break;
             default:
-                logger.error("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
+                logger.debug("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
                 break;
         }
     }
 
-    private void onAgentLog(String msg) {
+    public void trustOnce(String sid) {
+        AgentClient client = clientMap.getOrDefault(sid, null);
+        if (null != client && !client.isTrusted()) {
+            client.setTrusted(true);
+            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.TRUSTED);
+        }
+    }
+
+    public boolean checkNotTrusted(String sid) {
+        AgentClient client = clientMap.getOrDefault(sid, null);
+        if (null == client) {
+            return true;
+        }
+        if (client.isTrusted()) {
+            return false;
+        }
+        JvmProcess jvm = remoteProcesses.getOrDefault(sid, null);
+        if (null == jvm) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(jvm.getTrusted())) {
+            client.setTrusted(true);
+            return false;
+        }
+        if (SettingUtils.isTrustedHost(jvm.getRemote())) {
+            jvm.setTrusted(true);
+            client.setTrusted(true);
+            return false;
+        }
+        return true;
+    }
+
+    public void onAddTrustedHost(String host) {
+        remoteProcesses.forEach((k, v) -> {
+            if (java.util.Objects.equals(v.getRemote(), host)) {
+                AgentClient client = clientMap.getOrDefault(k, null);
+                if (null != client) {
+                    client.setTrusted(true);
+                    v.setTrusted(true);
+                    WebSocketManager.getInstance().debugProcessEvent(k, AttachStatus.TRUSTED);
+                }
+            }
+        });
+    }
+
+    private void onAgentLog(String sid, String msg) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
         if (null != writeBytes) {
             try {
                 writeBytes.invoke(appender, msg.getBytes(StandardCharsets.UTF_8));
@@ -355,6 +420,9 @@ public class AgentManager {
     }
 
     private void commandEnd(String sid, CommandResponse resp, String sessionId) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
         String msg = resp.getBody();
         if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
             msg = AnsiLog.red(msg);
@@ -477,6 +545,9 @@ public class AgentManager {
     }
 
     private void handleAction(String data, String sessionId, String sid) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
         JsonNode body = JsonUtils.readAsJsonNode(data);
         if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_PROP_NAME_KEY)) {
             return;

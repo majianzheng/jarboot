@@ -53,16 +53,23 @@ public class SettingUtils {
     private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
     /** 本地地址 */
     private static String localHost = null;
+    /** 受信任的远程服务器 */
+    private static final String TRUSTED_HOSTS_FILE;
+    private static final HashSet<String> TRUSTED_HOSTS = new HashSet<>(16);
 
     static {
-        String home = System.getProperty(CommonConst.JARBOOT_HOME);
-        JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
+        final String home = System.getProperty(CommonConst.JARBOOT_HOME);
+        final String conf = home + File.separator + "conf" + File.separator;
+        JARBOOT_CONF = conf + "jarboot.properties";
         BIN_DIR = home + File.separator + "bin";
         LOG_DIR = home + File.separator + "logs";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
         initGlobalSetting();
+        //初始化受信任服务器列表
+        TRUSTED_HOSTS_FILE = conf + "trusted-hosts.conf";
+        initTrustedHosts();
         //初始化默认目录及配置路径
         DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
     }
@@ -93,6 +100,23 @@ public class SettingUtils {
         String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
         boolean servicesAutoStart = SettingPropConst.VALUE_TRUE.equalsIgnoreCase(s);
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
+    }
+
+    private static void initTrustedHosts() {
+        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.isFile()) {
+            FileUtils.deleteQuietly(file);
+            return;
+        }
+        try {
+            List<String> lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
+            lines.forEach(line -> TRUSTED_HOSTS.add(line.trim()));
+        } catch (Exception e) {
+            //ignore
+        }
     }
 
     /**
@@ -330,6 +354,28 @@ public class SettingUtils {
      */
     public static String createSid(String serverPath) {
         return String.format("x%x", serverPath.hashCode());
+    }
+
+    public static boolean isTrustedHost(String host) {
+        if (StringUtils.isBlank(host)) {
+            return false;
+        }
+        return TRUSTED_HOSTS.contains(host);
+    }
+
+    public static void addTrustedHost(String host) throws IOException {
+        if (StringUtils.isBlank(host)) {
+            throw new JarbootException("Host is empty!");
+        }
+        host = host.trim();
+        if (TRUSTED_HOSTS.contains(host)) {
+            return;
+        }
+        synchronized (TRUSTED_HOSTS) {
+            File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+            FileUtils.writeStringToFile(file, host, StandardCharsets.UTF_8, true);
+            TRUSTED_HOSTS.add(host);
+        }
     }
 
     private SettingUtils() {

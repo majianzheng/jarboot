@@ -46,7 +46,7 @@ public class WebSocketAgentServer {
                                 Session session,
                                 @PathParam("server") String server,
                                 @PathParam("sid") String sid) {
-        onTextMessage(new String(message), session, server, sid);
+        //ignore
     }
 
     @OnMessage
