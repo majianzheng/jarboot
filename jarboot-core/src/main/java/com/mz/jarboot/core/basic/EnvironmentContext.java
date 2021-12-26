@@ -3,6 +3,7 @@ package com.mz.jarboot.core.basic;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
+import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.session.CommandSessionImpl;
 import com.mz.jarboot.core.utils.LogUtils;
@@ -147,6 +148,11 @@ public class EnvironmentContext {
         }
         final CommandCoreSession session = command.getSession();
         if (checkCommandRunning(session)) {
+            return;
+        }
+        if (command instanceof AbstractInternalCommand &&
+                ((AbstractInternalCommand) command).notAllowPublicCall()) {
+            session.end(false, "Command not allowed");
             return;
         }
         scheduledExecutorService.execute(() -> {

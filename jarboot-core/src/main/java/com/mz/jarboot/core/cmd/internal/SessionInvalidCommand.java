@@ -12,4 +12,9 @@ public class SessionInvalidCommand extends AbstractInternalCommand {
         EnvironmentContext.releaseSession(session.getSessionId());
         session.end();
     }
+
+    @Override
+    public boolean notAllowPublicCall() {
+        return true;
+    }
 }
