@@ -49,6 +49,7 @@ const UserPopMenu = memo((props: any) => {
 interface UserMenuProp {
     className?: any;
 }
+
 const UserMenu = (props: UserMenuProp) => {
     let [userMenuVisible, setUserMenuVisible] = useState(false);
     const icon = <DefaultUserIcon style={{ fontSize: '28px' }}/>;
@@ -60,5 +61,6 @@ const UserMenu = (props: UserMenuProp) => {
         <Avatar className={props.className} alt={JarBootConst.currentUser.username} icon={icon}/>
         <CaretDownOutlined style={{verticalAlign: 'text-top', position: "relative", top: '-2px'}}/>
     </Popover>;
-}
+};
+
 export default UserMenu;

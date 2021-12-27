@@ -2,7 +2,7 @@ import styles from "./index.less";
 import Console from "@/components/console";
 import React, {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
 import {Button, Input} from "antd";
-import {CloseCircleOutlined, EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined} from "@ant-design/icons";
+import {EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
 import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
@@ -221,7 +221,11 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const consolePanel = () => {
         const style = '' === view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
         return (<div style={style}>
-            <Console id={key} pubsub={pubsub} height={JarBootConst.PANEL_HEIGHT - 26}/>
+            <Console id={key}
+                     pubsub={pubsub}
+                     height={JarBootConst.PANEL_HEIGHT - 26}
+                     wrap={false}
+                     autoScrollEnd={true}/>
             <Input onPressEnter={onExecCommand}
                    onKeyUp={onKeyUp}
                    ref={inputRef}
@@ -244,23 +248,15 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     const extraButton = () => {
         let extra;
         if (executing) {
-            extra = <Button type={"dashed"}
-                            icon={<CloseCircleOutlined />}
+            extra = <Button icon={<CloseOutlined />}
                             size={"small"}
                             ghost danger
-                            onClick={onCancelCommand}>{intl.formatMessage({id: 'CANCEL'})}</Button>;
-        } else if ('' === view) {
-            extra = <Button type={"dashed"}
-                            icon={<ClearOutlined />}
-                            size={"small"}
-                            ghost
-                            onClick={clearDisplay}>{intl.formatMessage({id: 'CLEAR'})}</Button>;
+                            onClick={onCancelCommand}/>;
         } else {
-            extra = <Button type={"dashed"}
-                            icon={<CloseOutlined />}
+            extra = <Button icon={<ClearOutlined />}
                             size={"small"}
                             ghost danger
-                            onClick={closeView}>{intl.formatMessage({id: 'CLOSE'})}</Button>;
+                            onClick={clearDisplay}/>;
         }
         return (<div className={styles.consoleExtra}>{extra}</div>);
     };

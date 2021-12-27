@@ -1,5 +1,6 @@
 package com.mz.jarboot.common;
 
+import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class PidFileHelper {
 
     public static String getServerPidString(String sid) {
         File pidFile = FileUtils.getFile(CacheDirHelper.getPidDir(), sid + PID_EXT);
-        String pid = "";
+        String pid = StringUtils.EMPTY;
         if (!pidFile.exists()) {
             return pid;
         }

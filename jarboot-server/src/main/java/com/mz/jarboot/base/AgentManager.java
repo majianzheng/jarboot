@@ -116,7 +116,6 @@ public class AgentManager {
                 client.notify();
                 clientMap.remove(sid);
             } else {
-                logger.warn("{} is offlined!", sid);
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
@@ -157,14 +156,12 @@ public class AgentManager {
         JvmProcess process = new JvmProcess();
         int index = sid.lastIndexOf(',');
         if (-1 == index) {
-            logger.warn("解析远程sid失败！sid:{}", sid);
             return;
         }
         String str = sid.substring(0, index);
         final int limit = 4;
         String[] s = str.split(CommonConst.COMMA_SPLIT, limit);
         if (s.length != limit) {
-            logger.warn("解析远程sid失败！sid:{}", sid);
             return;
         }
         String pid = s[1];
@@ -200,7 +197,6 @@ public class AgentManager {
     public boolean killClient(String server, String sid) {
         final AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            logger.debug("服务已经是退出状态，{}", server);
             return false;
         }
         synchronized (client) {
@@ -220,7 +216,6 @@ public class AgentManager {
                 //失败
                 return false;
             } else {
-                logger.debug("等待目标进程退出完成,耗时:{} ms", costTime);
                 client.setState(ClientState.OFFLINE);
                 WebSocketManager.getInstance().sendConsole(sid, "进程优雅退出成功！");
             }
@@ -241,7 +236,13 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            if (isOnline(sid)) {
+            if (TaskUtils.getPid(sid).isEmpty()) {
+                String msg = formatErrorMsg(server, "未在线，无法执行命令");
+                //未在线，进程不存在
+                WebSocketManager
+                        .getInstance()
+                        .commandEnd(sid, msg, sessionId);
+            } else {
                 //如果进程仍然存活，尝试使用attach重新连接
                 tryReConnect(server, sid, sessionId);
 
@@ -251,17 +252,10 @@ public class AgentManager {
                     WebSocketManager
                             .getInstance()
                             .commandEnd(sid, msg, sessionId);
-                } else {
-                    client.sendCommand(command, sessionId);
                 }
-            } else {
-                String msg = formatErrorMsg(server, "未在线，无法执行命令");
-                //未在线，进程不存在
-                WebSocketManager
-                        .getInstance()
-                        .commandEnd(sid, msg, sessionId);
             }
-        } else {
+        }
+        if (null != client) {
             if (client.isTrusted()) {
                 client.sendCommand(command, sessionId);
             } else {
@@ -356,7 +350,7 @@ public class AgentManager {
                 this.handleAction(resp.getBody(), sessionId, sid);
                 break;
             default:
-                logger.debug("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
+                //ignore
                 break;
         }
     }
@@ -431,14 +425,18 @@ public class AgentManager {
     }
 
     private void doHeartbeat(String server, String sid, Session session) {
+        if (null == session) {
+            return;
+        }
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
             this.online(server, session, sid);
             this.onServerStarted(server, sid);
-            WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
-            logger.info("reconnected by heartbeat {}, {}", server, sid);
+            WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
+            AnsiLog.debug("reconnected by heartbeat {}, {}", server, sid);
             WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
         }
+
         client.heartbeat();
     }
 
@@ -450,9 +448,6 @@ public class AgentManager {
     public void onServerStarted(final String server, final String sid) {
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            logger.error("Server {} is offline already!", server);
-            String msg = formatErrorMsg(server, "is offline now！");
-            WebSocketManager.getInstance().sendConsole(sid, msg);
             return;
         }
         synchronized (client) {
@@ -476,7 +471,7 @@ public class AgentManager {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
             try {
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                    logger.error("Wait server connect timeout，{}", server);
+                    logger.error("Wait server connect timeout, {}", server);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -485,8 +480,8 @@ public class AgentManager {
             }
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
-                String msg = formatErrorMsg(server, "is offline now！");
-                WebSocketManager.getInstance().sendConsole(sid, server + " connect timeout！");
+                String msg = formatErrorMsg(server, "connect timeout!");
+                WebSocketManager.getInstance().sendConsole(sid, msg);
                 return;
             }
         }
@@ -573,7 +568,7 @@ public class AgentManager {
     }
 
     private String formatErrorMsg(String server, String msg) {
-        return String.format("\033[96;1m%s\033[0m \033[31m%s\033[0m", server, msg);
+        return String.format("\033[96m%s\033[0m \033[31m%s\033[0m", server, msg);
     }
 
     private void trigRestartEvent(String sid) {

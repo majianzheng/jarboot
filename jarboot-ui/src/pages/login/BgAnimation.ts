@@ -115,7 +115,7 @@ let trans = {
         };
     },
     steps: function(_obj_: any, sz: any, rot: any, pos: any, disp: any) {
-        var _args = trans.parts.sz(_obj_, sz);
+        let _args = trans.parts.sz(_obj_, sz);
         _args = trans.parts.rot.x(_args, rot);
         _args = trans.parts.rot.y(_args, rot);
         _args = trans.parts.rot.z(_args, rot);

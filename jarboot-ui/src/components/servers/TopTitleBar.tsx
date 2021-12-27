@@ -27,6 +27,6 @@ const TopTitleBar = (props: TopTitleBarProp) => {
                     icon={<CloseOutlined style={{fontSize: '1.28em'}}/>}/>
         </div>
     </div>);
-}
+};
 
 export default TopTitleBar;
