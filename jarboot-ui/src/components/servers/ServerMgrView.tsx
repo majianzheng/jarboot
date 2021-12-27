@@ -467,7 +467,7 @@ const ServerMgrView = () => {
             const content = intl.formatMessage({id: 'START_UPLOAD_INFO'}, {name: file.name});
             CommonNotice.info(content);
             const key = file.name.replace('.zip', '');
-            message.loading({content, key, duration: 0}, 0).then(r => {});
+            message.loading({content, key, duration: 0}, 0).then(() => {});
             CloudService.pushServerDirectory(file).then(resp => {
                 if (0 !== resp.resultCode) {
                     CommonNotice.errorFormatted(resp);

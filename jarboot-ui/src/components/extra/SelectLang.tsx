@@ -1,5 +1,6 @@
 import { setLocale, useIntl, getLocale } from 'umi';
 import {Button} from "antd";
+import React from "react";
 
 const SelectLang = (props: any) => {
     const intl = useIntl();

@@ -1,5 +1,8 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocal;
 
+import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.protocol.CommandRequest;
+import com.mz.jarboot.common.protocol.CommandType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

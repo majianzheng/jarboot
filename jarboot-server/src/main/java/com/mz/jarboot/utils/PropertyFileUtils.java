@@ -5,13 +5,11 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.JarbootException;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -71,8 +69,9 @@ public class PropertyFileUtils {
         String[] envs = env.split(CommonConst.COMMA_SPLIT);
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
-            if (en.length() < 3 && 1 != StringUtils.countMatches(en, CommonConst.EQUAL_CHAR) &&
-                    CommonConst.EQUAL_CHAR != en.charAt(0) && CommonConst.EQUAL_CHAR != en.charAt(en.length() - 1)) {
+            int first = en.indexOf(CommonConst.EQUAL_CHAR);
+            int last = en.lastIndexOf(CommonConst.EQUAL_CHAR);
+            if (en.length() < 3 || first <= 0 || last == en.length() - 1 || first != last) {
                 return false;
             }
         }
@@ -124,18 +123,18 @@ public class PropertyFileUtils {
             setting.setEnv(env);
         }
 
-        int priority = NumberUtils.toInt(properties.getProperty(SettingPropConst.PRIORITY,
+        int priority = Integer.parseInt(properties.getProperty(SettingPropConst.PRIORITY,
                 SettingPropConst.DEFAULT_PRIORITY));
         setting.setPriority(priority);
 
         String s = properties.getProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
-        if (StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_FALSE, s)) {
+        if (SettingPropConst.VALUE_FALSE.equalsIgnoreCase(s)) {
             //初始默认true
             setting.setDaemon(false);
         }
 
         s = properties.getProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
-        if (StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_FALSE, s)) {
+        if (SettingPropConst.VALUE_FALSE.equalsIgnoreCase(s)) {
             //初始默认true
             setting.setJarUpdateWatch(false);
         }
@@ -179,7 +178,7 @@ public class PropertyFileUtils {
      * @param props 属性
      */
     public static void writeProperty(File file, Map<String, String> props) {
-        if (null == file || MapUtils.isEmpty(props)) {
+        if (null == file || null == props || props.isEmpty()) {
             return;
         }
         if (!file.isFile() || !file.exists()) {
@@ -192,7 +191,7 @@ public class PropertyFileUtils {
             logger.info(e.getMessage(), e);
         }
         HashMap<String, String> copy = new HashMap<>(props);
-        if (CollectionUtils.isNotEmpty(lines)) {
+        if (!CollectionUtils.isEmpty(lines)) {
             for (int i = 0; i < lines.size(); ++i) {
                 String line = lines.get(i);
                 try {
@@ -252,16 +251,16 @@ public class PropertyFileUtils {
     }
 
     private static String parsePropLine(String line, Map<String, String> props) {
-        line = StringUtils.trim(line);
-        if (StringUtils.indexOf(line, CommonConst.EQUAL_CHAR) <= 0 ||
-                0 == StringUtils.indexOf(line, SettingPropConst.COMMENT_PREFIX)) {
+        line = line.trim();
+        if (line.indexOf(CommonConst.EQUAL_CHAR) <= 0 ||
+                0 == line.indexOf(SettingPropConst.COMMENT_PREFIX)) {
             throw new JarbootException();
         }
-        String[] spliced = StringUtils.split(line, "=", 2);
+        String[] spliced = line.split("=", 2);
         if (spliced.length <= 0) {
             throw new JarbootException();
         }
-        String key = StringUtils.trim(spliced[0]);
+        String key = spliced[0].trim();
         String value = props.getOrDefault(key, null);
         if (null == value) {
             throw new JarbootException();

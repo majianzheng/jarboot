@@ -1,15 +1,13 @@
 package com.mz.jarboot.core.cmd;
 
-import com.mz.jarboot.common.CommandRequest;
-import com.mz.jarboot.common.CommandType;
+import com.mz.jarboot.common.protocol.CommandRequest;
+import com.mz.jarboot.common.protocol.CommandType;
 import com.mz.jarboot.core.cmd.impl.SearchClassCommand;
 import com.mz.jarboot.core.cmd.impl.ThreadCommand;
 import com.mz.jarboot.core.cmd.impl.TraceCommand;
 import com.mz.jarboot.core.cmd.internal.CancelCommand;
 import com.mz.jarboot.core.cmd.internal.ExitCommand;
-import com.mz.jarboot.core.server.LogTest;
 import com.mz.jarboot.core.session.CommandCoreSession;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import java.lang.reflect.Field;
@@ -23,10 +21,6 @@ import static org.junit.Assert.assertEquals;
  */
 @SuppressWarnings("all")
 public class CommandBuilderTest {
-    @BeforeClass
-    public static void init() {
-        LogTest.initTest();
-    }
     @Test
     public void testBuild() {
         //测试trace命令构建

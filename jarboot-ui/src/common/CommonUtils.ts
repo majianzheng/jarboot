@@ -5,6 +5,8 @@ import {JarBootConst} from "@/common/JarBootConst";
  */
 export default class CommonUtils {
     private static readonly HOME_PREFIX = '/jarboot/';
+    private static readonly TOKEN_PREFIX = "Bearer ";
+
     public static loginPage() {
         localStorage.removeItem(JarBootConst.TOKEN_KEY);
         if (0 === window.location.pathname.indexOf(CommonUtils.HOME_PREFIX)) {
@@ -30,9 +32,28 @@ export default class CommonUtils {
         return token;
     }
 
+    public static storeToken(token: string) {
+        if (0 !== token.indexOf(CommonUtils.TOKEN_PREFIX)) {
+            token = CommonUtils.TOKEN_PREFIX + token;
+        }
+        localStorage.setItem(JarBootConst.TOKEN_KEY, token);
+    }
+
+    public static getRawToken(): string {
+        let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+        if (!token) {
+            return '';
+        }
+        if (0 === token.indexOf(CommonUtils.TOKEN_PREFIX)) {
+            token = token.substring(CommonUtils.TOKEN_PREFIX.length);
+        }
+        return token;
+    }
+
     public static exportServer(name: string): void {
         const a = document.createElement('a');
-        a.href = `/api/jarboot/cloud/pull/server?name=${name}`;
+        const token = CommonUtils.getRawToken();
+        a.href = `/api/jarboot/cloud/pull/server?name=${name}&token=${token}`;
         a.click();
     }
 }

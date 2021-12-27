@@ -3,9 +3,9 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.RoleService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

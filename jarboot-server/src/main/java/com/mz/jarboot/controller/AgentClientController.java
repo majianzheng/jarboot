@@ -2,15 +2,18 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.AgentClientPojo;
+import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.PidFileHelper;
+import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.utils.NetworkUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Objects;
 
 /**
@@ -52,13 +55,11 @@ public class AgentClientController {
      * @param code 加密码
      * @return Agent客户端信息
      */
-    @GetMapping(value="/agentClient")
+    @PostMapping(value="/agentClient")
     @ResponseBody
-    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestParam String code) {
-        byte[] decoded = Base64.getDecoder().decode(code.getBytes(StandardCharsets.UTF_8));
-        String str = new String(decoded, StandardCharsets.UTF_8);
+    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
         final int limit = 3;
-        String[] array = str.split(CommonConst.COMMA_SPLIT, limit);
+        String[] array = code.split(CommonConst.COMMA_SPLIT, limit);
         if (limit != array.length) {
             throw new JarbootException("协议格式错误，无法找到分隔符！");
         }
@@ -77,8 +78,7 @@ public class AgentClientController {
         String machineName = instanceName.substring(i);
         i = PidFileHelper.INSTANCE_NAME.indexOf(atSplit);
         String localMachineName = PidFileHelper.INSTANCE_NAME.substring(i);
-        boolean isLocal = NetworkUtils.hostLocal(clientAddr) &&
-                StringUtils.equalsIgnoreCase(localMachineName, machineName);
+        boolean isLocal = NetworkUtils.hostLocal(clientAddr) && localMachineName.equalsIgnoreCase(machineName);
         agentClientPojo.setLocal(isLocal);
         if (isLocal) {
             agentClientPojo.setSid(pid);

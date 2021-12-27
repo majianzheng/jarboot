@@ -1,13 +1,13 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.VMUtils;
+import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
@@ -17,15 +17,14 @@ import com.mz.jarboot.api.service.ServerMgrService;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -67,7 +66,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         //获取所有的服务
         List<String> paths = taskRunCache.getServerPathList();
         //同步控制，保证所有的都杀死后再重启
-        if (CollectionUtils.isNotEmpty(paths)) {
+        if (!CollectionUtils.isEmpty(paths)) {
             //启动服务
             this.restartServer(paths);
         }
@@ -229,16 +228,15 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     @Override
     public List<JvmProcess> getJvmProcesses() {
         ArrayList<JvmProcess> result = new ArrayList<>();
-        Map<Integer, String> vms = VMUtils.getInstance().listVM();
-        vms.forEach((k, v) -> {
-            if (AgentManager.getInstance().isManageredServer(k)) {
+        Map<String, String> vms = VMUtils.getInstance().listVM();
+        vms.forEach((pid, v) -> {
+            if (AgentManager.getInstance().isManageredServer(pid)) {
                 return;
             }
             JvmProcess process = new JvmProcess();
-            String sid = String.valueOf(k);
-            process.setSid(sid);
-            process.setPid(k);
-            process.setAttached(AgentManager.getInstance().isOnline(sid));
+            process.setSid(pid);
+            process.setPid(pid);
+            process.setAttached(AgentManager.getInstance().isOnline(pid));
             process.setFullName(v);
             //解析获取简略名字
             process.setName(TaskUtils.parseCommandSimple(v));
@@ -388,8 +386,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = event.getServer();
         String sid = event.getSid();
         //检查进程是否存活
-        int pid = TaskUtils.getPid(sid);
-        if (CommonConst.INVALID_PID != pid) {
+        String pid = TaskUtils.getPid(sid);
+        if (!pid.isEmpty()) {
             //检查是否处于中间状态
             if (taskRunCache.isStopping(sid)) {
                 //处于停止中状态，此时不做干预，守护只针对正在运行的进程

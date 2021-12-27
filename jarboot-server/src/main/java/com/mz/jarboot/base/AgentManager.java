@@ -3,19 +3,21 @@ package com.mz.jarboot.base;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerSetting;
-import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.AnsiLog;
+import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.utils.JsonUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.PropertyFileUtils;
+import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -32,11 +34,15 @@ public class AgentManager {
     /** 启动中的latch */
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     /** 本地进程的pid列表 */
-    private final ConcurrentHashMap<Integer, String> localProcesses = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, String> localServers = new ConcurrentHashMap<>(16);
     /** 远程进程列表 */
     private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     /** 优雅退出最大等待时间 */
     private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
+    /** 写日志方法 */
+    private java.lang.reflect.Method writeBytes = null;
+    /** 当前默认的日志Appender */
+    private ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender = null;
 
     /**
      * 单例获取
@@ -59,21 +65,25 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
+            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
         } else {
             latch.countDown();
         }
-        int pid = TaskUtils.getPid(sid);
-        if (pid > 0) {
-            //属于受管理的服务
-            localProcesses.put(pid, sid);
-            client.setPid(pid);
-        } else {
+        String pid = TaskUtils.getPid(sid);
+        if (pid.isEmpty()) {
             //非受管理的本地进程，通知前端Attach成功
-            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
-                this.remoteJvm(sid);
+            if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
+                this.remoteJvm(client);
             } else {
+                //本地进程默认受信任
+                client.setTrusted(true);
                 WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
             }
+        } else {
+            //属于受管理的服务
+            localServers.put(pid, sid);
+            client.setPid(pid);
+            client.setTrusted(true);
         }
     }
 
@@ -87,15 +97,15 @@ public class AgentManager {
         if (null == client) {
             return;
         }
-        int pid = client.getPid();
-        if (pid > 0) {
-            localProcesses.remove(pid);
-        } else {
-            if (StringUtils.startsWith(sid, CommonConst.REMOTE_SID_PREFIX)) {
+        String pid = client.getPid();
+        if (pid.isEmpty()) {
+            if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
                 remoteProcesses.remove(sid);
             }
             //非受管理的本地进程，通知前端进程已经离线
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
+        } else {
+            localServers.remove(pid);
         }
         String msg = String.format("\033[1;96m%s\033[0m 下线！", server);
         WebSocketManager.getInstance().sendConsole(sid, msg);
@@ -106,13 +116,13 @@ public class AgentManager {
                 client.notify();
                 clientMap.remove(sid);
             } else {
-                logger.warn("{} is offlined!", sid);
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
                 TaskEvent event = new TaskEvent(TaskEventEnum.OFFLINE, server, sid);
                 ApplicationContextUtils.publish(event);
                 client.setState(ClientState.OFFLINE);
+                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         }
     }
@@ -139,30 +149,31 @@ public class AgentManager {
 
     /**
      * 来自远程服务器的连接
-     * @param sid 远程服务sid，格式：prefix + pid + name + uuid
+     * @param client 远程服务sid，格式：prefix + pid + name + uuid
      */
-    public void remoteJvm(final String sid) {
+    public void remoteJvm(final AgentClient client) {
+        String sid = client.getSid();
         JvmProcess process = new JvmProcess();
         int index = sid.lastIndexOf(',');
         if (-1 == index) {
-            logger.warn("解析远程sid失败！sid:{}", sid);
             return;
         }
         String str = sid.substring(0, index);
         final int limit = 4;
         String[] s = str.split(CommonConst.COMMA_SPLIT, limit);
         if (s.length != limit) {
-            logger.warn("解析远程sid失败！sid:{}", sid);
             return;
         }
         String pid = s[1];
         String remoteIp = s[2];
         String name = s[3];
         process.setAttached(true);
-        process.setPid(NumberUtils.toInt(pid, CommonConst.INVALID_PID));
+        process.setPid(pid);
         process.setName(name);
         process.setSid(sid);
         process.setRemote(remoteIp);
+        boolean isTrusted = SettingUtils.isTrustedHost(remoteIp);
+        client.setTrusted(isTrusted);
         remoteProcesses.put(sid, process);
         WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
     }
@@ -186,7 +197,6 @@ public class AgentManager {
     public boolean killClient(String server, String sid) {
         final AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            logger.debug("服务已经是退出状态，{}", server);
             return false;
         }
         synchronized (client) {
@@ -206,7 +216,6 @@ public class AgentManager {
                 //失败
                 return false;
             } else {
-                logger.debug("等待目标进程退出完成,耗时:{} ms", costTime);
                 client.setState(ClientState.OFFLINE);
                 WebSocketManager.getInstance().sendConsole(sid, "进程优雅退出成功！");
             }
@@ -227,7 +236,13 @@ public class AgentManager {
         }
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            if (isOnline(sid)) {
+            if (TaskUtils.getPid(sid).isEmpty()) {
+                String msg = formatErrorMsg(server, "未在线，无法执行命令");
+                //未在线，进程不存在
+                WebSocketManager
+                        .getInstance()
+                        .commandEnd(sid, msg, sessionId);
+            } else {
                 //如果进程仍然存活，尝试使用attach重新连接
                 tryReConnect(server, sid, sessionId);
 
@@ -237,18 +252,17 @@ public class AgentManager {
                     WebSocketManager
                             .getInstance()
                             .commandEnd(sid, msg, sessionId);
-                } else {
-                    client.sendCommand(command, sessionId);
                 }
-            } else {
-                String msg = formatErrorMsg(server, "未在线，无法执行命令");
-                //未在线，进程不存在
-                WebSocketManager
-                        .getInstance()
-                        .commandEnd(sid, msg, sessionId);
             }
-        } else {
-            client.sendCommand(command, sessionId);
+        }
+        if (null != client) {
+            if (client.isTrusted()) {
+                client.sendCommand(command, sessionId);
+            } else {
+                String msg = formatErrorMsg(server, "not trusted!");
+                WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
+                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+            }
         }
     }
 
@@ -310,7 +324,9 @@ public class AgentManager {
                 doHeartbeat(server, sid, session);
                 break;
             case CONSOLE:
-                WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
+                if (!checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
+                }
                 break;
             case BACKSPACE:
                 WebSocketManager.getInstance().backspace(sid, resp.getBody(), sessionId);
@@ -320,21 +336,87 @@ public class AgentManager {
                 WebSocketManager.getInstance().stdPrint(sid, resp.getBody(), sessionId);
                 break;
             case JSON_RESULT:
-                WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
+                if (!checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
+                }
                 break;
             case COMMAND_END:
                 commandEnd(sid, resp, sessionId);
+                break;
+            case LOG_APPENDER:
+                onAgentLog(sid, resp.getBody());
                 break;
             case ACTION:
                 this.handleAction(resp.getBody(), sessionId, sid);
                 break;
             default:
-                logger.error("Unknown response type.type:{}, sid:{},server:{}", type, sid, server);
+                //ignore
                 break;
         }
     }
 
+    public void trustOnce(String sid) {
+        AgentClient client = clientMap.getOrDefault(sid, null);
+        if (null != client && !client.isTrusted()) {
+            client.setTrusted(true);
+            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.TRUSTED);
+        }
+    }
+
+    public boolean checkNotTrusted(String sid) {
+        AgentClient client = clientMap.getOrDefault(sid, null);
+        if (null == client) {
+            return true;
+        }
+        if (client.isTrusted()) {
+            return false;
+        }
+        JvmProcess jvm = remoteProcesses.getOrDefault(sid, null);
+        if (null == jvm) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(jvm.getTrusted())) {
+            client.setTrusted(true);
+            return false;
+        }
+        if (SettingUtils.isTrustedHost(jvm.getRemote())) {
+            jvm.setTrusted(true);
+            client.setTrusted(true);
+            return false;
+        }
+        return true;
+    }
+
+    public void onAddTrustedHost(String host) {
+        remoteProcesses.forEach((k, v) -> {
+            if (java.util.Objects.equals(v.getRemote(), host)) {
+                AgentClient client = clientMap.getOrDefault(k, null);
+                if (null != client) {
+                    client.setTrusted(true);
+                    v.setTrusted(true);
+                    WebSocketManager.getInstance().debugProcessEvent(k, AttachStatus.TRUSTED);
+                }
+            }
+        });
+    }
+
+    private void onAgentLog(String sid, String msg) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
+        if (null != writeBytes) {
+            try {
+                writeBytes.invoke(appender, msg.getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+    }
+
     private void commandEnd(String sid, CommandResponse resp, String sessionId) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
         String msg = resp.getBody();
         if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
             msg = AnsiLog.red(msg);
@@ -343,14 +425,18 @@ public class AgentManager {
     }
 
     private void doHeartbeat(String server, String sid, Session session) {
+        if (null == session) {
+            return;
+        }
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
             this.online(server, session, sid);
             this.onServerStarted(server, sid);
-            WebSocketManager.getInstance().sendConsole(sid, server + " reconnected by heartbeat!");
-            logger.info("reconnected by heartbeat {}, {}", server, sid);
+            WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
+            AnsiLog.debug("reconnected by heartbeat {}, {}", server, sid);
             WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
         }
+
         client.heartbeat();
     }
 
@@ -362,9 +448,6 @@ public class AgentManager {
     public void onServerStarted(final String server, final String sid) {
         AgentClient client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            logger.error("Server {} is offline already!", server);
-            String msg = formatErrorMsg(server, "is offline now！");
-            WebSocketManager.getInstance().sendConsole(sid, msg);
             return;
         }
         synchronized (client) {
@@ -388,7 +471,7 @@ public class AgentManager {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
             try {
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                    logger.error("Wait server connect timeout，{}", server);
+                    logger.error("Wait server connect timeout, {}", server);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -397,8 +480,8 @@ public class AgentManager {
             }
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
-                String msg = formatErrorMsg(server, "is offline now！");
-                WebSocketManager.getInstance().sendConsole(sid, server + " connect timeout！");
+                String msg = formatErrorMsg(server, "connect timeout!");
+                WebSocketManager.getInstance().sendConsole(sid, msg);
                 return;
             }
         }
@@ -452,11 +535,14 @@ public class AgentManager {
      * @param pid 进程pid
      * @return 是否为受Jarboot管理的进程
      */
-    public boolean isManageredServer(int pid) {
-        return localProcesses.containsKey(pid);
+    public boolean isManageredServer(String pid) {
+        return localServers.containsKey(pid);
     }
 
     private void handleAction(String data, String sessionId, String sid) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
         JsonNode body = JsonUtils.readAsJsonNode(data);
         if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_PROP_NAME_KEY)) {
             return;
@@ -470,7 +556,7 @@ public class AgentManager {
             case CommandConst.ACTION_NOTICE_INFO:
             case CommandConst.ACTION_NOTICE_WARN:
             case CommandConst.ACTION_NOTICE_ERROR:
-                NoticeEnum level = EnumUtils.getEnum(NoticeEnum.class, action);
+                NoticeEnum level = Enum.valueOf(NoticeEnum.class, action);
                 WebSocketManager.getInstance().notice(param, level, sessionId);
                 break;
             case CommandConst.ACTION_RESTART:
@@ -482,7 +568,7 @@ public class AgentManager {
     }
 
     private String formatErrorMsg(String server, String msg) {
-        return String.format("\033[96;1m%s\033[0m \033[31m%s\033[0m", server, msg);
+        return String.format("\033[96m%s\033[0m \033[31m%s\033[0m", server, msg);
     }
 
     private void trigRestartEvent(String sid) {
@@ -498,5 +584,18 @@ public class AgentManager {
         static final AgentManager INSTANCE = new AgentManager();
     }
 
-    private AgentManager(){}
+    private AgentManager() {
+        //获取日志的appender，当宿主服务发来日志时，使用当前服务的日志系统记录
+        //这里解读了logback日志源码，反射获取写日志文件的类方法
+        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger("ROOT");
+        appender = (ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent>) root
+                .getAppender("FILE");
+        try {
+            writeBytes = ch.qos.logback.core.OutputStreamAppender.class
+                    .getDeclaredMethod("writeBytes", byte[].class);
+            writeBytes.setAccessible(true);
+        } catch (Exception e) {
+            //ignore
+        }
+    }
 }

@@ -6,7 +6,7 @@ import com.mz.jarboot.core.cmd.model.ThreadNode;
 import com.mz.jarboot.core.cmd.model.TraceNode;
 import com.mz.jarboot.core.cmd.model.ThrowNode;
 import com.mz.jarboot.core.utils.DateUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.util.List;
 import static java.lang.String.format;

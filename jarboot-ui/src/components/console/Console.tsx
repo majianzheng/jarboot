@@ -16,8 +16,10 @@ interface ConsoleProps {
     id: string;
     /** 高度 */
     height?: string | number;
-    /** 是否自动滚动到底部，暂不实现 */
+    /** 是否自动滚动到底部 */
     autoScrollEnd?: boolean;
+    /** 文字超出边界时是否自动换行 */
+    wrap: boolean;
 }
 
 enum EventType {
@@ -316,9 +318,8 @@ class Console extends React.PureComponent<ConsoleProps> {
                 const fragment = document.createDocumentFragment();
                 this.lines.forEach(l => fragment.append(l));
                 this.loading.before(fragment);
-                this.codeDom.scrollTop = this.codeDom.scrollHeight;
             }
-            this.scrollToEnd();
+            this.props.autoScrollEnd && this.scrollToEnd();
         } catch (e) {
             Logger.error(e);
         } finally {
@@ -615,7 +616,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
         }
         return text;
-    }
+    };
 
     /**
      * 样式包裹
@@ -919,6 +920,9 @@ class Console extends React.PureComponent<ConsoleProps> {
         const style: any = {display: false === this.props.visible ? 'none' : 'block'};
         if (this.props.height) {
             style.height = this.props.height;
+        }
+        if (this.props.wrap) {
+            style.whiteSpace = "pre-wrap";
         }
         return <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
             {Banner}

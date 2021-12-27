@@ -7,15 +7,14 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
-import com.mz.jarboot.common.VMUtils;
-import org.apache.commons.collections.CollectionUtils;
+import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -91,12 +90,12 @@ public class TaskRunCache {
             process.setPath(path);
             process.setGroup(this.getGroup(sid, path));
 
-            if (AgentManager.getInstance().isOnline(sid)) {
-                process.setStatus(TaskStatus.RUNNING.name());
-            } else if (this.isStarting(sid)) {
+            if (this.isStarting(sid)) {
                 process.setStatus(TaskStatus.STARTING.name());
             } else if (this.isStopping(sid)) {
                 process.setStatus(TaskStatus.STOPPING.name());
+            } else if (AgentManager.getInstance().isOnline(sid)) {
+                process.setStatus(TaskStatus.RUNNING.name());
             } else {
                 process.setStatus(TaskStatus.STOPPED.name());
             }
@@ -155,7 +154,7 @@ public class TaskRunCache {
             return false;
         }
         final String name = dir.getName();
-        if (StringUtils.startsWith(name, CommonConst.DOT)) {
+        if (name.startsWith(CommonConst.DOT)) {
             return false;
         }
         if (StringUtils.containsWhitespace(name)) {
@@ -178,13 +177,12 @@ public class TaskRunCache {
             return;
         }
         Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
-        if (CollectionUtils.isNotEmpty(pidFiles)) {
-            Map<Integer, String> allJvmPid = VMUtils.getInstance().listVM();
+        if (!CollectionUtils.isEmpty(pidFiles)) {
+            Map<String, String> allJvmPid = VMUtils.getInstance().listVM();
             pidFiles.forEach(file -> {
                 try {
                     String text = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-                    int pid = NumberUtils.toInt(text, CommonConst.INVALID_PID);
-                    if (allJvmPid.containsKey(pid)) {
+                    if (allJvmPid.containsKey(text)) {
                         return;
                     }
                 } catch (Exception exception) {
@@ -205,9 +203,8 @@ public class TaskRunCache {
         }
         String[] dirs = excludeDirs.split(CommonConst.COMMA_SPLIT);
         for (String s : dirs) {
-            if (StringUtils.isNotBlank(s)) {
-                s = StringUtils.trim(s);
-                excludeDirSet.add(s);
+            if (!StringUtils.isBlank(s)) {
+                excludeDirSet.add(s.trim());
             }
         }
     }

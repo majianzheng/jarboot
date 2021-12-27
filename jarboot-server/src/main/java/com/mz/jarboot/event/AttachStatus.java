@@ -20,4 +20,14 @@ public enum AttachStatus {
      * 已经退出
      */
     EXITED,
+
+    /**
+     * 不被信任的
+     */
+    NOT_TRUSTED,
+
+    /**
+     * 信任的
+     */
+    TRUSTED,
 }

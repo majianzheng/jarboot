@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.utils;
 
 import com.alibaba.deps.org.objectweb.asm.Type;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
 import com.mz.jarboot.core.cmd.model.ClassVO;
@@ -26,7 +27,7 @@ public class ClassUtils {
 
     public static String getCodeSource(final CodeSource cs) {
         if (null == cs || null == cs.getLocation() || null == cs.getLocation().getFile()) {
-            return com.mz.jarboot.core.constant.CoreConstant.EMPTY_STRING;
+            return StringUtils.EMPTY;
         }
 
         return cs.getLocation().getFile();

@@ -5,9 +5,8 @@ import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.DefaultValue;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.BasicTypeConvert;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -190,7 +189,7 @@ public class CommandArgsParser {
     }
 
     private void doInitArgumentField(Method method, Argument argument) {
-        String arg = CoreConstant.EMPTY_STRING;
+        String arg = StringUtils.EMPTY;
         if (argument.index() < arguments.size()) {
             arg = arguments.get(argument.index());
         } else {
@@ -234,7 +233,7 @@ public class CommandArgsParser {
             callMethod(method, values);
             return;
         }
-        String value = CoreConstant.EMPTY_STRING;
+        String value = StringUtils.EMPTY;
         if (null != values && !values.isEmpty()) {
             value = values.get(0);
         }
@@ -263,7 +262,7 @@ public class CommandArgsParser {
 
     private static String formatParamError(String name, Method method) {
         Description description = method.getAnnotation(Description.class);
-        String desc = null == description ? CoreConstant.EMPTY_STRING : description.value();
+        String desc = null == description ? StringUtils.EMPTY : description.value();
         return String.format("The argument '%s' is required, description: %s", name, desc);
     }
 }

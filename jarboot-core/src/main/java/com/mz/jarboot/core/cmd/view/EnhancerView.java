@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.EnhancerModel;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * Term view for EnhancerModel
@@ -14,6 +14,6 @@ public class EnhancerView implements ResultView<EnhancerModel> {
         if (result.getEffect() != null) {
             return ViewRenderUtil.renderEnhancerAffect(result.getEffect());
         }
-        return CoreConstant.EMPTY_STRING;
+        return StringUtils.EMPTY;
     }
 }

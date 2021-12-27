@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
-import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;

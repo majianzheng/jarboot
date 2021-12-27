@@ -1,8 +1,8 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.common.NetworkUtils;
+import com.mz.jarboot.common.utils.JsonUtils;
+import com.mz.jarboot.common.utils.NetworkUtils;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
@@ -12,6 +12,7 @@ import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 import com.mz.jarboot.core.utils.metrics.SumRateCounter;
 import org.slf4j.Logger;
@@ -192,7 +193,7 @@ public class DashboardCommand extends AbstractCommand {
             List<TomcatInfoVO.ConnectorStats> connectorStats = new ArrayList<TomcatInfoVO.ConnectorStats>();
             JsonNode tomcatConnectorStats = JsonUtils.readAsJsonNode(connectorStatResponse.getContent());
             for (JsonNode stat : tomcatConnectorStats) {
-                String connectorName = stat.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
+                String connectorName = stat.get("name").asText(StringUtils.EMPTY).replace("\"", "");
                 long bytesReceived = stat.get("bytesReceived").asLong(0);
                 long bytesSent = stat.get("bytesSent").asLong(0);
                 long processingTime = stat.get("processingTime").asLong(0);
@@ -227,7 +228,7 @@ public class DashboardCommand extends AbstractCommand {
             List<TomcatInfoVO.ThreadPool> threadPools = new ArrayList<TomcatInfoVO.ThreadPool>();
             JsonNode threadPoolInfos = JsonUtils.readAsJsonNode(threadPoolResponse.getContent());
             for (JsonNode info : threadPoolInfos) {
-                String name = info.get("name").asText(CoreConstant.EMPTY_STRING).replace("\"", "");
+                String name = info.get("name").asText(StringUtils.EMPTY).replace("\"", "");
                 long busy = info.get("threadBusy").asLong(0);
                 long total = info.get("threadCount").asLong(0);
                 threadPools.add(new TomcatInfoVO.ThreadPool(name, busy, total));

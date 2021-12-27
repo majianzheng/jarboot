@@ -3,6 +3,7 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.exception.AccessException;
@@ -10,8 +11,6 @@ import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.RoleService;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +31,7 @@ import java.util.List;
  * 鉴权接口
  * @author majianzheng
  */
-@RequestMapping(value = "/api/auth")
+@RequestMapping(value = "/api/jarboot/auth")
 @Controller
 public class AuthController {
     private static final int DEFAULT_PAGE_NO = 1;
@@ -81,7 +81,7 @@ public class AuthController {
         ResponseForObject<JarbootUser> result = new ResponseForObject<>();
 
         String username = request.getParameter(PARAM_USERNAME);
-        if (StringUtils.isEmpty(username) && StringUtils.isNotBlank(token)) {
+        if (StringUtils.isEmpty(username) && !StringUtils.isBlank(token)) {
             // 已经登录了，鉴定权限
             try {
                 jwtTokenManager.validateToken(token);
@@ -107,7 +107,7 @@ public class AuthController {
         user.setAccessToken(token);
         user.setTokenTtl(expireSeconds);
         List<RoleInfo> roleInfoInfoList = getRoles(username);
-        if (CollectionUtils.isNotEmpty(roleInfoInfoList)) {
+        if (!CollectionUtils.isEmpty(roleInfoInfoList)) {
             for (RoleInfo roleInfo : roleInfoInfoList) {
                 if (roleInfo.getRole().equals(AuthConst.ADMIN_ROLE)) {
                     user.setGlobalAdmin(true);
@@ -140,7 +140,7 @@ public class AuthController {
 
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
+        if (!StringUtils.isBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
             return bearerToken.substring(7);
         }
         return request.getParameter(AuthConst.ACCESS_TOKEN);

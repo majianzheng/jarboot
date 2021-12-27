@@ -5,9 +5,8 @@ import com.mz.jarboot.core.cmd.model.ChangeResultVO;
 import com.mz.jarboot.core.cmd.model.EnhancerAffectVO;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HtmlNodeUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -177,7 +176,7 @@ public class ViewRenderUtil {
             rows = new ArrayList<>();
         }
         if (null == title) {
-            title = CoreConstant.EMPTY_STRING;
+            title = StringUtils.EMPTY;
         }
         if (border < 0) {
             border = 0;
@@ -198,7 +197,7 @@ public class ViewRenderUtil {
             headers.forEach(header ->
                     tableBuilder
                             .append("<th>")
-                            .append(null == header ? CoreConstant.EMPTY_STRING : header)
+                            .append(null == header ? StringUtils.EMPTY : header)
                             .append("</th>"));
             tableBuilder.append("</tr>");
         }
@@ -208,7 +207,7 @@ public class ViewRenderUtil {
                 row.forEach(cell ->
                         tableBuilder
                                 .append("<td>")
-                                .append(null == cell ? CoreConstant.EMPTY_STRING : cell)
+                                .append(null == cell ? StringUtils.EMPTY : cell)
                                 .append("</td>"));
                 tableBuilder.append("</tr>");
             });

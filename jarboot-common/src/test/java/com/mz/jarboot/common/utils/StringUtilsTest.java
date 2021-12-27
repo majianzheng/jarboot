@@ -1,4 +1,4 @@
-package com.mz.jarboot.core.utils;
+package com.mz.jarboot.common.utils;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -141,7 +141,6 @@ public class StringUtilsTest {
 
     @Test
     public void testIsEmpty() {
-        Assert.assertFalse(StringUtils.isEmpty(-2147483647));
         Assert.assertFalse(StringUtils.isEmpty("foo"));
         Assert.assertTrue(StringUtils.isEmpty(""));
     }

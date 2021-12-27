@@ -1,7 +1,7 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,7 +30,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         
         String jwt = resolveToken(request);
         
-        if (StringUtils.isNotBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (!StringUtils.isBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 this.tokenManager.validateToken(jwt);
             } catch (Exception e) {
@@ -55,11 +55,11 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
      */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
+        if (!StringUtils.isBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
             return bearerToken.substring(AuthConst.TOKEN_PREFIX.length());
         }
         String jwt = request.getParameter(AuthConst.ACCESS_TOKEN);
-        if (StringUtils.isNotBlank(jwt)) {
+        if (!StringUtils.isBlank(jwt)) {
             return jwt;
         }
         return null;

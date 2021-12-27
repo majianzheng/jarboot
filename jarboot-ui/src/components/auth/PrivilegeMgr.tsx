@@ -42,7 +42,7 @@ const PrivilegeMgr = memo(() => {
         }).catch(CommonNotice.errorFormatted);
     };
 
-    const onSelectPermission = (selectedKeysValue: React.Key[], info: any) => {
+    const onSelectPermission = (selectedKeysValue: React.Key[]) => {
         setSelectedKeys(selectedKeysValue);
     };
 

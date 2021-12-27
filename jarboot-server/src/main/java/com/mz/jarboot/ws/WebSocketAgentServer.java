@@ -1,7 +1,7 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandResponse;
+import com.mz.jarboot.common.protocol.CommandResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,14 +42,16 @@ public class WebSocketAgentServer {
      *
      * @param message 客户端发送过来的消息*/
     @OnMessage
-    public void onBinaryMessage(byte[] message, Session session,
+    public void onBinaryMessage(byte[] message,
+                                Session session,
                                 @PathParam("server") String server,
                                 @PathParam("sid") String sid) {
-        onTextMessage(new String(message), session, server, sid);
+        //ignore
     }
 
     @OnMessage
-    public void onTextMessage(String message, Session session,
+    public void onTextMessage(String message,
+                              Session session,
                               @PathParam("server") String server,
                               @PathParam("sid") String sid) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
@@ -62,7 +64,8 @@ public class WebSocketAgentServer {
      * @param error 错误
      */
     @OnError
-    public void onError(Session session, Throwable error,
+    public void onError(Session session,
+                        Throwable error,
                         @PathParam("server") String server,
                         @PathParam("sid") String sid) {
         logger.debug( "{} socket connection error!{}", server, error.getMessage());

@@ -18,7 +18,7 @@ In the test environment and daily built integrated environment, a series of jar 
 
 [中文说明/Chinese Documentation](README_CN.md)
 
-📚 Document: https://www.yuque.com/jarboot/usage/quick-start
+📚 Document: https://www.yuque.com/jarboot
 
 🍏 Best practices 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️ 
 

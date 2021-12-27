@@ -2,7 +2,7 @@ package com.mz.jarboot.core.utils;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.JsonUtils;
+import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
 import okhttp3.*;

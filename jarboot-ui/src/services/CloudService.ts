@@ -15,14 +15,14 @@ export default class CloudService {
         return Request.get(`${urlBase}/version`, {});
     }
 
-    public static pushServerDirectory(file: File, force?: boolean) {
+    public static pushServerDirectory(file: File) {
         let form :FormData = new FormData();
         if (file) {
             form.append("file", file);
         } else {
-            Logger.error("file is null.", file)
+            Logger.error("file is null.", file);
+            return Promise.reject("file is null");
         }
-        form.append("force", `${(force ?? false)}`);
         return Request.post(`${urlBase}/push/server`, form);
     }
 }

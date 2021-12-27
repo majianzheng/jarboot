@@ -61,7 +61,7 @@ const BottomBar = (props: BottomBarProp) => {
                 return;
         }
         props?.onViewChange(key, value);
-    }
+    };
 
     const menu = (
         <Menu>

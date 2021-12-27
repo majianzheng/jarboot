@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.utils;
 
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import com.mz.jarboot.core.utils.matcher.RegexMatcher;

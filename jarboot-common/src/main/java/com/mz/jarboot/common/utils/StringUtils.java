@@ -1,7 +1,5 @@
-package com.mz.jarboot.core.utils;
+package com.mz.jarboot.common.utils;
 
-import com.mz.jarboot.core.constant.CoreConstant;
-import org.slf4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,13 +9,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author majianzheng
- * 以下代码来自开源项目Arthas
  */
 @SuppressWarnings("all")
 public abstract class StringUtils {
-    private static final Logger logger = LogUtils.getLogger();
-
     public static final String SPACE = " ";
+    public static final String EMPTY = "";
+    public static final String LF = "\n";
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**
@@ -41,12 +38,11 @@ public abstract class StringUtils {
      */
     public static String objectToString(Object obj) {
         if (null == obj) {
-            return CoreConstant.EMPTY_STRING;
+            return EMPTY;
         }
         try {
             return obj.toString();
         } catch (Throwable t) {
-            logger.error("objectToString error, obj class: {}", obj.getClass(), t);
             return "ERROR DATA!!! Method toString() throw exception. obj class: " + obj.getClass()
                     + ", exception class: " + t.getClass()
                     + ", exception message: " + t.getMessage();
@@ -86,7 +82,7 @@ public abstract class StringUtils {
 
     public static String concat(String separator, Class<?>... types) {
         if (types == null || types.length == 0) {
-            return CoreConstant.EMPTY_STRING;
+            return EMPTY;
         }
 
         StringBuilder builder = new StringBuilder();
@@ -102,7 +98,7 @@ public abstract class StringUtils {
 
     public static String concat(String separator, String... strs) {
         if (strs == null || strs.length == 0) {
-            return CoreConstant.EMPTY_STRING;
+            return EMPTY;
         }
 
         StringBuilder builder = new StringBuilder();
@@ -212,8 +208,12 @@ public abstract class StringUtils {
     public StringUtils() {
     }
 
-    public static boolean isEmpty(Object str) {
-        return str == null || "".equals(str);
+    public static boolean isEmpty(final CharSequence cs) {
+        return cs == null || cs.length() == 0;
+    }
+
+    public static boolean isNotEmpty(final CharSequence cs) {
+        return !isEmpty(cs);
     }
 
     public static boolean hasLength(CharSequence str) {
@@ -404,10 +404,10 @@ public abstract class StringUtils {
         if (isEmpty(str)) {
             return str;
         } else if (separator == null) {
-            return "";
+            return EMPTY;
         } else {
             int pos = str.indexOf(separator);
-            return pos == -1 ? "" : str.substring(pos + separator.length());
+            return pos == -1 ? EMPTY : str.substring(pos + separator.length());
         }
     }
 
@@ -425,7 +425,7 @@ public abstract class StringUtils {
             return str;
         }
         if (separator.isEmpty()) {
-            return CoreConstant.EMPTY_STRING;
+            return EMPTY;
         }
         final int pos = str.indexOf(separator);
         if (pos == -1) {
@@ -438,10 +438,10 @@ public abstract class StringUtils {
         if (isEmpty(str)) {
             return str;
         } else if (isEmpty(separator)) {
-            return "";
+            return EMPTY;
         } else {
             int pos = str.lastIndexOf(separator);
-            return pos != -1 && pos != str.length() - separator.length() ? str.substring(pos + separator.length()) : "";
+            return (pos != -1 && pos != str.length() - separator.length()) ? str.substring(pos + separator.length()) : EMPTY;
         }
     }
 
@@ -484,7 +484,7 @@ public abstract class StringUtils {
     }
 
     public static String delete(String inString, String pattern) {
-        return replace(inString, pattern, "");
+        return replace(inString, pattern, EMPTY);
     }
 
     public static String deleteAny(String inString, String charsToDelete) {
@@ -505,11 +505,11 @@ public abstract class StringUtils {
     }
 
     public static String quote(String str) {
-        return str != null?"\'" + str + "\'":null;
+        return str != null ? ("\'" + str + "\'") : null;
     }
 
     public static Object quoteIfString(Object obj) {
-        return obj instanceof String?quote((String)obj):obj;
+        return obj instanceof String ? quote((String)obj) : obj;
     }
 
     public static String unqualify(String qualifiedName) {
@@ -545,7 +545,7 @@ public abstract class StringUtils {
     }
 
     public static String[] toStringArray(Collection<String> collection) {
-        return collection == null?null:(String[])collection.toArray(new String[0]);
+        return collection == null ? null : (String[])collection.toArray(new String[0]);
     }
 
     public static String[] split(String toSplit, String delimiter) {
@@ -568,7 +568,7 @@ public abstract class StringUtils {
     }
 
     public static Properties splitArrayElementsIntoProperties(String[] array, String delimiter, String charsToDelete) {
-        if(ObjectUtils.isEmpty(array)) {
+        if(null == array || 0 == array.length) {
             return null;
         } else {
             Properties result = new Properties();
@@ -632,7 +632,7 @@ public abstract class StringUtils {
         } else {
             ArrayList<String> result = new ArrayList<String>();
             int pos;
-            if("".equals(delimiter)) {
+            if(EMPTY.equals(delimiter)) {
                 for(pos = 0; pos < str.length(); ++pos) {
                     result.add(deleteAny(str.substring(pos, pos + 1), charsToDelete));
                 }
@@ -686,7 +686,7 @@ public abstract class StringUtils {
      */
     public static String join(Object[] array, String separator) {
         if (separator == null) {
-            separator = "";
+            separator = EMPTY;
         }
         int arraySize = array.length;
         int bufSize = (arraySize == 0 ? 0 : (array[0].toString().length() + separator.length()) * arraySize);
@@ -785,7 +785,7 @@ public abstract class StringUtils {
             return null;
         }
         if (repeat <= 0) {
-            return CoreConstant.EMPTY_STRING;
+            return EMPTY;
         }
         final int inputLength = str.length();
         if (repeat == 1 || inputLength == 0) {

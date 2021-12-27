@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocol;
 
 /**
  * 命令响应类型
@@ -34,6 +34,11 @@ public enum ResponseType {
      * 执行执行完成
      */
     COMMAND_END,
+
+    /**
+     * 日志记录
+     */
+    LOG_APPENDER,
 
     /**
      * 动作，请求jarboot server执行

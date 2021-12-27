@@ -8,7 +8,7 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.model.SystemEnvModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * @author majianzheng

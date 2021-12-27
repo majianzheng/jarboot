@@ -2,9 +2,11 @@ package com.mz.jarboot.core;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.OSUtils;
+import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.HttpUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -262,15 +264,14 @@ public class Jarboot {
     }
 
     private void selectAttach() {
-        Map<Integer, String> vms = VMUtils.getInstance().listVM();
+        Map<String, String> vms = VMUtils.getInstance().listVM();
         //排除自己
-        int curPid = Integer.parseInt(PidFileHelper.PID);
-        vms.remove(curPid);
+        vms.remove(PidFileHelper.PID);
         if (vms.isEmpty()) {
             AnsiLog.info("Can't found any java processes.");
             return;
         }
-        Map<Integer, Integer> indexToPid = new HashMap<>(16);
+        Map<Integer, String> indexToPid = new HashMap<>(16);
         AtomicInteger index = new AtomicInteger(0);
         AnsiLog.info("Found existing java process, " +
                 "please choose one and input the serial number of the process, eg : 1. Then hit ENTER.");
@@ -294,11 +295,11 @@ public class Jarboot {
         try {
             String line = System.console().readLine();
             int i = StringUtils.isBlank(line) ? 1 : Integer.parseInt(line);
-            Integer select = indexToPid.getOrDefault(i, null);
+            String select = indexToPid.getOrDefault(i, null);
             if (null == select) {
                 AnsiLog.println("Please select an available pid.");
             } else {
-                this.pid = select.toString();
+                this.pid = select;
                 doAttach();
             }
         } catch (NumberFormatException e) {
@@ -335,18 +336,18 @@ public class Jarboot {
                 .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -pid [eg: 6868]"))
                 .append(CoreConstant.EXAMPLE)
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899 -pid 6868"))
-                .append('\n')
+                .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt + " -pid 6868"))
-                .append('\n')
+                .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899"))
-                .append('\n')
+                .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt))
-                .append('\n')
+                .append(StringUtils.LF)
                 .append("Start process sync or async:\nUsage: ")
                 .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -async[sync] [eg: -jar demo.jar]"))
                 .append(CoreConstant.EXAMPLE)
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899 -sync -jar demo-app.jar"))
-                .append('\n')
+                .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt + " -async -jar demo-app.jar"))
         ;
         AnsiLog.println(sb.toString());

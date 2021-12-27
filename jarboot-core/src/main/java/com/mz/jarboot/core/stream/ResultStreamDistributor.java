@@ -1,16 +1,16 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.common.CmdProtocol;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.protocol.CmdProtocol;
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -84,6 +84,19 @@ public class ResultStreamDistributor extends Thread {
             resp.setSessionId(CommandConst.SESSION_COMMON);
             write(resp);
         }
+    }
+
+    /**
+     * 分布式日志记录
+     * @param text 日志
+     */
+    public static void log(String text) {
+        CommandResponse resp = new CommandResponse();
+        resp.setSuccess(true);
+        resp.setResponseType(ResponseType.LOG_APPENDER);
+        resp.setBody(text);
+        resp.setSessionId(CommandConst.SESSION_COMMON);
+        write(resp);
     }
 
     /**

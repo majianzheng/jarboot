@@ -9,20 +9,20 @@ import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -52,8 +52,7 @@ public class JarbootBootstrap {
         } else {
             String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
             //初始化日志模块
-            boolean persist = CommonConst.INVALID_PID != PidFileHelper.getServerPid(sid);
-            LogUtils.init(jarbootHome, serverName, sid, persist);
+            LogUtils.init(jarbootHome, serverName);
             logger = LogUtils.getLogger();
 
             //2.环境初始化
@@ -103,8 +102,8 @@ public class JarbootBootstrap {
                 WsClientFactory.getInstance().changeHost(host);
             }
             String sid = clientData.getSid();
-            int pid = PidFileHelper.getServerPid(sid);
-            if (CommonConst.INVALID_PID != pid && !PidFileHelper.PID.equals(String.valueOf(pid))) {
+            String pid = PidFileHelper.getServerPidString(sid);
+            if (!pid.isEmpty() && !PidFileHelper.PID.equals(pid)) {
                 logger.warn("pid not match current: {}, pid file: {}", PidFileHelper.PID, pid);
                 PidFileHelper.writePidFile(sid);
             }
@@ -191,6 +190,7 @@ public class JarbootBootstrap {
         String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
         if (null == serverName) {
             serverName = System.getProperty("sun.java.command", "Name-" + PidFileHelper.PID);
+            serverName = serverName.split(StringUtils.SPACE, 2)[0];
         }
 
         StringBuilder sb = new StringBuilder();
@@ -201,11 +201,8 @@ public class JarbootBootstrap {
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
 
-        byte[] encoded = Base64.getEncoder().encode(sb.toString().getBytes(StandardCharsets.UTF_8));
-        String code = new String(encoded, StandardCharsets.UTF_8);
-        String url = String.format("http://%s/api/jarboot/public/agent/agentClient?code=%s",
-                host, code);
-        clientData = HttpUtils.getJson(url, AgentClientPojo.class);
+        String url = String.format("http://%s/api/jarboot/public/agent/agentClient", host);
+        clientData = HttpUtils.postJson(url, sb.toString(), AgentClientPojo.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }

@@ -15,4 +15,9 @@ public class ExitCommand extends AbstractInternalCommand {
         session.end(true, "Application exiting...");
         System.exit(0);
     }
+
+    @Override
+    public boolean notAllowPublicCall() {
+        return true;
+    }
 }

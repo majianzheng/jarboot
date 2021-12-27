@@ -397,7 +397,7 @@ public abstract class ObjectUtils {
     }
 
     public static String identityToString(Object obj) {
-        return obj == null?"":obj.getClass().getName() + "@" + getIdentityHexString(obj);
+        return obj == null ? EMPTY_STRING : (obj.getClass().getName() + "@" + getIdentityHexString(obj));
     }
 
     public static String getIdentityHexString(Object obj) {
@@ -405,16 +405,16 @@ public abstract class ObjectUtils {
     }
 
     public static String getDisplayString(Object obj) {
-        return obj == null?"":nullSafeToString(obj);
+        return obj == null ? EMPTY_STRING : nullSafeToString(obj);
     }
 
     public static String nullSafeClassName(Object obj) {
-        return obj != null?obj.getClass().getName():"null";
+        return obj != null ? obj.getClass().getName() : NULL_STRING;
     }
 
     public static String nullSafeToString(Object obj) {
         if(obj == null) {
-            return "null";
+            return NULL_STRING;
         } else if(obj instanceof String) {
             return (String)obj;
         } else if(obj instanceof Object[]) {
@@ -437,31 +437,31 @@ public abstract class ObjectUtils {
             return nullSafeToString((short[])((short[])obj));
         } else {
             String str = obj.toString();
-            return str != null?str:"";
+            return str != null ? str : EMPTY_STRING;
         }
     }
 
     public static String nullSafeToString(Object[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -469,25 +469,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(boolean[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -495,25 +495,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(byte[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -521,25 +521,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(char[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append("\'").append(array[i]).append("\'");
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -547,25 +547,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(double[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -573,25 +573,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(float[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -599,25 +599,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(int[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -625,25 +625,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(long[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }
@@ -651,25 +651,25 @@ public abstract class ObjectUtils {
 
     public static String nullSafeToString(short[] array) {
         if(array == null) {
-            return "null";
+            return NULL_STRING;
         } else {
             int length = array.length;
             if(length == 0) {
-                return "{}";
+                return EMPTY_ARRAY;
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for(int i = 0; i < length; ++i) {
                     if(i == 0) {
-                        sb.append("{");
+                        sb.append(ARRAY_START);
                     } else {
-                        sb.append(", ");
+                        sb.append(ARRAY_ELEMENT_SEPARATOR);
                     }
 
                     sb.append(array[i]);
                 }
 
-                sb.append("}");
+                sb.append(ARRAY_END);
                 return sb.toString();
             }
         }

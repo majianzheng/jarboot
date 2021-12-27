@@ -27,7 +27,9 @@ public class PluginsController {
      */
     @PostMapping
     @ResponseBody
-    public ResponseSimple uploadPlugin(@RequestParam("file") MultipartFile file, @RequestParam("type") String type) {
+    @Permission("Add plugin")
+    public ResponseSimple uploadPlugin(@RequestParam("file") MultipartFile file,
+                                       @RequestParam("type") String type) {
         pluginsService.uploadPlugin(file, type);
         return new ResponseSimple();
     }

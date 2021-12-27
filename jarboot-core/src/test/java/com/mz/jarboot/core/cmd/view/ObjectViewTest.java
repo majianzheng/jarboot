@@ -18,13 +18,13 @@ public class ObjectViewTest {
 
     @Test
     public void testInteger() {
-        ObjectView objectView = new ObjectView(new Integer(1), 3);
+        ObjectView objectView = new ObjectView(1, 3);
         Assert.assertEquals("@Integer[1]", objectView.draw());
     }
 
     @Test
     public void testChar() {
-        ObjectView objectView = new ObjectView(new Character('中'), 3);
+        ObjectView objectView = new ObjectView('中', 3);
         Assert.assertEquals("@Character[中]", objectView.draw());
     }
 

@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.utils;
 
 import java.io.InputStream;
 import java.util.Comparator;

@@ -18,7 +18,7 @@
 
 English version goes [here](README.md).
 
-📚 文档：https://www.yuque.com/jarboot/usage/quick-start
+📚 文档：https://www.yuque.com/jarboot
 
 🍏 最佳实践 🔥 : [Jarboot with Spring Cloud Alibaba Example](https://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example) ⭐️
 

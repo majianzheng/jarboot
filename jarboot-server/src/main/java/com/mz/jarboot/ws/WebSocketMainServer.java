@@ -2,15 +2,15 @@ package com.mz.jarboot.ws;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.CommandConst;
-import com.mz.jarboot.common.JsonUtils;
-import com.mz.jarboot.constant.AuthConst;
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.utils.JsonUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.event.AttachStatus;
 import com.mz.jarboot.security.JwtTokenManager;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -30,6 +30,10 @@ public class WebSocketMainServer {
     private static final int CMD_FUNC = 1;
     /** 取消执行命令func */
     private static final int CANCEL_FUNC = 2;
+    /** 信任主机func */
+    private static final int TRUST_ONCE_FUNC = 3;
+    /** 检查是否信任主机func */
+    private static final int CHECK_TRUSTED_FUNC = 4;
     /** json请求中server */
     private static final String SERVER_KEY = "server";
     /** json请求中func */
@@ -38,6 +42,8 @@ public class WebSocketMainServer {
     private static final String BODY_KEY = "body";
     /** json请求中sid */
     private static final String SID_KEY = "sid";
+    /** 心跳ping */
+    private static final String PING = "ping";
 
     private static class Holder {
         static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
@@ -61,9 +67,6 @@ public class WebSocketMainServer {
             return;
         }
         String token = array.get(0);
-        if (StringUtils.isNotBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
-            token = token.substring(AuthConst.TOKEN_PREFIX.length());
-        }
         //校验token合法性
         try {
             Holder.JWT_MGR.validateToken(token);
@@ -104,6 +107,9 @@ public class WebSocketMainServer {
         if (StringUtils.isEmpty(message)) {
             return;
         }
+        if (PING.equals(message)) {
+            return;
+        }
         JsonNode json = JsonUtils.readAsJsonNode(message);
         if (null == json) {
             logger.error("解析json失败！{}", message);
@@ -119,6 +125,14 @@ public class WebSocketMainServer {
                 break;
             case CANCEL_FUNC:
                 AgentManager.getInstance().sendInternalCommand(sid, CommandConst.CANCEL_CMD, session.getId());
+                break;
+            case TRUST_ONCE_FUNC:
+                AgentManager.getInstance().trustOnce(sid);
+                break;
+            case CHECK_TRUSTED_FUNC:
+                if (AgentManager.getInstance().checkNotTrusted(sid)) {
+                    WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+                }
                 break;
             default:
                 logger.debug("Unknown func, func:{}", func);

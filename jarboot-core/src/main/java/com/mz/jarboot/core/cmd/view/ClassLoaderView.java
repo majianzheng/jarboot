@@ -10,6 +10,7 @@ import com.mz.jarboot.core.cmd.view.element.Element;
 import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.core.cmd.view.element.TreeElement;
 import com.mz.jarboot.core.utils.ClassUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -71,7 +72,7 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
 
     private void drawClassLoaderUrls(StringBuilder process, List<String> urls) {
         process.append(renderClassLoaderUrls(urls));
-        process.append(com.mz.jarboot.core.constant.CoreConstant.EMPTY_STRING);
+        process.append(StringUtils.EMPTY);
     }
 
     private void drawLoadClass(StringBuilder process, ClassDetailVO loadClass) {

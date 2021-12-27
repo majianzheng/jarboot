@@ -2,7 +2,7 @@ package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.JvmItem;
 import com.mz.jarboot.core.cmd.model.JvmModel;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class JvmView implements ResultView<JvmModel> {
     private void renderGarbageCollectors(StringBuilder sb, List<JvmModel.GarbageCollectorItem> list) {
         List<String> headers = new ArrayList<>();
         List<List<String>> rows = new ArrayList<>();
-        headers.add(CoreConstant.EMPTY_STRING);
+        headers.add(StringUtils.EMPTY);
         headers.add("collectionCount");
         headers.add("collectionTime (ms)");
         list.forEach(item -> {

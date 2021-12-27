@@ -4,11 +4,10 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.PluginInfo;
 import com.mz.jarboot.service.PluginsService;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -41,7 +40,7 @@ public class PluginsServiceImpl implements PluginsService {
     @Override
     public void uploadPlugin(MultipartFile file, String type) {
         String name = file.getOriginalFilename();
-        if (!StringUtils.endsWith(name, CommonConst.JAR_EXT)) {
+        if (null == name || !name.endsWith(CommonConst.JAR_EXT)) {
             return;
         }
         File dir = this.getPluginsDir(type);
@@ -72,7 +71,7 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Override
     public void readPluginStatic(String type, String plugin, String filename, OutputStream outputStream) {
-        if (!StringUtils.endsWith(plugin, CommonConst.JAR_EXT)) {
+        if (!plugin.endsWith(CommonConst.JAR_EXT)) {
             plugin += CommonConst.JAR_EXT;
         }
         File file = getPluginFile(type, plugin);

@@ -1,8 +1,8 @@
 package com.mz.jarboot.core.cmd.view;
 
 import com.mz.jarboot.core.cmd.model.StackModel;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.utils.DateUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
 
 /**
@@ -18,13 +18,13 @@ public class StackView implements ResultView<StackModel> {
                 .append("ts=")
                 .append(DateUtils.formatDate(result.getTs()))
                 .append(";")
-                .append(ThreadUtil.getThreadTitle(result)).append(CoreConstant.BR);
+                .append(ThreadUtil.getThreadTitle(result)).append(StringUtils.LF);
 
         StackTraceElement[] stackTraceElements = result.getStackTrace();
         StackTraceElement locationStackTraceElement = stackTraceElements[0];
         String locationString = String.format("    @%s.%s()", locationStackTraceElement.getClassName(),
                 locationStackTraceElement.getMethodName());
-        sb.append(locationString).append(CoreConstant.BR);
+        sb.append(locationString).append(StringUtils.LF);
 
         int skip = 1;
         for (int index = skip; index < stackTraceElements.length; index++) {

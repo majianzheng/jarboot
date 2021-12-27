@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.protocol;
 
 /**
  * We defined a response data structure or protocol used give back the executed result.

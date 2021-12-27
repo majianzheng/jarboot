@@ -5,14 +5,18 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.utils.OSUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -47,16 +51,25 @@ public class SettingUtils {
     private static String agentJar;
     /** file encoding选项 */
     private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
+    /** 本地地址 */
+    private static String localHost = null;
+    /** 受信任的远程服务器 */
+    private static final String TRUSTED_HOSTS_FILE;
+    private static final HashSet<String> TRUSTED_HOSTS = new HashSet<>(16);
 
     static {
-        String home = System.getProperty(CommonConst.JARBOOT_HOME);
-        JARBOOT_CONF = home + File.separator + "conf" + File.separator + "jarboot.properties";
+        final String home = System.getProperty(CommonConst.JARBOOT_HOME);
+        final String conf = home + File.separator + "conf" + File.separator;
+        JARBOOT_CONF = conf + "jarboot.properties";
         BIN_DIR = home + File.separator + "bin";
         LOG_DIR = home + File.separator + "logs";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
         initGlobalSetting();
+        //初始化受信任服务器列表
+        TRUSTED_HOSTS_FILE = conf + "trusted-hosts.conf";
+        initTrustedHosts();
         //初始化默认目录及配置路径
         DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
     }
@@ -85,8 +98,25 @@ public class SettingUtils {
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
         String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
-        boolean servicesAutoStart = StringUtils.equalsIgnoreCase(SettingPropConst.VALUE_TRUE, s);
+        boolean servicesAutoStart = SettingPropConst.VALUE_TRUE.equalsIgnoreCase(s);
         GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
+    }
+
+    private static void initTrustedHosts() {
+        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.isFile()) {
+            FileUtils.deleteQuietly(file);
+            return;
+        }
+        try {
+            List<String> lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
+            lines.forEach(line -> TRUSTED_HOSTS.add(line.trim()));
+        } catch (Exception e) {
+            //ignore
+        }
     }
 
     /**
@@ -133,7 +163,7 @@ public class SettingUtils {
             } else {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
-            if (!StringUtils.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
+            if (!java.util.Objects.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
                 workspaceChanged = true;
             }
             GLOBAL_SETTING.setWorkspace(workspace);
@@ -197,8 +227,11 @@ public class SettingUtils {
     }
 
     public static String getAttachArgs() {
-        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
-        return String.format("127.0.0.1:%s", port);
+        if (null == localHost) {
+            String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
+            localHost = String.format("127.0.0.1:%s", port);
+        }
+        return localHost;
     }
 
     /**
@@ -224,7 +257,7 @@ public class SettingUtils {
         }
 
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(jarList)) {
+        if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
             WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
             return StringUtils.EMPTY;
@@ -285,7 +318,7 @@ public class SettingUtils {
             }
             lines.stream()
                     //去除首尾空格
-                    .map(StringUtils::trim)
+                    .map(String::trim)
                     //以#开头的视为注释
                     .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
                     .forEach(line -> sb.append(line).append(StringUtils.SPACE));
@@ -321,6 +354,28 @@ public class SettingUtils {
      */
     public static String createSid(String serverPath) {
         return String.format("x%x", serverPath.hashCode());
+    }
+
+    public static boolean isTrustedHost(String host) {
+        if (StringUtils.isBlank(host)) {
+            return false;
+        }
+        return TRUSTED_HOSTS.contains(host);
+    }
+
+    public static void addTrustedHost(String host) throws IOException {
+        if (StringUtils.isBlank(host)) {
+            throw new JarbootException("Host is empty!");
+        }
+        host = host.trim();
+        if (TRUSTED_HOSTS.contains(host)) {
+            return;
+        }
+        synchronized (TRUSTED_HOSTS) {
+            File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+            FileUtils.writeStringToFile(file, host, StandardCharsets.UTF_8, true);
+            TRUSTED_HOSTS.add(host);
+        }
     }
 
     private SettingUtils() {

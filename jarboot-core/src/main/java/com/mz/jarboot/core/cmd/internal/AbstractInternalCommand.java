@@ -22,4 +22,11 @@ public abstract class AbstractInternalCommand extends AbstractCommand {
      */
     @Override
     public abstract void run();
+
+    /**
+     * @return 是否允许开放命令执行
+     */
+    public boolean notAllowPublicCall() {
+        return false;
+    }
 }

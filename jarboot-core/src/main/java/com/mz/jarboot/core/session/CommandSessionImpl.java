@@ -1,14 +1,15 @@
 package com.mz.jarboot.core.session;
 
-import com.mz.jarboot.common.CommandResponse;
-import com.mz.jarboot.common.ResponseType;
+import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.advisor.AdviceWeaver;
 import com.mz.jarboot.core.advisor.JobAware;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.model.ResultModel;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
+import com.mz.jarboot.common.utils.StringUtils;
+
 import java.lang.instrument.ClassFileTransformer;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +24,7 @@ public class CommandSessionImpl implements CommandCoreSession {
     private final AtomicInteger times = new AtomicInteger();
     private AdviceListener listener = null;
     private ClassFileTransformer transformer;
-    private volatile String jobId = CoreConstant.EMPTY_STRING;
+    private volatile String jobId = StringUtils.EMPTY;
     public CommandSessionImpl(String sessionId) {
         this.sessionId = sessionId;
     }
@@ -92,19 +93,19 @@ public class CommandSessionImpl implements CommandCoreSession {
 
     @Override
     public void end() {
-        end(true, CoreConstant.EMPTY_STRING);
+        end(true, StringUtils.EMPTY);
     }
 
     @Override
     public void end(boolean success) {
-        end(success, CoreConstant.EMPTY_STRING);
+        end(success, StringUtils.EMPTY);
     }
 
     @Override
     public void end(boolean success, String message) {
         running = false;
         //jobId置为空，以便清理
-        jobId = CoreConstant.EMPTY_STRING;
+        jobId = StringUtils.EMPTY;
         times.set(0);
         if (transformer != null) {
             EnvironmentContext.getTransformerManager().removeTransformer(transformer);

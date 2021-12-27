@@ -14,7 +14,7 @@ import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.session.CommandCoreSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
-import com.mz.jarboot.core.utils.StringUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.affect.RowAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 import org.slf4j.Logger;
@@ -63,8 +63,8 @@ public class TimeTunnelCommand extends EnhancerCommand {
     /** upper size limit */
     private Integer sizeLimit = 10 * 1024 * 1024;
     /** watch the index TimeTunnel */
-    private String watchExpress = CoreConstant.EMPTY_STRING;
-    private String searchExpress = CoreConstant.EMPTY_STRING;
+    private String watchExpress = StringUtils.EMPTY;
+    private String searchExpress = StringUtils.EMPTY;
     /** play the index TimeTunnel */
     private boolean isPlay = false;
     /** delete the index TimeTunnel */

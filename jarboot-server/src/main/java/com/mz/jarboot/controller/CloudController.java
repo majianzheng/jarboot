@@ -3,18 +3,24 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.common.utils.VersionUtils;
+import com.mz.jarboot.common.utils.ZipUtils;
+import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +34,8 @@ import java.util.Base64;
 public class CloudController {
     @Value("${docker:false}")
     private boolean isInDocker;
+    @Autowired
+    private JwtTokenManager jwtTokenManager;
 
     /**
      * 获取版本
@@ -46,11 +54,21 @@ public class CloudController {
     /**
      * 拉取服务目录
      * @param name 服务名
+     * @param token token认证
      * @param response Servlet response
      * @throws IOException IO 异常
      */
     @GetMapping(value="/pull/server")
-    public void pullServerDirectory(String name, HttpServletResponse response) throws IOException {
+    public void pullServerDirectory(HttpServletRequest request,
+                                    @RequestParam String name,
+                                    @RequestParam(required = false) String token,
+                                    HttpServletResponse response) throws IOException {
+        //token校验
+        if (StringUtils.isEmpty(token)) {
+            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        }
+        jwtTokenManager.validateToken(token);
+
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
         }
@@ -74,10 +92,14 @@ public class CloudController {
      */
     @PostMapping("/push/server")
     @ResponseBody
-    public ResponseSimple pushServerDirectory(@RequestParam("file") MultipartFile file) {
+    public ResponseSimple pushServerDirectory(HttpServletRequest request,
+                                              @RequestParam("file") MultipartFile file) {
+        //token校验
+        String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        jwtTokenManager.validateToken(token);
         //临时目录，用于操作ZIP文件
         String filename = file.getOriginalFilename();
-        String name = StringUtils.removeEnd(filename, ".zip");
+        String name = StringUtils.stripEnd(filename, ".zip");
         final File tempDir = CacheDirHelper.getTempDir(name);
         if (tempDir.exists()) {
             //文件正在处理中
@@ -157,10 +179,19 @@ public class CloudController {
     /**
      * 从服务器下载文件
      * @param file base64编码的文件全路径名
+     * @param token token认证
      * @param response Servlet response
      */
     @GetMapping(value="/download/{file}")
-    public void download(@PathVariable("file") String file, HttpServletResponse response) throws IOException {
+    public void download(HttpServletRequest request,
+                         @PathVariable("file") String file,
+                         @RequestParam(required = false) String token,
+                         HttpServletResponse response) throws IOException {
+        if (StringUtils.isEmpty(token)) {
+            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        }
+        //token校验
+        jwtTokenManager.validateToken(token);
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);

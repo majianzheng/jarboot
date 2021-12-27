@@ -2,7 +2,7 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.OSUtils;
+import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
@@ -10,12 +10,12 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.WsEventEnum;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -86,7 +86,7 @@ public class SettingServiceImpl implements SettingService {
     private void saveServerConfig(ServerSetting setting, File file, Properties prop) {
         //检查文件名是否修改
         ServerSetting preSetting = PropertyFileUtils.getServerSetting(setting.getPath());
-        if (!StringUtils.equals(setting.getName(), preSetting.getName())) {
+        if (!Objects.equals(setting.getName(), preSetting.getName())) {
             String sid = SettingUtils.createSid(setting.getPath());
             //名字发生了变更，需要修改文件夹的名字，先检查是否正在运行
             if (AgentManager.getInstance().isOnline(sid)) {
