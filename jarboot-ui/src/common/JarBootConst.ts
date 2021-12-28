@@ -34,14 +34,6 @@ class JarBootConst {
 
     public static ZH_CN = 'zh-CN';
 
-    public static APPEND_LINE = 'appendLine';
-    public static STD_PRINT = 'print';
-    public static BACKSPACE = 'backspace';
-    public static FINISH_LOADING = 'finishLoading';
-    public static INSERT_TO_HEADER = 'insertLineToHeader';
-    public static START_LOADING = 'startLoading';
-    public static CLEAR_CONSOLE = 'clear';
-
     //token
     public static TOKEN_KEY = 'token';
     public static currentUser: any = {username: '', globalAdmin: false};

@@ -14,6 +14,7 @@ import {RemoteIcon} from "@/components/icons";
 import IntlText from "@/common/IntlText";
 import SettingService from "@/services/SettingService";
 import {WsManager} from "@/common/WsManager";
+import {CONSOLE_TOPIC} from "@/components/console";
 
 interface OnlineDebugState {
     loading: boolean;
@@ -182,7 +183,7 @@ const OnlineDebugView = () => {
                     if (!process.trusted) {
                         process.trusted = true;
                         const trustedSuccessMsg = intl.formatMessage({id: 'TRUSTED_SUCCESS'});
-                        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING, trustedSuccessMsg);
+                        pubsub.publish(msg.sid, CONSOLE_TOPIC.FINISH_LOADING, trustedSuccessMsg);
                     }
                     break;
                 default:
@@ -192,7 +193,7 @@ const OnlineDebugView = () => {
             const selectRows = [process];
             return {data: getTreeData(list), selectRows, selectedRowKeys};
         });
-        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
+        pubsub.publish(msg.sid, CONSOLE_TOPIC.FINISH_LOADING);
     };
 
     const confirmTrusted = (sid: string, preState: OnlineDebugState) => {
@@ -308,10 +309,10 @@ const OnlineDebugView = () => {
         }
         const sid = process.sid;
         if (process.attached) {
-            pubsub.publish(sid, JarBootConst.APPEND_LINE, "Already attached.");
-            pubsub.publish(sid, JarBootConst.FINISH_LOADING);
+            pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, "Already attached.");
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
         }
-        pubsub.publish(sid, JarBootConst.APPEND_LINE, "Attaching...");
+        pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, "Attaching...");
         ServerMgrService.attach(process.pid).then(resp => {
             if (resp.resultCode < 0) {
                 CommonNotice.errorFormatted(resp);

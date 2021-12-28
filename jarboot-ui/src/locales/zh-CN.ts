@@ -77,6 +77,8 @@ export default {
     UNTRUSTED_MODEL_BODY: `未知的远程主机{host}，是否信任？`,
     TRUST_ONCE: '信任一次',
     TRUST_ALWAYS: '始终信任',
+    TEXT_WRAP: '自动换行',
+    AUTO_SCROLL_END: '自动滚动到底部',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',

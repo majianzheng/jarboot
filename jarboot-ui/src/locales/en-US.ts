@@ -77,6 +77,8 @@ export default {
     UNTRUSTED_MODEL_BODY: `Unknown host {host}, truest？`,
     TRUST_ONCE: 'Trust once',
     TRUST_ALWAYS: 'Always trust',
+    TEXT_WRAP: 'Text wrap',
+    AUTO_SCROLL_END: 'Auto scroll to end',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',

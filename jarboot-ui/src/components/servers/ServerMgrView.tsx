@@ -31,6 +31,7 @@ import CommonUtils from "@/common/CommonUtils";
 import Highlighter from 'react-highlight-words';
 import IntlText from "@/common/IntlText";
 import TopTitleBar from "@/components/servers/TopTitleBar";
+import {CONSOLE_TOPIC} from "@/components/console";
 
 interface ServerMgrViewState {
     loading: boolean;
@@ -119,22 +120,22 @@ const ServerMgrView = () => {
                     // 激活终端显示
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
-                    pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
-                    pubsub.publish(key, JarBootConst.START_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.CLEAR_CONSOLE);
+                    pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     break;
                 case JarBootConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
-                    pubsub.publish(key, JarBootConst.START_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     item.status = JarBootConst.STATUS_STOPPING;
                     break;
                 case JarBootConst.STATUS_STARTED:
                     Logger.log(`${server} 已启动`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     pubsub.publish(key, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
                 case JarBootConst.STATUS_STOPPED:
                     Logger.log(`${server} 已停止`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     break;
                 default:
                     return {};

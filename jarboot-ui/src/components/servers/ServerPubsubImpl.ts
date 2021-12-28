@@ -2,6 +2,7 @@ import { WsManager } from "@/common/WsManager";
 import { MSG_EVENT } from "@/common/EventConst";
 import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import Logger from "@/common/Logger";
+import {CONSOLE_TOPIC} from "@/components/console";
 
 /**
  * 服务订阅发布实现
@@ -35,11 +36,11 @@ class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this._onJvmProcessChange);
     }
 
-    private static genTopicKey(namespace: string, event: string) {
+    private static genTopicKey(namespace: string, event: string|number) {
         return `${namespace}${TOPIC_SPLIT}${event}`;
     }
 
-    public publish(namespace: string, event: string, data?: any): void {
+    public publish(namespace: string, event: string|number, data?: any): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
@@ -47,7 +48,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    public submit(namespace: string, event: string, handler: (data: any) => void): void {
+    public submit(namespace: string, event: string|number, handler: (data: any) => void): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
@@ -59,7 +60,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    public unSubmit(namespace: string, event: string, handler: (data: any) => void): void {
+    public unSubmit(namespace: string, event: string|number, handler: (data: any) => void): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         const sets = this.handlers.get(key);
         if (sets?.size) {
@@ -71,15 +72,15 @@ class ServerPubsubImpl implements PublishSubmit {
     }
 
     private console = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.APPEND_LINE, data.body);
     };
 
     private stdPrint = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.STD_PRINT, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.STD_PRINT, data.body);
     };
 
     private backspace = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.BACKSPACE, data.body);
     };
 
     private _commandEnd = (data: MsgData) => {

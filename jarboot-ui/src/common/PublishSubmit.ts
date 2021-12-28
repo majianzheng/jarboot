@@ -9,7 +9,7 @@ interface PublishSubmit {
      * @param event 事件名
      * @param handler 事件处理
      */
-    submit: (namespace: string, event: string, handler: (data: any) => void) => void;
+    submit: (namespace: string, event: string|number, handler: (data: any) => void) => void;
 
     /**
      * 反订阅事件
@@ -17,7 +17,7 @@ interface PublishSubmit {
      * @param event 事件名
      * @param handler 事件处理
      */
-    unSubmit: (namespace: string, event: string, handler: (data: any) => void) => void;
+    unSubmit: (namespace: string, event: string|number, handler: (data: any) => void) => void;
 
     /**
      * 发布事件
@@ -25,5 +25,5 @@ interface PublishSubmit {
      * @param event 事件名
      * @param data 事件参数
      */
-    publish: (namespace: string, event: string, data?: any) => void;
+    publish: (namespace: string, event: string|number, data?: any) => void;
 }
