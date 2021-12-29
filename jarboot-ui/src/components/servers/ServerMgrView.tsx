@@ -109,7 +109,7 @@ const ServerMgrView = () => {
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: ServerMgrViewState) => {
             const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
-            if (!item) {
+            if (!item || item.status === data.body) {
                 return {};
             }
             const key = data.sid;
@@ -126,7 +126,6 @@ const ServerMgrView = () => {
                 case JarBootConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
                     pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
-                    item.status = JarBootConst.STATUS_STOPPING;
                     break;
                 case JarBootConst.STATUS_STARTED:
                     Logger.log(`${server} 已启动`);

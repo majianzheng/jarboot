@@ -217,7 +217,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             pubsub.unSubmit(id, CONSOLE_TOPIC.START_LOADING, this.onStartLoading);
             pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, this.onFinishLoading);
             pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, this.onClear);
-            pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
         }
     }
 
