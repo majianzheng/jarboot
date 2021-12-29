@@ -168,8 +168,8 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         String server = setting.getName();
         String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
-        if (this.taskRunCache.isStartingOrStopping(sid)) {
-            WebSocketManager.getInstance().notice("服务" + server + "正在启动或停止", NoticeEnum.INFO);
+        if (this.taskRunCache.isStopping(sid)) {
+            WebSocketManager.getInstance().notice("服务" + server + "正在停止", NoticeEnum.INFO);
             return;
         }
         if (AgentManager.getInstance().isOnline(sid)) {
@@ -178,8 +178,10 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
-
-        this.taskRunCache.addStarting(sid);
+        if (!this.taskRunCache.addStarting(sid)) {
+            WebSocketManager.getInstance().notice("服务" + server + "正在启动中", NoticeEnum.INFO);
+            return;
+        }
         try {
             //设定启动中，并发送前端让其转圈圈
             WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
@@ -336,11 +338,10 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     private void stopSingleServer(ServerSetting setting) {
         String server = setting.getName();
         String sid = setting.getSid();
-        if (this.taskRunCache.isStopping(sid)) {
+        if (!this.taskRunCache.addStopping(sid)) {
             WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeEnum.INFO);
             return;
         }
-        this.taskRunCache.addStopping(sid);
         try {
             //发送停止中消息
             WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
