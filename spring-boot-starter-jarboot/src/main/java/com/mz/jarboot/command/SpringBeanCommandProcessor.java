@@ -89,4 +89,9 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
         this.beanName = null;
         this.showDetail = false;
     }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 }
