@@ -117,8 +117,8 @@ public class TaskRunCache {
         return startingCache.containsKey(sid);
     }
 
-    public void addStarting(String sid) {
-        startingCache.put(sid, System.currentTimeMillis());
+    public boolean addStarting(String sid) {
+        return null == startingCache.putIfAbsent(sid, System.currentTimeMillis());
     }
 
     public void removeStarting(String sid) {
@@ -129,8 +129,8 @@ public class TaskRunCache {
         return stoppingCache.containsKey(sid);
     }
 
-    public void addStopping(String sid) {
-        stoppingCache.put(sid, System.currentTimeMillis());
+    public boolean addStopping(String sid) {
+        return null == stoppingCache.putIfAbsent(sid, System.currentTimeMillis());
     }
 
     public void removeStopping(String sid) {
