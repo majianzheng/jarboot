@@ -10,7 +10,7 @@ import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
-import {JarBootConst} from "@/common/JarBootConst";
+import {FuncCode, JarBootConst} from "@/common/JarBootConst";
 import {PUB_TOPIC, pubsub} from "@/components/servers";
 import TopTitleBar from "@/components/servers/TopTitleBar";
 import TextWrapIcon from "@/components/icons/TextWrapIcon";
@@ -190,7 +190,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         });
 
         pubsub.publish(key, CONSOLE_TOPIC.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
-        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: 1});
+        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: FuncCode.CMD_FUNC});
 
         if (historyProp) {
             const history = historyProp.history;
@@ -214,8 +214,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
-        const msg = {server: props.server, sid: props.sid, body: '', func: 2};
-        WsManager.sendMessage(msg);
+        WsManager.callFunc(FuncCode.CANCEL_FUNC, props.sid);
     };
 
     const onKeyUp = (e: KeyboardEvent) => {

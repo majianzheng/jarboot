@@ -44,8 +44,9 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
         if (null == beanName || beanName.isEmpty()) {
             String[] beans = context.getBeanDefinitionNames();
             session.console("\033[32;1mAll spring bean definition names:\033[0m");
-            for (String bean : beans) {
-                session.console(bean);
+            for (int i = 0; i < beans.length; ++i) {
+                String bean = beans[i];
+                session.console("<ln>" + i + "</ln>" + bean);
             }
             session.console("<br>spring bean total count: " + beans.length);
             return "";
@@ -62,7 +63,7 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
         if (interfaces.length > 0) {
             session.console("implements interfaces:");
             for (int i = 0; i < interfaces.length; ++i) {
-                session.console("[" + i + "]. " + interfaces[i]);
+                session.console("  [\033[32m" + i + "\033[0m]. " + interfaces[i]);
             }
         }
 
@@ -71,13 +72,13 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
             Field[] fields = beanClass.getDeclaredFields();
             session.console("<br>Bean fields:");
             for (Field field : fields) {
-                String name = field.getName();
-                session.console(name + " : " + field.getType());
+                String text = "    " + field.getName() + " : " + field.getType();
+                session.console(text);
             }
             session.console("<br>public method:");
             Method[] methods = beanClass.getMethods();
             for (Method method : methods) {
-                session.console(method.getName());
+                session.console("    " + method.getName());
             }
         }
         return "";

@@ -1,7 +1,7 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
-import { JarBootConst, MsgData, MsgReq } from "@/common/JarBootConst";
+import {FuncCode, JarBootConst, MsgData, MsgReq} from "@/common/JarBootConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
@@ -62,6 +62,16 @@ class WsManager {
         if (key) {
             WsManager.HANDLERS.delete(key);
         }
+    }
+
+    /**
+     * 调用后端功能
+     * @param func 功能id
+     * @param sid sid
+     */
+    public static callFunc(func: FuncCode, sid: string) {
+        const msg = {server: '', sid, body: '', func};
+        WsManager.sendMessage(msg);
     }
 
     /**

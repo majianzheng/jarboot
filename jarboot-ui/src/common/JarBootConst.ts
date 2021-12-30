@@ -50,11 +50,19 @@ interface MsgData {
     body: any;
 }
 
+enum FuncCode {
+    CMD_FUNC,
+    CANCEL_FUNC,
+    TRUST_ONCE_FUNC,
+    CHECK_TRUSTED_FUNC,
+    DETACH_FUNC,
+}
+
 interface MsgReq {
     server?: string;
     sid?: string;
     body: string;
-    func: number;
+    func: FuncCode;
 }
 
 const requestFinishCallback = (resp: any) => {
@@ -63,4 +71,4 @@ const requestFinishCallback = (resp: any) => {
     }
 };
 
-export {JarBootConst, MsgData, MsgReq, requestFinishCallback};
+export {JarBootConst, MsgData, MsgReq, FuncCode, requestFinishCallback};

@@ -8,7 +8,7 @@ import {useEffect, useReducer} from "react";
 import {PUB_TOPIC, pubsub} from "@/components/servers/ServerPubsubImpl";
 import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
-import {JarBootConst, MsgData} from "@/common/JarBootConst";
+import {FuncCode, JarBootConst, MsgData} from "@/common/JarBootConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
 import IntlText from "@/common/IntlText";
@@ -282,7 +282,7 @@ const OnlineDebugView = () => {
                 pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                 if (record.remote && !record.trusted) {
                     //检查是否受信任
-                    WsManager.sendMessage({sid: record.sid, func: 4, body: '', server: record.name});
+                    WsManager.callFunc(FuncCode.TRUST_ONCE_FUNC, record.sid);
                 }
             }
         },
@@ -298,8 +298,18 @@ const OnlineDebugView = () => {
             notSelectInfo();
             return;
         }
-        const process = state.selectRows[0];
-        pubsub.publish(process.sid, PUB_TOPIC.QUICK_EXEC_CMD, "shutdown");
+        const process = state.selectRows[0] as JvmProcess;
+        if (process.remote) {
+            Modal.warn({
+                title: intl.formatMessage({id: 'WARN'}),
+                content: `Detach将断开远程连接，断开后将从列表中移除，是否继续？`,
+                onOk: () => {
+                    WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+                }
+            });
+        } else {
+            WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+        }
     };
 
     const attach = () => {
@@ -356,7 +366,7 @@ const OnlineDebugView = () => {
 
     const onTrustOnce = () => {
         const sid = state.selectedRowKeys[0];
-        sid && WsManager.sendMessage({sid, func: 3, body: '', server: ''});
+        sid && WsManager.callFunc(FuncCode.TRUST_ONCE_FUNC, sid);
         dispatch({visible: false});
     };
 

@@ -26,14 +26,6 @@ import java.util.List;
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
 
-    /** 执行命令func */
-    private static final int CMD_FUNC = 1;
-    /** 取消执行命令func */
-    private static final int CANCEL_FUNC = 2;
-    /** 信任主机func */
-    private static final int TRUST_ONCE_FUNC = 3;
-    /** 检查是否信任主机func */
-    private static final int CHECK_TRUSTED_FUNC = 4;
     /** json请求中server */
     private static final String SERVER_KEY = "server";
     /** json请求中func */
@@ -47,6 +39,19 @@ public class WebSocketMainServer {
 
     private static class Holder {
         static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
+    }
+
+    private enum FuncCode {
+        /** 执行命令func */
+        CMD_FUNC,
+        /** 取消执行命令func */
+        CANCEL_FUNC,
+        /** 信任主机func */
+        TRUST_ONCE_FUNC,
+        /** 检查是否信任主机func */
+        CHECK_TRUSTED_FUNC,
+        /** 断开诊断 */
+        DETACH_FUNC,
     }
 
     /**
@@ -115,12 +120,17 @@ public class WebSocketMainServer {
             logger.error("解析json失败！{}", message);
             return;
         }
-        String server = json.get(SERVER_KEY).asText(StringUtils.EMPTY);
+        final FuncCode[] values = FuncCode.values();
         int func = json.get(FUNC_KEY).asInt(-1);
-        String body = json.get(BODY_KEY).asText(StringUtils.EMPTY);
+        if (func < 0 || func >= values.length) {
+            return;
+        }
+        final FuncCode funcCode = values[func];
         String sid = json.get(SID_KEY).asText(StringUtils.EMPTY);
-        switch (func) {
+        switch (funcCode) {
             case CMD_FUNC:
+                String body = json.get(BODY_KEY).asText(StringUtils.EMPTY);
+                String server = json.get(SERVER_KEY).asText(StringUtils.EMPTY);
                 AgentManager.getInstance().sendCommand(server, sid, body, session.getId());
                 break;
             case CANCEL_FUNC:
@@ -133,6 +143,9 @@ public class WebSocketMainServer {
                 if (AgentManager.getInstance().checkNotTrusted(sid)) {
                     WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
                 }
+                break;
+            case DETACH_FUNC:
+                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.SHUTDOWN, session.getId());
                 break;
             default:
                 logger.debug("Unknown func, func:{}", func);
