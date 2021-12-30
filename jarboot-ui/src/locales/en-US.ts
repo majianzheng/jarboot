@@ -102,6 +102,9 @@ export default {
     SERVERS_PATH: 'Workspace',
     DEFAULT_VM_OPT: 'Default VM options',
     AUTO_START_AFTER_INIT: 'Auto start after jarboot started',
+    TRUSTED_HOSTS: 'Trusted hosts',
+    EMPTY_INPUT_MSG: "The entered content is empty!",
+    DELETE_HOST_MSG: "Delete trusted host or not?",
 
     //用户登录
     USER_NAME: 'User',

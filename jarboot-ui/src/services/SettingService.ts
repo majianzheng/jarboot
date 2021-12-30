@@ -72,4 +72,21 @@ export default class SettingService {
         form.append('host', host);
         return Request.post(`${settingUrl}/trustedHost`, form);
     }
+
+    /**
+     * 添加信任的远程主机
+     * @param host 地址
+     */
+    public static removeTrustedHost(host: string) {
+        let form = new FormData();
+        form.append('host', host);
+        return Request.delete(`${settingUrl}/trustedHost`, form);
+    }
+
+    /**
+     * 添加信任的远程主机
+     */
+    public static getTrustedHosts() {
+        return Request.get(`${settingUrl}/trustedHost`, {});
+    }
 }
