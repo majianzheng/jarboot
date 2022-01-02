@@ -46,6 +46,7 @@ console.info("Start developing...");
 // 清理旧资源
 console.info("Cleaning old static...");
 fsExtra.emptyDirSync(STATIC_DIR);
+fsExtra.removeSync('../jarboot-server/target/classes/static/');
 console.info("Clean old static success!");
 fsExtra.mkdirsSync(JARBOOT_DIR);
 let cssFileName = '';

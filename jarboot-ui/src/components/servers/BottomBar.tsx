@@ -4,7 +4,6 @@ import {Menu, Dropdown, Button} from "antd";
 import {
     LoadingOutlined,
     SettingOutlined,
-    BarsOutlined,
     CodeFilled,
     CaretRightFilled,
     PoweroffOutlined
@@ -13,10 +12,9 @@ import ServerMgrService from "@/services/ServerMgrService";
 import styles from "./index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import * as React from "react";
-import {RestartIcon, TreeIcon} from "@/components/icons";
+import {RestartIcon} from "@/components/icons";
 
 interface BottomBarProp {
-    sideView: 'tree'|'list';
     contentView: 'config'|'console';
     onViewChange: (key: string, value: string) => void;
 }
@@ -50,9 +48,6 @@ const BottomBar = (props: BottomBarProp) => {
     const onViewModeChange = (key: string) => {
         let value = '';
         switch (key) {
-            case JarBootConst.SIDE_VIEW:
-                value = (props.sideView === JarBootConst.TREE_VIEW) ? JarBootConst.LIST_VIEW : JarBootConst.TREE_VIEW;
-                break;
             case JarBootConst.CONTENT_VIEW:
                 value = (props.contentView === JarBootConst.CONSOLE_VIEW) ?
                     JarBootConst.CONFIG_VIEW : JarBootConst.CONSOLE_VIEW;
@@ -79,16 +74,6 @@ const BottomBar = (props: BottomBarProp) => {
         let text = '';
         let key = '';
         switch (view) {
-            case JarBootConst.LIST_VIEW:
-                icon = <BarsOutlined className={styles.toolButtonIcon}/>;
-                text = intl.formatMessage({id: 'LIST_VIEW'});
-                key = 'sideView';
-                break;
-            case JarBootConst.TREE_VIEW:
-                icon = <TreeIcon className={styles.toolButtonIcon}/>;
-                text = intl.formatMessage({id: 'TREE_VIEW'});
-                key = 'sideView';
-                break;
             case JarBootConst.CONFIG_VIEW:
                 icon = <SettingOutlined className={styles.toolButtonIcon}/>;
                 text = intl.formatMessage({id: 'SERVICES_CONF'});
@@ -118,13 +103,11 @@ const BottomBar = (props: BottomBarProp) => {
                 {intl.formatMessage({id: 'ONE_KEY_START'})}
             </Button>
         </Dropdown>
-        {button(props.sideView)}
         {button(props.contentView)}
     </div>);
 };
 
 BottomBar.defaultProps = {
-    sideView: JarBootConst.TREE_VIEW,
     contentView: JarBootConst.CONFIG_VIEW,
 };
 
