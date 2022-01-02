@@ -101,6 +101,7 @@ enum CONSOLE_TOPIC {
     START_LOADING,
     CLEAR_CONSOLE,
     SCROLL_TO_END,
+    SCROLL_TO_TOP,
 }
 
 const Banner = (
@@ -204,6 +205,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             pubsub.submit(id, CONSOLE_TOPIC.FINISH_LOADING, this.onFinishLoading);
             pubsub.submit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, this.onClear);
             pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
+            pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, this.scrollToTop);
         }
     }
 
@@ -218,6 +220,7 @@ class Console extends React.PureComponent<ConsoleProps> {
             pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, this.onFinishLoading);
             pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, this.onClear);
             pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, this.scrollToTop);
         }
     }
 
@@ -297,6 +300,13 @@ class Console extends React.PureComponent<ConsoleProps> {
      */
     private scrollToEnd = () => {
         this.codeDom.scrollTop = this.codeDom.scrollHeight;
+    };
+
+    /**
+     * 滚动到顶部
+     */
+    private scrollToTop = () => {
+        this.codeDom.scrollTop = 0;
     };
 
     /**

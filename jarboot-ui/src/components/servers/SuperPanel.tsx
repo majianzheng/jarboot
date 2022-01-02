@@ -2,7 +2,15 @@ import styles from "./index.less";
 import Console, {CONSOLE_TOPIC} from "@/components/console";
 import React, {KeyboardEvent, memo, useEffect, useReducer, useRef} from "react";
 import {Button, Input} from "antd";
-import {EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined, VerticalAlignBottomOutlined} from "@ant-design/icons";
+import {
+    EnterOutlined,
+    LoadingOutlined,
+    ClearOutlined,
+    CloseOutlined,
+    RightOutlined,
+    VerticalAlignBottomOutlined,
+    VerticalAlignTopOutlined
+} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
 import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
@@ -122,9 +130,9 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             if (cmd !== preState.view) {
                 curState.view = cmd;
             }
-            curState.data = resultData;
             return curState;
         });
+        dispatch({data: resultData});
     };
 
     const onExecQuickCmd = (cmd: string) => {
@@ -291,34 +299,40 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     };
 
     const extraButton = () => {
-        let extra;
         const style = {fontSize: 16};
-        if (state.executing) {
-            extra = <Button icon={<CloseOutlined style={style}/>}
-                            size={"small"}
-                            title={intl.formatMessage({id: 'CLOSE'})}
-                            ghost danger
-                            onClick={onCancelCommand}/>;
-        } else {
-            extra = <Button icon={<ClearOutlined style={style}/>}
-                            size={"small"}
-                            title={intl.formatMessage({id: 'CLEAR'})}
-                            ghost danger
-                            onClick={clearDisplay}/>;
-        }
-        const wrap = <Button icon={<TextWrapIcon style={style}/>}
-                             size={"small"}
-                             title={intl.formatMessage({id: 'TEXT_WRAP'})}
-                             ghost={!state.textWrap}
-                             type={"primary"}
-                             onClick={setTextWrap}/>;
-        const scrollToEnd = <Button icon={<VerticalAlignBottomOutlined style={style}/>}
-                                    size={"small"} title={intl.formatMessage({id: 'AUTO_SCROLL_END'})}
-                                    ghost={!state.autoScrollEnd}
-                                    type={"primary"}
-                                    onClick={setScrollToEnd}/>;
-
-        return (<div className={styles.consoleExtra}>{extra}{wrap}{scrollToEnd}</div>);
+        const tools = [
+            <Button icon={<CloseOutlined style={style}/>}
+                    size={"small"}
+                    hidden={!state.executing}
+                    title={intl.formatMessage({id: 'CANCEL'})}
+                    ghost danger
+                    onClick={onCancelCommand}/>,
+            <Button icon={<ClearOutlined style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'CLEAR'})}
+                    ghost danger
+                    onClick={clearDisplay}/>,
+            <Button icon={<TextWrapIcon style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'TEXT_WRAP'})}
+                    ghost={!state.textWrap}
+                    type={"primary"}
+                    onClick={setTextWrap}/>,
+            <Button icon={<VerticalAlignBottomOutlined style={style}/>}
+                    size={"small"} title={intl.formatMessage({id: 'AUTO_SCROLL_END'})}
+                    ghost={!state.autoScrollEnd}
+                    type={"primary"}
+                    onClick={setScrollToEnd}/>,
+            <Button icon={<VerticalAlignTopOutlined style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'SCROLL_TO_TOP'})}
+                    ghost
+                    type={"primary"}
+                    onClick={() => pubsub.publish(key, CONSOLE_TOPIC.SCROLL_TO_TOP)}/>,
+        ];
+        return (<div className={styles.consoleExtra}>
+            {tools.map(btn => btn)}
+        </div>);
     };
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
