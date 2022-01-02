@@ -44,6 +44,7 @@ export default {
     LOCAL: 'Local',
     REMOTE: 'Remote',
     DEFAULT_GROUP: 'Default group',
+    DETACH_MSG: 'Detach will disconnect remote connection，and removed from list after disconnect，continue or not?',
     //进程状态
     RUNNING: 'Running',
     STOPPED: 'Stopped',
@@ -79,6 +80,7 @@ export default {
     TRUST_ALWAYS: 'Always trust',
     TEXT_WRAP: 'Text wrap',
     AUTO_SCROLL_END: 'Auto scroll to end',
+    SCROLL_TO_TOP: 'Scroll to top',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',

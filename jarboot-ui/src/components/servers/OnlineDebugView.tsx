@@ -300,9 +300,9 @@ const OnlineDebugView = () => {
         }
         const process = state.selectRows[0] as JvmProcess;
         if (process.remote) {
-            Modal.warn({
+            Modal.confirm({
                 title: intl.formatMessage({id: 'WARN'}),
-                content: `Detach将断开远程连接，断开后将从列表中移除，是否继续？`,
+                content: intl.formatMessage({id: 'DETACH_MSG'}),
                 onOk: () => {
                     WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
                 }

@@ -44,6 +44,7 @@ export default {
     LOCAL: '本地',
     REMOTE: '远程',
     DEFAULT_GROUP: '默认组',
+    DETACH_MSG: 'Detach将断开远程连接，断开后将从列表中移除，是否继续？',
     //进程状态
     RUNNING: '运行中',
     STOPPED: '已停止',
@@ -79,6 +80,7 @@ export default {
     TRUST_ALWAYS: '始终信任',
     TEXT_WRAP: '自动换行',
     AUTO_SCROLL_END: '自动滚动到底部',
+    SCROLL_TO_TOP: '滚动到顶部',
 
     //服务配置
     SERVER_LIST_TITLE: '服务列表',
