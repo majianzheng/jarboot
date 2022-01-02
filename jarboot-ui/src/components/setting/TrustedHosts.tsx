@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { List, Button, Modal, Input, Popconfirm } from 'antd';
-import {PlusSquareOutlined} from "@ant-design/icons";
+import {PlusSquareOutlined, SyncOutlined} from "@ant-design/icons";
 import SettingService from "@/services/SettingService";
 import CommonNotice from "@/common/CommonNotice";
 import {useIntl} from "umi";
@@ -68,12 +68,21 @@ const TrustedHosts = () => {
             .catch(CommonNotice.errorFormatted);
     };
 
+    const getHeader = () => (<>
+        <Button type={"text"} onClick={onAdd}
+                icon={<PlusSquareOutlined className={styles.toolButtonIcon}/>}>
+            {intl.formatMessage({id: 'CREATE'})}
+        </Button>
+        <Button type={"text"} onClick={query}
+                icon={<SyncOutlined className={styles.toolButtonIcon}/>}>
+            {intl.formatMessage({id: 'REFRESH_BTN'})}
+        </Button>
+    </>);
+
     return (<div style={{margin: '5px 50px 0 30px'}}>
         <List
         loading={loading}
-        header={<Button type={"text"} onClick={onAdd}
-                        icon={<PlusSquareOutlined
-                            className={styles.toolButtonIcon}/>}>{intl.formatMessage({id: 'CREATE'})}</Button>}
+        header={getHeader()}
         itemLayout="horizontal"
         dataSource={hosts}
         renderItem={item => (
