@@ -8,12 +8,13 @@ import {useEffect, useReducer} from "react";
 import {PUB_TOPIC, pubsub} from "@/components/servers/ServerPubsubImpl";
 import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
-import {JarBootConst, MsgData} from "@/common/JarBootConst";
+import {FuncCode, JarBootConst, MsgData} from "@/common/JarBootConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
 import IntlText from "@/common/IntlText";
 import SettingService from "@/services/SettingService";
 import {WsManager} from "@/common/WsManager";
+import {CONSOLE_TOPIC} from "@/components/console";
 
 interface OnlineDebugState {
     loading: boolean;
@@ -182,7 +183,7 @@ const OnlineDebugView = () => {
                     if (!process.trusted) {
                         process.trusted = true;
                         const trustedSuccessMsg = intl.formatMessage({id: 'TRUSTED_SUCCESS'});
-                        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING, trustedSuccessMsg);
+                        pubsub.publish(msg.sid, CONSOLE_TOPIC.FINISH_LOADING, trustedSuccessMsg);
                     }
                     break;
                 default:
@@ -192,7 +193,7 @@ const OnlineDebugView = () => {
             const selectRows = [process];
             return {data: getTreeData(list), selectRows, selectedRowKeys};
         });
-        pubsub.publish(msg.sid, JarBootConst.FINISH_LOADING);
+        pubsub.publish(msg.sid, CONSOLE_TOPIC.FINISH_LOADING);
     };
 
     const confirmTrusted = (sid: string, preState: OnlineDebugState) => {
@@ -281,7 +282,7 @@ const OnlineDebugView = () => {
                 pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                 if (record.remote && !record.trusted) {
                     //检查是否受信任
-                    WsManager.sendMessage({sid: record.sid, func: 4, body: '', server: record.name});
+                    WsManager.callFunc(FuncCode.TRUST_ONCE_FUNC, record.sid);
                 }
             }
         },
@@ -297,8 +298,18 @@ const OnlineDebugView = () => {
             notSelectInfo();
             return;
         }
-        const process = state.selectRows[0];
-        pubsub.publish(process.sid, PUB_TOPIC.QUICK_EXEC_CMD, "shutdown");
+        const process = state.selectRows[0] as JvmProcess;
+        if (process.remote) {
+            Modal.confirm({
+                title: intl.formatMessage({id: 'WARN'}),
+                content: intl.formatMessage({id: 'DETACH_MSG'}),
+                onOk: () => {
+                    WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+                }
+            });
+        } else {
+            WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+        }
     };
 
     const attach = () => {
@@ -308,10 +319,10 @@ const OnlineDebugView = () => {
         }
         const sid = process.sid;
         if (process.attached) {
-            pubsub.publish(sid, JarBootConst.APPEND_LINE, "Already attached.");
-            pubsub.publish(sid, JarBootConst.FINISH_LOADING);
+            pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, "Already attached.");
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
         }
-        pubsub.publish(sid, JarBootConst.APPEND_LINE, "Attaching...");
+        pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, "Attaching...");
         ServerMgrService.attach(process.pid).then(resp => {
             if (resp.resultCode < 0) {
                 CommonNotice.errorFormatted(resp);
@@ -355,7 +366,7 @@ const OnlineDebugView = () => {
 
     const onTrustOnce = () => {
         const sid = state.selectedRowKeys[0];
-        sid && WsManager.sendMessage({sid, func: 3, body: '', server: ''});
+        sid && WsManager.callFunc(FuncCode.TRUST_ONCE_FUNC, sid);
         dispatch({visible: false});
     };
 

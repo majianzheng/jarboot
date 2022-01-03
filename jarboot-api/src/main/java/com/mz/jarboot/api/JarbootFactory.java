@@ -9,6 +9,7 @@ import com.mz.jarboot.api.exception.JarbootRunException;
 public class JarbootFactory {
     private static final String AGENT_CLASS = "com.mz.jarboot.agent.client.AgentServiceImpl";
 
+    private static Object springApplicationContext = null;
     /**
      * 创建AgentService实例<br>
      * 前置条件：使用Jarboot启动的进程，否则抛出异常{@link JarbootRunException}，调用端代码要做好异常防护
@@ -21,6 +22,14 @@ public class JarbootFactory {
         } catch (Exception e) {
             throw new JarbootRunException("Current application maybe not started by jarboot", e);
         }
+    }
+
+    public static Object getSpringApplicationContext() {
+        return springApplicationContext;
+    }
+
+    public static void setSpringApplicationContext(Object context) {
+        springApplicationContext = context;
     }
 
     private JarbootFactory() {

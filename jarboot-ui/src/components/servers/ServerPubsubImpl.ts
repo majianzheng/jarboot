@@ -2,6 +2,7 @@ import { WsManager } from "@/common/WsManager";
 import { MSG_EVENT } from "@/common/EventConst";
 import { JarBootConst, MsgData } from "@/common/JarBootConst";
 import Logger from "@/common/Logger";
+import {CONSOLE_TOPIC} from "@/components/console";
 
 /**
  * 服务订阅发布实现
@@ -27,19 +28,19 @@ class ServerPubsubImpl implements PublishSubmit {
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this.console);
         WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this.stdPrint);
         WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this.backspace);
-        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this._renderCmdJsonResult);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this._commandEnd);
-        WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this._workspaceChange);
-        WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this._onReconnected);
-        WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this._statusChange);
-        WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this._onJvmProcessChange);
+        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this.renderCmdJsonResult);
+        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this.commandEnd);
+        WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this.workspaceChange);
+        WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this.onReconnected);
+        WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this.statusChange);
+        WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this.onJvmProcessChange);
     }
 
-    private static genTopicKey(namespace: string, event: string) {
+    private static genTopicKey(namespace: string, event: string|number) {
         return `${namespace}${TOPIC_SPLIT}${event}`;
     }
 
-    public publish(namespace: string, event: string, data?: any): void {
+    public publish(namespace: string, event: string|number, data?: any): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
@@ -47,7 +48,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    public submit(namespace: string, event: string, handler: (data: any) => void): void {
+    public submit(namespace: string, event: string|number, handler: (data: any) => void): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         let sets = this.handlers.get(key);
         if (sets?.size) {
@@ -59,7 +60,7 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    public unSubmit(namespace: string, event: string, handler: (data: any) => void): void {
+    public unSubmit(namespace: string, event: string|number, handler: (data: any) => void): void {
         const key = ServerPubsubImpl.genTopicKey(namespace, event);
         const sets = this.handlers.get(key);
         if (sets?.size) {
@@ -71,40 +72,40 @@ class ServerPubsubImpl implements PublishSubmit {
     }
 
     private console = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.APPEND_LINE, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.APPEND_LINE, data.body);
     };
 
     private stdPrint = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.STD_PRINT, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.STD_PRINT, data.body);
     };
 
     private backspace = (data: MsgData) => {
-        this.publish(data.sid, JarBootConst.BACKSPACE, data.body);
+        this.publish(data.sid, CONSOLE_TOPIC.BACKSPACE, data.body);
     };
 
-    private _commandEnd = (data: MsgData) => {
+    private commandEnd = (data: MsgData) => {
         this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
     };
 
-    private _workspaceChange = (data: MsgData) => {
+    private workspaceChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, data.body);
         Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
     };
 
-    private _statusChange = (data: MsgData) => {
+    private statusChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, data);
     };
 
-    private _onReconnected = (data: MsgData) => {
+    private onReconnected = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, data.body);
         Logger.log(`重新连接服务成功，服务列表将会被刷新！`);
     };
 
-    private _onJvmProcessChange = (data: MsgData) => {
+    private onJvmProcessChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, data);
     };
 
-    private _renderCmdJsonResult = (data: MsgData) => {
+    private renderCmdJsonResult = (data: MsgData) => {
         if ('{' !== data.body[0]) {
             //不是json数据时，使用console
             Logger.warn(`当前非JSON数据格式！`, data);

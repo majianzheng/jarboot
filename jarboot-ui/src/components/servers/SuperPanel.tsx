@@ -1,8 +1,16 @@
 import styles from "./index.less";
-import Console from "@/components/console";
-import React, {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
+import Console, {CONSOLE_TOPIC} from "@/components/console";
+import React, {KeyboardEvent, memo, useEffect, useReducer, useRef} from "react";
 import {Button, Input} from "antd";
-import {EnterOutlined, LoadingOutlined, ClearOutlined, CloseOutlined, RightOutlined} from "@ant-design/icons";
+import {
+    EnterOutlined,
+    LoadingOutlined,
+    ClearOutlined,
+    CloseOutlined,
+    RightOutlined,
+    VerticalAlignBottomOutlined,
+    VerticalAlignTopOutlined
+} from "@ant-design/icons";
 import StringUtil from "@/common/StringUtil";
 import CommonNotice from "@/common/CommonNotice";
 import {WsManager} from "@/common/WsManager";
@@ -10,9 +18,10 @@ import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
-import {JarBootConst} from "@/common/JarBootConst";
+import {FuncCode, JarBootConst} from "@/common/JarBootConst";
 import {PUB_TOPIC, pubsub} from "@/components/servers";
 import TopTitleBar from "@/components/servers/TopTitleBar";
+import TextWrapIcon from "@/components/icons/TextWrapIcon";
 
 /**
  * 服务的多功能面板，控制台输出、命令执行结果渲染
@@ -36,15 +45,35 @@ interface HistoryProp {
     history: string[];
 }
 
+interface SuperPanelState {
+    view: string;
+    executing: boolean;
+    command: string;
+    data: any;
+    textWrap: boolean;
+    autoScrollEnd: boolean;
+}
+
 const MAX_HISTORY = 100;
 const historyMap = new Map<string, HistoryProp>();
 
 const SuperPanel = memo((props: SuperPanelProps) => {
     const intl = useIntl();
-    const [view, setView] = useState('');
-    const [executing, setExecuting] = useState(false);
-    const [command, setCommand] = useState("");
-    const [data, setData] = useState({});
+    const initArg = {
+        view: '',
+        executing: false,
+        command: '',
+        data: {},
+        textWrap: false,
+        autoScrollEnd: true,
+    } as SuperPanelState;
+    const [state, dispatch] = useReducer((state: SuperPanelState, action: any) => {
+        if ('function' === typeof action) {
+            return {...state, ...action(state)};
+        }
+        return {...state, ...action};
+    }, initArg, arg => ({...arg}));
+
     const inputRef = useRef<any>();
     const key = props.sid;
 
@@ -70,24 +99,24 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     //解析json数据的视图
     const viewResolver = () => {
         let panel;
-        switch (view) {
+        switch (state.view) {
             case 'dashboard':
-                panel = <DashboardView data={data}/>;
+                panel = <DashboardView data={state.data}/>;
                 break;
             case 'jad':
-                panel = <JadView data={data}/>;
+                panel = <JadView data={state.data}/>;
                 break;
             case 'heapdump':
-                panel = <HeapDumpView data={data} remote={props.remote}/>;
+                panel = <HeapDumpView data={state.data} remote={props.remote}/>;
                 break;
             default:
-                panel = <div>Unknown command view {view}</div>;
+                panel = <div>Unknown command view {state.view}</div>;
                 break;
         }
-        const buttonTitle = executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
+        const buttonTitle = state.executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
         return (<div style={{height: JarBootConst.PANEL_HEIGHT}}>
-            <TopTitleBar title={command}
-                         icon={executing && <LoadingOutlined className={styles.statusStarting}/>}
+            <TopTitleBar title={state.command}
+                         icon={state.executing && <LoadingOutlined className={styles.statusStarting}/>}
                          onClose={closeView}
                          closeButtonTitle={buttonTitle}/>
             {panel}
@@ -96,10 +125,14 @@ const SuperPanel = memo((props: SuperPanelProps) => {
 
     const renderView = (resultData: any) => {
         const cmd = resultData.name;
-        if (cmd !== view) {
-            setView(cmd);
-        }
-        setData(resultData);
+        dispatch((preState: SuperPanelState) => {
+            const curState = {} as SuperPanelState;
+            if (cmd !== preState.view) {
+                curState.view = cmd;
+            }
+            return curState;
+        });
+        dispatch({data: resultData});
     };
 
     const onExecQuickCmd = (cmd: string) => {
@@ -110,7 +143,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         if (StringUtil.isEmpty(cmd)) {
             return;
         }
-        setCommand(cmd);
+        dispatch({command: cmd});
         doExecCommand(cmd);
     };
 
@@ -125,24 +158,24 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     useEffect(onFocusCommandInput, [props.visible]);
 
     const onCmdEnd = (msg?: string) => {
-        setExecuting(false);
-        pubsub.publish(key, JarBootConst.FINISH_LOADING, msg);
+        dispatch({executing: false});
+        pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING, msg);
         onFocusCommandInput();
     };
 
     const clearDisplay = () => {
-        pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
+        pubsub.publish(key, CONSOLE_TOPIC.CLEAR_CONSOLE);
         inputRef?.current?.focus();
     };
 
     const closeView = () => {
-        if (executing) {
+        if (state.executing) {
             onCancelCommand();
             return;
         }
-        if ('' !== view) {
+        if ('' !== state.view) {
             //切换为控制台显示
-            setView('');
+            dispatch({view: ''});
         }
         Promise.resolve().then(onFocusCommandInput);
     };
@@ -155,14 +188,17 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
+        dispatch((preState: SuperPanelState) => {
+            const curState = {executing: true} as SuperPanelState;
+            if ('' !== preState.view) {
+                //切换为控制台显示
+                curState.view = '';
+            }
+            return curState;
+        });
 
-        setExecuting(true);
-        if ('' !== view) {
-            //切换为控制台显示
-            setView('');
-        }
-        pubsub.publish(key, JarBootConst.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
-        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: 1});
+        pubsub.publish(key, CONSOLE_TOPIC.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
+        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: FuncCode.CMD_FUNC});
 
         if (historyProp) {
             const history = historyProp.history;
@@ -178,7 +214,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     };
 
     const onExecCommand = () => {
-        doExecCommand(command);
+        doExecCommand(state.command);
     };
 
     const onCancelCommand = () => {
@@ -186,8 +222,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             CommonNotice.info(intl.formatMessage({id: 'SELECT_ONE_SERVER_INFO'}));
             return;
         }
-        const msg = {server: props.server, sid: props.sid, body: '', func: 2};
-        WsManager.sendMessage(msg);
+        WsManager.callFunc(FuncCode.CANCEL_FUNC, props.sid);
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
@@ -200,7 +235,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             }
             const value = history[historyProp.cur];
             if (value) {
-                setCommand(value);
+                dispatch({command: value});
             }
             return;
         }
@@ -213,58 +248,97 @@ const SuperPanel = memo((props: SuperPanelProps) => {
             }
             const value = history[historyProp.cur];
             if (value) {
-                setCommand(value);
+                dispatch({command: value});
             }
         }
     };
 
     const consolePanel = () => {
-        const style = '' === view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
+        const style = '' === state.view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
         return (<div style={style}>
             <Console id={key}
                      pubsub={pubsub}
                      height={JarBootConst.PANEL_HEIGHT - 26}
-                     wrap={false}
-                     autoScrollEnd={true}/>
+                     wrap={state.textWrap}
+                     autoScrollEnd={state.autoScrollEnd}/>
             <Input onPressEnter={onExecCommand}
                    onKeyUp={onKeyUp}
                    ref={inputRef}
                    className={styles.commandInput}
-                   disabled={executing}
+                   disabled={state.executing}
                    placeholder={intl.formatMessage({id: 'COMMAND_PLACEHOLDER'})}
                    autoComplete={"off"}
                    autoCorrect="off"
                    autoCapitalize="off"
                    spellCheck="false"
-                   onChange={event => setCommand(event.target.value)}
-                   value={command}
+                   onChange={event => dispatch({command: event.target.value})}
+                   value={state.command}
                    prefix={<RightOutlined className={styles.commandRightIcon}/>}
-                   suffix={executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
+                   suffix={state.executing ? <LoadingOutlined/> : <EnterOutlined onClick={onExecCommand}/>}
             />
-            {'' === view && extraButton()}
+            {'' === state.view && extraButton()}
         </div>);
     };
 
+    const setTextWrap = () => {
+        dispatch((preState: SuperPanelState) => {
+            const textWrap = !preState.textWrap;
+            return {textWrap};
+        });
+    };
+
+    const setScrollToEnd = () => {
+        dispatch((preState: SuperPanelState) => {
+            const autoScrollEnd = !preState.autoScrollEnd;
+            if (autoScrollEnd) {
+                //跳转到最后
+                pubsub.publish(key, CONSOLE_TOPIC.SCROLL_TO_END);
+            }
+            return {autoScrollEnd};
+        });
+    };
+
     const extraButton = () => {
-        let extra;
-        if (executing) {
-            extra = <Button icon={<CloseOutlined />}
-                            size={"small"}
-                            ghost danger
-                            onClick={onCancelCommand}/>;
-        } else {
-            extra = <Button icon={<ClearOutlined />}
-                            size={"small"}
-                            ghost danger
-                            onClick={clearDisplay}/>;
-        }
-        return (<div className={styles.consoleExtra}>{extra}</div>);
+        const style = {fontSize: 16};
+        const tools = [
+            <Button icon={<CloseOutlined style={style}/>}
+                    size={"small"}
+                    hidden={!state.executing}
+                    title={intl.formatMessage({id: 'CANCEL'})}
+                    ghost danger
+                    onClick={onCancelCommand}/>,
+            <Button icon={<ClearOutlined style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'CLEAR'})}
+                    ghost danger
+                    onClick={clearDisplay}/>,
+            <Button icon={<TextWrapIcon style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'TEXT_WRAP'})}
+                    ghost={!state.textWrap}
+                    type={"primary"}
+                    onClick={setTextWrap}/>,
+            <Button icon={<VerticalAlignBottomOutlined style={style}/>}
+                    size={"small"} title={intl.formatMessage({id: 'AUTO_SCROLL_END'})}
+                    ghost={!state.autoScrollEnd}
+                    type={"primary"}
+                    onClick={setScrollToEnd}/>,
+            <Button icon={<VerticalAlignTopOutlined style={style}/>}
+                    size={"small"}
+                    title={intl.formatMessage({id: 'SCROLL_TO_TOP'})}
+                    ghost
+                    type={"primary"}
+                    onClick={() => pubsub.publish(key, CONSOLE_TOPIC.SCROLL_TO_TOP)}/>,
+        ];
+        return (<div className={styles.consoleExtra}>
+            {tools.map(btn => btn)}
+        </div>);
     };
     return (
         <div style={{display: props.visible ? 'block' : 'none'}}>
             {consolePanel()}
-            {'' !== view && viewResolver()}
-            {JarBootConst.IS_SAFARI && '' === view && <div className={styles.consoleScrollbarMaskForMac}/>}
+            {'' !== state.view && viewResolver()}
+            {JarBootConst.IS_SAFARI && '' === state.view && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });
 

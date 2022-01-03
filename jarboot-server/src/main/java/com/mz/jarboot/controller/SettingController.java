@@ -4,6 +4,7 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 系统配置
@@ -135,5 +137,19 @@ public class SettingController {
         SettingUtils.addTrustedHost(host);
         AgentManager.getInstance().onAddTrustedHost(host);
         return new ResponseSimple();
+    }
+
+    @DeleteMapping(value="/trustedHost")
+    @ResponseBody
+    @Permission("Delete trusted host")
+    public ResponseSimple removeTrustedHost(String host) throws IOException {
+        SettingUtils.removeTrustedHost(host);
+        return new ResponseSimple();
+    }
+
+    @GetMapping(value="/trustedHost")
+    @ResponseBody
+    public ResponseForList<String> getTrustedHosts() {
+        return new ResponseForList<>(new ArrayList<>(SettingUtils.getTrustedHosts()));
     }
 }

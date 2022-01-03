@@ -1,5 +1,5 @@
 import React, {useEffect, useReducer, useRef} from "react";
-import {Button, Empty, Input, message, Modal, Result, Space, Spin, Tree} from "antd";
+import {Button, Empty, Input, message, Modal, Result, Spin, Tree} from "antd";
 import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
@@ -9,7 +9,6 @@ import {
     DashboardOutlined,
     LoadingOutlined,
     PoweroffOutlined,
-    SearchOutlined,
     SyncOutlined,
     UploadOutlined
 } from '@ant-design/icons';
@@ -17,7 +16,6 @@ import {JarBootConst, MsgData} from '@/common/JarBootConst';
 import Logger from "@/common/Logger";
 import {PUB_TOPIC, pubsub, SuperPanel} from "@/components/servers";
 import BottomBar from "@/components/servers/BottomBar";
-import CommonTable from "@/components/table";
 import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
@@ -27,10 +25,11 @@ import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/co
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 import CloudService from "@/services/CloudService";
 import CommonUtils from "@/common/CommonUtils";
-// @ts-ignore
-import Highlighter from 'react-highlight-words';
 import IntlText from "@/common/IntlText";
 import TopTitleBar from "@/components/servers/TopTitleBar";
+import {CONSOLE_TOPIC} from "@/components/console";
+// @ts-ignore
+import Highlighter from 'react-highlight-words';
 
 interface ServerMgrViewState {
     loading: boolean;
@@ -39,20 +38,13 @@ interface ServerMgrViewState {
     uploadVisible: boolean;
     selectedRowKeys: string[];
     searchText: string;
+    searchResult: ServerRunning[];
     searchedColumn: string;
     selectRows: ServerRunning[];
     current: string;
-    sideView: 'tree' | 'list';
     contentView: 'config' | 'console';
     importing: boolean;
 }
-
-let searchInput = {} as any;
-
-const getInitSideView = (): 'tree' | 'list' => {
-    const sideView = localStorage.getItem(JarBootConst.SIDE_VIEW);
-    return (sideView || JarBootConst.LIST_VIEW) as ('tree' | 'list');
-};
 
 const ServerMgrView = () => {
     const intl = useIntl();
@@ -64,10 +56,10 @@ const ServerMgrView = () => {
         uploadVisible: false,
         selectedRowKeys: [] as string[],
         searchText: '',
+        searchResult: [] as ServerRunning[],
         searchedColumn: '',
         selectRows: [] as ServerRunning[],
         current: '',
-        sideView: getInitSideView(),
         contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
         importing: false,
     };
@@ -108,7 +100,7 @@ const ServerMgrView = () => {
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: ServerMgrViewState) => {
             const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
-            if (!item) {
+            if (!item || item.status === data.body) {
                 return {};
             }
             const key = data.sid;
@@ -119,22 +111,21 @@ const ServerMgrView = () => {
                     // 激活终端显示
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
-                    pubsub.publish(key, JarBootConst.CLEAR_CONSOLE);
-                    pubsub.publish(key, JarBootConst.START_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.CLEAR_CONSOLE);
+                    pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     break;
                 case JarBootConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
-                    pubsub.publish(key, JarBootConst.START_LOADING);
-                    item.status = JarBootConst.STATUS_STOPPING;
+                    pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     break;
                 case JarBootConst.STATUS_STARTED:
                     Logger.log(`${server} 已启动`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     pubsub.publish(key, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
                 case JarBootConst.STATUS_STOPPED:
                     Logger.log(`${server} 已停止`);
-                    pubsub.publish(key, JarBootConst.FINISH_LOADING);
+                    pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     break;
                 default:
                     return {};
@@ -145,121 +136,6 @@ const ServerMgrView = () => {
 
     };
 
-    const getColumnSearchProps = (dataIndex: string) => ({
-        // @ts-ignore
-        filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
-            <div style={{padding: 8}}>
-                <Input
-                    ref={node => {
-                        searchInput = node;
-                    }}
-                    placeholder={`Search ${dataIndex}`}
-                    value={selectedKeys[0]}
-                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                    onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-                    style={{marginBottom: 8, display: 'block'}}
-                />
-                <Space>
-                    <Button
-                        type="primary"
-                        onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-                        icon={<SearchOutlined/>}
-                        size="small"
-                        style={{width: 90}}
-                    >
-                        {intl.formatMessage({id: 'SEARCH_BTN'})}
-                    </Button>
-                    <Button onClick={() => handleReset(clearFilters)} size="small" style={{width: 90}}>
-                        {intl.formatMessage({id: 'RESET_BTN'})}
-                    </Button>
-                    <Button
-                        type="link"
-                        size="small"
-                        onClick={() => {
-                            confirm({closeDropdown: false});
-                            dispatch({searchText: selectedKeys[0], searchedColumn: dataIndex});
-                            state.searchText = selectedKeys[0];
-                            state.searchedColumn = dataIndex;
-                        }}
-                    >
-                        {intl.formatMessage({id: 'FILTER_BTN'})}
-                    </Button>
-                </Space>
-            </div>
-        ),
-        filterIcon: (filtered: boolean) => <SearchOutlined style={{color: filtered ? '#1890ff' : undefined}}/>,
-        onFilter: (value: string, record: any) =>
-            record[dataIndex]
-                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
-                : '',
-        onFilterDropdownVisibleChange: (visible: boolean) => {
-            if (visible) {
-                setTimeout(() => searchInput.select(), 100);
-            }
-        },
-        render: (text: string, row: ServerRunning) => {
-            const s = state.searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
-                    searchWords={[state.searchText]}
-                    autoEscape
-                    textToHighlight={text || ''}
-                />
-            ) : (
-                text
-            );
-            if ('name' === dataIndex) {
-                return (<>{translateStatus(row.status)}{s}</>);
-            }
-            return s;
-        },
-    });
-
-    const handleSearch = (selectedKeys: string[], confirm: () => void, dataIndex: string) => {
-        confirm();
-        dispatch({searchText: selectedKeys[0], searchedColumn: dataIndex});
-        state.searchText = selectedKeys[0];
-        state.searchedColumn = dataIndex;
-    };
-
-    const handleReset = (clearFilters: () => void) => {
-        clearFilters();
-        dispatch({searchText: ''});
-        state.searchText = '';
-    };
-
-    const getTbProps = () => ({
-        columns: [
-            {
-                title: <IntlText id={"NAME"}/>,
-                dataIndex: 'name',
-                key: 'name',
-                ellipsis: true,
-                sorter: (a: ServerRunning, b: ServerRunning) => a.name.localeCompare(b.name),
-                sortDirections: ['descend', 'ascend'],
-                ...getColumnSearchProps('name')
-            },
-            {
-                title: <IntlText id={"GROUP"}/>,
-                dataIndex: 'group',
-                key: 'group',
-                ellipsis: true,
-                width: 120,
-                sorter: (a: ServerRunning, b: ServerRunning) => a.group.localeCompare(b.group),
-                sortDirections: ['descend', 'ascend'],
-                ...getColumnSearchProps('group')
-            },
-        ],
-        loading: state.loading,
-        dataSource: state.data,
-        pagination: false,
-        rowKey: 'sid',
-        size: 'small',
-        rowSelection: getRowSelection(),
-        onRow: onRow,
-        showHeader: true,
-        scroll: height,
-    });
     const translateStatus = (status: string) => {
         let tag;
         switch (status) {
@@ -282,33 +158,11 @@ const ServerMgrView = () => {
         return <span title={title} className={styles.statusIcon}>{tag}</span>;
     };
 
-    const getRowSelection = () => ({
-        type: 'checkbox',
-        onChange: (selectedRowKeys: string[], selectedRows: ServerRunning[]) => {
-            let current = state.current;
-            if (!selectedRows || selectedRows.length <= 0) {
-                current = '';
-            } else {
-                current = '' === current ? selectedRowKeys[0] : current;
-            }
-            dispatch({current, selectedRowKeys: selectedRowKeys, selectRows: selectedRows,});
-        },
-        selectedRowKeys: state.selectedRowKeys,
-    });
-
     const startSignal = (server: ServerRunning) => {
         if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
             ServerMgrService.startServer([server], finishCallback);
         }
     };
-
-    const onRow = (record: ServerRunning) => ({
-        onClick: () => {
-            dispatch({selectedRowKeys: [record.sid], selectRows: [record], current: record.sid});
-            pubsub.publish(record.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
-        },
-        onDoubleClick: () => startSignal(record)
-    });
 
     const refreshServerList = (init: boolean = false) => {
         dispatch({loading: true});
@@ -328,7 +182,7 @@ const ServerMgrView = () => {
                     let selectRows: any = [];
                     if (data.length > 0) {
                         let first: ServerRunning;
-                        if (preState.sideView === JarBootConst.LIST_VIEW && treeData.length > 0) {
+                        if (treeData.length > 0) {
                             const firstChildren = treeData[0]?.children as ServerRunning[] || [];
                             first = (firstChildren[0] || data[0]);
                         } else {
@@ -571,6 +425,34 @@ const ServerMgrView = () => {
         return (<AppstoreOutlined className={styles.groupIcon}/>);
     };
 
+    const renderTitle = (server: ServerRunning, isGroup: boolean, searchText: string) => {
+        if (isGroup) {
+            const group: string = server.group || '';
+            let title: React.ReactNode|string = group;
+            if (searchText?.length && group.length) {
+                title = <Highlighter
+                    highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={title || ''}
+                />;
+            }
+            return (<span className={styles.groupRow}>
+                    {group.length ? title : <IntlText id={'DEFAULT_GROUP'}/>}
+                </span>);
+        }
+        let title: React.ReactNode|string = server.name;
+        if (searchText?.length) {
+            title = <Highlighter
+                highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
+                searchWords={[searchText]}
+                autoEscape
+                textToHighlight={title || ''}
+            />;
+        }
+        return <span onDoubleClick={() => startSignal(server)}>{title}</span>;
+    };
+
     const getTreeData = (data: ServerRunning[]): TreeNode[] => {
         const treeData = [] as ServerRunning[];
         const groupMap = new Map<string, ServerRunning[]>();
@@ -580,20 +462,18 @@ const ServerMgrView = () => {
             if (!children) {
                 children = [] as ServerRunning[];
                 groupMap.set(group, children);
-                const title = (<span className={styles.groupRow}>
-                    {group.length ? group : <IntlText id={'DEFAULT_GROUP'}/>}
-                </span>);
+                const title = renderTitle(server, true, state.searchText);
                 treeData.push({
                     title,
                     sid: group,
                     key: group,
                     group,
                     icon: groupIcon,
-                    name: "", path: "", status: "", children});
+                    name: group, path: "", status: "", children});
             }
             const child = server as ServerRunning;
             child.key = server.sid;
-            child.title = <span onDoubleClick={() => startSignal(server)}>{server.name}</span>;
+            child.title = renderTitle(server, false, state.searchText);
             child.isLeaf = true;
             child.icon = translateStatus(server.status);
             children.push(child);
@@ -603,23 +483,30 @@ const ServerMgrView = () => {
 
     const onTreeSearch = (searchText: string) => {
         dispatch((preState: ServerMgrViewState) => {
+            let searchResult = [] as ServerRunning[];
+            if (preState.searchResult?.length) {
+                preState.searchResult.forEach(value => {
+                    value.title = renderTitle(value as ServerRunning, !value.isLeaf, '');
+                });
+            }
             if (searchText?.length) {
                 const text = searchText.toLowerCase();
-                const item = preState.data.find(value =>
-                    (value.name.toLowerCase().includes(text) || value.group.toLowerCase().includes(text)));
-                item && treeRef.current?.scrollTo({key: item.sid});
+                preState.treeData.forEach(value => {
+                    if (value.name.toLowerCase().includes(text)) {
+                        value.title = renderTitle(value as ServerRunning, true, searchText);
+                        searchResult.push(value as ServerRunning);
+                    }
+                    value.children?.forEach(child => {
+                        if (child.name.toLowerCase().includes(text)) {
+                            child.title = renderTitle(child as ServerRunning, false, searchText);
+                            searchResult.push(child as ServerRunning);
+                        }
+                    });
+                });
+                searchResult?.length && treeRef.current?.scrollTo({key: searchResult[0].sid});
             }
-            return {searchText};
+            return {searchText, searchResult, treeData: [...preState.treeData]};
         });
-    };
-
-    const treeTitleRender = (node: DataNode) => {
-        return (state.searchText?.length ? <Highlighter
-            highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
-            searchWords={[state.searchText]}
-            autoEscape
-            textToHighlight={node.title || ''}
-        /> : node.title);
     };
 
     const treeView = () => (<div>
@@ -636,7 +523,6 @@ const ServerMgrView = () => {
                         <Tree.DirectoryTree multiple className={styles.treeView}
                                             ref={treeRef}
                                             defaultExpandAll
-                                            titleRender={treeTitleRender}
                                             expandAction={"doubleClick"}
                                             selectedKeys={state.selectedRowKeys}
                                             onSelect={onTreeSelect}
@@ -646,21 +532,6 @@ const ServerMgrView = () => {
             </div>
         </div>
     </div>);
-
-    const sideView = () => {
-        let tableOption: any = getTbProps();
-        tableOption.scroll = {y: height};
-        return (<>
-            <div style={{display: JarBootConst.TREE_VIEW === state.sideView ? 'block' : 'none'}}
-                 className={styles.serverTable}>
-                <CommonTable option={tableOption}
-                             toolbar={getToolBtnProps()} height={height}/>
-            </div>
-            <div style={{display: JarBootConst.LIST_VIEW === state.sideView ? 'block' : 'none'}}>
-                {treeView()}
-            </div>
-        </>);
-    };
 
     const contentView = () => {
         const configView = JarBootConst.CONSOLE_VIEW === state.contentView;
@@ -703,14 +574,12 @@ const ServerMgrView = () => {
     };
 
 
-    let tableOption: any = getTbProps();
-    tableOption.scroll = {y: height};
     const loading = state.loading && 0 === state.data.length;
     return (<div>
         <div className={styles.serverMgr}>
             <div className={styles.serverMgrSide}>
-                {sideView()}
-                <BottomBar sideView={state.sideView} contentView={state.contentView} onViewChange={onViewChange}/>
+                {treeView()}
+                <BottomBar contentView={state.contentView} onViewChange={onViewChange}/>
             </div>
             <div className={styles.serverMgrContent}>
                 {loading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}

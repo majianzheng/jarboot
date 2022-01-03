@@ -27,6 +27,7 @@ public class JarbootRunListener implements SpringApplicationRunListener {
 
     @Override
     public void contextPrepared(ConfigurableApplicationContext context) {
+        JarbootFactory.setSpringApplicationContext(context);
         //先判定是否使用了Jarboot启动
         try {
             Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(Constants.AGENT_CLASS);
@@ -46,8 +47,8 @@ public class JarbootRunListener implements SpringApplicationRunListener {
                 agentService.setStarted();
                 //初始化Spring
                 agentService.getClass()
-                        .getMethod(Constants.SPRING_INIT_METHOD, Object.class)
-                        .invoke(null, context);
+                        .getMethod(Constants.SPRING_INIT_METHOD)
+                        .invoke(null);
             } catch (Throwable e) {
                 logger.error(e.getMessage(), e);
             }

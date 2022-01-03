@@ -92,9 +92,9 @@ public class AgentServiceImpl implements AgentService {
         return JarbootAgent.getJarbootClassLoader();
     }
 
-    public static void springContextInit(Object context) {
+    public static void springContextInit() {
         try {
-            OPERATOR_CLASS.getMethod(SPRING_INIT, Object.class).invoke(null, context);
+            OPERATOR_CLASS.getMethod(SPRING_INIT).invoke(null);
         } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }

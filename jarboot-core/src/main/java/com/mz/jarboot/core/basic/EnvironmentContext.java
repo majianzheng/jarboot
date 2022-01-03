@@ -54,6 +54,9 @@ public class EnvironmentContext {
         if (null != inst) {
             EnvironmentContext.instrumentation = inst;
         }
+        //初始化spring context
+        AgentServiceOperator.springContextInit();
+
         EnvironmentContext.transformerManager =  new TransformerManager(EnvironmentContext.instrumentation);
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);

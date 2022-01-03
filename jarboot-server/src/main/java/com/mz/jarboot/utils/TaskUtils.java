@@ -28,26 +28,20 @@ public class TaskUtils {
     /** 服务启动超时时间 */
     private static int maxStartTime = 12000;
     /** 任务调度线程池 */
-    private static final ExecutorService TASK_EXECUTOR;
+    private static final ScheduledExecutorService TASK_EXECUTOR;
 
     static {
-        LinkedBlockingQueue<Runnable> taskBlockingQueue = new LinkedBlockingQueue<>(16);
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
-        int maxSize = coreSize * 2;
-        TASK_EXECUTOR = new ThreadPoolExecutor(coreSize, maxSize,
-                16L, TimeUnit.SECONDS, taskBlockingQueue,
-                JarbootThreadFactory.createThreadFactory("jarboot-task-pool"),
-                //线程池忙碌拒绝策略
-                (Runnable r, ThreadPoolExecutor executor) ->
-                        WebSocketManager.getInstance().notice("服务器忙碌中，请稍后再试！", NoticeEnum.WARN));
+        TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
+                JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
     }
 
     /**
      * 获取线程池
      * @return 线程池
      */
-    public static ExecutorService getTaskExecutor() {
+    public static ScheduledExecutorService getTaskExecutor() {
         return TASK_EXECUTOR;
     }
 

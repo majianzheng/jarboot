@@ -9,10 +9,7 @@ class JarBootConst {
     public static readonly DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
     public static readonly PROTOCOL_SPLIT = '\r';
 
-    public static readonly  SIDE_VIEW = 'sideView';
     public static readonly CONTENT_VIEW = 'contentView';
-    public static readonly TREE_VIEW = 'tree';
-    public static readonly LIST_VIEW = 'list';
     public static readonly CONFIG_VIEW = 'config';
     public static readonly CONSOLE_VIEW = 'console';
 
@@ -34,14 +31,6 @@ class JarBootConst {
 
     public static ZH_CN = 'zh-CN';
 
-    public static APPEND_LINE = 'appendLine';
-    public static STD_PRINT = 'print';
-    public static BACKSPACE = 'backspace';
-    public static FINISH_LOADING = 'finishLoading';
-    public static INSERT_TO_HEADER = 'insertLineToHeader';
-    public static START_LOADING = 'startLoading';
-    public static CLEAR_CONSOLE = 'clear';
-
     //token
     public static TOKEN_KEY = 'token';
     public static currentUser: any = {username: '', globalAdmin: false};
@@ -58,11 +47,19 @@ interface MsgData {
     body: any;
 }
 
+enum FuncCode {
+    CMD_FUNC,
+    CANCEL_FUNC,
+    TRUST_ONCE_FUNC,
+    CHECK_TRUSTED_FUNC,
+    DETACH_FUNC,
+}
+
 interface MsgReq {
     server?: string;
     sid?: string;
     body: string;
-    func: number;
+    func: FuncCode;
 }
 
 const requestFinishCallback = (resp: any) => {
@@ -71,4 +68,4 @@ const requestFinishCallback = (resp: any) => {
     }
 };
 
-export {JarBootConst, MsgData, MsgReq, requestFinishCallback};
+export {JarBootConst, MsgData, MsgReq, FuncCode, requestFinishCallback};

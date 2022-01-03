@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.basic;
 
+import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import com.mz.jarboot.common.*;
@@ -70,7 +71,12 @@ public class AgentServiceOperator {
      * @param context Spring Context
      */
     @SuppressWarnings("all")
-    public static void springContextInit(Object context) {
+    public static void springContextInit() {
+        Object context = JarbootFactory.getSpringApplicationContext();
+        if (null == context) {
+            AnsiLog.info("Current is not spring-boot application.");
+            return;
+        }
         Map<String, CommandProcessor> beans = null;
         //获取
         try {

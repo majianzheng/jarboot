@@ -55,7 +55,7 @@ public class SettingUtils {
     private static String localHost = null;
     /** 受信任的远程服务器 */
     private static final String TRUSTED_HOSTS_FILE;
-    private static final HashSet<String> TRUSTED_HOSTS = new HashSet<>(16);
+    private static HashSet<String> trustedHosts = new HashSet<>(16);
 
     static {
         final String home = System.getProperty(CommonConst.JARBOOT_HOME);
@@ -113,7 +113,7 @@ public class SettingUtils {
         }
         try {
             List<String> lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
-            lines.forEach(line -> TRUSTED_HOSTS.add(line.trim()));
+            lines.forEach(line -> trustedHosts.add(line.trim()));
         } catch (Exception e) {
             //ignore
         }
@@ -360,7 +360,7 @@ public class SettingUtils {
         if (StringUtils.isBlank(host)) {
             return false;
         }
-        return TRUSTED_HOSTS.contains(host);
+        return trustedHosts.contains(host);
     }
 
     public static void addTrustedHost(String host) throws IOException {
@@ -368,14 +368,33 @@ public class SettingUtils {
             throw new JarbootException("Host is empty!");
         }
         host = host.trim();
-        if (TRUSTED_HOSTS.contains(host)) {
+        if (trustedHosts.contains(host)) {
             return;
         }
-        synchronized (TRUSTED_HOSTS) {
-            File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
-            FileUtils.writeStringToFile(file, host, StandardCharsets.UTF_8, true);
-            TRUSTED_HOSTS.add(host);
+        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        HashSet<String> lines = new HashSet<>(trustedHosts);
+        lines.add(host);
+        FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
+        trustedHosts = lines;
+    }
+
+    public static Collection<String> getTrustedHosts() {
+        return trustedHosts;
+    }
+
+    public static void removeTrustedHost(String host) throws IOException {
+        host = host.trim();
+        if (StringUtils.isEmpty(host)) {
+            throw new JarbootException("Host is empty!");
         }
+        if (!trustedHosts.contains(host)) {
+            return;
+        }
+        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        HashSet<String> lines = new HashSet<>(trustedHosts);
+        lines.remove(host);
+        FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
+        trustedHosts = lines;
     }
 
     private SettingUtils() {

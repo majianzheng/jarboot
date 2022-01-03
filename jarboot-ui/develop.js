@@ -15,6 +15,7 @@ const template = (cssFile, jsFile) => (`<!DOCTYPE html>
 <html>
   <head>
     ${meta}
+    <link rel="shortcut icon" href="/jarboot/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/jarboot/${cssFile}"/>
     <script>window.routerBase = "/";</script>
     <title>Jarboot</title>
@@ -26,42 +27,49 @@ const template = (cssFile, jsFile) => (`<!DOCTYPE html>
 </html>`);
 
 
-const distBase = './dist/';
-const staticDir = '../jarboot-server/src/main/resources/static/';
-const jarbootDir = staticDir + path.sep + 'jarboot';
-const uiPrefix = 'jarboot-ui';
+const DIST = './dist/';
+const STATIC_DIR = '../jarboot-server/src/main/resources/static/';
+const JARBOOT_DIR = STATIC_DIR + path.sep + 'jarboot';
+const UI_PREFIX = 'jarboot-ui';
 const icon = 'favicon.ico';
+const INDEX_FILE = 'index.html';
+const LOGIN_FILE = 'login.html';
+const HTML_FILES = [
+    JARBOOT_DIR + path.sep + INDEX_FILE,
+    JARBOOT_DIR + path.sep + LOGIN_FILE,
+    STATIC_DIR + path.sep + INDEX_FILE,
+    STATIC_DIR + path.sep + LOGIN_FILE,
+];
 
 console.info("Start developing...");
 
 // 清理旧资源
 console.info("Cleaning old static...");
-fsExtra.emptyDirSync(staticDir);
+fsExtra.emptyDirSync(STATIC_DIR);
+fsExtra.removeSync('../jarboot-server/target/classes/static/');
 console.info("Clean old static success!");
-fsExtra.mkdirsSync(jarbootDir);
+fsExtra.mkdirsSync(JARBOOT_DIR);
 let cssFileName = '';
 let jsFileName = '';
 fs
-    .readdirSync(path.resolve(distBase))
+    .readdirSync(path.resolve(DIST))
     .filter(value => (value.endsWith('.js') || value.endsWith('.css'))).forEach(value => {
-    const src = distBase + path.sep + value;
-    const outName = value.replace('umi', uiPrefix);
+    const src = DIST + path.sep + value;
+    const outName = value.replace('umi', UI_PREFIX);
     if (outName.endsWith('.js')) {
         jsFileName = outName;
     }
     if (outName.endsWith('.css')) {
         cssFileName = outName;
     }
-    const dist = jarbootDir + path.sep + outName;
+    const dist = JARBOOT_DIR + path.sep + outName;
     fsExtra.copySync(src, dist);
 });
 //拷贝ico
-fsExtra.copySync(distBase + path.sep + icon, staticDir + path.sep + icon);
-const content = template(cssFileName, jsFileName);
+fsExtra.copySync(DIST + path.sep + icon, JARBOOT_DIR + path.sep + icon);
+
 //更新html文件
-fsExtra.outputFileSync(jarbootDir + path.sep + 'index.html', content);
-fsExtra.outputFileSync(jarbootDir + path.sep + 'login.html', content);
-fsExtra.outputFileSync(staticDir + path.sep + 'index.html', content);
-fsExtra.outputFileSync(staticDir + path.sep + 'login.html', content);
+const content = template(cssFileName, jsFileName);
+HTML_FILES.forEach(file => fsExtra.outputFileSync(file, content));
 
 console.info("Developing finished.");

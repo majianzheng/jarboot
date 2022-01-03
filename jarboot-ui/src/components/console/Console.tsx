@@ -92,6 +92,18 @@ const DEFAULT_SGR_OPTION: SgrOption = {
     fastBlink: false,
 };
 
+enum CONSOLE_TOPIC {
+    APPEND_LINE,
+    STD_PRINT,
+    BACKSPACE,
+    FINISH_LOADING,
+    INSERT_TO_HEADER,
+    START_LOADING,
+    CLEAR_CONSOLE,
+    SCROLL_TO_END,
+    SCROLL_TO_TOP,
+}
+
 const Banner = (
     <div className={styles.banner}>
         <br/>
@@ -186,12 +198,14 @@ class Console extends React.PureComponent<ConsoleProps> {
 
         if (pubsub) {
             //初始化事件订阅
-            pubsub.submit(id, JarBootConst.APPEND_LINE, this.onConsole);
-            pubsub.submit(id, JarBootConst.STD_PRINT, this.onStdPrint);
-            pubsub.submit(id, JarBootConst.BACKSPACE, this.onBackspace);
-            pubsub.submit(id, JarBootConst.START_LOADING, this.onStartLoading);
-            pubsub.submit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
-            pubsub.submit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
+            pubsub.submit(id, CONSOLE_TOPIC.APPEND_LINE, this.onConsole);
+            pubsub.submit(id, CONSOLE_TOPIC.STD_PRINT, this.onStdPrint);
+            pubsub.submit(id, CONSOLE_TOPIC.BACKSPACE, this.onBackspace);
+            pubsub.submit(id, CONSOLE_TOPIC.START_LOADING, this.onStartLoading);
+            pubsub.submit(id, CONSOLE_TOPIC.FINISH_LOADING, this.onFinishLoading);
+            pubsub.submit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, this.onClear);
+            pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
+            pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, this.scrollToTop);
         }
     }
 
@@ -199,12 +213,14 @@ class Console extends React.PureComponent<ConsoleProps> {
         this.intervalHandle = null;
         const {pubsub, id} = this.props;
         if (pubsub) {
-            pubsub.unSubmit(id, JarBootConst.APPEND_LINE, this.onConsole);
-            pubsub.unSubmit(id, JarBootConst.STD_PRINT, this.onStdPrint);
-            pubsub.unSubmit(id, JarBootConst.BACKSPACE, this.onBackspace);
-            pubsub.unSubmit(id, JarBootConst.START_LOADING, this.onStartLoading);
-            pubsub.unSubmit(id, JarBootConst.FINISH_LOADING, this.onFinishLoading);
-            pubsub.unSubmit(id, JarBootConst.CLEAR_CONSOLE, this.onClear);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.APPEND_LINE, this.onConsole);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.STD_PRINT, this.onStdPrint);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.BACKSPACE, this.onBackspace);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.START_LOADING, this.onStartLoading);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, this.onFinishLoading);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, this.onClear);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, this.scrollToEnd);
+            pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, this.scrollToTop);
         }
     }
 
@@ -218,14 +234,9 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (!this.codeDom?.children?.length) {
             return;
         }
-        if (this.isStartLoading) {
-            if (this.codeDom.children.length === 2) {
-                return;
-            }
-        } else {
-            if (this.codeDom.children.length === 1) {
-                return;
-            }
+        const initLength = this.isStartLoading ? 2 : 1;
+        if (this.codeDom.children.length <= initLength) {
+            return;
         }
         this.eventQueue.push({type: EventType.CLEAR_EVENT});
         //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
@@ -289,6 +300,13 @@ class Console extends React.PureComponent<ConsoleProps> {
      */
     private scrollToEnd = () => {
         this.codeDom.scrollTop = this.codeDom.scrollHeight;
+    };
+
+    /**
+     * 滚动到顶部
+     */
+    private scrollToTop = () => {
+        this.codeDom.scrollTop = 0;
     };
 
     /**
@@ -924,10 +942,13 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (this.props.wrap) {
             style.whiteSpace = "pre-wrap";
         }
-        return <code id={`id-console-${this.props.id}`} style={style} className={styles.console}>
+        return <code id={`id-console-${this.props.id}`}
+                     style={style}
+                     className={styles.console}>
             {Banner}
         </code>;
     }
 }
 
+export {CONSOLE_TOPIC};
 export default Console;

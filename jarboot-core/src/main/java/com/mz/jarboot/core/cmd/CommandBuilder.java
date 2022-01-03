@@ -93,7 +93,7 @@ public class CommandBuilder {
             parser.postConstruct();
         } catch (Throwable e) {
             errorMsg = e.getMessage();
-            logger.trace(errorMsg, e);
+            logger.error(errorMsg, e);
             if (null != command) {
                 command.printHelp();
             }
@@ -178,18 +178,18 @@ public class CommandBuilder {
                     EnvironmentContext.getInstrumentation(),
                     EnvironmentContext.getClientData().getServer());
         } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
             errorMsg = e.getMessage();
             if (null == extendCmd) {
                 AgentServiceOperator.noticeError(errorMsg, session.getSessionId());
             } else {
                 extendCmd.printHelp();
-                if (null == errorMsg) {
-                    session.end();
-                } else {
-                    session.end(false, errorMsg);
-                    AgentServiceOperator.noticeInfo(errorMsg, session.getSessionId());
-                }
                 extendCmd = null;
+            }
+            if (null == errorMsg) {
+                session.end();
+            } else {
+                session.end(false, errorMsg);
             }
         }
         return extendCmd;

@@ -16,22 +16,18 @@ import org.springframework.core.env.Environment;
 @ConditionalOnProperty(name = "spring.jarboot.enabled", matchIfMissing = true)
 @EnableConfigurationProperties({ JarbootConfigProperties.class })
 public class JarbootAutoConfiguration {
-    private static final String FACTORY_CLASS = "com.mz.jarboot.api.JarbootFactory";
-
     @Bean
-    @ConditionalOnClass(name = {Constants.AGENT_CLASS, FACTORY_CLASS})
+    @ConditionalOnClass(name = Constants.AGENT_CLASS)
     public AgentService agentService() {
         return JarbootFactory.createAgentService();
     }
 
     @Bean("spring.env")
-    @ConditionalOnClass(name = Constants.AGENT_CLASS)
     public CommandProcessor springEnv(Environment environment) {
         return new com.mz.jarboot.command.SpringEnvCommandProcessor(environment);
     }
 
     @Bean("spring.bean")
-    @ConditionalOnClass(name = Constants.AGENT_CLASS)
     public CommandProcessor springBean(ApplicationContext context) {
         return new com.mz.jarboot.command.SpringBeanCommandProcessor(context);
     }
