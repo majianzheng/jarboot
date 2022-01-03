@@ -71,7 +71,7 @@ public interface ServerMgrService {
 
     /**
      * 删除服务
-     * @param server
+     * @param server 服务名
      */
     void deleteServer(String server);
 }
