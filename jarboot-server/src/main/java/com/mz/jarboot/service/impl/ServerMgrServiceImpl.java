@@ -147,8 +147,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(setting ->
                 TaskUtils.getTaskExecutor().execute(() -> {
-                    this.startSingleServer(setting);
-                    countDownLatch.countDown();
+                    try {
+                        this.startSingleServer(setting);
+                    } finally {
+                        countDownLatch.countDown();
+                    }
                 }));
 
         try {
@@ -323,8 +326,11 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(server ->
                 TaskUtils.getTaskExecutor().execute(() -> {
-                    this.stopSingleServer(server);
-                    countDownLatch.countDown();
+                    try {
+                        this.stopSingleServer(server);
+                    } finally {
+                        countDownLatch.countDown();
+                    }
                 }));
 
         try {
