@@ -48,7 +48,7 @@
 	</modules>
 	<properties>
 		<revision>2.2.5-SNAPSHOT</revision>
-		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 
@@ -128,7 +128,7 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>jarboot-spring-boot-starter</artifactId>
+				<artifactId>spring-boot-starter-jarboot</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
