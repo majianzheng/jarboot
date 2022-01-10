@@ -4,7 +4,6 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
