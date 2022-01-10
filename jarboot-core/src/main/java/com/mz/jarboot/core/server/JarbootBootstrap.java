@@ -201,7 +201,7 @@ public class JarbootBootstrap {
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
 
-        String url = String.format("http://%s/api/jarboot/public/agent/agentClient", host);
+        String url = CommonConst.HTTP + host + "/api/jarboot/public/agent/agentClient";
         clientData = HttpUtils.postJson(url, sb.toString(), AgentClientPojo.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);

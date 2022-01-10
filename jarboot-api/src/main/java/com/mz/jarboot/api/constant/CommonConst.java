@@ -28,6 +28,21 @@ public class CommonConst {
     public static final String JARBOOT_NAME = "jarboot";
     public static final String SERVICES = "services";
 
+    public static final String HTTP = "http://";
+
+    public static final String HTTPS = "https://";
+
+    /** Controller context */
+    public static final String SERVER_MGR_CONTEXT = "/api/jarboot/services";
+    public static final String AUTH_CONTEXT = "/api/jarboot/auth";
+    public static final String AGENT_CLIENT_CONTEXT = "/api/jarboot/public/agent";
+    public static final String CLOUD_CONTEXT = "/api/jarboot/cloud";
+    public static final String PLUGINS_CONTEXT = "/api/jarboot/plugins";
+    public static final String PRIVILEGE_CONTEXT = "/api/jarboot/privilege";
+    public static final String ROLE_CONTEXT = "/api/jarboot/role";
+    public static final String SETTING_CONTEXT = "/api/jarboot/setting";
+    public static final String USER_CONTEXT = "/api/jarboot/user";
+
     /**
      * 等待目标进程优雅退出的最大时间，毫秒
      */

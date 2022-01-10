@@ -45,6 +45,7 @@
 		<module>plugins/shell-plugin</module>
 		<module>demo-server</module>
 		<module>packaging</module>
+		<module>jarboot-client</module>
 	</modules>
 	<properties>
 		<revision>2.2.5-SNAPSHOT</revision>

@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
 import com.mz.jarboot.common.ResultCodeConst;
@@ -31,7 +32,7 @@ import java.util.List;
  * 鉴权接口
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/auth")
+@RequestMapping(value = CommonConst.AUTH_CONTEXT)
 @Controller
 public class AuthController {
     private static final int DEFAULT_PAGE_NO = 1;

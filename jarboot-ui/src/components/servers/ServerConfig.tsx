@@ -93,7 +93,8 @@ const ServerConfig = memo((props: ServerConfigProp) => {
         <Form {...layout}
               form={form}
               name="server-setting"
-              onFinish={onSubmit} initialValues={{priority: 0}}>
+              onFinish={onSubmit}
+              initialValues={{priority: 0}}>
             <Row>
                 <Col span={16}>
                     <Form.Item name="name"
@@ -131,16 +132,19 @@ const ServerConfig = memo((props: ServerConfigProp) => {
             <Form.Item name="vm"
                        label={intl.formatMessage({id: 'VM_OPT_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off" placeholder={"vm options file"}
+                <Input autoComplete="off"
+                       placeholder={"VM options file"}
                        autoCorrect="off"
                        autoCapitalize="off"
                        spellCheck="false"
-                       onDoubleClick={onVmEdit} addonAfter={<FormOutlined onClick={onVmEdit}/>}/>
+                       onDoubleClick={onVmEdit}
+                       addonAfter={<FormOutlined onClick={onVmEdit}/>}/>
             </Form.Item>
             <Form.Item name="args"
                        label={intl.formatMessage({id: 'MAIN_ARGS_LABEL'})}
                        rules={[{required: false}]}>
-                <Input autoComplete="off" onDoubleClick={onArgsEdit}
+                <Input autoComplete="off"
+                       onDoubleClick={onArgsEdit}
                        placeholder={"Main arguments"}
                        autoCorrect="off"
                        autoCapitalize="off"
@@ -150,7 +154,11 @@ const ServerConfig = memo((props: ServerConfigProp) => {
             <Form.Item name="jdkPath"
                        label={"JDK"}
                        rules={[{required: false}]}>
-                <Input autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false"/>
+                <Input autoComplete="off"
+                       placeholder={"JDK home path"}
+                       autoCorrect="off"
+                       autoCapitalize="off"
+                       spellCheck="false"/>
             </Form.Item>
             <Form.Item name="workDirectory"
                        label={intl.formatMessage({id: 'WORK_HOME_LABEL'})}
@@ -163,7 +171,7 @@ const ServerConfig = memo((props: ServerConfigProp) => {
             <Form.Item name="env"
                        label={intl.formatMessage({id: 'ENV_LABEL'})}
                        rules={[{required: false}]}>
-                <Input placeholder={"env1=val1,env2=val2"}
+                <Input placeholder={"eg: ENV1=val1,ENV2=val2"}
                        autoComplete="off"
                        autoCorrect="off"
                        autoCapitalize="off"
@@ -196,8 +204,11 @@ const ServerConfig = memo((props: ServerConfigProp) => {
                 </Button>
             </Form.Item>
         </Form>
-        {visible && <FileEditModal name={file.name} content={file.content} onSave={file.onSave}
-                                   visible={true} onClose={() => setVisible(false)}/>}
+        {visible && <FileEditModal name={file.name}
+                                   content={file.content}
+                                   onSave={file.onSave}
+                                   visible={true}
+                                   onClose={() => setVisible(false)}/>}
     </div>);
 });
 export default ServerConfig;

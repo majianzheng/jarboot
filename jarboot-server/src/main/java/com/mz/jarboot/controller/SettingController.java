@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.auth.annotation.Permission;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
  * 系统配置
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/setting")
+@RequestMapping(value = CommonConst.SETTING_CONTEXT)
 @RestController
 @Permission
 public class SettingController {

@@ -181,7 +181,7 @@ public class Jarboot {
             return;
         }
         AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
-        String url = String.format("http://%s/api/jarboot/cloud/version", host);
+        String url = CommonConst.HTTP + host + "/api/jarboot/cloud/version";
         try {
             String version = HttpUtils.getJson(url, String.class);
             AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
@@ -320,7 +320,7 @@ public class Jarboot {
     }
 
     private void printHomePage() {
-        String url = String.format("http://%s/jarboot/index.html", host);
+        String url = CommonConst.HTTP + host + "/jarboot/index.html";
         AnsiLog.println("Visit online diagnose: {}", AnsiLog.blue(url));
     }
 

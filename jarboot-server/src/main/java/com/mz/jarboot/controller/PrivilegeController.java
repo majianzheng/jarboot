@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.PermissionsCache;
 import com.mz.jarboot.common.ResponseForList;
@@ -17,7 +18,7 @@ import java.util.List;
  * 权限管理
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/privilege")
+@RequestMapping(value = CommonConst.PRIVILEGE_CONTEXT)
 @RestController
 @Permission
 public class PrivilegeController {

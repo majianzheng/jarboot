@@ -20,7 +20,7 @@ import java.util.Objects;
  * 内部接口，与jarboot-core交互，非开放
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/public/agent")
+@RequestMapping(value = CommonConst.AGENT_CLIENT_CONTEXT)
 @Controller
 public class AgentClientController {
 

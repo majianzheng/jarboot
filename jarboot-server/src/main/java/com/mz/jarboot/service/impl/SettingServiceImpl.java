@@ -52,6 +52,8 @@ public class SettingServiceImpl implements SettingService {
         String vm = setting.getVm();
         if (null == vm) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
+        } else {
+            checkFileExist(vm, setting.getPath());
         }
         prop.setProperty(SettingPropConst.VM, vm);
         String args = setting.getArgs();
@@ -128,7 +130,8 @@ public class SettingServiceImpl implements SettingService {
             if (OSUtils.isWindows()) {
                 javaFile += CommonConst.EXE_EXT;
             }
-            checkFileExist(javaFile);
+
+            checkFileExist(javaFile, setting.getPath());
         } else {
             jdkPath = StringUtils.EMPTY;
         }
@@ -220,8 +223,11 @@ public class SettingServiceImpl implements SettingService {
         throw new JarbootException(ResultCodeConst.NOT_EXIST, path + "不存在");
     }
 
-    private void checkFileExist(String file) {
-        File dir = FileUtils.getFile(file);
+    private void checkFileExist(String file, String serverPath) {
+        File dir = SettingUtils.isAbsolutePath(file) ?
+                FileUtils.getFile(file)
+                :
+                FileUtils.getFile(serverPath, file);
         if (dir.exists() && dir.isFile()) {
             return;
         }

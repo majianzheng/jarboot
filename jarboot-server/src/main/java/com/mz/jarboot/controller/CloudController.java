@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
@@ -29,7 +30,7 @@ import java.util.Base64;
 /**
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/cloud")
+@RequestMapping(value = CommonConst.CLOUD_CONTEXT)
 @Controller
 public class CloudController {
     @Value("${docker:false}")

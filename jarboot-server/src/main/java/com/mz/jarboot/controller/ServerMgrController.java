@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.auth.annotation.Permission;
@@ -18,7 +19,7 @@ import java.util.List;
  * 服务管理
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/services")
+@RequestMapping(value = CommonConst.SERVER_MGR_CONTEXT)
 @Controller
 @Permission
 public class ServerMgrController {

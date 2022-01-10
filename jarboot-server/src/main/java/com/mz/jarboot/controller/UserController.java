@@ -1,5 +1,6 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.ResponseForList;
 import com.mz.jarboot.common.ResponseForObject;
@@ -21,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
  * 用户管理
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/user")
+@RequestMapping(value = CommonConst.USER_CONTEXT)
 @RestController
 @Permission
 public class UserController {
