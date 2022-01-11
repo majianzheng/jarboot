@@ -45,11 +45,13 @@ public class CloudController {
     @GetMapping(value="/version")
     @ResponseBody
     public String getVersion() {
-        String results = "v" + VersionUtils.version;
-        if (isInDocker) {
-            results += "(Docker)";
-        }
-        return results;
+        return VersionUtils.version;
+    }
+
+    @GetMapping(value="/checkInDocker")
+    @ResponseBody
+    public Boolean checkInDocker() {
+        return isInDocker;
     }
 
     /**
