@@ -8,13 +8,14 @@ import com.mz.jarboot.client.utlis.HttpRequestOperator;
 import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import okhttp3.RequestBody;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * 客户端请求代理
  * @author majianzheng
  */
 public class ClientProxy {
@@ -40,16 +41,46 @@ public class ClientProxy {
         this.authorization = false;
     }
 
+    /**
+     * 请求API
+     * @param api api路径
+     * @param json json格式字符串
+     * @param method 请求方法
+     * @return response
+     */
     public String reqApi(String api, String json, HttpRequestOperator.HttpMethod method) {
         Map<String, String> headers = this.authorization ? initHeader() : null;
         return HttpRequestOperator.reqJson(this.baseUrl + api, json, headers, method);
     }
 
+    /**
+     * 请求API
+     * @param api api路径
+     * @param form form表单
+     * @param method 请求方法
+     * @return response
+     */
     public String reqApi(String api, Map<String, String> form, HttpRequestOperator.HttpMethod method) {
         Map<String, String> headers = this.authorization ? initHeader() : null;
         return HttpRequestOperator.req(this.baseUrl + api, form, headers, method);
     }
 
+    /**
+     * 请求API
+     * @param api api路径
+     * @param method 请求方法
+     * @param requestBody 请求数据包
+     * @return response
+     */
+    public String reqApi(String api, HttpRequestOperator.HttpMethod method, RequestBody requestBody) {
+        Map<String, String> headers = this.authorization ? initHeader() : null;
+        return HttpRequestOperator.doRequest(this.baseUrl + api, method, requestBody, headers);
+    }
+
+    /**
+     * 是否token认证
+     * @return 是否认证
+     */
     public boolean hasAuth() {
         return this.authorization;
     }
@@ -83,10 +114,6 @@ public class ClientProxy {
         public boolean isExpired() {
             return System.currentTimeMillis() > this.expireTime;
         }
-
-        public String getToken() {
-            return this.token;
-        }
     }
 
     public static class Factory {
@@ -95,14 +122,28 @@ public class ClientProxy {
         private static final ConcurrentHashMap<String, HashMap<String, ClientProxy>> CLIENTS =
                 new ConcurrentHashMap<>(16);
 
+        /**
+         * 创建客户端代理
+         * @param host jarboot服务地址
+         * @param user jarboot用户名
+         * @param password jarboot用户密码
+         * @return 客户端代理 {@link ClientProxy}
+         */
         public static ClientProxy createClientProxy(final String host, final String user, final String password) {
-            return CLIENTS.computeIfAbsent(host, k -> {
-                HashMap<String, ClientProxy> userClientMap = new HashMap<>(4);
-                userClientMap.put(user, new ClientProxy(host, user, password));
-                return userClientMap;
+            return CLIENTS.compute(host, (k, v) -> {
+                if (null == v) {
+                    v = new HashMap<>(4);
+                }
+                v.computeIfAbsent(user, k1 -> new ClientProxy(host, user, password));
+                return v;
             }).get(user);
         }
 
+        /**
+         * 创建客户端代理
+         * @param host jarboot服务地址
+         * @return 客户端代理 {@link ClientProxy}
+         */
         public static ClientProxy createClientProxy(final String host) {
             HashMap<String, ClientProxy> map = CLIENTS.computeIfAbsent(host, k -> {
                 HashMap<String, ClientProxy> userClientMap = new HashMap<>(4);
@@ -112,6 +153,13 @@ public class ClientProxy {
             return map.values().iterator().next();
         }
 
+        /**
+         * 获取token
+         * @param baseUrl 基址
+         * @param user 用户名
+         * @param password 用户密码
+         * @return token {@link AccessToken}
+         */
         static AccessToken requestToken(String baseUrl, String user, String password) {
             HashMap<String, String> param = new HashMap<>(4);
             param.put("username", user);

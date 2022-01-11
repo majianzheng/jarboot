@@ -2,6 +2,7 @@ package com.mz.jarboot.api;
 
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.service.ServerMgrService;
+import com.mz.jarboot.api.service.SettingService;
 
 /**
  * Jarboot Factory
@@ -10,6 +11,7 @@ import com.mz.jarboot.api.service.ServerMgrService;
 public class JarbootFactory {
     private static final String AGENT_CLASS = "com.mz.jarboot.agent.client.AgentServiceImpl";
     private static final String SERVER_MANAGER_CLASS = "com.mz.jarboot.client.ServerManager";
+    private static final String SETTING_CLIENT_CLASS = "com.mz.jarboot.client.SettingClient";
 
     private static Object springApplicationContext = null;
     /**
@@ -35,13 +37,26 @@ public class JarbootFactory {
      * @return 服务管理客户端
      */
     public static ServerMgrService createServerManager(String host, String user, String password) {
+        checkHost(host);
         try {
             Class<?> cls = Class.forName(SERVER_MANAGER_CLASS);
             return (ServerMgrService)cls
                     .getConstructor(String.class, String.class, String.class)
                     .newInstance(host, user, password);
         } catch (Exception e) {
-            throw new JarbootRunException("Current application maybe not started by jarboot", e);
+            throw new JarbootRunException(e.getMessage(), e);
+        }
+    }
+
+    public static SettingService createSettingService(String host, String user, String password) {
+        checkHost(host);
+        try {
+            Class<?> cls = Class.forName(SETTING_CLIENT_CLASS);
+            return (SettingService)cls
+                    .getConstructor(String.class, String.class, String.class)
+                    .newInstance(host, user, password);
+        } catch (Exception e) {
+            throw new JarbootRunException(e.getMessage(), e);
         }
     }
 
@@ -51,6 +66,12 @@ public class JarbootFactory {
 
     public static void setSpringApplicationContext(Object context) {
         springApplicationContext = context;
+    }
+
+    private static void checkHost(String host) {
+        if (null == host || host.isEmpty()) {
+            throw new JarbootRunException("host is empty!");
+        }
     }
 
     private JarbootFactory() {

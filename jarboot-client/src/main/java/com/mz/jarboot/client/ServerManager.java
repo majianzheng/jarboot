@@ -2,14 +2,12 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.api.service.ServerMgrService;
-import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.HttpRequestOperator;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.client.utlis.ResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 
@@ -31,19 +29,23 @@ public class ServerManager implements ServerMgrService {
      * @param password 登录密码
      */
     public ServerManager(String host, String user, String password) {
-        this.clientProxy = ClientProxy.Factory.createClientProxy(host, user, password);
+        if (null == user || null == password) {
+            this.clientProxy = ClientProxy.Factory.createClientProxy(host);
+        } else {
+            this.clientProxy = ClientProxy.Factory.createClientProxy(host, user, password);
+        }
     }
 
     @Override
     public List<ServerRunning> getServerList() {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/getServerList";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
-        JsonNode result = parseResult(response, api);
+        JsonNode result = ResponseUtils.parseResult(response, api);
         List<ServerRunning> list = new ArrayList<>();
         final int size = result.size();
         for (int i = 0; i < size; ++i) {
             JsonNode node = result.get(i);
-            ServerRunning serverRunning = JsonUtils.readValue(node.toString(), ServerRunning.class);
+            ServerRunning serverRunning = JsonUtils.treeToValue(node, ServerRunning.class);
             list.add(serverRunning);
         }
         return list;
@@ -54,7 +56,7 @@ public class ServerManager implements ServerMgrService {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/oneClickRestart";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class ServerManager implements ServerMgrService {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/oneClickStart";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -70,7 +72,7 @@ public class ServerManager implements ServerMgrService {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/oneClickStop";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -79,7 +81,7 @@ public class ServerManager implements ServerMgrService {
         String json = JsonUtils.toJsonString(paths);
         String response = this.clientProxy.reqApi(api, json, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -88,7 +90,7 @@ public class ServerManager implements ServerMgrService {
         String json = JsonUtils.toJsonString(paths);
         String response = this.clientProxy.reqApi(api, json, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class ServerManager implements ServerMgrService {
         String json = JsonUtils.toJsonString(paths);
         String response = this.clientProxy.reqApi(api, json, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -106,19 +108,19 @@ public class ServerManager implements ServerMgrService {
         String json = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, json, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
     public List<JvmProcess> getJvmProcesses() {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/getJvmProcesses";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
-        JsonNode result = parseResult(response, api);
+        JsonNode result = ResponseUtils.parseResult(response, api);
         List<JvmProcess> list = new ArrayList<>();
         final int size = result.size();
         for (int i = 0; i < size; ++i) {
             JsonNode node = result.get(i);
-            JvmProcess serverRunning = JsonUtils.readValue(node.toString(), JvmProcess.class);
+            JvmProcess serverRunning = JsonUtils.treeToValue(node, JvmProcess.class);
             list.add(serverRunning);
         }
         return list;
@@ -129,7 +131,7 @@ public class ServerManager implements ServerMgrService {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/attach?pid=" + pid;
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
@@ -137,29 +139,6 @@ public class ServerManager implements ServerMgrService {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/deleteServer?server=" + server;
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
-    }
-
-    private JsonNode parseResult(String response, String api) {
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        checkResponse(api, jsonNode);
-        JsonNode result = jsonNode.get(ClientConst.RESULT_KEY);
-        if (null == result) {
-            String msg = String.format("Request %s empty. response:%s", api, response);
-            throw new JarbootRunException(msg);
-        }
-        return result;
-    }
-
-    private void checkResponse(String api, JsonNode jsonNode) {
-        if (null == jsonNode) {
-            throw new JarbootRunException("Request failed!" + api);
-        }
-        final int resultCode = jsonNode.get(ClientConst.RESULT_CODE_KEY).asInt(ResultCodeConst.INTERNAL_ERROR);
-        if (ResultCodeConst.SUCCESS != resultCode) {
-            String msg = String.format("Request %s failed. resultMsg:%s",
-                    api, jsonNode.get("").asText(StringUtils.EMPTY));
-            throw new JarbootRunException(msg);
-        }
+        ResponseUtils.checkResponse(api, jsonNode);
     }
 }
