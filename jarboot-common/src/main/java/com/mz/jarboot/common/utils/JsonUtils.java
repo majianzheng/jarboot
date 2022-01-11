@@ -39,6 +39,21 @@ public class JsonUtils {
     }
 
     /**
+     * json反序列化为对象
+     * @param content 字符串
+     * @param cls 类
+     * @param <T> 类型
+     * @return 对象
+     */
+    public static <T> T treeToValue(JsonNode content, Class<T> cls) {
+        try {
+            return MAPPER.treeToValue(content, cls);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * 对象序列化为字符串
      * @param obj 对象
      * @return json字符串

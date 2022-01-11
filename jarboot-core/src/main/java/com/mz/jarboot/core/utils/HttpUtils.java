@@ -15,12 +15,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpUtils {
     /** 服务基址 */
-    private static String baseUrl =String.format("http://%s",
+    private static String baseUrl = (CommonConst.HTTP +
             System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899"));
     /** 连接超时 */
     private static final long CONNECT_TIMEOUT = 10L;
     /** 写超时 */
     private static final long READ_WRITE_TIMEOUT = 5L;
+    /** application json media */
+    private static final String JSON_TYPE = "application/json";
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse(JSON_TYPE);
     /** 连接池实例 */
     public static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
@@ -42,7 +45,7 @@ public class HttpUtils {
         if (null == json) {
             json = "";
         }
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), json);
+        RequestBody requestBody = RequestBody.create(JSON_MEDIA_TYPE, json);
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
@@ -68,7 +71,7 @@ public class HttpUtils {
      */
     public static void postSimple(String api, byte[] buf) {
         String url = baseUrl + api;
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), buf);
+        RequestBody requestBody = RequestBody.create(JSON_MEDIA_TYPE, buf);
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
@@ -120,7 +123,7 @@ public class HttpUtils {
 
     private static <T> T doRequest(Request.Builder requestBuilder, Class<T> type) {
         requestBuilder.addHeader("Cookie", "");
-        requestBuilder.addHeader("Accept", "application/json");
+        requestBuilder.addHeader("Accept", JSON_TYPE);
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
 
