@@ -6,6 +6,7 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandRequest;
 import com.mz.jarboot.common.protocol.CommandType;
+import com.mz.jarboot.common.utils.CommandCliParser;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
@@ -89,7 +90,7 @@ public class CommandBuilder {
             //设置命令名
             command.setName(name);
             //处理命令参数
-            CommandArgsParser parser = new CommandArgsParser(args, command);
+            CommandCliParser parser = new CommandCliParser(args, command);
             parser.postConstruct();
         } catch (Throwable e) {
             errorMsg = e.getMessage();
@@ -171,7 +172,7 @@ public class CommandBuilder {
             extendCmd = new ExtendCommand(processor);
             extendCmd.setName(cmd);
             extendCmd.setSession(session);
-            CommandArgsParser parser = new CommandArgsParser(args, processor);
+            CommandCliParser parser = new CommandCliParser(args, processor);
             parser.postConstruct();
             extendCmd.setArgs(parser.getSplitedArgs());
             processor.postConstruct(

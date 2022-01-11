@@ -1,4 +1,4 @@
-package com.mz.jarboot.core.utils;
+package com.mz.jarboot.common.utils;
 
 import com.mz.jarboot.common.utils.StringUtils;
 

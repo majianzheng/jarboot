@@ -9,6 +9,7 @@ public class CommonConst {
     public static final String JARBOOT_HOME= "JARBOOT_HOME";
     public static final String REMOTE_PROP = "jarboot.remote";
     public static final String SERVER_NAME_PROP = "jarboot.name";
+    public static final String JARBOOT_HOST_ENV = "JARBOOT_HOST";
 
     public static final String PORT_KEY = "server.port";
     public static final String DEFAULT_PORT = "9899";

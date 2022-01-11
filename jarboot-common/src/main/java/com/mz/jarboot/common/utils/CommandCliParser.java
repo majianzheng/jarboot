@@ -1,12 +1,10 @@
-package com.mz.jarboot.core.cmd;
+package com.mz.jarboot.common.utils;
 
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.cmd.annotation.Argument;
 import com.mz.jarboot.api.cmd.annotation.DefaultValue;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
-import com.mz.jarboot.core.utils.BasicTypeConvert;
-import com.mz.jarboot.common.utils.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -18,7 +16,7 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @SuppressWarnings("all")
-public class CommandArgsParser {
+public class CommandCliParser {
     private static final char QUOTATION1 = '\'';
     private static final char QUOTATION2 = '"';
     private static final char SPACE = ' ';
@@ -33,7 +31,7 @@ public class CommandArgsParser {
     private Map<Method, Option> optionMethods = new HashMap<>();
     private List<String> splitedArgs;
     private Object command;
-    public CommandArgsParser(String args, Object obj) {
+    public CommandCliParser(String args, Object obj) {
         // 构建实例，解析方法注解
         this.init(obj);
 
@@ -42,7 +40,7 @@ public class CommandArgsParser {
         this.doParse();
     }
 
-    public CommandArgsParser(String[] args, Object obj) {
+    public CommandCliParser(String[] args, Object obj) {
         this.init(obj);
         splitedArgs = Arrays.stream(args).collect(Collectors.toList());
         this.doParse();
@@ -59,7 +57,7 @@ public class CommandArgsParser {
 
     private void init(Object obj) {
         Class<?> cls = obj.getClass();
-        Constructor<? extends AbstractCommand> constructor;
+        Constructor<?> constructor;
         try {
             command = obj;
             Method[] methods = cls.getMethods();
