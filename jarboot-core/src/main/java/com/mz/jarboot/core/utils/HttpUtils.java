@@ -5,6 +5,7 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.ResponseSimple;
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
 
 import java.util.concurrent.TimeUnit;
@@ -50,18 +51,11 @@ public class HttpUtils {
                 .Builder()
                 .url(url)
                 .post(requestBody);
-        return doRequest(requestBuilder, type);
-    }
-
-    /**
-     * Post请求Simple
-     * @param api api接口
-     * @param json 传入的参数
-     */
-    public static void postSimple(String api, String json) {
-        String url = baseUrl + api;
-        ResponseSimple resp = postJson(url, json, ResponseSimple.class);
-        checkSimple(resp);
+        String resp = doRequest(requestBuilder);
+        if (type.isPrimitive()) {
+            return BasicTypeConvert.convert(resp, type);
+        }
+        return JsonUtils.readValue(resp, type);
     }
 
     /**
@@ -76,7 +70,8 @@ public class HttpUtils {
                 .Builder()
                 .url(url)
                 .post(requestBody);
-        checkSimple(doRequest(requestBuilder, ResponseSimple.class));
+        String resp = doRequest(requestBuilder);
+        checkSimple(JsonUtils.readValue(resp, ResponseSimple.class));
     }
 
     /**
@@ -91,7 +86,24 @@ public class HttpUtils {
                 .Builder()
                 .url(url)
                 .get();
-        return doRequest(requestBuilder, type);
+        String resp = doRequest(requestBuilder);
+        if (type.isPrimitive()) {
+            return BasicTypeConvert.convert(resp, type);
+        }
+        return JsonUtils.readValue(resp, type);
+    }
+
+    /**
+     * Get请求
+     * @param url url
+     * @return response
+     */
+    public static String getString(String url) {
+        Request.Builder requestBuilder = new Request
+                .Builder()
+                .url(url)
+                .get();
+        return doRequest(requestBuilder);
     }
 
     /**
@@ -121,30 +133,22 @@ public class HttpUtils {
         }
     }
 
-    private static <T> T doRequest(Request.Builder requestBuilder, Class<T> type) {
+    private static String doRequest(Request.Builder requestBuilder) {
         requestBuilder.addHeader("Cookie", "");
         requestBuilder.addHeader("Accept", JSON_TYPE);
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
 
         Call call = HTTP_CLIENT.newCall(request);
-        T resp = null;
         try {
             ResponseBody response = call.execute().body();
             if (null != response) {
-                String body = response.string();
-                if (type.isPrimitive()) {
-                    return BasicTypeConvert.convert(body, type);
-                }
-                if (String.class.equals(type)) {
-                    return (T) body;
-                }
-                resp = JsonUtils.readValue(body, type);
+                return response.string();
             }
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
-        return resp;
+        return StringUtils.EMPTY;
     }
 
     private HttpUtils() {}

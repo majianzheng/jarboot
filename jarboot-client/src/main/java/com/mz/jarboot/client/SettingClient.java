@@ -113,7 +113,7 @@ public class SettingClient implements SettingService {
     @Override
     public void saveVmOptions(String path, String file, String content) {
         final String api = CommonConst.SETTING_CONTEXT + "/vmoptions";
-        HashMap<String, String> param = new HashMap<>();
+        HashMap<String, String> param = new HashMap<>(8);
         param.put("path", path);
         param.put("file", file);
         param.put("content", content);
