@@ -64,11 +64,13 @@ public class CloudController {
                                     @RequestParam String name,
                                     @RequestParam(required = false) String token,
                                     HttpServletResponse response) throws IOException {
-        //token校验
-        if (StringUtils.isEmpty(token)) {
-            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        if (jwtTokenManager.getEnabled()) {
+            //token校验
+            if (StringUtils.isEmpty(token)) {
+                token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            }
+            jwtTokenManager.validateToken(token);
         }
-        jwtTokenManager.validateToken(token);
 
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
@@ -95,9 +97,11 @@ public class CloudController {
     @ResponseBody
     public ResponseSimple pushServerDirectory(HttpServletRequest request,
                                               @RequestParam("file") MultipartFile file) {
-        //token校验
-        String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        jwtTokenManager.validateToken(token);
+        if (jwtTokenManager.getEnabled()) {
+            //token校验
+            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            jwtTokenManager.validateToken(token);
+        }
         //临时目录，用于操作ZIP文件
         String filename = file.getOriginalFilename();
         String name = StringUtils.stripEnd(filename, ".zip");
@@ -188,11 +192,13 @@ public class CloudController {
                          @PathVariable("file") String file,
                          @RequestParam(required = false) String token,
                          HttpServletResponse response) throws IOException {
-        if (StringUtils.isEmpty(token)) {
-            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        if (jwtTokenManager.getEnabled()) {
+            if (StringUtils.isEmpty(token)) {
+                token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            }
+            //token校验
+            jwtTokenManager.validateToken(token);
         }
-        //token校验
-        jwtTokenManager.validateToken(token);
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);
