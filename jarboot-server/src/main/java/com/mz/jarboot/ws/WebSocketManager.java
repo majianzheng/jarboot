@@ -165,7 +165,7 @@ public class WebSocketManager extends Thread {
         }
         String body = id;
         if (StringUtils.isNotEmpty(message)) {
-            body += CommandConst.PROTOCOL_SPLIT + message;
+            body += StringUtils.CR + message;
         }
         this.publishGlobalEvent(StringUtils.EMPTY, body, WsEventEnum.GLOBAL_LOADING);
     }
@@ -288,9 +288,9 @@ public class WebSocketManager extends Thread {
         //使用\r作为分隔符
         sb
                 .append(sid)
-                .append(CommandConst.PROTOCOL_SPLIT)
+                .append(StringUtils.CR)
                 .append(event.ordinal())
-                .append(CommandConst.PROTOCOL_SPLIT)
+                .append(StringUtils.CR)
                 .append(body);
         return sb.toString();
     }

@@ -18,7 +18,7 @@ public class CommandDispatcher extends Thread {
     private final Logger logger = LogUtils.getLogger();
 
     /** 消息处理队列 */
-    private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
+    private final LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(CommandConst.MAX_COMMAND_BUFFER);
     /** 心跳响应 */
     private final Runnable heartbeat;
 
@@ -29,7 +29,7 @@ public class CommandDispatcher extends Thread {
         this.start();
     }
 
-    public void publish(String raw) {
+    public void publish(byte[] raw) {
         boolean success = this.queue.offer(raw);
         if (!success) {
             logger.warn("Unable to execute command exceed max buffer size, raw : {}", raw);
@@ -40,7 +40,7 @@ public class CommandDispatcher extends Thread {
     public void run() {
         for (;;) {
             try {
-                String raw = queue.take();
+                byte[] raw = queue.take();
                 execute(raw);
             } catch (InterruptedException e) {
                 logger.info(e.getMessage(), e);
@@ -52,7 +52,7 @@ public class CommandDispatcher extends Thread {
         }
     }
 
-    public void execute(String raw) {
+    public void execute(byte[] raw) {
         CommandRequest request = new CommandRequest();
         CommandCoreSession session = null;
         try {

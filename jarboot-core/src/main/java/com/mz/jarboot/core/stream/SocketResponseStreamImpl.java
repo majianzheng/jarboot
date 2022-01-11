@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.stream;
 
 import com.mz.jarboot.core.basic.WsClientFactory;
+import okio.ByteString;
 
 /**
  * 小数据量传输通过WebSocket
@@ -8,10 +9,10 @@ import com.mz.jarboot.core.basic.WsClientFactory;
  */
 public class SocketResponseStreamImpl implements ResponseStream {
     @Override
-    public void write(String data) {
+    public void write(byte[] data) {
         WsClientFactory
                 .getInstance()
                 .getSingletonClient()
-                .send(data);
+                .send(ByteString.of(data, 0, data.length));
     }
 }

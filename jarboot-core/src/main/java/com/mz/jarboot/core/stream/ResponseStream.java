@@ -10,5 +10,5 @@ public interface ResponseStream {
      * 写响应数据
      * @param data 数据
      */
-    void write(String data);
+    void write(byte[] data);
 }

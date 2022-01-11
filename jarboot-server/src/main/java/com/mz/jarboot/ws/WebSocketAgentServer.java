@@ -46,14 +46,6 @@ public class WebSocketAgentServer {
                                 Session session,
                                 @PathParam("server") String server,
                                 @PathParam("sid") String sid) {
-        //ignore
-    }
-
-    @OnMessage
-    public void onTextMessage(String message,
-                              Session session,
-                              @PathParam("server") String server,
-                              @PathParam("sid") String sid) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
         AgentManager.getInstance().handleAgentResponse(server, sid, resp, session);
     }

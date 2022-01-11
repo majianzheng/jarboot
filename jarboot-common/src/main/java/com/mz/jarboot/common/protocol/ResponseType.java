@@ -50,12 +50,12 @@ public enum ResponseType {
      */
     UNKNOWN;
 
-    public char value() {
-        return (char)this.ordinal();
+    public byte value() {
+        return (byte)this.ordinal();
     }
 
-    public static ResponseType fromChar(char index) {
-        index = (char) (index & ~CommandConst.SUCCESS_FLAG);
+    public static ResponseType fromChar(byte index) {
+        index = (byte) (index & ~CommandConst.SUCCESS_FLAG);
         ResponseType[] values = ResponseType.values();
         if (index > values.length - 1) {
             return ResponseType.UNKNOWN;

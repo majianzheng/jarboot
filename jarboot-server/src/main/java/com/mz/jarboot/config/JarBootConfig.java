@@ -19,7 +19,7 @@ import java.util.Map;
  */
 @Configuration
 public class JarBootConfig {
-    private static final int MAX_BUFFER_SIZE = 16384;
+    private static final int MAX_BUFFER_SIZE = 8192;
     @Autowired
     private ApplicationContext ctx;
     @Autowired

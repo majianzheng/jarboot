@@ -59,34 +59,9 @@ public class WebSocketMainServer {
      * */
     @OnOpen
     public void onOpen(Session session) {
-        //获取token
-        List<String> array = session.getRequestParameterMap().get("token");
-        if (CollectionUtils.isEmpty(array)) {
-            logger.error("WebSocket connect failed, need token!");
-            try {
-                session.getBasicRemote().sendText("Token is empty!");
-                session.close();
-            } catch (IOException exception) {
-                logger.warn(exception.getMessage(), exception);
-            }
-            return;
+        if (validateToken(session)) {
+            WebSocketManager.getInstance().newConnect(session);
         }
-        String token = array.get(0);
-        //校验token合法性
-        try {
-            Holder.JWT_MGR.validateToken(token);
-        } catch (Exception e) {
-            logger.error("Validate token failed!\ntoken:{}", token, e);
-            try {
-                session.getBasicRemote().sendText("Validate token failed!");
-                session.close();
-            } catch (IOException exception) {
-                logger.warn(exception.getMessage(), exception);
-            }
-            return;
-        }
-
-        WebSocketManager.getInstance().newConnect(session);
     }
 
     /**
@@ -162,5 +137,38 @@ public class WebSocketMainServer {
     public void onError(Session session, Throwable error) {
         logger.debug(error.getMessage(), error);
         this.onClose(session);
+    }
+
+    private boolean validateToken(Session session) {
+        if (!Holder.JWT_MGR.getEnabled()) {
+            return true;
+        }
+        //获取token
+        List<String> array = session.getRequestParameterMap().get("token");
+        if (CollectionUtils.isEmpty(array)) {
+            logger.error("WebSocket connect failed, need token!");
+            try {
+                session.getBasicRemote().sendText("Token is empty!");
+                session.close();
+            } catch (IOException exception) {
+                logger.warn(exception.getMessage(), exception);
+            }
+            return false;
+        }
+        String token = array.get(0);
+        //校验token合法性
+        try {
+            Holder.JWT_MGR.validateToken(token);
+        } catch (Exception e) {
+            logger.error("Validate token failed!\ntoken:{}", token, e);
+            try {
+                session.getBasicRemote().sendText("Validate token failed!");
+                session.close();
+            } catch (IOException exception) {
+                logger.warn(exception.getMessage(), exception);
+            }
+            return false;
+        }
+        return true;
     }
 }

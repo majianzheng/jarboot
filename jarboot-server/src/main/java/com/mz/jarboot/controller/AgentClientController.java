@@ -32,7 +32,7 @@ public class AgentClientController {
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple onResponse(@RequestParam String server, @RequestParam String sid, @RequestBody String raw) {
+    public ResponseSimple onResponse(@RequestParam String server, @RequestParam String sid, @RequestBody byte[] raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
         AgentManager.getInstance().handleAgentResponse(server, sid, resp, null);
         return new ResponseSimple();

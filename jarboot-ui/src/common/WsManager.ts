@@ -81,6 +81,10 @@ class WsManager {
     public static sendMessage(msgReq: MsgReq) {
         if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
             const text = JSON.stringify(msgReq);
+            if (text.length > 2048) {
+                Logger.error("send message exceed max length.", text);
+                return;
+            }
             WsManager.websocket.send(text);
             return;
         }

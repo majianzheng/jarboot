@@ -34,6 +34,13 @@ public class MessageQueueOperator {
         }
     }
 
+    public void newMessage(byte[] msg) {
+        if (!QUEUE.offer(new MessageSender(session, msg))) {
+            // 消息已满，丢弃
+            logger.warn("消息过于频繁，未来的及处理，队列已满，将丢弃，消息：\n{}", msg);
+        }
+    }
+
     /**
      * 检查会话是否存活
      * @return 是否存活
@@ -56,7 +63,7 @@ public class MessageQueueOperator {
     private static boolean takeAndSend() {
         try {
             final MessageSender sender = QUEUE.take();
-            sender.sendText();
+            sender.send();
         } catch (InterruptedException e) {
             logger.info(e.getMessage(), e);
             Thread.currentThread().interrupt();

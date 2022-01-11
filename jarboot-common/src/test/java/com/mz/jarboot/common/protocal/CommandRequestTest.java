@@ -5,37 +5,44 @@ import com.mz.jarboot.common.protocol.CommandRequest;
 import com.mz.jarboot.common.protocol.CommandType;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.*;
 
 public class CommandRequestTest {
 
     @Test
-    public void testFromRaw() {
+    public void testFromRaw() throws IOException {
         //用户命令协议测试
         CommandRequest request = new CommandRequest();
-        request.fromRaw(CommandType.USER_PUBLIC.value() +  "123\rtrace com.demo.Test add");
+        byte[] raw = toByte(CommandType.USER_PUBLIC.value(), "123\rtrace com.demo.Test add");
+        request.fromRaw(raw);
         assertEquals(CommandType.USER_PUBLIC, request.getCommandType());
         assertEquals("123", request.getSessionId());
         assertEquals("trace com.demo.Test add", request.getCommandLine());
 
         //内部命令协议测试
         request = new CommandRequest();
-        request.fromRaw(CommandType.INTERNAL.value() + "1234\rcancel watch");
+        raw = toByte(CommandType.INTERNAL.value(), "1234\rcancel watch");
+        request.fromRaw(raw);
         assertEquals(CommandType.INTERNAL, request.getCommandType());
         assertEquals("1234", request.getSessionId());
         assertEquals("cancel watch", request.getCommandLine());
 
         //异常命令协议测试
         request = new CommandRequest();
-        request.fromRaw("x1234\rcancel watch");
+        raw = toByte(null, "x1234\rcancel watch");
+        request.fromRaw(raw);
         assertEquals(CommandType.UNKNOWN, request.getCommandType());
         assertEquals("1234", request.getSessionId());
         assertEquals("cancel watch", request.getCommandLine());
 
         try {
             request = new CommandRequest();
-            request.fromRaw("x1234watch");
+            raw = toByte(null, "x1234watch");
+            request.fromRaw(raw);
             org.junit.Assert.fail("应该抛出协议错误移除");
         } catch (Throwable e) {
             assertTrue(e instanceof JarbootException);
@@ -43,26 +50,36 @@ public class CommandRequestTest {
     }
 
     @Test
-    public void testToRaw() {
+    public void testToRaw() throws IOException {
         //用户命令协议测试
         CommandRequest request = new CommandRequest();
         request.setCommandType(CommandType.USER_PUBLIC);
         request.setSessionId("123");
         request.setCommandLine("trace com.demo.Test add");
-        assertEquals(CommandType.USER_PUBLIC.value() +  "123\rtrace com.demo.Test add", request.toRaw());
+
+        assertArrayEquals(toByte(CommandType.USER_PUBLIC.value(), "123\rtrace com.demo.Test add"), request.toRaw());
 
         //内部命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.INTERNAL);
         request.setSessionId("1234");
         request.setCommandLine("cancel watch");
-        assertEquals(CommandType.INTERNAL.value() + "1234\rcancel watch", request.toRaw());
+        assertArrayEquals(toByte(CommandType.INTERNAL.value(), "1234\rcancel watch"), request.toRaw());
 
         //异常命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.UNKNOWN);
         request.setSessionId("1234");
         request.setCommandLine("cancel watch");
-        assertEquals(CommandType.UNKNOWN.value() + "1234\rcancel watch", request.toRaw());
+        assertArrayEquals(toByte(CommandType.UNKNOWN.value(), "1234\rcancel watch"), request.toRaw());
+    }
+
+    private byte[] toByte(Byte type, String cmd) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        if (null != type) {
+            byteArrayOutputStream.write(type);
+        }
+        byteArrayOutputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
+        return byteArrayOutputStream.toByteArray();
     }
 }

@@ -15,6 +15,7 @@ public abstract class StringUtils {
     public static final String SPACE = " ";
     public static final String EMPTY = "";
     public static final String LF = "\n";
+    public static final String CR = "\r";
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**

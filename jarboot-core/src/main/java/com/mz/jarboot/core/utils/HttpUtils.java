@@ -62,6 +62,21 @@ public class HttpUtils {
     }
 
     /**
+     * Post请求Simple
+     * @param api api接口
+     * @param buf 传入的参数
+     */
+    public static void postSimple(String api, byte[] buf) {
+        String url = baseUrl + api;
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), buf);
+        Request.Builder requestBuilder = new Request
+                .Builder()
+                .url(url)
+                .post(requestBody);
+        checkSimple(doRequest(requestBuilder, ResponseSimple.class));
+    }
+
+    /**
      * Get请求
      * @param url api接口
      * @param type 期望的结果类型

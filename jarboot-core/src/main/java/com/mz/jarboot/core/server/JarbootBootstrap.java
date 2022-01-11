@@ -218,7 +218,7 @@ public class JarbootBootstrap {
             return false;
         }
         String s = new String(Base64.getDecoder().decode(args));
-        String[] agentArgs = s.split(String.valueOf(CommandConst.PROTOCOL_SPLIT));
+        String[] agentArgs = s.split(StringUtils.CR);
         if (agentArgs.length != 3) {
             throw new JarbootException("解析传入传入参数错误！args:" + s);
         }

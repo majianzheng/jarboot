@@ -12,7 +12,7 @@ public class HttpResponseStreamImpl implements ResponseStream {
     private static final String API = "/api/jarboot/public/agent/response?server=";
 
     @Override
-    public void write(String data) {
+    public void write(byte[] data) {
         String url = API +
                 EnvironmentContext.getClientData().getServer() +
                 "&sid=" +

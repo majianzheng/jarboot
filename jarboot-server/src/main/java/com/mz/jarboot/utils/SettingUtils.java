@@ -218,9 +218,9 @@ public class SettingUtils {
         StringBuilder sb = new StringBuilder();
         sb
                 .append(port)
-                .append(CommandConst.PROTOCOL_SPLIT)
+                .append(StringUtils.CR)
                 .append(server)
-                .append(CommandConst.PROTOCOL_SPLIT)
+                .append(StringUtils.CR)
                 .append(sid);
         byte[] bytes = Base64.getEncoder().encode(sb.toString().getBytes());
         return new String(bytes);

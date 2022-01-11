@@ -76,12 +76,12 @@ public class WsClientFactory {
 
             @Override
             public void onMessage(WebSocket webSocket, String text) {
-                dispatcher.publish(text);
+                //ignore
             }
 
             @Override
             public void onMessage(WebSocket webSocket, ByteString bytes) {
-                dispatcher.publish(bytes.string(StandardCharsets.UTF_8));
+                dispatcher.publish(bytes.toByteArray());
             }
 
             @Override
@@ -246,7 +246,8 @@ public class WsClientFactory {
         heartbeatLatch = new CountDownLatch(1);
         try {
             // 进行一次心跳检测
-            online = this.client.send(resp.toRaw());
+            byte[] raw = resp.toRaw();
+            online = this.client.send(ByteString.of(raw, 0, raw.length));
             if (!online) {
                 // 发送心跳失败！
                 logger.warn("Check online send heartbeat failed.");

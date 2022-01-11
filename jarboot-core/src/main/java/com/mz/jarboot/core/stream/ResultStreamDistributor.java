@@ -126,8 +126,8 @@ public class ResultStreamDistributor extends Thread {
     private static void sendToServer(CmdProtocol resp) {
         if (WsClientFactory.getInstance().isOnline()) {
             //根据数据包的大小选择合适的通讯方式
-            String raw = resp.toRaw();
-            ResponseStream stream = (raw.length() < CoreConstant.SOCKET_MAX_SEND) ?
+            byte[] raw = resp.toRaw();
+            ResponseStream stream = (raw.length < CoreConstant.SOCKET_MAX_SEND) ?
                     ResultStreamDistributorHolder.INST.socket : ResultStreamDistributorHolder.INST.http;
             stream.write(raw);
         }
