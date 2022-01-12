@@ -9,7 +9,6 @@ import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
-import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
@@ -202,7 +201,7 @@ public class JarbootBootstrap {
                 .append(serverName);
 
         String url = CommonConst.HTTP + host + "/api/jarboot/public/agent/agentClient";
-        clientData = HttpUtils.postJson(url, sb.toString(), AgentClientPojo.class);
+        clientData = HttpUtils.postObj(url, sb.toString(), AgentClientPojo.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }

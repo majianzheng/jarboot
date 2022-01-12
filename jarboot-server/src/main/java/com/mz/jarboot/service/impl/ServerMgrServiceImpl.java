@@ -54,6 +54,17 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     /**
+     * 获取服务信息
+     *
+     * @param name 服务名称
+     * @return 服务信息 {@link ServerRunning}
+     */
+    @Override
+    public ServerRunning getServer(String name) {
+        return taskRunCache.getServer(FileUtils.getFile(SettingUtils.getWorkspace(), name));
+    }
+
+    /**
      * 一键重启，杀死所有服务进程，根据依赖重启
      */
     @Override

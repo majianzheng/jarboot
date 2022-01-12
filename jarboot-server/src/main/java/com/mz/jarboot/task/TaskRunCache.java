@@ -71,6 +71,27 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
+    public ServerRunning getServer(File serverDir) {
+        ServerRunning process = new ServerRunning();
+        process.setName(serverDir.getName());
+        String path = serverDir.getPath();
+        String sid = SettingUtils.createSid(path);
+        process.setSid(sid);
+        process.setPath(path);
+        process.setGroup(this.getGroup(sid, path));
+
+        if (this.isStarting(sid)) {
+            process.setStatus(TaskStatus.STARTING.name());
+        } else if (this.isStopping(sid)) {
+            process.setStatus(TaskStatus.STOPPING.name());
+        } else if (AgentManager.getInstance().isOnline(sid)) {
+            process.setStatus(TaskStatus.RUNNING.name());
+        } else {
+            process.setStatus(TaskStatus.STOPPED.name());
+        }
+        return process;
+    }
+
     /**
      * 获取服务列表
      * @return 服务列表
@@ -81,25 +102,8 @@ public class TaskRunCache {
         if (null == serviceDirs || serviceDirs.length <= 0) {
             return serverList;
         }
-        for (File f : serviceDirs) {
-            ServerRunning process = new ServerRunning();
-            process.setName(f.getName());
-            String path = f.getPath();
-            String sid = SettingUtils.createSid(path);
-            process.setSid(sid);
-            process.setPath(path);
-            process.setGroup(this.getGroup(sid, path));
-
-            if (this.isStarting(sid)) {
-                process.setStatus(TaskStatus.STARTING.name());
-            } else if (this.isStopping(sid)) {
-                process.setStatus(TaskStatus.STOPPING.name());
-            } else if (AgentManager.getInstance().isOnline(sid)) {
-                process.setStatus(TaskStatus.RUNNING.name());
-            } else {
-                process.setStatus(TaskStatus.STOPPED.name());
-            }
-
+        for (File file : serviceDirs) {
+            ServerRunning process = getServer(file);
             serverList.add(process);
         }
         return serverList;

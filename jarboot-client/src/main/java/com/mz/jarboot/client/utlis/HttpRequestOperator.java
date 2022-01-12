@@ -23,47 +23,31 @@ public class HttpRequestOperator {
             .followRedirects(false)
             .build();
 
-    public enum HttpMethod {
-        /** Http GET */
-        GET,
-        /** Http POST */
-        POST,
-        /** Http PUT */
-        PUT,
-        /** Http DELETE */
-        DELETE
-    }
-
     /**
-     * post form
+     * post string json
      * @param url 请求地址
      * @param json json字符串
      * @param headers 请求头
      * @param method 请求方法
      * @return 请求结果
      */
-    public static String reqJson(String url, String json, Map<String, String> headers, HttpMethod method) {
+    public static String req(String url, String json, Map<String, String> headers, HttpMethod method) {
         RequestBody requestBody = createJson(json);
-        return doRequest(url, method, requestBody, headers);
+        return req(url, method, requestBody, headers);
     }
 
     /**
-     * post form
+     * 请求 api
      * @param url 请求地址
-     * @param form form表单
+     * @param method 方法 {@link HttpMethod}
+     * @param requestBody 请求消息体
      * @param headers 请求头
-     * @param method 请求方法
      * @return 请求结果
      */
-    public static String req(String url, Map<String, String> form, Map<String, String> headers, HttpMethod method) {
-        RequestBody requestBody = createForm(form);
-        return doRequest(url, method, requestBody, headers);
-    }
-
-    public static String doRequest(String url,
-                                   HttpMethod method,
-                                   RequestBody requestBody,
-                                   Map<String, String> headers) {
+    public static String req(String url,
+                             HttpMethod method,
+                             RequestBody requestBody,
+                             Map<String, String> headers) {
         okhttp3.Headers.Builder headersBuilder = new okhttp3.Headers.Builder();
         if (null == headers) {
             headersBuilder.add("Cookie", "");
@@ -98,16 +82,6 @@ public class HttpRequestOperator {
         return callUrl(request);
     }
 
-    private static RequestBody createForm(Map<String, String> form) {
-        RequestBody requestBody = null;
-        if (null != form) {
-            FormBody.Builder builder = new FormBody.Builder();
-            form.forEach(builder::add);
-            requestBody = builder.build();
-        }
-        return requestBody;
-    }
-
     private static RequestBody createJson(String json) {
         RequestBody requestBody = null;
         if (StringUtils.isNotEmpty(json)) {
@@ -128,4 +102,6 @@ public class HttpRequestOperator {
         }
         return StringUtils.EMPTY;
     }
+
+    private HttpRequestOperator() {}
 }

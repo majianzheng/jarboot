@@ -5,6 +5,7 @@ import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.cmd.CommandDispatcher;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
@@ -127,10 +128,15 @@ public class WsClientFactory {
         if (null != client) {
             this.destroyClient();
         }
-        final String url = String.format("ws://%s/jarboot/public/agent/ws/%s/%s",
-                EnvironmentContext.getClientData().getHost(),
-                EnvironmentContext.getClientData().getServer(),
-                EnvironmentContext.getClientData().getSid());
+        final String url = new StringBuilder()
+                .append(CommonConst.WS)
+                .append(EnvironmentContext.getClientData().getHost())
+                .append(CommonConst.AGENT_WS_CONTEXT)
+                .append(StringUtils.SLASH)
+                .append(EnvironmentContext.getClientData().getServer())
+                .append(StringUtils.SLASH)
+                .append(EnvironmentContext.getClientData().getSid())
+                .toString();
         AnsiLog.info("connectting to jarboot {}", url);
         latch = new CountDownLatch(1);
         try {
@@ -204,7 +210,7 @@ public class WsClientFactory {
         //修改host
         System.setProperty(CommonConst.REMOTE_PROP, host);
         EnvironmentContext.getClientData().setHost(host);
-        HttpUtils.setBaseUrl(String.format("http://%s", host));
+        HttpUtils.setBaseUrl(CommonConst.HTTP + host);
         closeSession();
         createSingletonClient();
         if (Boolean.TRUE.equals(EnvironmentContext.getClientData().getDiagnose())) {
@@ -309,7 +315,6 @@ public class WsClientFactory {
             Thread.currentThread().interrupt();
         } finally {
             reconnectNotStarted = true;
-            logger.info("reconnect<");
         }
     }
 

@@ -136,7 +136,9 @@ export default class ServerMgrService {
      * @param server 服务名
      */
     public static deleteServer(server: string) {
-        return Request.get(`${urlBase}/deleteServer`, {server});
+        const form = new FormData();
+        form.append('server', server);
+        return Request.delete(`${urlBase}/server`, form);
     }
 
     private static parseParam(servers: ServerRunning[]): string[] {

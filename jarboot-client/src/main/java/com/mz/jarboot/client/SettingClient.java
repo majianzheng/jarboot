@@ -5,12 +5,13 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.api.service.SettingService;
-import com.mz.jarboot.client.utlis.HttpRequestOperator;
+import com.mz.jarboot.client.utlis.HttpMethod;
+import com.mz.jarboot.common.utils.ApiStringBuilder;
+import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.ResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-
-import java.util.HashMap;
+import okhttp3.FormBody;
 
 /**
  * @author majianzheng
@@ -41,8 +42,9 @@ public class SettingClient implements SettingService {
      */
     @Override
     public ServerSetting getServerSetting(String path) {
-        final String api = CommonConst.SETTING_CONTEXT + "/serverSetting?path=" + path;
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
+        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serverSetting");
+        final String api = asb.add(ClientConst.PATH_PARAM, path).build();
+        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, ServerSetting.class);
     }
@@ -56,7 +58,7 @@ public class SettingClient implements SettingService {
     public void submitServerSetting(ServerSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/serverSetting";
         String body = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, body, HttpRequestOperator.HttpMethod.POST);
+        String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
@@ -69,7 +71,7 @@ public class SettingClient implements SettingService {
     @Override
     public GlobalSetting getGlobalSetting() {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
+        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, GlobalSetting.class);
     }
@@ -83,7 +85,7 @@ public class SettingClient implements SettingService {
     public void submitGlobalSetting(GlobalSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
         String body = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, body, HttpRequestOperator.HttpMethod.POST);
+        String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
@@ -97,8 +99,9 @@ public class SettingClient implements SettingService {
      */
     @Override
     public String getVmOptions(String path, String file) {
-        final String api = CommonConst.SETTING_CONTEXT + "/vmoptions?path=" + path + "&file=" + file;
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
+        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/vmoptions");
+        final String api = asb.add(ClientConst.PATH_PARAM, path).add(ClientConst.FILE_PARAM, file).build();
+        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return result.asText(StringUtils.EMPTY);
     }
@@ -113,11 +116,12 @@ public class SettingClient implements SettingService {
     @Override
     public void saveVmOptions(String path, String file, String content) {
         final String api = CommonConst.SETTING_CONTEXT + "/vmoptions";
-        HashMap<String, String> param = new HashMap<>(8);
-        param.put("path", path);
-        param.put("file", file);
-        param.put("content", content);
-        String response = this.clientProxy.reqApi(api, param, HttpRequestOperator.HttpMethod.POST);
+        FormBody.Builder builder = new FormBody.Builder();
+        builder
+                .add(ClientConst.PATH_PARAM, path)
+                .add(ClientConst.FILE_PARAM, file)
+                .add(ClientConst.CONTENT_PARAM, content);
+        String response = this.clientProxy.reqApi(api, HttpMethod.POST, builder.build());
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }

@@ -6,7 +6,6 @@ import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.service.ServerMgrService;
-import com.mz.jarboot.client.utlis.HttpRequestOperator;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.CommandCliParser;
@@ -20,11 +19,18 @@ import java.util.List;
  */
 public class JarbootClientCli {
     private String host;
+    private String username;
 
     @Option(shortName = "h", longName = "host")
     @Description("The Jarboot host. ig: 127.0.0.1:9899")
     public void setHost(String host) {
         this.host = host;
+    }
+
+    @Option(shortName = "u", longName = "user")
+    @Description("The Jarboot username")
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public static void main(String[] args) {
@@ -51,14 +57,15 @@ public class JarbootClientCli {
 
     private void login() {
         AnsiLog.info("Login to Jarboot server: {}", this.host);
-        String username = System.console().readLine("username:");
+        if (StringUtils.isEmpty(username)) {
+            username = System.console().readLine("username:");
+        }
         String password = new String(System.console().readPassword("password:"));
         //登录认证
-        final String api = CommonConst.CLOUD_CONTEXT + "/version";
         String version = ClientProxy
                 .Factory
                 .createClientProxy(host, username, password)
-                .reqApi(api, StringUtils.EMPTY, HttpRequestOperator.HttpMethod.GET);
+                .getVersion();
         AnsiLog.info("Login success, jarboot server version: {}", version);
     }
 
@@ -67,6 +74,7 @@ public class JarbootClientCli {
         ServerMgrService client = JarbootFactory
                 .createServerManager(this.host, null, null);
         List<ServerRunning> list = client.getServerList();
+
         AnsiLog.info("list:{}", list);
     }
 }

@@ -153,11 +153,22 @@ public class ServerMgrController {
      * 删除服务
      * @return 执行结果
      */
-    @GetMapping(value="/deleteServer")
+    @DeleteMapping(value="/server")
     @ResponseBody
     @Permission
     public ResponseSimple deleteServer(String server) {
         serverMgrService.deleteServer(server);
         return new ResponseSimple();
+    }
+
+    /**
+     * 获取服务信息
+     * @return 服务信息
+     */
+    @GetMapping(value="/server")
+    @ResponseBody
+    public ResponseForObject<ServerRunning> getServer(String name) {
+        ServerRunning result = serverMgrService.getServer(name);
+        return new ResponseForObject<>(result);
     }
 }

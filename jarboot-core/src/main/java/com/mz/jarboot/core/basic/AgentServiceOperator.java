@@ -3,10 +3,12 @@ package com.mz.jarboot.core.basic;
 import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
+import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
@@ -23,7 +25,7 @@ import java.util.Map;
  */
 public class AgentServiceOperator {
     private static final Logger logger = LogUtils.getLogger();
-    private static final String SET_STARTED_API = "/api/jarboot/public/agent/setStarted?server=";
+    private static final String SET_STARTED_API = CommonConst.AGENT_CLIENT_CONTEXT + "/setStarted";
     private static volatile boolean started = false;
 
     public static void setStarted() {
@@ -31,8 +33,11 @@ public class AgentServiceOperator {
             return;
         }
         AgentClientPojo clientData = EnvironmentContext.getClientData();
-        HttpUtils.getSimple(SET_STARTED_API + clientData.getServer() +
-                "&sid=" + clientData.getSid());
+        final String url = new ApiStringBuilder(SET_STARTED_API)
+                .add(CommonConst.SERVER_PARAM, clientData.getServer())
+                .add(CommonConst.SID_PARAM, clientData.getSid())
+                .build();
+        HttpUtils.getSimple(url);
         started = true;
     }
 

@@ -16,6 +16,7 @@ public abstract class StringUtils {
     public static final String EMPTY = "";
     public static final String LF = "\n";
     public static final String CR = "\r";
+    public static final String SLASH = "/";
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**
@@ -78,7 +79,7 @@ public abstract class StringUtils {
      * @return 翻译后名称 java.lang.String
      */
     public static String normalizeClassName(String className) {
-        return StringUtils.replace(className, "/", ".");
+        return StringUtils.replace(className, SLASH, ".");
     }
 
     public static String concat(String separator, Class<?>... types) {

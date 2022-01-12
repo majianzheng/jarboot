@@ -9,7 +9,6 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +42,7 @@ public class HttpUtils {
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T postJson(String url, Object object, Class<T> type) {
+    public static <T> T postObj(String url, Object object, Class<T> type) {
         String json = object instanceof String ? (String)object : JsonUtils.toJsonString(object);
         if (null == json) {
             json = "";
@@ -58,17 +57,6 @@ public class HttpUtils {
             return BasicTypeConvert.convert(resp, type);
         }
         return JsonUtils.readValue(resp, type);
-    }
-
-    public static String postForm(String url, Map<String, String> form) {
-        FormBody.Builder builder = new FormBody.Builder();
-        form.forEach(builder::add);
-        RequestBody requestBody = builder.build();
-        Request.Builder requestBuilder = new Request
-                .Builder()
-                .url(url)
-                .post(requestBody);
-        return doRequest(requestBuilder);
     }
 
     /**
@@ -94,7 +82,7 @@ public class HttpUtils {
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T getJson(String url, Class<T> type) {
+    public static <T> T getObj(String url, Class<T> type) {
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
@@ -125,7 +113,7 @@ public class HttpUtils {
      */
     public static void getSimple(String api) {
         String url = baseUrl + api;
-        ResponseSimple resp = getJson(url, ResponseSimple.class);
+        ResponseSimple resp = getObj(url, ResponseSimple.class);
         checkSimple(resp);
     }
 

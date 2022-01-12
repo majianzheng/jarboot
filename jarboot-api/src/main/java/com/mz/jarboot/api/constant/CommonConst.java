@@ -30,8 +30,8 @@ public class CommonConst {
     public static final String SERVICES = "services";
 
     public static final String HTTP = "http://";
-
     public static final String HTTPS = "https://";
+    public static final String WS = "ws://";
 
     /** Controller context */
     public static final String SERVER_MGR_CONTEXT = "/api/jarboot/services";
@@ -43,6 +43,10 @@ public class CommonConst {
     public static final String ROLE_CONTEXT = "/api/jarboot/role";
     public static final String SETTING_CONTEXT = "/api/jarboot/setting";
     public static final String USER_CONTEXT = "/api/jarboot/user";
+    public static final String AGENT_WS_CONTEXT = "/jarboot/public/agent/ws";
+
+    public static final String SERVER_PARAM = "server";
+    public static final String SID_PARAM = "sid";
 
     /**
      * 等待目标进程优雅退出的最大时间，毫秒
