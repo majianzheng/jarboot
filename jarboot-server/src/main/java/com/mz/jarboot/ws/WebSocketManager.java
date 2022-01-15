@@ -1,12 +1,12 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.AttachStatus;
+import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.event.NoticeEnum;
 import com.mz.jarboot.event.WsEventEnum;
-import com.mz.jarboot.task.TaskStatus;
 
 import javax.websocket.Session;
 import java.io.OutputStream;
@@ -18,37 +18,12 @@ import java.util.concurrent.*;
  * 与浏览器交互的WebSocket管理
  * @author majianzheng
  */
-public class WebSocketManager extends Thread {
-    /** 是否初始化 */
-    private boolean initialized = false;
+public class WebSocketManager {
     /** 会话存储 <会话ID，消息处理器> */
-    private final ConcurrentHashMap<String, MessageQueueOperator> sessionMap = new ConcurrentHashMap<>(32);
-    /**
-     * 消费推送到前端的消息的线程组，执行流程如下
-     * ┌─────────────┐  Push to   ┌────────────────┐ Note:
-     * │ New Message │———————————▶│ Blocking Queue │ One session has on blocking queue
-     * └─────────────┘            └────────────────┘
-     *                                    │ Take
-     *                                    ▼
-     *                            ┌──────────────────┐
-     *                            │ Consumer thread  │
-     *                            └──────────────────┘
-     */
+    private final ConcurrentHashMap<String, SessionOperator> sessionMap = new ConcurrentHashMap<>(32);
 
     private WebSocketManager() {
-        //初始化线程
-        setDaemon(true);
-        setName("jarboot.msg-consumer" );
-        start();
-    }
-
-    @Override
-    public synchronized void start() {
-        if (!initialized) {
-            // start just called once
-            super.start();
-            initialized = true;
-        }
+        NotifyReactor.getInstance().registerSubscriber(new MessageSenderSubscriber());
     }
 
     /**
@@ -64,7 +39,7 @@ public class WebSocketManager extends Thread {
      * @param session 会话
      */
     public void newConnect(Session session) {
-        sessionMap.put(session.getId(), new MessageQueueOperator(session));
+        sessionMap.put(session.getId(), new SessionOperator(session));
     }
 
     /**
@@ -81,7 +56,7 @@ public class WebSocketManager extends Thread {
      * @param text 文本
      */
     public void sendConsole(String sid, String text) {
-        this.publishGlobalEvent(sid, text, WsEventEnum.CONSOLE);
+        this.createGlobalEvent(sid, text, WsEventEnum.CONSOLE);
     }
 
     /**
@@ -91,7 +66,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 指定的浏览器会话
      */
     public void sendConsole(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.CONSOLE);
+        this.createEvent(sid, text, sessionId, WsEventEnum.CONSOLE);
     }
 
     /**
@@ -101,7 +76,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 指定的浏览器会话
      */
     public void stdPrint(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.STD_PRINT);
+        this.createEvent(sid, text, sessionId, WsEventEnum.STD_PRINT);
     }
 
     /**
@@ -111,7 +86,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 指定的浏览器会话
      */
     public void backspace(String sid, String num, String sessionId) {
-        this.publishEvent(sid, num, sessionId, WsEventEnum.BACKSPACE);
+        this.createEvent(sid, num, sessionId, WsEventEnum.BACKSPACE);
     }
 
     /**
@@ -121,7 +96,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 会话ID
      */
     public void renderJson(String sid, String text, String sessionId) {
-        this.publishEvent(sid, text, sessionId, WsEventEnum.RENDER_JSON);
+        this.createEvent(sid, text, sessionId, WsEventEnum.RENDER_JSON);
     }
 
     /**
@@ -129,9 +104,9 @@ public class WebSocketManager extends Thread {
      * @param sid sid
      * @param status 状态
      */
-    public void publishStatus(String sid, TaskStatus status) {
+    public void upgradeStatus(String sid, String status) {
         //发布状态变化
-        String msg = formatMsg(sid, WsEventEnum.SERVER_STATUS, status.name());
+        String msg = formatMsg(sid, WsEventEnum.SERVER_STATUS, status);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
@@ -142,7 +117,7 @@ public class WebSocketManager extends Thread {
      * @param sessionId 会话ID
      */
     public void commandEnd(String sid, String body, String sessionId) {
-        this.publishEvent(sid, body, sessionId, WsEventEnum.CMD_END);
+        this.createEvent(sid, body, sessionId, WsEventEnum.CMD_END);
     }
 
     /**
@@ -151,7 +126,7 @@ public class WebSocketManager extends Thread {
      * @param event 事件
      */
     public void debugProcessEvent(String sid, AttachStatus event) {
-        this.publishGlobalEvent(sid, event.name(), WsEventEnum.JVM_PROCESS_CHANGE);
+        this.createGlobalEvent(sid, event.name(), WsEventEnum.JVM_PROCESS_CHANGE);
     }
 
     /**
@@ -167,7 +142,7 @@ public class WebSocketManager extends Thread {
         if (StringUtils.isNotEmpty(message)) {
             body += StringUtils.CR + message;
         }
-        this.publishGlobalEvent(StringUtils.EMPTY, body, WsEventEnum.GLOBAL_LOADING);
+        this.createGlobalEvent(StringUtils.EMPTY, body, WsEventEnum.GLOBAL_LOADING);
     }
 
     /**
@@ -193,7 +168,7 @@ public class WebSocketManager extends Thread {
             notice(text, level);
             return;
         }
-        MessageQueueOperator operator;
+        SessionOperator operator;
         String msg;
         if (null != (msg = createNoticeMsg(text, level)) &&
                 null != (operator = sessionMap.getOrDefault(sessionId, null))) {
@@ -207,7 +182,7 @@ public class WebSocketManager extends Thread {
      * @param body 消息体
      * @param event 事件
      */
-    public void publishGlobalEvent(String sid, String body, WsEventEnum event) {
+    public void createGlobalEvent(String sid, String body, WsEventEnum event) {
         String msg = formatMsg(sid, event, body);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
@@ -236,11 +211,6 @@ public class WebSocketManager extends Thread {
         }));
     }
 
-    @Override
-    public void run() {
-        MessageQueueOperator.consumeMessage();
-    }
-
     /**
      * 发布事件
      * @param sid sid
@@ -248,13 +218,13 @@ public class WebSocketManager extends Thread {
      * @param sessionId 会话ID
      * @param event 事件
      */
-    private void publishEvent(String sid, String body, String sessionId, WsEventEnum event) {
+    private void createEvent(String sid, String body, String sessionId, WsEventEnum event) {
         if (CommandConst.SESSION_COMMON.equals(sessionId)) {
             //广播session的id
-            publishGlobalEvent(sid, body, event);
+            createGlobalEvent(sid, body, event);
             return;
         }
-        MessageQueueOperator operator = this.sessionMap.getOrDefault(sessionId, null);
+        SessionOperator operator = this.sessionMap.getOrDefault(sessionId, null);
         if (null != operator) {
             String msg = formatMsg(sid, event, body);
             operator.newMessage(msg);

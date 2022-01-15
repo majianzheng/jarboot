@@ -6,7 +6,7 @@ import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
-import com.mz.jarboot.event.AttachStatus;
+import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +139,7 @@ public class WebSocketMainServer {
         this.onClose(session);
     }
 
-    private boolean validateToken(Session session) {
+    public static boolean validateToken(Session session) {
         if (!Holder.JWT_MGR.getEnabled()) {
             return true;
         }

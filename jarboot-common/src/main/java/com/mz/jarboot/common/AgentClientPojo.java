@@ -7,7 +7,7 @@ package com.mz.jarboot.common;
 public class AgentClientPojo extends ResponseSimple {
     private String clientAddr;
     private Boolean local;
-    private String server;
+    private String serviceName;
     private String sid;
     private String host;
     private Boolean diagnose;
@@ -28,12 +28,12 @@ public class AgentClientPojo extends ResponseSimple {
         this.local = local;
     }
 
-    public String getServer() {
-        return server;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setServer(String server) {
-        this.server = server;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public String getSid() {
@@ -65,7 +65,7 @@ public class AgentClientPojo extends ResponseSimple {
         return "AgentClientPojo{" +
                 "clientAddr='" + clientAddr + '\'' +
                 ", local=" + local +
-                ", server='" + server + '\'' +
+                ", server='" + serviceName + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +

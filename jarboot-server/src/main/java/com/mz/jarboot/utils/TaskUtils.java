@@ -83,7 +83,7 @@ public class TaskUtils {
     public static void startServer(String server, ServerSetting setting) {
         //服务目录
         String sid = setting.getSid();
-        String serverPath = setting.getPath();
+        String serverPath = setting.getWorkspace() + File.separator + setting.getName();
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
@@ -116,7 +116,7 @@ public class TaskUtils {
                 .append(StringUtils.SPACE);
         if (StringUtils.isBlank(setting.getCommand())) {
             //获取启动的jar文件
-            String jar = SettingUtils.getJarPath(setting);
+            String jar = SettingUtils.getJarPath(serverPath);
             if (StringUtils.isBlank(jar)) {
                 return;
             }

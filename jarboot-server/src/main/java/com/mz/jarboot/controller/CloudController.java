@@ -166,7 +166,7 @@ public class CloudController {
             if (isExist) {
                 WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeEnum.INFO);
             } else {
-                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
                         StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
                 WebSocketManager.getInstance().notice("推送成功，新增服务 " + name, NoticeEnum.INFO);
             }

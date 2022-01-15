@@ -2,14 +2,14 @@ package com.mz.jarboot.base;
 
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.ws.MessageQueueOperator;
+import com.mz.jarboot.ws.SessionOperator;
 
 import javax.websocket.Session;
 
 /**
  * @author majianzheng
  */
-public final class AgentClient extends MessageQueueOperator {
+public final class AgentClient extends SessionOperator {
     private final String name;
     private final String sid;
     private ClientState state;
@@ -83,6 +83,6 @@ public final class AgentClient extends MessageQueueOperator {
         request.setCommandType(type);
         request.setCommandLine(command);
         request.setSessionId(sessionId);
-        this.newMessage(request.toRaw());
+        newMessage(request.toRaw());
     }
 }

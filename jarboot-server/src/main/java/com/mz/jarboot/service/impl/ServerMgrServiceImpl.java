@@ -1,20 +1,24 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.TaskLifecycle;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.event.AttachStatus;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.event.*;
+import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.task.TaskRunCache;
-import com.mz.jarboot.event.TaskEvent;
 import com.mz.jarboot.api.service.ServerMgrService;
-import com.mz.jarboot.task.TaskStatus;
 import com.mz.jarboot.utils.*;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
@@ -22,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,7 +40,7 @@ import java.util.concurrent.*;
  * @author majianzheng
  */
 @Service
-public class ServerMgrServiceImpl implements ServerMgrService {
+public class ServerMgrServiceImpl implements ServerMgrService, Subscriber<OfflineEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String STARTED_MSG = "\033[96;1m%s\033[0m started cost \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m";
@@ -47,21 +51,23 @@ public class ServerMgrServiceImpl implements ServerMgrService {
 
     @Autowired
     private TaskRunCache taskRunCache;
+    @Autowired
+    private AbstractEventRegistry eventRegistry;
 
     @Override
-    public List<ServerRunning> getServerList() {
+    public List<ServerRunning> getServiceList() {
         return taskRunCache.getServerList();
     }
 
     /**
      * 获取服务信息
      *
-     * @param name 服务名称
+     * @param serviceName 服务名称
      * @return 服务信息 {@link ServerRunning}
      */
     @Override
-    public ServerRunning getServer(String name) {
-        return taskRunCache.getServer(FileUtils.getFile(SettingUtils.getWorkspace(), name));
+    public ServerRunning getService(String serviceName) {
+        return taskRunCache.getServer(FileUtils.getFile(SettingUtils.getWorkspace(), serviceName));
     }
 
     /**
@@ -79,7 +85,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         //同步控制，保证所有的都杀死后再重启
         if (!CollectionUtils.isEmpty(paths)) {
             //启动服务
-            this.restartServer(paths);
+            this.restartService(paths);
         }
     }
 
@@ -95,7 +101,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         List<String> paths = taskRunCache.getServerPathList();
         //启动服务
-        this.startServer(paths);
+        this.startService(paths);
     }
 
     /**
@@ -110,22 +116,22 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         List<String> paths = taskRunCache.getServerPathList();
         //启动服务
-        this.stopServer(paths);
+        this.stopService(paths);
     }
 
     /**
      * 启动服务
      *
-     * @param paths 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表，字符串格式：服务path
      */
     @Override
-    public void startServer(List<String> paths) {
-        if (CollectionUtils.isEmpty(paths)) {
+    public void startService(List<String> serviceNames) {
+        if (CollectionUtils.isEmpty(serviceNames)) {
             return;
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(paths));
+        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(serviceNames));
     }
 
     private void startServer0(List<String> paths) {
@@ -159,7 +165,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         s.forEach(setting ->
                 TaskUtils.getTaskExecutor().execute(() -> {
                     try {
-                        this.startSingleServer(setting);
+                        this.startSingleService(setting);
                     } finally {
                         countDownLatch.countDown();
                     }
@@ -178,7 +184,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
      * @param setting 服务配置
      */
     @Override
-    public void startSingleServer(ServerSetting setting) {
+    public void startSingleService(ServerSetting setting) {
         String server = setting.getName();
         String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
@@ -188,7 +194,7 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         if (AgentManager.getInstance().isOnline(sid)) {
             //已经启动
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
             WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeEnum.INFO);
             return;
         }
@@ -198,7 +204,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         try {
             //设定启动中，并发送前端让其转圈圈
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STARTING);
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.PRE_START));
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
@@ -211,10 +219,14 @@ public class ServerMgrServiceImpl implements ServerMgrService {
                 WebSocketManager
                         .getInstance()
                         .sendConsole(sid, String.format(STARTED_MSG, server, costTime));
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STARTED));
             } else {
                 //启动失败
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
                 WebSocketManager.getInstance().notice("启动服务" + server + "失败！", NoticeEnum.ERROR);
             }
         } catch (Exception e) {
@@ -229,16 +241,16 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     /**
      * 停止服务
      *
-     * @param paths 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表，字符串格式：服务path
      */
     @Override
-    public void stopServer(List<String> paths) {
-        if (CollectionUtils.isEmpty(paths)) {
+    public void stopService(List<String> serviceNames) {
+        if (CollectionUtils.isEmpty(serviceNames)) {
             return;
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(paths));
+        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(serviceNames));
     }
 
     @Override
@@ -283,32 +295,62 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     }
 
     @Override
-    public void deleteServer(String server) {
-        String path = SettingUtils.getServerPath(server);
+    public void deleteService(String serviceName) {
+        String path = SettingUtils.getServerPath(serviceName);
         String sid = SettingUtils.createSid(path);
         if (this.taskRunCache.isStartingOrStopping(sid)) {
-            throw new JarbootRunException(server + "在停止中或启动中，不可删除！");
+            throw new JarbootRunException(serviceName + "在停止中或启动中，不可删除！");
         }
         if (AgentManager.getInstance().isOnline(sid)) {
-            throw new JarbootRunException(server + "正在运行，不可删除！");
+            throw new JarbootRunException(serviceName + "正在运行，不可删除！");
         }
-        WebSocketManager.getInstance().globalLoading(server, server + "删除中...");
+        WebSocketManager.getInstance().globalLoading(serviceName, serviceName + "删除中...");
         TaskUtils.getTaskExecutor().execute(() -> {
             try {
                 FileUtils.deleteDirectory(FileUtils.getFile(path));
                 WebSocketManager
                         .getInstance()
-                        .publishGlobalEvent(StringUtils.SPACE, StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
-                WebSocketManager.getInstance().notice("删除" + server + "成功！", NoticeEnum.INFO);
+                        .createGlobalEvent(StringUtils.SPACE, StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+                WebSocketManager.getInstance().notice("删除" + serviceName + "成功！", NoticeEnum.INFO);
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
                 WebSocketManager
                         .getInstance()
-                        .notice("删除" + server + "失败！" + e.getMessage(), NoticeEnum.ERROR);
+                        .notice("删除" + serviceName + "失败！" + e.getMessage(), NoticeEnum.ERROR);
             } finally {
-                WebSocketManager.getInstance().globalLoading(server, StringUtils.EMPTY);
+                WebSocketManager.getInstance().globalLoading(serviceName, StringUtils.EMPTY);
             }
         });
+    }
+
+    /**
+     * 注册事件处理
+     *
+     * @param serviceName 服务名称
+     * @param lifecycle   任务生命周期 {@link TaskLifecycle}
+     * @param subscriber  任务处理 {@link Subscriber}
+     */
+    @Override
+    public void registerSubscriber(String serviceName,
+                                   TaskLifecycle lifecycle,
+                                   Subscriber<TaskLifecycleEvent> subscriber) {
+        final String topic = eventRegistry.createLifecycleTopic(serviceName, lifecycle);
+        eventRegistry.registerSubscriber(topic, subscriber);
+    }
+
+    /**
+     * 反注册事件处理
+     *
+     * @param serviceName 服务名称
+     * @param lifecycle   任务生命周期 {@link TaskLifecycle}
+     * @param subscriber  任务处理 {@link Subscriber}
+     */
+    @Override
+    public void deregisterSubscriber(String serviceName,
+                                     TaskLifecycle lifecycle,
+                                     Subscriber<TaskLifecycleEvent> subscriber) {
+        final String topic = eventRegistry.createLifecycleTopic(serviceName, lifecycle);
+        eventRegistry.deregisterSubscriber(topic, subscriber);
     }
 
     private void stopServer0(List<String> paths) {
@@ -361,7 +403,9 @@ public class ServerMgrServiceImpl implements ServerMgrService {
         }
         try {
             //发送停止中消息
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPING);
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.PRE_STOP));
             //记录开始时间
             long startTime = System.currentTimeMillis();
             TaskUtils.killServer(server, sid);
@@ -369,11 +413,15 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.STOP_FAILED));
                 WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeEnum.ERROR);
             } else {
                 WebSocketManager.getInstance().sendConsole(sid, String.format(STOPPED_MSG, server, costTime));
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STOPPED));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -387,21 +435,22 @@ public class ServerMgrServiceImpl implements ServerMgrService {
     /**
      * 重启服务
      *
-     * @param servers 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表，字符串格式：服务path
      */
     @Override
-    public void restartServer(List<String> servers) {
+    public void restartService(List<String> serviceNames) {
         //获取终止的顺序
         TaskUtils.getTaskExecutor().execute(() -> {
             //先依次终止
-            stopServer0(servers);
+            stopServer0(serviceNames);
             //再依次启动
-            startServer0(servers);
+            startServer0(serviceNames);
         });
     }
 
-    private void onOffline(TaskEvent event) {
-        String server = event.getServer();
+    @Override
+    public void onEvent(OfflineEvent event) {
+        String serviceName = event.getServer();
         String sid = event.getSid();
         //检查进程是否存活
         String pid = TaskUtils.getPid(sid);
@@ -415,44 +464,43 @@ public class ServerMgrServiceImpl implements ServerMgrService {
             TaskUtils.attach(sid);
             return;
         }
-
-        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
-            String cmd = afterServerErrorOffline + StringUtils.SPACE + server;
-            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
-        }
-
         //获取是否开启了守护
         ServerSetting temp = PropertyFileUtils.getServerSettingBySid(sid);
         //检测配置更新
-        final ServerSetting setting = null == temp ? null : PropertyFileUtils.getServerSetting(temp.getPath());
+        final ServerSetting setting = null == temp ? null : PropertyFileUtils.getServerSetting(temp.getName());
+
+        TaskLifecycleEvent lifecycleEvent = null == setting ?
+                new TaskLifecycleEvent(SettingUtils.getWorkspace(), sid, serviceName, TaskLifecycle.EXCEPTION_OFFLINE)
+                :
+                new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
+
+        NotifyReactor.getInstance().publishEvent(lifecycleEvent);
+
+        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
+            String cmd = afterServerErrorOffline + StringUtils.SPACE + serviceName;
+            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
+        }
+
         final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
         String s = sdf.format(new Date());
         if (null != setting && Boolean.TRUE.equals(setting.getDaemon())) {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", server, s)
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s)
                     , NoticeEnum.WARN);
             //启动
-            TaskUtils.getTaskExecutor().execute(() -> this.startSingleServer(setting));
+            TaskUtils.getTaskExecutor().execute(() -> this.startSingleService(setting));
         } else {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", server, s)
+            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s)
                     , NoticeEnum.WARN);
         }
     }
 
-    @EventListener
-    public void onTaskEvent(TaskEvent event) {
-        switch (event.getEventType()) {
-            case RESTART:
-                this.restartServer(event.getPaths());
-                break;
-            case AUTO_START_ALL:
-                this.oneClickStart();
-                break;
-            case OFFLINE:
-                this.onOffline(event);
-                break;
-            default:
-                logger.error("未知的消息类型");
-                break;
-        }
+    @PostConstruct
+    public void init() {
+        NotifyReactor.getInstance().registerSubscriber(this);
+    }
+
+    @Override
+    public Class<? extends JarbootEvent> subscribeType() {
+        return OfflineEvent.class;
     }
 }

@@ -33,7 +33,7 @@ public class ServerMgrController {
     @GetMapping(value="/getServerList")
     @ResponseBody
     public ResponseForList<ServerRunning> getServerList() {
-        List<ServerRunning> results = serverMgrService.getServerList();
+        List<ServerRunning> results = serverMgrService.getServiceList();
         return new ResponseForList<>(results, results.size());
     }
 
@@ -46,7 +46,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple startServer(@RequestBody List<String> servers) {
-        serverMgrService.startServer(servers);
+        serverMgrService.startService(servers);
         return new ResponseSimple();
     }
 
@@ -59,7 +59,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple stopServer(@RequestBody List<String> servers) {
-        serverMgrService.stopServer(servers);
+        serverMgrService.stopService(servers);
         return new ResponseSimple();
     }
 
@@ -72,7 +72,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple restartServer(@RequestBody List<String> servers) {
-        serverMgrService.restartServer(servers);
+        serverMgrService.restartService(servers);
         return new ResponseSimple();
     }
 
@@ -153,11 +153,11 @@ public class ServerMgrController {
      * 删除服务
      * @return 执行结果
      */
-    @DeleteMapping(value="/server")
+    @DeleteMapping(value="/service")
     @ResponseBody
     @Permission
-    public ResponseSimple deleteServer(String server) {
-        serverMgrService.deleteServer(server);
+    public ResponseSimple deleteServer(String serviceName) {
+        serverMgrService.deleteService(serviceName);
         return new ResponseSimple();
     }
 
@@ -165,10 +165,10 @@ public class ServerMgrController {
      * 获取服务信息
      * @return 服务信息
      */
-    @GetMapping(value="/server")
+    @GetMapping(value="/service")
     @ResponseBody
-    public ResponseForObject<ServerRunning> getServer(String name) {
-        ServerRunning result = serverMgrService.getServer(name);
+    public ResponseForObject<ServerRunning> getServer(String serviceName) {
+        ServerRunning result = serverMgrService.getService(serviceName);
         return new ResponseForObject<>(result);
     }
 }

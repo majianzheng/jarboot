@@ -1,5 +1,8 @@
 package com.mz.jarboot.api.service;
 
+import com.mz.jarboot.api.constant.TaskLifecycle;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
@@ -16,14 +19,14 @@ public interface ServerMgrService {
      * 获取服务列表
      * @return 服务列表
      */
-    List<ServerRunning> getServerList();
+    List<ServerRunning> getServiceList();
 
     /**
      * 获取服务信息
-     * @param name 服务名称
+     * @param serviceName 服务名称
      * @return 服务信息 {@link ServerRunning}
      */
-    ServerRunning getServer(String name);
+    ServerRunning getService(String serviceName);
 
     /**
      * 一键重启，杀死所有服务进程，根据依赖重启
@@ -42,27 +45,27 @@ public interface ServerMgrService {
 
     /**
      * 启动服务
-     * @param paths 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表
      */
-    void startServer(List<String> paths);
+    void startService(List<String> serviceNames);
 
     /**
      * 停止服务
-     * @param paths 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表，字符串格式：服务path
      */
-    void stopServer(List<String> paths);
+    void stopService(List<String> serviceNames);
 
     /**
      * 重启服务
-     * @param paths 服务列表，字符串格式：服务path
+     * @param serviceNames 服务列表，字符串格式：服务path
      */
-    void restartServer(List<String> paths);
+    void restartService(List<String> serviceNames);
 
     /**
      * 通过服务配置启动服务
      * @param setting 服务配置
      */
-    void startSingleServer(ServerSetting setting);
+    void startSingleService(ServerSetting setting);
 
     /**
      * 获取未被服务管理的JVM进程信息
@@ -78,7 +81,27 @@ public interface ServerMgrService {
 
     /**
      * 删除服务
-     * @param server 服务名
+     * @param serviceName 服务名
      */
-    void deleteServer(String server);
+    void deleteService(String serviceName);
+
+    /**
+     * 注册事件处理
+     * @param serviceName 服务名称
+     * @param lifecycle 任务生命周期 {@link TaskLifecycle}
+     * @param subscriber 任务处理 {@link Subscriber}
+     */
+    void registerSubscriber(String serviceName,
+                            TaskLifecycle lifecycle,
+                            Subscriber<TaskLifecycleEvent> subscriber);
+
+    /**
+     * 反注册事件处理
+     * @param serviceName 服务名称
+     * @param lifecycle 任务生命周期 {@link TaskLifecycle}
+     * @param subscriber 任务处理 {@link Subscriber}
+     */
+    void deregisterSubscriber(String serviceName,
+                              TaskLifecycle lifecycle,
+                              Subscriber<TaskLifecycleEvent> subscriber);
 }

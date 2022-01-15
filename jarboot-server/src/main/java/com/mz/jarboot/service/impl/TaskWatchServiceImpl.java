@@ -1,17 +1,15 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.service.ServerMgrService;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
-import com.mz.jarboot.event.TaskEvent;
-import com.mz.jarboot.event.TaskEventEnum;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
@@ -22,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -43,9 +40,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
     private static final int MAX_MODIFY_WAIT_TIME = 600;
 
     @Autowired
-    private ApplicationContext ctx;
-    @Autowired
     private TaskRunCache taskRunCache;
+    @Autowired
+    private ServerMgrService serverMgrService;
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
 
     @Value("${jarboot.file-shake-time:5}")
@@ -84,8 +81,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
         if (enableAutoStartServices) {
             logger.info("Auto starting services...");
-            TaskEvent ev = new TaskEvent(TaskEventEnum.AUTO_START_ALL);
-            ctx.publishEvent(ev);
+            serverMgrService.oneClickStart();
         }
 
         //启动后置脚本
@@ -103,7 +99,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      */
     @Override
     public void changeWorkspace(String workspace) {
-        WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+        WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
                 StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
         //中断原监控线程
         monitorThread.interrupt();
@@ -173,11 +169,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
                 List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
                 if (!CollectionUtils.isEmpty(list)) {
-                    TaskEvent event = new TaskEvent(TaskEventEnum.RESTART);
-                    event.setPaths(list);
                     final String msg = "监控到工作空间文件更新，开始重启相关服务...";
                     WebSocketManager.getInstance().notice(msg, NoticeEnum.INFO);
-                    ctx.publishEvent(event);
+                    serverMgrService.restartService(list);
                 }
                 if (!starting) {
                     logger.info("current is not starting");
@@ -274,7 +268,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                 //当前不处于正在运行的状态
                 return;
             }
-            ServerSetting setting = PropertyFileUtils.getServerSetting(path);
+            ServerSetting setting = PropertyFileUtils.getServerSettingByPath(path);
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && Objects.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(path);

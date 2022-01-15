@@ -34,13 +34,14 @@ public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public ServerSetting getServerSetting(String path) {
-        return PropertyFileUtils.getServerSetting(path);
+    public ServerSetting getServiceSetting(String serviceName) {
+        return PropertyFileUtils.getServerSetting(serviceName);
     }
 
     @Override
-    public void submitServerSetting(ServerSetting setting) {
-        File file = getConfAndCheck(setting.getPath());
+    public void submitServiceSetting(ServerSetting setting) {
+        final String path = SettingUtils.getServerPath(setting.getName());
+        File file = getConfAndCheck(path);
         Properties prop = PropertyFileUtils.getProperties(file);
         String command = setting.getCommand();
         if (null == command) {
@@ -53,7 +54,7 @@ public class SettingServiceImpl implements SettingService {
         if (null == vm) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
         } else {
-            checkFileExist(vm, setting.getPath());
+            checkFileExist(vm, path);
         }
         prop.setProperty(SettingPropConst.VM, vm);
         String args = setting.getArgs();
@@ -71,7 +72,7 @@ public class SettingServiceImpl implements SettingService {
         } else {
             prop.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
         }
-        checkAndSet(setting, prop);
+        checkAndSet(path, setting, prop);
         if (null == setting.getDaemon()) {
             prop.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {
@@ -82,21 +83,22 @@ public class SettingServiceImpl implements SettingService {
         } else {
             prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
         }
-        saveServerConfig(setting, file, prop);
+        setting.setWorkspace(SettingUtils.getWorkspace());
+        saveServerConfig(path, setting, file, prop);
     }
 
-    private void saveServerConfig(ServerSetting setting, File file, Properties prop) {
+    private void saveServerConfig(String path, ServerSetting setting, File file, Properties prop) {
         //检查文件名是否修改
-        ServerSetting preSetting = PropertyFileUtils.getServerSetting(setting.getPath());
+        ServerSetting preSetting = PropertyFileUtils.getServerSetting(setting.getName());
         if (!Objects.equals(setting.getName(), preSetting.getName())) {
-            String sid = SettingUtils.createSid(setting.getPath());
+            String sid = SettingUtils.createSid(path);
             //名字发生了变更，需要修改文件夹的名字，先检查是否正在运行
             if (AgentManager.getInstance().isOnline(sid)) {
                 throw new JarbootRunException("服务正在运行，请先停止服务再重命名服务！");
             }
             PropertyFileUtils.storeProperties(file, prop);
             //开始重命名
-            File dir = FileUtils.getFile(setting.getPath());
+            File dir = FileUtils.getFile(path);
             File renamed = FileUtils.getFile(SettingUtils.getWorkspace(), setting.getName());
             if (renamed.exists()) {
                 throw new JarbootRunException(setting.getName() + "已经存在！");
@@ -105,16 +107,16 @@ public class SettingServiceImpl implements SettingService {
                 throw new JarbootRunException("重命名服务失败！");
             }
             //重命名成功，发布工作空间变化事件
-            WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+            WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
                     StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
         } else {
             PropertyFileUtils.storeProperties(file, prop);
         }
         //更新缓存配置，根据文件时间戳判定是否更新了
-        PropertyFileUtils.getServerSetting(setting.getPath());
+        PropertyFileUtils.getServerSetting(setting.getName());
     }
 
-    private void checkAndSet(ServerSetting setting, Properties prop) {
+    private void checkAndSet(String path, ServerSetting setting, Properties prop) {
         String workDirectory = setting.getWorkDirectory();
         if (StringUtils.isNotEmpty(workDirectory)) {
             checkDirExist(workDirectory);
@@ -131,7 +133,7 @@ public class SettingServiceImpl implements SettingService {
                 javaFile += CommonConst.EXE_EXT;
             }
 
-            checkFileExist(javaFile, setting.getPath());
+            checkFileExist(javaFile, path);
         } else {
             jdkPath = StringUtils.EMPTY;
         }
@@ -160,10 +162,10 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public String getVmOptions(String p, String file) {
+    public String getVmOptions(String serviceName, String file) {
         Path path = SettingUtils.getPath(file);
         if (!path.isAbsolute()) {
-            path = SettingUtils.getPath(p, file);
+            path = SettingUtils.getPath(SettingUtils.getServerPath(serviceName), file);
         }
         File f = path.toFile();
         String content = StringUtils.EMPTY;
@@ -178,10 +180,10 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public void saveVmOptions(String p, String file, String content) {
+    public void saveVmOptions(String serviceName, String file, String content) {
         Path path = SettingUtils.getPath(file);
         if (!path.isAbsolute()) {
-            path = SettingUtils.getPath(p, file);
+            path = SettingUtils.getPath(SettingUtils.getServerPath(serviceName), file);
         }
         File f = path.toFile();
         if (!f.exists()) {

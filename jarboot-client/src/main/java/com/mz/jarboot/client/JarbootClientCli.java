@@ -4,6 +4,10 @@ import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.TaskLifecycle;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.service.ServerMgrService;
 import com.mz.jarboot.common.AnsiLog;
@@ -11,6 +15,7 @@ import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.CommandCliParser;
 import com.mz.jarboot.common.utils.StringUtils;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,6 +25,7 @@ import java.util.List;
 public class JarbootClientCli {
     private String host;
     private String username;
+    private String password;
 
     @Option(shortName = "h", longName = "host")
     @Description("The Jarboot host. ig: 127.0.0.1:9899")
@@ -33,11 +39,13 @@ public class JarbootClientCli {
         this.username = username;
     }
 
+    @Option(shortName = "p", longName = "password")
+    @Description("The Jarboot password")
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public static void main(String[] args) {
-        if (null == System.console()) {
-            AnsiLog.info("Must in console.");
-            return;
-        }
         BannerUtils.print();
         AnsiLog.info("Jarboot client cli>>>");
         JarbootClientCli clientCli = new JarbootClientCli();
@@ -57,10 +65,12 @@ public class JarbootClientCli {
 
     private void login() {
         AnsiLog.info("Login to Jarboot server: {}", this.host);
-        if (StringUtils.isEmpty(username)) {
+        if (StringUtils.isEmpty(username) && null != System.console()) {
             username = System.console().readLine("username:");
         }
-        String password = new String(System.console().readPassword("password:"));
+        if (StringUtils.isEmpty(password) && null != System.console()) {
+            password = new String(System.console().readPassword("password:"));
+        }
         //登录认证
         String version = ClientProxy
                 .Factory
@@ -73,8 +83,36 @@ public class JarbootClientCli {
         //test
         ServerMgrService client = JarbootFactory
                 .createServerManager(this.host, null, null);
-        List<ServerRunning> list = client.getServerList();
-
+        List<ServerRunning> list = client.getServiceList();
         AnsiLog.info("list:{}", list);
+
+        AnsiLog.info("jvm list: {}", client.getJvmProcesses());
+        client.registerSubscriber("demo-server", TaskLifecycle.PRE_START, new Subscriber<TaskLifecycleEvent>() {
+            @Override
+            public void onEvent(TaskLifecycleEvent event) {
+                AnsiLog.info("event received:{}", event);
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return TaskLifecycleEvent.class;
+            }
+        });
+        client.registerSubscriber("demo-server", TaskLifecycle.EXCEPTION_OFFLINE, new Subscriber<TaskLifecycleEvent>() {
+            @Override
+            public void onEvent(TaskLifecycleEvent event) {
+                AnsiLog.info("exception offline:{}", event);
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return TaskLifecycleEvent.class;
+            }
+        });
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            AnsiLog.error(e);
+        }
     }
 }

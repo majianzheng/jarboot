@@ -37,6 +37,6 @@ public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
         }
         byte[] byteArray = this.encoder.encode(event);
         String msg = new String(byteArray, StandardCharsets.UTF_8);
-        ResultStreamDistributor.log(msg);
+        ResultStreamDistributor.getInstance().log(msg);
     }
 }

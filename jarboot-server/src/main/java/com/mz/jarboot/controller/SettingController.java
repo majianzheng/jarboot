@@ -30,15 +30,15 @@ public class SettingController {
 
     /**
      * 获取服务配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @return 服务配置
      */
     @GetMapping(value="/serverSetting")
     @ResponseBody
     @Permission("Get Server Setting")
-    public ResponseForObject<ServerSetting> getServerSetting(String path) {
+    public ResponseForObject<ServerSetting> getServerSetting(String serviceName) {
         try {
-            ServerSetting results = settingService.getServerSetting(path);
+            ServerSetting results = settingService.getServiceSetting(serviceName);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -54,7 +54,7 @@ public class SettingController {
     @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestBody ServerSetting setting) {
         try {
-            settingService.submitServerSetting(setting);
+            settingService.submitServiceSetting(setting);
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);
@@ -96,16 +96,16 @@ public class SettingController {
 
     /**
      * 获取服务的VM配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file vm文件路径
      * @return vm配置
      */
     @GetMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Get Server jvm options")
-    public ResponseForObject<String> getVmOptions(String path, String file) {
+    public ResponseForObject<String> getVmOptions(String serviceName, String file) {
         try {
-            String results = settingService.getVmOptions(path, file);
+            String results = settingService.getVmOptions(serviceName, file);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -114,7 +114,7 @@ public class SettingController {
 
     /**
      * 保存服务的JVM配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file vm配置文件路径
      * @param content vm配置文件内容
      * @return 执行结果
@@ -122,9 +122,9 @@ public class SettingController {
     @PostMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Save Server jvm options")
-    public ResponseSimple saveVmOptions(String path, String file, String content) {
+    public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
         try {
-            settingService.saveVmOptions(path, file, content);
+            settingService.saveVmOptions(serviceName, file, content);
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);

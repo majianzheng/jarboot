@@ -4,7 +4,6 @@ import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
@@ -244,25 +243,24 @@ public class SettingUtils {
 
     /**
      * 获取服务的jar包路径
-     * @param setting 服务配置
+     * @param servicePath 服务配置
      * @return jar包路径
      */
-    public static String getJarPath(ServerSetting setting) {
-        String server = setting.getName();
-        File dir = FileUtils.getFile(setting.getPath());
+    public static String getJarPath(String servicePath) {
+        File dir = FileUtils.getFile(servicePath);
         if (!dir.isDirectory() || !dir.exists()) {
-            logger.error("未找到{}服务的jar包路径{}", server, dir.getPath());
-            WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包路径", NoticeEnum.WARN);
+            logger.error("未找到{}服务的jar包路径", servicePath);
+            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包路径", NoticeEnum.WARN);
         }
 
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
         if (CollectionUtils.isEmpty(jarList)) {
-            logger.error("在{}未找到{}服务的jar包", server, dir.getPath());
-            WebSocketManager.getInstance().notice("未找到服务" + server + "的可执行jar包", NoticeEnum.ERROR);
+            logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
+            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包", NoticeEnum.ERROR);
             return StringUtils.EMPTY;
         }
         if (jarList.size() > 1) {
-            String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", server);
+            String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", servicePath);
             WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
             return StringUtils.EMPTY;
         }

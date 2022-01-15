@@ -133,23 +133,23 @@ export default class ServerMgrService {
 
     /**
      * 删除服务
-     * @param server 服务名
+     * @param serviceName 服务名
      */
-    public static deleteServer(server: string) {
+    public static deleteServer(serviceName: string) {
         const form = new FormData();
-        form.append('server', server);
-        return Request.delete(`${urlBase}/server`, form);
+        form.append('serviceName', serviceName);
+        return Request.delete(`${urlBase}/service`, form);
     }
 
     private static parseParam(servers: ServerRunning[]): string[] {
         const set = new Set<string>();
         servers.forEach(value => {
             if (value.isLeaf) {
-                set.add(value.path as string);
+                set.add(value.name as string);
                 return;
             }
             const children = value.children as ServerRunning[];
-            children?.length && children.forEach(child => set.add(child.path as string));
+            children?.length && children.forEach(child => set.add(child.name as string));
         });
         return Array.from(set);
     }

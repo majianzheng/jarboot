@@ -108,7 +108,7 @@ public class StdOutStreamReactor {
      * @param text 文本
      */
     private void stdStartingPrint(String text) {
-        ResultStreamDistributor.stdPrint(text);
+        ResultStreamDistributor.getInstance().stdPrint(text);
         //更新计时
         lastStdTime = System.currentTimeMillis();
     }
@@ -139,9 +139,9 @@ public class StdOutStreamReactor {
      */
     private void init() {
         // 输出不满一行的字符串
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
+        consoleOutputStream.setPrintHandler(ResultStreamDistributor.getInstance()::stdPrint);
         //退格
-        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor::stdBackspace);
+        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor.getInstance()::stdBackspace);
         //默认开启
         this.enabled(true);
     }
@@ -179,7 +179,7 @@ public class StdOutStreamReactor {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
+        consoleOutputStream.setPrintHandler(ResultStreamDistributor.getInstance()::stdPrint);
         //通知Jarboot server启动完成
         try {
             AgentServiceOperator.setStarted();

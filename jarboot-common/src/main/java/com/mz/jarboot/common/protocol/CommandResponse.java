@@ -1,5 +1,7 @@
 package com.mz.jarboot.common.protocol;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -8,7 +10,7 @@ import java.nio.charset.StandardCharsets;
  * We defined a response data structure or protocol used give back the executed result.
  * @author majianzheng
  */
-public class CommandResponse implements CmdProtocol {
+public class CommandResponse implements CmdProtocol, JarbootEvent {
     private Boolean success;
     private ResponseType responseType = ResponseType.UNKNOWN;
     private String body;

@@ -2,6 +2,9 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.TaskLifecycle;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServerRunning;
 import com.mz.jarboot.api.pojo.ServerSetting;
@@ -40,7 +43,7 @@ public class ServerManager implements ServerMgrService {
     }
 
     @Override
-    public List<ServerRunning> getServerList() {
+    public List<ServerRunning> getServiceList() {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/getServerList";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
@@ -79,34 +82,34 @@ public class ServerManager implements ServerMgrService {
     }
 
     @Override
-    public void startServer(List<String> paths) {
+    public void startService(List<String> serviceNames) {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/startServer";
-        String json = JsonUtils.toJsonString(paths);
+        String json = JsonUtils.toJsonString(serviceNames);
         String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
-    public void stopServer(List<String> paths) {
+    public void stopService(List<String> serviceNames) {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/stopServer";
-        String json = JsonUtils.toJsonString(paths);
+        String json = JsonUtils.toJsonString(serviceNames);
         String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
-    public void restartServer(List<String> paths) {
+    public void restartService(List<String> serviceNames) {
         final String api = CommonConst.SERVER_MGR_CONTEXT + "/restartServer";
-        String json = JsonUtils.toJsonString(paths);
+        String json = JsonUtils.toJsonString(serviceNames);
         String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
 
     @Override
-    public void startSingleServer(ServerSetting setting) {
+    public void startSingleService(ServerSetting setting) {
         final String api = "/api/jarboot/plugin/debug/startServer";
         String json = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
@@ -140,25 +143,55 @@ public class ServerManager implements ServerMgrService {
     }
 
     @Override
-    public void deleteServer(String server) {
-        final String api = CommonConst.SERVER_MGR_CONTEXT + "/server";
+    public void deleteService(String serviceName) {
+        final String api = CommonConst.SERVER_MGR_CONTEXT + "/service";
         FormBody.Builder builder = new FormBody.Builder();
-        builder.add(CommonConst.SERVER_PARAM, server);
+        builder.add(CommonConst.SERVICE_NAME_PARAM, serviceName);
         String response = this.clientProxy.reqApi(api, HttpMethod.DELETE, builder.build());
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
     }
 
     /**
+     * 注册事件处理
+     *
+     * @param serviceName 服务名称
+     * @param lifecycle   任务生命周期 {@link TaskLifecycle}
+     * @param subscriber  任务处理 {@link Subscriber}
+     */
+    @Override
+    public void registerSubscriber(String serviceName,
+                                   TaskLifecycle lifecycle,
+                                   Subscriber<TaskLifecycleEvent> subscriber) {
+        final String topic = this.clientProxy.createLifecycleTopic(serviceName, lifecycle);
+        this.clientProxy.registerSubscriber(topic, subscriber);
+    }
+
+    /**
+     * 反注册事件处理
+     *
+     * @param serviceName 服务名称
+     * @param lifecycle   任务生命周期 {@link TaskLifecycle}
+     * @param subscriber  任务处理 {@link Subscriber}
+     */
+    @Override
+    public void deregisterSubscriber(String serviceName,
+                                     TaskLifecycle lifecycle,
+                                     Subscriber<TaskLifecycleEvent> subscriber) {
+        final String topic = this.clientProxy.createLifecycleTopic(serviceName, lifecycle);
+        this.clientProxy.deregisterSubscriber(topic, subscriber);
+    }
+
+    /**
      * 获取服务信息
      *
-     * @param name 服务名称
+     * @param serviceName 服务名称
      * @return 服务信息 {@link ServerRunning}
      */
     @Override
-    public ServerRunning getServer(String name) {
-        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SERVER_MGR_CONTEXT, "/server");
-        asb.add(CommonConst.SERVER_PARAM, name);
+    public ServerRunning getService(String serviceName) {
+        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SERVER_MGR_CONTEXT, "/service");
+        asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName);
         final String api = asb.build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);

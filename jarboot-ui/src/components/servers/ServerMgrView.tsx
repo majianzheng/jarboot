@@ -564,7 +564,7 @@ const ServerMgrView = () => {
             <div style={{display: configView ? 'block' : 'none', background: '#FAFAFA'}}>
                 <TopTitleBar title={configTitle}
                              onClose={closeConfig}/>
-                <ServerConfig path={server?.path || ''}
+                <ServerConfig serviceName={server?.name || ''}
                               sid={state.current || ''}
                               group={server?.group || ''}
                               onClose={closeConfig}

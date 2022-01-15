@@ -1,6 +1,5 @@
 package com.mz.jarboot.core.session;
 
-import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.advisor.AdviceWeaver;
@@ -53,17 +52,14 @@ public class CommandSessionImpl implements CommandCoreSession {
 
     @Override
     public void console(String text) {
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.CONSOLE);
-        resp.setBody(text);
-        resp.setSessionId(this.sessionId);
-        ResultStreamDistributor.write(resp);
+        ResultStreamDistributor
+                .getInstance()
+                .response(true, ResponseType.CONSOLE, text, sessionId);
     }
 
     @Override
     public void appendResult(ResultModel resultModel) {
-        ResultStreamDistributor.appendResult(resultModel, this.sessionId);
+        ResultStreamDistributor.getInstance().appendResult(resultModel, this.sessionId);
     }
 
     @Override
@@ -113,11 +109,8 @@ public class CommandSessionImpl implements CommandCoreSession {
         }
         AdviceWeaver.unReg(listener);
 
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(success);
-        resp.setResponseType(ResponseType.COMMAND_END);
-        resp.setBody(message);
-        resp.setSessionId(this.sessionId);
-        ResultStreamDistributor.write(resp);
+        ResultStreamDistributor
+                .getInstance()
+                .response(success, ResponseType.COMMAND_END, message, sessionId);
     }
 }

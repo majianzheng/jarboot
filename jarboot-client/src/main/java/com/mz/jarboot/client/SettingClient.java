@@ -37,13 +37,13 @@ public class SettingClient implements SettingService {
     /**
      * 获取服务配置
      *
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @return 配置信息
      */
     @Override
-    public ServerSetting getServerSetting(String path) {
+    public ServerSetting getServiceSetting(String serviceName) {
         ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serverSetting");
-        final String api = asb.add(ClientConst.PATH_PARAM, path).build();
+        final String api = asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName).build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, ServerSetting.class);
@@ -55,7 +55,7 @@ public class SettingClient implements SettingService {
      * @param setting 配置
      */
     @Override
-    public void submitServerSetting(ServerSetting setting) {
+    public void submitServiceSetting(ServerSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/serverSetting";
         String body = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
@@ -93,14 +93,16 @@ public class SettingClient implements SettingService {
     /**
      * 获取vm options
      *
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file 文件
      * @return vm
      */
     @Override
-    public String getVmOptions(String path, String file) {
-        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/vmoptions");
-        final String api = asb.add(ClientConst.PATH_PARAM, path).add(ClientConst.FILE_PARAM, file).build();
+    public String getVmOptions(String serviceName, String file) {
+        final String api = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/vmoptions")
+                .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
+                .add(ClientConst.FILE_PARAM, file)
+                .build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return result.asText(StringUtils.EMPTY);
@@ -109,16 +111,16 @@ public class SettingClient implements SettingService {
     /**
      * 保存vm options
      *
-     * @param path  服务
+     * @param serviceName  服务
      * @param file    文件
      * @param content 文件内容
      */
     @Override
-    public void saveVmOptions(String path, String file, String content) {
+    public void saveVmOptions(String serviceName, String file, String content) {
         final String api = CommonConst.SETTING_CONTEXT + "/vmoptions";
         FormBody.Builder builder = new FormBody.Builder();
         builder
-                .add(ClientConst.PATH_PARAM, path)
+                .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
                 .add(ClientConst.FILE_PARAM, file)
                 .add(ClientConst.CONTENT_PARAM, content);
         String response = this.clientProxy.reqApi(api, HttpMethod.POST, builder.build());

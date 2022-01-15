@@ -24,10 +24,10 @@ public class DebugPluginController {
     @PostMapping("/startServer")
     @ResponseBody
     public ResponseSimple startSingleServer(@RequestBody ServerSetting setting) {
-        if (null == setting.getPath()) {
-            setting.setPath("");
+        if (null == setting.getWorkspace()) {
+            setting.setWorkspace("");
         }
-        serverMgrService.startSingleServer(setting);
+        serverMgrService.startSingleService(setting);
         return new ResponseSimple();
     }
 }

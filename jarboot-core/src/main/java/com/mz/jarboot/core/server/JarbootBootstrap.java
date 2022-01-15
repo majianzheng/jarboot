@@ -43,7 +43,7 @@ public class JarbootBootstrap {
         //1.解析args，获取目标服务端口
         AgentClientPojo clientData = this.initClientData(args, isPremain);
         String sid = clientData.getSid();
-        String serverName = clientData.getServer();
+        String serverName = clientData.getServiceName();
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查服务名和sid是否一致
             logger.warn("Jarboot is already initialized. args: {}, isPremain: {}", args, isPremain);
@@ -223,7 +223,7 @@ public class JarbootBootstrap {
         }
         clientData.setHost(String.format("127.0.0.1:%s", agentArgs[0]));
         System.setProperty(CommonConst.REMOTE_PROP, clientData.getHost());
-        clientData.setServer(agentArgs[1]);
+        clientData.setServiceName(agentArgs[1]);
         String sid = agentArgs[2];
         clientData.setSid(sid);
         PidFileHelper.writePidFile(sid);

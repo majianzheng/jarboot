@@ -30,7 +30,6 @@ public class CommandConst {
     public static final String ACTION_PROP_NAME_KEY = "name";
     public static final String ACTION_PROP_PARAM_KEY = "param";
 
-    public static final String ACTION_RESTART = "restart";
     public static final String ACTION_NOTICE_INFO = "INFO";
     public static final String ACTION_NOTICE_WARN = "WARN";
     public static final String ACTION_NOTICE_ERROR = "ERROR";

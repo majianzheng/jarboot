@@ -1,5 +1,6 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,21 +12,21 @@ import java.nio.ByteBuffer;
  * 消息发送
  * @author jianzhengma
  */
-public class MessageSender {
-    private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
+public class MessageSenderEvent implements JarbootEvent {
+    private static final Logger logger = LoggerFactory.getLogger(MessageSenderEvent.class);
     private final Session session;
     private final String message;
     private final byte[] buf;
     private final boolean binary;
 
-    public MessageSender(Session session, String message) {
+    public MessageSenderEvent(Session session, String message) {
         this.session = session;
         this.message = message;
         this.buf = new byte[1];
         this.binary = false;
     }
 
-    public MessageSender(Session session, byte[] message) {
+    public MessageSenderEvent(Session session, byte[] message) {
         this.session = session;
         this.message = StringUtils.EMPTY;
         this.buf = message;
@@ -33,6 +34,9 @@ public class MessageSender {
     }
 
     public void send() {
+        if (!session.isOpen()) {
+            return;
+        }
         if (this.binary) {
             sendBinary();
         } else {

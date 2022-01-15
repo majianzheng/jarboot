@@ -4,7 +4,6 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -12,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpRequestOperator {
     /** 连接超时 */
-    private static final long CONNECT_TIMEOUT = 15L;
+    public static final long CONNECT_TIMEOUT = 15L;
     /** 写超时 */
     private static final long READ_WRITE_TIMEOUT = 15L;
     /** 连接池实例 */
@@ -31,7 +30,7 @@ public class HttpRequestOperator {
      * @param method 请求方法
      * @return 请求结果
      */
-    public static String req(String url, String json, Map<String, String> headers, HttpMethod method) {
+    public static String req(String url, String json, okhttp3.Headers headers, HttpMethod method) {
         RequestBody requestBody = createJson(json);
         return req(url, method, requestBody, headers);
     }
@@ -47,20 +46,13 @@ public class HttpRequestOperator {
     public static String req(String url,
                              HttpMethod method,
                              RequestBody requestBody,
-                             Map<String, String> headers) {
-        okhttp3.Headers.Builder headersBuilder = new okhttp3.Headers.Builder();
-        if (null == headers) {
-            headersBuilder.add("Cookie", "");
-            headersBuilder.add("Accept", "*/*");
-            headersBuilder.add("Content-Type", "application/json;charset=UTF-8");
-        } else {
-            headers.forEach(headersBuilder::add);
-        }
-
+                             okhttp3.Headers headers) {
         Request.Builder requestBuilder = new Request
                 .Builder()
-                .url(url)
-                .headers(headersBuilder.build());
+                .url(url);
+        if (null != headers) {
+            requestBuilder.headers(headers);
+        }
         switch (method) {
             case GET:
                 requestBuilder.get();

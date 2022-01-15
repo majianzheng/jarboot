@@ -1,5 +1,6 @@
 package com.mz.jarboot.common.protocol;
 
+import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.JarbootException;
 
 import java.io.ByteArrayOutputStream;
@@ -10,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * 命令请求
  * @author majianzheng
  */
-public class CommandRequest implements CmdProtocol {
+public class CommandRequest implements CmdProtocol, JarbootEvent {
     private CommandType commandType = CommandType.UNKNOWN;
     private String commandLine = "";
     private String sessionId;

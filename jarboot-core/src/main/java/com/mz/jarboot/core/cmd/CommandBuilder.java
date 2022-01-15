@@ -177,7 +177,7 @@ public class CommandBuilder {
             extendCmd.setArgs(parser.getSplitedArgs());
             processor.postConstruct(
                     EnvironmentContext.getInstrumentation(),
-                    EnvironmentContext.getClientData().getServer());
+                    EnvironmentContext.getClientData().getServiceName());
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             errorMsg = e.getMessage();

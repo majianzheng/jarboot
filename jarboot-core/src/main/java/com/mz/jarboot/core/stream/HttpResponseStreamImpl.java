@@ -16,7 +16,7 @@ public class HttpResponseStreamImpl implements ResponseStream {
     @Override
     public void write(byte[] data) {
         final String url = new ApiStringBuilder(API)
-                .add(CommonConst.SERVER_PARAM, EnvironmentContext.getClientData().getServer())
+                .add(CommonConst.SERVICE_NAME_PARAM, EnvironmentContext.getClientData().getServiceName())
                 .add(CommonConst.SID_PARAM, EnvironmentContext.getClientData().getSid())
                 .build();
         HttpUtils.postSimple(url, data);

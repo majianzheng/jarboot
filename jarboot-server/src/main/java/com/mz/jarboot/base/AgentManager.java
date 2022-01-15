@@ -2,15 +2,14 @@ package com.mz.jarboot.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.pojo.JvmProcess;
-import com.mz.jarboot.api.pojo.ServerSetting;
 import com.mz.jarboot.common.AnsiLog;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
-import com.mz.jarboot.task.TaskStatus;
-import com.mz.jarboot.utils.PropertyFileUtils;
+import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import com.mz.jarboot.ws.WebSocketManager;
@@ -65,7 +64,7 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
         } else {
             latch.countDown();
         }
@@ -119,10 +118,9 @@ public class AgentManager {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                TaskEvent event = new TaskEvent(TaskEventEnum.OFFLINE, server, sid);
-                ApplicationContextUtils.publish(event);
+                OfflineEvent event = new OfflineEvent(server, sid);
+                NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
-                WebSocketManager.getInstance().publishStatus(sid, TaskStatus.STOPPED);
             }
         }
     }
@@ -434,7 +432,7 @@ public class AgentManager {
             this.onServerStarted(server, sid);
             WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
             AnsiLog.debug("reconnected by heartbeat {}, {}", server, sid);
-            WebSocketManager.getInstance().publishStatus(sid, TaskStatus.RUNNING);
+            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
         }
 
         client.heartbeat();
@@ -559,9 +557,6 @@ public class AgentManager {
                 NoticeEnum level = Enum.valueOf(NoticeEnum.class, action);
                 WebSocketManager.getInstance().notice(param, level, sessionId);
                 break;
-            case CommandConst.ACTION_RESTART:
-                trigRestartEvent(sid);
-                break;
             default:
                 break;
         }
@@ -569,15 +564,6 @@ public class AgentManager {
 
     private String formatErrorMsg(String server, String msg) {
         return String.format("\033[96m%s\033[0m \033[31m%s\033[0m", server, msg);
-    }
-
-    private void trigRestartEvent(String sid) {
-        TaskEvent taskEvent = new TaskEvent(TaskEventEnum.RESTART);
-        ArrayList<String> paths = new ArrayList<>();
-        ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
-        paths.add(setting.getPath());
-        taskEvent.setPaths(paths);
-        ApplicationContextUtils.publish(taskEvent);
     }
 
     private static class AgentManagerHolder {

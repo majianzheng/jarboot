@@ -38,6 +38,22 @@ public class JsonUtils {
         }
     }
 
+
+    /**
+     * json反序列化为对象
+     * @param content 字节码
+     * @param cls 类
+     * @param <T> 类型
+     * @return 对象
+     */
+    public static <T> T readValue(byte[] content, Class<T> cls) {
+        try {
+            return MAPPER.readValue(content, cls);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * json反序列化为对象
      * @param content 字符串
@@ -63,6 +79,19 @@ public class JsonUtils {
             return MAPPER.writeValueAsString(obj);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /**
+     * 对象序列化为字节码
+     * @param obj 对象
+     * @return json字节码
+     */
+    public static byte[] toJsonBytes(Object obj) {
+        try {
+            return MAPPER.writeValueAsBytes(obj);
+        } catch (Exception e) {
+            return new byte[0];
         }
     }
 

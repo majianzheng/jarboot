@@ -13,7 +13,6 @@ public class AgentServiceImpl implements AgentService {
     public static final Class<?> OPERATOR_CLASS;
     private static final String SERVER_NAME;
     private static final String SET_STARTED = "setStarted";
-    private static final String RESTART_SELF = "restartSelf";
     private static final String NOTICE_INFO = "noticeInfo";
     private static final String NOTICE_WARN = "noticeWarn";
     private static final String NOTICE_ERROR = "noticeError";
@@ -39,15 +38,6 @@ public class AgentServiceImpl implements AgentService {
             //启动完成
             OPERATOR_CLASS.getMethod(SET_STARTED).invoke(null);
         } catch (Exception e) {
-            e.printStackTrace(JarbootAgent.getPs());
-        }
-    }
-
-    @Override
-    public void restartSelf() {
-        try {
-            OPERATOR_CLASS.getMethod(RESTART_SELF).invoke(null);
-        } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
     }

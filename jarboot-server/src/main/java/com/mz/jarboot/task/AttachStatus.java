@@ -1,4 +1,4 @@
-package com.mz.jarboot.event;
+package com.mz.jarboot.task;
 
 /**
  * Attach状态

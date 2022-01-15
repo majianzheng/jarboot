@@ -1,12 +1,19 @@
 package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.protocol.CommandRequest;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.core.cmd.CommandDispatcher;
+import com.mz.jarboot.core.cmd.CommandRequestSubscriber;
+import com.mz.jarboot.core.cmd.CommandSubscriber;
+import com.mz.jarboot.core.cmd.InternalCommandSubscriber;
+import com.mz.jarboot.core.event.HeartbeatEvent;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
 import okhttp3.Request;
@@ -16,7 +23,6 @@ import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 @SuppressWarnings("all")
-public class WsClientFactory {
+public class WsClientFactory extends WebSocketListener implements Subscriber<HeartbeatEvent> {
     private static final Logger logger = LogUtils.getLogger();
 
     /** 最大连接等待时间默认10秒 */
@@ -37,10 +43,6 @@ public class WsClientFactory {
     private static final int RECONNECT_INTERVAL = 5;
     /** WebSocket 客户端 */
     private okhttp3.WebSocket client = null;
-    /** 命令派发器 */
-    private final CommandDispatcher dispatcher;
-    /** WebSocket事件监听 */
-    private okhttp3.WebSocketListener listener;
     /** 是否在线标志 */
     private volatile boolean online = false;
     /** 连接等待latch */
@@ -59,47 +61,37 @@ public class WsClientFactory {
     private ScheduledFuture<?> heartbeatFuture = null;
 
     private WsClientFactory() {
-        //1.命令派发器
-        dispatcher = new CommandDispatcher(this::onHeartbeat);
-        //2.初始化WebSocket的handler
-        this.initMessageHandler();
+        //注册事件订阅
+        NotifyReactor.getInstance().registerSubscriber(new CommandRequestSubscriber());
+        NotifyReactor.getInstance().registerSubscriber(new CommandSubscriber());
+        NotifyReactor.getInstance().registerSubscriber(new InternalCommandSubscriber());
+        NotifyReactor.getInstance().registerSubscriber(this);
     }
 
-    private void initMessageHandler() {
-        this.listener = new WebSocketListener() {
-            @Override
-            public void onOpen(WebSocket webSocket, Response response) {
-                online = true;
-                if (null != latch) {
-                    latch.countDown();
-                }
-            }
 
-            @Override
-            public void onMessage(WebSocket webSocket, String text) {
-                //ignore
-            }
+    @Override
+    public void onOpen(WebSocket webSocket, Response response) {
+        online = true;
+        if (null != latch) {
+            latch.countDown();
+        }
+    }
 
-            @Override
-            public void onMessage(WebSocket webSocket, ByteString bytes) {
-                dispatcher.publish(bytes.toByteArray());
-            }
+    @Override
+    public void onMessage(WebSocket webSocket, ByteString bytes) {
+        CommandRequest request = new CommandRequest();
+        request.fromRaw(bytes.toByteArray());
+        NotifyReactor.getInstance().publishEvent(request);
+    }
 
-            @Override
-            public void onClosing(WebSocket webSocket, int code, String reason) {
-                online = false;
-            }
+    @Override
+    public void onClosed(WebSocket webSocket, int code, String reason) {
+        onClose();
+    }
 
-            @Override
-            public void onClosed(WebSocket webSocket, int code, String reason) {
-                onClose();
-            }
-
-            @Override
-            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                onClose();
-            }
-        };
+    @Override
+    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+        onClose();
     }
 
     /**
@@ -133,7 +125,7 @@ public class WsClientFactory {
                 .append(EnvironmentContext.getClientData().getHost())
                 .append(CommonConst.AGENT_WS_CONTEXT)
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getClientData().getServer())
+                .append(EnvironmentContext.getClientData().getServiceName())
                 .append(StringUtils.SLASH)
                 .append(EnvironmentContext.getClientData().getSid())
                 .toString();
@@ -146,7 +138,7 @@ public class WsClientFactory {
                             .Builder()
                             .get()
                             .url(url)
-                            .build(), this.listener);
+                            .build(), this);
             if (!latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS)) {
                 logger.warn("wait connect timeout.");
                 this.destroyClient();
@@ -176,15 +168,6 @@ public class WsClientFactory {
         heartbeatFuture = EnvironmentContext
                 .getScheduledExecutorService()
                 .scheduleWithFixedDelay(this::sendHeartbeat, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
-    }
-
-    /**
-     * Jarboot服务发送的心跳事件
-     */
-    public void onHeartbeat() {
-        if (null != this.heartbeatLatch) {
-            this.heartbeatLatch.countDown();
-        }
     }
 
     /**
@@ -336,6 +319,21 @@ public class WsClientFactory {
             //ignore
         }
         client = null;
+    }
+
+    /**
+     * Jarboot服务发送的心跳事件
+     */
+    @Override
+    public void onEvent(HeartbeatEvent event) {
+        if (null != this.heartbeatLatch) {
+            this.heartbeatLatch.countDown();
+        }
+    }
+
+    @Override
+    public Class<? extends JarbootEvent> subscribeType() {
+        return HeartbeatEvent.class;
     }
 
     /**

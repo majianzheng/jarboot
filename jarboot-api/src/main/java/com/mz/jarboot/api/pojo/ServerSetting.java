@@ -31,7 +31,7 @@ public class ServerSetting implements Serializable {
     /**
      * 服务的文件夹路径
      */
-    private String path;
+    private String workspace;
     
     /**
      * 用户自定义的启动命令
@@ -131,12 +131,12 @@ public class ServerSetting implements Serializable {
         this.lastModified = lastModified;
     }
 
-    public String getPath() {
-        return path;
+    public String getWorkspace() {
+        return workspace;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
     
     public String getCommand() {

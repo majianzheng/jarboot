@@ -23,7 +23,7 @@ public class JsonUtilsTest {
     @Test
     public void testReadValue() {
         String content = "{\"resultCode\":-1,\"resultMsg\":null,\"total\":null,\"clientAddr\":\"192.168.1.100\"," +
-                "\"local\":null,\"server\":null,\"sid\":\"test-sid\"," +
+                "\"local\":null,\"serviceName\":null,\"sid\":\"test-sid\"," +
                 "\"host\":\"192.168.1.101:9899\",\"diagnose\":true}";
         AgentClientPojo obj = JsonUtils.readValue(content, AgentClientPojo.class);
         assertNotNull(obj);

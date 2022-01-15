@@ -158,22 +158,21 @@ public class EnvironmentContext {
             session.end(false, "Command not allowed");
             return;
         }
-        scheduledExecutorService.execute(() -> {
-            if (checkCommandRunning(session)) {
-                return;
-            }
-            //开始执行命令，更新正在执行的命令
-            session.setRunning();
-            runningCommandMap.put(session.getSessionId(), command);
-            try {
-                command.run();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                session.end(false, e.getMessage());
-                String msg = "命令（" + command.getName() + "）执行失败！<br>" + e.getMessage();
-                AgentServiceOperator.noticeError(msg, session.getSessionId());
-            }
-        });
+
+        if (checkCommandRunning(session)) {
+            return;
+        }
+        //开始执行命令，更新正在执行的命令
+        session.setRunning();
+        runningCommandMap.put(session.getSessionId(), command);
+        try {
+            command.run();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            session.end(false, e.getMessage());
+            String msg = "命令（" + command.getName() + "）执行失败！<br>" + e.getMessage();
+            AgentServiceOperator.noticeError(msg, session.getSessionId());
+        }
     }
 
     /**

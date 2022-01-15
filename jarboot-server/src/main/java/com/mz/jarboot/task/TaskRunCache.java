@@ -7,11 +7,13 @@ import com.mz.jarboot.common.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +32,8 @@ public class TaskRunCache {
     /** 需要排除的工作空间里的目录 */
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
+    @Autowired
+    private TaskStatusChangeSubscriber taskStatusChangeSubscriber;
     /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
     /** 正在启动中的服务 */
@@ -81,13 +85,13 @@ public class TaskRunCache {
         process.setGroup(this.getGroup(sid, path));
 
         if (this.isStarting(sid)) {
-            process.setStatus(TaskStatus.STARTING.name());
+            process.setStatus(CommonConst.STARTING);
         } else if (this.isStopping(sid)) {
-            process.setStatus(TaskStatus.STOPPING.name());
+            process.setStatus(CommonConst.STOPPING);
         } else if (AgentManager.getInstance().isOnline(sid)) {
-            process.setStatus(TaskStatus.RUNNING.name());
+            process.setStatus(CommonConst.RUNNING);
         } else {
-            process.setStatus(TaskStatus.STOPPED.name());
+            process.setStatus(CommonConst.STOPPED);
         }
         return process;
     }
@@ -146,7 +150,7 @@ public class TaskRunCache {
         if (null != setting) {
             return setting.getGroup();
         }
-        setting = PropertyFileUtils.getServerSetting(path);
+        setting = PropertyFileUtils.getServerSettingByPath(path);
         if (null == setting) {
             return StringUtils.EMPTY;
         }
@@ -211,5 +215,6 @@ public class TaskRunCache {
                 excludeDirSet.add(s.trim());
             }
         }
+        NotifyReactor.getInstance().registerSubscriber(taskStatusChangeSubscriber);
     }
 }

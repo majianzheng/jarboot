@@ -2,53 +2,67 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.client.utlis.HttpRequestOperator;
 import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import okhttp3.FormBody;
-import okhttp3.RequestBody;
+import okhttp3.*;
+import okio.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 客户端请求代理
  * @author majianzheng
  */
-public class ClientProxy {
+@SuppressWarnings("all")
+public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientProxy.class);
     private final String baseUrl;
     private final String user;
     private final String password;
     private final String host;
     private final boolean authorization;
-    private String tokenKey = StringUtils.EMPTY;
+    private String tokenKey;
     private final String version;
+    private final AtomicReference<okhttp3.WebSocket> webSocket = new AtomicReference<>(null);
+    private final Map<String, Set<Subscriber>> subscribers = new ConcurrentHashMap<>(16);
+    private CountDownLatch latch = null;
 
     private ClientProxy(String host, String user, String password, String version) {
         this.baseUrl = CommonConst.HTTP + host;
         this.host = host;
         this.user = user;
         this.password = password;
-        this.authorization = true;
         this.version = version;
-        tokenKey = Factory.createTokenKey(host, user);
+        if (null == user) {
+            this.authorization = false;
+        } else {
+            tokenKey = Factory.createTokenKey(host, user);
+            this.authorization = true;
+        }
     }
 
     private ClientProxy(String host, String version) {
-        this.baseUrl = CommonConst.HTTP + host;
-        this.host = host;
-        this.user = null;
-        this.password = null;
-        this.authorization = false;
-        this.version = version;
+        this(host, null, null, version);
     }
 
     public String getHost() {
@@ -67,7 +81,7 @@ public class ClientProxy {
      * @return response
      */
     public String reqApi(String api, String json, HttpMethod method) {
-        Map<String, String> headers = this.authorization ? initHeader() : null;
+        okhttp3.Headers headers = this.authorization ? initHeader() : null;
         return HttpRequestOperator.req(this.baseUrl + api, json, headers, method);
     }
 
@@ -79,8 +93,31 @@ public class ClientProxy {
      * @return response
      */
     public String reqApi(String api, HttpMethod method, RequestBody requestBody) {
-        Map<String, String> headers = this.authorization ? initHeader() : null;
+        okhttp3.Headers headers = this.authorization ? initHeader() : null;
         return HttpRequestOperator.req(this.baseUrl + api, method, requestBody, headers);
+    }
+
+    /**
+     * 创建长连接
+     * @return 长连接
+     */
+    private okhttp3.WebSocket newWebSocket() {
+        final String url = this.baseUrl + CommonConst.EVENT_WS_CONTEXT;
+        final Request request = new Request
+                .Builder()
+                .get()
+                .url(url)
+                .build();
+        latch = new CountDownLatch(1);
+        okhttp3.WebSocket client = HttpRequestOperator.HTTP_CLIENT.newWebSocket(request, this);
+        try {
+            if (!latch.await(HttpRequestOperator.CONNECT_TIMEOUT, TimeUnit.SECONDS)) {
+                logger.warn("Connect to event server timeout! url: {}", url);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return client;
     }
 
     /**
@@ -91,16 +128,147 @@ public class ClientProxy {
         return this.authorization;
     }
 
-    private Map<String, String> initHeader() {
-        Map<String, String> headers = new HashMap<>(4);
+    private okhttp3.Headers initHeader() {
         AccessToken accessToken = Factory.createToken(tokenKey, baseUrl, this.user, this.password);
         if (null == accessToken) {
             throw new JarbootRunException("request token failed.");
         }
-        headers.put("Authorization", accessToken.token);
-        headers.put("Accept", "*/*");
-        headers.put("Content-Type", "application/json;charset=UTF-8");
-        return headers;
+        return new okhttp3.Headers.Builder()
+                .add("Authorization", accessToken.token)
+                .add("Accept", "*/*")
+                .add("Content-Type", "application/json;charset=UTF-8")
+                .build();
+    }
+
+    @Override
+    public void onOpen(WebSocket webSocket, Response response) {
+        if (!this.webSocket.compareAndSet(null, webSocket)) {
+            logger.warn("Already opened!");
+            this.webSocket.set(webSocket);
+        }
+        if (null != latch) {
+            latch.countDown();
+        }
+    }
+
+    @Override
+    public void onMessage(WebSocket webSocket, ByteString bytes) {
+        int i1 = bytes.indexOf(SPLIT);
+        int i2 = bytes.indexOf(SPLIT, i1 + 1);
+        if (i1 < 0 || i2 < 0) {
+            return;
+        }
+        final String topic = 0 == i1 ? StringUtils.EMPTY : bytes.substring(0, i1).string(StandardCharsets.UTF_8);
+        final String className = bytes.substring(i1 + 1, i2).string(StandardCharsets.UTF_8);
+        ByteString bodyBytes = bytes.substring(i2 + 1);
+        try {
+            Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
+            JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
+            this.receiveEvent(topic, event);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void onClosed(WebSocket webSocket, int code, String reason) {
+        this.subscribers.clear();
+        this.webSocket.set(null);
+    }
+
+    @Override
+    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+        this.webSocket.set(null);
+    }
+
+    @Override
+    public void registerSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
+        this.webSocket.compareAndSet(null, this.newWebSocket());
+        byte[] topicBytes = topic.getBytes(StandardCharsets.UTF_8);
+        byte[] buf = new byte[topicBytes.length + 1];
+        buf[0] = 1;
+        System.arraycopy(topicBytes, 0, buf, 1, topicBytes.length);
+        if (this.webSocket.get().send(ByteString.of(buf))) {
+            subscribers.compute(topic, (k, v) -> {
+                //订阅计数
+                if (null == v) {
+                    v = new HashSet<>(16);
+                }
+                v.add(subscriber);
+                return v;
+            });
+        } else {
+            logger.warn("Send to event server failed when registerSubscriber.{}", topic);
+            throw new JarbootRunException("send data error, register subscriber failed.");
+        }
+    }
+
+    @Override
+    public void deregisterSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
+        okhttp3.WebSocket socket = this.webSocket.get();
+        if (null == socket) {
+            this.subscribers.clear();
+            return;
+        }
+        byte[] topicBytes = topic.getBytes(StandardCharsets.UTF_8);
+        byte[] buf = new byte[topicBytes.length + 1];
+        System.arraycopy(topicBytes, 0, buf, 1, topicBytes.length);
+        if (socket.send(ByteString.of(buf))) {
+            subscribers.computeIfPresent(topic, (k, v) -> {
+                v.remove(subscriber);
+                if (v.isEmpty()) {
+                    v = null;
+                    if (subscribers.size() <= 1) {
+                        logger.debug("topics will be zero shutdown client.");
+                        //当前没有任何订阅销毁WebSocket
+                        this.shutdownWebSocket();
+                    }
+                }
+                return v;
+            });
+        } else {
+            logger.warn("Send to event server failed when deregisterSubscriber.{}", topic);
+            throw new JarbootRunException("send data error, deregister subscriber failed.");
+        }
+    }
+
+    @Override
+    public void receiveEvent(String topic, JarbootEvent event) {
+        if (topic.isEmpty()) {
+            //类名即为主题
+            NotifyReactor.getInstance().publishEvent(event);
+            return;
+        }
+        Set<Subscriber> subs = subscribers.getOrDefault(topic, null);
+        if (null != subs && !subs.isEmpty()) {
+            subs.forEach(sub -> {
+                Executor executor = sub.executor();
+                //执行本地事件
+                final Runnable job = () -> sub.onEvent(event);
+                if (null == executor) {
+                    job.run();
+                } else {
+                    executor.execute(job);
+                }
+            });
+        }
+    }
+
+    private void shutdownWebSocket() {
+        WebSocket socket = this.webSocket.getAndSet(null);
+        if (null == socket) {
+            return;
+        }
+        try {
+            socket.cancel();
+        } catch (Exception e) {
+            //ignore
+        }
+        try {
+            socket.close(1100, "Connect close.");
+        } catch (Exception e) {
+            //ignore
+        }
     }
 
     public static class AccessToken {

@@ -44,9 +44,16 @@ public class CommonConst {
     public static final String SETTING_CONTEXT = "/api/jarboot/setting";
     public static final String USER_CONTEXT = "/api/jarboot/user";
     public static final String AGENT_WS_CONTEXT = "/jarboot/public/agent/ws";
+    public static final String EVENT_WS_CONTEXT = "/jarboot/public/event/ws";
 
-    public static final String SERVER_PARAM = "server";
+    public static final String SERVICE_NAME_PARAM = "serviceName";
     public static final String SID_PARAM = "sid";
+
+    /** Task status */
+    public static final String STARTING = "STARTING";
+    public static final String RUNNING = "RUNNING";
+    public static final String STOPPING = "STOPPING";
+    public static final String STOPPED = "STOPPED";
 
     /**
      * 等待目标进程优雅退出的最大时间，毫秒

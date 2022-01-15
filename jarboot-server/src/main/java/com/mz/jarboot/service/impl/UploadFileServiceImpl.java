@@ -146,7 +146,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             }
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServerSetting setting = exist ? PropertyFileUtils.getServerSetting(destPath) : s;
+            ServerSetting setting = exist ? PropertyFileUtils.getServerSettingByPath(destPath) : s;
             if (StringUtils.isEmpty(setting.getCommand())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
@@ -155,9 +155,9 @@ public class UploadFileServiceImpl implements UploadFileService {
                 }
             }
             if (!exist) {
-                setting.setPath(destPath);
-                settingService.submitServerSetting(setting);
-                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
+                setting.setWorkspace(SettingUtils.getWorkspace());
+                settingService.submitServiceSetting(setting);
+                WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
                         StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
             }
         } catch (Exception e) {

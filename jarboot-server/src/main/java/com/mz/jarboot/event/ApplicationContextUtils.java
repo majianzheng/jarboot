@@ -15,16 +15,6 @@ public class ApplicationContextUtils {
     private static ApplicationContext ctx;
 
     /**
-     * 发布Application事件
-     * @param event 事件
-     */
-    public static void publish(Object event) {
-        if (null != ctx) {
-            ctx.publishEvent(event);
-        }
-    }
-
-    /**
      * 获取配置
      * @param name 配置名
      * @return 配置值

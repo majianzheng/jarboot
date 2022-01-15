@@ -26,27 +26,27 @@ public class AgentClientController {
 
     /**
      * 命令执行结果反馈接口
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param raw 执行结果数据
      * @return 处理结果
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple onResponse(@RequestParam String server, @RequestParam String sid, @RequestBody byte[] raw) {
+    public ResponseSimple onResponse(@RequestParam String serviceName, @RequestParam String sid, @RequestBody byte[] raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
-        AgentManager.getInstance().handleAgentResponse(server, sid, resp, null);
+        AgentManager.getInstance().handleAgentResponse(serviceName, sid, resp, null);
         return new ResponseSimple();
     }
 
     /**
      * 通知启动成功完成
-     * @param server 服务名
+     * @param serviceName 服务名
      * @return 处理结果
      */
     @GetMapping(value="/setStarted")
     @ResponseBody
-    public ResponseSimple setStarted(@RequestParam String server, @RequestParam String sid) {
-        AgentManager.getInstance().onServerStarted(server, sid);
+    public ResponseSimple setStarted(@RequestParam String serviceName, @RequestParam String sid) {
+        AgentManager.getInstance().onServerStarted(serviceName, sid);
         return new ResponseSimple();
     }
 
@@ -70,7 +70,7 @@ public class AgentClientController {
         AgentClientPojo agentClientPojo = new AgentClientPojo();
         agentClientPojo.setDiagnose(true);
         String server = StringUtils.isEmpty(command) ? ("NoName-" + pid) : TaskUtils.parseCommandSimple(command);
-        agentClientPojo.setServer(server);
+        agentClientPojo.setServiceName(server);
         String clientAddr = this.getActualAddr(request);
         agentClientPojo.setClientAddr(clientAddr);
         final char atSplit = '@';
