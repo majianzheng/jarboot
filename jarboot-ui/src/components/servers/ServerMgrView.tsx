@@ -1,6 +1,6 @@
 import React, {useEffect, useReducer, useRef} from "react";
 import {Button, Empty, Input, message, Modal, Result, Spin, Tree} from "antd";
-import ServerMgrService, {ServerRunning, TreeNode} from "@/services/ServerMgrService";
+import ServiceManager, {ServiceInstance, TreeNode} from "@/services/ServiceManager";
 import CommonNotice, {notSelectInfo} from '@/common/CommonNotice';
 import {
     AppstoreOutlined,
@@ -33,14 +33,14 @@ import Highlighter from 'react-highlight-words';
 
 interface ServerMgrViewState {
     loading: boolean;
-    data: ServerRunning[];
+    data: ServiceInstance[];
     treeData: TreeNode[];
     uploadVisible: boolean;
     selectedRowKeys: string[];
     searchText: string;
-    searchResult: ServerRunning[];
+    searchResult: ServiceInstance[];
     searchedColumn: string;
-    selectRows: ServerRunning[];
+    selectRows: ServiceInstance[];
     current: string;
     contentView: 'config' | 'console';
     importing: boolean;
@@ -51,14 +51,14 @@ const ServerMgrView = () => {
     const treeRef = useRef<any>();
     const initArg: ServerMgrViewState = {
         loading: false,
-        data: [] as ServerRunning[],
+        data: [] as ServiceInstance[],
         treeData: [] as TreeNode[],
         uploadVisible: false,
         selectedRowKeys: [] as string[],
         searchText: '',
-        searchResult: [] as ServerRunning[],
+        searchResult: [] as ServiceInstance[],
         searchedColumn: '',
-        selectRows: [] as ServerRunning[],
+        selectRows: [] as ServiceInstance[],
         current: '',
         contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
         importing: false,
@@ -86,7 +86,7 @@ const ServerMgrView = () => {
 
     const activeConsole = (sid: string) => {
         dispatch((preState: ServerMgrViewState) => {
-            let data: ServerRunning[] = preState.data || [];
+            let data: ServiceInstance[] = preState.data || [];
             const index = data.findIndex(row => row.sid === sid);
             if (-1 !== index) {
                 const selectedRowKeys: any = [data[index].sid];
@@ -99,7 +99,7 @@ const ServerMgrView = () => {
 
     const onStatusChange = (data: MsgData) => {
         dispatch((preState: ServerMgrViewState) => {
-            const item = preState?.data?.find((value: ServerRunning) => value.sid === data.sid);
+            const item = preState?.data?.find((value: ServiceInstance) => value.sid === data.sid);
             if (!item || item.status === data.body) {
                 return {};
             }
@@ -158,21 +158,21 @@ const ServerMgrView = () => {
         return <span title={title} className={styles.statusIcon}>{tag}</span>;
     };
 
-    const startSignal = (server: ServerRunning) => {
+    const startSignal = (server: ServiceInstance) => {
         if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
-            ServerMgrService.startServer([server], finishCallback);
+            ServiceManager.startService([server], finishCallback);
         }
     };
 
     const refreshServerList = (init: boolean = false) => {
         dispatch({loading: true});
-        ServerMgrService.getServerList((resp: any) => {
+        ServiceManager.getServiceList((resp: any) => {
             dispatch((preState: ServerMgrViewState) => {
                 if (resp.resultCode < 0) {
                     CommonNotice.errorFormatted(resp);
                     return {loading: false};
                 }
-                const data = resp.result as ServerRunning[];
+                const data = resp.result as ServiceInstance[];
                 const index = data.findIndex(item => preState.current === item.sid);
                 const treeData = getTreeData(data);
                 if (init || -1 === index) {
@@ -181,9 +181,9 @@ const ServerMgrView = () => {
                     let selectedRowKeys = [] as string[];
                     let selectRows: any = [];
                     if (data.length > 0) {
-                        let first: ServerRunning;
+                        let first: ServiceInstance;
                         if (treeData.length > 0) {
-                            const firstChildren = treeData[0]?.children as ServerRunning[] || [];
+                            const firstChildren = treeData[0]?.children as ServiceInstance[] || [];
                             first = (firstChildren[0] || data[0]);
                         } else {
                             first = data[0];
@@ -210,7 +210,7 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        ServerMgrService.startServer(state.selectRows, finishCallback);
+        ServiceManager.startService(state.selectRows, finishCallback);
     };
 
     const stopServer = () => {
@@ -219,7 +219,7 @@ const ServerMgrView = () => {
             return;
         }
 
-        ServerMgrService.stopServer(state.selectRows, finishCallback);
+        ServiceManager.stopService(state.selectRows, finishCallback);
     };
 
     const restartServer = () => {
@@ -227,7 +227,7 @@ const ServerMgrView = () => {
             notSelectInfo();
             return;
         }
-        ServerMgrService.restartServer(state.selectRows, finishCallback);
+        ServiceManager.restartService(state.selectRows, finishCallback);
     };
 
     const getToolBtnProps = () => ([
@@ -355,7 +355,7 @@ const ServerMgrView = () => {
             title: intl.formatMessage({id: 'WARN'}),
             content: intl.formatMessage({id: 'DELETE_INFO'}),
             onOk: () => {
-                ServerMgrService.deleteServer(state.selectRows[0].name).then(resp => {
+                ServiceManager.deleteService(state.selectRows[0].name).then(resp => {
                     if (0 !== resp.resultCode) {
                         CommonNotice.errorFormatted(resp);
                     }
@@ -365,7 +365,7 @@ const ServerMgrView = () => {
     };
 
     const isCurrentNotRunning = () => {
-        const item = state.data.find((value: ServerRunning) => value.sid === state.current);
+        const item = state.data.find((value: ServiceInstance) => value.sid === state.current);
         return !(item && JarBootConst.STATUS_STARTED === item.status);
     };
 
@@ -391,7 +391,7 @@ const ServerMgrView = () => {
 
     const onGroupChanged = (sid: string, group: string) => {
         dispatch((preState: any) => {
-            const data = preState.data as ServerRunning[];
+            const data = preState.data as ServiceInstance[];
             const server = data.find(value => value.sid === sid);
             if (server) {
                 server.group = group;
@@ -425,7 +425,7 @@ const ServerMgrView = () => {
         return (<AppstoreOutlined className={styles.groupIcon}/>);
     };
 
-    const renderTitle = (server: ServerRunning, isGroup: boolean, searchText: string) => {
+    const renderTitle = (server: ServiceInstance, isGroup: boolean, searchText: string) => {
         if (isGroup) {
             const group: string = server.group || '';
             let title: React.ReactNode|string = group;
@@ -453,14 +453,14 @@ const ServerMgrView = () => {
         return <span onDoubleClick={() => startSignal(server)}>{title}</span>;
     };
 
-    const getTreeData = (data: ServerRunning[]): TreeNode[] => {
-        const treeData = [] as ServerRunning[];
-        const groupMap = new Map<string, ServerRunning[]>();
+    const getTreeData = (data: ServiceInstance[]): TreeNode[] => {
+        const treeData = [] as ServiceInstance[];
+        const groupMap = new Map<string, ServiceInstance[]>();
         data.forEach(server => {
             const group = server.group || '';
             let children = groupMap.get(group);
             if (!children) {
-                children = [] as ServerRunning[];
+                children = [] as ServiceInstance[];
                 groupMap.set(group, children);
                 const title = renderTitle(server, true, state.searchText);
                 treeData.push({
@@ -471,7 +471,7 @@ const ServerMgrView = () => {
                     icon: groupIcon,
                     name: group, path: "", status: "", children});
             }
-            const child = server as ServerRunning;
+            const child = server as ServiceInstance;
             child.key = server.sid;
             child.title = renderTitle(server, false, state.searchText);
             child.isLeaf = true;
@@ -483,23 +483,23 @@ const ServerMgrView = () => {
 
     const onTreeSearch = (searchText: string) => {
         dispatch((preState: ServerMgrViewState) => {
-            let searchResult = [] as ServerRunning[];
+            let searchResult = [] as ServiceInstance[];
             if (preState.searchResult?.length) {
                 preState.searchResult.forEach(value => {
-                    value.title = renderTitle(value as ServerRunning, !value.isLeaf, '');
+                    value.title = renderTitle(value as ServiceInstance, !value.isLeaf, '');
                 });
             }
             if (searchText?.length) {
                 const text = searchText.toLowerCase();
                 preState.treeData.forEach(value => {
                     if (value.name.toLowerCase().includes(text)) {
-                        value.title = renderTitle(value as ServerRunning, true, searchText);
-                        searchResult.push(value as ServerRunning);
+                        value.title = renderTitle(value as ServiceInstance, true, searchText);
+                        searchResult.push(value as ServiceInstance);
                     }
                     value.children?.forEach(child => {
                         if (child.name.toLowerCase().includes(text)) {
-                            child.title = renderTitle(child as ServerRunning, false, searchText);
-                            searchResult.push(child as ServerRunning);
+                            child.title = renderTitle(child as ServiceInstance, false, searchText);
+                            searchResult.push(child as ServiceInstance);
                         }
                     });
                 });
@@ -536,10 +536,10 @@ const ServerMgrView = () => {
     const contentView = () => {
         const configView = JarBootConst.CONSOLE_VIEW === state.contentView;
         //按钮为控制台，则当前为服务配置
-        let server = {} as ServerRunning;
+        let server = {} as ServiceInstance;
         let configTitle = '';
         if (configView) {
-            server = state.data.find(value => state.current === value.sid) as ServerRunning;
+            server = state.data.find(value => state.current === value.sid) as ServiceInstance;
             const conf = intl.formatMessage({id: 'SERVICES_CONF'});
             if (server) {
                 configTitle = `${server?.name || ''} - ${conf}`;
@@ -554,7 +554,7 @@ const ServerMgrView = () => {
                              server={""}
                              sid={PUB_TOPIC.ROOT}
                              visible={!loading && state.current?.length <= 0}/>}
-                {state.data.map((value: ServerRunning) => (
+                {state.data.map((value: ServiceInstance) => (
                     <SuperPanel key={value.sid}
                                 server={value.name}
                                 sid={value.sid}

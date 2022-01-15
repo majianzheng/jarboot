@@ -5,8 +5,8 @@ import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.task.AttachStatus;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.constant.NoticeLevel;
+import com.mz.jarboot.event.FrontEndNotifyEventType;
 
 import javax.websocket.Session;
 import java.io.OutputStream;
@@ -56,7 +56,7 @@ public class WebSocketManager {
      * @param text 文本
      */
     public void sendConsole(String sid, String text) {
-        this.createGlobalEvent(sid, text, WsEventEnum.CONSOLE);
+        this.createGlobalEvent(sid, text, FrontEndNotifyEventType.CONSOLE);
     }
 
     /**
@@ -66,7 +66,7 @@ public class WebSocketManager {
      * @param sessionId 指定的浏览器会话
      */
     public void sendConsole(String sid, String text, String sessionId) {
-        this.createEvent(sid, text, sessionId, WsEventEnum.CONSOLE);
+        this.createEvent(sid, text, sessionId, FrontEndNotifyEventType.CONSOLE);
     }
 
     /**
@@ -76,7 +76,7 @@ public class WebSocketManager {
      * @param sessionId 指定的浏览器会话
      */
     public void stdPrint(String sid, String text, String sessionId) {
-        this.createEvent(sid, text, sessionId, WsEventEnum.STD_PRINT);
+        this.createEvent(sid, text, sessionId, FrontEndNotifyEventType.STD_PRINT);
     }
 
     /**
@@ -86,7 +86,7 @@ public class WebSocketManager {
      * @param sessionId 指定的浏览器会话
      */
     public void backspace(String sid, String num, String sessionId) {
-        this.createEvent(sid, num, sessionId, WsEventEnum.BACKSPACE);
+        this.createEvent(sid, num, sessionId, FrontEndNotifyEventType.BACKSPACE);
     }
 
     /**
@@ -96,7 +96,7 @@ public class WebSocketManager {
      * @param sessionId 会话ID
      */
     public void renderJson(String sid, String text, String sessionId) {
-        this.createEvent(sid, text, sessionId, WsEventEnum.RENDER_JSON);
+        this.createEvent(sid, text, sessionId, FrontEndNotifyEventType.RENDER_JSON);
     }
 
     /**
@@ -106,7 +106,7 @@ public class WebSocketManager {
      */
     public void upgradeStatus(String sid, String status) {
         //发布状态变化
-        String msg = formatMsg(sid, WsEventEnum.SERVER_STATUS, status);
+        String msg = formatMsg(sid, FrontEndNotifyEventType.SERVER_STATUS, status);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
 
@@ -117,7 +117,7 @@ public class WebSocketManager {
      * @param sessionId 会话ID
      */
     public void commandEnd(String sid, String body, String sessionId) {
-        this.createEvent(sid, body, sessionId, WsEventEnum.CMD_END);
+        this.createEvent(sid, body, sessionId, FrontEndNotifyEventType.CMD_END);
     }
 
     /**
@@ -126,7 +126,7 @@ public class WebSocketManager {
      * @param event 事件
      */
     public void debugProcessEvent(String sid, AttachStatus event) {
-        this.createGlobalEvent(sid, event.name(), WsEventEnum.JVM_PROCESS_CHANGE);
+        this.createGlobalEvent(sid, event.name(), FrontEndNotifyEventType.JVM_PROCESS_CHANGE);
     }
 
     /**
@@ -142,7 +142,7 @@ public class WebSocketManager {
         if (StringUtils.isNotEmpty(message)) {
             body += StringUtils.CR + message;
         }
-        this.createGlobalEvent(StringUtils.EMPTY, body, WsEventEnum.GLOBAL_LOADING);
+        this.createGlobalEvent(StringUtils.EMPTY, body, FrontEndNotifyEventType.GLOBAL_LOADING);
     }
 
     /**
@@ -150,7 +150,7 @@ public class WebSocketManager {
      * @param text 消息内容
      * @param level 通知级别
      */
-    public void notice(String text, NoticeEnum level) {
+    public void notice(String text, NoticeLevel level) {
         String msg;
         if (null != (msg = createNoticeMsg(text, level))) {
             sessionMap.forEach((k, v) -> v.newMessage(msg));
@@ -163,7 +163,7 @@ public class WebSocketManager {
      * @param level 通知级别
      * @param sessionId 指定会话
      */
-    public void notice(String text, NoticeEnum level, String sessionId) {
+    public void notice(String text, NoticeLevel level, String sessionId) {
         if (CommandConst.SESSION_COMMON.equals(sessionId)) {
             notice(text, level);
             return;
@@ -182,7 +182,7 @@ public class WebSocketManager {
      * @param body 消息体
      * @param event 事件
      */
-    public void createGlobalEvent(String sid, String body, WsEventEnum event) {
+    public void createGlobalEvent(String sid, String body, FrontEndNotifyEventType event) {
         String msg = formatMsg(sid, event, body);
         this.sessionMap.forEach((k, operator) -> operator.newMessage(msg));
     }
@@ -218,7 +218,7 @@ public class WebSocketManager {
      * @param sessionId 会话ID
      * @param event 事件
      */
-    private void createEvent(String sid, String body, String sessionId, WsEventEnum event) {
+    private void createEvent(String sid, String body, String sessionId, FrontEndNotifyEventType event) {
         if (CommandConst.SESSION_COMMON.equals(sessionId)) {
             //广播session的id
             createGlobalEvent(sid, body, event);
@@ -237,13 +237,13 @@ public class WebSocketManager {
      * @param level 消息级别
      * @return 消息体
      */
-    private String createNoticeMsg(String text, NoticeEnum level) {
+    private String createNoticeMsg(String text, NoticeLevel level) {
         if (StringUtils.isEmpty(text) || null == level) {
             return null;
         }
         //协议格式：level(0, 1, 2) + 逗号, + 消息内容
         String body = level.ordinal() + CommonConst.COMMA_SPLIT + text;
-        return formatMsg(StringUtils.EMPTY, WsEventEnum.NOTICE, body);
+        return formatMsg(StringUtils.EMPTY, FrontEndNotifyEventType.NOTICE, body);
     }
 
     /**
@@ -253,7 +253,7 @@ public class WebSocketManager {
      * @param body 消息体
      * @return 封装后内容
      */
-    private static String formatMsg(String sid, WsEventEnum event, String body) {
+    private static String formatMsg(String sid, FrontEndNotifyEventType event, String body) {
         StringBuilder sb = new StringBuilder();
         //使用\r作为分隔符
         sb

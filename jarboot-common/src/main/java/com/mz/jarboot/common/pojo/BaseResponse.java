@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.pojo;
 
 /**
  * http响应通用包装对象

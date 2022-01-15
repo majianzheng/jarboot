@@ -1,6 +1,6 @@
 package com.mz.jarboot.service;
 
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -24,7 +24,7 @@ public interface UploadFileService {
      * 提交已经上传的文件
      * @param server 服务名
      */
-    void submitUploadFile(ServerSetting server);
+    void submitUploadFile(ServiceSetting server);
 
     /**
      * 删除已上传到缓冲区到文件

@@ -6,6 +6,7 @@ import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
+import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,9 +37,8 @@ public class JarbootEventServer implements AbstractEventRegistry {
 
     @Override
     public void registerSubscriber(String topic, Subscriber subscriber) {
-        if (null == subscriber) {
-            throw new JarbootRunException("subscriber is null.");
-        }
+        checkTopic(topic);
+        checkSubscriber(subscriber);
         LOCAL_SUBS.compute(topic, (k, v) -> {
             if (null == v) {
                 v = new HashSet<>(16);
@@ -50,9 +50,8 @@ public class JarbootEventServer implements AbstractEventRegistry {
 
     @Override
     public void deregisterSubscriber(String topic, Subscriber subscriber) {
-        if (null == subscriber) {
-            throw new JarbootRunException("subscriber is null.");
-        }
+        checkTopic(topic);
+        checkSubscriber(subscriber);
         LOCAL_SUBS.computeIfPresent(topic, (k, v) -> {
             v.remove(subscriber);
             return v;
@@ -82,9 +81,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             byte[] clsBytes = event.getClass().getCanonicalName().getBytes(StandardCharsets.UTF_8);
             byte[] body = JsonUtils.toJsonBytes(event);
-            if (!topic.isEmpty()) {
-                stream.write(topic.getBytes(StandardCharsets.UTF_8));
-            }
+            stream.write(topic.getBytes(StandardCharsets.UTF_8));
             stream.write(SPLIT);
             stream.write(clsBytes);
             stream.write(SPLIT);
@@ -104,7 +101,9 @@ public class JarbootEventServer implements AbstractEventRegistry {
      * @param message 客户端发送过来的消息*/
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
-        logger.info(">>>>onBinaryMessage, {}", session);
+        if (message.length - 1 < 0) {
+            return;
+        }
         String topic = new String(message, 1, message.length - 1, StandardCharsets.UTF_8);
         if (0 == message[0]) {
             CLIENT_SUBS.computeIfPresent(topic, (k, v) -> {
@@ -126,14 +125,13 @@ public class JarbootEventServer implements AbstractEventRegistry {
      * 连接关闭调用的方法
      */
     @OnClose
-    public void onClose( Session session) {
+    public void onClose(Session session) {
         CLIENT_SUBS.forEach((k, v) -> {
             if (null == v) {
                 return;
             }
             v.remove(session);
         });
-        logger.info(">>>>closed, {}", session);
     }
 
     /**
@@ -145,5 +143,17 @@ public class JarbootEventServer implements AbstractEventRegistry {
     public void onError(Session session, Throwable error) {
         logger.warn(error.getMessage(), error);
         this.onClose(session);
+    }
+
+    private void checkTopic(String topic) {
+        if (StringUtils.isEmpty(topic)) {
+            throw new JarbootRunException("topic is empty.");
+        }
+    }
+
+    private void checkSubscriber(Subscriber subscriber) {
+        if (null == subscriber) {
+            throw new JarbootRunException("subscriber is null.");
+        }
     }
 }

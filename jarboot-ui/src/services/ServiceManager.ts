@@ -17,7 +17,7 @@ interface TreeNode {
     selectable?: boolean;
 }
 
-interface ServerRunning extends TreeNode {
+interface ServiceInstance extends TreeNode {
     status: string;
     group: string;
     path: string;
@@ -32,18 +32,18 @@ interface JvmProcess extends TreeNode {
     trusted: boolean;
 }
 
-export { ServerRunning, JvmProcess, TreeNode };
+export { ServiceInstance, JvmProcess, TreeNode };
 /**
  * 服务管理
  */
-export default class ServerMgrService {
+export default class ServiceManager {
 
     /**
      * 获取服务列表
      * @param callback
      */
-    public static getServerList(callback: any) {
-        Request.get(`${urlBase}/getServerList`, {})
+    public static getServiceList(callback: any) {
+        Request.get(`${urlBase}/services`, {})
             .then(callback)
             .catch(CommonNotice.errorFormatted);
     }
@@ -53,9 +53,9 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static startServer(servers: ServerRunning[], callback: any) {
-        const param = ServerMgrService.parseParam(servers);
-        Request.post(`${urlBase}/startServer`, param).then(callback).catch(CommonNotice.errorFormatted);
+    public static startService(servers: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(servers);
+        Request.post(`${urlBase}/startService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -63,9 +63,9 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static stopServer(servers: ServerRunning[], callback: any) {
-        const param = ServerMgrService.parseParam(servers);
-        Request.post(`${urlBase}/stopServer`, param).then(callback).catch(CommonNotice.errorFormatted);
+    public static stopService(servers: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(servers);
+        Request.post(`${urlBase}/stopService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -73,9 +73,9 @@ export default class ServerMgrService {
      * @param servers
      * @param callback
      */
-    public static restartServer(servers: ServerRunning[], callback: any) {
-        const param = ServerMgrService.parseParam(servers);
-        Request.post(`${urlBase}/restartServer`, param).then(callback).catch(CommonNotice.errorFormatted);
+    public static restartService(servers: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(servers);
+        Request.post(`${urlBase}/restartService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -118,7 +118,7 @@ export default class ServerMgrService {
      * @param callback
      */
     public static getJvmProcesses(callback: any) {
-        Request.get(`${urlBase}/getJvmProcesses`, {})
+        Request.get(`${urlBase}/jvmProcesses`, {})
             .then(callback)
             .catch(CommonNotice.errorFormatted);
     }
@@ -135,20 +135,20 @@ export default class ServerMgrService {
      * 删除服务
      * @param serviceName 服务名
      */
-    public static deleteServer(serviceName: string) {
+    public static deleteService(serviceName: string) {
         const form = new FormData();
         form.append('serviceName', serviceName);
         return Request.delete(`${urlBase}/service`, form);
     }
 
-    private static parseParam(servers: ServerRunning[]): string[] {
+    private static parseParam(servers: ServiceInstance[]): string[] {
         const set = new Set<string>();
         servers.forEach(value => {
             if (value.isLeaf) {
                 set.add(value.name as string);
                 return;
             }
-            const children = value.children as ServerRunning[];
+            const children = value.children as ServiceInstance[];
             children?.length && children.forEach(child => set.add(child.name as string));
         });
         return Array.from(set);

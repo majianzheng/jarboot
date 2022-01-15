@@ -8,7 +8,7 @@ import {
     CaretRightFilled,
     PoweroffOutlined
 } from '@ant-design/icons';
-import ServerMgrService from "@/services/ServerMgrService";
+import ServiceManager from "@/services/ServiceManager";
 import styles from "./index.less";
 import {JarBootConst} from "@/common/JarBootConst";
 import * as React from "react";
@@ -32,17 +32,17 @@ const BottomBar = (props: BottomBarProp) => {
 
     const oneClickRestart = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickRestart();
+        ServiceManager.oneClickRestart();
     };
 
     const oneClickStart = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickStart();
+        ServiceManager.oneClickStart();
     };
 
     const oneClickStop = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickStop();
+        ServiceManager.oneClickStop();
     };
 
     const onViewModeChange = (key: string) => {

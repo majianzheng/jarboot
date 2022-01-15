@@ -40,4 +40,13 @@ public interface AbstractEventRegistry {
     default String createLifecycleTopic(String serviceName, TaskLifecycle lifecycle) {
         return StringUtils.concat(StringUtils.SLASH, serviceName, lifecycle.name());
     }
+
+    /**
+     * 创建主题
+     * @param cls 事件类
+     * @return 主题
+     */
+    default String createTopic(Class<?> cls) {
+        return cls.getCanonicalName();
+    }
 }

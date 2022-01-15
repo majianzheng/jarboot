@@ -12,7 +12,7 @@ public class CommonConst {
     public static final String JARBOOT_HOST_ENV = "JARBOOT_HOST";
 
     public static final String PORT_KEY = "server.port";
-    public static final String DEFAULT_PORT = "9899";
+    public static final int DEFAULT_PORT = 9899;
 
     public static final String BIN_NAME = "bin";
     public static final String JAVA_CMD = "java";
@@ -34,7 +34,7 @@ public class CommonConst {
     public static final String WS = "ws://";
 
     /** Controller context */
-    public static final String SERVER_MGR_CONTEXT = "/api/jarboot/services";
+    public static final String SERVICE_MGR_CONTEXT = "/api/jarboot/services";
     public static final String AUTH_CONTEXT = "/api/jarboot/auth";
     public static final String AGENT_CLIENT_CONTEXT = "/api/jarboot/public/agent";
     public static final String CLOUD_CONTEXT = "/api/jarboot/cloud";

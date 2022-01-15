@@ -4,12 +4,14 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.constant.NoticeLevel;
+import com.mz.jarboot.event.FrontEndNotifyEventType;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
@@ -77,7 +79,7 @@ public class CloudController {
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
         }
-        File dir = FileUtils.getFile(SettingUtils.getServerPath(name));
+        File dir = FileUtils.getFile(SettingUtils.getServicePath(name));
         if (!dir.exists()) {
             response.sendError(404, "服务不存在！" + name);
             return;
@@ -138,7 +140,7 @@ public class CloudController {
             File[] dirs = out.listFiles();
             //必须保证解压后仅有一个文件夹
             if (null == dirs || 1 != dirs.length || !dirs[0].isDirectory()) {
-                WebSocketManager.getInstance().notice("压缩文件中应当仅有一个文件夹！", NoticeEnum.INFO);
+                WebSocketManager.getInstance().notice("压缩文件中应当仅有一个文件夹！", NoticeLevel.INFO);
                 return;
             }
             //解压后的文件夹
@@ -151,7 +153,7 @@ public class CloudController {
             if (isExist) {
                 String sid = SettingUtils.createSid(dest.getPath());
                 if (AgentManager.getInstance().isOnline(sid)) {
-                    WebSocketManager.getInstance().notice(name + " 正在运行，请先停止再导入！", NoticeEnum.INFO);
+                    WebSocketManager.getInstance().notice(name + " 正在运行，请先停止再导入！", NoticeLevel.INFO);
                     return;
                 }
                 WebSocketManager.getInstance().globalLoading(id, name + " 已存在，正在清除原目录...");
@@ -164,14 +166,14 @@ public class CloudController {
             WebSocketManager.getInstance().globalLoading(id, name + " 推送完成！");
             //通知前端刷新列表
             if (isExist) {
-                WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeEnum.INFO);
+                WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeLevel.INFO);
             } else {
                 WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
-                WebSocketManager.getInstance().notice("推送成功，新增服务 " + name, NoticeEnum.INFO);
+                        StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
+                WebSocketManager.getInstance().notice("推送成功，新增服务 " + name, NoticeLevel.INFO);
             }
         } catch (Exception e) {
-            WebSocketManager.getInstance().notice("推送失败！" + e.getMessage(), NoticeEnum.ERROR);
+            WebSocketManager.getInstance().notice("推送失败！" + e.getMessage(), NoticeLevel.ERROR);
         } finally {
             //最终清理临时目录
             try {

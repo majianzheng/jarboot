@@ -2,12 +2,12 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.ResponseForList;
-import com.mz.jarboot.common.ResponseForObject;
-import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.utils.SettingUtils;
@@ -36,9 +36,9 @@ public class SettingController {
     @GetMapping(value="/serverSetting")
     @ResponseBody
     @Permission("Get Server Setting")
-    public ResponseForObject<ServerSetting> getServerSetting(String serviceName) {
+    public ResponseForObject<ServiceSetting> getServerSetting(String serviceName) {
         try {
-            ServerSetting results = settingService.getServiceSetting(serviceName);
+            ServiceSetting results = settingService.getServiceSetting(serviceName);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -52,7 +52,7 @@ public class SettingController {
     @PostMapping(value="/serverSetting")
     @ResponseBody
     @Permission("Submit Server Setting")
-    public ResponseSimple submitServerSetting(@RequestBody ServerSetting setting) {
+    public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
         try {
             settingService.submitServiceSetting(setting);
             return new ResponseSimple();

@@ -4,10 +4,10 @@ import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.constant.NoticeLevel;
+import com.mz.jarboot.event.FrontEndNotifyEventType;
 import com.mz.jarboot.service.UploadFileService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
@@ -68,29 +68,26 @@ public class UploadFileServiceImpl implements UploadFileService {
         if (started) {
             return;
         }
-        TaskUtils.getTaskExecutor().execute(() -> {
-            //前端每隔5秒探测一次，后端每隔15秒检查一次，如果发现时间戳相差大于15则说明至少3个周期没有心跳了，判定过期
-            for (;;) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(EXPIRED_TIME);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                if (uploadHeartbeat.isEmpty()) {
-                    //当没有任何服务在上传时，将线程归还线程池
-                    started = false;
-                    break;
-                }
-                long currentTime = System.currentTimeMillis();
-                Stream<Map.Entry<String, Long>> entries = uploadHeartbeat.entrySet().stream();
-                List<String> waitDelete = entries.filter(entry -> (currentTime - entry.getValue()) > EXPIRED_TIME)
-                        .map(Map.Entry::getKey).collect(Collectors.toList());
-                if (!CollectionUtils.isEmpty(waitDelete)) {
-                    // 清理失去心跳的key
-                    waitDelete.forEach(this::clearUploadCache);
-                }
-            }
-        });
+        TaskUtils.getTaskExecutor().schedule(this::monitor, EXPIRED_TIME, TimeUnit.MILLISECONDS);
+    }
+
+    private void monitor() {
+        if (uploadHeartbeat.isEmpty()) {
+            //当没有任何服务在上传时，将线程归还线程池
+            started = false;
+            return;
+        }
+        long currentTime = System.currentTimeMillis();
+        Stream<Map.Entry<String, Long>> entries = uploadHeartbeat.entrySet().stream();
+        List<String> waitDelete = entries
+                .filter(entry -> (currentTime - entry.getValue()) > EXPIRED_TIME)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(waitDelete)) {
+            // 清理失去心跳的key
+            waitDelete.forEach(this::clearUploadCache);
+        }
+        TaskUtils.getTaskExecutor().schedule(this::monitor, EXPIRED_TIME, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -107,7 +104,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         }
         uploadHeartbeat.put(server, System.currentTimeMillis());
         startMonitor();
-        String path = SettingUtils.getServerPath(server);
+        String path = SettingUtils.getServicePath(server);
         return FileUtils.getFile(path).exists();
     }
 
@@ -122,19 +119,19 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public synchronized void submitUploadFile(ServerSetting s) {
+    public synchronized void submitUploadFile(ServiceSetting s) {
         String server = s.getName();
         if (StringUtils.isEmpty(server)) {
             throw new JarbootException("服务名为空！");
         }
         File dir = CacheDirHelper.getUploadTempServer(server);
-        String destPath = SettingUtils.getServerPath(server);
+        String destPath = SettingUtils.getServicePath(server);
         File dest = FileUtils.getFile(destPath);
         boolean exist = dest.exists();
         //开始复制前要不要先备份，以便失败后还原？文件量、体积巨大如何处理？为了性能先不做考虑
         try {
             if (!exist && !dest.mkdir()) {
-                WebSocketManager.getInstance().notice("服务目录创建失败！", NoticeEnum.ERROR);
+                WebSocketManager.getInstance().notice("服务目录创建失败！", NoticeLevel.ERROR);
                 return;
             }
             //先复制jar文件
@@ -146,19 +143,19 @@ public class UploadFileServiceImpl implements UploadFileService {
             }
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServerSetting setting = exist ? PropertyFileUtils.getServerSettingByPath(destPath) : s;
+            ServiceSetting setting = exist ? PropertyFileUtils.getServerSettingByPath(destPath) : s;
             if (StringUtils.isEmpty(setting.getCommand())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
                     String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的命令！", server);
-                    WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
+                    WebSocketManager.getInstance().notice(msg, NoticeLevel.WARN);
                 }
             }
             if (!exist) {
                 setting.setWorkspace(SettingUtils.getWorkspace());
                 settingService.submitServiceSetting(setting);
                 WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+                        StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
             }
         } catch (Exception e) {
             //还原目录?万一体积巨大怎么处理

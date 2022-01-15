@@ -9,6 +9,7 @@ import com.alibaba.bytekit.utils.AsmUtils;
 import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
@@ -41,7 +42,7 @@ public class JarbootBootstrap {
     private JarbootBootstrap(Instrumentation inst, String args, boolean isPremain) {
         this.instrumentation = inst;
         //1.解析args，获取目标服务端口
-        AgentClientPojo clientData = this.initClientData(args, isPremain);
+        AgentClient clientData = this.initClientData(args, isPremain);
         String sid = clientData.getSid();
         String serverName = clientData.getServiceName();
         if (EnvironmentContext.isInitialized()) {
@@ -92,10 +93,10 @@ public class JarbootBootstrap {
     public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查是否需要变更Jarboot服务地址
-            AgentClientPojo clientData = EnvironmentContext.getClientData();
+            AgentClient clientData = EnvironmentContext.getClientData();
             if (!Objects.equals(host, clientData.getHost())) {
                 if (Boolean.TRUE.equals(clientData.getDiagnose())) {
-                    AgentClientPojo client = this.initClientData(host, false);
+                    AgentClient client = this.initClientData(host, false);
                     clientData.setSid(client.getSid());
                 }
                 WsClientFactory.getInstance().changeHost(host);
@@ -108,7 +109,7 @@ public class JarbootBootstrap {
             }
         } else {
             //以及被执行了shutdown或close命令，此时要重新初始化
-            AgentClientPojo client = this.initClientData(host, false);
+            AgentClient client = this.initClientData(host, false);
             //环境重新初始化
             EnvironmentContext.init(null, client, null);
             enhanceClassLoader();
@@ -169,8 +170,8 @@ public class JarbootBootstrap {
         }
     }
 
-    private AgentClientPojo initClientData(String args, boolean isPremain) {
-        AgentClientPojo clientData = new AgentClientPojo();
+    private AgentClient initClientData(String args, boolean isPremain) {
+        AgentClient clientData = new AgentClient();
         if (isPremain && initPremainArgs(args, clientData)) {
             //由jarboot本地启动时，解析传入参数
             return clientData;
@@ -201,7 +202,7 @@ public class JarbootBootstrap {
                 .append(serverName);
 
         String url = CommonConst.HTTP + host + "/api/jarboot/public/agent/agentClient";
-        clientData = HttpUtils.postObj(url, sb.toString(), AgentClientPojo.class);
+        clientData = HttpUtils.postObj(url, sb.toString(), AgentClient.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }
@@ -212,7 +213,7 @@ public class JarbootBootstrap {
         return clientData;
     }
 
-    private boolean initPremainArgs(String args, AgentClientPojo clientData) {
+    private boolean initPremainArgs(String args, AgentClient clientData) {
         if (StringUtils.isBlank(args)) {
             return false;
         }

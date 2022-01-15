@@ -2,10 +2,10 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.AgentClientPojo;
+import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.utils.NetworkUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -57,7 +57,7 @@ public class AgentClientController {
      */
     @PostMapping(value="/agentClient")
     @ResponseBody
-    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
+    public AgentClient getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
         final int limit = 3;
         String[] array = code.split(CommonConst.COMMA_SPLIT, limit);
         if (limit != array.length) {
@@ -67,21 +67,21 @@ public class AgentClientController {
         String instanceName = array[1];
         String command = array[2];
 
-        AgentClientPojo agentClientPojo = new AgentClientPojo();
-        agentClientPojo.setDiagnose(true);
+        AgentClient agentClient = new AgentClient();
+        agentClient.setDiagnose(true);
         String server = StringUtils.isEmpty(command) ? ("NoName-" + pid) : TaskUtils.parseCommandSimple(command);
-        agentClientPojo.setServiceName(server);
+        agentClient.setServiceName(server);
         String clientAddr = this.getActualAddr(request);
-        agentClientPojo.setClientAddr(clientAddr);
+        agentClient.setClientAddr(clientAddr);
         final char atSplit = '@';
         int i = instanceName.indexOf(atSplit);
         String machineName = instanceName.substring(i);
         i = PidFileHelper.INSTANCE_NAME.indexOf(atSplit);
         String localMachineName = PidFileHelper.INSTANCE_NAME.substring(i);
         boolean isLocal = NetworkUtils.hostLocal(clientAddr) && localMachineName.equalsIgnoreCase(machineName);
-        agentClientPojo.setLocal(isLocal);
+        agentClient.setLocal(isLocal);
         if (isLocal) {
-            agentClientPojo.setSid(pid);
+            agentClient.setSid(pid);
         } else {
             //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
             int h = Objects.hash(instanceName, System.nanoTime());
@@ -97,10 +97,10 @@ public class AgentClientController {
                     .append(server)
                     .append(CommonConst.COMMA_SPLIT)
                     .append(String.format("%x-%x", h, System.nanoTime()));
-            agentClientPojo.setSid(sb.toString());
+            agentClient.setSid(sb.toString());
         }
 
-        return agentClientPojo;
+        return agentClient;
     }
 
     /**

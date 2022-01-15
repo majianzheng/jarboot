@@ -1,7 +1,7 @@
 import CommonTable from "@/components/table";
 import {Button, Modal, Result, Tooltip} from "antd";
 import {BugFilled, DashboardOutlined, HomeFilled, LoadingOutlined, SyncOutlined, CloseCircleFilled} from "@ant-design/icons";
-import ServerMgrService, {JvmProcess, TreeNode} from "@/services/ServerMgrService";
+import ServiceManager, {JvmProcess, TreeNode} from "@/services/ServiceManager";
 import {SuperPanel} from "@/components/servers/SuperPanel";
 import * as React from "react";
 import {useEffect, useReducer} from "react";
@@ -61,7 +61,7 @@ const OnlineDebugView = () => {
 
     const refreshProcessList = (init: boolean = false, callback?: (data: JvmProcess[]) => any) => {
         dispatch({loading: true});
-        ServerMgrService.getJvmProcesses((resp: any) => {
+        ServiceManager.getJvmProcesses((resp: any) => {
             if (resp.resultCode < 0) {
                 dispatch({loading: false});
                 CommonNotice.errorFormatted(resp);
@@ -323,7 +323,7 @@ const OnlineDebugView = () => {
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
         }
         pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, "Attaching...");
-        ServerMgrService.attach(process.pid).then(resp => {
+        ServiceManager.attach(process.pid).then(resp => {
             if (resp.resultCode < 0) {
                 CommonNotice.errorFormatted(resp);
                 return;

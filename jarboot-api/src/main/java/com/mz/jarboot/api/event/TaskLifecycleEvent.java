@@ -2,7 +2,7 @@ package com.mz.jarboot.api.event;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.TaskLifecycle;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 
 /**
  * @author majianzheng
@@ -18,7 +18,7 @@ public class TaskLifecycleEvent implements JarbootEvent {
 
     }
 
-    public TaskLifecycleEvent(ServerSetting setting, TaskLifecycle lifecycle) {
+    public TaskLifecycleEvent(ServiceSetting setting, TaskLifecycle lifecycle) {
         this(setting.getWorkspace(), setting.getSid(), setting.getName(), lifecycle);
     }
 

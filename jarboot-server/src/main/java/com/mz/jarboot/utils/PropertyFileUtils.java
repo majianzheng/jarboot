@@ -1,9 +1,9 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
@@ -24,7 +24,7 @@ import java.util.*;
 public class PropertyFileUtils {
     private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
     /** 服务的配置缓存 <sid, 服务配置> */
-    private static final Map<String, ServerSetting> SETTING_CACHE = new HashMap<>(16);
+    private static final Map<String, ServiceSetting> SETTING_CACHE = new HashMap<>(16);
 
     /**
      * 读取properties文件
@@ -83,7 +83,7 @@ public class PropertyFileUtils {
      * @param sid sid
      * @return 服务配置
      */
-    public static ServerSetting getServerSettingBySid(String sid) {
+    public static ServiceSetting getServerSettingBySid(String sid) {
         return SETTING_CACHE.getOrDefault(sid, null);
     }
 
@@ -92,7 +92,7 @@ public class PropertyFileUtils {
      * @param serviceName 服务名
      * @return 服务配置
      */
-    public static ServerSetting getServerSetting(String serviceName) {
+    public static ServiceSetting getServerSetting(String serviceName) {
         return getServerSettingByPath(SettingUtils.getWorkspace() + File.separator + serviceName);
     }
 
@@ -101,20 +101,20 @@ public class PropertyFileUtils {
      * @param serverPath 字符串格式：服务的path
      * @return 服务配置
      */
-    public static ServerSetting getServerSettingByPath(String serverPath) {
+    public static ServiceSetting getServerSettingByPath(String serverPath) {
         int p = Math.max(serverPath.lastIndexOf('/'), serverPath.lastIndexOf('\\'));
         String workspace = serverPath.substring(0, p);
         String name = serverPath.substring(p + 1);
         String sid = SettingUtils.createSid(serverPath);
-        File file = SettingUtils.getServerSettingFile(serverPath);
+        File file = SettingUtils.getServiceSettingFile(serverPath);
         //判定文件是否更新
-        ServerSetting setting = getServerSettingBySid(sid);
+        ServiceSetting setting = getServerSettingBySid(sid);
         if (null != setting && file.lastModified() == setting.getLastModified()) {
             return setting;
         }
 
         Properties properties = getProperties(file);
-        setting = new ServerSetting(name);
+        setting = new ServiceSetting(name);
         String group = properties.getProperty(SettingPropConst.GROUP, StringUtils.EMPTY);
         setting.setGroup(group);
         setting.setSid(sid);
@@ -152,7 +152,7 @@ public class PropertyFileUtils {
         return setting;
     }
 
-    private static void checkAndGetHome(ServerSetting setting, Properties properties) {
+    private static void checkAndGetHome(ServiceSetting setting, Properties properties) {
         //工作目录
         String workHome = properties.getProperty(SettingPropConst.WORK_DIR, StringUtils.EMPTY);
         if (StringUtils.isNotEmpty(workHome)) {
@@ -229,14 +229,14 @@ public class PropertyFileUtils {
      * @param serviceNames 服务列表
      * @return 优先级排序结果
      */
-    public static Queue<ServerSetting> parseStartPriority(List<String> serviceNames) {
+    public static Queue<ServiceSetting> parseStartPriority(List<String> serviceNames) {
         //优先级最大的排在最前面
-        PriorityQueue<ServerSetting> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
+        PriorityQueue<ServiceSetting> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
         if (CollectionUtils.isEmpty(serviceNames)) {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServerSetting setting = getServerSetting(serviceName);
+            ServiceSetting setting = getServerSetting(serviceName);
             queue.offer(setting);
         });
         return queue;
@@ -247,14 +247,14 @@ public class PropertyFileUtils {
      * @param serviceNames 服务列表，字符串：服务path
      * @return 排序结果
      */
-    public static Queue<ServerSetting> parseStopPriority(List<String> serviceNames) {
+    public static Queue<ServiceSetting> parseStopPriority(List<String> serviceNames) {
         //优先级小的排在最前面
-        PriorityQueue<ServerSetting> queue = new PriorityQueue<>(Comparator.comparingInt(ServerSetting::getPriority));
+        PriorityQueue<ServiceSetting> queue = new PriorityQueue<>(Comparator.comparingInt(ServiceSetting::getPriority));
         if (CollectionUtils.isEmpty(serviceNames)) {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServerSetting setting = getServerSetting(serviceName);
+            ServiceSetting setting = getServerSetting(serviceName);
             queue.offer(setting);
         });
         return queue;

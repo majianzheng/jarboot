@@ -1,4 +1,4 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.pojo;
 
 /**
  * 执行结果错误码定义

@@ -1,7 +1,7 @@
 package com.mz.jarboot.api;
 
 import com.mz.jarboot.api.exception.JarbootRunException;
-import com.mz.jarboot.api.service.ServerMgrService;
+import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.api.service.SettingService;
 
 /**
@@ -10,7 +10,7 @@ import com.mz.jarboot.api.service.SettingService;
  */
 public class JarbootFactory {
     private static final String AGENT_CLASS = "com.mz.jarboot.agent.client.AgentServiceImpl";
-    private static final String SERVER_MANAGER_CLASS = "com.mz.jarboot.client.ServerManager";
+    private static final String SERVER_MANAGER_CLASS = "com.mz.jarboot.client.ServiceManagerClient";
     private static final String SETTING_CLIENT_CLASS = "com.mz.jarboot.client.SettingClient";
 
     private static Object springApplicationContext = null;
@@ -36,11 +36,11 @@ public class JarbootFactory {
      * @param password 用户密码
      * @return 服务管理客户端
      */
-    public static ServerMgrService createServerManager(String host, String user, String password) {
+    public static ServiceManager createServerManager(String host, String user, String password) {
         checkHost(host);
         try {
             Class<?> cls = Class.forName(SERVER_MANAGER_CLASS);
-            return (ServerMgrService)cls
+            return (ServiceManager)cls
                     .getConstructor(String.class, String.class, String.class)
                     .newInstance(host, user, password);
         } catch (Exception e) {

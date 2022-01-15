@@ -6,6 +6,7 @@ import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
@@ -31,7 +32,7 @@ public class AgentServiceOperator {
 
     public static void setStarted() {
         if (STARTED.compareAndSet(false, true)) {
-            AgentClientPojo clientData = EnvironmentContext.getClientData();
+            AgentClient clientData = EnvironmentContext.getClientData();
             final String url = new ApiStringBuilder(SET_STARTED_API)
                     .add(CommonConst.SERVICE_NAME_PARAM, clientData.getServiceName())
                     .add(CommonConst.SID_PARAM, clientData.getSid())

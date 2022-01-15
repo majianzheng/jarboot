@@ -3,7 +3,7 @@ package com.mz.jarboot.api.pojo;
 /**
  * @author majianzheng
  */
-public class ServerRunning {
+public class ServiceInstance {
     private String status;
     private String name;
     private String group;

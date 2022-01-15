@@ -1,14 +1,15 @@
 package com.mz.jarboot.utils;
 
+import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.ApplicationContextUtils;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -50,7 +51,8 @@ public class SettingUtils {
     /** file encoding选项 */
     private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
     /** 本地地址 */
-    private static String localHost = null;
+    private static String localHost = "127.0.0.1:9899";
+    private static int port = 9899;
     /** 受信任的远程服务器 */
     private static final String TRUSTED_HOSTS_FILE;
     private static HashSet<String> trustedHosts = new HashSet<>(16);
@@ -70,6 +72,11 @@ public class SettingUtils {
         initTrustedHosts();
         //初始化默认目录及配置路径
         DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
+    }
+
+    public static void init(int port) {
+        SettingUtils.localHost = "127.0.0.1:" + port;
+        SettingUtils.port = port;
     }
 
     /**
@@ -139,7 +146,6 @@ public class SettingUtils {
         }
 
         File file = FileUtils.getFile(JARBOOT_CONF);
-        boolean workspaceChanged = false;
         try {
             HashMap<String, String> props = new HashMap<>(4);
             if (null == setting.getDefaultVmOptions()) {
@@ -162,17 +168,15 @@ public class SettingUtils {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
             if (!java.util.Objects.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
-                workspaceChanged = true;
+                //工作空间修改，改变工作空间路径监控的目录
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new WorkspaceChangeEvent(workspace, GLOBAL_SETTING.getWorkspace()));
             }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
-        } finally {
-            if (workspaceChanged) {
-                //工作空间修改，改变工作空间路径监控的目录
-                ApplicationContextUtils.getContext().getBean(TaskWatchService.class).changeWorkspace(workspace);
-            }
         }
     }
 
@@ -199,36 +203,33 @@ public class SettingUtils {
 
     /**
      * 获取agent的Attach参数
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 服务唯一id
      * @return 参数
      */
-    public static String getAgentStartOption(String server, String sid) {
-        return "-javaagent:" + agentJar + "=" + getAgentArgs(server, sid);
+    public static String getAgentStartOption(String serviceName, String sid) {
+        return "-javaagent:" + agentJar + "=" + getAgentArgs(serviceName, sid);
     }
 
     public static String getAgentJar() {
         return agentJar;
     }
 
-    private static String getAgentArgs(String server, String sid) {
-        String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
-        StringBuilder sb = new StringBuilder();
-        sb
+    private static String getAgentArgs(String serviceName, String sid) {
+        final String args = new StringBuilder(64)
                 .append(port)
                 .append(StringUtils.CR)
-                .append(server)
+                .append(serviceName)
                 .append(StringUtils.CR)
-                .append(sid);
-        byte[] bytes = Base64.getEncoder().encode(sb.toString().getBytes());
+                .append(sid)
+                .toString();
+        byte[] bytes = Base64
+                .getEncoder()
+                .encode(args.getBytes(StandardCharsets.UTF_8));
         return new String(bytes);
     }
 
     public static String getAttachArgs() {
-        if (null == localHost) {
-            String port = ApplicationContextUtils.getEnv(CommonConst.PORT_KEY, CommonConst.DEFAULT_PORT);
-            localHost = String.format("127.0.0.1:%s", port);
-        }
         return localHost;
     }
 
@@ -250,18 +251,18 @@ public class SettingUtils {
         File dir = FileUtils.getFile(servicePath);
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径", servicePath);
-            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包路径", NoticeEnum.WARN);
+            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包路径", NoticeLevel.WARN);
         }
 
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
         if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
-            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包", NoticeEnum.ERROR);
+            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包", NoticeLevel.ERROR);
             return StringUtils.EMPTY;
         }
         if (jarList.size() > 1) {
             String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", servicePath);
-            WebSocketManager.getInstance().notice(msg, NoticeEnum.WARN);
+            WebSocketManager.getInstance().notice(msg, NoticeLevel.WARN);
             return StringUtils.EMPTY;
         }
         if (jarList.iterator().hasNext()) {
@@ -273,11 +274,11 @@ public class SettingUtils {
 
     /**
      * 获取服务工作路径
-     * @param server 服务名
+     * @param serviceName 服务名
      * @return 路径
      */
-    public static String getServerPath(String server) {
-        return getWorkspace() + File.separator + server;
+    public static String getServicePath(String serviceName) {
+        return getWorkspace() + File.separator + serviceName;
     }
 
     /**
@@ -285,23 +286,23 @@ public class SettingUtils {
      * @param path 路径
      * @return 配置文件
      */
-    public static File getServerSettingFile(String path) {
+    public static File getServiceSettingFile(String path) {
         return FileUtils.getFile(path, BOOT_PROPERTIES);
     }
 
     /**
      * 获取服务VM选项配置
-     * @param serverPath 服务路径
+     * @param servicePath 服务路径
      * @param file 配置文件
      * @return VM选项
      */
-    public static String getJvm(String serverPath, String file) {
+    public static String getJvm(String servicePath, String file) {
         if (StringUtils.isBlank(file)) {
             file = SettingPropConst.DEFAULT_VM_FILE;
         }
         Path path = getPath(file);
         if (!path.isAbsolute()) {
-            path = getPath(serverPath, file);
+            path = getPath(servicePath, file);
         }
         File f = path.toFile();
         StringBuilder sb = new StringBuilder();
@@ -310,7 +311,7 @@ public class SettingUtils {
             try {
                 lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
+                WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
                 throw new JarbootException("Read file error.", e);
             }
             lines.stream()
@@ -346,11 +347,11 @@ public class SettingUtils {
 
     /**
      * 根据路径生成sid
-     * @param serverPath 服务路径
+     * @param servicePath 服务路径
      * @return sid
      */
-    public static String createSid(String serverPath) {
-        return String.format("x%x", serverPath.hashCode());
+    public static String createSid(String servicePath) {
+        return String.format("x%x", servicePath.hashCode());
     }
 
     public static boolean isTrustedHost(String host) {

@@ -148,7 +148,7 @@ const UploadFileModal = memo((props: UploadFileModalProp) => {
         action: `/api/jarboot/upload`,
         headers: {Authorization: CommonUtils.getToken()},
         fileList: state.fileList,
-        data: () => ({server: form.getFieldValue("name")}),
+        data: () => ({serviceName: form.getFieldValue("name")}),
         beforeUpload(file: any) {
             return checkFile(file) ? Promise.resolve(file) : Promise.reject();
         },

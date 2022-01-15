@@ -8,6 +8,7 @@ import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.utils.SettingUtils;
@@ -118,7 +119,7 @@ public class AgentManager {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                OfflineEvent event = new OfflineEvent(server, sid);
+                ServiceOfflineEvent event = new ServiceOfflineEvent(server, sid);
                 NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
             }
@@ -554,7 +555,7 @@ public class AgentManager {
             case CommandConst.ACTION_NOTICE_INFO:
             case CommandConst.ACTION_NOTICE_WARN:
             case CommandConst.ACTION_NOTICE_ERROR:
-                NoticeEnum level = Enum.valueOf(NoticeEnum.class, action);
+                NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
                 WebSocketManager.getInstance().notice(param, level, sessionId);
                 break;
             default:

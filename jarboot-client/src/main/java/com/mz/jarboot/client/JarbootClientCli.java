@@ -8,8 +8,8 @@ import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
-import com.mz.jarboot.api.pojo.ServerRunning;
-import com.mz.jarboot.api.service.ServerMgrService;
+import com.mz.jarboot.api.pojo.ServiceInstance;
+import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.CommandCliParser;
@@ -81,9 +81,9 @@ public class JarbootClientCli {
 
     private void run() {
         //test
-        ServerMgrService client = JarbootFactory
+        ServiceManager client = JarbootFactory
                 .createServerManager(this.host, null, null);
-        List<ServerRunning> list = client.getServiceList();
+        List<ServiceInstance> list = client.getServiceList();
         AnsiLog.info("list:{}", list);
 
         AnsiLog.info("jvm list: {}", client.getJvmProcesses());

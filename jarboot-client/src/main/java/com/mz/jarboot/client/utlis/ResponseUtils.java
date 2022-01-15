@@ -2,7 +2,7 @@ package com.mz.jarboot.client.utlis;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.exception.JarbootRunException;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 

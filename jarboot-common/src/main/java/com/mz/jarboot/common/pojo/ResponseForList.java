@@ -1,5 +1,7 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.pojo;
 
+
+import com.mz.jarboot.common.JarbootException;
 
 import java.util.List;
 

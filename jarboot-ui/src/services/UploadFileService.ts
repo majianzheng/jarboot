@@ -11,19 +11,19 @@ const baseUrl = "/api/jarboot/upload";
 export default class UploadFileService {
     /**
      * Begin upload files
-     * @param server
+     * @param serviceName
      */
-    public static startUploadFile(server: string) {
-        return Request.get(`${baseUrl}/start`, {server});
+    public static startUploadFile(serviceName: string) {
+        return Request.get(`${baseUrl}/start`, {serviceName});
     }
 
     /**
      * upload file heartbeat
-     * @param server
+     * @param serviceName
      * @returns {Promise<any>}
      */
-    public static uploadHeartbeat(server: string) {
-        return Request.get(`${baseUrl}/heartbeat`, {server});
+    public static uploadHeartbeat(serviceName: string) {
+        return Request.get(`${baseUrl}/heartbeat`, {serviceName});
     }
 
     /**
@@ -37,20 +37,25 @@ export default class UploadFileService {
 
     /**
      * Delete files of uploaded.
-     * @param server
+     * @param serviceName
      * @param file
      * @returns {Promise<any>}
      */
-    public static deleteCacheFile(server: string, file: string) {
-        return Request.delete(`${baseUrl}/file?server=${server}&file=${file}`, {});
+    public static deleteCacheFile(serviceName: string, file: string) {
+        const form = new FormData();
+        form.append("serviceName", serviceName);
+        form.append("file", file);
+        return Request.delete(`${baseUrl}/file`, form);
     }
 
     /**
      * Clear files of uploaded.
-     * @param server
+     * @param serviceName
      */
-    public static clearUploadFileInCache(server: string) {
-        Request.delete(`${baseUrl}?server=${server}`, {})
+    public static clearUploadFileInCache(serviceName: string) {
+        const form = new FormData();
+        form.append("serviceName", serviceName);
+        Request.delete(baseUrl, form)
             .then(requestFinishCallback)
             .catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
     }

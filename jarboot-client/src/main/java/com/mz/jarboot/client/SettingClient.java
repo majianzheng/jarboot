@@ -2,8 +2,10 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
@@ -41,12 +43,12 @@ public class SettingClient implements SettingService {
      * @return 配置信息
      */
     @Override
-    public ServerSetting getServiceSetting(String serviceName) {
+    public ServiceSetting getServiceSetting(String serviceName) {
         ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serverSetting");
         final String api = asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName).build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
-        return JsonUtils.treeToValue(result, ServerSetting.class);
+        return JsonUtils.treeToValue(result, ServiceSetting.class);
     }
 
     /**
@@ -55,7 +57,7 @@ public class SettingClient implements SettingService {
      * @param setting 配置
      */
     @Override
-    public void submitServiceSetting(ServerSetting setting) {
+    public void submitServiceSetting(ServiceSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/serverSetting";
         String body = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
@@ -126,5 +128,17 @@ public class SettingClient implements SettingService {
         String response = this.clientProxy.reqApi(api, HttpMethod.POST, builder.build());
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
+    }
+
+    @Override
+    public void registerSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
+        final String topic = this.clientProxy.createTopic(subscriber.subscribeType());
+        this.clientProxy.registerSubscriber(topic, subscriber);
+    }
+
+    @Override
+    public void deregisterSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
+        final String topic = this.clientProxy.createTopic(subscriber.subscribeType());
+        this.clientProxy.deregisterSubscriber(topic, subscriber);
     }
 }

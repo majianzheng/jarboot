@@ -4,11 +4,11 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.event.NoticeEnum;
+import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -54,18 +54,18 @@ public class TaskUtils {
 
     /**
      * 杀死服务进程
-     * @param server 服务名
+     * @param service 服务名
      */
-    public static void killServer(String server, String sid) {
+    public static void killService(String service, String sid) {
         //先尝试向目标进程发送停止命令
-        boolean isOk = AgentManager.getInstance().killClient(server, sid);
+        boolean isOk = AgentManager.getInstance().killClient(service, sid);
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
             if (AgentManager.getInstance().isOnline(sid)) {
-                logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
-                WebSocketManager.getInstance().notice("服务" + server +
-                        "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
+                logger.warn("未能成功退出，将执行强制杀死命令：{}", service);
+                WebSocketManager.getInstance().notice("服务" + service +
+                        "未等到退出消息，将执行强制退出命令！", NoticeLevel.WARN);
             }
             String pid = getPid(sid);
             if (!pid.isEmpty()) {
@@ -77,10 +77,10 @@ public class TaskUtils {
 
     /**
      * 启动服务进程
-     * @param server 服务名
+     * @param service 服务名
      * @param setting 服务配置
      */
-    public static void startServer(String server, ServerSetting setting) {
+    public static void startService(String service, ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
         String serverPath = setting.getWorkspace() + File.separator + setting.getName();
@@ -112,7 +112,7 @@ public class TaskUtils {
                 .append("-noverify -Dspring.output.ansi.enabled=always")
                 .append(StringUtils.SPACE)
                 // Java agent
-                .append(SettingUtils.getAgentStartOption(server, sid))
+                .append(SettingUtils.getAgentStartOption(service, sid))
                 .append(StringUtils.SPACE);
         if (StringUtils.isBlank(setting.getCommand())) {
             //获取启动的jar文件
@@ -148,7 +148,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServerStarted(server, sid, maxStartTime);
+        AgentManager.getInstance().waitServerStarted(service, sid, maxStartTime);
     }
 
     /**
@@ -237,7 +237,7 @@ public class TaskUtils {
             Runtime.getRuntime().exec(command, en, dir);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeEnum.ERROR);
+            WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeLevel.ERROR);
         }
     }
 
@@ -276,10 +276,10 @@ public class TaskUtils {
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
+            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
         } finally {
             if (null != p) {
                 try {

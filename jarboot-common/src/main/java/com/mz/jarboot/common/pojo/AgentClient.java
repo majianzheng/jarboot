@@ -1,10 +1,10 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.pojo;
 
 /**
  * Agent客户端信息
  * @author majianzheng
  */
-public class AgentClientPojo extends ResponseSimple {
+public class AgentClient extends ResponseSimple {
     private String clientAddr;
     private Boolean local;
     private String serviceName;

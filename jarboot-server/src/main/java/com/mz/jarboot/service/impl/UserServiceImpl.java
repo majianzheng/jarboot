@@ -1,7 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForList;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;

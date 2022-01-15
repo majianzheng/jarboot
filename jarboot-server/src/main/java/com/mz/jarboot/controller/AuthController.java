@@ -1,9 +1,9 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.common.ResponseForList;
-import com.mz.jarboot.common.ResponseForObject;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;

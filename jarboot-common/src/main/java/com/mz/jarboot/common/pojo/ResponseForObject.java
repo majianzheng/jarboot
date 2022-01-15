@@ -1,5 +1,7 @@
-package com.mz.jarboot.common;
+package com.mz.jarboot.common.pojo;
 
+
+import com.mz.jarboot.common.JarbootException;
 
 /**
  * 返回的result字段存放了单个对象的response

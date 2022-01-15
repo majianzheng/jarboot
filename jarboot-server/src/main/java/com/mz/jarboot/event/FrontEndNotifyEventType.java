@@ -1,10 +1,11 @@
 package com.mz.jarboot.event;
 
 /**
+ * 往前端推送事件类型
  * @author majianzheng
  */
 
-public enum WsEventEnum {
+public enum FrontEndNotifyEventType {
     /**
      * 弹出提示
      */

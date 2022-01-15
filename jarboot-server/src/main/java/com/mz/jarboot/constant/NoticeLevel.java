@@ -1,10 +1,10 @@
-package com.mz.jarboot.event;
+package com.mz.jarboot.constant;
 
 /**
  * @author majianzheng
  */
 
-public enum NoticeEnum {
+public enum NoticeLevel {
     /**
      * 提示
      */

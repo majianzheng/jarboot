@@ -7,7 +7,7 @@ import java.io.Serializable;
  * 服务的运行配置
  * @author majianzheng
  */
-public class ServerSetting implements Serializable {
+public class ServiceSetting implements Serializable {
     /**
      * 服务名，即jar文件的上级目录的名称
      */
@@ -80,18 +80,18 @@ public class ServerSetting implements Serializable {
      */
     private Boolean jarUpdateWatch;
 
-    public ServerSetting() {
+    public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
     }
 
-    public ServerSetting(String name) {
+    public ServiceSetting(String name) {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
         this.name = name;
     }
 
-    private ServerSetting(String vm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
+    private ServiceSetting(String vm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
         this.vm = vm;
         this.priority = priority;
         this.args = args;

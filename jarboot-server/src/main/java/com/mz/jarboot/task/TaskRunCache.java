@@ -1,12 +1,12 @@
 package com.mz.jarboot.task;
 
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CacheDirHelper;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
@@ -45,8 +45,8 @@ public class TaskRunCache {
      * 获取服务路径列表
      * @return 服务路径列表
      */
-    public List<String> getServerPathList() {
-        File[] serviceDirs = this.getServerDirs();
+    public List<String> getServicePathList() {
+        File[] serviceDirs = this.getServiceDirs();
         List<String> paths = new ArrayList<>();
         if (null != serviceDirs && serviceDirs.length > 0) {
             for (File f : serviceDirs) {
@@ -60,7 +60,7 @@ public class TaskRunCache {
      * 获取服务目录列表
      * @return 服务目录
      */
-    public File[] getServerDirs() {
+    public File[] getServiceDirs() {
         String servicesPath = SettingUtils.getWorkspace();
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
@@ -75,8 +75,8 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
-    public ServerRunning getServer(File serverDir) {
-        ServerRunning process = new ServerRunning();
+    public ServiceInstance getService(File serverDir) {
+        ServiceInstance process = new ServiceInstance();
         process.setName(serverDir.getName());
         String path = serverDir.getPath();
         String sid = SettingUtils.createSid(path);
@@ -100,14 +100,14 @@ public class TaskRunCache {
      * 获取服务列表
      * @return 服务列表
      */
-    public List<ServerRunning> getServerList() {
-        List<ServerRunning> serverList = new ArrayList<>();
-        File[] serviceDirs = getServerDirs();
+    public List<ServiceInstance> getServiceList() {
+        List<ServiceInstance> serverList = new ArrayList<>();
+        File[] serviceDirs = getServiceDirs();
         if (null == serviceDirs || serviceDirs.length <= 0) {
             return serverList;
         }
         for (File file : serviceDirs) {
-            ServerRunning process = getServer(file);
+            ServiceInstance process = getService(file);
             serverList.add(process);
         }
         return serverList;
@@ -146,7 +146,7 @@ public class TaskRunCache {
     }
 
     private String getGroup(String sid, String path) {
-        ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        ServiceSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
         if (null != setting) {
             return setting.getGroup();
         }

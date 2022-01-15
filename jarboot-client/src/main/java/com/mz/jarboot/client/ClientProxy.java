@@ -8,9 +8,8 @@ import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.client.utlis.HttpRequestOperator;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
-import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
@@ -234,11 +233,6 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
 
     @Override
     public void receiveEvent(String topic, JarbootEvent event) {
-        if (topic.isEmpty()) {
-            //类名即为主题
-            NotifyReactor.getInstance().publishEvent(event);
-            return;
-        }
         Set<Subscriber> subs = subscribers.getOrDefault(topic, null);
         if (null != subs && !subs.isEmpty()) {
             subs.forEach(sub -> {

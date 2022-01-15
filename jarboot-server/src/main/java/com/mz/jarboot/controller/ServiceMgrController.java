@@ -2,10 +2,13 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.JvmProcess;
-import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.*;
-import com.mz.jarboot.api.service.ServerMgrService;
+import com.mz.jarboot.api.service.ServiceManager;
+import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,60 +22,60 @@ import java.util.List;
  * 服务管理
  * @author majianzheng
  */
-@RequestMapping(value = CommonConst.SERVER_MGR_CONTEXT)
+@RequestMapping(value = CommonConst.SERVICE_MGR_CONTEXT)
 @Controller
 @Permission
-public class ServerMgrController {
+public class ServiceMgrController {
     @Autowired
-    private ServerMgrService serverMgrService;
+    private ServiceManager serviceManager;
 
     /**
      * 获取服务列表
      * @return 服务列表
      */
-    @GetMapping(value="/getServerList")
+    @GetMapping(value="/services")
     @ResponseBody
-    public ResponseForList<ServerRunning> getServerList() {
-        List<ServerRunning> results = serverMgrService.getServiceList();
+    public ResponseForList<ServiceInstance> getServiceList() {
+        List<ServiceInstance> results = serviceManager.getServiceList();
         return new ResponseForList<>(results, results.size());
     }
 
     /**
      * 启动服务
-     * @param servers 服务列表
+     * @param services 服务列表
      * @return 执行结果
      */
-    @PostMapping(value="/startServer")
+    @PostMapping(value="/startService")
     @ResponseBody
     @Permission
-    public ResponseSimple startServer(@RequestBody List<String> servers) {
-        serverMgrService.startService(servers);
+    public ResponseSimple startServer(@RequestBody List<String> services) {
+        serviceManager.startService(services);
         return new ResponseSimple();
     }
 
     /**
      * 停止服务
-     * @param servers 服务列表
+     * @param services 服务列表
      * @return 执行结果
      */
-    @PostMapping(value="/stopServer")
+    @PostMapping(value="/stopService")
     @ResponseBody
     @Permission
-    public ResponseSimple stopServer(@RequestBody List<String> servers) {
-        serverMgrService.stopService(servers);
+    public ResponseSimple stopServer(@RequestBody List<String> services) {
+        serviceManager.stopService(services);
         return new ResponseSimple();
     }
 
     /**
      * 重启服务
-     * @param servers 服务列表
+     * @param services 服务列表
      * @return 执行结果
      */
-    @PostMapping(value="/restartServer")
+    @PostMapping(value="/restartService")
     @ResponseBody
     @Permission
-    public ResponseSimple restartServer(@RequestBody List<String> servers) {
-        serverMgrService.restartService(servers);
+    public ResponseSimple restartServer(@RequestBody List<String> services) {
+        serviceManager.restartService(services);
         return new ResponseSimple();
     }
 
@@ -84,7 +87,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple oneClickRestart() {
-        serverMgrService.oneClickRestart();
+        serviceManager.oneClickRestart();
         return new ResponseSimple();
     }
 
@@ -96,7 +99,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple oneClickStart() {
-        serverMgrService.oneClickStart();
+        serviceManager.oneClickStart();
         return new ResponseSimple();
     }
 
@@ -108,7 +111,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple oneClickStop() {
-        serverMgrService.oneClickStop();
+        serviceManager.oneClickStop();
         return new ResponseSimple();
     }
 
@@ -131,10 +134,10 @@ public class ServerMgrController {
      * 获取未被服务管理的JVM进程信息
      * @return 进程列表
      */
-    @GetMapping(value="/getJvmProcesses")
+    @GetMapping(value="/jvmProcesses")
     @ResponseBody
     public ResponseForList<JvmProcess> getJvmProcesses() {
-        List<JvmProcess> results = serverMgrService.getJvmProcesses();
+        List<JvmProcess> results = serviceManager.getJvmProcesses();
         return new ResponseForList<>(results, results.size());
     }
 
@@ -145,7 +148,7 @@ public class ServerMgrController {
     @GetMapping(value="/attach")
     @ResponseBody
     public ResponseSimple attach(String pid) {
-        serverMgrService.attach(pid);
+        serviceManager.attach(pid);
         return new ResponseSimple();
     }
 
@@ -157,7 +160,7 @@ public class ServerMgrController {
     @ResponseBody
     @Permission
     public ResponseSimple deleteServer(String serviceName) {
-        serverMgrService.deleteService(serviceName);
+        serviceManager.deleteService(serviceName);
         return new ResponseSimple();
     }
 
@@ -167,8 +170,8 @@ public class ServerMgrController {
      */
     @GetMapping(value="/service")
     @ResponseBody
-    public ResponseForObject<ServerRunning> getServer(String serviceName) {
-        ServerRunning result = serverMgrService.getService(serviceName);
+    public ResponseForObject<ServiceInstance> getServer(String serviceName) {
+        ServiceInstance result = serviceManager.getService(serviceName);
         return new ResponseForObject<>(result);
     }
 }

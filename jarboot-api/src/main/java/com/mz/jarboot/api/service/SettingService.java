@@ -1,7 +1,9 @@
 package com.mz.jarboot.api.service;
 
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 
 /**
  * 配置服务
@@ -14,13 +16,13 @@ public interface SettingService {
      * @param serviceName 服务路径
      * @return 配置信息
      */
-    ServerSetting getServiceSetting(String serviceName);
+    ServiceSetting getServiceSetting(String serviceName);
 
     /**
      * 提交服务配置
      * @param setting 配置
      */
-    void submitServiceSetting(ServerSetting setting);
+    void submitServiceSetting(ServiceSetting setting);
 
     /**
      * 获取全局配置
@@ -49,4 +51,16 @@ public interface SettingService {
      * @param content 文件内容
      */
     void saveVmOptions(String serviceName, String file, String content);
+
+    /**
+     * 注册工作空间修改事件处理
+     * @param subscriber 任务处理 {@link Subscriber}
+     */
+    void registerSubscriber(Subscriber<WorkspaceChangeEvent> subscriber);
+
+    /**
+     * 反注册工作空间修改事件处理
+     * @param subscriber 任务处理 {@link Subscriber}
+     */
+    void deregisterSubscriber(Subscriber<WorkspaceChangeEvent> subscriber);
 }
