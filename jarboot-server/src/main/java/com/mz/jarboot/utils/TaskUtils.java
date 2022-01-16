@@ -54,18 +54,18 @@ public class TaskUtils {
 
     /**
      * 杀死服务进程
-     * @param service 服务名
+     * @param sid 服务sid
      */
-    public static void killService(String service, String sid) {
+    public static void killService(String sid) {
         //先尝试向目标进程发送停止命令
-        boolean isOk = AgentManager.getInstance().gracefulExit(service, sid);
+        boolean isOk = AgentManager.getInstance().gracefulExit(sid);
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
             if (AgentManager.getInstance().isOnline(sid)) {
-                logger.warn("未能成功退出，将执行强制杀死命令：{}", service);
-                WebSocketManager.getInstance().notice("服务" + service +
-                        "未等到退出消息，将执行强制退出命令！", NoticeLevel.WARN);
+                logger.warn("未能成功退出，将执行强制杀死命令：{}", sid);
+                WebSocketManager.getInstance().notice("服务(sid:" + sid +
+                        ")未等到退出消息，将执行强制退出命令！", NoticeLevel.WARN);
             }
             String pid = getPid(sid);
             if (!pid.isEmpty()) {

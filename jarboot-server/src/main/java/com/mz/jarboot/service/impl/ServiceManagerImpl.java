@@ -409,7 +409,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                     .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.PRE_STOP));
             //记录开始时间
             long startTime = System.currentTimeMillis();
-            TaskUtils.killService(server, sid);
+            TaskUtils.killService(sid);
             //耗时
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功

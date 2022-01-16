@@ -5,8 +5,12 @@ package com.mz.jarboot.api.event;
  * @author jianzhengma
  */
 public class WorkspaceChangeEvent implements JarbootEvent {
-    private final String workspace;
-    private final String oldWorkspace;
+    private String workspace;
+    private String oldWorkspace;
+
+    public WorkspaceChangeEvent() {
+
+    }
 
     public WorkspaceChangeEvent(String workspace, String oldWorkspace) {
         this.workspace = workspace;
@@ -14,10 +18,26 @@ public class WorkspaceChangeEvent implements JarbootEvent {
     }
 
     public String getWorkspace() {
-        return this.workspace;
+        return workspace;
+    }
+
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
     public String getOldWorkspace() {
-        return this.oldWorkspace;
+        return oldWorkspace;
+    }
+
+    public void setOldWorkspace(String oldWorkspace) {
+        this.oldWorkspace = oldWorkspace;
+    }
+
+    @Override
+    public String toString() {
+        return "WorkspaceChangeEvent{" +
+                "workspace='" + workspace + '\'' +
+                ", oldWorkspace='" + oldWorkspace + '\'' +
+                '}';
     }
 }

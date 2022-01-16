@@ -164,7 +164,7 @@ public class AgentManager {
      * @param sid 服务唯一id
      * @return 是否成功
      */
-    public boolean gracefulExit(String serviceName, String sid) {
+    public boolean gracefulExit(String sid) {
         final AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return false;
@@ -182,7 +182,7 @@ public class AgentManager {
             }
             long costTime = System.currentTimeMillis() - startTime;
             if (clientMap.containsKey(sid)) {
-                logger.warn("未能成功退出！{}, 耗时:{}", serviceName, costTime);
+                logger.warn("未能成功退出！{}, 耗时:{}", sid, costTime);
                 //失败
                 return false;
             } else {
