@@ -6,14 +6,14 @@ import BgAnimation from "@/pages/login/BgAnimation";
 import JarbootDesc from "@/pages/login/JarbootDesc";
 import {ProjectHome, SelectLang} from "@/components/extra";
 import {Button} from "antd";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 
 const LoginMenu = memo(() => {
     const intl = useIntl();
     return <div className={styles.loginMenu}>
         <img height={40} className={styles.logoImg} src={require('@/assets/logo.png')} alt={"logo"}/>
         <span className={styles.rightItems}>
-            <Button type={"link"} href={JarBootConst.DOCS_URL}
+            <Button type={"link"} href={CommonConst.DOCS_URL}
                     className={styles.rightMenuDocs}>
                 {intl.formatMessage({id: 'MENU_DOCS'})}
             </Button>

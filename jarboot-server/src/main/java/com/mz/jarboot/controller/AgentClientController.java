@@ -1,7 +1,7 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.PidFileHelper;
@@ -9,6 +9,8 @@ import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.utils.NetworkUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.event.AgentResponseEvent;
+import com.mz.jarboot.event.ServiceStartedEvent;
 import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +36,9 @@ public class AgentClientController {
     @ResponseBody
     public ResponseSimple onResponse(@RequestParam String serviceName, @RequestParam String sid, @RequestBody byte[] raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
-        AgentManager.getInstance().handleAgentResponse(serviceName, sid, resp, null);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new AgentResponseEvent(serviceName, sid, resp, null));
         return new ResponseSimple();
     }
 
@@ -46,7 +50,9 @@ public class AgentClientController {
     @GetMapping(value="/setStarted")
     @ResponseBody
     public ResponseSimple setStarted(@RequestParam String serviceName, @RequestParam String sid) {
-        AgentManager.getInstance().onServerStarted(serviceName, sid);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new ServiceStartedEvent(serviceName, sid));
         return new ResponseSimple();
     }
 

@@ -1,7 +1,7 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
-import {FuncCode, JarBootConst, MsgData, MsgReq} from "@/common/JarBootConst";
+import {FuncCode, CommonConst, MsgData, MsgReq} from "@/common/CommonConst";
 import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
@@ -70,7 +70,7 @@ class WsManager {
      * @param sid sid
      */
     public static callFunc(func: FuncCode, sid: string) {
-        const msg = {server: '', sid, body: '', func};
+        const msg = {service: '', sid, body: '', func};
         WsManager.sendMessage(msg);
     }
 
@@ -153,7 +153,7 @@ class WsManager {
         if (StringUtil.isEmpty(body)) {
             return;
         }
-        const index = body.indexOf(JarBootConst.PROTOCOL_SPLIT);
+        const index = body.indexOf(CommonConst.PROTOCOL_SPLIT);
         const hasSplit = -1 === index;
         const key = hasSplit ? body : body.substring(0, index);
         const handle = WsManager.LOADING_MAP.get(key);
@@ -179,13 +179,13 @@ class WsManager {
         }
         const resp: string = e.data;
         try {
-            let i = resp.indexOf(JarBootConst.PROTOCOL_SPLIT);
+            let i = resp.indexOf(CommonConst.PROTOCOL_SPLIT);
             if (-1 === i) {
                 Logger.warn(`协议错误，${resp}`);
                 return;
             }
             const sid = 0 === i ? '' : resp.substring(0, i);
-            let k = resp.indexOf(JarBootConst.PROTOCOL_SPLIT, i + 1);
+            let k = resp.indexOf(CommonConst.PROTOCOL_SPLIT, i + 1);
             if (-1 === k) {
                 Logger.warn(`协议错误，获取事件类型失败，${resp}`);
                 return;

@@ -5,7 +5,7 @@ import ErrorUtil from "@/common/ErrorUtil";
  * 通用常量定义
  * @author majianzheng
  */
-class JarBootConst {
+class CommonConst {
     public static readonly DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
     public static readonly PROTOCOL_SPLIT = '\r';
 
@@ -56,7 +56,7 @@ enum FuncCode {
 }
 
 interface MsgReq {
-    server?: string;
+    service?: string;
     sid?: string;
     body: string;
     func: FuncCode;
@@ -68,4 +68,4 @@ const requestFinishCallback = (resp: any) => {
     }
 };
 
-export {JarBootConst, MsgData, MsgReq, FuncCode, requestFinishCallback};
+export {CommonConst, MsgData, MsgReq, FuncCode, requestFinishCallback};

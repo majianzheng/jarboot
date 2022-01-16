@@ -1,6 +1,8 @@
 package com.mz.jarboot.base;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.notify.NotifyReactor;
@@ -30,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class AgentManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     /** 客户端Map */
-    private final ConcurrentHashMap<String, AgentClient> clientMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, AgentOperator> clientMap = new ConcurrentHashMap<>(16);
     /** 启动中的latch */
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     /** 本地进程的pid列表 */
@@ -54,13 +56,13 @@ public class AgentManager {
 
     /**
      * 进程上线
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param session 会话
      * @param sid sid服务唯一id
      */
-    public void online(String server, Session session, String sid) {
+    public void online(String serviceName, Session session, String sid) {
         //目标进程上线
-        AgentClient client = new AgentClient(server, sid, session);
+        AgentOperator client = new AgentOperator(serviceName, sid, session);
         clientMap.put(sid, client);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
@@ -89,11 +91,11 @@ public class AgentManager {
 
     /**
      * 进程下线
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid sid服务唯一id
      */
-    public void offline(String server, String sid) {
-        final AgentClient client = clientMap.getOrDefault(sid, null);
+    public void offline(String serviceName, String sid) {
+        final AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return;
         }
@@ -107,7 +109,7 @@ public class AgentManager {
         } else {
             localServers.remove(pid);
         }
-        String msg = String.format("\033[1;96m%s\033[0m 下线！", server);
+        String msg = String.format("\033[1;96m%s\033[0m 下线！", serviceName);
         WebSocketManager.getInstance().sendConsole(sid, msg);
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
@@ -119,7 +121,7 @@ public class AgentManager {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                ServiceOfflineEvent event = new ServiceOfflineEvent(server, sid);
+                ServiceOfflineEvent event = new ServiceOfflineEvent(serviceName, sid);
                 NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
             }
@@ -132,7 +134,7 @@ public class AgentManager {
      * @return 是否在线
      */
     public boolean isOnline(String sid) {
-        final AgentClient client = clientMap.getOrDefault(sid, null);
+        final AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return false;
         }
@@ -150,7 +152,7 @@ public class AgentManager {
      * 来自远程服务器的连接
      * @param client 远程服务sid，格式：prefix + pid + name + uuid
      */
-    public void remoteJvm(final AgentClient client) {
+    public void remoteJvm(final AgentOperator client) {
         String sid = client.getSid();
         JvmProcess process = new JvmProcess();
         int index = sid.lastIndexOf(',');
@@ -189,12 +191,12 @@ public class AgentManager {
 
     /**
      * 杀死客户端
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 服务唯一id
      * @return 是否成功
      */
-    public boolean killClient(String server, String sid) {
-        final AgentClient client = clientMap.getOrDefault(sid, null);
+    public boolean killClient(String serviceName, String sid) {
+        final AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return false;
         }
@@ -211,7 +213,7 @@ public class AgentManager {
             }
             long costTime = System.currentTimeMillis() - startTime;
             if (clientMap.containsKey(sid)) {
-                logger.warn("未能成功退出！{}, 耗时:{}", server, costTime);
+                logger.warn("未能成功退出！{}, 耗时:{}", serviceName, costTime);
                 //失败
                 return false;
             } else {
@@ -224,30 +226,30 @@ public class AgentManager {
 
     /**
      * 发送命令
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 唯一id
      * @param command 命令
      * @param sessionId 会话id
      */
-    public void sendCommand(String server, String sid, String command, String sessionId) {
+    public void sendCommand(String serviceName, String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
             return;
         }
-        AgentClient client = clientMap.getOrDefault(sid, null);
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             if (TaskUtils.getPid(sid).isEmpty()) {
-                String msg = formatErrorMsg(server, "未在线，无法执行命令");
+                String msg = formatErrorMsg(serviceName, "未在线，无法执行命令");
                 //未在线，进程不存在
                 WebSocketManager
                         .getInstance()
                         .commandEnd(sid, msg, sessionId);
             } else {
                 //如果进程仍然存活，尝试使用attach重新连接
-                tryReConnect(server, sid, sessionId);
+                tryReConnect(serviceName, sid, sessionId);
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
-                    String msg = formatErrorMsg(server, "连接断开，重连失败，请稍后重试");
+                    String msg = formatErrorMsg(serviceName, "连接断开，重连失败，请稍后重试");
                     WebSocketManager
                             .getInstance()
                             .commandEnd(sid, msg, sessionId);
@@ -258,7 +260,7 @@ public class AgentManager {
             if (client.isTrusted()) {
                 client.sendCommand(command, sessionId);
             } else {
-                String msg = formatErrorMsg(server, "not trusted!");
+                String msg = formatErrorMsg(serviceName, "not trusted!");
                 WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
                 WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
             }
@@ -267,20 +269,20 @@ public class AgentManager {
 
     /**
      * 尝试重新连接
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 服务唯一id
      * @param sessionId 会话id
      */
-    private void tryReConnect(String server, String sid, String sessionId) {
+    private void tryReConnect(String serviceName, String sid, String sessionId) {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
             TaskUtils.attach(sid);
-            String msg = formatErrorMsg(server, "连接断开，重连中...");
-            WebSocketManager.getInstance().sendConsole(sid, msg, sessionId);
+            String msg = formatErrorMsg(serviceName, "连接断开，重连中...");
+            WebSocketManager.getInstance().sendConsole(sid, sessionId, msg);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                logger.error("Attach and wait server connect timeout，{}", server);
-                msg = formatErrorMsg(server, "Attach重连超时！");
-                WebSocketManager.getInstance().sendConsole(sid, msg, sessionId);
+                logger.error("Attach and wait service connect timeout，{}", serviceName);
+                msg = formatErrorMsg(serviceName, "Attach重连超时！");
+                WebSocketManager.getInstance().sendConsole(sid, sessionId, msg);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -300,7 +302,7 @@ public class AgentManager {
             WebSocketManager.getInstance().commandEnd(sid, StringUtils.EMPTY, sessionId);
             return;
         }
-        AgentClient client = clientMap.getOrDefault(sid, null);
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             WebSocketManager.getInstance().commandEnd(sid, StringUtils.EMPTY, sessionId);
             return;
@@ -310,21 +312,21 @@ public class AgentManager {
 
     /**
      * Agent客户端的响应内容处理
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 唯一id
      * @param resp 响应消息体
      * @param session 会话
      */
-    public void handleAgentResponse(String server, String sid, CommandResponse resp, Session session) {
+    private void onResponse(String serviceName, String sid, CommandResponse resp, Session session) {
         ResponseType type = resp.getResponseType();
         String sessionId = resp.getSessionId();
         switch (type) {
             case HEARTBEAT:
-                doHeartbeat(server, sid, session);
+                doHeartbeat(serviceName, sid, session);
                 break;
             case CONSOLE:
                 if (!checkNotTrusted(sid)) {
-                    WebSocketManager.getInstance().sendConsole(sid, resp.getBody(), sessionId);
+                    WebSocketManager.getInstance().sendConsole(sid, sessionId, resp.getBody());
                 }
                 break;
             case BACKSPACE:
@@ -355,7 +357,7 @@ public class AgentManager {
     }
 
     public void trustOnce(String sid) {
-        AgentClient client = clientMap.getOrDefault(sid, null);
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null != client && !client.isTrusted()) {
             client.setTrusted(true);
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.TRUSTED);
@@ -363,7 +365,7 @@ public class AgentManager {
     }
 
     public boolean checkNotTrusted(String sid) {
-        AgentClient client = clientMap.getOrDefault(sid, null);
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return true;
         }
@@ -389,7 +391,7 @@ public class AgentManager {
     public void onAddTrustedHost(String host) {
         remoteProcesses.forEach((k, v) -> {
             if (java.util.Objects.equals(v.getRemote(), host)) {
-                AgentClient client = clientMap.getOrDefault(k, null);
+                AgentOperator client = clientMap.getOrDefault(k, null);
                 if (null != client) {
                     client.setTrusted(true);
                     v.setTrusted(true);
@@ -423,16 +425,16 @@ public class AgentManager {
         WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
     }
 
-    private void doHeartbeat(String server, String sid, Session session) {
+    private void doHeartbeat(String serviceName, String sid, Session session) {
         if (null == session) {
             return;
         }
-        AgentClient client = clientMap.getOrDefault(sid, null);
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
-            this.online(server, session, sid);
-            this.onServerStarted(server, sid);
+            this.online(serviceName, session, sid);
+            this.onServiceStarted(serviceName, sid);
             WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
-            AnsiLog.debug("reconnected by heartbeat {}, {}", server, sid);
+            AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
             WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
         }
 
@@ -441,11 +443,11 @@ public class AgentManager {
 
     /**
      * 进程启动完成事件响应
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param sid 服务唯一id
      */
-    public void onServerStarted(final String server, final String sid) {
-        AgentClient client = clientMap.getOrDefault(sid, null);
+    private void onServiceStarted(final String serviceName, final String sid) {
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return;
         }
@@ -460,17 +462,17 @@ public class AgentManager {
 
     /**
      * 等待服务启动完成
-     * @param server 服务名
+     * @param service 服务名
      * @param sid 服务唯一id
      * @param millis 时间
      */
-    public void waitServerStarted(String server, String sid, int millis) {
-        AgentClient client = clientMap.getOrDefault(sid, null);
+    public void waitServerStarted(String service, String sid, int millis) {
+        AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
             try {
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                    logger.error("Wait server connect timeout, {}", server);
+                    logger.error("Wait service connect timeout, {}", service);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -479,7 +481,7 @@ public class AgentManager {
             }
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
-                String msg = formatErrorMsg(server, "connect timeout!");
+                String msg = formatErrorMsg(service, "connect timeout!");
                 WebSocketManager.getInstance().sendConsole(sid, msg);
                 return;
             }
@@ -487,12 +489,12 @@ public class AgentManager {
 
         synchronized (client) {
             if (!ClientState.STARTING.equals(client.getState())) {
-                logger.info("Current server({}) is not starting now, wait server started error. statue:{}",
-                        server, client.getState());
+                logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
+                        service, client.getState());
                 WebSocketManager
                         .getInstance()
                         .sendConsole(sid,
-                                server + " is not starting, wait started error. status:" + client.getState());
+                                service + " is not starting, wait started error. status:" + client.getState());
                 return;
             }
             try {
@@ -563,12 +565,81 @@ public class AgentManager {
         }
     }
 
-    private String formatErrorMsg(String server, String msg) {
-        return String.format("\033[96m%s\033[0m \033[31m%s\033[0m", server, msg);
+    private String formatErrorMsg(String serviceName, String msg) {
+        return String.format("\033[96m%s\033[0m \033[31m%s\033[0m", serviceName, msg);
     }
 
     private static class AgentManagerHolder {
         static final AgentManager INSTANCE = new AgentManager();
+    }
+
+    private void onFuncReceivedEvent(FuncReceivedEvent event) {
+        final String sid = event.getSid();
+        switch (event.funcCode()) {
+            case CMD_FUNC:
+                sendCommand(event.getService(), sid, event.getBody(), event.getSessionId());
+                break;
+            case CANCEL_FUNC:
+                sendInternalCommand(sid, CommandConst.CANCEL_CMD, event.getSessionId());
+                break;
+            case TRUST_ONCE_FUNC:
+                trustOnce(sid);
+                break;
+            case CHECK_TRUSTED_FUNC:
+                if (checkNotTrusted(sid)) {
+                    WebSocketManager
+                            .getInstance()
+                            .debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+                }
+                break;
+            case DETACH_FUNC:
+                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.SHUTDOWN, event.getSessionId());
+                break;
+            default:
+                logger.debug("Unknown func, func:{}", event.funcCode());
+                break;
+        }
+    }
+
+    private void initSubscriber() {
+        //Agent客户端响应事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<AgentResponseEvent>() {
+            @Override
+            public void onEvent(AgentResponseEvent event) {
+                onResponse(event.getServiceName(), event.getSid(), event.getResponse(), event.getSession());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return AgentResponseEvent.class;
+            }
+        });
+
+        //服务启动完成事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceStartedEvent>() {
+            @Override
+            public void onEvent(ServiceStartedEvent event) {
+                onServiceStarted(event.getServiceName(), event.getSid());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return ServiceStartedEvent.class;
+            }
+        });
+
+        //前端调用事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<FuncReceivedEvent>() {
+            @Override
+            public void onEvent(FuncReceivedEvent event) {
+                onFuncReceivedEvent(event);
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return FuncReceivedEvent.class;
+            }
+        });
     }
 
     private AgentManager() {
@@ -584,5 +655,8 @@ public class AgentManager {
         } catch (Exception e) {
             //ignore
         }
+
+        //注册事件订阅
+        this.initSubscriber();
     }
 }

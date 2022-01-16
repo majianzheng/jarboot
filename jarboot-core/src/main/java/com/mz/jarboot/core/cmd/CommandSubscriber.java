@@ -19,7 +19,7 @@ public class CommandSubscriber implements Subscriber<CommandEventBuilder.Command
 
     @Override
     public Executor executor() {
-        return EnvironmentContext.getScheduledExecutorService();
+        return EnvironmentContext.getScheduledExecutor();
     }
 
     @Override

@@ -28,7 +28,7 @@ public class JarbootAutoConfiguration {
     @ConditionalOnProperty(havingValue = "serverAddr")
     public ServiceManager serviceManager(JarbootConfigProperties properties) {
         return JarbootFactory
-                .createServerManager(properties.getServerAddr(), properties.getUsername(), properties.getPassword());
+                .createServiceManager(properties.getServerAddr(), properties.getUsername(), properties.getPassword());
     }
 
     @Bean

@@ -1,12 +1,10 @@
 package com.mz.jarboot.ws;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
-import com.mz.jarboot.task.AttachStatus;
+import com.mz.jarboot.event.FuncReceivedEvent;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,32 +24,11 @@ import java.util.List;
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
 
-    /** json请求中server */
-    private static final String SERVER_KEY = "server";
-    /** json请求中func */
-    private static final String FUNC_KEY = "func";
-    /** json请求中body */
-    private static final String BODY_KEY = "body";
-    /** json请求中sid */
-    private static final String SID_KEY = "sid";
     /** 心跳ping */
     private static final String PING = "ping";
 
     private static class Holder {
         static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
-    }
-
-    private enum FuncCode {
-        /** 执行命令func */
-        CMD_FUNC,
-        /** 取消执行命令func */
-        CANCEL_FUNC,
-        /** 信任主机func */
-        TRUST_ONCE_FUNC,
-        /** 检查是否信任主机func */
-        CHECK_TRUSTED_FUNC,
-        /** 断开诊断 */
-        DETACH_FUNC,
     }
 
     /**
@@ -69,7 +46,10 @@ public class WebSocketMainServer {
      */
     @OnClose
     public void onClose( Session session) {
-        AgentManager.getInstance().releaseAgentSession(session.getId());
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new FuncReceivedEvent(
+                        FuncReceivedEvent.FuncCode.SESSION_CLOSED_FUNC, session.getId()));
         WebSocketManager.getInstance().delConnect(session.getId());
     }
 
@@ -78,11 +58,6 @@ public class WebSocketMainServer {
      *
      * @param message 客户端发送过来的消息*/
     @OnMessage
-    public void onBinaryMessage(byte[] message, Session session) {
-        //do nothing
-    }
-
-    @OnMessage
     public void onTextMessage(String message, Session session) {
         if (StringUtils.isEmpty(message)) {
             return;
@@ -90,42 +65,13 @@ public class WebSocketMainServer {
         if (PING.equals(message)) {
             return;
         }
-        JsonNode json = JsonUtils.readAsJsonNode(message);
-        if (null == json) {
+        FuncReceivedEvent event = JsonUtils.readValue(message, FuncReceivedEvent.class);
+        if (null == event) {
             logger.error("解析json失败！{}", message);
             return;
         }
-        final FuncCode[] values = FuncCode.values();
-        int func = json.get(FUNC_KEY).asInt(-1);
-        if (func < 0 || func >= values.length) {
-            return;
-        }
-        final FuncCode funcCode = values[func];
-        String sid = json.get(SID_KEY).asText(StringUtils.EMPTY);
-        switch (funcCode) {
-            case CMD_FUNC:
-                String body = json.get(BODY_KEY).asText(StringUtils.EMPTY);
-                String server = json.get(SERVER_KEY).asText(StringUtils.EMPTY);
-                AgentManager.getInstance().sendCommand(server, sid, body, session.getId());
-                break;
-            case CANCEL_FUNC:
-                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.CANCEL_CMD, session.getId());
-                break;
-            case TRUST_ONCE_FUNC:
-                AgentManager.getInstance().trustOnce(sid);
-                break;
-            case CHECK_TRUSTED_FUNC:
-                if (AgentManager.getInstance().checkNotTrusted(sid)) {
-                    WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
-                }
-                break;
-            case DETACH_FUNC:
-                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.SHUTDOWN, session.getId());
-                break;
-            default:
-                logger.debug("Unknown func, func:{}", func);
-                break;
-        }
+        event.setSessionId(session.getId());
+        NotifyReactor.getInstance().publishEvent(event);
     }
 
     /**

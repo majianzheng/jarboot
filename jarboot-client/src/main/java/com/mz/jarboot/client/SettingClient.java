@@ -44,7 +44,7 @@ public class SettingClient implements SettingService {
      */
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
-        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serverSetting");
+        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serviceSetting");
         final String api = asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName).build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
@@ -58,7 +58,7 @@ public class SettingClient implements SettingService {
      */
     @Override
     public void submitServiceSetting(ServiceSetting setting) {
-        final String api = CommonConst.SETTING_CONTEXT + "/serverSetting";
+        final String api = CommonConst.SETTING_CONTEXT + "/serviceSetting";
         String body = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);

@@ -1,7 +1,9 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.base.AgentManager;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.event.AgentResponseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,7 +53,9 @@ public class WebSocketAgentServer {
                                 @PathParam("service") String serviceName,
                                 @PathParam("sid") String sid) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
-        AgentManager.getInstance().handleAgentResponse(serviceName, sid, resp, session);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new AgentResponseEvent(serviceName, sid, resp, session));
     }
 
     /**

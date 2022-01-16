@@ -13,7 +13,7 @@ const layout = {
 };
 const tailLayout = {wrapperCol: {offset: 10, span: 14}};
 
-interface ServerConfigProp {
+interface ServiceConfigProp {
     sid: string;
     serviceName: string;
     group: string;
@@ -21,7 +21,7 @@ interface ServerConfigProp {
     onClose: () => void;
 }
 
-const ServerConfig = memo((props: ServerConfigProp) => {
+const ServiceConfig = memo((props: ServiceConfigProp) => {
     const [form] = Form.useForm();
     const intl = useIntl();
     let [visible, setVisible] = useState(false);
@@ -210,4 +210,4 @@ const ServerConfig = memo((props: ServerConfigProp) => {
                                    onClose={() => setVisible(false)}/>}
     </div>);
 });
-export default ServerConfig;
+export default ServiceConfig;

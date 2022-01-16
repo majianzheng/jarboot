@@ -27,7 +27,7 @@ public class AdviceListenerManager { //NOSONAR
 
     private static void init() {
         // 清理失效的 AdviceListener
-        EnvironmentContext.getScheduledExecutorService()
+        EnvironmentContext.getScheduledExecutor()
                 .scheduleWithFixedDelay(AdviceListenerManager::cleanOutDateListener,
                         5, 5, TimeUnit.SECONDS);
     }

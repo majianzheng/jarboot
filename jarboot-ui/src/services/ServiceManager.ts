@@ -1,6 +1,6 @@
 import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
-import {requestFinishCallback} from "@/common/JarBootConst";
+import {requestFinishCallback} from "@/common/CommonConst";
 import StringUtil from "@/common/StringUtil";
 import React from "react";
 
@@ -50,31 +50,31 @@ export default class ServiceManager {
 
     /**
      * 启动服务
-     * @param servers
+     * @param services
      * @param callback
      */
-    public static startService(servers: ServiceInstance[], callback: any) {
-        const param = ServiceManager.parseParam(servers);
+    public static startService(services: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(services);
         Request.post(`${urlBase}/startService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 终止服务
-     * @param servers
+     * @param services
      * @param callback
      */
-    public static stopService(servers: ServiceInstance[], callback: any) {
-        const param = ServiceManager.parseParam(servers);
+    public static stopService(services: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(services);
         Request.post(`${urlBase}/stopService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
     /**
      * 重启服务
-     * @param servers
+     * @param services
      * @param callback
      */
-    public static restartService(servers: ServiceInstance[], callback: any) {
-        const param = ServiceManager.parseParam(servers);
+    public static restartService(services: ServiceInstance[], callback: any) {
+        const param = ServiceManager.parseParam(services);
         Request.post(`${urlBase}/restartService`, param).then(callback).catch(CommonNotice.errorFormatted);
     }
 
@@ -141,9 +141,9 @@ export default class ServiceManager {
         return Request.delete(`${urlBase}/service`, form);
     }
 
-    private static parseParam(servers: ServiceInstance[]): string[] {
+    private static parseParam(services: ServiceInstance[]): string[] {
         const set = new Set<string>();
-        servers.forEach(value => {
+        services.forEach(value => {
             if (value.isLeaf) {
                 set.add(value.name as string);
                 return;

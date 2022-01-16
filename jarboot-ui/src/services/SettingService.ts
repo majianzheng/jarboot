@@ -12,7 +12,7 @@ export default class SettingService {
      * @returns {Promise<any>}
      */
     public static getServerSetting(serviceName: string) {
-        return Request.get(`${settingUrl}/serverSetting`, {serviceName});
+        return Request.get(`${settingUrl}/serviceSetting`, {serviceName});
     }
 
     /**
@@ -20,7 +20,7 @@ export default class SettingService {
      * @param setting 配置信息
      */
     public static submitServerSetting(setting: any) {
-        return Request.post(`${settingUrl}/serverSetting`, setting);
+        return Request.post(`${settingUrl}/serviceSetting`, setting);
     }
 
     /**

@@ -122,12 +122,12 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         }
         final String url = new StringBuilder()
                 .append(CommonConst.WS)
-                .append(EnvironmentContext.getClientData().getHost())
+                .append(EnvironmentContext.getAgentClient().getHost())
                 .append(CommonConst.AGENT_WS_CONTEXT)
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getClientData().getServiceName())
+                .append(EnvironmentContext.getAgentClient().getServiceName())
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getClientData().getSid())
+                .append(EnvironmentContext.getAgentClient().getSid())
                 .toString();
         AnsiLog.info("connectting to jarboot {}", url);
         latch = new CountDownLatch(1);
@@ -166,7 +166,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         reconnectEnabled = true;
         //每隔一段时间进行一次心跳探测
         heartbeatFuture = EnvironmentContext
-                .getScheduledExecutorService()
+                .getScheduledExecutor()
                 .scheduleWithFixedDelay(this::sendHeartbeat, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
     }
 
@@ -192,11 +192,11 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     public void changeHost(String host) {
         //修改host
         System.setProperty(CommonConst.REMOTE_PROP, host);
-        EnvironmentContext.getClientData().setHost(host);
+        EnvironmentContext.getAgentClient().setHost(host);
         HttpUtils.setBaseUrl(CommonConst.HTTP + host);
         closeSession();
         createSingletonClient();
-        if (Boolean.TRUE.equals(EnvironmentContext.getClientData().getDiagnose())) {
+        if (Boolean.TRUE.equals(EnvironmentContext.getAgentClient().getDiagnose())) {
             scheduleHeartbeat();
         }
     }

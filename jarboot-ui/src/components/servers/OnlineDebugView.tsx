@@ -8,7 +8,7 @@ import {useEffect, useReducer} from "react";
 import {PUB_TOPIC, pubsub} from "@/components/servers/ServerPubsubImpl";
 import CommonNotice, {notSelectInfo} from "@/common/CommonNotice";
 import styles from "./index.less";
-import {FuncCode, JarBootConst, MsgData} from "@/common/JarBootConst";
+import {FuncCode, CommonConst, MsgData} from "@/common/CommonConst";
 import {useIntl} from "umi";
 import {RemoteIcon} from "@/components/icons";
 import IntlText from "@/common/IntlText";
@@ -99,7 +99,7 @@ const OnlineDebugView = () => {
     const groupIcon = (vm: JvmProcess): React.ReactNode => {
         return <Tooltip title={vm.title}>
             {
-                JarBootConst.LOCALHOST === vm.key ?
+                CommonConst.LOCALHOST === vm.key ?
                     <HomeFilled className={styles.vmTreeGroupIcon}/>
                     :
                     <RemoteIcon className={styles.vmTreeGroupIcon}/>
@@ -122,7 +122,7 @@ const OnlineDebugView = () => {
         const treeData = [] as TreeNode[];
         const groupMap = new Map<string, JvmProcess[]>();
         data.forEach(vm => {
-            const group = vm.remote || JarBootConst.LOCALHOST;
+            const group = vm.remote || CommonConst.LOCALHOST;
             let children = groupMap.get(group);
             if (!children) {
                 children = [] as JvmProcess[];
@@ -163,23 +163,23 @@ const OnlineDebugView = () => {
             }
             const status = msg.body;
             switch (status) {
-                case JarBootConst.ATTACHING:
+                case CommonConst.ATTACHING:
                     process.attaching = true;
                     pubsub.publish(msg.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
-                case JarBootConst.ATTACHED:
+                case CommonConst.ATTACHED:
                     process.attached = true;
                     process.attaching = false;
                     pubsub.publish(msg.sid, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
-                case JarBootConst.EXITED:
+                case CommonConst.EXITED:
                     process.attached = false;
                     process.attaching = false;
                     refreshProcessList();
                     break;
-                case JarBootConst.NOT_TRUSTED:
+                case CommonConst.NOT_TRUSTED:
                     return confirmTrusted(msg.sid, s);
-                case JarBootConst.TRUSTED:
+                case CommonConst.TRUSTED:
                     if (!process.trusted) {
                         process.trusted = true;
                         const trustedSuccessMsg = intl.formatMessage({id: 'TRUSTED_SUCCESS'});
@@ -208,7 +208,7 @@ const OnlineDebugView = () => {
         if (row.isLeaf) {
             return value;
         }
-        const id = JarBootConst.LOCALHOST === row.key ? 'LOCAL' : 'REMOTE';
+        const id = CommonConst.LOCALHOST === row.key ? 'LOCAL' : 'REMOTE';
         const text = <span className={styles.groupRow}>
             <IntlText id={id}/>
         </span>;
@@ -304,11 +304,11 @@ const OnlineDebugView = () => {
                 title: intl.formatMessage({id: 'WARN'}),
                 content: intl.formatMessage({id: 'DETACH_MSG'}),
                 onOk: () => {
-                    WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+                    WsManager.callFunc(FuncCode.DETACH_FUNC, process.sid);
                 }
             });
         } else {
-            WsManager.sendMessage({sid: process.sid, func: FuncCode.DETACH_FUNC, body: '', server: ''});
+            WsManager.callFunc(FuncCode.DETACH_FUNC, process.sid);
         }
     };
 
@@ -396,7 +396,7 @@ const OnlineDebugView = () => {
             {showLoading && <Result icon={<LoadingOutlined/>} title={intl.formatMessage({id: 'LOADING'})}/>}
             {state.list.map((value: JvmProcess) => (
                 <SuperPanel key={value.sid}
-                            server={value.name}
+                            service={value.name}
                             sid={value.sid}
                             visible={state.selectedRowKeys[0] === value.sid}/>
             ))}

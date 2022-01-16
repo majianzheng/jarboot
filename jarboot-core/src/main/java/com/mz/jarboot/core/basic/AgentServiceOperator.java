@@ -32,7 +32,7 @@ public class AgentServiceOperator {
 
     public static void setStarted() {
         if (STARTED.compareAndSet(false, true)) {
-            AgentClient clientData = EnvironmentContext.getClientData();
+            AgentClient clientData = EnvironmentContext.getAgentClient();
             final String url = new ApiStringBuilder(SET_STARTED_API)
                     .add(CommonConst.SERVICE_NAME_PARAM, clientData.getServiceName())
                     .add(CommonConst.SID_PARAM, clientData.getSid())
@@ -42,7 +42,7 @@ public class AgentServiceOperator {
     }
 
     public static String getServer() {
-        return EnvironmentContext.getClientData().getServiceName();
+        return EnvironmentContext.getAgentClient().getServiceName();
     }
 
     public static void noticeInfo(String message, String sessionId) {

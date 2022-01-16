@@ -1,0 +1,27 @@
+{
+  "properties": [
+    {
+      "name": "spring.jarboot.failed-auto-exit",
+      "type": "java.lang.Boolean",
+      "defaultValue": "true",
+      "description": "Auto exit when server start failed."
+    },
+    {
+      "name": "spring.jarboot.server-addr",
+      "type": "java.lang.String",
+      "description": "Jarboot server address."
+    },
+    {
+      "name": "spring.jarboot.username",
+      "type": "java.lang.String",
+      "defaultValue": "jarboot",
+      "description": "Jarboot server username."
+    },
+    {
+      "name": "spring.jarboot.password",
+      "type": "java.lang.String",
+      "defaultValue": "jarboot",
+      "description": "Jarboot server password."
+    }
+  ]
+}

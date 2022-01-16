@@ -1,4 +1,4 @@
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 
 /**
  * @author majianzheng
@@ -8,7 +8,7 @@ export default class CommonUtils {
     private static readonly TOKEN_PREFIX = "Bearer ";
 
     public static loginPage() {
-        localStorage.removeItem(JarBootConst.TOKEN_KEY);
+        localStorage.removeItem(CommonConst.TOKEN_KEY);
         if (0 === window.location.pathname.indexOf(CommonUtils.HOME_PREFIX)) {
             location.assign('/jarboot/login.html');
             return;
@@ -25,7 +25,7 @@ export default class CommonUtils {
     }
 
     public static getToken(): string {
-        let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+        let token = localStorage.getItem(CommonConst.TOKEN_KEY);
         if (!token) {
             token = '';
         }
@@ -36,11 +36,11 @@ export default class CommonUtils {
         if (0 !== token.indexOf(CommonUtils.TOKEN_PREFIX)) {
             token = CommonUtils.TOKEN_PREFIX + token;
         }
-        localStorage.setItem(JarBootConst.TOKEN_KEY, token);
+        localStorage.setItem(CommonConst.TOKEN_KEY, token);
     }
 
     public static getRawToken(): string {
-        let token = localStorage.getItem(JarBootConst.TOKEN_KEY);
+        let token = localStorage.getItem(CommonConst.TOKEN_KEY);
         if (!token) {
             return '';
         }

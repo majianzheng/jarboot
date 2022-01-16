@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './index.less';
 import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {ColorBasic, Color256, ColorBrightness} from "@/components/console/ColorTable";
 
 interface ConsoleProps {
@@ -154,7 +154,7 @@ const Banner = (
         </p>
         <br/>
         <br/>
-        <p>Jarboot console, docs: <span className={styles.cyan}>{JarBootConst.DOCS_URL}</span></p>
+        <p>Jarboot console, docs: <span className={styles.cyan}>{CommonConst.DOCS_URL}</span></p>
         <p>Diagnose command, type ‘help’ and hit ‘ENTER’ to see.</p>
     </div>
 );

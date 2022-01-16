@@ -103,8 +103,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<WorkspaceChangeEvent>() {
             @Override
             public void onEvent(WorkspaceChangeEvent event) {
-                String topic = WorkspaceChangeEvent.class.getCanonicalName();
-                eventRegistry.receiveEvent(topic, event);
+                eventRegistry.receiveEvent(eventRegistry.createTopic(WorkspaceChangeEvent.class), event);
                 changeWorkspace(event.getWorkspace());
             }
 

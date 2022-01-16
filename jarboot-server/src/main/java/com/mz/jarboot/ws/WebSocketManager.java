@@ -62,10 +62,10 @@ public class WebSocketManager {
     /**
      * 浏览器控制台打印一行
      * @param sid sid
-     * @param text 文本
      * @param sessionId 指定的浏览器会话
+     * @param text 文本
      */
-    public void sendConsole(String sid, String text, String sessionId) {
+    public void sendConsole(String sid, String sessionId, String text) {
         this.createEvent(sid, text, sessionId, FrontEndNotifyEventType.CONSOLE);
     }
 

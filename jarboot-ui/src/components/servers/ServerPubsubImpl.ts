@@ -1,6 +1,6 @@
 import { WsManager } from "@/common/WsManager";
 import { MSG_EVENT } from "@/common/EventConst";
-import { JarBootConst, MsgData } from "@/common/JarBootConst";
+import { CommonConst, MsgData } from "@/common/CommonConst";
 import Logger from "@/common/Logger";
 import {CONSOLE_TOPIC} from "@/components/console";
 

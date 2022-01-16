@@ -21,7 +21,7 @@ public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
     /** 客户端信息 */
-    private static AgentClient clientData;
+    private static AgentClient agentClient;
     /** 是否初始化 */
     private static boolean initialized = false;
     /** transformerManager */
@@ -40,17 +40,17 @@ public class EnvironmentContext {
     /**
      * 环境初始化
      * @param home 工作目录
-     * @param clientData 客户端数据
+     * @param agentClient 客户端数据
      * @param inst {@link Instrumentation}
      */
-    public static synchronized void init(String home, AgentClient clientData, Instrumentation inst) {
+    public static synchronized void init(String home, AgentClient agentClient, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
         if (null != home) {
             EnvironmentContext.jarbootHome = home;
         }
-        if (null != clientData) {
-            EnvironmentContext.clientData = clientData;
+        if (null != agentClient) {
+            EnvironmentContext.agentClient = agentClient;
         }
         if (null != inst) {
             EnvironmentContext.instrumentation = inst;
@@ -62,14 +62,14 @@ public class EnvironmentContext {
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
-                JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
+                JarbootThreadFactory.createThreadFactory("jarboot-sh-pool", true));
         initialized = true;
     }
 
     public static synchronized void destroy() {
         cleanSession();
         scheduledExecutorService.shutdown();
-        EnvironmentContext.clientData = null;
+        EnvironmentContext.agentClient = null;
         EnvironmentContext.transformerManager.destroy();
         EnvironmentContext.transformerManager = null;
         scheduledExecutorService = null;
@@ -106,11 +106,11 @@ public class EnvironmentContext {
         return initialized;
     }
 
-    public static AgentClient getClientData() {
-        return clientData;
+    public static AgentClient getAgentClient() {
+        return agentClient;
     }
 
-    public static ScheduledExecutorService getScheduledExecutorService() {
+    public static ScheduledExecutorService getScheduledExecutor() {
         return scheduledExecutorService;
     }
 

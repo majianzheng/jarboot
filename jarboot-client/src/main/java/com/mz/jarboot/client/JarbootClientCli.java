@@ -82,7 +82,7 @@ public class JarbootClientCli {
     private void run() {
         //test
         ServiceManager client = JarbootFactory
-                .createServerManager(this.host, null, null);
+                .createServiceManager(this.host, null, null);
         List<ServiceInstance> list = client.getServiceList();
         AnsiLog.info("list:{}", list);
 

@@ -66,7 +66,7 @@ public class StdOutStreamReactor {
         //启动监控线程，监控间隔2秒
         final long delay = 2;
         watchFuture = EnvironmentContext
-                .getScheduledExecutorService()
+                .getScheduledExecutor()
                 .scheduleWithFixedDelay(this::determineStarted, delay, delay, TimeUnit.SECONDS);
     }
 
@@ -131,7 +131,7 @@ public class StdOutStreamReactor {
      * 懒加载，私有内部类模式单例
      */
     private static class StdOutStreamReactorHolder {
-        static StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
+        static final StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
     }
 
     /**
@@ -157,7 +157,7 @@ public class StdOutStreamReactor {
         }
         //启动延时任务，防抖动设计，忽视中间变化
         EnvironmentContext
-                .getScheduledExecutorService()
+                .getScheduledExecutor()
                 .schedule(this::flush, WAIT_TIME, TimeUnit.MILLISECONDS);
     }
 

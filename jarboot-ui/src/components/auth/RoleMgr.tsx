@@ -1,7 +1,7 @@
 import React, {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {SyncOutlined, PlusSquareOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import CommonNotice from "@/common/CommonNotice";
 import RoleService from "@/services/RoleService";
@@ -77,7 +77,7 @@ const RoleMgr = memo(() => {
         rowSelection: _getRowSelection(),
         onRow: _onRowClick,
         showHeader: true,
-        scroll: JarBootConst.PANEL_HEIGHT,
+        scroll: CommonConst.PANEL_HEIGHT,
     };
 
     const onBindClick = () => {
@@ -151,12 +151,12 @@ const RoleMgr = memo(() => {
         ]
     };
 
-    tableOption.scroll = { y: JarBootConst.PANEL_HEIGHT};
+    tableOption.scroll = { y: CommonConst.PANEL_HEIGHT};
     const style = {height: '38px', fontSize: '16px', width: '100%'};
     return <>
         <CommonTable option={tableOption}
                      toolbar={_getTbBtnProps()} showToolbarName={true}
-                     height={JarBootConst.PANEL_HEIGHT}/>
+                     height={CommonConst.PANEL_HEIGHT}/>
         {visible && <Modal title={intl.formatMessage({id: 'BIND_ROLE'})}
                visible={true}
                destroyOnClose={true}

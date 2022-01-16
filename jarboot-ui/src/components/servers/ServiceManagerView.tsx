@@ -12,7 +12,7 @@ import {
     SyncOutlined,
     UploadOutlined
 } from '@ant-design/icons';
-import {JarBootConst, MsgData} from '@/common/JarBootConst';
+import {CommonConst, MsgData} from '@/common/CommonConst';
 import Logger from "@/common/Logger";
 import {PUB_TOPIC, pubsub, SuperPanel} from "@/components/servers";
 import BottomBar from "@/components/servers/BottomBar";
@@ -20,7 +20,7 @@ import UploadFileModal from "@/components/servers/UploadFileModal";
 import StringUtil from "@/common/StringUtil";
 import styles from "./index.less";
 import {useIntl} from "umi";
-import ServerConfig from "@/components/servers/ServerConfig";
+import ServiceConfig from "@/components/servers/ServiceConfig";
 import {DeleteIcon, ExportIcon, ImportIcon, RestartIcon, StoppedIcon} from "@/components/icons";
 import {DataNode, EventDataNode, Key} from "rc-tree/lib/interface";
 import CloudService from "@/services/CloudService";
@@ -31,7 +31,7 @@ import {CONSOLE_TOPIC} from "@/components/console";
 // @ts-ignore
 import Highlighter from 'react-highlight-words';
 
-interface ServerMgrViewState {
+interface ServiceManagerViewState {
     loading: boolean;
     data: ServiceInstance[];
     treeData: TreeNode[];
@@ -46,10 +46,10 @@ interface ServerMgrViewState {
     importing: boolean;
 }
 
-const ServerMgrView = () => {
+const ServiceManagerView = () => {
     const intl = useIntl();
     const treeRef = useRef<any>();
-    const initArg: ServerMgrViewState = {
+    const initArg: ServiceManagerViewState = {
         loading: false,
         data: [] as ServiceInstance[],
         treeData: [] as TreeNode[],
@@ -60,15 +60,15 @@ const ServerMgrView = () => {
         searchedColumn: '',
         selectRows: [] as ServiceInstance[],
         current: '',
-        contentView: JarBootConst.CONFIG_VIEW as ('config'|'console'),
+        contentView: CommonConst.CONFIG_VIEW as ('config'|'console'),
         importing: false,
     };
-    const [state, dispatch] = useReducer((state: ServerMgrViewState, action: any) => {
+    const [state, dispatch] = useReducer((state: ServiceManagerViewState, action: any) => {
         if ('function' === typeof action) {
-            return {...state, ...action(state)} as ServerMgrViewState;
+            return {...state, ...action(state)} as ServiceManagerViewState;
         }
-        return {...state, ...action} as ServerMgrViewState;
-    }, initArg, (arg): ServerMgrViewState => ({...arg} as ServerMgrViewState));
+        return {...state, ...action} as ServiceManagerViewState;
+    }, initArg, (arg): ServiceManagerViewState => ({...arg} as ServiceManagerViewState));
 
     const height = window.innerHeight - 86;
 
@@ -85,7 +85,7 @@ const ServerMgrView = () => {
     }, []);
 
     const activeConsole = (sid: string) => {
-        dispatch((preState: ServerMgrViewState) => {
+        dispatch((preState: ServiceManagerViewState) => {
             let data: ServiceInstance[] = preState.data || [];
             const index = data.findIndex(row => row.sid === sid);
             if (-1 !== index) {
@@ -98,7 +98,7 @@ const ServerMgrView = () => {
     };
 
     const onStatusChange = (data: MsgData) => {
-        dispatch((preState: ServerMgrViewState) => {
+        dispatch((preState: ServiceManagerViewState) => {
             const item = preState?.data?.find((value: ServiceInstance) => value.sid === data.sid);
             if (!item || item.status === data.body) {
                 return {};
@@ -107,23 +107,23 @@ const ServerMgrView = () => {
             const server = item.name as string;
             item.status = data.body;
             switch (item.status) {
-                case JarBootConst.STATUS_STARTING:
+                case CommonConst.STATUS_STARTING:
                     // 激活终端显示
                     activeConsole(key);
                     Logger.log(`${server} 启动中...`);
                     pubsub.publish(key, CONSOLE_TOPIC.CLEAR_CONSOLE);
                     pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     break;
-                case JarBootConst.STATUS_STOPPING:
+                case CommonConst.STATUS_STOPPING:
                     Logger.log(`${server} 停止中...`);
                     pubsub.publish(key, CONSOLE_TOPIC.START_LOADING);
                     break;
-                case JarBootConst.STATUS_STARTED:
+                case CommonConst.STATUS_STARTED:
                     Logger.log(`${server} 已启动`);
                     pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     pubsub.publish(key, PUB_TOPIC.FOCUS_CMD_INPUT);
                     break;
-                case JarBootConst.STATUS_STOPPED:
+                case CommonConst.STATUS_STOPPED:
                     Logger.log(`${server} 已停止`);
                     pubsub.publish(key, CONSOLE_TOPIC.FINISH_LOADING);
                     break;
@@ -139,16 +139,16 @@ const ServerMgrView = () => {
     const translateStatus = (status: string) => {
         let tag;
         switch (status) {
-            case JarBootConst.STATUS_STARTED:
+            case CommonConst.STATUS_STARTED:
                 tag = <CaretRightOutlined className={styles.statusRunning}/>;
                 break;
-            case JarBootConst.STATUS_STOPPED:
+            case CommonConst.STATUS_STOPPED:
                 tag = <StoppedIcon className={styles.statusStopped}/>;
                 break;
-            case JarBootConst.STATUS_STARTING:
+            case CommonConst.STATUS_STARTING:
                 tag = <LoadingOutlined className={styles.statusStarting}/>;
                 break;
-            case JarBootConst.STATUS_STOPPING:
+            case CommonConst.STATUS_STOPPING:
                 tag = <LoadingOutlined className={styles.statusStopping}/>;
                 break;
             default:
@@ -159,7 +159,7 @@ const ServerMgrView = () => {
     };
 
     const startSignal = (server: ServiceInstance) => {
-        if (server.isLeaf && JarBootConst.STATUS_STOPPED === server.status) {
+        if (server.isLeaf && CommonConst.STATUS_STOPPED === server.status) {
             ServiceManager.startService([server], finishCallback);
         }
     };
@@ -167,7 +167,7 @@ const ServerMgrView = () => {
     const refreshServerList = (init: boolean = false) => {
         dispatch({loading: true});
         ServiceManager.getServiceList((resp: any) => {
-            dispatch((preState: ServerMgrViewState) => {
+            dispatch((preState: ServiceManagerViewState) => {
                 if (resp.resultCode < 0) {
                     CommonNotice.errorFormatted(resp);
                     return {loading: false};
@@ -339,7 +339,7 @@ const ServerMgrView = () => {
         if (1 !== state.selectRows?.length) {
             return true;
         }
-        return JarBootConst.STATUS_STOPPED !== state.selectRows[0].status;
+        return CommonConst.STATUS_STOPPED !== state.selectRows[0].status;
     };
 
     const deleteServer = () => {
@@ -366,7 +366,7 @@ const ServerMgrView = () => {
 
     const isCurrentNotRunning = () => {
         const item = state.data.find((value: ServiceInstance) => value.sid === state.current);
-        return !(item && JarBootConst.STATUS_STARTED === item.status);
+        return !(item && CommonConst.STATUS_STARTED === item.status);
     };
 
     const uploadFile = () => dispatch({uploadVisible: true});
@@ -409,7 +409,7 @@ const ServerMgrView = () => {
         selectedNodes: DataNode[];
         nativeEvent: MouseEvent;
     }) => {
-        dispatch((preState: ServerMgrViewState) => {
+        dispatch((preState: ServiceManagerViewState) => {
             const selectRows = info.selectedNodes;
             if (info.node.isLeaf) {
                 const current = info.node.key as string;
@@ -431,7 +431,7 @@ const ServerMgrView = () => {
             let title: React.ReactNode|string = group;
             if (searchText?.length && group.length) {
                 title = <Highlighter
-                    highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
+                    highlightStyle={CommonConst.HIGHLIGHT_STYLE}
                     searchWords={[searchText]}
                     autoEscape
                     textToHighlight={title || ''}
@@ -444,7 +444,7 @@ const ServerMgrView = () => {
         let title: React.ReactNode|string = server.name;
         if (searchText?.length) {
             title = <Highlighter
-                highlightStyle={JarBootConst.HIGHLIGHT_STYLE}
+                highlightStyle={CommonConst.HIGHLIGHT_STYLE}
                 searchWords={[searchText]}
                 autoEscape
                 textToHighlight={title || ''}
@@ -482,7 +482,7 @@ const ServerMgrView = () => {
     };
 
     const onTreeSearch = (searchText: string) => {
-        dispatch((preState: ServerMgrViewState) => {
+        dispatch((preState: ServiceManagerViewState) => {
             let searchResult = [] as ServiceInstance[];
             if (preState.searchResult?.length) {
                 preState.searchResult.forEach(value => {
@@ -534,7 +534,7 @@ const ServerMgrView = () => {
     </div>);
 
     const contentView = () => {
-        const configView = JarBootConst.CONSOLE_VIEW === state.contentView;
+        const configView = CommonConst.CONSOLE_VIEW === state.contentView;
         //按钮为控制台，则当前为服务配置
         let server = {} as ServiceInstance;
         let configTitle = '';
@@ -547,16 +547,16 @@ const ServerMgrView = () => {
                 configTitle = `- ${conf}`;
             }
         }
-        const closeConfig = () => onViewChange(JarBootConst.CONTENT_VIEW, JarBootConst.CONFIG_VIEW);
+        const closeConfig = () => onViewChange(CommonConst.CONTENT_VIEW, CommonConst.CONFIG_VIEW);
         return (<div>
-            <div style={{display: JarBootConst.CONFIG_VIEW === state.contentView ? 'block' : 'none'}}>
+            <div style={{display: CommonConst.CONFIG_VIEW === state.contentView ? 'block' : 'none'}}>
                 {<SuperPanel key={PUB_TOPIC.ROOT}
-                             server={""}
+                             service={""}
                              sid={PUB_TOPIC.ROOT}
                              visible={!loading && state.current?.length <= 0}/>}
                 {state.data.map((value: ServiceInstance) => (
                     <SuperPanel key={value.sid}
-                                server={value.name}
+                                service={value.name}
                                 sid={value.sid}
                                 visible={state.current === value.sid}/>
                 ))}
@@ -564,11 +564,11 @@ const ServerMgrView = () => {
             <div style={{display: configView ? 'block' : 'none', background: '#FAFAFA'}}>
                 <TopTitleBar title={configTitle}
                              onClose={closeConfig}/>
-                <ServerConfig serviceName={server?.name || ''}
-                              sid={state.current || ''}
-                              group={server?.group || ''}
-                              onClose={closeConfig}
-                              onGroupChanged={onGroupChanged}/>
+                <ServiceConfig serviceName={server?.name || ''}
+                               sid={state.current || ''}
+                               group={server?.group || ''}
+                               onClose={closeConfig}
+                               onGroupChanged={onGroupChanged}/>
             </div>
         </div>);
     };
@@ -592,4 +592,4 @@ const ServerMgrView = () => {
     </div>);
 };
 
-export default ServerMgrView;
+export default ServiceManagerView;

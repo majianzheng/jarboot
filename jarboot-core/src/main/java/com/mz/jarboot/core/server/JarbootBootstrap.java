@@ -93,7 +93,7 @@ public class JarbootBootstrap {
     public boolean isOnline(String host) {
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查是否需要变更Jarboot服务地址
-            AgentClient clientData = EnvironmentContext.getClientData();
+            AgentClient clientData = EnvironmentContext.getAgentClient();
             if (!Objects.equals(host, clientData.getHost())) {
                 if (Boolean.TRUE.equals(clientData.getDiagnose())) {
                     AgentClient client = this.initClientData(host, false);

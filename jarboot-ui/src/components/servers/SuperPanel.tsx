@@ -18,7 +18,7 @@ import DashboardView from "@/components/servers/view/DashboardView";
 import JadView from "@/components/servers/view/JadView";
 import HeapDumpView from "@/components/servers/view/HeapDumpView";
 import {useIntl} from "umi";
-import {FuncCode, JarBootConst} from "@/common/JarBootConst";
+import {FuncCode, CommonConst} from "@/common/CommonConst";
 import {PUB_TOPIC, pubsub} from "@/components/servers";
 import TopTitleBar from "@/components/servers/TopTitleBar";
 import TextWrapIcon from "@/components/icons/TextWrapIcon";
@@ -29,7 +29,7 @@ import TextWrapIcon from "@/components/icons/TextWrapIcon";
  */
 
 interface SuperPanelProps {
-    server: string;
+    service: string;
     sid: string;
     visible: boolean;
     remote?: string;
@@ -114,7 +114,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
                 break;
         }
         const buttonTitle = state.executing ? intl.formatMessage({id: 'CANCEL'}) : intl.formatMessage({id: 'CLOSE'});
-        return (<div style={{height: JarBootConst.PANEL_HEIGHT}}>
+        return (<div style={{height: CommonConst.PANEL_HEIGHT}}>
             <TopTitleBar title={state.command}
                          icon={state.executing && <LoadingOutlined className={styles.statusStarting}/>}
                          onClose={closeView}
@@ -198,7 +198,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         });
 
         pubsub.publish(key, CONSOLE_TOPIC.APPEND_LINE, `<span class="${styles.commandPrefix}">$</span>${cmd}`);
-        WsManager.sendMessage({server: props.server, sid: props.sid, body: cmd, func: FuncCode.CMD_FUNC});
+        WsManager.sendMessage({service: props.service, sid: props.sid, body: cmd, func: FuncCode.CMD_FUNC});
 
         if (historyProp) {
             const history = historyProp.history;
@@ -254,11 +254,11 @@ const SuperPanel = memo((props: SuperPanelProps) => {
     };
 
     const consolePanel = () => {
-        const style = '' === state.view ? {height: JarBootConst.PANEL_HEIGHT} : {display: 'none'};
+        const style = '' === state.view ? {height: CommonConst.PANEL_HEIGHT} : {display: 'none'};
         return (<div style={style}>
             <Console id={key}
                      pubsub={pubsub}
-                     height={JarBootConst.PANEL_HEIGHT - 26}
+                     height={CommonConst.PANEL_HEIGHT - 26}
                      wrap={state.textWrap}
                      autoScrollEnd={state.autoScrollEnd}/>
             <Input onPressEnter={onExecCommand}
@@ -338,7 +338,7 @@ const SuperPanel = memo((props: SuperPanelProps) => {
         <div style={{display: props.visible ? 'block' : 'none'}}>
             {consolePanel()}
             {'' !== state.view && viewResolver()}
-            {JarBootConst.IS_SAFARI && '' === state.view && <div className={styles.consoleScrollbarMaskForMac}/>}
+            {CommonConst.IS_SAFARI && '' === state.view && <div className={styles.consoleScrollbarMaskForMac}/>}
         </div>);
 });
 

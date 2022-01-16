@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {Progress, Row, Col, Descriptions} from "antd";
 import StringUtil from "@/common/StringUtil";
 import styles from "../index.less";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import CommonTable from "@/components/table";
 
 const DashboardView = memo((props: any) => {
@@ -22,7 +22,7 @@ const DashboardView = memo((props: any) => {
         }
         return <span style={{color}}>{cpu}</span>;
     };
-    const totalHeight = JarBootConst.PANEL_HEIGHT;
+    const totalHeight = CommonConst.PANEL_HEIGHT;
     const upHeight = (totalHeight * 0.6);
     const downHeight = (totalHeight * 0.4);
 

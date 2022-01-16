@@ -9,13 +9,14 @@ import javax.websocket.Session;
 /**
  * @author majianzheng
  */
-public final class AgentClient extends SessionOperator {
+public final class AgentOperator extends SessionOperator {
     private final String name;
     private final String sid;
     private ClientState state;
     private String pid;
     private boolean trusted;
-    public AgentClient(String name, String sid, final Session session) {
+
+    public AgentOperator(String name, String sid, final Session session) {
         super(session);
         this.name = name;
         this.sid = sid;

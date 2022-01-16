@@ -33,7 +33,7 @@ public class SettingController {
      * @param serviceName 服务路径
      * @return 服务配置
      */
-    @GetMapping(value="/serverSetting")
+    @GetMapping(value="/serviceSetting")
     @ResponseBody
     @Permission("Get Server Setting")
     public ResponseForObject<ServiceSetting> getServerSetting(String serviceName) {
@@ -49,7 +49,7 @@ public class SettingController {
      * 提交服务配置
      * @param setting 服务配置
      */
-    @PostMapping(value="/serverSetting")
+    @PostMapping(value="/serviceSetting")
     @ResponseBody
     @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
