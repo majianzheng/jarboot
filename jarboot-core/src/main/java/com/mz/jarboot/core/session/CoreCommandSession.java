@@ -17,30 +17,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Implement the process handler.
  * @author majianzheng
  */
-public class CommandSessionImpl implements CommandCoreSession {
-    private boolean running = false;
+public class CoreCommandSession extends AbstractCommandSession {
     private final String sessionId;
     private final AtomicInteger times = new AtomicInteger();
     private AdviceListener listener = null;
     private ClassFileTransformer transformer;
-    private volatile String jobId = StringUtils.EMPTY;
-    public CommandSessionImpl(String sessionId) {
+    public CoreCommandSession(String sessionId) {
         this.sessionId = sessionId;
     }
 
     @Override
     public String getSessionId() {
         return this.sessionId;
-    }
-
-    @Override
-    public String getJobId() {
-        return jobId;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return running;
     }
 
     @Override

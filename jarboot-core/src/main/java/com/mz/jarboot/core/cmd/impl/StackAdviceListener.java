@@ -4,7 +4,7 @@ import com.mz.jarboot.core.advisor.Advice;
 import com.mz.jarboot.core.advisor.AdviceListenerAdapter;
 import com.mz.jarboot.core.advisor.JarbootMethod;
 import com.mz.jarboot.core.cmd.model.StackModel;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import com.mz.jarboot.core.utils.ThreadUtil;
@@ -20,9 +20,9 @@ public class StackAdviceListener extends AdviceListenerAdapter {
 
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     private StackCommand command;
-    private CommandCoreSession process;
+    private AbstractCommandSession process;
 
-    public StackAdviceListener(StackCommand command, CommandCoreSession process, boolean verbose) {
+    public StackAdviceListener(StackCommand command, AbstractCommandSession process, boolean verbose) {
         this.command = command;
         this.process = process;
         super.setVerbose(verbose);

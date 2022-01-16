@@ -136,7 +136,7 @@ public class SettingController {
     @Permission("Add trusted host")
     public ResponseSimple addTrustedHost(String host) throws IOException {
         SettingUtils.addTrustedHost(host);
-        AgentManager.getInstance().onAddTrustedHost(host);
+        AgentManager.getInstance().addTrustedHost(host);
         return new ResponseSimple();
     }
 

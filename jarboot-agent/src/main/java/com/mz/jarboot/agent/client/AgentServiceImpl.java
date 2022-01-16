@@ -11,7 +11,7 @@ import com.mz.jarboot.api.AgentService;
 @SuppressWarnings("all")
 public class AgentServiceImpl implements AgentService {
     public static final Class<?> OPERATOR_CLASS;
-    private static final String SERVER_NAME;
+    private static final String SERVICE_NAME;
     private static final String SET_STARTED = "setStarted";
     private static final String NOTICE_INFO = "noticeInfo";
     private static final String NOTICE_WARN = "noticeWarn";
@@ -20,16 +20,16 @@ public class AgentServiceImpl implements AgentService {
 
     static {
         Class<?> tmp = null;
-        String server = "";
+        String serviceName = "";
         ClassLoader classLoader = JarbootAgent.getJarbootClassLoader();
         try {
             tmp = classLoader.loadClass("com.mz.jarboot.core.basic.AgentServiceOperator");
-            server = (String)tmp.getMethod("getServer").invoke(null);
+            serviceName = (String)tmp.getMethod("getServiceName").invoke(null);
         } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
         OPERATOR_CLASS = tmp;
-        SERVER_NAME = server;
+        SERVICE_NAME = serviceName;
     }
 
     @Override
@@ -73,8 +73,8 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String getServerName() {
-        return SERVER_NAME;
+    public String getServiceName() {
+        return SERVICE_NAME;
     }
 
     @Override

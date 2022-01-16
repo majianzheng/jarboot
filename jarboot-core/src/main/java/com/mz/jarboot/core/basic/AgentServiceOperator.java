@@ -41,7 +41,7 @@ public class AgentServiceOperator {
         }
     }
 
-    public static String getServer() {
+    public static String getServiceName() {
         return EnvironmentContext.getAgentClient().getServiceName();
     }
 
@@ -127,7 +127,7 @@ public class AgentServiceOperator {
         NotifyReactor
                 .getInstance()
                 .publishEvent(new ResponseEventBuilder()
-                        .type(ResponseType.ACTION)
+                        .type(ResponseType.NOTICE)
                         .success(true)
                         .body(bodyData)
                         .session(sessionId)

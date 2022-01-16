@@ -8,7 +8,7 @@ import com.mz.jarboot.common.protocol.CommandType;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.event.CommandEventBuilder;
 import com.mz.jarboot.core.event.HeartbeatEvent;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
@@ -21,7 +21,7 @@ public class CommandRequestSubscriber implements Subscriber<CommandRequest> {
 
     @Override
     public void onEvent(CommandRequest request) {
-        CommandCoreSession session = null;
+        AbstractCommandSession session = null;
         try {
             session = EnvironmentContext.registerSession(request.getSessionId());
             CommandType type = request.getCommandType();

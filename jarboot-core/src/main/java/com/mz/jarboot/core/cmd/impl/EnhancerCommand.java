@@ -9,7 +9,7 @@ import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.core.cmd.model.EnhancerModel;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.affect.EnhancerAffect;
 import com.mz.jarboot.core.utils.matcher.Matcher;
@@ -80,9 +80,9 @@ public abstract class EnhancerCommand extends AbstractCommand {
      *
      * @return 返回监听器
      */
-    protected abstract AdviceListener getAdviceListener(CommandCoreSession process);
+    protected abstract AdviceListener getAdviceListener(AbstractCommandSession process);
 
-    AdviceListener getAdviceListenerWithId(CommandCoreSession process) {
+    AdviceListener getAdviceListenerWithId(AbstractCommandSession process) {
         if (listenerId != 0) {
             AdviceListener listener = AdviceWeaver.listener(listenerId);
             if (listener != null) {
@@ -97,7 +97,7 @@ public abstract class EnhancerCommand extends AbstractCommand {
         enhance(session);
     }
 
-    protected void enhance(CommandCoreSession process) {
+    protected void enhance(AbstractCommandSession process) {
         EnhancerAffect effect = null;
         try {
             Instrumentation inst = EnvironmentContext.getInstrumentation();

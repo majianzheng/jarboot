@@ -36,7 +36,7 @@ public class AgentManager {
     /** 启动中的latch */
     private final ConcurrentHashMap<String, CountDownLatch> startingLatchMap = new ConcurrentHashMap<>(16);
     /** 本地进程的pid列表 */
-    private final ConcurrentHashMap<String, String> localServers = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, String> localServices = new ConcurrentHashMap<>(16);
     /** 远程进程列表 */
     private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
     /** 优雅退出最大等待时间 */
@@ -83,7 +83,7 @@ public class AgentManager {
             }
         } else {
             //属于受管理的服务
-            localServers.put(pid, sid);
+            localServices.put(pid, sid);
             client.setPid(pid);
             client.setTrusted(true);
         }
@@ -107,7 +107,7 @@ public class AgentManager {
             //非受管理的本地进程，通知前端进程已经离线
             WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
         } else {
-            localServers.remove(pid);
+            localServices.remove(pid);
         }
         String msg = String.format("\033[1;96m%s\033[0m 下线！", serviceName);
         WebSocketManager.getInstance().sendConsole(sid, msg);
@@ -149,37 +149,6 @@ public class AgentManager {
     }
 
     /**
-     * 来自远程服务器的连接
-     * @param client 远程服务sid，格式：prefix + pid + name + uuid
-     */
-    public void remoteJvm(final AgentOperator client) {
-        String sid = client.getSid();
-        JvmProcess process = new JvmProcess();
-        int index = sid.lastIndexOf(',');
-        if (-1 == index) {
-            return;
-        }
-        String str = sid.substring(0, index);
-        final int limit = 4;
-        String[] s = str.split(CommonConst.COMMA_SPLIT, limit);
-        if (s.length != limit) {
-            return;
-        }
-        String pid = s[1];
-        String remoteIp = s[2];
-        String name = s[3];
-        process.setAttached(true);
-        process.setPid(pid);
-        process.setName(name);
-        process.setSid(sid);
-        process.setRemote(remoteIp);
-        boolean isTrusted = SettingUtils.isTrustedHost(remoteIp);
-        client.setTrusted(isTrusted);
-        remoteProcesses.put(sid, process);
-        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
-    }
-
-    /**
      * 获取远程服务列表
      * @param list 远程服务列表
      */
@@ -190,12 +159,12 @@ public class AgentManager {
     }
 
     /**
-     * 杀死客户端
+     * 优雅退出客户端
      * @param serviceName 服务名
      * @param sid 服务唯一id
      * @return 是否成功
      */
-    public boolean killClient(String serviceName, String sid) {
+    public boolean gracefulExit(String serviceName, String sid) {
         final AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return false;
@@ -225,13 +194,132 @@ public class AgentManager {
     }
 
     /**
+     * 设置优雅退出最大等待时间
+     * @param d 时间
+     */
+    public void setMaxGracefulExitTime(int d) {
+        this.maxGracefulExitTime = d;
+    }
+
+    /**
+     * 获取优雅退出最大等待时间
+     * @return 时间
+     */
+    public int getMaxGracefulExitTime() {
+        return this.maxGracefulExitTime;
+    }
+
+    /**
+     * 判断进程pid是否为受Jarboot管理的进程，即由Jarboot所启动的进程
+     * @param pid 进程pid
+     * @return 是否为受Jarboot管理的进程
+     */
+    public boolean isLocalService(String pid) {
+        return localServices.containsKey(pid);
+    }
+
+    /**
+     * 等待服务启动完成
+     * @param service 服务名
+     * @param sid 服务唯一id
+     * @param millis 时间
+     */
+    public void waitServiceStarted(String service, String sid, int millis) {
+        AgentOperator client = clientMap.getOrDefault(sid, null);
+        if (null == client) {
+            CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
+            try {
+                if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
+                    logger.error("Wait service connect timeout, {}", service);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                startingLatchMap.remove(sid);
+            }
+            client = clientMap.getOrDefault(sid, null);
+            if (null == client) {
+                String msg = formatErrorMsg(service, "connect timeout!");
+                WebSocketManager.getInstance().sendConsole(sid, msg);
+                return;
+            }
+        }
+
+        synchronized (client) {
+            if (!ClientState.STARTING.equals(client.getState())) {
+                logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
+                        service, client.getState());
+                WebSocketManager
+                        .getInstance()
+                        .sendConsole(sid,
+                                service + " is not starting, wait started error. status:" + client.getState());
+                return;
+            }
+            try {
+                client.wait(millis);
+            } catch (InterruptedException e) {
+                //ignore
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
+     * 添加信任的服务
+     * @param host
+     */
+    public void addTrustedHost(String host) {
+        remoteProcesses.forEach((k, v) -> {
+            if (java.util.Objects.equals(v.getRemote(), host)) {
+                AgentOperator client = clientMap.getOrDefault(k, null);
+                if (null != client) {
+                    client.setTrusted(true);
+                    v.setTrusted(true);
+                    WebSocketManager.getInstance().debugProcessEvent(k, AttachStatus.TRUSTED);
+                }
+            }
+        });
+    }
+
+    /**
+     * 来自远程服务器的连接
+     * @param client 远程服务sid，格式：prefix + pid + name + uuid
+     */
+    private void remoteJvm(final AgentOperator client) {
+        String sid = client.getSid();
+        JvmProcess process = new JvmProcess();
+        int index = sid.lastIndexOf(',');
+        if (-1 == index) {
+            return;
+        }
+        String str = sid.substring(0, index);
+        final int limit = 4;
+        String[] s = str.split(CommonConst.COMMA_SPLIT, limit);
+        if (s.length != limit) {
+            return;
+        }
+        String pid = s[1];
+        String remoteIp = s[2];
+        String name = s[3];
+        process.setAttached(true);
+        process.setPid(pid);
+        process.setName(name);
+        process.setSid(sid);
+        process.setRemote(remoteIp);
+        boolean isTrusted = SettingUtils.isTrustedHost(remoteIp);
+        client.setTrusted(isTrusted);
+        remoteProcesses.put(sid, process);
+        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
+    }
+
+    /**
      * 发送命令
      * @param serviceName 服务名
      * @param sid 唯一id
      * @param command 命令
      * @param sessionId 会话id
      */
-    public void sendCommand(String serviceName, String sid, String command, String sessionId) {
+    private void sendCommand(String serviceName, String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
             return;
         }
@@ -297,7 +385,7 @@ public class AgentManager {
      * @param command 命令
      * @param sessionId 会话id
      */
-    public void sendInternalCommand(String sid, String command, String sessionId) {
+    private void sendInternalCommand(String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
             WebSocketManager.getInstance().commandEnd(sid, StringUtils.EMPTY, sessionId);
             return;
@@ -347,8 +435,8 @@ public class AgentManager {
             case LOG_APPENDER:
                 onAgentLog(sid, resp.getBody());
                 break;
-            case ACTION:
-                this.handleAction(resp.getBody(), sessionId, sid);
+            case NOTICE:
+                this.notice(resp.getBody(), sessionId, sid);
                 break;
             default:
                 //ignore
@@ -356,7 +444,7 @@ public class AgentManager {
         }
     }
 
-    public void trustOnce(String sid) {
+    private void trustOnce(String sid) {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null != client && !client.isTrusted()) {
             client.setTrusted(true);
@@ -364,7 +452,7 @@ public class AgentManager {
         }
     }
 
-    public boolean checkNotTrusted(String sid) {
+    private boolean checkNotTrusted(String sid) {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return true;
@@ -386,19 +474,6 @@ public class AgentManager {
             return false;
         }
         return true;
-    }
-
-    public void onAddTrustedHost(String host) {
-        remoteProcesses.forEach((k, v) -> {
-            if (java.util.Objects.equals(v.getRemote(), host)) {
-                AgentOperator client = clientMap.getOrDefault(k, null);
-                if (null != client) {
-                    client.setTrusted(true);
-                    v.setTrusted(true);
-                    WebSocketManager.getInstance().debugProcessEvent(k, AttachStatus.TRUSTED);
-                }
-            }
-        });
     }
 
     private void onAgentLog(String sid, String msg) {
@@ -461,86 +536,15 @@ public class AgentManager {
     }
 
     /**
-     * 等待服务启动完成
-     * @param service 服务名
-     * @param sid 服务唯一id
-     * @param millis 时间
-     */
-    public void waitServerStarted(String service, String sid, int millis) {
-        AgentOperator client = clientMap.getOrDefault(sid, null);
-        if (null == client) {
-            CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
-            try {
-                if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                    logger.error("Wait service connect timeout, {}", service);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                startingLatchMap.remove(sid);
-            }
-            client = clientMap.getOrDefault(sid, null);
-            if (null == client) {
-                String msg = formatErrorMsg(service, "connect timeout!");
-                WebSocketManager.getInstance().sendConsole(sid, msg);
-                return;
-            }
-        }
-
-        synchronized (client) {
-            if (!ClientState.STARTING.equals(client.getState())) {
-                logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
-                        service, client.getState());
-                WebSocketManager
-                        .getInstance()
-                        .sendConsole(sid,
-                                service + " is not starting, wait started error. status:" + client.getState());
-                return;
-            }
-            try {
-                client.wait(millis);
-            } catch (InterruptedException e) {
-                //ignore
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    /**
      * 浏览器刷新或关闭，重置进程会话
      * @param sessionId 会话id
      */
-    public void releaseAgentSession(String sessionId) {
+    private void releaseAgentSession(String sessionId) {
         //向所有在线的agent客户端发送会话失效命令
         clientMap.forEach((k, v) -> sendInternalCommand(v.getSid(), CommandConst.CANCEL_CMD, sessionId));
     }
 
-    /**
-     * 设置优雅退出最大等待时间
-     * @param d 时间
-     */
-    public void setMaxGracefulExitTime(int d) {
-        this.maxGracefulExitTime = d;
-    }
-
-    /**
-     * 获取优雅退出最大等待时间
-     * @return 时间
-     */
-    public int getMaxGracefulExitTime() {
-        return this.maxGracefulExitTime;
-    }
-
-    /**
-     * 判断进程pid是否为受Jarboot管理的进程，即由Jarboot所启动的进程
-     * @param pid 进程pid
-     * @return 是否为受Jarboot管理的进程
-     */
-    public boolean isManageredServer(String pid) {
-        return localServers.containsKey(pid);
-    }
-
-    private void handleAction(String data, String sessionId, String sid) {
+    private void notice(String data, String sessionId, String sid) {
         if (checkNotTrusted(sid)) {
             return;
         }
@@ -553,16 +557,8 @@ public class AgentManager {
         if (StringUtils.isEmpty(sessionId)) {
             sessionId = CommandConst.SESSION_COMMON;
         }
-        switch (action) {
-            case CommandConst.ACTION_NOTICE_INFO:
-            case CommandConst.ACTION_NOTICE_WARN:
-            case CommandConst.ACTION_NOTICE_ERROR:
-                NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
-                WebSocketManager.getInstance().notice(param, level, sessionId);
-                break;
-            default:
-                break;
-        }
+        NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
+        WebSocketManager.getInstance().notice(param, level, sessionId);
     }
 
     private String formatErrorMsg(String serviceName, String msg) {
@@ -593,7 +589,10 @@ public class AgentManager {
                 }
                 break;
             case DETACH_FUNC:
-                AgentManager.getInstance().sendInternalCommand(sid, CommandConst.SHUTDOWN, event.getSessionId());
+                sendInternalCommand(sid, CommandConst.SHUTDOWN, event.getSessionId());
+                break;
+            case SESSION_CLOSED_FUNC:
+                releaseAgentSession(event.getSessionId());
                 break;
             default:
                 logger.debug("Unknown func, func:{}", event.funcCode());

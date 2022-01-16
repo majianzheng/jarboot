@@ -5,21 +5,21 @@ import com.mz.jarboot.common.protocol.CommandRequest;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 
 /**
  * @author majianzheng
  */
 public class CommandEventBuilder {
     private CommandRequest request;
-    private CommandCoreSession session;
+    private AbstractCommandSession session;
 
     public CommandEventBuilder request(CommandRequest request) {
         this.request = request;
         return this;
     }
 
-    public CommandEventBuilder session(CommandCoreSession session) {
+    public CommandEventBuilder session(AbstractCommandSession session) {
         this.session = session;
         return this;
     }

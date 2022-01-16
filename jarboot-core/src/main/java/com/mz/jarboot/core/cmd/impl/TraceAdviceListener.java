@@ -1,7 +1,7 @@
 package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.advisor.InvokeTraceable;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 
 /**
  * @author majianzheng
@@ -12,7 +12,7 @@ public class TraceAdviceListener extends AbstractTraceAdviceListener implements 
     /**
      * Constructor
      */
-    public TraceAdviceListener(TraceCommand command, CommandCoreSession process, boolean verbose) {
+    public TraceAdviceListener(TraceCommand command, AbstractCommandSession process, boolean verbose) {
         super(command, process);
         super.setVerbose(verbose);
     }

@@ -58,7 +58,7 @@ public class TaskUtils {
      */
     public static void killService(String service, String sid) {
         //先尝试向目标进程发送停止命令
-        boolean isOk = AgentManager.getInstance().killClient(service, sid);
+        boolean isOk = AgentManager.getInstance().gracefulExit(service, sid);
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
@@ -148,7 +148,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServerStarted(service, sid, maxStartTime);
+        AgentManager.getInstance().waitServiceStarted(service, sid, maxStartTime);
     }
 
     /**

@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd.impl;
 import com.mz.jarboot.core.advisor.Advice;
 import com.mz.jarboot.core.advisor.AdviceListenerAdapter;
 import com.mz.jarboot.core.advisor.JarbootMethod;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
@@ -17,14 +17,14 @@ public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     protected final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     protected TraceCommand command;
-    protected CommandCoreSession process;
+    protected AbstractCommandSession process;
 
     protected final ThreadLocal<TraceEntity> threadBoundEntity = new ThreadLocal<>();
 
     /**
      * Constructor
      */
-    public AbstractTraceAdviceListener(TraceCommand command, CommandCoreSession process) {
+    public AbstractTraceAdviceListener(TraceCommand command, AbstractCommandSession process) {
         this.command = command;
         this.process = process;
     }

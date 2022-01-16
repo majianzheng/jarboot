@@ -7,7 +7,7 @@ import com.mz.jarboot.core.cmd.impl.ThreadCommand;
 import com.mz.jarboot.core.cmd.impl.TraceCommand;
 import com.mz.jarboot.core.cmd.internal.CancelCommand;
 import com.mz.jarboot.core.cmd.internal.ExitCommand;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -31,7 +31,7 @@ public class CommandBuilderTest {
         byte[] line = toByte(CommandType.USER_PUBLIC.value(),
                 "123\rtrace demo.Test run 'params.length>=0' -n 5");
         CommandRequest request = new CommandRequest();
-        CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
+        AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
@@ -45,7 +45,7 @@ public class CommandBuilderTest {
         line = toByte(CommandType.USER_PUBLIC.value(),
                 "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3");
         request = new CommandRequest();
-        session = Mockito.mock(CommandCoreSession.class);
+        session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
@@ -104,7 +104,7 @@ public class CommandBuilderTest {
         //测试trace命令构建
         byte[] line = toByte(CommandType.USER_PUBLIC.value(), "123\rexit");
         CommandRequest request = new CommandRequest();
-        CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
+        AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof ExitCommand).isTrue();

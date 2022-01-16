@@ -259,7 +259,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         ArrayList<JvmProcess> result = new ArrayList<>();
         Map<String, String> vms = VMUtils.getInstance().listVM();
         vms.forEach((pid, v) -> {
-            if (AgentManager.getInstance().isManageredServer(pid)) {
+            if (AgentManager.getInstance().isLocalService(pid)) {
                 return;
             }
             JvmProcess process = new JvmProcess();

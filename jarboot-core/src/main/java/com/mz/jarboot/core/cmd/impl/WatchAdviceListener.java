@@ -4,7 +4,7 @@ import com.mz.jarboot.core.advisor.AccessPoint;
 import com.mz.jarboot.core.advisor.Advice;
 import com.mz.jarboot.core.advisor.AdviceListenerAdapter;
 import com.mz.jarboot.core.advisor.JarbootMethod;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
@@ -19,9 +19,9 @@ class WatchAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
     private com.mz.jarboot.core.cmd.impl.WatchCommand command;
-    private CommandCoreSession process;
+    private AbstractCommandSession process;
 
-    public WatchAdviceListener(com.mz.jarboot.core.cmd.impl.WatchCommand command, CommandCoreSession process, boolean verbose) {
+    public WatchAdviceListener(com.mz.jarboot.core.cmd.impl.WatchCommand command, AbstractCommandSession process, boolean verbose) {
         this.command = command;
         this.process = process;
         super.setVerbose(verbose);

@@ -41,9 +41,9 @@ public enum ResponseType {
     LOG_APPENDER,
 
     /**
-     * 动作，请求jarboot server执行
+     * Notice
      */
-    ACTION,
+    NOTICE,
 
     /**
      * 非法的未知类型

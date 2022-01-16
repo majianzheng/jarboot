@@ -11,7 +11,7 @@ import com.mz.jarboot.core.cmd.model.RowAffectModel;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -305,7 +305,7 @@ public class TimeTunnelCommand extends EnhancerCommand {
     }
 
     @Override
-    protected AdviceListener getAdviceListener(CommandCoreSession process) {
+    protected AdviceListener getAdviceListener(AbstractCommandSession process) {
         return new com.mz.jarboot.core.cmd.impl.TimeTunnelAdviceListener(this, process,
                 GlobalOptions.verbose || this.verbose);
     }

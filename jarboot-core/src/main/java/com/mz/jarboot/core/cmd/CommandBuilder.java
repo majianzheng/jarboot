@@ -11,7 +11,7 @@ import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
 import com.mz.jarboot.core.cmd.internal.*;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
@@ -62,8 +62,10 @@ public class CommandBuilder {
         //初始化jdk的spi
         initJdkSpi();
     }
+
     private CommandBuilder(){}
-    public static AbstractCommand build(CommandRequest request, CommandCoreSession session) {
+
+    public static AbstractCommand build(CommandRequest request, AbstractCommandSession session) {
         CommandType type = request.getCommandType();
         String commandLine = request.getCommandLine();
         int p = commandLine.indexOf(' ');
@@ -155,7 +157,7 @@ public class CommandBuilder {
         return cls;
     }
 
-    private static ExtendCommand createFromSpi(String cmd, String args, CommandCoreSession session) {
+    private static ExtendCommand createFromSpi(String cmd, String args, AbstractCommandSession session) {
         String errorMsg = "command not found.";
         CommandProcessor processor = EXTEND_MAP.computeIfAbsent(cmd, k -> findJdkCmdSpi(k));
         if (null == processor) {

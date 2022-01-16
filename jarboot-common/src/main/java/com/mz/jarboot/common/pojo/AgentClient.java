@@ -65,7 +65,7 @@ public class AgentClient extends ResponseSimple {
         return "AgentClientPojo{" +
                 "clientAddr='" + clientAddr + '\'' +
                 ", local=" + local +
-                ", server='" + serviceName + '\'' +
+                ", serviceName='" + serviceName + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +

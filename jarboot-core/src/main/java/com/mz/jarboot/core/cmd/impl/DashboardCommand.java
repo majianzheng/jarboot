@@ -10,7 +10,7 @@ import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.core.cmd.model.*;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
@@ -238,10 +238,10 @@ public class DashboardCommand extends AbstractCommand {
     }
 
     private class DashboardTimerTask extends TimerTask {
-        private CommandCoreSession process;
+        private AbstractCommandSession process;
         private ThreadSampler threadSampler;
 
-        public DashboardTimerTask(CommandCoreSession process) {
+        public DashboardTimerTask(AbstractCommandSession process) {
             this.process = process;
             this.threadSampler = new ThreadSampler();
         }

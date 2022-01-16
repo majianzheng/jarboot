@@ -39,7 +39,7 @@ public interface AgentService {
      * 获取服务名
      * @return 服务名
      */
-    String getServerName();
+    String getServiceName();
 
     /**
      * 获取Jarboot的类加载器

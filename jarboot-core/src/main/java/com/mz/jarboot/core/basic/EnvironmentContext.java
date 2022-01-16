@@ -5,8 +5,8 @@ import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
-import com.mz.jarboot.core.session.CommandCoreSession;
-import com.mz.jarboot.core.session.CommandSessionImpl;
+import com.mz.jarboot.core.session.AbstractCommandSession;
+import com.mz.jarboot.core.session.CoreCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
@@ -29,7 +29,7 @@ public class EnvironmentContext {
     /** instrumentation用于类查找、增强 */
     private static Instrumentation instrumentation;
     /** 连接会话 */
-    private static ConcurrentMap<String, CommandCoreSession> sessionMap = new ConcurrentHashMap<>(16);
+    private static ConcurrentMap<String, AbstractCommandSession> sessionMap = new ConcurrentHashMap<>(16);
     /** 正在执行的命令 */
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     /** Schedule线程调度 */
@@ -122,8 +122,8 @@ public class EnvironmentContext {
         return transformerManager;
     }
 
-    public static CommandCoreSession registerSession(String sessionId) {
-        return sessionMap.computeIfAbsent(sessionId, key -> new CommandSessionImpl(sessionId));
+    public static AbstractCommandSession registerSession(String sessionId) {
+        return sessionMap.computeIfAbsent(sessionId, key -> new CoreCommandSession(sessionId));
     }
 
     /**
@@ -131,7 +131,7 @@ public class EnvironmentContext {
      * @return 是否结束
      */
     public static boolean checkJobEnd(String sessionId, String jobId) {
-        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
+        AbstractCommandSession session = sessionMap.getOrDefault(sessionId, null);
         if (null == session) {
             return true;
         }
@@ -150,7 +150,7 @@ public class EnvironmentContext {
         if (null == command) {
             return;
         }
-        final CommandCoreSession session = command.getSession();
+        final AbstractCommandSession session = command.getSession();
         if (checkCommandRunning(session)) {
             return;
         }
@@ -186,7 +186,7 @@ public class EnvironmentContext {
             command.cancel();
             runningCommandMap.remove(sessionId);
         }
-        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
+        AbstractCommandSession session = sessionMap.getOrDefault(sessionId, null);
         if (null != session) {
             session.cancel();
             session.end();
@@ -194,7 +194,7 @@ public class EnvironmentContext {
         }
     }
 
-    private static boolean checkCommandRunning(final CommandCoreSession session) {
+    private static boolean checkCommandRunning(final AbstractCommandSession session) {
         if (session.isRunning()) {
             AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
             if (null == cmd) {

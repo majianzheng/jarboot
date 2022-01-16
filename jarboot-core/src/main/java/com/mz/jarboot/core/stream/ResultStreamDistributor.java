@@ -21,7 +21,7 @@ import org.slf4j.Logger;
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
-public class ResultStreamDistributor implements Subscriber<CommandResponse> {
+public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
 
     private final ResponseStream http = new HttpResponseStreamImpl();
@@ -30,16 +30,6 @@ public class ResultStreamDistributor implements Subscriber<CommandResponse> {
 
     public static ResultStreamDistributor getInstance() {
         return ResultStreamDistributorHolder.INST;
-    }
-
-    @Override
-    public void onEvent(CommandResponse event) {
-        sendToServer(event);
-    }
-
-    @Override
-    public Class<? extends JarbootEvent> subscribeType() {
-        return CommandResponse.class;
     }
 
     /** instance holder */
@@ -104,17 +94,26 @@ public class ResultStreamDistributor implements Subscriber<CommandResponse> {
                         .build());
     }
 
-    private static void sendToServer(CommandResponse resp) {
+    private void sendToServer(CommandResponse resp) {
         if (WsClientFactory.getInstance().isOnline()) {
             //根据数据包的大小选择合适的通讯方式
             byte[] raw = resp.toRaw();
-            ResponseStream stream = (raw.length < CoreConstant.SOCKET_MAX_SEND) ?
-                    ResultStreamDistributorHolder.INST.socket : ResultStreamDistributorHolder.INST.http;
+            ResponseStream stream = (raw.length < CoreConstant.SOCKET_MAX_SEND) ? socket : http;
             stream.write(raw);
         }
     }
 
     private ResultStreamDistributor() {
-        NotifyReactor.getInstance().registerSubscriber(this);
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<CommandResponse>() {
+            @Override
+            public void onEvent(CommandResponse event) {
+                sendToServer(event);
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return CommandResponse.class;
+            }
+        });
     }
 }
