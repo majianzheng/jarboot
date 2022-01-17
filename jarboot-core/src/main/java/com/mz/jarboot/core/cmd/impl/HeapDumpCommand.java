@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 @Name("heapdump")
 @Summary("Heap dump")
 @Description("\nExamples:\n" + "  heapdump\n" + "  heapdump --live\n"
@@ -65,6 +64,7 @@ public class HeapDumpCommand extends AbstractCommand {
     }
 
     @Override
+    @SuppressWarnings("squid:S1181")
     public void run() {
         String outPath = LogUtils.getLogDir() + File.separator + "dump";
         try {

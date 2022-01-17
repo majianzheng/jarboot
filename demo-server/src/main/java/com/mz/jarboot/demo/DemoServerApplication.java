@@ -17,13 +17,13 @@ import java.util.concurrent.TimeUnit;
  * jarboot启动的Java进程的demo示例
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S106", "squid:S1181"})
 public class DemoServerApplication implements Runnable {
     private static final int INVALID_NUM = -1;
     private static final int FIB_FUNC = 1;
     private static final int POW_FUNC = 2;
-    public static AgentService agentService = null;
-    
+    private static AgentService agentService = null;
+
     private JTextField execLimitInput;
     private JTextField execIntervalInput;
     private JTextField fibInput;
@@ -51,14 +51,24 @@ public class DemoServerApplication implements Runnable {
         }
     }
 
+    public static void notice(String msg, String sessionId) {
+        if (null != agentService) {
+            agentService.noticeInfo(msg, sessionId);
+        }
+    }
+
     private static void finish() {
+        final int max = 50;
         final String back = "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" +
                 "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
         //模拟启动进度
         StringBuilder percent = new StringBuilder(1024);
-        for (int i = 0; i < 50; ++i) {
+        for (int i = 0; i < max; ++i) {
             int color = (52 + i * 3);
-            percent.append("\033[48;5;" + color + "m \033[0m");
+            percent
+                    .append("\033[48;5;")
+                    .append(color)
+                    .append("m \033[0m");
             StringBuilder sb = new StringBuilder(1024);
             if (i > 0) {
                 sb.append(back);
@@ -66,7 +76,7 @@ public class DemoServerApplication implements Runnable {
             sb
                     .append(percent.toString())
                     .append("\033[2;48;5;239m");
-            for (int j = i + 1; j < 50; ++j) {
+            for (int j = i + 1; j < max; ++j) {
                 sb.append(' ');
             }
             sb
@@ -88,7 +98,8 @@ public class DemoServerApplication implements Runnable {
             //ignore
         }
     }
-    
+
+    @SuppressWarnings("PMD.AvoidManuallyCreateThreadRule")
     private void callFunc(int f) {
         if (null != runFuncThread && runFuncThread.isAlive()) {
             log("正在执行中，请稍后...");
@@ -132,7 +143,7 @@ public class DemoServerApplication implements Runnable {
         String text2 = pow2Input.getText();
         log("输入值为：" + text1 + ", " + text2);
         double a1;
-        int c = 0;
+        int c;
         try {
             a1 = Double.parseDouble(text1);
             c = Integer.parseInt(text2);
@@ -213,7 +224,7 @@ public class DemoServerApplication implements Runnable {
     private static void printBanner() {
         try (InputStream is = DemoServerApplication.class.getResourceAsStream("/banner.txt");
              InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-             BufferedReader br = new BufferedReader(isr);){
+             BufferedReader br = new BufferedReader(isr)){
             for (;;) {
                 String line = br.readLine();
                 if (null == line) {
@@ -222,7 +233,7 @@ public class DemoServerApplication implements Runnable {
                 System.out.println(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
     }
     

@@ -6,12 +6,12 @@ package com.mz.jarboot.core.advisor;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S112")
 public interface InvokeTraceable {
 
     /**
      * 调用之前跟踪
-     *
+     * @param classLoader 类加载器
      * @param tracingClassName  调用类名
      * @param tracingMethodName 调用方法名
      * @param tracingMethodDesc 调用方法描述
@@ -27,7 +27,7 @@ public interface InvokeTraceable {
 
     /**
      * 抛异常后跟踪
-     *
+     * @param classLoader 类加载器
      * @param tracingClassName  调用类名
      * @param tracingMethodName 调用方法名
      * @param tracingMethodDesc 调用方法描述
@@ -44,7 +44,7 @@ public interface InvokeTraceable {
 
     /**
      * 调用之后跟踪
-     *
+     * @param classLoader 类加载器
      * @param tracingClassName  调用类名
      * @param tracingMethodName 调用方法名
      * @param tracingMethodDesc 调用方法描述

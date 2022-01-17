@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 标准输出流、错误流重定向反应器
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S106", "squid:S1181"})
 public class StdOutStreamReactor {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -35,9 +35,9 @@ public class StdOutStreamReactor {
     /** 上一次的打印时间 */
     private volatile long lastStdTime = 0;
     /** 启动完成判定时间 */
-    private long startDetermineTime = 5000;
+    private long startDetermineTime;
     /** 是否正在唤醒 */
-    private final AtomicBoolean wakeuping = new AtomicBoolean(false);
+    private final AtomicBoolean wakeup = new AtomicBoolean(false);
     /** 监控终端输出的定时任务，负责判定是否启动完成 */
     private ScheduledFuture<?> watchFuture;
 
@@ -92,6 +92,7 @@ public class StdOutStreamReactor {
         }
     }
 
+    @SuppressWarnings("java:S3011")
     private void enableAnsiLogColor() {
         try {
             Class<?> cls = Class.forName("com.mz.jarboot.common.AnsiLog");
@@ -151,8 +152,8 @@ public class StdOutStreamReactor {
      */
     private void onWakeup() {
         //io唤醒机制，当IO第一次变动时，等待一段时间后触发刷新，忽视等待期间的事件，然后开始新的一轮
-        //检查是否正在等待weakup
-        if (wakeuping.compareAndSet(false, true)) {
+        //检查是否正在等待wakeup
+        if (wakeup.compareAndSet(false, true)) {
             return;
         }
         //启动延时任务，防抖动设计，忽视中间变化
@@ -165,8 +166,8 @@ public class StdOutStreamReactor {
      * IO刷新
      */
     private void flush() {
-        //CAS判定，只有启动了weakup延迟后才可刷新
-        if (wakeuping.compareAndSet(true, false)) {
+        //CAS判定，只有启动了wakeup延迟后才可刷新
+        if (wakeup.compareAndSet(true, false)) {
             stdOutPrintStream.flush();
         }
     }

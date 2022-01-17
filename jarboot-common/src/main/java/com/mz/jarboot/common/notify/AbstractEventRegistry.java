@@ -9,6 +9,7 @@ import com.mz.jarboot.common.utils.StringUtils;
  * @author majianzheng
  */
 public interface AbstractEventRegistry {
+    @SuppressWarnings("java:S2386")
     byte[] SPLIT = new byte[]{'\r'};
     /**
      * 注册订阅者

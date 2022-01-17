@@ -317,7 +317,7 @@
 					</rulesets>
 					<printFailingErrors>true</printFailingErrors>
 					<excludes>
-						<exclude>**/core/cmd/model/*.java</exclude>
+						<exclude>**/core/cmd/**/*.java</exclude>
 						<exclude>**/jarboot/agent/*.java</exclude>
 						<exclude>**/java/jarboot/*.java</exclude>
 					</excludes>

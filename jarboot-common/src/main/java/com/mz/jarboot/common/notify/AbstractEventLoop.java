@@ -3,7 +3,7 @@ package com.mz.jarboot.common.notify;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({ "squid:S1181", "ConditionalBreakInInfiniteLoop" })
 public abstract class AbstractEventLoop extends Thread {
     private volatile boolean initialized = false;
     protected volatile boolean shutdown = false;
@@ -28,7 +28,6 @@ public abstract class AbstractEventLoop extends Thread {
     }
 
     @Override
-    @SuppressWarnings("all")
     public final void run() {
         try {
             for (; ; ) {

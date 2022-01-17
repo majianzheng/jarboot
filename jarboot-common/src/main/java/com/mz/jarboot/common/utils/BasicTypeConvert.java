@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
  * 字符串转化为指定的类型数据
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S3776", "unchecked", "squid:S2259"})
 public class BasicTypeConvert {
     private static final String ARRAY_SPLIT = ",";
 
@@ -31,7 +31,7 @@ public class BasicTypeConvert {
         return (T)val;
     }
 
-    private static Object convertBasic(String val, Class cls) {
+    private static Object convertBasic(String val, Class<?> cls) {
         Object arg = null;
         //这里可以使用==直接比较引用，不必使用equals
         if (String.class == cls) {
@@ -53,8 +53,6 @@ public class BasicTypeConvert {
             arg = Float.parseFloat(val);
         } else if (double.class == cls || Double.class == cls) {
             arg = Double.parseDouble(val);
-        } else {
-            //do nothing
         }
         return arg;
     }

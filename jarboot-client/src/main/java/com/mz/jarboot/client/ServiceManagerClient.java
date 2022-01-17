@@ -44,9 +44,8 @@ public class ServiceManagerClient implements ServiceManager {
 
     @Override
     public List<ServiceInstance> getServiceList() {
-        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/services";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
-        JsonNode result = ResponseUtils.parseResult(response, api);
+        String response = this.clientProxy.reqApi(CommonConst.SERVICE_MGR_CONTEXT, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode result = ResponseUtils.parseResult(response, CommonConst.SERVICE_MGR_CONTEXT);
         List<ServiceInstance> list = new ArrayList<>();
         final int size = result.size();
         for (int i = 0; i < size; ++i) {

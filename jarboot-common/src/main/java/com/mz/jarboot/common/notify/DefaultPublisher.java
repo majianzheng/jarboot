@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S1181", "unchecked", "java:S3740"})
 public class DefaultPublisher extends AbstractEventLoop implements EventPublisher {
     protected static final Logger logger = LoggerFactory.getLogger(DefaultPublisher.class);
     protected final BlockingQueue<JarbootEvent> queue;
@@ -32,6 +32,9 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
         try {
             final JarbootEvent event = queue.take();
             receiveEvent(event);
+        } catch (InterruptedException e) {
+            logger.error("loop thread interrupted. shutdown: {}", this.shutdown, e);
+            Thread.currentThread().interrupt();
         } catch (Throwable ex) {
             logger.error("Event listener exception : ", ex);
         }
@@ -114,7 +117,7 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
      * @param event      {@link JarbootEvent}
      */
     @Override
-    public void notifySubscriber(Subscriber subscriber, JarbootEvent event) {
+    public void notifySubscriber(Subscriber<JarbootEvent> subscriber, JarbootEvent event) {
         final Runnable job = () -> subscriber.onEvent(event);
         final Executor executor = subscriber.executor();
 
@@ -135,6 +138,7 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
     @Override
     public void shutdown() {
         this.shutdown = true;
+        this.interrupt();
         this.queue.clear();
     }
 }

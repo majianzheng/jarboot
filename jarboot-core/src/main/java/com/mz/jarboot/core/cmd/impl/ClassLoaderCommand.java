@@ -25,7 +25,6 @@ import java.util.Map.Entry;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 @Name("classloader")
 @Summary("Show classloader info")
 @Description(CoreConstant.EXAMPLE +
@@ -101,6 +100,13 @@ public class ClassLoaderCommand extends AbstractCommand {
     }
 
     @Override
+    public void cancel() {
+        this.isInterrupted = true;
+        super.cancel();
+    }
+
+    @Override
+    @SuppressWarnings("java:S3776")
     public void run() {
         // ctrl-C support
         ClassLoader targetClassLoader = null;
@@ -120,7 +126,7 @@ public class ClassLoaderCommand extends AbstractCommand {
                     break;
                 }
             }
-        } else if (targetClassLoader == null && classLoaderClass != null) {
+        } else if (classLoaderClass != null) {
             List<ClassLoader> matchedClassLoaders = ClassLoaderUtils.getClassLoaderByClassName(inst, classLoaderClass);
             if (matchedClassLoaders.size() == 1) {
                 targetClassLoader = matchedClassLoaders.get(0);
@@ -141,11 +147,11 @@ public class ClassLoaderCommand extends AbstractCommand {
         if (all) {
             processAllClasses(inst);
         } else if (classLoaderSpecified && resource != null) {
-            processResources(inst, targetClassLoader);
+            processResources(targetClassLoader);
         } else if (classLoaderSpecified && this.loadClass != null) {
-            processLoadClass(inst, targetClassLoader);
+            processLoadClass(targetClassLoader);
         } else if (classLoaderSpecified) {
-            processClassLoader(inst, targetClassLoader);
+            processClassLoader(targetClassLoader);
         } else if (listClassLoader || isTree){
             processClassLoaders(inst);
         } else {
@@ -156,19 +162,15 @@ public class ClassLoaderCommand extends AbstractCommand {
     /**
      * Calculate classloader statistics.
      * e.g. In JVM, there are 100 GrooyClassLoader instances, which loaded 200 classes in total
-     * @param inst
+     * @param inst {@link Instrumentation}
      */
     private void processClassLoaderStats(Instrumentation inst) {
         RowAffect affect = new RowAffect();
         List<ClassLoaderInfo> classLoaderInfos = getAllClassLoaderInfo(inst);
-        Map<String, ClassLoaderStat> classLoaderStats = new HashMap<>();
+        Map<String, ClassLoaderStat> classLoaderStats = new HashMap<>(16);
         for (ClassLoaderInfo info: classLoaderInfos) {
             String name = info.classLoader == null ? "BootstrapClassLoader" : info.classLoader.getClass().getName();
-            ClassLoaderStat stat = classLoaderStats.get(name);
-            if (null == stat) {
-                stat = new ClassLoaderStat();
-                classLoaderStats.put(name, stat);
-            }
+            ClassLoaderStat stat = classLoaderStats.computeIfAbsent(name, k -> new ClassLoaderStat());
             stat.addLoadedCount(info.loadedClassCount);
             stat.addNumberOfInstance(1);
         }
@@ -205,8 +207,8 @@ public class ClassLoaderCommand extends AbstractCommand {
         session.end();
     }
 
-    // 根据 ClassLoader 来打印URLClassLoader的urls
-    private void processClassLoader(Instrumentation inst, ClassLoader targetClassLoader) {
+    private void processClassLoader(ClassLoader targetClassLoader) {
+        // 根据 ClassLoader 来打印URLClassLoader的urls
         RowAffect affect = new RowAffect();
         if (targetClassLoader != null) {
             if (targetClassLoader instanceof URLClassLoader) {
@@ -226,11 +228,10 @@ public class ClassLoaderCommand extends AbstractCommand {
         session.end();
     }
 
-    // 使用ClassLoader去getResources
-    private void processResources(Instrumentation inst, ClassLoader targetClassLoader) {
+    private void processResources(ClassLoader targetClassLoader) {
         RowAffect affect = new RowAffect();
         int rowCount = 0;
-        List<String> resources = new ArrayList<String>();
+        List<String> resources = new ArrayList<>();
         if (targetClassLoader != null) {
             try {
                 Enumeration<URL> urls = targetClassLoader.getResources(resource);
@@ -250,8 +251,8 @@ public class ClassLoaderCommand extends AbstractCommand {
         session.end();
     }
 
-    // Use ClassLoader to loadClass
-    private void processLoadClass(Instrumentation inst, ClassLoader targetClassLoader) {
+    @SuppressWarnings("java:S1181")
+    private void processLoadClass(ClassLoader targetClassLoader) {
         if (targetClassLoader != null) {
             try {
                 Class<?> clazz = targetClassLoader.loadClass(this.loadClass);
@@ -284,7 +285,7 @@ public class ClassLoaderCommand extends AbstractCommand {
      * 当hashCode是null，则把所有的classloader的都打印
      *
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "java:S135"})
     private void getAllClasses(String hashCode, Instrumentation inst, RowAffect affect) {
         int hashCodeInt = -1;
         if (hashCode != null) {
@@ -294,7 +295,7 @@ public class ClassLoaderCommand extends AbstractCommand {
         SortedSet<Class<?>> bootstrapClassSet = new TreeSet<>((Comparator<Class>) (o1, o2) -> o1.getName().compareTo(o2.getName()));
 
         Class[] allLoadedClasses = inst.getAllLoadedClasses();
-        Map<ClassLoader, SortedSet<Class<?>>> classLoaderClassMap = new HashMap<>();
+        Map<ClassLoader, SortedSet<Class<?>>> classLoaderClassMap = new HashMap<>(16);
         for (Class clazz : allLoadedClasses) {
             ClassLoader classLoader = clazz.getClassLoader();
             // Class loaded by BootstrapClassLoader
@@ -309,11 +310,8 @@ public class ClassLoaderCommand extends AbstractCommand {
                 continue;
             }
 
-            SortedSet<Class<?>> classSet = classLoaderClassMap.get(classLoader);
-            if (classSet == null) {
-                classSet = new TreeSet<>((o1, o2) -> o1.getName().compareTo(o2.getName()));
-                classLoaderClassMap.put(classLoader, classSet);
-            }
+            SortedSet<Class<?>> classSet = classLoaderClassMap
+                    .computeIfAbsent(classLoader, k -> new TreeSet<>((o1, o2) -> o1.getName().compareTo(o2.getName())));
             classSet.add(clazz);
         }
 
@@ -367,8 +365,8 @@ public class ClassLoaderCommand extends AbstractCommand {
         return urlStrs;
     }
 
-    // 以树状列出ClassLoader的继承结构
     private static List<ClassLoaderVO> processClassLoaderTree(List<ClassLoaderVO> classLoaders) {
+        // 以树状列出ClassLoader的继承结构
         List<ClassLoaderVO> rootClassLoaders = new ArrayList<>();
         List<ClassLoaderVO> parentNotNullClassLoaders = new ArrayList<>();
         for (ClassLoaderVO classLoaderVO : classLoaders) {
@@ -399,20 +397,19 @@ public class ClassLoaderCommand extends AbstractCommand {
 
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             ClassLoader classLoader = clazz.getClassLoader();
-            if (classLoader != null) {
-                if (shouldInclude(classLoader, filters)) {
-                    classLoaderSet.add(classLoader);
-                }
+            if (classLoader != null && shouldInclude(classLoader, filters)) {
+                classLoaderSet.add(classLoader);
             }
         }
         return classLoaderSet;
     }
 
+    @SuppressWarnings("java:S3776")
     private static List<ClassLoaderInfo> getAllClassLoaderInfo(Instrumentation inst, Filter... filters) {
         // 这里认为class.getClassLoader()返回是null的是由BootstrapClassLoader加载的，特殊处理
         ClassLoaderInfo bootstrapInfo = new ClassLoaderInfo(null);
 
-        Map<ClassLoader, ClassLoaderInfo> loaderInfos = new HashMap<>();
+        Map<ClassLoader, ClassLoaderInfo> loaderInfos = new HashMap<>(16);
 
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             ClassLoader classLoader = clazz.getClassLoader();
@@ -478,7 +475,7 @@ public class ClassLoaderCommand extends AbstractCommand {
     }
 
     private static class ClassLoaderInfo implements Comparable<ClassLoaderInfo> {
-        private ClassLoader classLoader;
+        private final ClassLoader classLoader;
         private int loadedClassCount = 0;
 
         ClassLoaderInfo(ClassLoader classLoader) {
@@ -522,6 +519,7 @@ public class ClassLoaderCommand extends AbstractCommand {
             return parent.toString();
         }
 
+        @SuppressWarnings("java:S1210")
         @Override
         public int compareTo(ClassLoaderInfo other) {
             if (other == null) {
@@ -540,6 +538,11 @@ public class ClassLoaderCommand extends AbstractCommand {
     }
 
     private interface Filter {
+        /**
+         * accept
+         * @param classLoader classloader
+         * @return boolean
+         */
         boolean accept(ClassLoader classLoader);
     }
 

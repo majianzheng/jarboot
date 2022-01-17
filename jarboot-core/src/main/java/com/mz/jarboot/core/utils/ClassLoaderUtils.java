@@ -11,11 +11,10 @@ import java.util.Set;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class ClassLoaderUtils {
 
     public static Set<ClassLoader> getAllClassLoader(Instrumentation inst) {
-        Set<ClassLoader> classLoaderSet = new HashSet<ClassLoader>();
+        Set<ClassLoader> classLoaderSet = new HashSet<>();
 
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
             ClassLoader classLoader = clazz.getClassLoader();
@@ -43,16 +42,16 @@ public class ClassLoaderUtils {
 
     /**
      * 通过类名查找classloader
-     * @param inst
-     * @param classLoaderClassName
-     * @return
+     * @param inst {@link Instrumentation}
+     * @param classLoaderClassName classLoaderClassName
+     * @return Classloader list
      */
     public static List<ClassLoader> getClassLoaderByClassName(Instrumentation inst, String classLoaderClassName) {
+        List<ClassLoader> matchClassLoaders = new ArrayList<>();
         if (classLoaderClassName == null || classLoaderClassName.isEmpty()) {
-            return null;
+            return matchClassLoaders;
         }
         Set<ClassLoader> classLoaderSet = getAllClassLoader(inst);
-        List<ClassLoader> matchClassLoaders = new ArrayList<ClassLoader>();
         for (ClassLoader classLoader : classLoaderSet) {
             if (classLoader.getClass().getName().equals(classLoaderClassName)) {
                 matchClassLoaders.add(classLoader);

@@ -10,7 +10,6 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class TraceTree {
     private TraceNode root;
 
@@ -44,8 +43,7 @@ public class TraceTree {
         List<TraceNode> childList = node.getChildren();
         if (childList != null) {
             //less memory than foreach/iterator
-            for (int i = 0; i < childList.size(); i++) {
-                TraceNode child = childList.get(i);
+            for (TraceNode child : childList) {
                 if (matchNode(child, className, methodName, lineNumber)) {
                     return child;
                 }
@@ -67,7 +65,6 @@ public class TraceTree {
     public void end() {
         current.end();
         if (current.parent() != null) {
-            //TODO 为什么会到达这里？ 调用end次数比begin多？
             current = current.parent();
         }
     }
@@ -101,7 +98,7 @@ public class TraceTree {
 
     /**
      * 转换标准类名，放在trace结束后统一转换，减少重复操作
-     * @param node
+     * @param node node
      */
     private void normalizeClassName(TraceNode node) {
         if (node instanceof MethodNode) {
@@ -113,8 +110,7 @@ public class TraceTree {
         List<TraceNode> children = node.getChildren();
         if (children != null) {
             //less memory fragment than foreach
-            for (int i = 0; i < children.size(); i++) {
-                TraceNode child = children.get(i);
+            for (TraceNode child : children) {
                 normalizeClassName(child);
             }
         }

@@ -13,7 +13,6 @@
     <artifactId>jarboot-core</artifactId>
     <name>Jarboot core</name>
     <properties>
-        <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
     <dependencies>

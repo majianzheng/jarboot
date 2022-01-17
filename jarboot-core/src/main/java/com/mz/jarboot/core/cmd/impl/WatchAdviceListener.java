@@ -14,7 +14,7 @@ import java.util.Date;
  * @author majianzheng
  *
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S1181")
 class WatchAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();

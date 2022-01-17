@@ -25,7 +25,7 @@ public class ShCommandProcessor implements CommandProcessor {
         IS_WINDOWS = os.startsWith("windows");
     }
 
-    @SuppressWarnings("all")
+    @SuppressWarnings({"squid:S106", "squid:S1148"})
     @Override
     public String process(CommandSession session, String[] args) {
         if (null != process) {

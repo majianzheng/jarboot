@@ -16,7 +16,7 @@ import java.util.Date;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S4065", "squid:S5164", "squid:S1226"})
 public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocal<ObjectStack> argsRef = new ThreadLocal<ObjectStack>() {

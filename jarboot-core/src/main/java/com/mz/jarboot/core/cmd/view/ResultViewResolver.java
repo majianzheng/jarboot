@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 
 import java.lang.reflect.Method;
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Result view resolver
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S3740", "java:S1181", "java:CallToDeprecatedMethod", "java:S1874"})
 public class ResultViewResolver {
     private Map<Class<?>, ResultView<? extends ResultModel>> resultViewMap = new ConcurrentHashMap<>();
 
@@ -23,7 +24,6 @@ public class ResultViewResolver {
      */
     private void initResultViews() {
         registerView(RowAffectView.class);
-        //registerView(HelpView.class);
         //基本命令
         registerView(JvmView.class);
         registerView(SysPropView.class);
@@ -32,12 +32,8 @@ public class ResultViewResolver {
         //klass
         registerView(ClassLoaderView.class);
         registerView(DumpClassView.class);
-        //registerView(GetStaticView.class);
         registerView(JadView.class);
-//        registerView(MemoryCompilerView.class);
         registerView(OgnlView.class);
-//        registerView(RedefineView.class);
-//        registerView(RetransformView.class);
         registerView(SearchClassView.class);
         registerView(SearchMethodView.class);
 
@@ -45,12 +41,8 @@ public class ResultViewResolver {
         //监控
         registerView(DashboardView.class);
         registerView(JvmView.class);
-        //registerView(MBeanView.class);
-        //registerView(PerfCounterView.class);
         registerView(ThreadView.class);
-        //registerView(ProfilerView.class);
         registerView(EnhancerView.class);
-        //registerView(MonitorView.class);
         registerView(StackView.class);
         registerView(TimeTunnelView.class);
         registerView(TraceView.class);
@@ -79,7 +71,7 @@ public class ResultViewResolver {
         try {
             view = viewClass.newInstance();
         } catch (Throwable e) {
-            throw new RuntimeException("create view instance failure, viewClass:" + viewClass, e);
+            throw new JarbootRunException("create view instance failure, viewClass:" + viewClass, e);
         }
         this.registerView(view);
     }
@@ -87,7 +79,7 @@ public class ResultViewResolver {
     /**
      * Get model class of result view
      *
-     * @return
+     * @return view
      */
     public static <V extends ResultView> Class getModelClass(V view) {
         //类反射获取子类的render方法第一个参数的ResultModel具体类型
@@ -95,7 +87,7 @@ public class ResultViewResolver {
         Method[] methods = viewClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Method method = methods[i];
-            if (method.getName().equals("render")) {
+            if ("render".equals(method.getName())) {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 1
                         && parameterTypes[0] != ResultModel.class

@@ -43,7 +43,7 @@ export default class ServiceManager {
      * @param callback
      */
     public static getServiceList(callback: any) {
-        Request.get(`${urlBase}/services`, {})
+        Request.get(urlBase, {})
             .then(callback)
             .catch(CommonNotice.errorFormatted);
     }

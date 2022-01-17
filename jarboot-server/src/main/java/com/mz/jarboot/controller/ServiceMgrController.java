@@ -33,7 +33,7 @@ public class ServiceMgrController {
      * 获取服务列表
      * @return 服务列表
      */
-    @GetMapping(value="/services")
+    @GetMapping
     @ResponseBody
     public ResponseForList<ServiceInstance> getServiceList() {
         List<ServiceInstance> results = serviceManager.getServiceList();

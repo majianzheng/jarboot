@@ -6,7 +6,6 @@ import com.mz.jarboot.api.event.Subscriber;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public interface EventPublisher {
     /**
      * 发布事件
@@ -35,7 +34,7 @@ public interface EventPublisher {
      * @param subscriber {@link Subscriber}
      * @param event      {@link JarbootEvent}
      */
-    void notifySubscriber(Subscriber subscriber, JarbootEvent event);
+    void notifySubscriber(Subscriber<JarbootEvent> subscriber, JarbootEvent event);
 
     /**
      * Shutdown publisher

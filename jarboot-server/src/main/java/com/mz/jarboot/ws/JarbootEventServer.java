@@ -26,17 +26,17 @@ import java.util.concurrent.Executor;
  */
 @ServerEndpoint("/jarboot/public/event/ws")
 @Component
-@SuppressWarnings("all")
 public class JarbootEventServer implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(JarbootEventServer.class);
 
     /** 服务端本地的订阅 */
+    @SuppressWarnings("java:S3740")
     private static final Map<String, Set<Subscriber>> LOCAL_SUBS = new ConcurrentHashMap<>(16);
     /** 客户端接口的订阅 */
     private static final Map<String, Set<Session>> CLIENT_SUBS = new ConcurrentHashMap<>(16);
 
     @Override
-    public void registerSubscriber(String topic, Subscriber subscriber) {
+    public void registerSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
         checkTopic(topic);
         checkSubscriber(subscriber);
         LOCAL_SUBS.compute(topic, (k, v) -> {
@@ -49,7 +49,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
     }
 
     @Override
-    public void deregisterSubscriber(String topic, Subscriber subscriber) {
+    public void deregisterSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
         checkTopic(topic);
         checkSubscriber(subscriber);
         LOCAL_SUBS.computeIfPresent(topic, (k, v) -> {
@@ -58,6 +58,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
         });
     }
 
+    @SuppressWarnings("java:S3740")
     @Override
     public void receiveEvent(String topic, JarbootEvent event) {
         Set<Subscriber> subs = LOCAL_SUBS.getOrDefault(topic, null);
@@ -151,7 +152,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
         }
     }
 
-    private void checkSubscriber(Subscriber subscriber) {
+    private void checkSubscriber(Subscriber<? extends JarbootEvent> subscriber) {
         if (null == subscriber) {
             throw new JarbootRunException("subscriber is null.");
         }

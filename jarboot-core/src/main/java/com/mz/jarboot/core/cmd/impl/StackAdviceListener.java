@@ -14,7 +14,6 @@ import java.util.Date;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class StackAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -49,6 +48,7 @@ public class StackAdviceListener extends AdviceListenerAdapter {
         finishing(advice);
     }
 
+    @SuppressWarnings("squid:S1181")
     private void finishing(Advice advice) {
         // 本次调用的耗时
         try {

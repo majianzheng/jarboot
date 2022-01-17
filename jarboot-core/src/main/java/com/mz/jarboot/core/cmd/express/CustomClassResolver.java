@@ -7,19 +7,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author majianzheng
- * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class CustomClassResolver implements ClassResolver {
 
-    public static final CustomClassResolver customClassResolver = new CustomClassResolver();
+    public static final CustomClassResolver CUSTOM_CLASS_RESOLVER = new CustomClassResolver();
 
-    private Map<String, Class<?>> classes = new ConcurrentHashMap<String, Class<?>>(101);
+    private final Map<String, Class<?>> classes = new ConcurrentHashMap<>(101);
 
     private CustomClassResolver() {
 
     }
 
+    @SuppressWarnings({"java:S3824", "PMD.UndefineMagicConstantRule"})
+    @Override
     public Class<?> classForName(String className, Map context) throws ClassNotFoundException {
         Class<?> result = null;
 

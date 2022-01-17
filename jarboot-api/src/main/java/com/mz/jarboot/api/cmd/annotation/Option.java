@@ -5,15 +5,14 @@ package com.mz.jarboot.api.cmd.annotation;
  * 如： -c classloader
  * @author majianzheng
  */
-@SuppressWarnings("all")
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 public @interface Option {
     java.lang.String NO_NAME = "\u0000";
 
-    java.lang.String longName() default "\u0000";
+    java.lang.String longName() default NO_NAME;
 
-    java.lang.String shortName() default "\u0000";
+    java.lang.String shortName() default NO_NAME;
 
     java.lang.String argName() default "value";
 

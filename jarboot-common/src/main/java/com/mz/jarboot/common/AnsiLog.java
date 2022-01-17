@@ -20,16 +20,15 @@ import java.util.regex.Matcher;
  * @author majianzheng
  *
  */
-@SuppressWarnings("all")
-public abstract class AnsiLog {
+@SuppressWarnings({"squid:S106", "squid:S1845", "RegExpRedundantEscape", "RedundantIfStatement"})
+public class AnsiLog {
 
     static boolean enableColor;
 
-    public static Level LEVEL = Level.CONFIG;
+    private static Level levelConfig = Level.CONFIG;
 
     private static final String RESET = "\033[0m";
 
-    private static final int DEFAULT = 39;
     private static final int BLACK = 30;
     private static final int RED = 31;
     private static final int GREEN = 32;
@@ -79,22 +78,22 @@ public abstract class AnsiLog {
      * set logger Level
      *
      * @see Level
-     * @param level
-     * @return
+     * @param level level
+     * @return level
      */
     public static Level level(Level level) {
-        Level old = LEVEL;
-        LEVEL = level;
+        Level old = levelConfig;
+        levelConfig = level;
         return old;
     }
 
     /**
      * get current logger Level
      *
-     * @return
+     * @return level
      */
     public static Level level() {
-        return LEVEL;
+        return levelConfig;
     }
 
     public static String black(String msg) {
@@ -305,6 +304,6 @@ public abstract class AnsiLog {
     }
 
     private static boolean canLog(Level level) {
-        return level.intValue() >= LEVEL.intValue();
+        return level.intValue() >= levelConfig.intValue();
     }
 }

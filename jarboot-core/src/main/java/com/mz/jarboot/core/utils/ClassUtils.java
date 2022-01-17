@@ -22,7 +22,6 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class ClassUtils {
 
     public static String getCodeSource(final CodeSource cs) {
@@ -41,6 +40,7 @@ public class ClassUtils {
         return renderClassInfo(clazz, false, null);
     }
 
+    @SuppressWarnings("squid:S1192")
     public static TableElement renderClassInfo(ClassDetailVO clazz, boolean isPrintField, Integer expand) {
         TableElement table = new TableElement();
 
@@ -70,7 +70,7 @@ public class ClassUtils {
         return table;
     }
 
-    public static ClassDetailVO createClassInfo(Class clazz, boolean withFields) {
+    public static ClassDetailVO createClassInfo(Class<?> clazz, boolean withFields) {
         CodeSource cs = clazz.getProtectionDomain().getCodeSource();
         ClassDetailVO classInfo = new ClassDetailVO();
         classInfo.setName(StringUtils.classname(clazz));
@@ -98,19 +98,19 @@ public class ClassUtils {
         return classInfo;
     }
 
-    public static ClassVO createSimpleClassInfo(Class clazz) {
+    public static ClassVO createSimpleClassInfo(Class<?> clazz) {
         ClassVO classInfo = new ClassVO();
         fillSimpleClassVO(clazz, classInfo);
         return classInfo;
     }
 
-    public static void fillSimpleClassVO(Class clazz, ClassVO classInfo) {
+    public static void fillSimpleClassVO(Class<?> clazz, ClassVO classInfo) {
         classInfo.setName(StringUtils.classname(clazz));
         classInfo.setClassloader(TypeRenderUtils.getClassloader(clazz));
         classInfo.setClassLoaderHash(StringUtils.classLoaderHash(clazz));
     }
 
-    public static MethodVO createMethodInfo(Method method, Class clazz, boolean detail) {
+    public static MethodVO createMethodInfo(Method method, Class<?> clazz, boolean detail) {
         MethodVO methodVO = new MethodVO();
         methodVO.setDeclaringClass(clazz.getName());
         methodVO.setMethodName(method.getName());
@@ -127,7 +127,7 @@ public class ClassUtils {
         return methodVO;
     }
 
-    public static MethodVO createMethodInfo(Constructor constructor, Class clazz, boolean detail) {
+    public static MethodVO createMethodInfo(Constructor<?> constructor, Class<?> clazz, boolean detail) {
         MethodVO methodVO = new MethodVO();
         methodVO.setDeclaringClass(clazz.getName());
         methodVO.setDescriptor(Type.getConstructorDescriptor(constructor));
@@ -168,16 +168,16 @@ public class ClassUtils {
         return table;
     }
 
-    public static String[] getClassNameList(Class[] classes) {
-        List<String> list = new ArrayList<String>();
-        for (Class anInterface : classes) {
+    public static String[] getClassNameList(Class<?>[] classes) {
+        List<String> list = new ArrayList<>();
+        for (Class<?> anInterface : classes) {
             list.add(StringUtils.classname(anInterface));
         }
         return list.toArray(new String[0]);
     }
 
     public static List<ClassVO> createClassVOList(Collection<Class<?>> matchedClasses) {
-        List<ClassVO> classVOs = new ArrayList<ClassVO>(matchedClasses.size());
+        List<ClassVO> classVOs = new ArrayList<>(matchedClasses.size());
         for (Class<?> aClass : matchedClasses) {
             ClassVO classVO = createSimpleClassInfo(aClass);
             classVOs.add(classVO);
@@ -195,7 +195,7 @@ public class ClassUtils {
     }
 
     public static List<ClassLoaderVO> createClassLoaderVOList(Collection<ClassLoader> classLoaders) {
-        List<ClassLoaderVO> classLoaderVOList = new ArrayList<ClassLoaderVO>();
+        List<ClassLoaderVO> classLoaderVOList = new ArrayList<>();
         for (ClassLoader classLoader : classLoaders) {
             classLoaderVOList.add(createClassLoaderVO(classLoader));
         }
@@ -225,4 +225,6 @@ public class ClassUtils {
         }
         return table;
     }
+
+    private ClassUtils() {}
 }

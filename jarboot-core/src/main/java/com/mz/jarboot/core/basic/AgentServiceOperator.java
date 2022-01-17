@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author jianzhengma
  */
+@SuppressWarnings({ "unused", "squid:S1181", "unchecked", "ConstantConditions" })
 public class AgentServiceOperator {
     private static final Logger logger = LogUtils.getLogger();
     private static final String SET_STARTED_API = CommonConst.AGENT_CLIENT_CONTEXT + "/setStarted";
@@ -69,9 +70,7 @@ public class AgentServiceOperator {
     /**
      * 初始化Spring容器中的{@link CommandProcessor}的bean<br>
      * 前置条件：引入了spring-boot-starter-jarboot的依赖
-     * @param context Spring Context
      */
-    @SuppressWarnings("all")
     public static void springContextInit() {
         Object context = JarbootFactory.getSpringApplicationContext();
         if (null == context) {

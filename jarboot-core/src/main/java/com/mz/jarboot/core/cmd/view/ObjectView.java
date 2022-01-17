@@ -22,7 +22,7 @@ import static java.lang.String.format;
 @SuppressWarnings("all")
 public class ObjectView implements View {
     private static final Logger logger = LogUtils.getLogger();
-    private final static int MAX_OBJECT_LENGTH = 10 * 1024 * 1024; // 10M
+    private final static int MAX_OBJECT_LENGTH = 10 * 1024 * 1024;
 
     private final Object object;
     private final int deep;

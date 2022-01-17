@@ -37,7 +37,7 @@ import java.util.Set;
         "  sm *StringUtils *\n" +
         "  sm -Ed org\\\\.apache\\\\.commons\\\\.lang\\.StringUtils .*\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "sm")
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S3776", "unused"})
 public class SearchMethodCommand extends AbstractCommand {
     private static final Logger logger = LogUtils.getLogger();
 

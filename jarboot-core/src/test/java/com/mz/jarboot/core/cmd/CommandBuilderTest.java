@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S5838")
 public class CommandBuilderTest {
     @Test
     public void testBuild() throws IOException {

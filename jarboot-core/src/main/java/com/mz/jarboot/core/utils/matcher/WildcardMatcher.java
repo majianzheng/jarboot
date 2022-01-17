@@ -5,7 +5,7 @@ package com.mz.jarboot.core.utils.matcher;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S3776", "java:S135"})
 public class WildcardMatcher implements com.mz.jarboot.core.utils.matcher.Matcher<String> {
 
     private final String pattern;
@@ -37,11 +37,9 @@ public class WildcardMatcher implements com.mz.jarboot.core.utils.matcher.Matche
         int pNdx = patternStartNdx;
         int sNdx = stringStartNdx;
         int pLen = pattern.length();
-        if (pLen == 1) {
+        if (pLen == 1 && pattern.charAt(0) == ASTERISK) {
             // speed-up
-            if (pattern.charAt(0) == ASTERISK) {
-                return true;
-            }
+            return true;
         }
         int sLen = target.length();
         boolean nextIsNotWildcard = false;

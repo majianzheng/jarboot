@@ -12,7 +12,7 @@ import org.slf4j.Logger;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S1181")
 public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     protected final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
@@ -44,8 +44,7 @@ public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
     }
 
     @Override
-    public void before(ClassLoader loader, Class<?> clazz, JarbootMethod method, Object target, Object[] args)
-            throws Throwable {
+    public void before(ClassLoader loader, Class<?> clazz, JarbootMethod method, Object target, Object[] args) {
         TraceEntity traceEntity = threadLocalTraceEntity(loader);
         traceEntity.tree.begin(clazz.getName(), method.getName(), -1, false);
         traceEntity.deep++;
@@ -55,7 +54,7 @@ public class AbstractTraceAdviceListener extends AdviceListenerAdapter {
 
     @Override
     public void afterReturning(ClassLoader loader, Class<?> clazz, JarbootMethod method, Object target, Object[] args,
-                               Object returnObject) throws Throwable {
+                               Object returnObject) {
         threadLocalTraceEntity(loader).tree.end();
         final Advice advice = Advice.newForAfterRetuning(loader, clazz, method, target, args, returnObject);
         finishing(loader, advice);

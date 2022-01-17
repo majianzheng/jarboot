@@ -1,7 +1,6 @@
 package com.mz.jarboot.idgenerator;
 
 import com.mz.jarboot.common.JarbootException;
-import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.slf4j.Logger;
@@ -16,7 +15,7 @@ import java.io.Serializable;
  * 雪花算法ID生成器
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S1170", "FieldCanBeLocal", "SpellCheckingInspection", "PointlessBitwiseExpression"})
 @Component
 public class SnowFlakeIdGenerator implements IdentifierGenerator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -46,14 +45,18 @@ public class SnowFlakeIdGenerator implements IdentifierGenerator {
     private final long datacenterIdShift = sequenceBits + workerIdBits;
     private final long timestampShift = sequenceBits + workerIdBits + datacenterIdBits;
 
+    /** 数据中心ID */
     @Value("${jarboot.snowflake.datacenter-id:1}")
-    private long datacenterId; // 数据中心ID
+    private long datacenterId;
 
+    /** 机器ID */
     @Value("${jarboot.snowflake.worker-id:0}")
-    private long workerId; // 机器ID
+    private long workerId;
 
-    private long sequence = 0L; // 序列号
-    private long lastTimestamp = -1L; // 上一次时间戳
+    /** 序列号 */
+    private long sequence = 0L;
+    /** 上一次时间戳 */
+    private long lastTimestamp = -1L;
 
     @PostConstruct
     public void init() {
@@ -84,10 +87,10 @@ public class SnowFlakeIdGenerator implements IdentifierGenerator {
         }
         lastTimestamp = timestamp;
 
-        return (timestamp - twepoch) << timestampShift // 时间戳部分
-                | datacenterId << datacenterIdShift // 数据中心部分
-                | workerId << workerIdShift // 机器标识部分
-                | sequence; // 序列号部分
+        return (timestamp - twepoch) << timestampShift
+                | datacenterId << datacenterIdShift
+                | workerId << workerIdShift
+                | sequence;
     }
 
     private long tilNextMillis() {
@@ -103,7 +106,7 @@ public class SnowFlakeIdGenerator implements IdentifierGenerator {
     }
 
     @Override
-    public Serializable generate(SharedSessionContractImplementor session, Object o) throws HibernateException {
+    public Serializable generate(SharedSessionContractImplementor session, Object o) {
         return nextId();
     }
 }

@@ -6,7 +6,6 @@ import com.mz.jarboot.api.cmd.annotation.DefaultValue;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
  * The command line param parser, command builder get param by annotations.
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S3776", "java:S1066"})
 public class CommandCliParser {
     private static final char QUOTATION1 = '\'';
     private static final char QUOTATION2 = '"';
@@ -29,20 +28,20 @@ public class CommandCliParser {
 
     private Map<Method, Argument> argumentMethods = new HashMap<>();
     private Map<Method, Option> optionMethods = new HashMap<>();
-    private List<String> splitedArgs;
+    private List<String> cliArgs;
     private Object command;
     public CommandCliParser(String args, Object obj) {
         // 构建实例，解析方法注解
         this.init(obj);
 
         // 解析命令行
-        splitedArgs = splitArgs(args.trim());
+        cliArgs = splitArgs(args.trim());
         this.doParse();
     }
 
     public CommandCliParser(String[] args, Object obj) {
         this.init(obj);
-        splitedArgs = Arrays.stream(args).collect(Collectors.toList());
+        cliArgs = Arrays.stream(args).collect(Collectors.toList());
         this.doParse();
     }
 
@@ -51,13 +50,12 @@ public class CommandCliParser {
         this.doInitField();
     }
 
-    public String[] getSplitedArgs() {
-        return splitedArgs.toArray(new String[splitedArgs.size()]);
+    public String[] getCliArgs() {
+        return cliArgs.toArray(new String[0]);
     }
 
     private void init(Object obj) {
         Class<?> cls = obj.getClass();
-        Constructor<?> constructor;
         try {
             command = obj;
             Method[] methods = cls.getMethods();
@@ -83,7 +81,7 @@ public class CommandCliParser {
         if (optionMap.isEmpty() && argumentMap.isEmpty()) {
             return;
         }
-        Iterator<String> iter = splitedArgs.iterator();
+        Iterator<String> iter = cliArgs.iterator();
         Option preOp = null;
         while (iter.hasNext()) {
             String s = iter.next().trim();
@@ -102,7 +100,9 @@ public class CommandCliParser {
                     preOp = option;
                 }
                 List<String> opValueList = new ArrayList<>();
-                options.put(option.shortName(), opValueList);
+                if (null != option) {
+                    options.put(option.shortName(), opValueList);
+                }
             } else {
                 //可能是参数，也可能是option的值
                 if (null == preOp) {
@@ -134,7 +134,8 @@ public class CommandCliParser {
         char preQuot = '"';
         int preChar = SPACE;
         // 使用快慢指针算法
-        int slow =0, fast = 0;
+        int slow =0;
+        int fast = 0;
         for (; fast < args.length(); ++fast) {
             char c = args.charAt(fast);
             if (QUOTATION1 == c || QUOTATION2 == c) {
@@ -149,7 +150,6 @@ public class CommandCliParser {
                     if ('\\' != preChar && preQuot == c) {
                         //引号结束位置，获取引号内的字符串
                         String str = args.substring(preQuotation + 1, fast);
-                        //todo 转义符替换
                         argsList.add(str);
                         slow = fast + 1;
                         preQuotation = invalidPos;
@@ -162,8 +162,6 @@ public class CommandCliParser {
                     }
                     slow = fast + 1;
                 }
-            } else {
-                // do nothing
             }
             preChar = c;
         }
@@ -220,7 +218,7 @@ public class CommandCliParser {
             // 默认值不为空
             if (null != defaultValue) {
                 values = splitArgs(defaultValue.value());
-                if (option.required() && null != values && values.isEmpty()) {
+                if (option.required() && values.isEmpty()) {
                     throw new JarbootException(formatParamError(option.longName(), method));
                 }
             }

@@ -8,8 +8,8 @@ import java.util.Arrays;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
-@SuppressWarnings("all")
-public abstract class ObjectUtils {
+@SuppressWarnings({"java:S1068", "java:S1118", "java:S135"})
+public class ObjectUtils {
     private static final int INITIAL_HASH = 7;
     private static final int MULTIPLIER = 31;
     private static final String EMPTY_STRING = "";
@@ -19,8 +19,7 @@ public abstract class ObjectUtils {
     private static final String EMPTY_ARRAY = "{}";
     private static final String ARRAY_ELEMENT_SEPARATOR = ", ";
 
-    public ObjectUtils() {
-    }
+    private ObjectUtils() { }
 
     public static boolean isLambdaClass(Class<?> clazz) {
         return clazz.getName().contains("$$Lambda$");
@@ -35,11 +34,11 @@ public abstract class ObjectUtils {
             return true;
         } else {
             if(declaredExceptions != null) {
-                Class[] var2 = declaredExceptions;
+                Class<?>[] var2 = declaredExceptions;
                 int var3 = declaredExceptions.length;
 
                 for(int var4 = 0; var4 < var3; ++var4) {
-                    Class declaredException = var2[var4];
+                    Class<?> declaredException = var2[var4];
                     if(declaredException.isInstance(ex)) {
                         return true;
                     }
@@ -90,7 +89,7 @@ public abstract class ObjectUtils {
                 return false;
             }
 
-            Enum candidate = var3[var5];
+            Enum<?> candidate = var3[var5];
             if(caseSensitive) {
                 if(candidate.toString().equals(constant)) {
                     break;
@@ -107,7 +106,7 @@ public abstract class ObjectUtils {
 
     public static Object[] toObjectArray(Object source) {
         if(source instanceof Object[]) {
-            return (Object[])((Object[])source);
+            return ((Object[])source);
         } else if(source == null) {
             return new Object[0];
         } else if(!source.getClass().isArray()) {
@@ -117,8 +116,8 @@ public abstract class ObjectUtils {
             if(length == 0) {
                 return new Object[0];
             } else {
-                Class wrapperType = Array.get(source, 0).getClass();
-                Object[] newArray = (Object[])((Object[])Array.newInstance(wrapperType, length));
+                Class<?> wrapperType = Array.get(source, 0).getClass();
+                Object[] newArray = ((Object[])Array.newInstance(wrapperType, length));
 
                 for(int i = 0; i < length; ++i) {
                     newArray[i] = Array.get(source, i);
@@ -129,6 +128,7 @@ public abstract class ObjectUtils {
         }
     }
 
+    @SuppressWarnings("java:S3776")
     public static boolean nullSafeEquals(Object o1, Object o2) {
         if(o1 == o2) {
             return true;
@@ -138,39 +138,39 @@ public abstract class ObjectUtils {
             } else {
                 if(o1.getClass().isArray() && o2.getClass().isArray()) {
                     if(o1 instanceof Object[] && o2 instanceof Object[]) {
-                        return Arrays.equals((Object[])((Object[])o1), (Object[])((Object[])o2));
+                        return Arrays.equals(((Object[])o1), ((Object[])o2));
                     }
 
                     if(o1 instanceof boolean[] && o2 instanceof boolean[]) {
-                        return Arrays.equals((boolean[])((boolean[])o1), (boolean[])((boolean[])o2));
+                        return Arrays.equals(((boolean[])o1), ((boolean[])o2));
                     }
 
                     if(o1 instanceof byte[] && o2 instanceof byte[]) {
-                        return Arrays.equals((byte[])((byte[])o1), (byte[])((byte[])o2));
+                        return Arrays.equals(((byte[])o1), ((byte[])o2));
                     }
 
                     if(o1 instanceof char[] && o2 instanceof char[]) {
-                        return Arrays.equals((char[])((char[])o1), (char[])((char[])o2));
+                        return Arrays.equals(((char[])o1), ((char[])o2));
                     }
 
                     if(o1 instanceof double[] && o2 instanceof double[]) {
-                        return Arrays.equals((double[])((double[])o1), (double[])((double[])o2));
+                        return Arrays.equals(((double[])o1), ((double[])o2));
                     }
 
                     if(o1 instanceof float[] && o2 instanceof float[]) {
-                        return Arrays.equals((float[])((float[])o1), (float[])((float[])o2));
+                        return Arrays.equals(((float[])o1), ((float[])o2));
                     }
 
                     if(o1 instanceof int[] && o2 instanceof int[]) {
-                        return Arrays.equals((int[])((int[])o1), (int[])((int[])o2));
+                        return Arrays.equals(((int[])o1), ((int[])o2));
                     }
 
                     if(o1 instanceof long[] && o2 instanceof long[]) {
-                        return Arrays.equals((long[])((long[])o1), (long[])((long[])o2));
+                        return Arrays.equals(((long[])o1), ((long[])o2));
                     }
 
                     if(o1 instanceof short[] && o2 instanceof short[]) {
-                        return Arrays.equals((short[])((short[])o1), (short[])((short[])o2));
+                        return Arrays.equals(((short[])o1), ((short[])o2));
                     }
                 }
 
@@ -181,45 +181,46 @@ public abstract class ObjectUtils {
         }
     }
 
+    @SuppressWarnings("java:S3776")
     public static int nullSafeHashCode(Object obj) {
         if(obj == null) {
             return 0;
         } else {
             if(obj.getClass().isArray()) {
                 if(obj instanceof Object[]) {
-                    return nullSafeHashCode((Object[])((Object[])obj));
+                    return nullSafeHashCode(((Object[])obj));
                 }
 
                 if(obj instanceof boolean[]) {
-                    return nullSafeHashCode((boolean[])((boolean[])obj));
+                    return nullSafeHashCode(((boolean[])obj));
                 }
 
                 if(obj instanceof byte[]) {
-                    return nullSafeHashCode((byte[])((byte[])obj));
+                    return nullSafeHashCode(((byte[])obj));
                 }
 
                 if(obj instanceof char[]) {
-                    return nullSafeHashCode((char[])((char[])obj));
+                    return nullSafeHashCode(((char[])obj));
                 }
 
                 if(obj instanceof double[]) {
-                    return nullSafeHashCode((double[])((double[])obj));
+                    return nullSafeHashCode(((double[])obj));
                 }
 
                 if(obj instanceof float[]) {
-                    return nullSafeHashCode((float[])((float[])obj));
+                    return nullSafeHashCode(((float[])obj));
                 }
 
                 if(obj instanceof int[]) {
-                    return nullSafeHashCode((int[])((int[])obj));
+                    return nullSafeHashCode(((int[])obj));
                 }
 
                 if(obj instanceof long[]) {
-                    return nullSafeHashCode((long[])((long[])obj));
+                    return nullSafeHashCode(((long[])obj));
                 }
 
                 if(obj instanceof short[]) {
-                    return nullSafeHashCode((short[])((short[])obj));
+                    return nullSafeHashCode(((short[])obj));
                 }
             }
 
@@ -418,23 +419,23 @@ public abstract class ObjectUtils {
         } else if(obj instanceof String) {
             return (String)obj;
         } else if(obj instanceof Object[]) {
-            return nullSafeToString((Object[])((Object[])obj));
+            return nullSafeToString(((Object[])obj));
         } else if(obj instanceof boolean[]) {
-            return nullSafeToString((boolean[])((boolean[])obj));
+            return nullSafeToString(((boolean[])obj));
         } else if(obj instanceof byte[]) {
-            return nullSafeToString((byte[])((byte[])obj));
+            return nullSafeToString(((byte[])obj));
         } else if(obj instanceof char[]) {
-            return nullSafeToString((char[])((char[])obj));
+            return nullSafeToString(((char[])obj));
         } else if(obj instanceof double[]) {
-            return nullSafeToString((double[])((double[])obj));
+            return nullSafeToString(((double[])obj));
         } else if(obj instanceof float[]) {
-            return nullSafeToString((float[])((float[])obj));
+            return nullSafeToString(((float[])obj));
         } else if(obj instanceof int[]) {
-            return nullSafeToString((int[])((int[])obj));
+            return nullSafeToString(((int[])obj));
         } else if(obj instanceof long[]) {
-            return nullSafeToString((long[])((long[])obj));
+            return nullSafeToString(((long[])obj));
         } else if(obj instanceof short[]) {
-            return nullSafeToString((short[])((short[])obj));
+            return nullSafeToString(((short[])obj));
         } else {
             String str = obj.toString();
             return str != null ? str : EMPTY_STRING;

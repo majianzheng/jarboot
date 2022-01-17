@@ -5,7 +5,7 @@ package java.jarboot;
  * @author majianzheng
  * 以下代码基于开源项目Arthas修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1118", "squid:S3077", "squid:S1444", "squid:ClassVariableVisibilityCheck"})
 public class SpyAPI {
     public static final AbstractSpy NOP_SPY = new NopSpy();
     private static volatile AbstractSpy spyInstance = NOP_SPY;

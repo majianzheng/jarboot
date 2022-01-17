@@ -8,7 +8,6 @@ import org.slf4j.Logger;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class OgnlExpress implements Express {
     private static final MemberAccess MEMBER_ACCESS = new DefaultMemberAccess(true);
     private static final Logger logger = LogUtils.getLogger();
@@ -17,7 +16,7 @@ public class OgnlExpress implements Express {
     private final OgnlContext context;
 
     public OgnlExpress() {
-        this(CustomClassResolver.customClassResolver);
+        this(CustomClassResolver.CUSTOM_CLASS_RESOLVER);
     }
 
     public OgnlExpress(ClassResolver classResolver) {
@@ -27,6 +26,7 @@ public class OgnlExpress implements Express {
         context.setMemberAccess(MEMBER_ACCESS);
     }
 
+    @SuppressWarnings("squid:S2139")
     @Override
     public Object get(String express) throws com.mz.jarboot.core.cmd.express.ExpressException {
         try {
@@ -40,7 +40,7 @@ public class OgnlExpress implements Express {
     @Override
     public boolean is(String express) throws com.mz.jarboot.core.cmd.express.ExpressException {
         final Object ret = get(express);
-        return null != ret && ret instanceof Boolean && (Boolean) ret;
+        return ret instanceof Boolean && (Boolean) ret;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class OgnlExpress implements Express {
     @Override
     public Express reset() {
         context.clear();
-        context.setClassResolver(CustomClassResolver.customClassResolver);
+        context.setClassResolver(CustomClassResolver.CUSTOM_CLASS_RESOLVER);
         // allow private field access
         context.setMemberAccess(MEMBER_ACCESS);
         return this;

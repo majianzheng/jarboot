@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S1181")
 @Name("jad")
 @Summary("Decompile class")
 @Description(CoreConstant.EXAMPLE +
@@ -147,7 +147,7 @@ public class JadCommand extends AbstractCommand {
 
     private boolean processExactMatch(StringBuilder sb, RowAffect affect, Instrumentation inst, Set<Class<?>> matchedClasses, Set<Class<?>> withInnerClasses) {
         Class<?> c = matchedClasses.iterator().next();
-        Set<Class<?>> allClasses = new HashSet<Class<?>>(withInnerClasses);
+        Set<Class<?>> allClasses = new HashSet<>(withInnerClasses);
         allClasses.add(c);
 
         try {

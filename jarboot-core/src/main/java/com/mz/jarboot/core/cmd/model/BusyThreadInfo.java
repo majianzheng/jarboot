@@ -10,7 +10,7 @@ import java.lang.management.ThreadInfo;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"unused", "SpellCheckingInspection", "squid:S2160"})
 public class BusyThreadInfo extends ThreadVO {
 
     private long         blockedTime;

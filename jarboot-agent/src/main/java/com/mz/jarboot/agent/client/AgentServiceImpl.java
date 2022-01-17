@@ -8,7 +8,7 @@ import com.mz.jarboot.api.AgentService;
  * 通过Jarboot类加载器，反射操作jarboot-core内部类
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1181", "unused"})
 public class AgentServiceImpl implements AgentService {
     public static final Class<?> OPERATOR_CLASS;
     private static final String SERVICE_NAME;

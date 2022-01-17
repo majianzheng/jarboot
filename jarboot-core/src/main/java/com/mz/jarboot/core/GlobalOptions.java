@@ -8,7 +8,7 @@ import com.alibaba.bytekit.utils.JavaVersionUtils;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1444", "squid:S1125", "squid:S1118"})
 public class GlobalOptions {
 
     /**

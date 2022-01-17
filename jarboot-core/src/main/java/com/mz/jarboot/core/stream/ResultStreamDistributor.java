@@ -42,7 +42,7 @@ public class ResultStreamDistributor {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings("all")
+    @SuppressWarnings({"unchecked", "java:S3740"})
     public void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {

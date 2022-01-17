@@ -37,7 +37,7 @@ public class HelpCommand extends AbstractCommand {
     private void showAll() {
         TableElement table = new TableElement();
         table.row(true, "NAME", "DESCRIPTION");
-        Map<String, String> map = CommandBuilder.getAllCommandDesciption();
+        Map<String, String> map = CommandBuilder.getAllCommandDescription();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             table.row(entry.getKey(), entry.getValue());
         }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.jarboot.SpyAPI;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
@@ -16,7 +17,7 @@ import java.util.jar.JarFile;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1118", "squid:S106", "squid:S1181", "squid:3077", "squid:S2093", "squid:S899"})
 public class JarbootAgent {
     private static final String JARBOOT_CORE_JAR = "jarboot-core.jar";
     private static final String JARBOOT_CLASS = "com.mz.jarboot.core.server.JarbootBootstrap";
@@ -24,7 +25,7 @@ public class JarbootAgent {
 
     private static PrintStream ps = null;
     private static final String CURRENT_DIR = getCurrentDir();
-    private static volatile ClassLoader jarbootClassLoader = null;
+    private static ClassLoader jarbootClassLoader = null;
 
     public static void premain(String args, Instrumentation inst) {
         callMain(args, inst, true);
@@ -38,17 +39,17 @@ public class JarbootAgent {
         try {
             //初始化临时日志
             File logDir = new File(CURRENT_DIR, "logs");
-            if (!logDir.exists()) {
-                logDir.mkdir();
+            if (!logDir.exists() && !logDir.mkdir()) {
+                System.out.println("mkdir logs failed!");
             }
             File log = new File(logDir, "jarboot-agent.log");
-            if (!log.exists()) {
-                log.createNewFile();
+            if (!log.exists() && !log.createNewFile()) {
+                System.out.println("create jarboot agent log failed.");
             }
             ps = new PrintStream(new FileOutputStream(log, false));
             main(args, inst, isPremain);
         } catch (Throwable e) {
-            e.printStackTrace();
+            e.printStackTrace(null == ps ? System.out : ps);
         } finally {
             if (null != ps) {
                 try {
@@ -74,7 +75,7 @@ public class JarbootAgent {
         return ps;
     }
 
-    private static ClassLoader getClassLoader(URL[] urls) throws MalformedURLException {
+    private static ClassLoader getClassLoader(URL[] urls) {
         if (null == jarbootClassLoader) {
             jarbootClassLoader = new JarbootClassLoader(urls);
         }
@@ -123,7 +124,7 @@ public class JarbootAgent {
             if (!coreJarFile.exists()) {
                 ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
             }
-        } catch (Throwable e) {// NOSONAR
+        } catch (Throwable e) {
             ps.println("Can not find jar file from" + codeSource.getLocation());
             e.printStackTrace(ps);
             return;
@@ -172,7 +173,7 @@ public class JarbootAgent {
     }
     
     private static void bind(ClassLoader classLoader, Instrumentation inst, String args, boolean isPremain)
-            throws Exception {
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<?> bootClass = classLoader.loadClass(JARBOOT_CLASS);
         bootClass
                 .getMethod(GET_INSTANCE, Instrumentation.class, String.class, boolean.class)

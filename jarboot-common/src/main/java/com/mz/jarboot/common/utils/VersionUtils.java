@@ -10,7 +10,7 @@ import java.util.Properties;
  *
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1444", "squid:ClassVariableVisibilityCheck"})
 public class VersionUtils {
     
     public static String version;
@@ -34,7 +34,7 @@ public class VersionUtils {
                 clientVersion = "Jarboot:v" + VersionUtils.version;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //ignore
         }
     }
     

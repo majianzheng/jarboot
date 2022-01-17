@@ -13,7 +13,6 @@
     <artifactId>jarboot-spy</artifactId>
     <name>Jarboot Spy</name>
     <properties>
-        <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
     <build>

@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * WebSocket client factory for create socket client.
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S3077")
 public class WsClientFactory extends WebSocketListener implements Subscriber<HeartbeatEvent> {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -214,7 +214,9 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             shutdownLatch = new CountDownLatch(1);
             try {
                 this.destroyClient();
-                shutdownLatch.await(5, TimeUnit.SECONDS);
+                if (!shutdownLatch.await(RECONNECT_INTERVAL, TimeUnit.SECONDS)) {
+                    AnsiLog.warn("wait destroy timeout");
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {

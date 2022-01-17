@@ -3,6 +3,7 @@ package com.mz.jarboot.core.cmd.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.NetworkUtils;
+import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
@@ -19,11 +20,13 @@ import org.slf4j.Logger;
 
 import java.lang.management.*;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S3398")
 @Name("dashboard")
 @Summary("Overview of target jvm's thread, memory, gc, vm, tomcat info.")
 @Description(CoreConstant.EXAMPLE +
@@ -44,7 +47,8 @@ public class DashboardCommand extends AbstractCommand {
     private long interval = 5000;
 
     private volatile long count = 0;
-    private volatile Timer timer = null;
+    @SuppressWarnings("java:S3077")
+    private volatile ScheduledFuture<?> timer = null;
 
     @Option(shortName = "n", longName = "number-of-execution")
     @Description("The number of times this command will be executed.")
@@ -65,24 +69,26 @@ public class DashboardCommand extends AbstractCommand {
 
     @Override
     public void run() {
-        timer = new Timer("Timer-for-jarboot-dashboard-" + session.getSessionId(), true);
-
         // start the timer
-        timer.scheduleAtFixedRate(new DashboardTimerTask(session), 0, getInterval());
+        timer = EnvironmentContext
+                .getScheduledExecutor()
+                .scheduleAtFixedRate(new DashboardTimerTask(session),
+                        0, getInterval(), TimeUnit.MILLISECONDS);
     }
 
     public synchronized void stop() {
         if (timer != null) {
-            timer.cancel();
-            timer.purge();
+            timer.cancel(false);
             timer = null;
         }
     }
 
     public synchronized void restart() {
         if (timer == null) {
-            timer = new Timer("Timer-for-jarboot-dashboard-" + session.getSessionId(), true);
-            timer.scheduleAtFixedRate(new DashboardTimerTask(session), 0, getInterval());
+            timer = EnvironmentContext
+                    .getScheduledExecutor()
+                    .scheduleAtFixedRate(new DashboardTimerTask(session),
+                            0, getInterval(), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -100,12 +106,12 @@ public class DashboardCommand extends AbstractCommand {
 
     private static void addMemoryInfo(DashboardModel dashboardModel) {
         List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
-        Map<String, List<MemoryEntryVO>> memoryInfoMap = new LinkedHashMap<String, List<MemoryEntryVO>>();
+        Map<String, List<MemoryEntryVO>> memoryInfoMap = new LinkedHashMap<>();
         dashboardModel.setMemoryInfo(memoryInfoMap);
 
         //heap
         MemoryUsage heapMemoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        List<MemoryEntryVO> heapMemEntries = new ArrayList<MemoryEntryVO>();
+        List<MemoryEntryVO> heapMemEntries = new ArrayList<>();
         heapMemEntries.add(createMemoryEntryVO(MemoryEntryVO.TYPE_HEAP, MemoryEntryVO.TYPE_HEAP, heapMemoryUsage));
         for (MemoryPoolMXBean poolMXBean : memoryPoolMXBeans) {
             if (MemoryType.HEAP.equals(poolMXBean.getType())) {
@@ -118,7 +124,7 @@ public class DashboardCommand extends AbstractCommand {
 
         //non-heap
         MemoryUsage nonHeapMemoryUsage = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
-        List<MemoryEntryVO> nonheapMemEntries = new ArrayList<MemoryEntryVO>();
+        List<MemoryEntryVO> nonheapMemEntries = new ArrayList<>();
         nonheapMemEntries.add(createMemoryEntryVO(MemoryEntryVO.TYPE_NON_HEAP, MemoryEntryVO.TYPE_NON_HEAP, nonHeapMemoryUsage));
         for (MemoryPoolMXBean poolMXBean : memoryPoolMXBeans) {
             if (MemoryType.NON_HEAP.equals(poolMXBean.getType())) {
@@ -134,7 +140,7 @@ public class DashboardCommand extends AbstractCommand {
 
     private static void addBufferPoolMemoryInfo(Map<String, List<MemoryEntryVO>> memoryInfoMap) {
         try {
-            List<MemoryEntryVO> bufferPoolMemEntries = new ArrayList<MemoryEntryVO>();
+            List<MemoryEntryVO> bufferPoolMemEntries = new ArrayList<>();
             @SuppressWarnings("rawtypes")
             Class bufferPoolMXBeanClass = Class.forName("java.lang.management.BufferPoolMXBean");
             @SuppressWarnings("unchecked")
@@ -159,7 +165,7 @@ public class DashboardCommand extends AbstractCommand {
         runtimeInfo.setSystemLoadAverage(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage());
         runtimeInfo.setProcessors(Runtime.getRuntime().availableProcessors());
         runtimeInfo.setUptime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000);
-        runtimeInfo.setTimestamp(new Date().getTime());
+        runtimeInfo.setTimestamp(System.currentTimeMillis());
         dashboardModel.setRuntimeInfo(runtimeInfo);
     }
 
@@ -168,7 +174,7 @@ public class DashboardCommand extends AbstractCommand {
     }
 
     private static void addGcInfo(DashboardModel dashboardModel) {
-        List<GcInfoVO> gcInfos = new ArrayList<GcInfoVO>();
+        List<GcInfoVO> gcInfos = new ArrayList<>();
         dashboardModel.setGcInfos(gcInfos);
 
         List<GarbageCollectorMXBean> garbageCollectorMxBeans = ManagementFactory.getGarbageCollectorMXBeans();
@@ -178,6 +184,7 @@ public class DashboardCommand extends AbstractCommand {
         }
     }
 
+    @SuppressWarnings({"java:S1075", "PMD.UndefineMagicConstantRule"})
     private void addTomcatInfo(DashboardModel dashboardModel) {
         // 如果请求tomcat信息失败，则不显示tomcat信息
         if (!NetworkUtils.isHostConnectable("127.0.0.1", 8006)) {
@@ -186,11 +193,11 @@ public class DashboardCommand extends AbstractCommand {
 
         TomcatInfoVO tomcatInfoVO = new TomcatInfoVO();
         dashboardModel.setTomcatInfo(tomcatInfoVO);
-        String threadPoolPath = "http://localhost:8006/connector/threadpool";
-        String connectorStatPath = "http://localhost:8006/connector/stats";
+        final String threadPoolPath = "http://localhost:8006/connector/threadpool";
+        final String connectorStatPath = "http://localhost:8006/connector/stats";
         NetworkUtils.Response connectorStatResponse = NetworkUtils.request(connectorStatPath);
         if (connectorStatResponse.isSuccess()) {
-            List<TomcatInfoVO.ConnectorStats> connectorStats = new ArrayList<TomcatInfoVO.ConnectorStats>();
+            List<TomcatInfoVO.ConnectorStats> connectorStats = new ArrayList<>();
             JsonNode tomcatConnectorStats = JsonUtils.readAsJsonNode(connectorStatResponse.getContent());
             for (JsonNode stat : tomcatConnectorStats) {
                 String connectorName = stat.get("name").asText(StringUtils.EMPTY).replace("\"", "");
@@ -208,8 +215,8 @@ public class DashboardCommand extends AbstractCommand {
                 double qps = tomcatRequestCounter.rate();
                 double rt = processingTime / (double) requestCount;
                 double errorRate = tomcatErrorCounter.rate();
-                long receivedBytesRate = new Double(tomcatReceivedBytesCounter.rate()).longValue();
-                long sentBytesRate = new Double(tomcatSentBytesCounter.rate()).longValue();
+                long receivedBytesRate = Double.doubleToLongBits(tomcatReceivedBytesCounter.rate());
+                long sentBytesRate = Double.doubleToLongBits(tomcatSentBytesCounter.rate());
 
                 TomcatInfoVO.ConnectorStats connectorStat = new TomcatInfoVO.ConnectorStats();
                 connectorStat.setName(connectorName);
@@ -225,7 +232,7 @@ public class DashboardCommand extends AbstractCommand {
 
         NetworkUtils.Response threadPoolResponse = NetworkUtils.request(threadPoolPath);
         if (threadPoolResponse.isSuccess()) {
-            List<TomcatInfoVO.ThreadPool> threadPools = new ArrayList<TomcatInfoVO.ThreadPool>();
+            List<TomcatInfoVO.ThreadPool> threadPools = new ArrayList<>();
             JsonNode threadPoolInfos = JsonUtils.readAsJsonNode(threadPoolResponse.getContent());
             for (JsonNode info : threadPoolInfos) {
                 String name = info.get("name").asText(StringUtils.EMPTY).replace("\"", "");
@@ -246,13 +253,13 @@ public class DashboardCommand extends AbstractCommand {
             this.threadSampler = new ThreadSampler();
         }
 
+        @SuppressWarnings({"java:S1181", "java:S1141", "java:S3078"})
         @Override
         public void run() {
             try {
                 if (count >= getNumOfExecutions()) {
                     // stop the timer
-                    timer.cancel();
-                    timer.purge();
+                    timer.cancel(false);
                     process.end(true, "Process ends after " + getNumOfExecutions() + " time(s).");
                     return;
                 }

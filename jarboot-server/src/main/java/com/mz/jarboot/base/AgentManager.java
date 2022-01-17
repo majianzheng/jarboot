@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S2274", "PrimitiveArrayArgumentToVarargsMethod"})
 public class AgentManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     /** 客户端Map */
@@ -115,7 +115,7 @@ public class AgentManager {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
                 //发送了退出执行，唤醒killClient或waitServerStarted线程
-                client.notify();
+                client.notifyAll();
                 clientMap.remove(sid);
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
@@ -152,7 +152,7 @@ public class AgentManager {
      * 获取远程服务列表
      * @param list 远程服务列表
      */
-    public void remoteProcess(ArrayList<JvmProcess> list) {
+    public void remoteProcess(List<JvmProcess> list) {
         if (!remoteProcesses.isEmpty()) {
             list.addAll(remoteProcesses.values());
         }
@@ -160,7 +160,6 @@ public class AgentManager {
 
     /**
      * 优雅退出客户端
-     * @param serviceName 服务名
      * @param sid 服务唯一id
      * @return 是否成功
      */
@@ -266,7 +265,7 @@ public class AgentManager {
 
     /**
      * 添加信任的服务
-     * @param host
+     * @param host 地址
      */
     public void addTrustedHost(String host) {
         remoteProcesses.forEach((k, v) -> {
@@ -507,21 +506,24 @@ public class AgentManager {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
             this.online(serviceName, session, sid);
-            this.onServiceStarted(serviceName, sid);
+            this.onServiceStarted(sid);
             WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
             WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
+            client = clientMap.getOrDefault(sid, null);
+            if (null != client) {
+                client.heartbeat();
+            }
+        } else {
+            client.heartbeat();
         }
-
-        client.heartbeat();
     }
 
     /**
      * 进程启动完成事件响应
-     * @param serviceName 服务名
      * @param sid 服务唯一id
      */
-    private void onServiceStarted(final String serviceName, final String sid) {
+    private void onServiceStarted(final String sid) {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             return;
@@ -529,7 +531,7 @@ public class AgentManager {
         synchronized (client) {
             if (ClientState.STARTING.equals(client.getState())) {
                 //发送启动成功，唤醒waitServerStarted线程
-                client.notify();
+                client.notifyAll();
             }
             client.setState(ClientState.ONLINE);
         }
@@ -618,7 +620,7 @@ public class AgentManager {
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceStartedEvent>() {
             @Override
             public void onEvent(ServiceStartedEvent event) {
-                onServiceStarted(event.getServiceName(), event.getSid());
+                onServiceStarted(event.getSid());
             }
 
             @Override
@@ -641,6 +643,7 @@ public class AgentManager {
         });
     }
 
+    @SuppressWarnings("java:S3011")
     private AgentManager() {
         //获取日志的appender，当宿主服务发来日志时，使用当前服务的日志系统记录
         //这里解读了logback日志源码，反射获取写日志文件的类方法

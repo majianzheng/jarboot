@@ -5,7 +5,6 @@ package com.mz.jarboot.core.cmd.model;
  *
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class RuntimeInfoVO {
     private String osName;
     private String osVersion;
@@ -15,9 +14,6 @@ public class RuntimeInfoVO {
     private int processors;
     private long uptime;
     private long timestamp;
-
-    public RuntimeInfoVO() {
-    }
 
     public String getOsName() {
         return osName;

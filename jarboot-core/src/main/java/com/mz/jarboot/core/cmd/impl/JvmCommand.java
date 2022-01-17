@@ -120,7 +120,7 @@ public class JvmCommand extends AbstractCommand {
         model.appendFileDescInfo("OPEN-FILE-DESCRIPTOR-COUNT", invokeFileDescriptor(operatingSystemMXBean, "getOpenFileDescriptorCount"));
     }
 
-    @SuppressWarnings("all")
+    @SuppressWarnings("java:S3011")
     private long invokeFileDescriptor(OperatingSystemMXBean os, String name) {
         try {
             final Method method = os.getClass().getDeclaredMethod(name);
