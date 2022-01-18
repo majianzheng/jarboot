@@ -5,9 +5,11 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.exception.JarbootRunException;
+import com.mz.jarboot.client.event.DisconnectionEvent;
 import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.client.utlis.HttpRequestOperator;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
 import com.mz.jarboot.common.utils.JsonUtils;
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 客户端请求代理
  * @author majianzheng
  */
-@SuppressWarnings({"unused", "java:S3740"})
+@SuppressWarnings({"unused", "java:S3740", "unchecked"})
 public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientProxy.class);
     private final String baseUrl;
@@ -153,13 +155,13 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes) {
         int i1 = bytes.indexOf(SPLIT);
-        int i2 = bytes.indexOf(SPLIT, i1 + 1);
-        if (i1 < 0 || i2 < 0) {
+        if (i1 <= 0) {
             return;
         }
-        final String topic = 0 == i1 ? StringUtils.EMPTY : bytes.substring(0, i1).string(StandardCharsets.UTF_8);
-        final String className = bytes.substring(i1 + 1, i2).string(StandardCharsets.UTF_8);
-        ByteString bodyBytes = bytes.substring(i2 + 1);
+        final String topic =  bytes.substring(0, i1).string(StandardCharsets.UTF_8);
+        final int index = topic.indexOf(StringUtils.SLASH);
+        final String className = -1 == index ? topic : topic.substring(0, index);
+        ByteString bodyBytes = bytes.substring(i1 + 1);
         try {
             Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
             JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
@@ -171,13 +173,12 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
-        this.subscribers.clear();
-        this.webSocket.set(null);
+        this.afterClosed();
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        this.webSocket.set(null);
+        this.afterClosed();
     }
 
     @Override
@@ -263,6 +264,14 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
         } catch (Exception e) {
             //ignore
         }
+    }
+
+    private void afterClosed() {
+        this.subscribers.clear();
+        this.webSocket.set(null);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new DisconnectionEvent(this.host, this.user, this.password, this.version));
     }
 
     public static class AccessToken {

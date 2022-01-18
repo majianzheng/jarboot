@@ -23,7 +23,7 @@ public class SettingClient implements SettingService {
     private final ClientProxy clientProxy;
 
     /**
-     * 服务管理客户端构造
+     * 服务配置客户端构造
      * @param host 服务地址
      * @param user 用户名
      * @param password 登录密码
@@ -34,6 +34,14 @@ public class SettingClient implements SettingService {
         } else {
             this.clientProxy = ClientProxy.Factory.createClientProxy(host, user, password);
         }
+    }
+
+    /**
+     * 服务配置客户端构造
+     * @param proxy 客户端代理类
+     */
+    public SettingClient(ClientProxy proxy) {
+        this.clientProxy = proxy;
     }
 
     /**

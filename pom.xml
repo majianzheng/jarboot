@@ -52,6 +52,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<!-- Exclude all generated code -->
+		<sonar.jacoco.itReportPath>${project.basedir}/../test/target/jacoco-it.exec</sonar.jacoco.itReportPath>
+		<sonar.exclusions>file:**/generated-sources/**,**/test/**</sonar.exclusions>
 
 		<!-- dependency version -->
 		<spring.version>2.6.2</spring.version>
@@ -74,7 +78,7 @@
 		<maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
-		<sonar-maven-plugin.version>3.0.2</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<!-- dependency version related to plugin -->
 		<extra-enforcer-rules.version>1.0-beta-4</extra-enforcer-rules.version>
 		<p3c-pmd.version>1.3.0</p3c-pmd.version>

@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("PMD.AbstractClassShouldStartWithAbstractNamingRule")
 public abstract class StringUtils {
     public static final String SPACE = " ";
     public static final String EMPTY = "";
@@ -38,6 +38,7 @@ public abstract class StringUtils {
      * @param obj 目标对象
      * @return 字符串
      */
+    @SuppressWarnings("squid:S1181")
     public static String objectToString(Object obj) {
         if (null == obj) {
             return EMPTY;
@@ -61,7 +62,8 @@ public abstract class StringUtils {
         if (clazz.isArray()) {
             StringBuilder sb = new StringBuilder(clazz.getName());
             sb.delete(0, 2);
-            if (sb.length() > 0 && sb.charAt(sb.length() - 1) == ';') {
+            final char endChar = ';';
+            if (sb.length() > 0 && sb.charAt(sb.length() - 1) == endChar) {
                 sb.deleteCharAt(sb.length() - 1);
             }
             sb.append("[]");
@@ -207,8 +209,7 @@ public abstract class StringUtils {
      */
     public static final int INDEX_NOT_FOUND = -1;
 
-    public StringUtils() {
-    }
+    private StringUtils() { }
 
     public static boolean isEmpty(final CharSequence cs) {
         return cs == null || cs.length() == 0;
@@ -547,21 +548,21 @@ public abstract class StringUtils {
     }
 
     public static String[] toStringArray(Collection<String> collection) {
-        return collection == null ? null : (String[])collection.toArray(new String[0]);
+        return collection == null ? null : collection.toArray(new String[0]);
     }
 
     public static String[] split(String toSplit, String delimiter) {
         if(hasLength(toSplit) && hasLength(delimiter)) {
             int offset = toSplit.indexOf(delimiter);
             if(offset < 0) {
-                return null;
+                return new String[]{toSplit};
             } else {
                 String beforeDelimiter = toSplit.substring(0, offset);
                 String afterDelimiter = toSplit.substring(offset + delimiter.length());
                 return new String[]{beforeDelimiter, afterDelimiter};
             }
         } else {
-            return null;
+            return new String[]{toSplit};
         }
     }
 
@@ -583,9 +584,9 @@ public abstract class StringUtils {
                     element = deleteAny(element, charsToDelete);
                 }
 
-                String[] splittedElement = split(element, delimiter);
-                if(splittedElement != null) {
-                    result.setProperty(splittedElement[0].trim(), splittedElement[1].trim());
+                String[] elements = split(element, delimiter);
+                if(elements.length > 1) {
+                    result.setProperty(elements[0].trim(), elements[1].trim());
                 }
             }
 
@@ -597,12 +598,13 @@ public abstract class StringUtils {
         return tokenizeToStringArray(str, delimiters, true, true);
     }
 
+    @SuppressWarnings({"squid:S1168", "java:S3776"})
     public static String[] tokenizeToStringArray(String str, String delimiters, boolean trimTokens, boolean ignoreEmptyTokens) {
         if(str == null) {
             return null;
         } else {
             StringTokenizer st = new StringTokenizer(str, delimiters);
-            ArrayList<String> tokens = new ArrayList<String>();
+            ArrayList<String> tokens = new ArrayList<>();
 
             while(true) {
                 String token;
@@ -626,13 +628,14 @@ public abstract class StringUtils {
         return delimitedListToStringArray(str, delimiter, (String)null);
     }
 
+    @SuppressWarnings("java:S3776")
     public static String[] delimitedListToStringArray(String str, String delimiter, String charsToDelete) {
         if(str == null) {
             return new String[0];
         } else if(delimiter == null) {
             return new String[]{str};
         } else {
-            ArrayList<String> result = new ArrayList<String>();
+            ArrayList<String> result = new ArrayList<>();
             int pos;
             if(EMPTY.equals(delimiter)) {
                 for(pos = 0; pos < str.length(); ++pos) {
@@ -658,7 +661,7 @@ public abstract class StringUtils {
     }
 
     public static Set<String> commaDelimitedListToSet(String str) {
-        TreeSet<String> set = new TreeSet<String>();
+        TreeSet<String> set = new TreeSet<>();
         String[] tokens = commaDelimitedListToStringArray(str);
         String[] var3 = tokens;
         int var4 = tokens.length;
@@ -692,7 +695,7 @@ public abstract class StringUtils {
         }
         int arraySize = array.length;
         int bufSize = (arraySize == 0 ? 0 : (array[0].toString().length() + separator.length()) * arraySize);
-        StringBuffer buf = new StringBuffer(bufSize);
+        StringBuilder buf = new StringBuilder(bufSize);
 
         for (int i = 0; i < arraySize; i++) {
             if (i > 0) {
@@ -725,7 +728,7 @@ public abstract class StringUtils {
             return true;
         }
         for (int i = 0; i < strLen; i++) {
-            if (Character.isWhitespace(cs.charAt(i)) == false) {
+            if (!Character.isWhitespace(cs.charAt(i))) {
                 return false;
             }
         }
@@ -805,7 +808,8 @@ public abstract class StringUtils {
                 final char ch0 = str.charAt(0);
                 final char ch1 = str.charAt(1);
                 final char[] output2 = new char[outputLength];
-                for (int i = repeat * 2 - 2; i >= 0; i--, i--) {
+                final int two = 2;
+                for (int i = repeat * two - two; i >= 0; i--, i--) {
                     output2[i] = ch0;
                     output2[i + 1] = ch1;
                 }
@@ -888,9 +892,10 @@ public abstract class StringUtils {
 
     /**
      * format byte size to human readable format. https://stackoverflow.com/a/3758880
-     * @param bytes byets
+     * @param bytes bytes
      * @return  human readable format
      */
+    @SuppressWarnings({"squid:S3358", "java:S3776"})
     public static String humanReadableByteCount(long bytes) {
         return bytes < 1024L ? bytes + " B"
                 : bytes < 0xfffccccccccccccL >> 40 ? String.format("%.1f KiB", bytes / 0x1p10)
@@ -902,9 +907,8 @@ public abstract class StringUtils {
     }
 
     public static List<String> toLines(String text) {
-        List<String> result = new ArrayList<String>();
-        BufferedReader reader = new BufferedReader(new StringReader(text));
-        try {
+        List<String> result = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new StringReader(text))) {
             String line = reader.readLine();
             while (line != null) {
                 result.add(line);
@@ -912,22 +916,15 @@ public abstract class StringUtils {
             }
         } catch (IOException exc) {
             // quit
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
         return result;
     }
 
     public static String randomString(int length) {
         StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < length; i++) {
             sb.append(AB.charAt(ThreadLocalRandom.current().nextInt(AB.length())));
+        }
         return sb.toString();
     }
 

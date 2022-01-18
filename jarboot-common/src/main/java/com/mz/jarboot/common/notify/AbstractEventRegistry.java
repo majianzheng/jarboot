@@ -3,6 +3,7 @@ package com.mz.jarboot.common.notify;
 import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.common.utils.StringUtils;
 
 /**
@@ -39,7 +40,7 @@ public interface AbstractEventRegistry {
      * @return 主题
      */
     default String createLifecycleTopic(String serviceName, TaskLifecycle lifecycle) {
-        return StringUtils.concat(StringUtils.SLASH, serviceName, lifecycle.name());
+        return StringUtils.concat(StringUtils.SLASH, createTopic(TaskLifecycleEvent.class), serviceName, lifecycle.name());
     }
 
     /**

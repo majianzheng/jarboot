@@ -35,12 +35,10 @@
         <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-common</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-api</artifactId>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 

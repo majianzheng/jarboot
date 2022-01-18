@@ -12,12 +12,12 @@ import org.springframework.context.annotation.PropertySource;
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
 @PropertySource(value={"classpath:jarboot.properties", "file:${JARBOOT_HOME}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
-public class JarBootServiceApplication {
+public class JarBootServerApplication {
 
 	public static void main(String[] args) {
 		//启动环境检查，若不符合环境要求则弹出swing提示框提醒问题
 		AppEnvironment.initAndCheck();
-		ApplicationContext context = SpringApplication.run(JarBootServiceApplication.class, args);
+		ApplicationContext context = SpringApplication.run(JarBootServerApplication.class, args);
 		ApplicationContextUtils.init(context);
 	}
 }

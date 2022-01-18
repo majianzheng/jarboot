@@ -58,7 +58,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
         });
     }
 
-    @SuppressWarnings("java:S3740")
+    @SuppressWarnings({"java:S3740", "unchecked"})
     @Override
     public void receiveEvent(String topic, JarbootEvent event) {
         Set<Subscriber> subs = LOCAL_SUBS.getOrDefault(topic, null);
@@ -80,11 +80,8 @@ public class JarbootEventServer implements AbstractEventRegistry {
             return;
         }
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            byte[] clsBytes = event.getClass().getCanonicalName().getBytes(StandardCharsets.UTF_8);
             byte[] body = JsonUtils.toJsonBytes(event);
             stream.write(topic.getBytes(StandardCharsets.UTF_8));
-            stream.write(SPLIT);
-            stream.write(clsBytes);
             stream.write(SPLIT);
             stream.write(body);
             byte[] buf = stream.toByteArray();

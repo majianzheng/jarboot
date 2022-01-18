@@ -233,9 +233,9 @@ public class StringUtilsTest {
 
     @Test
     public void testSplit() {
-        Assert.assertNull(StringUtils.split("AAAAAAA@@", "AAAAAAAA"));
-        Assert.assertNull(StringUtils.split("@", ""));
-        Assert.assertNull(StringUtils.split("", "AAAAAAAA"));
+        Assert.assertNotNull(StringUtils.split("AAAAAAA@@", "AAAAAAAA"));
+        Assert.assertNotNull(StringUtils.split("@", ""));
+        Assert.assertNotNull(StringUtils.split("", "AAAAAAAA"));
         Assert.assertArrayEquals(new String[] {"", ""}, StringUtils.split("A", "A"));
         Assert.assertArrayEquals(new String[] {"foo", "foo"}, StringUtils.split("foo,foo", ","));
     }
@@ -405,5 +405,12 @@ public class StringUtilsTest {
     @Test
     public void testClassLoaderHash() {
         Assert.assertEquals("null", StringUtils.classLoaderHash(null));
+    }
+
+    @Test
+    public void testRandomString() {
+        String str = StringUtils.randomString(5);
+        Assert.assertNotNull(str);
+        Assert.assertEquals(5, str.length());
     }
 }

@@ -3,8 +3,6 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.AgentService;
 import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
-import com.mz.jarboot.api.service.ServiceManager;
-import com.mz.jarboot.api.service.SettingService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -26,16 +24,8 @@ public class JarbootAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(havingValue = "serverAddr")
-    public ServiceManager serviceManager(JarbootConfigProperties properties) {
-        return JarbootFactory
-                .createServiceManager(properties.getServerAddr(), properties.getUsername(), properties.getPassword());
-    }
-
-    @Bean
-    @ConditionalOnProperty(havingValue = "serverAddr")
-    public SettingService setting(JarbootConfigProperties properties) {
-        return JarbootFactory
-                .createSettingService(properties.getServerAddr(), properties.getUsername(), properties.getPassword());
+    public JarbootTemplate jarbootTemplate(JarbootConfigProperties properties) {
+        return new JarbootTemplate(properties);
     }
 
     @Bean("spring.env")

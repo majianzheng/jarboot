@@ -19,10 +19,10 @@ import static java.lang.String.format;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S6202")
 public class ObjectView implements View {
     private static final Logger logger = LogUtils.getLogger();
-    private final static int MAX_OBJECT_LENGTH = 10 * 1024 * 1024;
+    private static final int MAX_OBJECT_LENGTH = 10 * 1024 * 1024;
 
     private final Object object;
     private final int deep;
@@ -34,10 +34,11 @@ public class ObjectView implements View {
 
     public ObjectView(Object object, int deep, int maxObjectLength) {
         this.object = object;
-        this.deep = deep > 4 ? 4 : deep;
+        this.deep = Math.min(deep, 4);
         this.maxObjectLength = maxObjectLength;
     }
 
+    @SuppressWarnings("squid:S1181")
     @Override
     public String draw() {
         StringBuilder buf = new StringBuilder();
@@ -59,9 +60,9 @@ public class ObjectView implements View {
         }
     }
 
-    private final static String TAB = "    ";
+    private static final String TAB = "    ";
 
-    private final static Map<Byte, String> ASCII_MAP = new HashMap<Byte, String>();
+    private static final Map<Byte, String> ASCII_MAP = new HashMap<>(64);
 
     static {
         ASCII_MAP.put((byte) 0, "NUL");
@@ -99,6 +100,7 @@ public class ObjectView implements View {
         ASCII_MAP.put((byte) 127, "DEL");
     }
 
+    @SuppressWarnings({"squid:S1192", "java:S3011", "java:S3776", "squid:S3012", "squid:S1181", "RedundantClassCall"})
     private void renderObject(Object obj, int deep, int expand, final StringBuilder buf) throws ObjectTooLargeException {
 
         if (null == obj) {
@@ -587,7 +589,7 @@ public class ObjectView implements View {
                     appendStringBuilder(buf, format("@%s[%s]", className, obj));
                 } else {
                     appendStringBuilder(buf, format("@%s[", className));
-                    List<Field> fields = new ArrayList<Field>();
+                    List<Field> fields = new ArrayList<>();
                     Class<?> objClass = obj.getClass();
                     if (GlobalOptions.printParentFields) {
                         // 当父类为null的时候说明到达了最上层的父类(Object类).

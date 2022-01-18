@@ -14,7 +14,6 @@ import java.util.Map.Entry;
  * @author majianzheng
  *
  */
-@SuppressWarnings("all")
 public class Decompiler {
 
     public static String decompile(String classFilePath, String methodName) {
@@ -25,11 +24,12 @@ public class Decompiler {
         return decompile(classFilePath, methodName, hideUnicode, true);
     }
 
+    @SuppressWarnings("java:S3776")
     public static Pair<String, NavigableMap<Integer, Integer>> decompileWithMappings(String classFilePath,
             String methodName, boolean hideUnicode, boolean printLineNumber) {
         final StringBuilder sb = new StringBuilder(8192);
 
-        final NavigableMap<Integer, Integer> lineMapping = new TreeMap<Integer, Integer>();
+        final NavigableMap<Integer, Integer> lineMapping = new TreeMap<>();
 
         OutputSinkFactory mySink = new OutputSinkFactory() {
             @Override
@@ -38,6 +38,7 @@ public class Decompiler {
                         SinkClass.EXCEPTION_MESSAGE, SinkClass.LINE_NUMBER_MAPPING);
             }
 
+            @SuppressWarnings({"squid:S1604"})
             @Override
             public <T> Sink<T> getSink(final SinkType sinkType, final SinkClass sinkClass) {
                 return new Sink<T>() {
@@ -65,10 +66,10 @@ public class Decompiler {
             }
         };
 
-        HashMap<String, String> options = new HashMap<String, String>();
-        /**
-         * @see org.benf.cfr.reader.util.MiscConstants.Version.getVersion() Currently,
-         *      the cfr version is wrong. so disable show cfr version.
+        HashMap<String, String> options = new HashMap<>(16);
+        /*
+          @see org.benf.cfr.reader.util.MiscConstants.Version.getVersion() Currently,
+               the cfr version is wrong. so disable show cfr version.
          */
         options.put("showversion", "false");
         options.put("hideutf", String.valueOf(hideUnicode));
@@ -78,7 +79,7 @@ public class Decompiler {
         }
 
         CfrDriver driver = new CfrDriver.Builder().withOptions(options).withOutputSink(mySink).build();
-        List<String> toAnalyse = new ArrayList<String>();
+        List<String> toAnalyse = new ArrayList<>();
         toAnalyse.add(classFilePath);
         driver.analyse(toAnalyse);
 
@@ -95,6 +96,7 @@ public class Decompiler {
         return decompileWithMappings(classFilePath, methodName, hideUnicode, printLineNumber).getFirst();
     }
 
+    @SuppressWarnings("PMD.UndefineMagicConstantRule")
     private static String addLineNumber(String src, Map<Integer, Integer> lineMapping) {
         int maxLineNumber = 0;
         for (Integer value : lineMapping.values()) {
@@ -133,4 +135,5 @@ public class Decompiler {
         return sb.toString();
     }
 
+    private Decompiler() {}
 }

@@ -220,7 +220,7 @@ public class JarbootBootstrap {
         if (agentArgs.length != 3) {
             throw new JarbootException("解析传入传入参数错误！args:" + s);
         }
-        clientData.setHost(String.format("127.0.0.1:%s", agentArgs[0]));
+        clientData.setHost("127.0.0.1:" + agentArgs[0]);
         System.setProperty(CommonConst.REMOTE_PROP, clientData.getHost());
         clientData.setServiceName(agentArgs[1]);
         String sid = agentArgs[2];

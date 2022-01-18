@@ -42,6 +42,14 @@ public class ServiceManagerClient implements ServiceManager {
         }
     }
 
+    /**
+     * 服务管理客户端构造
+     * @param proxy 客户端代理类
+     */
+    public ServiceManagerClient(ClientProxy proxy) {
+        this.clientProxy = proxy;
+    }
+
     @Override
     public List<ServiceInstance> getServiceList() {
         String response = this.clientProxy.reqApi(CommonConst.SERVICE_MGR_CONTEXT, StringUtils.EMPTY, HttpMethod.GET);

@@ -1,6 +1,5 @@
 package com.mz.jarboot.client;
 
-import com.mz.jarboot.api.JarbootFactory;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Option;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -83,8 +82,7 @@ public class JarbootClientCli {
 
     private void run() {
         //test
-        ServiceManager client = JarbootFactory
-                .createServiceManager(this.host, null, null);
+        ServiceManager client = new ServiceManagerClient(this.host, null, null);
         List<ServiceInstance> list = client.getServiceList();
         AnsiLog.info("list:{}", list);
 
@@ -112,8 +110,7 @@ public class JarbootClientCli {
             }
         });
 
-        SettingService setting = JarbootFactory
-                .createSettingService(this.host, null, null);
+        SettingService setting = new SettingClient(this.host, null, null);
         AnsiLog.info("system setting: {}", setting.getGlobalSetting());
         //测试工作空间变化订阅
         setting.registerSubscriber(new Subscriber<WorkspaceChangeEvent>() {

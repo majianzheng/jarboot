@@ -95,7 +95,7 @@ public class AgentManager {
      * @param sid sid服务唯一id
      */
     public void offline(String serviceName, String sid) {
-        final AgentOperator client = clientMap.getOrDefault(sid, null);
+        final AgentOperator client = clientMap.remove(sid);
         if (null == client) {
             return;
         }
@@ -116,10 +116,8 @@ public class AgentManager {
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
                 //发送了退出执行，唤醒killClient或waitServerStarted线程
                 client.notifyAll();
-                clientMap.remove(sid);
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
-                clientMap.remove(sid);
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
                 ServiceOfflineEvent event = new ServiceOfflineEvent(serviceName, sid);
                 NotifyReactor.getInstance().publishEvent(event);

@@ -22,12 +22,11 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S3740")
 public abstract class EnhancerCommand extends AbstractCommand {
     private static final Logger logger = LogUtils.getLogger();
     protected static final List<String> EMPTY = Collections.emptyList();
-    public static final String[] EXPRESS_EXAMPLES = { "params", "returnObj", "throwExp", "target", "clazz", "method",
-                                                       "{params,returnObj}", "params[0]" };
+
     private String excludeClassPattern;
 
     protected Matcher classNameMatcher;
@@ -97,6 +96,7 @@ public abstract class EnhancerCommand extends AbstractCommand {
         enhance(session);
     }
 
+    @SuppressWarnings("squid:S1181")
     protected void enhance(AbstractCommandSession process) {
         EnhancerAffect effect = null;
         try {
@@ -104,7 +104,7 @@ public abstract class EnhancerCommand extends AbstractCommand {
             AdviceListener listener = getAdviceListenerWithId(process);
             if (listener == null) {
                 logger.error("advice listener is null");
-                String msg = "advice listener is null, check arthas log";
+                String msg = "advice listener is null, check jarboot log";
                 session.appendResult(new EnhancerModel(effect, false, msg));
                 session.end(false, msg);
                 return;
@@ -142,7 +142,7 @@ public abstract class EnhancerCommand extends AbstractCommand {
                         + "1. Execute `" + smCommand + "` to make sure the method you are tracing actually exists (it might be in your parent class).\n"
                         + "2. Execute `" + optionsCommand + "`, if you want to enhance the classes under the `" + javaPackage + "` package.\n"
                         + "3. Execute `" + resetCommand + "` and try again, your method body might be too large.\n"
-                        + "4. Check arthas log: " + logStr + "\n";
+                        + "4. Check jarboot log: " + logStr + "\n";
                 process.end(false, msg);
                 return;
             }
