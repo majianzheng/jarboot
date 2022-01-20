@@ -68,7 +68,7 @@ public final class AgentOperator extends SessionOperator {
     }
 
     public void heartbeat() {
-        sendCommand(CommandConst.HEARTBEAT, CommandConst.SESSION_COMMON, CommandType.HEARTBEAT);
+        sendCommand(CommandConst.HEARTBEAT, StringUtils.EMPTY, CommandType.HEARTBEAT);
     }
 
     public boolean isTrusted() {

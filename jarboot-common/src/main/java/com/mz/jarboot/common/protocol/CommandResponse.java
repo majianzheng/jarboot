@@ -1,6 +1,7 @@
 package com.mz.jarboot.common.protocol;
 
 import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,15 +28,14 @@ public class CommandResponse implements CmdProtocol, JarbootEvent {
         if (Boolean.TRUE.equals(success)) {
             cb = (byte)(cb | CommandConst.SUCCESS_FLAG);
         }
-        if (null == sessionId || sessionId.isEmpty()) {
-            sessionId = CommandConst.SESSION_COMMON;
-        }
         byte[] buf = null;
         try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream(1024)) {
             byteStream.write(cb);
             byteStream.write(body.getBytes(StandardCharsets.UTF_8));
             byteStream.write(CommandConst.PROTOCOL_SPLIT);
-            byteStream.write(sessionId.getBytes(StandardCharsets.UTF_8));
+            if (StringUtils.isNotEmpty(sessionId)) {
+                byteStream.write(sessionId.getBytes(StandardCharsets.UTF_8));
+            }
             buf = byteStream.toByteArray();
         } catch (IOException e) {
             //ignore
@@ -61,7 +61,10 @@ public class CommandResponse implements CmdProtocol, JarbootEvent {
             return;
         }
         this.body = new String(raw, 1, index - 1, StandardCharsets.UTF_8);
-        this.sessionId = new String(raw, index + 1, raw.length - index - 1, StandardCharsets.UTF_8);
+        final int len = (raw.length - index - 1);
+        if (len > 0) {
+            this.sessionId = new String(raw, index + 1, len, StandardCharsets.UTF_8);
+        }
     }
 
     public static CommandResponse createFromRaw(byte[] raw) {

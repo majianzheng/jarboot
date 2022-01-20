@@ -1,6 +1,8 @@
 package com.mz.jarboot.ws;
 
 import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.event.AbstractMessageEvent;
+
 import javax.websocket.Session;
 
 /**
@@ -20,11 +22,23 @@ public class SessionOperator {
      * @param msg 消息
      */
     public void newMessage(String msg) {
-        NotifyReactor.getInstance().publishEvent(new MessageSenderEvent(session, msg));
+        publish(new MessageSenderEvent(session, msg));
     }
 
+    /**
+     * 新消息投递
+     * @param msg 消息
+     */
     public void newMessage(byte[] msg) {
-        NotifyReactor.getInstance().publishEvent(new MessageSenderEvent(session, msg));
+        publish(new MessageSenderEvent(session, msg));
+    }
+
+    /**
+     * 新消息投递
+     * @param msg 消息
+     */
+    public void newMessage(AbstractMessageEvent msg) {
+        newMessage(msg.message());
     }
 
     /**
@@ -33,5 +47,9 @@ public class SessionOperator {
      */
     public boolean isOpen() {
         return this.session.isOpen();
+    }
+
+    private void publish(MessageSenderEvent event) {
+        NotifyReactor.getInstance().publishEvent(event);
     }
 }

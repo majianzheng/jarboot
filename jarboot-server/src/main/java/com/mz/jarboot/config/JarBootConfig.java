@@ -2,6 +2,8 @@ package com.mz.jarboot.config;
 
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.PermissionsCache;
+import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.ws.MessageSenderSubscriber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +21,7 @@ import java.util.Map;
  */
 @Configuration
 public class JarBootConfig {
-    private static final int MAX_BUFFER_SIZE = 8192;
+    private static final int MAX_BUFFER_SIZE = 4096;
     @Autowired
     private ApplicationContext ctx;
     @Autowired
@@ -40,6 +42,9 @@ public class JarBootConfig {
 
     @PostConstruct
     public void init() {
+        //注册消息发送订阅
+        NotifyReactor.getInstance().registerSubscriber(new MessageSenderSubscriber());
+        //初始化权限管理缓存
         Map<String, Object> controllers = ctx.getBeansWithAnnotation(Permission.class);
         HashSet<Class<?>> classes = new HashSet<>();
         controllers.forEach((k, v) -> classes.add(v.getClass()));

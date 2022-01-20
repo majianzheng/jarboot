@@ -9,8 +9,6 @@ import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +69,7 @@ public class SettingUtils {
         TRUSTED_HOSTS_FILE = conf + "trusted-hosts.conf";
         initTrustedHosts();
         //初始化默认目录及配置路径
-        DEFAULT_WORKSPACE = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.SERVICES;
+        DEFAULT_WORKSPACE = home + File.separator + CommonConst.SERVICES;
     }
 
     public static void init(int port) {
@@ -251,18 +249,18 @@ public class SettingUtils {
         File dir = FileUtils.getFile(servicePath);
         if (!dir.isDirectory() || !dir.exists()) {
             logger.error("未找到{}服务的jar包路径", servicePath);
-            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包路径", NoticeLevel.WARN);
+            MessageUtils.warn("未找到服务" + servicePath + "的可执行jar包路径");
         }
 
         Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
         if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
-            WebSocketManager.getInstance().notice("未找到服务" + servicePath + "的可执行jar包", NoticeLevel.ERROR);
+            MessageUtils.error("未找到服务" + servicePath + "的可执行jar包");
             return StringUtils.EMPTY;
         }
         if (jarList.size() > 1) {
             String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", servicePath);
-            WebSocketManager.getInstance().notice(msg, NoticeLevel.WARN);
+            MessageUtils.warn(msg);
             return StringUtils.EMPTY;
         }
         if (jarList.iterator().hasNext()) {
@@ -311,7 +309,7 @@ public class SettingUtils {
             try {
                 lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
+                MessageUtils.warn(e.getMessage());
                 throw new JarbootException("Read file error.", e);
             }
             lines.stream()

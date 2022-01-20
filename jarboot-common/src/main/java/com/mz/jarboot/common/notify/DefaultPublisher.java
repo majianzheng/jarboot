@@ -33,7 +33,7 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
             final JarbootEvent event = queue.take();
             receiveEvent(event);
         } catch (InterruptedException e) {
-            logger.error("loop thread interrupted. shutdown: {}", this.shutdown, e);
+            logger.error("loop thread interrupted. shutdown: {}", this.shutdown);
             Thread.currentThread().interrupt();
         } catch (Throwable ex) {
             logger.error("Event listener exception : ", ex);
@@ -88,21 +88,12 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
         });
     }
 
-    private boolean hasSubscriber() {
-        return !subscribers.isEmpty();
-    }
-
     /**
      * Receive and notifySubscriber to process the event.
      *
      * @param event {@link JarbootEvent}.
      */
     void receiveEvent(JarbootEvent event) {
-        if (!hasSubscriber()) {
-            logger.debug("[NotifyCenter] the {} is unacceptable to this subscriber, because had expire",
-                    event.getClass());
-            return;
-        }
         final HashSet<Subscriber> subs = subscribers.get(event.getClass());
         if (null == subs || subs.isEmpty()) {
             return;

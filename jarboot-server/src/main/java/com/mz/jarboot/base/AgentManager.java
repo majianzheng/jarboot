@@ -13,9 +13,9 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.AttachStatus;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
@@ -67,7 +67,7 @@ public class AgentManager {
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
-            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
+            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
         } else {
             latch.countDown();
         }
@@ -79,7 +79,7 @@ public class AgentManager {
             } else {
                 //本地进程默认受信任
                 client.setTrusted(true);
-                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
+                MessageUtils.upgradeStatus(sid, AttachStatus.ATTACHED);
             }
         } else {
             //属于受管理的服务
@@ -105,12 +105,12 @@ public class AgentManager {
                 remoteProcesses.remove(sid);
             }
             //非受管理的本地进程，通知前端进程已经离线
-            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.EXITED);
+            MessageUtils.upgradeStatus(sid, AttachStatus.EXITED);
         } else {
             localServices.remove(pid);
         }
         String msg = String.format("\033[1;96m%s\033[0m 下线！", serviceName);
-        WebSocketManager.getInstance().sendConsole(sid, msg);
+        MessageUtils.console(sid, msg);
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
             if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
@@ -169,7 +169,7 @@ public class AgentManager {
         synchronized (client) {
             long startTime = System.currentTimeMillis();
             client.setState(ClientState.EXITING);
-            sendInternalCommand(sid, CommandConst.EXIT_CMD, CommandConst.SESSION_COMMON);
+            sendInternalCommand(sid, CommandConst.EXIT_CMD, StringUtils.EMPTY);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
                 client.wait(maxGracefulExitTime);
@@ -184,7 +184,7 @@ public class AgentManager {
                 return false;
             } else {
                 client.setState(ClientState.OFFLINE);
-                WebSocketManager.getInstance().sendConsole(sid, "进程优雅退出成功！");
+                MessageUtils.console(sid, "进程优雅退出成功！");
             }
         }
         return true;
@@ -237,7 +237,7 @@ public class AgentManager {
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
                 String msg = formatErrorMsg(service, "connect timeout!");
-                WebSocketManager.getInstance().sendConsole(sid, msg);
+                MessageUtils.console(sid, msg);
                 return;
             }
         }
@@ -246,10 +246,8 @@ public class AgentManager {
             if (!ClientState.STARTING.equals(client.getState())) {
                 logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
                         service, client.getState());
-                WebSocketManager
-                        .getInstance()
-                        .sendConsole(sid,
-                                service + " is not starting, wait started error. status:" + client.getState());
+                MessageUtils.console(sid,
+                        service + " is not starting, wait started error. status:" + client.getState());
                 return;
             }
             try {
@@ -272,7 +270,7 @@ public class AgentManager {
                 if (null != client) {
                     client.setTrusted(true);
                     v.setTrusted(true);
-                    WebSocketManager.getInstance().debugProcessEvent(k, AttachStatus.TRUSTED);
+                    MessageUtils.upgradeStatus(k, AttachStatus.TRUSTED);
                 }
             }
         });
@@ -306,7 +304,7 @@ public class AgentManager {
         boolean isTrusted = SettingUtils.isTrustedHost(remoteIp);
         client.setTrusted(isTrusted);
         remoteProcesses.put(sid, process);
-        WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.ATTACHED);
+        MessageUtils.upgradeStatus(sid, AttachStatus.ATTACHED);
     }
 
     /**
@@ -325,9 +323,7 @@ public class AgentManager {
             if (TaskUtils.getPid(sid).isEmpty()) {
                 String msg = formatErrorMsg(serviceName, "未在线，无法执行命令");
                 //未在线，进程不存在
-                WebSocketManager
-                        .getInstance()
-                        .commandEnd(sid, msg, sessionId);
+                MessageUtils.commandEnd(sid, sessionId, msg);
             } else {
                 //如果进程仍然存活，尝试使用attach重新连接
                 tryReConnect(serviceName, sid, sessionId);
@@ -335,9 +331,7 @@ public class AgentManager {
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
                     String msg = formatErrorMsg(serviceName, "连接断开，重连失败，请稍后重试");
-                    WebSocketManager
-                            .getInstance()
-                            .commandEnd(sid, msg, sessionId);
+                    MessageUtils.commandEnd(sid, sessionId, msg);
                 }
             }
         }
@@ -346,8 +340,8 @@ public class AgentManager {
                 client.sendCommand(command, sessionId);
             } else {
                 String msg = formatErrorMsg(serviceName, "not trusted!");
-                WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
-                WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+                MessageUtils.commandEnd(sid, sessionId, msg);
+                MessageUtils.upgradeStatus(sid, AttachStatus.NOT_TRUSTED);
             }
         }
     }
@@ -363,11 +357,11 @@ public class AgentManager {
         try {
             TaskUtils.attach(sid);
             String msg = formatErrorMsg(serviceName, "连接断开，重连中...");
-            WebSocketManager.getInstance().sendConsole(sid, sessionId, msg);
+            MessageUtils.console(sid, sessionId, msg);
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                 logger.error("Attach and wait service connect timeout，{}", serviceName);
                 msg = formatErrorMsg(serviceName, "Attach重连超时！");
-                WebSocketManager.getInstance().sendConsole(sid, sessionId, msg);
+                MessageUtils.console(sid, sessionId, msg);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -384,12 +378,12 @@ public class AgentManager {
      */
     private void sendInternalCommand(String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
-            WebSocketManager.getInstance().commandEnd(sid, StringUtils.EMPTY, sessionId);
+            MessageUtils.commandEnd(sid, sessionId, StringUtils.EMPTY);
             return;
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            WebSocketManager.getInstance().commandEnd(sid, StringUtils.EMPTY, sessionId);
+            MessageUtils.commandEnd(sid, sessionId, StringUtils.EMPTY);
             return;
         }
         client.sendInternalCommand(command, sessionId);
@@ -410,20 +404,18 @@ public class AgentManager {
                 doHeartbeat(serviceName, sid, session);
                 break;
             case CONSOLE:
-                if (!checkNotTrusted(sid)) {
-                    WebSocketManager.getInstance().sendConsole(sid, sessionId, resp.getBody());
-                }
+                console(sid, resp, sessionId);
                 break;
             case BACKSPACE:
-                WebSocketManager.getInstance().backspace(sid, resp.getBody(), sessionId);
+                MessageUtils.backspace(sid, resp.getBody());
                 break;
             case STD_PRINT:
                 //启动中的控制台消息
-                WebSocketManager.getInstance().stdPrint(sid, resp.getBody(), sessionId);
+                MessageUtils.stdPrint(sid, resp.getBody());
                 break;
             case JSON_RESULT:
                 if (!checkNotTrusted(sid)) {
-                    WebSocketManager.getInstance().renderJson(sid, resp.getBody(), sessionId);
+                    MessageUtils.render(sid, sessionId, resp.getBody());
                 }
                 break;
             case COMMAND_END:
@@ -441,11 +433,22 @@ public class AgentManager {
         }
     }
 
+    private void console(String sid, CommandResponse resp, String sessionId) {
+        if (checkNotTrusted(sid)) {
+            return;
+        }
+        if (StringUtils.isEmpty(sessionId)) {
+            MessageUtils.console(sid, resp.getBody());
+        } else {
+            MessageUtils.console(sid, sessionId, resp.getBody());
+        }
+    }
+
     private void trustOnce(String sid) {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null != client && !client.isTrusted()) {
             client.setTrusted(true);
-            WebSocketManager.getInstance().debugProcessEvent(sid, AttachStatus.TRUSTED);
+            MessageUtils.upgradeStatus(sid, AttachStatus.TRUSTED);
         }
     }
 
@@ -494,7 +497,7 @@ public class AgentManager {
         if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
             msg = AnsiLog.red(msg);
         }
-        WebSocketManager.getInstance().commandEnd(sid, msg, sessionId);
+        MessageUtils.commandEnd(sid, sessionId, msg);
     }
 
     private void doHeartbeat(String serviceName, String sid, Session session) {
@@ -505,9 +508,9 @@ public class AgentManager {
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
             this.online(serviceName, session, sid);
             this.onServiceStarted(sid);
-            WebSocketManager.getInstance().sendConsole(sid, "reconnected by heartbeat!");
+            MessageUtils.console(sid, "reconnected by heartbeat!");
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
-            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
+            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
             client = clientMap.getOrDefault(sid, null);
             if (null != client) {
                 client.heartbeat();
@@ -554,11 +557,12 @@ public class AgentManager {
         }
         String action = body.get(CommandConst.ACTION_PROP_NAME_KEY).asText(StringUtils.EMPTY);
         String param = body.get(CommandConst.ACTION_PROP_PARAM_KEY).asText(StringUtils.EMPTY);
-        if (StringUtils.isEmpty(sessionId)) {
-            sessionId = CommandConst.SESSION_COMMON;
-        }
         NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
-        WebSocketManager.getInstance().notice(param, level, sessionId);
+        if (StringUtils.isEmpty(sessionId)) {
+            MessageUtils.notice(param, level);
+        } else {
+            MessageUtils.notice(sessionId, param, level);
+        }
     }
 
     private String formatErrorMsg(String serviceName, String msg) {
@@ -583,9 +587,7 @@ public class AgentManager {
                 break;
             case CHECK_TRUSTED_FUNC:
                 if (checkNotTrusted(sid)) {
-                    WebSocketManager
-                            .getInstance()
-                            .debugProcessEvent(sid, AttachStatus.NOT_TRUSTED);
+                    MessageUtils.upgradeStatus(sid, AttachStatus.NOT_TRUSTED);
                 }
                 break;
             case DETACH_FUNC:

@@ -31,10 +31,10 @@ public abstract class AbstractEventLoop extends Thread {
     public final void run() {
         try {
             for (; ; ) {
+                loop();
                 if (shutdown) {
                     break;
                 }
-                loop();
             }
         } catch (Throwable ex) {
             //ignore

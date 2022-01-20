@@ -6,13 +6,12 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.FrontEndNotifyEventType;
 import com.mz.jarboot.service.UploadFileService;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -131,7 +130,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         //开始复制前要不要先备份，以便失败后还原？文件量、体积巨大如何处理？为了性能先不做考虑
         try {
             if (!exist && !dest.mkdir()) {
-                WebSocketManager.getInstance().notice("服务目录创建失败！", NoticeLevel.ERROR);
+                MessageUtils.error("服务目录创建失败！");
                 return;
             }
             //先复制jar文件
@@ -148,14 +147,13 @@ public class UploadFileServiceImpl implements UploadFileService {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {
                     String msg = String.format("在服务%s目录找到了多个jar文件，请设置启动的命令！", server);
-                    WebSocketManager.getInstance().notice(msg, NoticeLevel.WARN);
+                    MessageUtils.warn(msg);
                 }
             }
             if (!exist) {
                 setting.setWorkspace(SettingUtils.getWorkspace());
                 settingService.submitServiceSetting(setting);
-                WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
+                MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
             }
         } catch (Exception e) {
             //还原目录?万一体积巨大怎么处理

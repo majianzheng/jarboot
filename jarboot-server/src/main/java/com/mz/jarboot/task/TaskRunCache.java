@@ -3,6 +3,7 @@ package com.mz.jarboot.task;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CacheDirHelper;
+import com.mz.jarboot.common.notify.AbstractEventRegistry;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -33,7 +34,7 @@ public class TaskRunCache {
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
     @Autowired
-    private TaskStatusChangeSubscriber taskStatusChangeSubscriber;
+    private AbstractEventRegistry eventRegistry;
     /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
     /** 正在启动中的服务 */
@@ -215,6 +216,7 @@ public class TaskRunCache {
                 excludeDirSet.add(s.trim());
             }
         }
-        NotifyReactor.getInstance().registerSubscriber(taskStatusChangeSubscriber);
+        //订阅任务状态变化事件
+        NotifyReactor.getInstance().registerSubscriber(new TaskStatusChangeSubscriber(this.eventRegistry));
     }
 }

@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  */
 public class MessageSenderEvent implements JarbootEvent {
     private static final Logger logger = LoggerFactory.getLogger(MessageSenderEvent.class);
-    private final Session session;
+    protected final Session session;
     private final String message;
     private final byte[] buf;
     private final boolean binary;

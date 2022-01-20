@@ -11,16 +11,15 @@ import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,8 +119,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
      * @param workspace 工作空间
      */
     private void changeWorkspace(String workspace) {
-        WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         //中断原监控线程
         monitorThread.interrupt();
         try {
@@ -132,7 +130,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         }
         if (monitorThread.isAlive()) {
             logger.error("工作空间监控线程退出失败！");
-            WebSocketManager.getInstance().notice("工作空间监控线程中断失败，请重启Jarboot重试！", NoticeLevel.ERROR);
+            MessageUtils.error("工作空间监控线程中断失败，请重启Jarboot重试！");
             return;
         }
         this.curWorkspace = workspace;
@@ -157,7 +155,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(list)) {
             final String msg = "监控到工作空间文件更新，开始重启相关服务...";
-            WebSocketManager.getInstance().notice(msg, NoticeLevel.INFO);
+            MessageUtils.info(msg);
             serverMgrService.restartService(list);
         }
     }
@@ -198,7 +196,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             pathWatchMonitor(watchService);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
-            WebSocketManager.getInstance().notice("工作空间监控异常：" + ex.getMessage(), NoticeLevel.ERROR);
+            MessageUtils.error("工作空间监控异常：" + ex.getMessage());
         } catch (InterruptedException ex) {
             //线程退出
             Thread.currentThread().interrupt();
@@ -268,7 +266,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             }
             if (!key.reset()) {
                 logger.error("处理失败，重置错误");
-                WebSocketManager.getInstance().notice("工作空间监控异常，请重启Jarboot解决！", NoticeLevel.ERROR);
+                MessageUtils.error("工作空间监控异常，请重启Jarboot解决！");
                 break;
             }
         }

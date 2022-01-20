@@ -5,7 +5,6 @@ package com.mz.jarboot.common.protocol;
  * @author majianzheng
  */
 public class CommandConst {
-    public static final int MAX_COMMAND_BUFFER = 16384;
     /**
      * 控制位头，char占用1个字节，共8位bit
      * -128 -> 1000 0000
@@ -21,11 +20,6 @@ public class CommandConst {
     public static final String CANCEL_CMD = "cancel";
     public static final String HEARTBEAT = "heartbeat";
     public static final String SHUTDOWN = "shutdown";
-
-    /**
-     * 广播会话ID，进程启动或退出时，广播所有客户端
-     */
-    public static final String SESSION_COMMON = "common";
 
     public static final String ACTION_PROP_NAME_KEY = "name";
     public static final String ACTION_PROP_PARAM_KEY = "param";

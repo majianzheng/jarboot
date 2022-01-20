@@ -10,12 +10,11 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.FrontEndNotifyEventType;
 import com.mz.jarboot.security.JwtTokenManager;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -134,13 +133,13 @@ public class CloudController {
             if (!out.exists()) {
                 FileUtils.forceMkdir(out);
             }
-            WebSocketManager.getInstance().globalLoading(id, "上传成功，开始解压缩...");
+            MessageUtils.globalLoading(id, "上传成功，开始解压缩...");
             //解压ZIP压缩文件
             ZipUtils.unZip(zipFie, out);
             File[] dirs = out.listFiles();
             //必须保证解压后仅有一个文件夹
             if (null == dirs || 1 != dirs.length || !dirs[0].isDirectory()) {
-                WebSocketManager.getInstance().notice("压缩文件中应当仅有一个文件夹！", NoticeLevel.INFO);
+                MessageUtils.info("压缩文件中应当仅有一个文件夹！");
                 return;
             }
             //解压后的文件夹
@@ -153,27 +152,26 @@ public class CloudController {
             if (isExist) {
                 String sid = SettingUtils.createSid(dest.getPath());
                 if (AgentManager.getInstance().isOnline(sid)) {
-                    WebSocketManager.getInstance().notice(name + " 正在运行，请先停止再导入！", NoticeLevel.INFO);
+                    MessageUtils.info(name + " 正在运行，请先停止再导入！");
                     return;
                 }
-                WebSocketManager.getInstance().globalLoading(id, name + " 已存在，正在清除原目录...");
+                MessageUtils.globalLoading(id, name + " 已存在，正在清除原目录...");
                 //先删除
                 FileUtils.deleteDirectory(dest);
             }
             //移动到工作空间目录
-            WebSocketManager.getInstance().globalLoading(id, name + " 解压完成，开始拷贝...");
+            MessageUtils.globalLoading(id, name + " 解压完成，开始拷贝...");
             FileUtils.copyDirectory(dir, dest);
-            WebSocketManager.getInstance().globalLoading(id, name + " 推送完成！");
+            MessageUtils.globalLoading(id, name + " 推送完成！");
             //通知前端刷新列表
             if (isExist) {
-                WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeLevel.INFO);
+                MessageUtils.info(name + " 更新成功！");
             } else {
-                WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
-                WebSocketManager.getInstance().notice("推送成功，新增服务 " + name, NoticeLevel.INFO);
+                MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+                MessageUtils.info("推送成功，新增服务 " + name);
             }
         } catch (Exception e) {
-            WebSocketManager.getInstance().notice("推送失败！" + e.getMessage(), NoticeLevel.ERROR);
+            MessageUtils.error("推送失败！" + e.getMessage());
         } finally {
             //最终清理临时目录
             try {
@@ -181,7 +179,7 @@ public class CloudController {
             } catch (Exception e) {
                 //ignore
             }
-            WebSocketManager.getInstance().globalLoading(id, StringUtils.EMPTY);
+            MessageUtils.globalLoading(id, StringUtils.EMPTY);
         }
     }
 

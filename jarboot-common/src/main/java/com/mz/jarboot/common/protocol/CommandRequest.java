@@ -2,6 +2,7 @@ package com.mz.jarboot.common.protocol;
 
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.utils.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,7 +22,9 @@ public class CommandRequest implements CmdProtocol, JarbootEvent {
         byte[] buf = null;
         try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream(128)) {
             byteStream.write(commandType.value());
-            byteStream.write(sessionId.getBytes(StandardCharsets.UTF_8));
+            if (StringUtils.isNotEmpty(sessionId)) {
+                byteStream.write(sessionId.getBytes(StandardCharsets.UTF_8));
+            }
             byteStream.write(CommandConst.PROTOCOL_SPLIT);
             byteStream.write(commandLine.getBytes(StandardCharsets.UTF_8));
             buf = byteStream.toByteArray();
@@ -48,7 +51,9 @@ public class CommandRequest implements CmdProtocol, JarbootEvent {
         if (index < CommandConst.MIN_CMD_LEN - 1) {
             throw new JarbootException("协议错误，缺少sessionId参数！");
         }
-        sessionId = new String(raw, 1, index - 1, StandardCharsets.UTF_8);
+        if ((index - 1) > 0) {
+            sessionId = new String(raw, 1, index - 1, StandardCharsets.UTF_8);
+        }
         commandLine = new String(raw, index + 1, raw.length - index - 1, StandardCharsets.UTF_8);
     }
 

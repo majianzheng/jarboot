@@ -35,7 +35,7 @@ public class NotifyReactor {
         final String topic = event.getClass().getCanonicalName();
         EventPublisher publisher = publisherMap.getOrDefault(topic, null);
         if (null == publisher) {
-            logger.warn("Current has no publisher. topic: {}", topic);
+            logger.debug("Current has no publisher. topic: {}", topic);
             return false;
         }
         return publisher.publishEvent(event);

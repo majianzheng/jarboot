@@ -15,9 +15,9 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.FrontEndNotifyEventType;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,8 +112,7 @@ public class SettingServiceImpl implements SettingService {
                 throw new JarbootRunException("重命名服务失败！");
             }
             //重命名成功，发布工作空间变化事件
-            WebSocketManager.getInstance().createGlobalEvent(StringUtils.SPACE,
-                    StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
+            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         } else {
             PropertyFileUtils.storeProperties(file, prop);
         }

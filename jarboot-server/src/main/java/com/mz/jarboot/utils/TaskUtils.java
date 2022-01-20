@@ -8,8 +8,6 @@ import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.constant.NoticeLevel;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +62,7 @@ public class TaskUtils {
         if (!isOk) {
             if (AgentManager.getInstance().isOnline(sid)) {
                 logger.warn("未能成功退出，将执行强制杀死命令：{}", sid);
-                WebSocketManager.getInstance().notice("服务(sid:" + sid +
-                        ")未等到退出消息，将执行强制退出命令！", NoticeLevel.WARN);
+                MessageUtils.warn("服务(sid:" + sid + ")未等到退出消息，将执行强制退出命令！");
             }
             String pid = getPid(sid);
             if (!pid.isEmpty()) {
@@ -144,7 +141,7 @@ public class TaskUtils {
         }
 
         //打印命令行
-        WebSocketManager.getInstance().sendConsole(sid, cmd);
+        MessageUtils.console(sid, cmd);
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
@@ -165,7 +162,7 @@ public class TaskUtils {
             vm = VMUtils.getInstance().attachVM(pid);
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAttachArgs());
         } catch (Exception e) {
-            WebSocketManager.getInstance().printException(sid, e);
+            MessageUtils.printException(sid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -237,7 +234,7 @@ public class TaskUtils {
             Runtime.getRuntime().exec(command, en, dir);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeLevel.ERROR);
+            MessageUtils.error("Start task error " + e.getMessage());
         }
     }
 
@@ -276,10 +273,10 @@ public class TaskUtils {
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
+            MessageUtils.warn(e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.WARN);
+            MessageUtils.warn(e.getMessage());
         } finally {
             if (null != p) {
                 try {

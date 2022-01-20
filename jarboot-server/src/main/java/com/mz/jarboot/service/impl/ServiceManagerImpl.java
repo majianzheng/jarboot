@@ -15,13 +15,11 @@ import com.mz.jarboot.common.notify.AbstractEventRegistry;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.utils.*;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +76,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void oneClickRestart() {
         if (this.taskRunCache.hasStartingOrStopping()) {
             // 有任务在中间态，不允许执行
-            WebSocketManager.getInstance().notice("存在未完成的任务，请稍后重启", NoticeLevel.INFO);
+            MessageUtils.info("存在未完成的任务，请稍后重启");
             return;
         }
         //获取所有的服务
@@ -97,7 +95,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void oneClickStart() {
         if (this.taskRunCache.hasStartingOrStopping()) {
             // 有任务在中间态，不允许执行
-            WebSocketManager.getInstance().notice("存在未完成的任务，请稍后启动", NoticeLevel.INFO);
+            MessageUtils.info("存在未完成的任务，请稍后启动");
             return;
         }
         List<String> paths = taskRunCache.getServicePathList();
@@ -112,7 +110,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void oneClickStop() {
         if (this.taskRunCache.hasStartingOrStopping()) {
             // 有任务在中间态，不允许执行
-            WebSocketManager.getInstance().notice("存在未完成的任务，请稍后停止", NoticeLevel.INFO);
+            MessageUtils.info("存在未完成的任务，请稍后停止");
             return;
         }
         List<String> paths = taskRunCache.getServicePathList();
@@ -132,10 +130,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.startServer0(serviceNames));
+        TaskUtils.getTaskExecutor().execute(() -> this.startService0(serviceNames));
     }
 
-    private void startServer0(List<String> services) {
+    private void startService0(List<String> services) {
         //获取服务的优先级启动顺序
         final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStartPriority(services);
         ArrayList<ServiceSetting> taskList = new ArrayList<>();
@@ -145,20 +143,20 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             ServiceSetting next = priorityQueue.peek();
             if (null != next && !next.getPriority().equals(setting.getPriority())) {
                 //同一级别的全部取出
-                startServerGroup(taskList);
+                startServiceGroup(taskList);
                 //开始指定下一级的启动组，此时上一级的已经全部启动完成，清空组
                 taskList.clear();
             }
         }
         //最后一组的启动
-        startServerGroup(taskList);
+        startServiceGroup(taskList);
     }
 
     /**
      * 同一级别的一起启动
      * @param s 同级服务列表
      */
-    private void startServerGroup(List<ServiceSetting> s) {
+    private void startServiceGroup(List<ServiceSetting> s) {
         if (CollectionUtils.isEmpty(s)) {
             return;
         }
@@ -190,17 +188,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         String sid = setting.getSid();
         // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
         if (this.taskRunCache.isStopping(sid)) {
-            WebSocketManager.getInstance().notice("服务" + server + "正在停止", NoticeLevel.INFO);
+            MessageUtils.info("服务" + server + "正在停止");
             return;
         }
         if (AgentManager.getInstance().isOnline(sid)) {
             //已经启动
-            WebSocketManager.getInstance().upgradeStatus(sid, CommonConst.RUNNING);
-            WebSocketManager.getInstance().notice("服务" + server + "已经是启动状态", NoticeLevel.INFO);
+            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
+            MessageUtils.info("服务" + server + "已经是启动状态");
             return;
         }
         if (!this.taskRunCache.addStarting(sid)) {
-            WebSocketManager.getInstance().notice("服务" + server + "正在启动中", NoticeLevel.INFO);
+            MessageUtils.info("服务" + server + "正在启动中");
             return;
         }
         try {
@@ -217,9 +215,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //服务是否启动成功
             if (AgentManager.getInstance().isOnline(sid)) {
-                WebSocketManager
-                        .getInstance()
-                        .sendConsole(sid, String.format(STARTED_MSG, server, costTime));
+                MessageUtils.console(sid, String.format(STARTED_MSG, server, costTime));
                 NotifyReactor
                         .getInstance()
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STARTED));
@@ -228,12 +224,12 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 NotifyReactor
                         .getInstance()
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
-                WebSocketManager.getInstance().notice("启动服务" + server + "失败！", NoticeLevel.ERROR);
+                MessageUtils.error("启动服务" + server + "失败！");
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.ERROR);
-            WebSocketManager.getInstance().printException(sid, e);
+            MessageUtils.error(e.getMessage());
+            MessageUtils.printException(sid, e);
         } finally {
             this.taskRunCache.removeStarting(sid);
         }
@@ -251,7 +247,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
 
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.stopServer0(serviceNames));
+        TaskUtils.getTaskExecutor().execute(() -> this.stopService0(serviceNames));
     }
 
     @Override
@@ -281,13 +277,13 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             throw new JarbootException("pid is empty!");
         }
         Object vm = null;
-        WebSocketManager.getInstance().debugProcessEvent(pid, AttachStatus.ATTACHING);
+        MessageUtils.upgradeStatus(pid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
             String args = SettingUtils.getAttachArgs();
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            WebSocketManager.getInstance().printException(pid, e);
+            MessageUtils.printException(pid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -305,21 +301,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         if (AgentManager.getInstance().isOnline(sid)) {
             throw new JarbootRunException(serviceName + "正在运行，不可删除！");
         }
-        WebSocketManager.getInstance().globalLoading(serviceName, serviceName + "删除中...");
+        MessageUtils.globalLoading(serviceName, serviceName + "删除中...");
         TaskUtils.getTaskExecutor().execute(() -> {
             try {
                 FileUtils.deleteDirectory(FileUtils.getFile(path));
-                WebSocketManager
-                        .getInstance()
-                        .createGlobalEvent(StringUtils.SPACE, StringUtils.EMPTY, FrontEndNotifyEventType.WORKSPACE_CHANGE);
-                WebSocketManager.getInstance().notice("删除" + serviceName + "成功！", NoticeLevel.INFO);
+                MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+                MessageUtils.info("删除" + serviceName + "成功！");
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
-                WebSocketManager
-                        .getInstance()
-                        .notice("删除" + serviceName + "失败！" + e.getMessage(), NoticeLevel.ERROR);
+                MessageUtils.error("删除" + serviceName + "失败！" + e.getMessage());
             } finally {
-                WebSocketManager.getInstance().globalLoading(serviceName, StringUtils.EMPTY);
+                MessageUtils.globalLoading(serviceName, StringUtils.EMPTY);
             }
         });
     }
@@ -354,7 +346,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         eventRegistry.deregisterSubscriber(topic, subscriber);
     }
 
-    private void stopServer0(List<String> paths) {
+    private void stopService0(List<String> paths) {
         //获取服务的优先级顺序，与启动相反的顺序依次终止
         final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStopPriority(paths);
         ArrayList<ServiceSetting> taskList = new ArrayList<>();
@@ -364,16 +356,16 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             ServiceSetting next = priorityQueue.peek();
             if (null != next && !next.getPriority().equals(setting.getPriority())) {
                 //同一级别的全部取出
-                stopServerGroup(taskList);
+                stopServiceGroup(taskList);
                 //开始指定下一级的启动组，此时上一级的已经全部启动完成，清空组
                 taskList.clear();
             }
         }
         //最后一组的启动
-        stopServerGroup(taskList);
+        stopServiceGroup(taskList);
     }
 
-    private void stopServerGroup(List<ServiceSetting> s) {
+    private void stopServiceGroup(List<ServiceSetting> s) {
         if (CollectionUtils.isEmpty(s)) {
             return;
         }
@@ -381,7 +373,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         s.forEach(server ->
                 TaskUtils.getTaskExecutor().execute(() -> {
                     try {
-                        this.stopSingleServer(server);
+                        this.stopSingleService(server);
                     } finally {
                         countDownLatch.countDown();
                     }
@@ -395,11 +387,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
     }
 
-    private void stopSingleServer(ServiceSetting setting) {
+    private void stopSingleService(ServiceSetting setting) {
         String server = setting.getName();
         String sid = setting.getSid();
         if (!this.taskRunCache.addStopping(sid)) {
-            WebSocketManager.getInstance().notice("服务" + server + "正在停止中", NoticeLevel.INFO);
+            MessageUtils.info("服务" + server + "正在停止中");
             return;
         }
         try {
@@ -417,17 +409,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 NotifyReactor
                         .getInstance()
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.STOP_FAILED));
-                WebSocketManager.getInstance().notice("停止服务" + server + "失败！", NoticeLevel.ERROR);
+                MessageUtils.error("停止服务" + server + "失败！");
             } else {
-                WebSocketManager.getInstance().sendConsole(sid, String.format(STOPPED_MSG, server, costTime));
+                MessageUtils.console(sid, String.format(STOPPED_MSG, server, costTime));
                 NotifyReactor
                         .getInstance()
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STOPPED));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeLevel.ERROR);
-            WebSocketManager.getInstance().printException(sid, e);
+            MessageUtils.error(e.getMessage());
+            MessageUtils.printException(sid, e);
         } finally {
             this.taskRunCache.removeStopping(sid);
         }
@@ -443,9 +435,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         //获取终止的顺序
         TaskUtils.getTaskExecutor().execute(() -> {
             //先依次终止
-            stopServer0(serviceNames);
+            stopService0(serviceNames);
             //再依次启动
-            startServer0(serviceNames);
+            startService0(serviceNames);
         });
     }
 
@@ -485,13 +477,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
         String s = sdf.format(new Date());
         if (null != setting && Boolean.TRUE.equals(setting.getDaemon())) {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s)
-                    , NoticeLevel.WARN);
+            MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s));
             //启动
             TaskUtils.getTaskExecutor().execute(() -> this.startSingleService(setting));
         } else {
-            WebSocketManager.getInstance().notice(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s)
-                    , NoticeLevel.WARN);
+            MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
         }
     }
 

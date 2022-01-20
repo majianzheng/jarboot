@@ -4,6 +4,7 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.event.AgentResponseEvent;
+import com.mz.jarboot.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +30,7 @@ public class WebSocketAgentServer {
         logger.debug("{} @ {} Agent连接成功!", serviceName, sid);
         AgentManager.getInstance().online(serviceName, session, sid);
         String msg = String.format("\033[1;96m%s\033[0m connected!", serviceName);
-        WebSocketManager.getInstance().sendConsole(sid, msg);
+        MessageUtils.console(sid, msg);
     }
 
     /**

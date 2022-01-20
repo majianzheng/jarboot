@@ -1,10 +1,14 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.ApplicationContextUtils;
+import com.mz.jarboot.event.BroadcastMessageEvent;
 import com.mz.jarboot.event.FuncReceivedEvent;
+import com.mz.jarboot.event.MessageEvent;
 import com.mz.jarboot.security.JwtTokenManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +18,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 向浏览器推送消息
@@ -27,17 +32,13 @@ public class WebSocketMainServer {
     /** 心跳ping */
     private static final String PING = "ping";
 
-    private static class Holder {
-        static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
-    }
-
     /**
      * 连接建立成功调用的方法
      * */
     @OnOpen
     public void onOpen(Session session) {
         if (validateToken(session)) {
-            WebSocketManager.getInstance().newConnect(session);
+            Holder.SESSIONS.put(session.getId(), new SessionOperator(session));
         }
     }
 
@@ -50,7 +51,7 @@ public class WebSocketMainServer {
                 .getInstance()
                 .publishEvent(new FuncReceivedEvent(
                         FuncReceivedEvent.FuncCode.SESSION_CLOSED_FUNC, session.getId()));
-        WebSocketManager.getInstance().delConnect(session.getId());
+        Holder.SESSIONS.remove(session.getId());
     }
 
     /**
@@ -59,10 +60,7 @@ public class WebSocketMainServer {
      * @param message 客户端发送过来的消息*/
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        if (StringUtils.isEmpty(message)) {
-            return;
-        }
-        if (PING.equals(message)) {
+        if (StringUtils.isEmpty(message) || PING.equals(message)) {
             return;
         }
         FuncReceivedEvent event = JsonUtils.readValue(message, FuncReceivedEvent.class);
@@ -116,5 +114,40 @@ public class WebSocketMainServer {
             return false;
         }
         return true;
+    }
+
+    private static class Holder {
+        static final JwtTokenManager JWT_MGR = ApplicationContextUtils.getContext().getBean(JwtTokenManager.class);
+        static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
+        static {
+            register();
+        }
+        private static void register() {
+            NotifyReactor.getInstance().registerSubscriber(new Subscriber<MessageEvent>() {
+                @Override
+                public void onEvent(MessageEvent event) {
+                    SessionOperator operator = SESSIONS.getOrDefault(event.getSessionId(), null);
+                    if (null != operator) {
+                        operator.newMessage(event);
+                    }
+                }
+
+                @Override
+                public Class<? extends JarbootEvent> subscribeType() {
+                    return MessageEvent.class;
+                }
+            });
+            NotifyReactor.getInstance().registerSubscriber(new Subscriber<BroadcastMessageEvent>() {
+                @Override
+                public void onEvent(BroadcastMessageEvent event) {
+                    SESSIONS.values().forEach(operator -> operator.newMessage(event));
+                }
+
+                @Override
+                public Class<? extends JarbootEvent> subscribeType() {
+                    return BroadcastMessageEvent.class;
+                }
+            });
+        }
     }
 }
