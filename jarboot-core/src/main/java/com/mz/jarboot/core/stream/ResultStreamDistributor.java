@@ -3,7 +3,6 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
-import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
@@ -62,7 +61,7 @@ public class ResultStreamDistributor {
         if (StringUtils.isEmpty(text)) {
             return;
         }
-        response(true, ResponseType.STD_PRINT, text, CommandConst.SESSION_COMMON);
+        response(true, ResponseType.STD_PRINT, text, StringUtils.EMPTY);
     }
 
     /**
@@ -71,7 +70,7 @@ public class ResultStreamDistributor {
      */
     public void stdBackspace(int num) {
         if (num > 0) {
-            response(true, ResponseType.BACKSPACE, String.valueOf(num), CommandConst.SESSION_COMMON);
+            response(true, ResponseType.BACKSPACE, String.valueOf(num), StringUtils.EMPTY);
         }
     }
 
@@ -80,7 +79,7 @@ public class ResultStreamDistributor {
      * @param text 日志
      */
     public void log(String text) {
-        response(true, ResponseType.LOG_APPENDER, text, CommandConst.SESSION_COMMON);
+        response(true, ResponseType.LOG_APPENDER, text, StringUtils.EMPTY);
     }
 
     public void response(boolean success, ResponseType type, String body, String id) {

@@ -106,9 +106,6 @@ public class AgentServiceOperator {
     }
 
     private static void action(String name, String param, String sessionId) {
-        if (StringUtils.isEmpty(sessionId)) {
-            sessionId = CommandConst.SESSION_COMMON;
-        }
         try {
             distributeAction(name, param, sessionId);
         } catch (Exception e) {

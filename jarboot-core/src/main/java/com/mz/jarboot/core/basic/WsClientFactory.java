@@ -5,7 +5,6 @@ import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.notify.NotifyReactor;
-import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandRequest;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
@@ -233,7 +232,6 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         resp.setSuccess(true);
         resp.setResponseType(ResponseType.HEARTBEAT);
         resp.setBody("heartbeat time:" + System.currentTimeMillis());
-        resp.setSessionId(CommandConst.SESSION_COMMON);
         heartbeatLatch = new CountDownLatch(1);
         try {
             // 进行一次心跳检测

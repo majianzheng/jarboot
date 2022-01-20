@@ -2,6 +2,7 @@ package com.mz.jarboot.core.event;
 
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.protocol.CommandRequest;
+import com.mz.jarboot.common.protocol.CommandType;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
@@ -43,7 +44,7 @@ public class CommandEventBuilder {
 
     public JarbootEvent build() {
         AbstractCommand command = CommandBuilder.build(request, session);
-        if (command instanceof AbstractInternalCommand) {
+        if (command instanceof AbstractInternalCommand && CommandType.INTERNAL.equals(request.getCommandType())) {
             return new InternalCommandEvent(command);
         }
         if (null == command) {

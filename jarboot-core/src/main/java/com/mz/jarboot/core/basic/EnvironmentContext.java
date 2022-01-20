@@ -2,6 +2,7 @@ package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.pojo.AgentClient;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
@@ -123,6 +124,9 @@ public class EnvironmentContext {
     }
 
     public static AbstractCommandSession registerSession(String sessionId) {
+        if (StringUtils.isEmpty(sessionId)) {
+            return new CoreCommandSession(StringUtils.EMPTY);
+        }
         return sessionMap.computeIfAbsent(sessionId, key -> new CoreCommandSession(sessionId));
     }
 
