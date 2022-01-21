@@ -42,7 +42,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     private static final long EXPIRED_TIME = 20000;
     private final ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     /** 是否启动了心跳监测 */
-    private AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     @Autowired
     private SettingService settingService;
