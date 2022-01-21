@@ -21,12 +21,12 @@ public class CommandConst {
     public static final String HEARTBEAT = "heartbeat";
     public static final String SHUTDOWN = "shutdown";
 
-    public static final String ACTION_PROP_NAME_KEY = "name";
-    public static final String ACTION_PROP_PARAM_KEY = "param";
+    public static final String ACTION_NAME_KEY = "name";
+    public static final String ACTION_PARAM_KEY = "param";
 
-    public static final String ACTION_NOTICE_INFO = "INFO";
-    public static final String ACTION_NOTICE_WARN = "WARN";
-    public static final String ACTION_NOTICE_ERROR = "ERROR";
+    public static final String ACTION_INFO = "INFO";
+    public static final String ACTION_WARN = "WARN";
+    public static final String ACTION_ERROR = "ERROR";
 
     public static final int MIN_CMD_LEN = 2;
 

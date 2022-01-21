@@ -425,7 +425,7 @@ public class AgentManager {
                 onAgentLog(sid, resp.getBody());
                 break;
             case NOTICE:
-                this.notice(resp.getBody(), sessionId, sid);
+                this.onAction(resp.getBody(), sessionId, sid);
                 break;
             default:
                 //ignore
@@ -547,16 +547,17 @@ public class AgentManager {
         clientMap.forEach((k, v) -> sendInternalCommand(v.getSid(), CommandConst.CANCEL_CMD, sessionId));
     }
 
-    private void notice(String data, String sessionId, String sid) {
+    private void onAction(String data, String sessionId, String sid) {
         if (checkNotTrusted(sid)) {
             return;
         }
         JsonNode body = JsonUtils.readAsJsonNode(data);
-        if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_PROP_NAME_KEY)) {
+        if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_NAME_KEY)) {
             return;
         }
-        String action = body.get(CommandConst.ACTION_PROP_NAME_KEY).asText(StringUtils.EMPTY);
-        String param = body.get(CommandConst.ACTION_PROP_PARAM_KEY).asText(StringUtils.EMPTY);
+        String action = body.get(CommandConst.ACTION_NAME_KEY).asText(StringUtils.EMPTY);
+        String param = body.get(CommandConst.ACTION_PARAM_KEY).asText(StringUtils.EMPTY);
+
         NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
         if (StringUtils.isEmpty(sessionId)) {
             MessageUtils.notice(param, level);

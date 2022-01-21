@@ -22,7 +22,7 @@ const HeapDumpView = memo((props: any) => {
                         type="primary"
                         disabled={isRemote}
                         key="Download"
-                        href={`/api/jarboot/cloud/download/${data?.encodedName}?token=${token}`}>
+                        href={`/api/jarboot/cloud/download/${data?.encodedName}?${CommonUtils.ACCESS_TOKEN}=${token}`}>
                     Download
                 </Button>
             ]}/>

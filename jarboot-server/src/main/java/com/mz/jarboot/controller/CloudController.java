@@ -58,22 +58,14 @@ public class CloudController {
     /**
      * 拉取服务目录
      * @param name 服务名
-     * @param token token认证
      * @param response Servlet response
      * @throws IOException IO 异常
      */
     @GetMapping(value="/pull/server")
     public void pullServerDirectory(HttpServletRequest request,
                                     @RequestParam String name,
-                                    @RequestParam(required = false) String token,
                                     HttpServletResponse response) throws IOException {
-        if (jwtTokenManager.getEnabled()) {
-            //token校验
-            if (StringUtils.isEmpty(token)) {
-                token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-            }
-            jwtTokenManager.validateToken(token);
-        }
+        validateToken(request);
 
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
@@ -186,21 +178,13 @@ public class CloudController {
     /**
      * 从服务器下载文件
      * @param file base64编码的文件全路径名
-     * @param token token认证
      * @param response Servlet response
      */
     @GetMapping(value="/download/{file}")
     public void download(HttpServletRequest request,
                          @PathVariable("file") String file,
-                         @RequestParam(required = false) String token,
                          HttpServletResponse response) throws IOException {
-        if (jwtTokenManager.getEnabled()) {
-            if (StringUtils.isEmpty(token)) {
-                token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-            }
-            //token校验
-            jwtTokenManager.validateToken(token);
-        }
+        validateToken(request);
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);
@@ -219,6 +203,17 @@ public class CloudController {
                 outputStream.write(buff, 0, len);
             }
             outputStream.flush();
+        }
+    }
+
+    private void validateToken(HttpServletRequest request) {
+        if (jwtTokenManager.getEnabled()) {
+            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            //token校验
+            if (StringUtils.isEmpty(token)) {
+                token = request.getParameter(AuthConst.ACCESS_TOKEN);
+            }
+            jwtTokenManager.validateToken(token);
         }
     }
 

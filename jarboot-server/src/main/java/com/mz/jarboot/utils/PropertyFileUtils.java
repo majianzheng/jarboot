@@ -83,7 +83,7 @@ public class PropertyFileUtils {
      * @param sid sid
      * @return 服务配置
      */
-    public static ServiceSetting getServerSettingBySid(String sid) {
+    public static ServiceSetting getServiceSettingBySid(String sid) {
         return SETTING_CACHE.getOrDefault(sid, null);
     }
 
@@ -92,8 +92,8 @@ public class PropertyFileUtils {
      * @param serviceName 服务名
      * @return 服务配置
      */
-    public static ServiceSetting getServerSetting(String serviceName) {
-        return getServerSettingByPath(SettingUtils.getWorkspace() + File.separator + serviceName);
+    public static ServiceSetting getServiceSetting(String serviceName) {
+        return getServiceSettingByPath(SettingUtils.getWorkspace() + File.separator + serviceName);
     }
 
     /**
@@ -101,14 +101,14 @@ public class PropertyFileUtils {
      * @param serverPath 字符串格式：服务的path
      * @return 服务配置
      */
-    public static ServiceSetting getServerSettingByPath(String serverPath) {
+    public static ServiceSetting getServiceSettingByPath(String serverPath) {
         int p = Math.max(serverPath.lastIndexOf('/'), serverPath.lastIndexOf('\\'));
         String workspace = serverPath.substring(0, p);
         String name = serverPath.substring(p + 1);
         String sid = SettingUtils.createSid(serverPath);
         File file = SettingUtils.getServiceSettingFile(serverPath);
         //判定文件是否更新
-        ServiceSetting setting = getServerSettingBySid(sid);
+        ServiceSetting setting = getServiceSettingBySid(sid);
         if (null != setting && file.lastModified() == setting.getLastModified()) {
             return setting;
         }
@@ -236,7 +236,7 @@ public class PropertyFileUtils {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServiceSetting setting = getServerSetting(serviceName);
+            ServiceSetting setting = getServiceSetting(serviceName);
             queue.offer(setting);
         });
         return queue;
@@ -254,7 +254,7 @@ public class PropertyFileUtils {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServiceSetting setting = getServerSetting(serviceName);
+            ServiceSetting setting = getServiceSetting(serviceName);
             queue.offer(setting);
         });
         return queue;

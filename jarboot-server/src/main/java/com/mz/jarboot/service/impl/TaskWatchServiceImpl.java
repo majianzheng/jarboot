@@ -288,7 +288,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                 //当前不处于正在运行的状态
                 return;
             }
-            ServiceSetting setting = PropertyFileUtils.getServerSettingByPath(path);
+            ServiceSetting setting = PropertyFileUtils.getServiceSettingByPath(path);
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && Objects.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(service);

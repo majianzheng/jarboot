@@ -53,7 +53,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     /** 是否启动重连 */
     private boolean reconnectEnabled = false;
     /** 是否正在连接 */
-    private boolean connectting = false;
+    private boolean connecting = false;
     /** 重连未开始标志 */
     private boolean reconnectNotStarted = true;
     /** 心跳Future */
@@ -131,7 +131,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         AnsiLog.info("connectting to jarboot {}", url);
         latch = new CountDownLatch(1);
         try {
-            connectting = true;
+            connecting = true;
             client = HttpUtils.HTTP_CLIENT
                     .newWebSocket(new Request
                             .Builder()
@@ -148,7 +148,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             logger.error(e.getMessage(), e);
         } finally {
             latch = null;
-            connectting = false;
+            connecting = false;
         }
     }
 
@@ -225,7 +225,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
     private void sendHeartbeat() {
-        if (null == this.client || connectting || !reconnectNotStarted) {
+        if (null == this.client || connecting || !reconnectNotStarted) {
             return;
         }
         CommandResponse resp = new CommandResponse();
@@ -289,7 +289,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                     break;
                 }
                 TimeUnit.SECONDS.sleep(RECONNECT_INTERVAL);
-                if (!connectting && !online) {
+                if (!connecting && !online) {
                     createSingletonClient();
                 }
             }

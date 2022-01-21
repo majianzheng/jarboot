@@ -458,9 +458,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         //获取是否开启了守护
-        ServiceSetting temp = PropertyFileUtils.getServerSettingBySid(sid);
+        ServiceSetting temp = PropertyFileUtils.getServiceSettingBySid(sid);
         //检测配置更新
-        final ServiceSetting setting = null == temp ? null : PropertyFileUtils.getServerSetting(temp.getName());
+        final ServiceSetting setting = null == temp ? null : PropertyFileUtils.getServiceSetting(temp.getName());
 
         TaskLifecycleEvent lifecycleEvent = null == setting ?
                 new TaskLifecycleEvent(SettingUtils.getWorkspace(), sid, serviceName, TaskLifecycle.EXCEPTION_OFFLINE)

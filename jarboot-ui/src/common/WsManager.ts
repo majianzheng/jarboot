@@ -104,10 +104,10 @@ class WsManager {
                 return;
             }
         }
-        let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/jarboot/public/service/ws?token=` :
-            `ws://${window.location.host}/jarboot/public/service/ws?token=`;
-        url += CommonUtils.getRawToken();
+        const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
+        const url = process.env.NODE_ENV === 'development' ?
+            `ws://${window.location.hostname}:9899/jarboot/main/service/ws?${token}` :
+            `ws://${window.location.host}/jarboot/main/service/ws?${token}`;
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager.onMessage;
         WsManager.websocket.onopen = WsManager.onOpen;
@@ -192,7 +192,7 @@ class WsManager {
             }
             const event = parseInt(resp.substring(i + 1, k));
             const body = resp.substring(k + 1);
-            let data: MsgData = {event, body, sid};
+            const data: MsgData = {event, body, sid};
             const handler = WsManager.HANDLERS.get(data.event);
             handler && handler(data);
         } catch (error) {

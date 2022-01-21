@@ -6,6 +6,7 @@ import {CommonConst} from "@/common/CommonConst";
 export default class CommonUtils {
     private static readonly HOME_PREFIX = '/jarboot/';
     private static readonly TOKEN_PREFIX = "Bearer ";
+    public static readonly ACCESS_TOKEN = 'accessToken';
 
     public static loginPage() {
         localStorage.removeItem(CommonConst.TOKEN_KEY);
@@ -53,7 +54,7 @@ export default class CommonUtils {
     public static exportServer(name: string): void {
         const a = document.createElement('a');
         const token = CommonUtils.getRawToken();
-        a.href = `/api/jarboot/cloud/pull/server?name=${name}&token=${token}`;
+        a.href = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
         a.click();
     }
 }

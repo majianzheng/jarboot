@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 为了防止浏览器端的各种异常场景下后台缓冲区不能及时清理的情况，现设计如下机制
@@ -42,7 +42,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     private static final long EXPIRED_TIME = 20000;
     private final ConcurrentHashMap<String, Long> uploadHeartbeat = new ConcurrentHashMap<>();
     /** 是否启动了心跳监测 */
-    private volatile boolean started = false;
+    private AtomicBoolean started = new AtomicBoolean(false);
 
     @Autowired
     private SettingService settingService;
@@ -64,21 +64,21 @@ public class UploadFileServiceImpl implements UploadFileService {
      * 发起beginUploadServerFile后，将开启监控，如果前端没有定期发起心跳则判定过期，清理缓冲区文件
      */
     private void startMonitor() {
-        if (started) {
-            return;
+        if (started.compareAndSet(false, true)) {
+            TaskUtils.getTaskExecutor().schedule(this::monitor, EXPIRED_TIME, TimeUnit.MILLISECONDS);
         }
-        TaskUtils.getTaskExecutor().schedule(this::monitor, EXPIRED_TIME, TimeUnit.MILLISECONDS);
     }
 
     private void monitor() {
         if (uploadHeartbeat.isEmpty()) {
             //当没有任何服务在上传时，将线程归还线程池
-            started = false;
+            started.compareAndSet(true, false);
             return;
         }
         long currentTime = System.currentTimeMillis();
-        Stream<Map.Entry<String, Long>> entries = uploadHeartbeat.entrySet().stream();
-        List<String> waitDelete = entries
+        List<String> waitDelete = uploadHeartbeat
+                .entrySet()
+                .stream()
                 .filter(entry -> (currentTime - entry.getValue()) > EXPIRED_TIME)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -142,7 +142,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             }
 
             //检测多个jar文件时有没有配置启动的jar文件
-            ServiceSetting setting = exist ? PropertyFileUtils.getServerSettingByPath(destPath) : s;
+            ServiceSetting setting = exist ? PropertyFileUtils.getServiceSettingByPath(destPath) : s;
             if (StringUtils.isEmpty(setting.getCommand())) {
                 boolean bo = FileUtils.listFiles(dest, CommonConst.JAR_FILE_EXT, false).size() > 1;
                 if (bo) {

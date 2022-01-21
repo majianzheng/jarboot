@@ -50,21 +50,21 @@ public class AgentServiceOperator {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_NOTICE_INFO, message, sessionId);
+        action(CommandConst.ACTION_INFO, message, sessionId);
     }
 
     public static void noticeWarn(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_NOTICE_WARN, message, sessionId);
+        action(CommandConst.ACTION_WARN, message, sessionId);
     }
 
     public static void noticeError(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_NOTICE_ERROR, message, sessionId);
+        action(CommandConst.ACTION_ERROR, message, sessionId);
     }
 
     /**
@@ -115,9 +115,9 @@ public class AgentServiceOperator {
 
     private static void distributeAction(String name, String param, String sessionId) {
         HashMap<String, String> body = new HashMap<>(2);
-        body.put(CommandConst.ACTION_PROP_NAME_KEY, name);
+        body.put(CommandConst.ACTION_NAME_KEY, name);
         if (null != param && !param.isEmpty()) {
-            body.put(CommandConst.ACTION_PROP_PARAM_KEY, param);
+            body.put(CommandConst.ACTION_PARAM_KEY, param);
         }
         String bodyData = JsonUtils.toJsonString(body);
         NotifyReactor

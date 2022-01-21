@@ -13,33 +13,14 @@ import org.springframework.context.ApplicationContext;
  */
 public class ApplicationContextUtils {
     /** Spring ApplicationContext */
-    private static ApplicationContext ctx;
-
-    /**
-     * 获取配置
-     * @param name 配置名
-     * @return 配置值
-     */
-    public static String getEnv(String name) {
-        return ctx.getEnvironment().getProperty(name);
-    }
-
-    /**
-     * 获取配置
-     * @param name 配置名
-     * @param defaultValue 默认值
-     * @return 配置值
-     */
-    public static String getEnv(String name, String defaultValue) {
-        return ctx.getEnvironment().getProperty(name, defaultValue);
-    }
+    private static ApplicationContext applicationContext;
 
     /**
      * 获取{@link ApplicationContext}
      * @return {@link ApplicationContext}
      */
     public static ApplicationContext getContext() {
-        return ctx;
+        return applicationContext;
     }
 
     /**
@@ -48,7 +29,7 @@ public class ApplicationContextUtils {
      */
     public static void init(final ApplicationContext ctx) {
         //最大启动超时时间配置
-        ApplicationContextUtils.ctx = ctx;
+        ApplicationContextUtils.applicationContext = ctx;
         int maxStartTime = ctx
                 .getEnvironment()
                 .getProperty("jarboot.services.max-start-time", int.class, 120000);

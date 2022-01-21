@@ -147,11 +147,11 @@ public class TaskRunCache {
     }
 
     private String getGroup(String sid, String path) {
-        ServiceSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        ServiceSetting setting = PropertyFileUtils.getServiceSettingBySid(sid);
         if (null != setting) {
             return setting.getGroup();
         }
-        setting = PropertyFileUtils.getServerSettingByPath(path);
+        setting = PropertyFileUtils.getServiceSettingByPath(path);
         if (null == setting) {
             return StringUtils.EMPTY;
         }

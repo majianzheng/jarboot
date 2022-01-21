@@ -38,7 +38,7 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
-        return PropertyFileUtils.getServerSetting(serviceName);
+        return PropertyFileUtils.getServiceSetting(serviceName);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class SettingServiceImpl implements SettingService {
 
     private void saveServerConfig(String path, ServiceSetting setting, File file, Properties prop) {
         //检查文件名是否修改
-        ServiceSetting preSetting = PropertyFileUtils.getServerSetting(setting.getName());
+        ServiceSetting preSetting = PropertyFileUtils.getServiceSetting(setting.getName());
         if (!Objects.equals(setting.getName(), preSetting.getName())) {
             String sid = SettingUtils.createSid(path);
             //名字发生了变更，需要修改文件夹的名字，先检查是否正在运行
@@ -117,7 +117,7 @@ public class SettingServiceImpl implements SettingService {
             PropertyFileUtils.storeProperties(file, prop);
         }
         //更新缓存配置，根据文件时间戳判定是否更新了
-        PropertyFileUtils.getServerSetting(setting.getName());
+        PropertyFileUtils.getServiceSetting(setting.getName());
     }
 
     private void checkAndSet(String path, ServiceSetting setting, Properties prop) {

@@ -15,9 +15,10 @@ import org.springframework.context.annotation.PropertySource;
 public class JarBootServerApplication {
 
 	public static void main(String[] args) {
-		//启动环境检查，若不符合环境要求则弹出swing提示框提醒问题
+		//启动环境检查
 		AppEnvironment.initAndCheck();
 		ApplicationContext context = SpringApplication.run(JarBootServerApplication.class, args);
 		ApplicationContextUtils.init(context);
+		AppEnvironment.closeSplash();
 	}
 }

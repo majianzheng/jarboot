@@ -3,13 +3,13 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
-import com.mz.jarboot.core.constant.CoreConstant;
 import com.mz.jarboot.core.event.ResponseEventBuilder;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -23,8 +23,7 @@ import org.slf4j.Logger;
 public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
 
-    private final ResponseStream http = new HttpResponseStreamImpl();
-    private final ResponseStream socket = new SocketResponseStreamImpl();
+    private final ResponseStream stream = new ResponseStreamDelegate();
     private final ResultViewResolver resultViewResolver = new ResultViewResolver();
 
     public static ResultStreamDistributor getInstance() {
@@ -97,7 +96,6 @@ public class ResultStreamDistributor {
         if (WsClientFactory.getInstance().isOnline()) {
             //根据数据包的大小选择合适的通讯方式
             byte[] raw = resp.toRaw();
-            ResponseStream stream = (raw.length < CoreConstant.SOCKET_MAX_SEND) ? socket : http;
             stream.write(raw);
         }
     }
