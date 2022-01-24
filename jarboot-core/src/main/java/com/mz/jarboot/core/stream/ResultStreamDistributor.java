@@ -3,7 +3,6 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
-import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
@@ -40,7 +39,7 @@ public class ResultStreamDistributor {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings({"unchecked", "java:S3740"})
+    @SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
     public void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {
