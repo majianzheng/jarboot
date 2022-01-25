@@ -28,16 +28,14 @@ public class TaskUtils {
     /** 任务调度线程池 */
     private static final ScheduledExecutorService TASK_EXECUTOR;
     /** 是否使用nohup启动服务 */
-    private static boolean useNohup = false;
+    private static final boolean USE_NOHUP;
 
     static {
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
-        if (!Boolean.getBoolean("docker") && (OSUtils.isLinux() || OSUtils.isMac())) {
-            useNohup = true;
-        }
+        USE_NOHUP = (!Boolean.getBoolean("docker") && (OSUtils.isLinux() || OSUtils.isMac()));
     }
 
     /**
@@ -89,7 +87,7 @@ public class TaskUtils {
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
-        if (useNohup) {
+        if (USE_NOHUP) {
             cmdBuilder.append("nohup ");
         }
 

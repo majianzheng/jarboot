@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 客户端请求代理
  * @author majianzheng
  */
-@SuppressWarnings({"unused", "java:S3740", "unchecked"})
+@SuppressWarnings({"unused", "java:S3740", "unchecked", "rawtypes"})
 public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientProxy.class);
     private final String baseUrl;
