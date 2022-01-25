@@ -85,7 +85,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         NotifyReactor.getInstance().registerSubscriber(this);
 
         //attach已经处于启动的进程
-        threadFactory.newThread(this::attachRunningServer).start();
+        this.attachRunningServer();
 
         if (enableAutoStartServices) {
             logger.info("Auto starting services...");
@@ -225,7 +225,8 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             }
         }
         for (File serverDir : serverDirs) {
-            Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
+            Collection<File> files = FileUtils
+                    .listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
             if (!CollectionUtils.isEmpty(files)) {
                 File recordFile = getRecordFile(serverDir.getPath());
                 if (null != recordFile) {
@@ -308,7 +309,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
 
     private boolean checkJarUpdate(String path) {
         File serverDir = new File(path);
-        Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
+        Collection<File> files = FileUtils.listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }

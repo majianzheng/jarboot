@@ -2,8 +2,8 @@ package com.mz.jarboot.event;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 
 /**
  * 前端消息推送事件
@@ -34,11 +34,11 @@ public abstract class AbstractMessageEvent implements JarbootEvent {
      * @param text 消息内容
      * @param level 消息级别
      */
-    protected void noticeBody(String text, NoticeLevel level) {
+    protected void noticeBody(String text, NotifyType level) {
         if (StringUtils.isEmpty(text) || null == level) {
             return;
         }
-        type = FrontEndNotifyEventType.NOTICE;
+        type = FrontEndNotifyEventType.NOTIFY;
         //协议格式：level(0, 1, 2) + 逗号, + 消息内容
         body = level.ordinal() + CommonConst.COMMA_SPLIT + text;
     }

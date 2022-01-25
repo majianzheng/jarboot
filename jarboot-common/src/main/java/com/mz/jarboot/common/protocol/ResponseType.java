@@ -14,26 +14,11 @@ public enum ResponseType {
      * 程序中的标准输出流
      */
     STD_PRINT,
-
-    /**
-     * 控制台消息打印
-     */
-    CONSOLE,
     
     /**
      * 控制台退格
      */
     BACKSPACE,
-
-    /**
-     * Json类型的执行结果
-     */
-    JSON_RESULT,
-
-    /**
-     * 执行执行完成
-     */
-    COMMAND_END,
 
     /**
      * 日志记录
@@ -43,7 +28,7 @@ public enum ResponseType {
     /**
      * Notice
      */
-    NOTICE,
+    NOTIFY,
 
     /**
      * 非法的未知类型

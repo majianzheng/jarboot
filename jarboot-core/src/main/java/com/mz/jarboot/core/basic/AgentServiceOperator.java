@@ -7,10 +7,9 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.AgentClient;
-import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
-import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.event.ResponseEventBuilder;
 import com.mz.jarboot.core.utils.HttpUtils;
@@ -18,7 +17,6 @@ import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,21 +48,21 @@ public class AgentServiceOperator {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_INFO, message, sessionId);
+        action(NotifyType.INFO, message, sessionId);
     }
 
     public static void noticeWarn(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_WARN, message, sessionId);
+        action(NotifyType.WARN, message, sessionId);
     }
 
     public static void noticeError(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(CommandConst.ACTION_ERROR, message, sessionId);
+        action(NotifyType.ERROR, message, sessionId);
     }
 
     /**
@@ -105,7 +103,7 @@ public class AgentServiceOperator {
         });
     }
 
-    private static void action(String name, String param, String sessionId) {
+    private static void action(NotifyType name, String param, String sessionId) {
         try {
             distributeAction(name, param, sessionId);
         } catch (Exception e) {
@@ -113,17 +111,12 @@ public class AgentServiceOperator {
         }
     }
 
-    private static void distributeAction(String name, String param, String sessionId) {
-        HashMap<String, String> body = new HashMap<>(2);
-        body.put(CommandConst.ACTION_NAME_KEY, name);
-        if (null != param && !param.isEmpty()) {
-            body.put(CommandConst.ACTION_PARAM_KEY, param);
-        }
-        String bodyData = JsonUtils.toJsonString(body);
+    private static void distributeAction(NotifyType name, String param, String sessionId) {
+        String bodyData = name.body(param);
         NotifyReactor
                 .getInstance()
                 .publishEvent(new ResponseEventBuilder()
-                        .type(ResponseType.NOTICE)
+                        .type(ResponseType.NOTIFY)
                         .success(true)
                         .body(bodyData)
                         .session(sessionId)

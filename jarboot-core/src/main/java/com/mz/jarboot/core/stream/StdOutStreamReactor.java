@@ -1,12 +1,18 @@
 package com.mz.jarboot.core.stream;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.event.StdoutAppendEvent;
 import com.mz.jarboot.core.utils.LogUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -35,11 +41,15 @@ public class StdOutStreamReactor {
     /** 上一次的打印时间 */
     private volatile long lastStdTime = 0;
     /** 启动完成判定时间 */
-    private long startDetermineTime;
+    private final long startDetermineTime;
     /** 是否正在唤醒 */
     private final AtomicBoolean wakeup = new AtomicBoolean(false);
     /** 监控终端输出的定时任务，负责判定是否启动完成 */
     private ScheduledFuture<?> watchFuture;
+    /** std文件输出 */
+    private FileOutputStream stdoutFileStream = null;
+    /** std事件订阅 */
+    private final Subscriber<StdoutAppendEvent> subscriber;
 
     /**
      * 标准输出流显示是否开启
@@ -81,12 +91,16 @@ public class StdOutStreamReactor {
             }
             System.setOut(stdOutPrintStream);
             System.setErr(stdOutPrintStream);
+            if (this.isStdoutFileAlways()) {
+                this.openStdoutFileStream();
+            }
             this.isOn = true;
         } else {
             if (this.isOn) {
                 //恢复默认
                 System.setErr(defaultErr);
                 System.setOut(defaultOut);
+                this.closeStdFileStreamQuietly();
                 this.isOn = false;
             }
         }
@@ -109,7 +123,7 @@ public class StdOutStreamReactor {
      * @param text 文本
      */
     private void stdStartingPrint(String text) {
-        ResultStreamDistributor.getInstance().stdPrint(text);
+        this.stdPrint(text);
         //更新计时
         lastStdTime = System.currentTimeMillis();
     }
@@ -124,7 +138,26 @@ public class StdOutStreamReactor {
         defaultOut = System.out;
         defaultErr = System.err;
         stdOutPrintStream = new PrintStream(consoleOutputStream, true);
+        subscriber = new Subscriber<StdoutAppendEvent>() {
+            @Override
+            public void onEvent(StdoutAppendEvent event) {
+                if (null != stdoutFileStream) {
+                    try {
+                        stdoutFileStream.write(event.getText().getBytes());
+                    } catch (Exception e) {
+                        logger.debug("write stdout file failed, will close stdout file.", e);
+                        closeStdFileStreamQuietly();
+                    }
+                }
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return StdoutAppendEvent.class;
+            }
+        };
         this.init();
+        this.openStdoutFileStream();
         this.enableAnsiLogColor();
     }
 
@@ -135,16 +168,65 @@ public class StdOutStreamReactor {
         static final StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
     }
 
+    private void openStdoutFileStream() {
+        //先关闭旧文件
+        this.closeStdFileStreamQuietly();
+        String fileName = System.getProperty(CoreConstant.STD_OUT_FILE);
+        if (StringUtils.isEmpty(fileName)) {
+            return;
+        }
+        File file = new File(fileName);
+        try {
+            if (file.exists()) {
+                if (!file.isFile()) {
+                    logger.warn("stdout file {} is exists and is not a file!", fileName);
+                    return;
+                }
+                FileUtils.deleteQuietly(file);
+            }
+            if (!file.createNewFile()) {
+                logger.error("create stdout file failed. file: {}", fileName);
+                return;
+            }
+            stdoutFileStream = new FileOutputStream(file);
+            NotifyReactor.getInstance().registerSubscriber(this.subscriber);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
+        }
+    }
+
     /**
      * 初始化
      */
     private void init() {
+
         // 输出不满一行的字符串
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor.getInstance()::stdPrint);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //退格
         consoleOutputStream.setBackspaceHandler(ResultStreamDistributor.getInstance()::stdBackspace);
         //默认开启
         this.enabled(true);
+    }
+
+    private void stdPrint(String text) {
+        NotifyReactor.getInstance().publishEvent(new StdoutAppendEvent(text));
+    }
+
+    private void closeStdFileStreamQuietly() {
+        if (null != stdoutFileStream) {
+            try {
+                stdoutFileStream.close();
+            } catch (Exception e) {
+                //ignore
+            } finally {
+                stdoutFileStream = null;
+                NotifyReactor.getInstance().deregisterSubscriber(this.subscriber);
+            }
+        }
+    }
+
+    private boolean isStdoutFileAlways() {
+        return Boolean.getBoolean(CoreConstant.STD_OUT_FILE_ALWAYS);
     }
 
     /**
@@ -180,7 +262,7 @@ public class StdOutStreamReactor {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor.getInstance()::stdPrint);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //通知Jarboot server启动完成
         try {
             AgentServiceOperator.setStarted();
@@ -191,6 +273,9 @@ public class StdOutStreamReactor {
                 //启动完成，取消计划任务
                 watchFuture.cancel(true);
                 watchFuture = null;
+            }
+            if (!this.isStdoutFileAlways()) {
+                this.closeStdFileStreamQuietly();
             }
         }
     }

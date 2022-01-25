@@ -1,8 +1,8 @@
 package com.mz.jarboot.utils;
 
 import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.BroadcastMessageEvent;
 import com.mz.jarboot.event.FrontEndNotifyEventType;
 import com.mz.jarboot.event.MessageEvent;
@@ -23,11 +23,7 @@ public class MessageUtils {
      * @param text 文本
      */
     public static void console(String sid, String text) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new BroadcastMessageEvent(sid)
-                        .body(text)
-                        .type(FrontEndNotifyEventType.CONSOLE));
+        notify(sid, true, NotifyType.CONSOLE.body(text));
     }
 
     /**
@@ -37,11 +33,7 @@ public class MessageUtils {
      * @param text 文本
      */
     public static void console(String sid, String sessionId, String text) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new MessageEvent(sid, sessionId)
-                        .body(text)
-                        .type(FrontEndNotifyEventType.CONSOLE));
+        notify(sid, sessionId, true, NotifyType.CONSOLE.body(text));
     }
 
     /**
@@ -71,31 +63,13 @@ public class MessageUtils {
     }
 
     /**
-     * 特定命令执行结果的渲染
-     * @param sid sid
-     * @param json json字符串
-     * @param sessionId 会话ID
-     */
-    public static void render(String sid, String sessionId, String json) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new MessageEvent(sid, sessionId)
-                        .body(json)
-                        .type(FrontEndNotifyEventType.RENDER_JSON));
-    }
-
-    /**
      * 命令执行结束
      * @param sid sid
      * @param body 执行结果
      * @param sessionId 会话ID
      */
     public static void commandEnd(String sid, String sessionId, String body) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new MessageEvent(sid, sessionId)
-                        .body(body)
-                        .type(FrontEndNotifyEventType.CMD_END));
+        notify(sid, sessionId, true, NotifyType.COMMAND_END.body(body));
     }
 
     /**
@@ -169,7 +143,7 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void info(String msg) {
-        notice(msg, NoticeLevel.INFO);
+        notice(msg, NotifyType.INFO);
     }
 
     /**
@@ -177,7 +151,7 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void warn(String msg) {
-        notice(msg, NoticeLevel.WARN);
+        notice(msg, NotifyType.WARN);
     }
 
     /**
@@ -185,14 +159,11 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void error(String msg) {
-        notice(msg, NoticeLevel.ERROR);
+        notice(msg, NotifyType.ERROR);
     }
 
-    public static void notice(String msg, NoticeLevel level) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new BroadcastMessageEvent(StringUtils.SPACE)
-                        .body(msg, level));
+    private static void notice(String msg, NotifyType level) {
+        notify(StringUtils.SPACE, true, level.body(msg));
     }
 
     /**
@@ -201,7 +172,7 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void info(String sessionId, String msg) {
-        notice(sessionId, msg, NoticeLevel.INFO);
+        notice(sessionId, msg, NotifyType.INFO);
     }
 
     /**
@@ -210,7 +181,7 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void warn(String sessionId, String msg) {
-        notice(sessionId, msg, NoticeLevel.WARN);
+        notice(sessionId, msg, NotifyType.WARN);
     }
 
     /**
@@ -219,7 +190,7 @@ public class MessageUtils {
      * @param msg msg
      */
     public static void error(String sessionId, String msg) {
-        notice(sessionId, msg, NoticeLevel.ERROR);
+        notice(sessionId, msg, NotifyType.ERROR);
     }
 
     /**
@@ -227,11 +198,37 @@ public class MessageUtils {
      * @param sessionId session id
      * @param msg msg
      */
-    public static void notice(String sessionId, String msg, NoticeLevel level) {
+    private static void notice(String sessionId, String msg, NotifyType level) {
+        notify(StringUtils.SPACE, sessionId, true, level.body(msg));
+    }
+
+    /**
+     * notify
+     * @param sid sid
+     * @param sessionId session id
+     * @param success 是否成功
+     * @param body body
+     */
+    public static void notify(String sid, String sessionId, boolean success, String body) {
         NotifyReactor
                 .getInstance()
-                .publishEvent(new MessageEvent(StringUtils.SPACE, sessionId)
-                        .body(msg, level));
+                .publishEvent(new MessageEvent(sid, sessionId)
+                        .type(FrontEndNotifyEventType.NOTIFY)
+                        .body(wrapNotifyBody(success, body)));
+    }
+
+    /**
+     * notify
+     * @param sid sid
+     * @param success 是否成功
+     * @param body body
+     */
+    public static void notify(String sid, boolean success, String body) {
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new BroadcastMessageEvent(sid)
+                        .type(FrontEndNotifyEventType.NOTIFY)
+                        .body(wrapNotifyBody(success, body)));
     }
 
     /**
@@ -256,6 +253,11 @@ public class MessageUtils {
                 }
             }
         }));
+    }
+
+    private static String wrapNotifyBody(boolean success, String body) {
+        char flag = success ? '0' : '1';
+        return flag + body;
     }
 
     private MessageUtils() {}

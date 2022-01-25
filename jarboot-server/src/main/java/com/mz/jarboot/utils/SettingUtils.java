@@ -227,7 +227,7 @@ public class SettingUtils {
         return new String(bytes);
     }
 
-    public static String getAttachArgs() {
+    public static String getLocalhost() {
         return localHost;
     }
 
@@ -252,7 +252,7 @@ public class SettingUtils {
             MessageUtils.warn("未找到服务" + servicePath + "的可执行jar包路径");
         }
 
-        Collection<File> jarList = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
+        Collection<File> jarList = FileUtils.listFiles(dir, new String[]{CommonConst.JAR_FILE_EXT}, false);
         if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
             MessageUtils.error("未找到服务" + servicePath + "的可执行jar包");

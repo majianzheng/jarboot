@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.session;
 
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.advisor.AdviceWeaver;
@@ -42,7 +43,7 @@ public class CoreCommandSession extends AbstractCommandSession {
     public void console(String text) {
         ResultStreamDistributor
                 .getInstance()
-                .response(true, ResponseType.CONSOLE, text, sessionId);
+                .response(true, ResponseType.NOTIFY, NotifyType.CONSOLE.body(text), sessionId);
     }
 
     @Override
@@ -99,6 +100,6 @@ public class CoreCommandSession extends AbstractCommandSession {
 
         ResultStreamDistributor
                 .getInstance()
-                .response(success, ResponseType.COMMAND_END, message, sessionId);
+                .response(success, ResponseType.NOTIFY, NotifyType.COMMAND_END.body(message), sessionId);
     }
 }

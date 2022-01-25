@@ -4,12 +4,14 @@ import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
 import com.mz.jarboot.core.event.ResponseEventBuilder;
+import com.mz.jarboot.core.event.StdoutAppendEvent;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ public class ResultStreamDistributor {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
+    @SuppressWarnings({"unchecked", "java:S3740"})
     public void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {
@@ -47,26 +49,15 @@ public class ResultStreamDistributor {
             return;
         }
         String text = resultView.render(model);
-        ResponseType type = resultView.isJson() ? ResponseType.JSON_RESULT : ResponseType.CONSOLE;
-        response(true, type, text, session);
-    }
-
-    /**
-     * 标准输出，忽略格式，html代码会以纯文本的形式打印出来
-     * @param text 文本
-     */
-    public void stdPrint(String text) {
-        if (StringUtils.isEmpty(text)) {
-            return;
-        }
-        response(true, ResponseType.STD_PRINT, text, StringUtils.EMPTY);
+        NotifyType type = resultView.isJson() ? NotifyType.JSON_RESULT : NotifyType.CONSOLE;
+        response(true, ResponseType.NOTIFY, type.body(text), session);
     }
 
     /**
      * 标准输出，退格
      * @param num 次数
      */
-    public void stdBackspace(int num) {
+    void stdBackspace(int num) {
         if (num > 0) {
             response(true, ResponseType.BACKSPACE, String.valueOf(num), StringUtils.EMPTY);
         }
@@ -100,6 +91,7 @@ public class ResultStreamDistributor {
     }
 
     private ResultStreamDistributor() {
+        //命令响应事件
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<CommandResponse>() {
             @Override
             public void onEvent(CommandResponse event) {
@@ -109,6 +101,23 @@ public class ResultStreamDistributor {
             @Override
             public Class<? extends JarbootEvent> subscribeType() {
                 return CommandResponse.class;
+            }
+        });
+        //std文本输出事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<StdoutAppendEvent>() {
+            @Override
+            public void onEvent(StdoutAppendEvent event) {
+                sendToServer(new ResponseEventBuilder()
+                        .success(true)
+                        .type(ResponseType.STD_PRINT)
+                        .body(event.getText())
+                        .session(StringUtils.EMPTY)
+                        .build());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return StdoutAppendEvent.class;
             }
         });
     }

@@ -1,6 +1,5 @@
 package com.mz.jarboot.base;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.pojo.JvmProcess;
@@ -8,9 +7,7 @@ import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.constant.NoticeLevel;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.utils.MessageUtils;
@@ -398,13 +395,9 @@ public class AgentManager {
      */
     private void onResponse(String serviceName, String sid, CommandResponse resp, Session session) {
         ResponseType type = resp.getResponseType();
-        String sessionId = resp.getSessionId();
         switch (type) {
             case HEARTBEAT:
                 doHeartbeat(serviceName, sid, session);
-                break;
-            case CONSOLE:
-                console(sid, resp, sessionId);
                 break;
             case BACKSPACE:
                 MessageUtils.backspace(sid, resp.getBody());
@@ -413,34 +406,15 @@ public class AgentManager {
                 //启动中的控制台消息
                 MessageUtils.stdPrint(sid, resp.getBody());
                 break;
-            case JSON_RESULT:
-                if (!checkNotTrusted(sid)) {
-                    MessageUtils.render(sid, sessionId, resp.getBody());
-                }
-                break;
-            case COMMAND_END:
-                commandEnd(sid, resp, sessionId);
-                break;
             case LOG_APPENDER:
                 onAgentLog(sid, resp.getBody());
                 break;
-            case NOTICE:
-                this.onAction(resp.getBody(), sessionId, sid);
+            case NOTIFY:
+                this.onNotify(resp, sid);
                 break;
             default:
                 //ignore
                 break;
-        }
-    }
-
-    private void console(String sid, CommandResponse resp, String sessionId) {
-        if (checkNotTrusted(sid)) {
-            return;
-        }
-        if (StringUtils.isEmpty(sessionId)) {
-            MessageUtils.console(sid, resp.getBody());
-        } else {
-            MessageUtils.console(sid, sessionId, resp.getBody());
         }
     }
 
@@ -487,17 +461,6 @@ public class AgentManager {
                 //ignore
             }
         }
-    }
-
-    private void commandEnd(String sid, CommandResponse resp, String sessionId) {
-        if (checkNotTrusted(sid)) {
-            return;
-        }
-        String msg = resp.getBody();
-        if (StringUtils.isNotEmpty(msg) && Boolean.FALSE.equals(resp.getSuccess())) {
-            msg = AnsiLog.red(msg);
-        }
-        MessageUtils.commandEnd(sid, sessionId, msg);
     }
 
     private void doHeartbeat(String serviceName, String sid, Session session) {
@@ -547,22 +510,15 @@ public class AgentManager {
         clientMap.forEach((k, v) -> sendInternalCommand(v.getSid(), CommandConst.CANCEL_CMD, sessionId));
     }
 
-    private void onAction(String data, String sessionId, String sid) {
+    private void onNotify(CommandResponse resp, String sid) {
         if (checkNotTrusted(sid)) {
             return;
         }
-        JsonNode body = JsonUtils.readAsJsonNode(data);
-        if (null == body || !body.isObject() || !body.has(CommandConst.ACTION_NAME_KEY)) {
-            return;
-        }
-        String action = body.get(CommandConst.ACTION_NAME_KEY).asText(StringUtils.EMPTY);
-        String param = body.get(CommandConst.ACTION_PARAM_KEY).asText(StringUtils.EMPTY);
-
-        NoticeLevel level = Enum.valueOf(NoticeLevel.class, action);
+        final String sessionId = resp.getSessionId();
         if (StringUtils.isEmpty(sessionId)) {
-            MessageUtils.notice(param, level);
+            MessageUtils.notify(sid, resp.getSuccess(), resp.getBody());
         } else {
-            MessageUtils.notice(sessionId, param, level);
+            MessageUtils.notify(sid, sessionId, resp.getSuccess(), resp.getBody());
         }
     }
 

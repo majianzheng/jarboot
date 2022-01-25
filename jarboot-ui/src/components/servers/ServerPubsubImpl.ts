@@ -1,8 +1,9 @@
-import { WsManager } from "@/common/WsManager";
+import {NotifyType, WsManager} from "@/common/WsManager";
 import { MSG_EVENT } from "@/common/EventConst";
-import { CommonConst, MsgData } from "@/common/CommonConst";
+import { MsgData } from "@/common/CommonConst";
 import Logger from "@/common/Logger";
 import {CONSOLE_TOPIC} from "@/components/console";
+import CommonNotice from "@/common/CommonNotice";
 
 /**
  * 服务订阅发布实现
@@ -25,11 +26,9 @@ class ServerPubsubImpl implements PublishSubmit {
     private handlers = new Map<string, Set<(data: any) => void>>();
 
     constructor() {
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_LINE, this.console);
-        WsManager.addMessageHandler(MSG_EVENT.CONSOLE_PRINT, this.stdPrint);
+        WsManager.addMessageHandler(MSG_EVENT.STD_PRINT, this.stdPrint);
         WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this.backspace);
-        WsManager.addMessageHandler(MSG_EVENT.RENDER_JSON, this.renderCmdJsonResult);
-        WsManager.addMessageHandler(MSG_EVENT.CMD_END, this.commandEnd);
+        WsManager.addMessageHandler(MSG_EVENT.NOTICE, this.notify);
         WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this.workspaceChange);
         WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this.onReconnected);
         WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this.statusChange);
@@ -71,10 +70,6 @@ class ServerPubsubImpl implements PublishSubmit {
         }
     }
 
-    private console = (data: MsgData) => {
-        this.publish(data.sid, CONSOLE_TOPIC.APPEND_LINE, data.body);
-    };
-
     private stdPrint = (data: MsgData) => {
         this.publish(data.sid, CONSOLE_TOPIC.STD_PRINT, data.body);
     };
@@ -83,13 +78,48 @@ class ServerPubsubImpl implements PublishSubmit {
         this.publish(data.sid, CONSOLE_TOPIC.BACKSPACE, data.body);
     };
 
-    private commandEnd = (data: MsgData) => {
-        this.publish(data.sid, PUB_TOPIC.CMD_END, data.body);
-    };
-
     private workspaceChange = (data: MsgData) => {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, data.body);
         Logger.log(`工作空间已经被修改，服务列表将会被刷新！`);
+    };
+
+    private notify = (data: MsgData) => {
+        const body: string = data.body;
+        const success = '0' === body[0];
+        const index = body.indexOf(',');
+        const type = parseInt(body.substring(1, index));
+        const msg = body.substring(index + 1);
+        switch (type) {
+            case NotifyType.INFO:
+                CommonNotice.info(msg);
+                Logger.log(msg);
+                break;
+            case NotifyType.WARN:
+                CommonNotice.warn(msg);
+                Logger.warn(msg);
+                break;
+            case NotifyType.ERROR:
+                CommonNotice.error(msg);
+                Logger.error(msg);
+                break;
+            case NotifyType.CONSOLE:
+                this.publish(data.sid, CONSOLE_TOPIC.APPEND_LINE, msg);
+                break;
+            case NotifyType.COMMAND_END:
+                if (success) {
+                    this.publish(data.sid, PUB_TOPIC.CMD_END, msg);
+                } else {
+                    this.publish(data.sid, PUB_TOPIC.CMD_END, `[31m${msg}[0m`);
+                }
+                break;
+            case NotifyType.JSON_RESULT:
+                this.renderCmdJsonResult(data.sid, msg);
+                break;
+            default:
+                CommonNotice.error(`Notify type error: ${type}`, msg);
+                Logger.log('未知的type', body);
+                break;
+        }
     };
 
     private statusChange = (data: MsgData) => {
@@ -105,15 +135,15 @@ class ServerPubsubImpl implements PublishSubmit {
         this.publish(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, data);
     };
 
-    private renderCmdJsonResult = (data: MsgData) => {
-        if ('{' !== data.body[0]) {
+    private renderCmdJsonResult = (sid: string, body: string) => {
+        if ('{' !== body[0]) {
             //不是json数据时，使用console
-            Logger.warn(`当前非JSON数据格式！`, data);
-            this.console(data);
+            Logger.warn(`当前非JSON数据格式！`, body);
+            this.publish(sid, CONSOLE_TOPIC.APPEND_LINE, body);
             return;
         }
-        const body = JSON.parse(data.body);
-        this.publish(data.sid, PUB_TOPIC.RENDER_JSON, body);
+        body = JSON.parse(body);
+        this.publish(sid, PUB_TOPIC.RENDER_JSON, body);
     };
 }
 

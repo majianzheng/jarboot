@@ -27,12 +27,17 @@ public class TaskUtils {
     private static int maxStartTime = 12000;
     /** 任务调度线程池 */
     private static final ScheduledExecutorService TASK_EXECUTOR;
+    /** 是否使用nohup启动服务 */
+    private static boolean useNohup = false;
 
     static {
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
+        if (!Boolean.getBoolean("docker") && (OSUtils.isLinux() || OSUtils.isMac())) {
+            useNohup = true;
+        }
     }
 
     /**
@@ -83,6 +88,10 @@ public class TaskUtils {
         String serverPath = setting.getWorkspace() + File.separator + setting.getName();
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
+
+        if (useNohup) {
+            cmdBuilder.append("nohup ");
+        }
 
         // java命令
         if (StringUtils.isBlank(setting.getJdkPath())) {
@@ -160,7 +169,7 @@ public class TaskUtils {
         Object vm = null;
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAttachArgs());
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getLocalhost());
         } catch (Exception e) {
             MessageUtils.printException(sid, e);
         } finally {

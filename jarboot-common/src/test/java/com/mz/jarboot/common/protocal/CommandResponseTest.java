@@ -16,33 +16,33 @@ public class CommandResponseTest {
     @Test
     public void testFromRaw() throws IOException {
         CommandResponse response = new CommandResponse();
-        byte header = (byte) (ResponseType.CONSOLE.value() | CommandConst.SUCCESS_FLAG);
+        byte header = (byte) (ResponseType.NOTIFY.value() | CommandConst.SUCCESS_FLAG);
         response.fromRaw(toByte(header, "body data\r123"));
-        assertEquals(ResponseType.CONSOLE, response.getResponseType());
+        assertEquals(ResponseType.NOTIFY, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        header = ResponseType.CONSOLE.value();
+        header = ResponseType.NOTIFY.value();
         response.fromRaw(toByte(header, "body data\r123"));
-        assertEquals(ResponseType.CONSOLE, response.getResponseType());
+        assertEquals(ResponseType.NOTIFY, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertFalse(response.getSuccess());
 
         response = new CommandResponse();
-        header = (byte) (ResponseType.JSON_RESULT.value() | CommandConst.SUCCESS_FLAG);
+        header = (byte) (ResponseType.STD_PRINT.value() | CommandConst.SUCCESS_FLAG);
         response.fromRaw(toByte(header, "body data\r123"));
-        assertEquals(ResponseType.JSON_RESULT, response.getResponseType());
+        assertEquals(ResponseType.STD_PRINT, response.getResponseType());
         assertEquals("123", response.getSessionId());
         assertEquals("body data", response.getBody());
         assertTrue(response.getSuccess());
 
         response = new CommandResponse();
-        header = ResponseType.COMMAND_END.value();
+        header = ResponseType.LOG_APPENDER.value();
         response.fromRaw(toByte(header, "body xxx data\r125663"));
-        assertEquals(ResponseType.COMMAND_END, response.getResponseType());
+        assertEquals(ResponseType.LOG_APPENDER, response.getResponseType());
         assertEquals("125663", response.getSessionId());
         assertEquals("body xxx data", response.getBody());
         assertFalse(response.getSuccess());
@@ -55,33 +55,33 @@ public class CommandResponseTest {
 
     @Test
     public void testToRaw() throws IOException {
-        byte header = (byte) (ResponseType.CONSOLE.value() | CommandConst.SUCCESS_FLAG);
+        byte header = (byte) (ResponseType.NOTIFY.value() | CommandConst.SUCCESS_FLAG);
         CommandResponse response = new CommandResponse();
-        response.setResponseType(ResponseType.CONSOLE);
+        response.setResponseType(ResponseType.NOTIFY);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(true);
         assertArrayEquals(toByte(header, "body data\r123"), response.toRaw());
 
         response = new CommandResponse();
-        header = ResponseType.CONSOLE.value();
-        response.setResponseType(ResponseType.CONSOLE);
+        header = ResponseType.NOTIFY.value();
+        response.setResponseType(ResponseType.NOTIFY);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(false);
         assertArrayEquals(toByte(header, "body data\r123"), response.toRaw());
 
         response = new CommandResponse();
-        header = (byte) (ResponseType.JSON_RESULT.value() | CommandConst.SUCCESS_FLAG);
-        response.setResponseType(ResponseType.JSON_RESULT);
+        header = (byte) (ResponseType.STD_PRINT.value() | CommandConst.SUCCESS_FLAG);
+        response.setResponseType(ResponseType.STD_PRINT);
         response.setSessionId("123");
         response.setBody("body data");
         response.setSuccess(true);
         assertArrayEquals(toByte(header, "body data\r123"), response.toRaw());
 
         response = new CommandResponse();
-        header = ResponseType.COMMAND_END.value();
-        response.setResponseType(ResponseType.COMMAND_END);
+        header = ResponseType.LOG_APPENDER.value();
+        response.setResponseType(ResponseType.LOG_APPENDER);
         response.setSessionId("125663");
         response.setBody("body xxx data");
         response.setSuccess(false);

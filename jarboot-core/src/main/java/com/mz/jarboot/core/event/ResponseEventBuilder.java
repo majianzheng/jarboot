@@ -1,6 +1,5 @@
 package com.mz.jarboot.core.event;
 
-import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.protocol.ResponseType;
 
@@ -30,7 +29,7 @@ public class ResponseEventBuilder {
         return this;
     }
 
-    public JarbootEvent build() {
+    public CommandResponse build() {
         return response;
     }
 }

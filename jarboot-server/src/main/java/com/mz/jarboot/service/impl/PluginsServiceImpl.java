@@ -109,7 +109,7 @@ public class PluginsServiceImpl implements PluginsService {
         if (!dir.exists() || !dir.isDirectory()) {
             return;
         }
-        Collection<File> files = FileUtils.listFiles(dir, CommonConst.JAR_FILE_EXT, false);
+        Collection<File> files = FileUtils.listFiles(dir, new String[]{CommonConst.JAR_FILE_EXT}, false);
         if (CollectionUtils.isEmpty(files)) {
             return;
         }

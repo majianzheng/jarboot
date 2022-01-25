@@ -4,7 +4,6 @@ package com.mz.jarboot.api.constant;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("java:S2386")
 public class CommonConst {
     public static final String JARBOOT_HOME= "JARBOOT_HOME";
     public static final String REMOTE_PROP = "jarboot.remote";
@@ -24,7 +23,7 @@ public class CommonConst {
     public static final char EQUAL_CHAR = '=';
     
     public static final String COMMA_SPLIT = ",";
-    public static final String[] JAR_FILE_EXT = new String[]{"jar"};
+    public static final String JAR_FILE_EXT = "jar";
 
     public static final String JARBOOT_NAME = "jarboot";
     public static final String SERVICES = "services";

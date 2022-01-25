@@ -48,7 +48,7 @@ public class DashboardCommand extends AbstractCommand {
 
     private volatile long count = 0;
     @SuppressWarnings("java:S3077")
-    private volatile ScheduledFuture<?> timer = null;
+    private volatile ScheduledFuture<?> future = null;
 
     @Option(shortName = "n", longName = "number-of-execution")
     @Description("The number of times this command will be executed.")
@@ -70,25 +70,16 @@ public class DashboardCommand extends AbstractCommand {
     @Override
     public void run() {
         // start the timer
-        timer = EnvironmentContext
+        future = EnvironmentContext
                 .getScheduledExecutor()
                 .scheduleAtFixedRate(new DashboardTimerTask(session),
                         0, getInterval(), TimeUnit.MILLISECONDS);
     }
 
     public synchronized void stop() {
-        if (timer != null) {
-            timer.cancel(false);
-            timer = null;
-        }
-    }
-
-    public synchronized void restart() {
-        if (timer == null) {
-            timer = EnvironmentContext
-                    .getScheduledExecutor()
-                    .scheduleAtFixedRate(new DashboardTimerTask(session),
-                            0, getInterval(), TimeUnit.MILLISECONDS);
+        if (future != null) {
+            future.cancel(false);
+            future = null;
         }
     }
 
@@ -259,7 +250,7 @@ public class DashboardCommand extends AbstractCommand {
             try {
                 if (count >= getNumOfExecutions()) {
                     // stop the timer
-                    timer.cancel(false);
+                    future.cancel(false);
                     process.end(true, "Process ends after " + getNumOfExecutions() + " time(s).");
                     return;
                 }

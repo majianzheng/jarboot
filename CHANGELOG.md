@@ -2,8 +2,11 @@
 ### 接口改动较大，旧框架代码移至【2.2.x】分支
 - 命令执行通讯协议改为二进制传输
 - 使用新开发的事件框架重构后端消息流
+- sonar lint和pmd修改
 #### FEATURES:
 - 增加针对开发者的API的client模块实现
+- 增加std输出重定向到文件的支持，使用VM参数jarboot.stdout.file和jarboot.stdout.file.always指定文件
+- Linux或macOS中使用nohup启动服务
 
 ## 2.2.4 (1, 2022)
 

@@ -280,7 +280,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         MessageUtils.upgradeStatus(pid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-            String args = SettingUtils.getAttachArgs();
+            String args = SettingUtils.getLocalhost();
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
             MessageUtils.printException(pid, e);

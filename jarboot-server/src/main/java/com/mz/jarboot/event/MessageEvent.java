@@ -1,6 +1,6 @@
 package com.mz.jarboot.event;
 
-import com.mz.jarboot.constant.NoticeLevel;
+import com.mz.jarboot.common.protocol.NotifyType;
 
 /**
  * @author majianzheng
@@ -18,7 +18,7 @@ public class MessageEvent extends AbstractMessageEvent {
         return this;
     }
 
-    public MessageEvent body(String text, NoticeLevel level) {
+    public MessageEvent body(String text, NotifyType level) {
         this.noticeBody(text, level);
         return this;
     }

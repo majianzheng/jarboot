@@ -51,7 +51,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     /** 销毁连接latch */
     private volatile CountDownLatch shutdownLatch = null;
     /** 是否启动重连 */
-    private boolean reconnectEnabled = false;
+    private volatile boolean reconnectEnabled = false;
     /** 是否正在连接 */
     private boolean connecting = false;
     /** 重连未开始标志 */
@@ -113,12 +113,10 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      * 创建客户端
      */
     public synchronized void createSingletonClient() {
-        if (online) {
+        if (online || connecting) {
             return;
         }
-        if (null != client) {
-            this.destroyClient();
-        }
+        this.destroyClient();
         final String url = new StringBuilder()
                 .append(CommonConst.WS)
                 .append(EnvironmentContext.getAgentClient().getHost())
@@ -128,7 +126,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 .append(StringUtils.SLASH)
                 .append(EnvironmentContext.getAgentClient().getSid())
                 .toString();
-        AnsiLog.info("connectting to jarboot {}", url);
+        AnsiLog.info("connecting to jarboot {}", url);
         latch = new CountDownLatch(1);
         try {
             connecting = true;
@@ -302,19 +300,11 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
     private void destroyClient() {
-        if (!online) {
-            return;
-        }
         if (null == this.client) {
             return;
         }
         try {
-            client.cancel();
-        } catch (Exception e) {
-            //ignore
-        }
-        try {
-            client.close(1100, "Connect close.");
+            client.close(1000, "Connect close.");
         } catch (Exception e) {
             //ignore
         }

@@ -7,15 +7,19 @@ import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
 import { MessageType } from "antd/lib/message";
 
-enum NoticeLevel {
+enum NotifyType {
     /** 提示 */
     INFO,
-
     /** 警告 */
     WARN,
-
     /** 错误 */
-    ERROR
+    ERROR,
+    /** 控制台消息打印 */
+    CONSOLE,
+    /** 执行执行完成 */
+    COMMAND_END,
+    /** Json类型的执行结果 */
+    JSON_RESULT,
 }
 
 let msg: any = null;
@@ -96,7 +100,6 @@ class WsManager {
      * 初始化Websocket
      */
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager.notice);
         WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
@@ -114,35 +117,6 @@ class WsManager {
         WsManager.websocket.onclose = WsManager.onClose;
         WsManager.websocket.onerror = WsManager.onError;
     }
-
-    /**
-     * Notice提示事件处理
-     * @param data 消息
-     */
-    private static notice = (data: MsgData) => {
-        const body: string = data.body;
-        const index = body.indexOf(',');
-        const level = parseInt(body.substring(0, index));
-        const msg = body.substring(index + 1);
-        switch (level) {
-            case NoticeLevel.INFO:
-                CommonNotice.info(msg);
-                Logger.log(msg);
-                break;
-            case NoticeLevel.WARN:
-                CommonNotice.warn(msg);
-                Logger.warn(msg);
-                break;
-            case NoticeLevel.ERROR:
-                CommonNotice.error(msg);
-                Logger.error(msg);
-                break;
-            default:
-                CommonNotice.error(`通知级别错误${level}`, msg);
-                Logger.log('未知的通知级别', body);
-                break;
-        }
-    };
 
     /**
      * 全局Loading消息处理
@@ -261,4 +235,4 @@ class WsManager {
     }
 }
 
-export { WsManager }
+export { WsManager, NotifyType }
