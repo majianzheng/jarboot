@@ -48,21 +48,21 @@ public class AgentServiceOperator {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(NotifyType.INFO, message, sessionId);
+        publish(NotifyType.INFO, message, sessionId);
     }
 
     public static void noticeWarn(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(NotifyType.WARN, message, sessionId);
+        publish(NotifyType.WARN, message, sessionId);
     }
 
     public static void noticeError(String message, String sessionId) {
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        action(NotifyType.ERROR, message, sessionId);
+        publish(NotifyType.ERROR, message, sessionId);
     }
 
     /**
@@ -103,15 +103,7 @@ public class AgentServiceOperator {
         });
     }
 
-    private static void action(NotifyType name, String param, String sessionId) {
-        try {
-            distributeAction(name, param, sessionId);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private static void distributeAction(NotifyType name, String param, String sessionId) {
+    private static void publish(NotifyType name, String param, String sessionId) {
         String bodyData = name.body(param);
         NotifyReactor
                 .getInstance()

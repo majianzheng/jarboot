@@ -212,7 +212,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             try {
                 this.destroyClient();
                 if (!shutdownLatch.await(RECONNECT_INTERVAL, TimeUnit.SECONDS)) {
-                    AnsiLog.warn("wait destroy timeout");
+                    logger.warn("wait destroy timeout");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -306,7 +306,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         try {
             client.close(1000, "Connect close.");
         } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         }
         client = null;
     }
