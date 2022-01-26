@@ -24,11 +24,11 @@ public class DemoServerApplication implements Runnable {
     private static final int POW_FUNC = 2;
     private static AgentService agentService = null;
 
-    private JTextField execLimitInput;
-    private JTextField execIntervalInput;
-    private JTextField fibInput;
-    private JTextField pow1Input;
-    private JTextField pow2Input;
+    private final JTextField execLimitInput;
+    private final JTextField execIntervalInput;
+    private final JTextField fibInput;
+    private final JTextField pow1Input;
+    private final JTextField pow2Input;
     final JProgressBar progressBar = new JProgressBar(0, 100);
     final JLabel costLabel = new JLabel("耗时：");
     final JLabel resultLabel = new JLabel();
@@ -43,12 +43,11 @@ public class DemoServerApplication implements Runnable {
             //启动界面
             new DemoServerApplication();
             log("\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
-            finish();
         } else {
             //docker模式下
             log("当前正在使用\033[1;36mDocker\033[0m，\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
-            finish();
         }
+        finish();
     }
 
     public static void notice(String msg, String sessionId) {

@@ -129,13 +129,18 @@ public class ClientProxy implements AbstractEventRegistry {
         return this.authorization;
     }
 
-    private okhttp3.Headers initHeader() {
+    public String getToken() {
         AccessToken accessToken = Factory.createToken(tokenKey, baseUrl, this.username, this.password);
         if (null == accessToken) {
             throw new JarbootRunException("request token failed.");
         }
+        return accessToken.token;
+    }
+
+    private okhttp3.Headers initHeader() {
+        String token = getToken();
         return new okhttp3.Headers.Builder()
-                .add("Authorization", accessToken.token)
+                .add("Authorization", token)
                 .add("Accept", "*/*")
                 .add("Content-Type", "application/json;charset=UTF-8")
                 .build();
@@ -345,6 +350,16 @@ public class ClientProxy implements AbstractEventRegistry {
                 return userClientMap;
             });
             return map.values().iterator().next();
+        }
+
+        public static void destroyClientProxy(final ClientProxy proxy) {
+            CLIENTS.computeIfPresent(proxy.host, (k, v) -> {
+                v.remove(proxy.username);
+                if (v.isEmpty()) {
+                    v = null;
+                }
+                return v;
+            });
         }
 
         /**
