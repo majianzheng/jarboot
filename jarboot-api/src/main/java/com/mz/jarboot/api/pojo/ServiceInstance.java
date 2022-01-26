@@ -52,11 +52,12 @@ public class ServiceInstance {
 
     @Override
     public String toString() {
-        return "ServerRunning{" +
+        return "ServiceInstance{" +
                 "status='" + status + '\'' +
                 ", name='" + name + '\'' +
-                ", path=" + path +
-                ", sid=" + sid +
+                ", group='" + group + '\'' +
+                ", sid='" + sid + '\'' +
+                ", path='" + path + '\'' +
                 '}';
     }
 }

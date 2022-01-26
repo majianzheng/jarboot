@@ -62,13 +62,16 @@ public class AgentClient extends ResponseSimple {
 
     @Override
     public String toString() {
-        return "AgentClientPojo{" +
+        return "AgentClient{" +
                 "clientAddr='" + clientAddr + '\'' +
                 ", local=" + local +
                 ", serviceName='" + serviceName + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +
+                ", resultCode=" + resultCode +
+                ", resultMsg='" + resultMsg + '\'' +
+                ", total=" + total +
                 '}';
     }
 }

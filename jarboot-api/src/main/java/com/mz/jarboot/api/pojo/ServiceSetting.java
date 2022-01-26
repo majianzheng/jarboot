@@ -213,8 +213,12 @@ public class ServiceSetting implements Serializable {
 
     @Override
     public String toString() {
-        return "ServerSettingDTO{" +
-                "server='" + name + '\'' +
+        return "ServiceSetting{" +
+                "name='" + name + '\'' +
+                ", group='" + group + '\'' +
+                ", sid='" + sid + '\'' +
+                ", lastModified=" + lastModified +
+                ", workspace='" + workspace + '\'' +
                 ", command='" + command + '\'' +
                 ", vm='" + vm + '\'' +
                 ", priority=" + priority +

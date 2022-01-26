@@ -170,7 +170,7 @@ public class ServiceManagerClient implements ServiceManager {
     public void registerSubscriber(String serviceName,
                                    TaskLifecycle lifecycle,
                                    Subscriber<TaskLifecycleEvent> subscriber) {
-        final String topic = this.clientProxy.createLifecycleTopic(serviceName, lifecycle);
+        final String topic = this.clientProxy.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         this.clientProxy.registerSubscriber(topic, subscriber);
     }
 
@@ -185,7 +185,7 @@ public class ServiceManagerClient implements ServiceManager {
     public void deregisterSubscriber(String serviceName,
                                      TaskLifecycle lifecycle,
                                      Subscriber<TaskLifecycleEvent> subscriber) {
-        final String topic = this.clientProxy.createLifecycleTopic(serviceName, lifecycle);
+        final String topic = this.clientProxy.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         this.clientProxy.deregisterSubscriber(topic, subscriber);
     }
 

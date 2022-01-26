@@ -36,7 +36,7 @@ public class GlobalSetting implements Serializable {
 
     @Override
     public String toString() {
-        return "GlobalSettingDTO{" +
+        return "GlobalSetting{" +
                 "workspace='" + workspace + '\'' +
                 ", defaultVmOptions='" + defaultVmOptions + '\'' +
                 ", servicesAutoStart=" + servicesAutoStart +

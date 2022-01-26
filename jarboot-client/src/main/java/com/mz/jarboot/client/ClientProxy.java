@@ -28,36 +28,34 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 客户端请求代理
  * @author majianzheng
  */
 @SuppressWarnings({"unused", "java:S3740", "unchecked", "rawtypes"})
-public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEventRegistry {
+public class ClientProxy implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientProxy.class);
+    private static final Map<String, okhttp3.WebSocket> SOCKETS = new ConcurrentHashMap<>(16);
+    private static final Map<String, Set<Subscriber>> SUBS = new ConcurrentHashMap<>(16);
     private final String baseUrl;
-    private final String user;
+    private final String username;
     private final String password;
     private final String host;
     private final boolean authorization;
     private String tokenKey;
     private final String version;
-    private final AtomicReference<okhttp3.WebSocket> webSocket = new AtomicReference<>(null);
-    private final Map<String, Set<Subscriber>> subscribers = new ConcurrentHashMap<>(16);
-    private CountDownLatch latch = null;
 
-    private ClientProxy(String host, String user, String password, String version) {
+    private ClientProxy(String host, String username, String password, String version) {
         this.baseUrl = CommonConst.HTTP + host;
         this.host = host;
-        this.user = user;
+        this.username = username;
         this.password = password;
         this.version = version;
-        if (null == user) {
+        if (null == username) {
             this.authorization = false;
         } else {
-            tokenKey = Factory.createTokenKey(host, user);
+            tokenKey = Factory.createKey(host, username);
             this.authorization = true;
         }
     }
@@ -109,8 +107,10 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
                 .get()
                 .url(url)
                 .build();
-        latch = new CountDownLatch(1);
-        okhttp3.WebSocket client = HttpRequestOperator.HTTP_CLIENT.newWebSocket(request, this);
+        CountDownLatch latch = new CountDownLatch(1);
+        okhttp3.WebSocket client = HttpRequestOperator
+                .HTTP_CLIENT
+                .newWebSocket(request, new MessageListener(this, latch));
         try {
             if (!latch.await(HttpRequestOperator.CONNECT_TIMEOUT, TimeUnit.SECONDS)) {
                 logger.warn("Connect to event server timeout! url: {}", url);
@@ -130,7 +130,7 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
     }
 
     private okhttp3.Headers initHeader() {
-        AccessToken accessToken = Factory.createToken(tokenKey, baseUrl, this.user, this.password);
+        AccessToken accessToken = Factory.createToken(tokenKey, baseUrl, this.username, this.password);
         if (null == accessToken) {
             throw new JarbootRunException("request token failed.");
         }
@@ -142,54 +142,14 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
     }
 
     @Override
-    public void onOpen(WebSocket webSocket, Response response) {
-        if (!this.webSocket.compareAndSet(null, webSocket)) {
-            logger.warn("Already opened!");
-            this.webSocket.set(webSocket);
-        }
-        if (null != latch) {
-            latch.countDown();
-        }
-    }
-
-    @Override
-    public void onMessage(WebSocket webSocket, ByteString bytes) {
-        int i1 = bytes.indexOf(SPLIT);
-        if (i1 <= 0) {
-            return;
-        }
-        final String topic =  bytes.substring(0, i1).string(StandardCharsets.UTF_8);
-        final int index = topic.indexOf(StringUtils.SLASH);
-        final String className = -1 == index ? topic : topic.substring(0, index);
-        ByteString bodyBytes = bytes.substring(i1 + 1);
-        try {
-            Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
-            JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
-            this.receiveEvent(topic, event);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void onClosed(WebSocket webSocket, int code, String reason) {
-        this.afterClosed();
-    }
-
-    @Override
-    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        this.afterClosed();
-    }
-
-    @Override
     public void registerSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
-        this.webSocket.compareAndSet(null, this.newWebSocket());
+        okhttp3.WebSocket socket = SOCKETS.computeIfAbsent(host, k -> this.newWebSocket());
         byte[] topicBytes = topic.getBytes(StandardCharsets.UTF_8);
         byte[] buf = new byte[topicBytes.length + 1];
         buf[0] = 1;
         System.arraycopy(topicBytes, 0, buf, 1, topicBytes.length);
-        if (this.webSocket.get().send(ByteString.of(buf))) {
-            subscribers.compute(topic, (k, v) -> {
+        if (socket.send(ByteString.of(buf))) {
+            SUBS.compute(topic, (k, v) -> {
                 //订阅计数
                 if (null == v) {
                     v = new HashSet<>(16);
@@ -205,20 +165,19 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
 
     @Override
     public void deregisterSubscriber(String topic, Subscriber<? extends JarbootEvent> subscriber) {
-        okhttp3.WebSocket socket = this.webSocket.get();
+        okhttp3.WebSocket socket = SOCKETS.getOrDefault(host, null);
         if (null == socket) {
-            this.subscribers.clear();
             return;
         }
         byte[] topicBytes = topic.getBytes(StandardCharsets.UTF_8);
         byte[] buf = new byte[topicBytes.length + 1];
         System.arraycopy(topicBytes, 0, buf, 1, topicBytes.length);
         if (socket.send(ByteString.of(buf))) {
-            subscribers.computeIfPresent(topic, (k, v) -> {
+            SUBS.computeIfPresent(topic, (k, v) -> {
                 v.remove(subscriber);
                 if (v.isEmpty()) {
                     v = null;
-                    if (subscribers.size() <= 1) {
+                    if (SUBS.size() <= 1) {
                         logger.debug("topics will be zero shutdown client.");
                         //当前没有任何订阅销毁WebSocket
                         this.shutdownWebSocket();
@@ -234,44 +193,95 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
 
     @Override
     public void receiveEvent(String topic, JarbootEvent event) {
-        Set<Subscriber> subs = subscribers.getOrDefault(topic, null);
-        if (null != subs && !subs.isEmpty()) {
-            subs.forEach(sub -> {
-                Executor executor = sub.executor();
-                //执行本地事件
-                final Runnable job = () -> sub.onEvent(event);
-                if (null == executor) {
-                    job.run();
-                } else {
-                    executor.execute(job);
-                }
-            });
-        }
+        //ignore
     }
 
     private void shutdownWebSocket() {
-        WebSocket socket = this.webSocket.getAndSet(null);
+        WebSocket socket = SOCKETS.remove(host);
         if (null == socket) {
             return;
         }
         try {
-            socket.cancel();
+            socket.close(1000, "Connect close.");
         } catch (Exception e) {
-            //ignore
-        }
-        try {
-            socket.close(1100, "Connect close.");
-        } catch (Exception e) {
-            //ignore
+            logger.error(e.getMessage(), e);
         }
     }
 
-    private void afterClosed() {
-        this.subscribers.clear();
-        this.webSocket.set(null);
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new DisconnectionEvent(this.host, this.user, this.password, this.version));
+    private static class MessageListener extends okhttp3.WebSocketListener {
+        private final String host;
+        private final String username;
+        private final String password;
+        private final String version;
+        private CountDownLatch latch;
+        MessageListener(ClientProxy proxy, CountDownLatch latch) {
+            this.host = proxy.host;
+            this.username = proxy.username;
+            this.password = proxy.password;
+            this.version = proxy.version;
+            this.latch = latch;
+        }
+
+        @Override
+        public void onOpen(WebSocket webSocket, Response response) {
+            if (null != this.latch) {
+                this.latch.countDown();
+                this.latch = null;
+            }
+        }
+
+        @Override
+        public void onMessage(WebSocket webSocket, ByteString bytes) {
+            int i1 = bytes.indexOf(SPLIT);
+            if (i1 <= 0) {
+                return;
+            }
+            final String topic =  bytes.substring(0, i1).string(StandardCharsets.UTF_8);
+            final int index = topic.indexOf(StringUtils.SLASH);
+            final String className = -1 == index ? topic : topic.substring(0, index);
+            ByteString bodyBytes = bytes.substring(i1 + 1);
+            try {
+                Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
+                JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
+                this.handler(topic, event);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+
+        @Override
+        public void onClosed(WebSocket webSocket, int code, String reason) {
+            this.afterClosed();
+        }
+
+        @Override
+        public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+            logger.warn(t.getMessage(), t);
+            this.afterClosed();
+        }
+
+        private void afterClosed() {
+            SOCKETS.remove(host);
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new DisconnectionEvent(this.host, this.username, this.password, this.version));
+        }
+
+        private void handler(String topic, JarbootEvent event) {
+            Set<Subscriber> subs = SUBS.getOrDefault(topic, null);
+            if (null != subs && !subs.isEmpty()) {
+                subs.forEach(sub -> {
+                    Executor executor = sub.executor();
+                    //执行本地事件
+                    final Runnable job = () -> sub.onEvent(event);
+                    if (null == executor) {
+                        job.run();
+                    } else {
+                        executor.execute(job);
+                    }
+                });
+            }
+        }
     }
 
     public static class AccessToken {
@@ -301,7 +311,7 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
          */
         public static ClientProxy createClientProxy(final String host, final String user, final String password) {
             final String baseUrl = CommonConst.HTTP + host;
-            AccessToken accessToken = createToken(createTokenKey(host, user), baseUrl, user, password);
+            AccessToken accessToken = createToken(createKey(host, user), baseUrl, user, password);
             if (null == accessToken) {
                 throw new JarbootRunException("create token failed.");
             }
@@ -405,7 +415,7 @@ public class ClientProxy extends okhttp3.WebSocketListener implements AbstractEv
             return HttpRequestOperator.req(api, StringUtils.EMPTY, null, HttpMethod.GET);
         }
 
-        static String createTokenKey(String host, String username) {
+        static String createKey(String host, String username) {
             return host + StringUtils.LF + username;
         }
 

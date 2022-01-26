@@ -327,7 +327,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void registerSubscriber(String serviceName,
                                    TaskLifecycle lifecycle,
                                    Subscriber<TaskLifecycleEvent> subscriber) {
-        final String topic = eventRegistry.createLifecycleTopic(serviceName, lifecycle);
+        final String topic = eventRegistry.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         eventRegistry.registerSubscriber(topic, subscriber);
     }
 
@@ -342,7 +342,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void deregisterSubscriber(String serviceName,
                                      TaskLifecycle lifecycle,
                                      Subscriber<TaskLifecycleEvent> subscriber) {
-        final String topic = eventRegistry.createLifecycleTopic(serviceName, lifecycle);
+        final String topic = eventRegistry.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         eventRegistry.deregisterSubscriber(topic, subscriber);
     }
 
