@@ -14,7 +14,6 @@ import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,15 +43,15 @@ public class TaskRunCache {
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
     /**
-     * 获取服务路径列表
-     * @return 服务路径列表
+     * 获取服务名称列表
+     * @return 服务名称列表
      */
-    public List<String> getServicePathList() {
+    public List<String> getServiceNameList() {
         File[] serviceDirs = this.getServiceDirs();
         List<String> paths = new ArrayList<>();
         if (null != serviceDirs && serviceDirs.length > 0) {
             for (File f : serviceDirs) {
-                paths.add(FilenameUtils.getName(f.getPath()));
+                paths.add(f.getName());
             }
         }
         return paths;

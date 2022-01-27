@@ -80,11 +80,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         //获取所有的服务
-        List<String> paths = taskRunCache.getServicePathList();
+        List<String> services = taskRunCache.getServiceNameList();
         //同步控制，保证所有的都杀死后再重启
-        if (!CollectionUtils.isEmpty(paths)) {
+        if (!CollectionUtils.isEmpty(services)) {
             //启动服务
-            this.restartService(paths);
+            this.restartService(services);
         }
     }
 
@@ -98,9 +98,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.info("存在未完成的任务，请稍后启动");
             return;
         }
-        List<String> paths = taskRunCache.getServicePathList();
+        List<String> services = taskRunCache.getServiceNameList();
         //启动服务
-        this.startService(paths);
+        this.startService(services);
     }
 
     /**
@@ -113,9 +113,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.info("存在未完成的任务，请稍后停止");
             return;
         }
-        List<String> paths = taskRunCache.getServicePathList();
+        List<String> services = taskRunCache.getServiceNameList();
         //启动服务
-        this.stopService(paths);
+        this.stopService(services);
     }
 
     /**
