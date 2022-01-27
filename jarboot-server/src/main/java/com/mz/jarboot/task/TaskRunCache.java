@@ -14,6 +14,7 @@ import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,7 @@ public class TaskRunCache {
         List<String> paths = new ArrayList<>();
         if (null != serviceDirs && serviceDirs.length > 0) {
             for (File f : serviceDirs) {
-                paths.add(f.getPath());
+                paths.add(FilenameUtils.getName(f.getPath()));
             }
         }
         return paths;
