@@ -41,10 +41,6 @@
       <source>../plugins/debug-plugin/target/debug-plugin.jar</source>
       <destName>plugins/server/debug-plugin.jar</destName>
     </file>
-    <file>
-      <source>../doc/jarboot.png</source>
-      <destName>bin/splash.png</destName>
-    </file>
 
     <file>
       <source>bin/shutdown.sh</source>

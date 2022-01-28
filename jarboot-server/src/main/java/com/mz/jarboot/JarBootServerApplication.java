@@ -19,6 +19,5 @@ public class JarBootServerApplication {
 		AppEnvironment.initAndCheck();
 		ApplicationContext context = SpringApplication.run(JarBootServerApplication.class, args);
 		ApplicationContextUtils.init(context);
-		AppEnvironment.closeSplash();
 	}
 }

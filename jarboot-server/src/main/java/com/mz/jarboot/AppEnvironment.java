@@ -7,7 +7,6 @@ import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
-import java.awt.*;
 import java.io.File;
 
 /**
@@ -15,12 +14,10 @@ import java.io.File;
  * @author majianzheng
  */
 public class AppEnvironment {
-    private static SplashScreen splash = null;
     /**
      * 初始化并检查环境
      */
     public static void initAndCheck() {
-        initSplash();
         //初始化工作目录
         String homePath = System.getenv(CommonConst.JARBOOT_HOME);
         if (null == homePath || homePath.isEmpty()) {
@@ -52,24 +49,6 @@ public class AppEnvironment {
         } catch (Exception e) {
             AnsiLog.error(e);
             System.exit(-1);
-        }
-    }
-
-    public static void closeSplash() {
-        if (null != splash) {
-            splash.close();
-            splash = null;
-        }
-    }
-
-    private static void initSplash() {
-        try {
-            splash = SplashScreen.getSplashScreen();
-        } catch (Exception e) {
-            AnsiLog.info("Not support splash. {}", e.getMessage());
-        }
-        if (null == splash) {
-            AnsiLog.info("current can't display splash screen.");
         }
     }
 
