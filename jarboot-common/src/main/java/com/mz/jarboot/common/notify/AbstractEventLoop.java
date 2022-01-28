@@ -15,7 +15,6 @@ public abstract class AbstractEventLoop extends Thread {
     protected AbstractEventLoop(String name) {
         setDaemon(true);
         setName(name);
-        start();
     }
 
     @Override

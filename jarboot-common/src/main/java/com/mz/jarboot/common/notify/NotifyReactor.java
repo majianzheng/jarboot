@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author majianzheng
  */
-@SuppressWarnings({"unchecked", "java:S3740"})
+@SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
 public class NotifyReactor {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Map<String, EventPublisher> publisherMap = new ConcurrentHashMap<>(16);

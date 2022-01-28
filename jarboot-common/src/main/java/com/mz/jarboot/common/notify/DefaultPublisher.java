@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * @author majianzheng
  */
-@SuppressWarnings({"java:S1181", "unchecked", "java:S3740"})
+@SuppressWarnings({"java:S1181", "unchecked", "java:S3740", "rawtypes"})
 public class DefaultPublisher extends AbstractEventLoop implements EventPublisher {
     protected static final Logger logger = LoggerFactory.getLogger(DefaultPublisher.class);
     protected final BlockingQueue<JarbootEvent> queue;
@@ -25,6 +25,7 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
         super(name);
         queue = new LinkedBlockingQueue<>(queueSize);
         subscribers = new ConcurrentHashMap<>(16);
+        this.start();
     }
 
     @Override
