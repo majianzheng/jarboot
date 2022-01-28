@@ -12,6 +12,7 @@ import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;

@@ -11,6 +11,9 @@ import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.api.service.SettingService;
+import com.mz.jarboot.client.command.CommandExecutorFactory;
+import com.mz.jarboot.client.command.CommandExecutorService;
+import com.mz.jarboot.client.command.CommandResult;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.CommandCliParser;
@@ -18,6 +21,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * 客户端命令行工具
@@ -82,12 +86,13 @@ public class JarbootClientCli {
 
     private void run() {
         //test
+        final String demo = "demo-server";
         ServiceManager client = new ServiceManagerClient(this.host, null, null);
         List<ServiceInstance> list = client.getServiceList();
         AnsiLog.info("list:{}", list);
 
         AnsiLog.info("jvm list: {}", client.getJvmProcesses());
-        client.registerSubscriber("demo-server", TaskLifecycle.PRE_START, new Subscriber<TaskLifecycleEvent>() {
+        client.registerSubscriber(demo, TaskLifecycle.PRE_START, new Subscriber<TaskLifecycleEvent>() {
             @Override
             public void onEvent(TaskLifecycleEvent event) {
                 AnsiLog.info("event received:{}", event);
@@ -98,7 +103,7 @@ public class JarbootClientCli {
                 return TaskLifecycleEvent.class;
             }
         });
-        client.registerSubscriber("demo-server", TaskLifecycle.EXCEPTION_OFFLINE, new Subscriber<TaskLifecycleEvent>() {
+        client.registerSubscriber(demo, TaskLifecycle.EXCEPTION_OFFLINE, new Subscriber<TaskLifecycleEvent>() {
             @Override
             public void onEvent(TaskLifecycleEvent event) {
                 AnsiLog.info("exception offline:{}", event);
@@ -124,6 +129,37 @@ public class JarbootClientCli {
                 return WorkspaceChangeEvent.class;
             }
         });
+
+
+        //测试命令执行
+        CommandExecutorService executor = CommandExecutorFactory
+                .createCommandExecutor(demo, host, username, password);
+        try {
+            //执行命令
+            Future<CommandResult> future = executor
+                    .execute("pwd", event -> AnsiLog.info("command notify:{}", event));
+            //使用Future同步获取结果
+            AnsiLog.info("result: {}", future.get());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            AnsiLog.error(e);
+        }
+        //测试取消执行
+        try {
+            //执行命令
+            Future<CommandResult> future = executor
+                    .execute("dashboard", event -> AnsiLog.info("command notify:{}", event));
+            //等待几秒钟
+            Thread.sleep(6000);
+            //取消执行
+            AnsiLog.info("cancel: {}", future.cancel(false));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            AnsiLog.error(e);
+        }
+
         try {
             System.in.read();
         } catch (IOException e) {

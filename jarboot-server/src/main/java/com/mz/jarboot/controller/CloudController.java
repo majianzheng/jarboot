@@ -10,7 +10,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.event.FrontEndNotifyEventType;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;

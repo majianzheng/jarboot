@@ -1,4 +1,4 @@
-package com.mz.jarboot.event;
+package com.mz.jarboot.common.notify;
 
 /**
  * 往前端推送事件类型

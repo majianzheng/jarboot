@@ -14,7 +14,7 @@ import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.FrontEndNotifyEventType;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;

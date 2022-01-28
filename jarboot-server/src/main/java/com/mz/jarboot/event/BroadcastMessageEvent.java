@@ -1,5 +1,6 @@
 package com.mz.jarboot.event;
 
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.common.protocol.NotifyType;
 
 /**

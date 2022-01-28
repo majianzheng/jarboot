@@ -306,28 +306,27 @@ public class AgentManager {
 
     /**
      * 发送命令
-     * @param serviceName 服务名
      * @param sid 唯一id
      * @param command 命令
      * @param sessionId 会话id
      */
-    private void sendCommand(String serviceName, String sid, String command, String sessionId) {
+    private void sendCommand(String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
             return;
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             if (TaskUtils.getPid(sid).isEmpty()) {
-                String msg = formatErrorMsg(serviceName, "未在线，无法执行命令");
+                String msg = formatErrorMsg(StringUtils.EMPTY, "未在线，无法执行命令");
                 //未在线，进程不存在
                 MessageUtils.commandEnd(sid, sessionId, msg);
             } else {
                 //如果进程仍然存活，尝试使用attach重新连接
-                tryReConnect(serviceName, sid, sessionId);
+                tryReConnect(sid, sessionId);
 
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
-                    String msg = formatErrorMsg(serviceName, "连接断开，重连失败，请稍后重试");
+                    String msg = formatErrorMsg(sid, "连接断开，重连失败，请稍后重试");
                     MessageUtils.commandEnd(sid, sessionId, msg);
                 }
             }
@@ -336,7 +335,7 @@ public class AgentManager {
             if (client.isTrusted()) {
                 client.sendCommand(command, sessionId);
             } else {
-                String msg = formatErrorMsg(serviceName, "not trusted!");
+                String msg = formatErrorMsg(StringUtils.EMPTY, "not trusted!");
                 MessageUtils.commandEnd(sid, sessionId, msg);
                 MessageUtils.upgradeStatus(sid, AttachStatus.NOT_TRUSTED);
             }
@@ -345,20 +344,17 @@ public class AgentManager {
 
     /**
      * 尝试重新连接
-     * @param serviceName 服务名
      * @param sid 服务唯一id
      * @param sessionId 会话id
      */
-    private void tryReConnect(String serviceName, String sid, String sessionId) {
+    private void tryReConnect(String sid, String sessionId) {
         CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
         try {
             TaskUtils.attach(sid);
-            String msg = formatErrorMsg(serviceName, "连接断开，重连中...");
-            MessageUtils.console(sid, sessionId, msg);
+            MessageUtils.console(sid, sessionId, "连接断开，重连中...");
             if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                logger.error("Attach and wait service connect timeout，{}", serviceName);
-                msg = formatErrorMsg(serviceName, "Attach重连超时！");
-                MessageUtils.console(sid, sessionId, msg);
+                logger.error("Attach and wait service connect timeout，{}", sid);
+                MessageUtils.console(sid, sessionId, "Attach重连超时！");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -534,7 +530,7 @@ public class AgentManager {
         final String sid = event.getSid();
         switch (event.funcCode()) {
             case CMD_FUNC:
-                sendCommand(event.getService(), sid, event.getBody(), event.getSessionId());
+                sendCommand(sid, event.getBody(), event.getSessionId());
                 break;
             case CANCEL_FUNC:
                 sendInternalCommand(sid, CommandConst.CANCEL_CMD, event.getSessionId());

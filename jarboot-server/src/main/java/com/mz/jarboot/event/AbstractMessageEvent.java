@@ -2,6 +2,7 @@ package com.mz.jarboot.event;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.StringUtils;
 

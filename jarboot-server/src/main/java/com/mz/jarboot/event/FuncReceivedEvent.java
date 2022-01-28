@@ -1,16 +1,13 @@
 package com.mz.jarboot.event;
 
 import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.common.pojo.FuncRequest;
 
 /**
  * 来自前端的函数调用事件
  * @author majianzheng
  */
-public class FuncReceivedEvent implements JarbootEvent {
-    private String service;
-    private int func;
-    private String sid;
-    private String body;
+public class FuncReceivedEvent extends FuncRequest implements JarbootEvent {
     private String sessionId;
 
     public FuncReceivedEvent() {
@@ -39,38 +36,6 @@ public class FuncReceivedEvent implements JarbootEvent {
         FUNC_MAX
     }
 
-    public String getService() {
-        return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
-    }
-
-    public int getFunc() {
-        return func;
-    }
-
-    public void setFunc(int func) {
-        this.func = func;
-    }
-
-    public String getSid() {
-        return sid;
-    }
-
-    public void setSid(String sid) {
-        this.sid = sid;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
     public String getSessionId() {
         return sessionId;
     }
@@ -85,5 +50,16 @@ public class FuncReceivedEvent implements JarbootEvent {
             return FuncCode.FUNC_MAX;
         }
         return values[func];
+    }
+
+    @Override
+    public String toString() {
+        return "FuncReceivedEvent{" +
+                "service='" + service + '\'' +
+                ", func=" + func +
+                ", sid='" + sid + '\'' +
+                ", body='" + body + '\'' +
+                ", sessionId='" + sessionId + '\'' +
+                '}';
     }
 }

@@ -1,5 +1,6 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint("/jarboot/main/service/ws")
+@ServerEndpoint(CommonConst.MAIN_WS_CONTEXT)
 @RestController
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);

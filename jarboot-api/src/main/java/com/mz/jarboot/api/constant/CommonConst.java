@@ -44,6 +44,7 @@ public class CommonConst {
     public static final String USER_CONTEXT = "/api/jarboot/user";
     public static final String AGENT_WS_CONTEXT = "/jarboot/public/agent/ws";
     public static final String EVENT_WS_CONTEXT = "/jarboot/public/event/ws";
+    public static final String MAIN_WS_CONTEXT = "/jarboot/main/service/ws";
 
     public static final String SERVICE_NAME_PARAM = "serviceName";
     public static final String SID_PARAM = "sid";

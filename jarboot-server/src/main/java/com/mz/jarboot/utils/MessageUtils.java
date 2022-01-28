@@ -4,7 +4,7 @@ import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.BroadcastMessageEvent;
-import com.mz.jarboot.event.FrontEndNotifyEventType;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.event.MessageEvent;
 import com.mz.jarboot.task.AttachStatus;
 

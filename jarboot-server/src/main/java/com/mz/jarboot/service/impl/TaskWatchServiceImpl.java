@@ -9,6 +9,7 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
