@@ -1,5 +1,7 @@
 package com.mz.jarboot.client.command;
 
+import com.mz.jarboot.common.utils.JsonUtils;
+
 /**
  * @author majianzheng
  */
@@ -24,6 +26,10 @@ public class CommandResult {
 
     public String getMsg() {
         return msg;
+    }
+
+    public <T> T getObj(Class<T> cls) {
+        return JsonUtils.readValue(msg, cls);
     }
 
     @Override

@@ -54,6 +54,9 @@ public class CommandRunFuture implements Future<CommandResult> {
         try {
             canceled = canceler.invoke(mayInterruptIfRunning);
             if (canceled) {
+                if (null == this.result) {
+                    this.result = new CommandResult(cmd, true, "Command is canceled");
+                }
                 condition.signalAll();
             }
         } finally {
@@ -74,7 +77,7 @@ public class CommandRunFuture implements Future<CommandResult> {
 
     @Override
     public CommandResult get() throws InterruptedException, ExecutionException {
-        if (null != this.result) {
+        if (null != this.result || this.canceled) {
             return this.result;
         }
         lock.lock();
@@ -88,7 +91,7 @@ public class CommandRunFuture implements Future<CommandResult> {
 
     @Override
     public CommandResult get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (null != this.result) {
+        if (null != this.result || this.canceled) {
             return this.result;
         }
         lock.lock();

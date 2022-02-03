@@ -319,7 +319,7 @@ public class AgentManager {
             if (TaskUtils.getPid(sid).isEmpty()) {
                 String msg = formatErrorMsg(StringUtils.EMPTY, "未在线，无法执行命令");
                 //未在线，进程不存在
-                MessageUtils.commandEnd(sid, sessionId, msg);
+                MessageUtils.commandFailed(sid, sessionId, msg);
             } else {
                 //如果进程仍然存活，尝试使用attach重新连接
                 tryReConnect(sid, sessionId);
@@ -327,7 +327,7 @@ public class AgentManager {
                 client = clientMap.getOrDefault(sid, null);
                 if (null == client) {
                     String msg = formatErrorMsg(sid, "连接断开，重连失败，请稍后重试");
-                    MessageUtils.commandEnd(sid, sessionId, msg);
+                    MessageUtils.commandFailed(sid, sessionId, msg);
                 }
             }
         }
@@ -336,7 +336,7 @@ public class AgentManager {
                 client.sendCommand(command, sessionId);
             } else {
                 String msg = formatErrorMsg(StringUtils.EMPTY, "not trusted!");
-                MessageUtils.commandEnd(sid, sessionId, msg);
+                MessageUtils.commandFailed(sid, sessionId, msg);
                 MessageUtils.upgradeStatus(sid, AttachStatus.NOT_TRUSTED);
             }
         }
@@ -371,12 +371,12 @@ public class AgentManager {
      */
     private void sendInternalCommand(String sid, String command, String sessionId) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
-            MessageUtils.commandEnd(sid, sessionId, StringUtils.EMPTY);
+            MessageUtils.commandFailed(sid, sessionId, StringUtils.EMPTY);
             return;
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
-            MessageUtils.commandEnd(sid, sessionId, StringUtils.EMPTY);
+            MessageUtils.commandFailed(sid, sessionId, StringUtils.EMPTY);
             return;
         }
         client.sendInternalCommand(command, sessionId);

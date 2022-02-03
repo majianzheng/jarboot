@@ -25,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
     private static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
-    /** 心跳ping */
-    private static final String PING = "ping";
 
     static {
         register();
@@ -58,7 +56,13 @@ public class WebSocketMainServer {
      * @param message 客户端发送过来的消息*/
     @OnMessage
     public void onTextMessage(String message, Session session) {
-        if (StringUtils.isEmpty(message) || PING.equals(message)) {
+        if (StringUtils.isEmpty(message)) {
+            return;
+        }
+        if (CommonConst.PING.equals(message)) {
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new MessageSenderEvent(session, CommonConst.PING));
             return;
         }
         FuncReceivedEvent event = JsonUtils.readValue(message, FuncReceivedEvent.class);

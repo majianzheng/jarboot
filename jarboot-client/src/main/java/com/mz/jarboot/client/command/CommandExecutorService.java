@@ -56,6 +56,19 @@ public interface CommandExecutorService {
     String getCurrentSid();
 
     /**
+     * Check current client is online now.
+     * @return online
+     */
+    boolean isOnline();
+
+    /**
+     * Try reconnect to jarboot server when not online. <br>
+     * If check {@link #isOnline()} returns false, then can use this method to reconnect.
+     * But there is useless when the executor is already shutdown.
+     */
+    void tryReconnect();
+
+    /**
      * shutdown executor
      */
     void shutdown();

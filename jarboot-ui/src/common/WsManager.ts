@@ -2,7 +2,6 @@ import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
 import {FuncCode, CommonConst, MsgData, MsgReq} from "@/common/CommonConst";
-import CommonNotice from "@/common/CommonNotice";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
 import { MessageType } from "antd/lib/message";
@@ -152,6 +151,9 @@ class WsManager {
             return;
         }
         const resp: string = e.data;
+        if ('ping' === resp) {
+            return;
+        }
         try {
             let i = resp.indexOf(CommonConst.PROTOCOL_SPLIT);
             if (-1 === i) {

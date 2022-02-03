@@ -84,7 +84,7 @@ public class JarbootClientCli {
         AnsiLog.info("Login success, jarboot server version: {}", version);
     }
 
-    private void run() {
+    protected void run() {
         //test
         final String demo = "demo-server";
         ServiceManager client = new ServiceManagerClient(this.host, null, null);
@@ -153,7 +153,7 @@ public class JarbootClientCli {
             //等待几秒钟
             Thread.sleep(6000);
             //取消执行
-            AnsiLog.info("cancel: {}", future.cancel(false));
+            AnsiLog.info("cancel: {}, result:{}", future.cancel(false), future.get());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {

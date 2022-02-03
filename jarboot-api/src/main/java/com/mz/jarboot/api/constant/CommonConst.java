@@ -31,6 +31,8 @@ public class CommonConst {
     public static final String HTTP = "http://";
     public static final String HTTPS = "https://";
     public static final String WS = "ws://";
+    /** 心跳ping */
+    public static final String PING = "ping";
 
     /** Controller context */
     public static final String SERVICE_MGR_CONTEXT = "/api/jarboot/services";

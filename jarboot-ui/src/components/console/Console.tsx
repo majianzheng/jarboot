@@ -34,11 +34,11 @@ enum EventType {
 }
 
 interface ConsoleEvent {
-    /** 是否显示 */
+    /** 事件类型 */
     type: EventType,
-    /** 是否显示 */
+    /** 文本 */
     text?: string,
-    /** 是否显示 */
+    /** 退格次数 */
     backspaceNum?: number,
 }
 

@@ -63,13 +63,13 @@ public class MessageUtils {
     }
 
     /**
-     * 命令执行结束
+     * 命令执行失败
      * @param sid sid
      * @param body 执行结果
      * @param sessionId 会话ID
      */
-    public static void commandEnd(String sid, String sessionId, String body) {
-        notify(sid, sessionId, true, NotifyType.COMMAND_END.body(body));
+    public static void commandFailed(String sid, String sessionId, String body) {
+        notify(sid, sessionId, false, NotifyType.COMMAND_END.body(body));
     }
 
     /**

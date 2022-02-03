@@ -393,7 +393,7 @@ public abstract class StringUtils {
     }
 
     public static boolean substringMatch(CharSequence str, int index, CharSequence substring) {
-        if (isEmpty(str) || isEmpty(substring) || index < 0) {
+        if (isEmpty(str) || null == substring || index < 0) {
             return false;
         }
         for(int j = 0; j < substring.length(); ++j) {
