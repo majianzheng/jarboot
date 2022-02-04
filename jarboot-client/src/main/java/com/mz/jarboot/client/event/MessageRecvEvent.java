@@ -4,6 +4,7 @@ import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.common.protocol.NotifyType;
+import com.mz.jarboot.common.utils.JsonUtils;
 
 /**
  * 来自服务端的MessageEvent和BroadcastMessageEvent事件接收
@@ -43,28 +44,62 @@ public class MessageRecvEvent implements JarbootEvent {
         }
     }
 
+    /**
+     * Get the service id
+     * @return service id
+     */
     public String getSid() {
         return sid;
     }
 
+    /**
+     * Get event type
+     * @return event type
+     */
     public FrontEndNotifyEventType getEvent() {
         return event;
     }
 
+    /**
+     * Get body
+     * @return body
+     */
     public String getBody() {
         return body;
     }
 
+    /**
+     * Get success
+     * @return success
+     */
     public Boolean getSuccess() {
         return success;
     }
 
+    /**
+     * Get notify type
+     * @return notify type
+     */
     public NotifyType getNotifyType() {
         return notifyType;
     }
 
+    /**
+     * Get message
+     * @return message
+     */
     public String getMsg() {
         return msg;
+    }
+
+    /**
+     * Parse json string message to object
+     * @param cls object class
+     * @param <T> type
+     * @return object
+     */
+    public <T> T getMessageObj(Class<T> cls) {
+        return JsonUtils.readValue(msg, cls);
     }
 
     @Override

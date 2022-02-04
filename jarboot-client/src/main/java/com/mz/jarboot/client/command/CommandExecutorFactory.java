@@ -4,13 +4,27 @@ import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.client.ClientProxy;
 import com.mz.jarboot.client.ServiceManagerClient;
-import okhttp3.WebSocket;
+import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * 客户端命令执行器工厂类
  * @author majianzheng
  */
 public class CommandExecutorFactory {
+    /**
+     * Create command executor
+     * @param host jarboot host
+     * @param username jarboot username
+     * @param password jarboot password
+     * @return {@link CommandExecutorService}
+     */
+    public static CommandExecutorService createCommandExecutor(String host,
+                                                               String username,
+                                                               String password) {
+        ClientProxy proxy = ClientProxy.Factory.createClientProxy(host, username, password);
+        return createCommandExecutor(proxy, StringUtils.EMPTY);
+    }
+
     /**
      * Create command executor
      * @param service service name
@@ -45,15 +59,16 @@ public class CommandExecutorFactory {
     /**
      * Create command executor
      * @param proxy client proxy
-     * @param sid sid
+     * @param sid the service sid, can be null or empty.
      * @return {@link CommandExecutorService}
      */
     public static CommandExecutorService createCommandExecutor(ClientProxy proxy, String sid) {
         if (null == proxy) {
             throw new JarbootRunException("Create client proxy is null!");
         }
-        WebSocket client = CommandExecutor.connect(proxy.getHost(), proxy.getToken());
-        return new CommandExecutor(proxy, client, sid);
+        CommandExecutor executor = new CommandExecutor(proxy, sid);
+        executor.client = CommandExecutor.connect(proxy.getHost(), proxy.getToken(), executor);
+        return executor;
     }
 
     private CommandExecutorFactory() {}

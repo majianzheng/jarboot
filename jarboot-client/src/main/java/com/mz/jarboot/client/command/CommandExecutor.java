@@ -1,8 +1,6 @@
 package com.mz.jarboot.client.command;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.event.JarbootEvent;
-import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceInstance;
@@ -10,7 +8,6 @@ import com.mz.jarboot.client.ClientProxy;
 import com.mz.jarboot.client.ServiceManagerClient;
 import com.mz.jarboot.client.event.MessageRecvEvent;
 import com.mz.jarboot.client.utlis.HttpRequestOperator;
-import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.FuncRequest;
 import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
@@ -23,9 +20,9 @@ import okhttp3.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -38,124 +35,66 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @SuppressWarnings({"PMD.ServiceOrDaoClassShouldEndWithImplRule", "java:S2274"})
-public class CommandExecutor implements CommandExecutorService, Subscriber<MessageRecvEvent> {
+public class CommandExecutor implements CommandExecutorService, MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
     private static final int EXEC_CMD = 0;
     private static final int CANCEL = 1;
 
-    private okhttp3.WebSocket client;
+    okhttp3.WebSocket client;
     private final ClientProxy proxy;
-    private final Subscriber<ClosedEvent> closedSub;
-    private final Subscriber<PingEvent> pingSub;
     private volatile boolean shutdown = false;
     private volatile boolean online;
     private String sid;
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition pingCondition = lock.newCondition();
     /** <sid, {@link CommandRunFuture}> */
-    private final HashMap<String, CommandRunFuture> running = new HashMap<>(16);
+    private final ConcurrentHashMap<String, CommandRunFuture> running = new ConcurrentHashMap<>(16);
 
     /**
      * CommandExecutor package private
-     * @param client 客户端
      */
-    CommandExecutor(ClientProxy proxy, okhttp3.WebSocket client, String sid) {
-        this.client = client;
+    CommandExecutor(ClientProxy proxy, String sid) {
         this.proxy = proxy;
         this.sid = sid;
-        closedSub = new Subscriber<ClosedEvent>() {
-            @Override
-            public void onEvent(ClosedEvent event) {
-                onClose();
-            }
-
-            @Override
-            public Class<? extends JarbootEvent> subscribeType() {
-                return ClosedEvent.class;
-            }
-        };
-        pingSub = new Subscriber<PingEvent>() {
-            @Override
-            public void onEvent(PingEvent event) {
-                //ping
-                lock.lock();
-                try {
-                    pingCondition.signalAll();
-                } finally {
-                    lock.unlock();
-                }
-            }
-
-            @Override
-            public Class<? extends JarbootEvent> subscribeType() {
-                return PingEvent.class;
-            }
-        };
-        NotifyReactor.getInstance().registerSubscriber(closedSub);
-        NotifyReactor.getInstance().registerSubscriber(pingSub);
-        NotifyReactor.getInstance().registerSubscriber(this);
         this.online = true;
     }
 
     @Override
-    public void onEvent(MessageRecvEvent event) {
-        final String id = event.getSid();
-        if (StringUtils.isEmpty(id)) {
-            return;
-        }
-        synchronized (this) {
-            CommandRunFuture future = running.get(id);
-            if (null == future) {
-                return;
-            }
-            if (future.isCancelled() || future.isDone()) {
-                running.remove(id);
-                return;
-            }
-            future.doCallback(event);
-            if (NotifyType.COMMAND_END.equals(event.getNotifyType())) {
-                future.finish(event.getSuccess(), event.getMsg());
-                running.remove(id);
-            }
-        }
-    }
-
-    @Override
-    public Class<? extends JarbootEvent> subscribeType() {
-        return MessageRecvEvent.class;
-    }
-
-    @Override
     public Future<CommandResult> execute(String cmd, NotifyCallback callback) {
+        final String serviceId = this.sid;
+        if (StringUtils.isEmpty(serviceId)) {
+            throw new JarbootRunException("sid is empty!");
+        }
+        return execute(serviceId, cmd, callback);
+    }
+
+    @Override
+    public Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback) {
         check();
         CommandRunFuture future = null;
-        synchronized (this) {
-            boolean isOk = true;
-            final String sidCopy = this.sid;
-            try {
-                future = new CommandRunFuture(cmd, callback, this::cancel);
-                CommandRunFuture preFuture;
-                if (null != (preFuture = running.putIfAbsent(sidCopy, future))) {
-                    throw new JarbootRunException("Current is running command " + preFuture.cmd);
-                }
-                isOk = sendRequest(EXEC_CMD, sidCopy, cmd);
-            } finally {
-                if (!isOk) {
-                    running.remove(sidCopy);
-                    future.finish(false, "send command failed.");
-                }
+        boolean isOk = true;
+        try {
+            future = new CommandRunFuture(serviceId, cmd, callback, this::cancel);
+            CommandRunFuture preFuture;
+            if (null != (preFuture = running.putIfAbsent(serviceId, future))) {
+                throw new JarbootRunException("Current is running command " + preFuture.cmd);
+            }
+            isOk = sendRequest(EXEC_CMD, serviceId, cmd);
+        } finally {
+            if (!isOk) {
+                running.remove(serviceId);
+                future.finish(false, "send command failed.");
             }
         }
+
         return future;
     }
 
     @Override
     public void switchService(String service) {
-        synchronized (this) {
-            ServiceManagerClient serviceManager = new ServiceManagerClient(proxy);
-            ServiceInstance instance = serviceManager.getService(service);
-            this.sid = instance.getSid();
-        }
+        ServiceManagerClient serviceManager = new ServiceManagerClient(proxy);
+        ServiceInstance instance = serviceManager.getService(service);
+        this.switchInstance(instance.getSid());
     }
 
     @Override
@@ -204,10 +143,7 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
     }
 
     @Override
-    public boolean isOnline() {
-        if (!this.online) {
-            return false;
-        }
+    public boolean checkOnline() {
         lock.lock();
         try {
             this.client.send(CommonConst.PING);
@@ -230,7 +166,7 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
         lock.lock();
         try {
             this.destroyClient();
-            this.client = connect(proxy.getHost(), proxy.getToken());
+            this.client = connect(proxy.getHost(), proxy.getToken(), this);
         } finally {
             lock.unlock();
         }
@@ -240,15 +176,32 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
     public void shutdown() {
         lock.lock();
         try {
-            NotifyReactor.getInstance().deregisterSubscriber(this);
-            NotifyReactor.getInstance().deregisterSubscriber(closedSub);
-            NotifyReactor.getInstance().deregisterSubscriber(pingSub);
             this.running.clear();
             this.shutdown = true;
             this.destroyClient();
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public void onMessage(String text) {
+        if (CommonConst.PING.equals(text)) {
+            //ping
+            lock.lock();
+            try {
+                pingCondition.signalAll();
+            } finally {
+                lock.unlock();
+            }
+            return;
+        }
+        this.onEvent(new MessageRecvEvent(text));
+    }
+
+    @Override
+    public void onClose() {
+        this.online = false;
     }
 
     private boolean sendRequest(int func, String id, String cmd) {
@@ -259,13 +212,31 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
         return client.send(Objects.requireNonNull(JsonUtils.toJsonString(request)));
     }
 
-    private void onClose() {
-        this.online = false;
+    private void onEvent(MessageRecvEvent event) {
+        final String serviceId = event.getSid();
+        if (StringUtils.isEmpty(serviceId)) {
+            return;
+        }
+        CommandRunFuture future = running.get(serviceId);
+        if (null == future) {
+            return;
+        }
+        if (future.isCancelled() || future.isDone()) {
+            running.remove(serviceId);
+            return;
+        }
+        future.doCallback(event);
+        if (NotifyType.COMMAND_END.equals(event.getNotifyType())) {
+            future.finish(event.getSuccess(), event.getMsg());
+            running.remove(serviceId);
+        }
     }
 
     private void destroyClient() {
         try {
-            client.close(1000, "shutdown executor");
+            if (null != client) {
+                client.close(1000, "shutdown executor");
+            }
         } catch (Exception e) {
             //ignore
         } finally {
@@ -273,18 +244,10 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
         }
     }
 
-    private boolean cancel(boolean mayInterruptIfRunning) {
-        check();
-        boolean success;
-        lock.lock();
-        try {
-            final String sidCopy = this.sid;
-            success = sendRequest(CANCEL, sidCopy, StringUtils.EMPTY);
-            if (mayInterruptIfRunning) {
-                running.remove(sidCopy);
-            }
-        } finally {
-            lock.unlock();
+    private boolean cancel(String serviceId, boolean mayInterruptIfRunning) {
+        boolean success = sendRequest(CANCEL, serviceId, StringUtils.EMPTY);
+        if (mayInterruptIfRunning) {
+            running.remove(serviceId);
         }
         return success;
     }
@@ -293,7 +256,7 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
         if (shutdown) {
             throw new JarbootRunException("Current executor is already shutdown.");
         }
-        if (!this.isOnline()) {
+        if (!this.checkOnline()) {
             throw new JarbootRunException("Current executor is already offline.");
         }
         if (null == this.client) {
@@ -301,19 +264,12 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
         }
     }
 
-    private static class ClosedEvent implements JarbootEvent {
-
-    }
-    private static class PingEvent implements JarbootEvent {
-
-    }
-
-    static WebSocket connect(String host, String token) {
+    static WebSocket connect(String host, String token, MessageListener listener) {
         int index = token.indexOf(' ');
         if (-1 != index) {
             token = token.substring(index + 1);
         }
-        final String url = new ApiStringBuilder(CommonConst.HTTP + host, CommonConst.MAIN_WS_CONTEXT)
+        final String url = new ApiStringBuilder(CommonConst.WS + host, CommonConst.MAIN_WS_CONTEXT)
                 .add("accessToken", token)
                 .build();
         final Request request = new Request
@@ -332,24 +288,18 @@ public class CommandExecutor implements CommandExecutorService, Subscriber<Messa
 
                     @Override
                     public void onMessage(WebSocket webSocket, String text) {
-                        NotifyReactor
-                                .getInstance()
-                                .publishEvent(
-                                        CommonConst.PING.equals(text) ?
-                                                new CommandExecutor.PingEvent()
-                                                :
-                                                new MessageRecvEvent(text));
+                        listener.onMessage(text);
                     }
 
                     @Override
                     public void onClosed(WebSocket webSocket, int code, String reason) {
-                        NotifyReactor.getInstance().publishEvent(new CommandExecutor.ClosedEvent());
+                        listener.onClose();
                     }
 
                     @Override
                     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
                         logger.warn(t.getMessage(), t);
-                        NotifyReactor.getInstance().publishEvent(new CommandExecutor.ClosedEvent());
+                        listener.onClose();
                     }
                 });
         try {

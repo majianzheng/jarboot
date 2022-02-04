@@ -16,12 +16,14 @@ public class CommandRunFuture implements Future<CommandResult> {
     private final NotifyCallback callback;
     private final CommandCancelable canceler;
     final String cmd;
+    final String sid;
     private CommandResult result;
     private boolean canceled = false;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
 
-    CommandRunFuture(String cmd, NotifyCallback callback, CommandCancelable canceler) {
+    CommandRunFuture(String sid, String cmd, NotifyCallback callback, CommandCancelable canceler) {
+        this.sid = sid;
         this.cmd = cmd;
         this.callback = callback;
         this.canceler = canceler;
@@ -31,7 +33,7 @@ public class CommandRunFuture implements Future<CommandResult> {
         if (null == this.result) {
             lock.lock();
             try {
-                this.result = new CommandResult(cmd, success, msg);
+                this.result = new CommandResult(sid, cmd, success, msg);
                 condition.signalAll();
             } finally {
                 lock.unlock();
@@ -52,10 +54,10 @@ public class CommandRunFuture implements Future<CommandResult> {
         }
         lock.lock();
         try {
-            canceled = canceler.invoke(mayInterruptIfRunning);
+            canceled = canceler.invoke(sid, mayInterruptIfRunning);
             if (canceled) {
                 if (null == this.result) {
-                    this.result = new CommandResult(cmd, true, "Command is canceled");
+                    this.result = new CommandResult(sid, cmd, true, "Command is canceled");
                 }
                 condition.signalAll();
             }
@@ -108,9 +110,10 @@ public class CommandRunFuture implements Future<CommandResult> {
     interface CommandCancelable {
         /**
          * cancel
+         * @param sid service id
          * @param mayInterruptIfRunning may interrupt if running
          * @return success
          */
-        boolean invoke(boolean mayInterruptIfRunning);
+        boolean invoke(String sid, boolean mayInterruptIfRunning);
     }
 }

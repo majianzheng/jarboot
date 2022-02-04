@@ -12,12 +12,21 @@ import java.util.concurrent.Future;
  */
 public interface CommandExecutorService {
     /**
-     * execute command
+     * Execute command
      * @param cmd command line
      * @param callback event callback
      * @return result future
      */
     Future<CommandResult> execute(String cmd, NotifyCallback callback);
+
+    /**
+     * Execute command
+     * @param serviceId The service id, use {@link com.mz.jarboot.client.ServiceManagerClient#getService(String)} to get.
+     * @param cmd command line
+     * @param callback event callback
+     * @return result future
+     */
+    Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback);
 
     /**
      * Switch current instance by service
@@ -29,9 +38,9 @@ public interface CommandExecutorService {
      * Switch current instance
      * Can use {@link com.mz.jarboot.client.ServiceManagerClient#getJvmProcesses()} get the instance info or <br>
      * use {@link com.mz.jarboot.client.ServiceManagerClient#getService(String)} to get the service sid.
-     * @param sid sid
+     * @param serviceId sid
      */
-    void switchInstance(String sid);
+    void switchInstance(String serviceId);
 
     /**
      * List the services <br>
@@ -59,11 +68,11 @@ public interface CommandExecutorService {
      * Check current client is online now.
      * @return online
      */
-    boolean isOnline();
+    boolean checkOnline();
 
     /**
      * Try reconnect to jarboot server when not online. <br>
-     * If check {@link #isOnline()} returns false, then can use this method to reconnect.
+     * If check {@link #checkOnline()} returns false, then can use this method to reconnect.
      * But there is useless when the executor is already shutdown.
      */
     void tryReconnect();

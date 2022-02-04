@@ -21,9 +21,9 @@ public interface CommandProcessor {
     /**
      * <h3>命令实例构建完成后，执行命令之前</h3>
      * @param inst instrumentation
-     * @param server 服务名
+     * @param service 服务名
      */
-    default void postConstruct(Instrumentation inst, String server) {
+    default void postConstruct(Instrumentation inst, String service) {
         //ignore
     }
 
