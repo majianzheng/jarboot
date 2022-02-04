@@ -215,6 +215,13 @@ const OnlineDebugView = () => {
         return <Tooltip title={row.name}>{text}</Tooltip>;
     };
 
+    const nameRender = (value: string, row: TreeNode) => {
+        if (row.isLeaf) {
+            return <span title={`sid: ${row.sid}`}>{value}</span>;
+        }
+        return <span className={styles.groupRow}>{value}</span>;
+    };
+
     const getTbProps = () => ({
         columns: [
             {
@@ -234,8 +241,7 @@ const OnlineDebugView = () => {
                 ellipsis: true,
                 sorter: (a: JvmProcess, b: JvmProcess) => a.name.localeCompare(b.name),
                 sortDirections: ['descend', 'ascend'],
-                render: (value: string, row: TreeNode) =>
-                    row.isLeaf ? value : <span className={styles.groupRow}>{value}</span>
+                render: nameRender
             },
         ],
         loading: state.loading,

@@ -172,6 +172,7 @@ class Console extends React.PureComponent<ConsoleProps> {
     private intervalHandle: NodeJS.Timeout|null = null;
     private finishHandle: NodeJS.Timeout|null = null;
     private sgrOption: SgrOption = {...DEFAULT_SGR_OPTION};
+    private codeRef = React.createRef<HTMLElement>();
 
     componentDidMount() {
         this.intervalHandle = null;
@@ -191,7 +192,7 @@ class Console extends React.PureComponent<ConsoleProps> {
 
         const {pubsub, id, content} = this.props;
         //初始化code dom
-        this.codeDom = document.querySelector(`code[id="id-console-${id}"]`) as Element;
+        this.codeDom = this.codeRef.current;
         if (content?.length) {
             this.resetContent(this.props.content);
         }
@@ -942,7 +943,7 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (this.props.wrap) {
             style.whiteSpace = "pre-wrap";
         }
-        return <code id={`id-console-${this.props.id}`}
+        return <code ref={this.codeRef}
                      style={style}
                      className={styles.console}>
             {Banner}

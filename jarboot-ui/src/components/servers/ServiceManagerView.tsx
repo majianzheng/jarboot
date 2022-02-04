@@ -425,9 +425,9 @@ const ServiceManagerView = () => {
         return (<AppstoreOutlined className={styles.groupIcon}/>);
     };
 
-    const renderTitle = (server: ServiceInstance, isGroup: boolean, searchText: string) => {
+    const renderTitle = (instance: ServiceInstance, isGroup: boolean, searchText: string) => {
         if (isGroup) {
-            const group: string = server.group || '';
+            const group: string = instance.group || '';
             let title: React.ReactNode|string = group;
             if (searchText?.length && group.length) {
                 title = <Highlighter
@@ -441,7 +441,7 @@ const ServiceManagerView = () => {
                     {group.length ? title : <IntlText id={'DEFAULT_GROUP'}/>}
                 </span>);
         }
-        let title: React.ReactNode|string = server.name;
+        let title: React.ReactNode|string = instance.name;
         if (searchText?.length) {
             title = <Highlighter
                 highlightStyle={CommonConst.HIGHLIGHT_STYLE}
@@ -450,7 +450,7 @@ const ServiceManagerView = () => {
                 textToHighlight={title || ''}
             />;
         }
-        return <span onDoubleClick={() => startSignal(server)}>{title}</span>;
+        return <span title={`sid: ${instance.sid}`} onDoubleClick={() => startSignal(instance)}>{title}</span>;
     };
 
     const getTreeData = (data: ServiceInstance[]): TreeNode[] => {
