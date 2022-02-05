@@ -30,7 +30,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(JarbootEventServer.class);
 
     /** 服务端本地的订阅 */
-    @SuppressWarnings("java:S3740")
+    @SuppressWarnings({"java:S3740", "rawtypes"})
     private static final Map<String, Set<Subscriber>> LOCAL_SUBS = new ConcurrentHashMap<>(16);
     /** 客户端接口的订阅 */
     private static final Map<String, Set<Session>> CLIENT_SUBS = new ConcurrentHashMap<>(16);
@@ -58,7 +58,7 @@ public class JarbootEventServer implements AbstractEventRegistry {
         });
     }
 
-    @SuppressWarnings({"java:S3740", "unchecked"})
+    @SuppressWarnings({"java:S3740", "unchecked", "rawtypes"})
     @Override
     public void receiveEvent(String topic, JarbootEvent event) {
         Set<Subscriber> subs = LOCAL_SUBS.getOrDefault(topic, null);

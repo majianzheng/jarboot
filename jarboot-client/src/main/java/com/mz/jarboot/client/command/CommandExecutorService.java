@@ -29,6 +29,12 @@ public interface CommandExecutorService {
     Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback);
 
     /**
+     * Force cancel current executing command.
+     * @param serviceId service id
+     */
+    void forceCancel(String serviceId);
+
+    /**
      * Switch current instance by service
      * @param service service name
      */

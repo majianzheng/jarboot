@@ -101,7 +101,7 @@ public class ClientProxy implements AbstractEventRegistry {
      * @return 长连接
      */
     private okhttp3.WebSocket newWebSocket() {
-        final String url = this.baseUrl + CommonConst.EVENT_WS_CONTEXT;
+        final String url = CommonConst.WS + host + CommonConst.EVENT_WS_CONTEXT;
         final Request request = new Request
                 .Builder()
                 .get()
@@ -357,6 +357,15 @@ public class ClientProxy implements AbstractEventRegistry {
                 v.remove(proxy.username);
                 if (v.isEmpty()) {
                     v = null;
+                    //销毁socket
+                    WebSocket socket = SOCKETS.remove(proxy.host);
+                    if (null != socket) {
+                        try {
+                            socket.close(1000, "closed");
+                        } catch (Exception e) {
+                            //ignore
+                        }
+                    }
                 }
                 return v;
             });

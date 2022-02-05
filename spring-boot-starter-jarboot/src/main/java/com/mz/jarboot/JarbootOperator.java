@@ -48,6 +48,12 @@ public interface JarbootOperator {
     Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback);
 
     /**
+     * 强制取消当前执行的命令
+     * @param serviceId service id
+     */
+    void forceCancel(String serviceId);
+
+    /**
      * 获取服务配置
      * @param serviceName 服务路径
      * @return 配置信息

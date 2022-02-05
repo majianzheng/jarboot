@@ -91,6 +91,16 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     }
 
     @Override
+    public void forceCancel(String serviceId) {
+        CommandRunFuture future = running.get(serviceId);
+        if (null == future) {
+            sendRequest(CANCEL, serviceId, StringUtils.EMPTY);
+        } else {
+            future.cancel(true);
+        }
+    }
+
+    @Override
     public void switchService(String service) {
         ServiceManagerClient serviceManager = new ServiceManagerClient(proxy);
         ServiceInstance instance = serviceManager.getService(service);

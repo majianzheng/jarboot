@@ -23,7 +23,6 @@ public class JarbootAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(havingValue = "serverAddr")
     public JarbootTemplate jarbootTemplate(JarbootConfigProperties properties) {
         return new JarbootTemplate(properties);
     }

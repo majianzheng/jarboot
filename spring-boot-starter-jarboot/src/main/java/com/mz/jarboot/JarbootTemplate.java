@@ -50,9 +50,13 @@ public class JarbootTemplate implements JarbootOperator {
 
     private synchronized void buildProxy() {
         if (null == clientProxy) {
+            String addr = properties.getServerAddr();
+            if (StringUtils.isEmpty(addr)) {
+                addr = "127.0.0.1:9899";
+            }
             clientProxy = ClientProxy.Factory
                     .createClientProxy(
-                            properties.getServerAddr(),
+                            addr,
                             properties.getUsername(),
                             properties.getPassword());
         }
@@ -76,6 +80,11 @@ public class JarbootTemplate implements JarbootOperator {
     @Override
     public Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback) {
         return executorInstance().execute(serviceId, cmd, callback);
+    }
+
+    @Override
+    public void forceCancel(String serviceId) {
+        executorInstance().forceCancel(serviceId);
     }
 
     @Override
