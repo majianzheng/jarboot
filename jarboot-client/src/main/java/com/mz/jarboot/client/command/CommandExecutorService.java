@@ -79,7 +79,6 @@ public interface CommandExecutorService {
     /**
      * Try reconnect to jarboot server when not online. <br>
      * If check {@link #checkOnline()} returns false, then can use this method to reconnect.
-     * But there is useless when the executor is already shutdown.
      */
     void tryReconnect();
 

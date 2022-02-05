@@ -42,7 +42,6 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
 
     okhttp3.WebSocket client;
     private final ClientProxy proxy;
-    private volatile boolean shutdown = false;
     private volatile boolean online;
     private String sid;
     private final ReentrantLock lock = new ReentrantLock();
@@ -71,20 +70,14 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     @Override
     public Future<CommandResult> execute(String serviceId, String cmd, NotifyCallback callback) {
         check();
-        CommandRunFuture future = null;
-        boolean isOk = true;
-        try {
-            future = new CommandRunFuture(serviceId, cmd, callback, this::cancel);
-            CommandRunFuture preFuture;
-            if (null != (preFuture = running.putIfAbsent(serviceId, future))) {
-                throw new JarbootRunException("Current is running command " + preFuture.cmd);
-            }
-            isOk = sendRequest(EXEC_CMD, serviceId, cmd);
-        } finally {
-            if (!isOk) {
-                running.remove(serviceId);
-                future.finish(false, "send command failed.");
-            }
+        CommandRunFuture future = new CommandRunFuture(serviceId, cmd, callback, this::cancel);
+        CommandRunFuture preFuture;
+        if (null != (preFuture = running.putIfAbsent(serviceId, future))) {
+            throw new JarbootRunException("Current is running command " + preFuture.cmd);
+        }
+        if (!sendRequest(EXEC_CMD, serviceId, cmd)) {
+            running.remove(serviceId);
+            future.finish(false, "send command failed.");
         }
 
         return future;
@@ -170,9 +163,6 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
 
     @Override
     public void tryReconnect() {
-        if (shutdown) {
-            throw new JarbootRunException("Current is already shutdown, can not reconnect.");
-        }
         lock.lock();
         try {
             this.destroyClient();
@@ -187,11 +177,16 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
         lock.lock();
         try {
             this.running.clear();
-            this.shutdown = true;
             this.destroyClient();
+            this.online = false;
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public void onOpen() {
+        this.online = true;
     }
 
     @Override
@@ -215,11 +210,16 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     }
 
     private boolean sendRequest(int func, String id, String cmd) {
-        FuncRequest request = new FuncRequest();
-        request.setBody(cmd);
-        request.setFunc(func);
-        request.setSid(id);
-        return client.send(Objects.requireNonNull(JsonUtils.toJsonString(request)));
+        try {
+            FuncRequest request = new FuncRequest();
+            request.setBody(cmd);
+            request.setFunc(func);
+            request.setSid(id);
+            return client.send(Objects.requireNonNull(JsonUtils.toJsonString(request)));
+        } catch (Exception e) {
+            logger.error("send failed. " + e.getMessage(), e);
+        }
+        return false;
     }
 
     private void onEvent(MessageRecvEvent event) {
@@ -263,14 +263,11 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     }
 
     private void check() {
-        if (shutdown) {
-            throw new JarbootRunException("Current executor is already shutdown.");
-        }
-        if (!this.checkOnline()) {
-            throw new JarbootRunException("Current executor is already offline.");
-        }
         if (null == this.client) {
             throw new JarbootRunException("Client is already destroyed.");
+        }
+        if (!this.online) {
+            throw new JarbootRunException("Current executor is already offline.");
         }
     }
 
@@ -294,6 +291,7 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
                     @Override
                     public void onOpen(WebSocket webSocket, Response response) {
                         latch.countDown();
+                        listener.onOpen();
                     }
 
                     @Override

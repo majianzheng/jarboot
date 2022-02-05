@@ -110,7 +110,28 @@ public class ClientProxy implements AbstractEventRegistry {
         CountDownLatch latch = new CountDownLatch(1);
         okhttp3.WebSocket client = HttpRequestOperator
                 .HTTP_CLIENT
-                .newWebSocket(request, new MessageListener(this, latch));
+                .newWebSocket(request, new WebSocketListener() {
+                    @Override
+                    public void onOpen(WebSocket webSocket, Response response) {
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onMessage(WebSocket webSocket, ByteString bytes) {
+                        recvMessage(bytes);
+                    }
+
+                    @Override
+                    public void onClosed(WebSocket webSocket, int code, String reason) {
+                        afterClosed();
+                    }
+
+                    @Override
+                    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+                        logger.warn(t.getMessage(), t);
+                        afterClosed();
+                    }
+                });
         try {
             if (!latch.await(HttpRequestOperator.CONNECT_TIMEOUT, TimeUnit.SECONDS)) {
                 logger.warn("Connect to event server timeout! url: {}", url);
@@ -201,6 +222,47 @@ public class ClientProxy implements AbstractEventRegistry {
         //ignore
     }
 
+    private void recvMessage(ByteString bytes) {
+        int i1 = bytes.indexOf(SPLIT);
+        if (i1 <= 0) {
+            return;
+        }
+        final String topic =  bytes.substring(0, i1).string(StandardCharsets.UTF_8);
+        final int index = topic.indexOf(StringUtils.SLASH);
+        final String className = -1 == index ? topic : topic.substring(0, index);
+        ByteString bodyBytes = bytes.substring(i1 + 1);
+        try {
+            Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
+            JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
+            handler(topic, event);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    private void afterClosed() {
+        SOCKETS.remove(host);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new DisconnectionEvent(host, username, password, version));
+    }
+
+    private void handler(String topic, JarbootEvent event) {
+        Set<Subscriber> subs = SUBS.getOrDefault(topic, null);
+        if (null != subs && !subs.isEmpty()) {
+            subs.forEach(sub -> {
+                Executor executor = sub.executor();
+                //执行本地事件
+                final Runnable job = () -> sub.onEvent(event);
+                if (null == executor) {
+                    job.run();
+                } else {
+                    executor.execute(job);
+                }
+            });
+        }
+    }
+
     private void shutdownWebSocket() {
         WebSocket socket = SOCKETS.remove(host);
         if (null == socket) {
@@ -210,82 +272,6 @@ public class ClientProxy implements AbstractEventRegistry {
             socket.close(1000, "Connect close.");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-        }
-    }
-
-    private static class MessageListener extends okhttp3.WebSocketListener {
-        private final String host;
-        private final String username;
-        private final String password;
-        private final String version;
-        private CountDownLatch latch;
-        MessageListener(ClientProxy proxy, CountDownLatch latch) {
-            this.host = proxy.host;
-            this.username = proxy.username;
-            this.password = proxy.password;
-            this.version = proxy.version;
-            this.latch = latch;
-        }
-
-        @Override
-        public void onOpen(WebSocket webSocket, Response response) {
-            if (null != this.latch) {
-                this.latch.countDown();
-                this.latch = null;
-            }
-        }
-
-        @Override
-        public void onMessage(WebSocket webSocket, ByteString bytes) {
-            int i1 = bytes.indexOf(SPLIT);
-            if (i1 <= 0) {
-                return;
-            }
-            final String topic =  bytes.substring(0, i1).string(StandardCharsets.UTF_8);
-            final int index = topic.indexOf(StringUtils.SLASH);
-            final String className = -1 == index ? topic : topic.substring(0, index);
-            ByteString bodyBytes = bytes.substring(i1 + 1);
-            try {
-                Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
-                JarbootEvent event = JsonUtils.readValue(bodyBytes.toByteArray(), cls);
-                this.handler(topic, event);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public void onClosed(WebSocket webSocket, int code, String reason) {
-            this.afterClosed();
-        }
-
-        @Override
-        public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-            logger.warn(t.getMessage(), t);
-            this.afterClosed();
-        }
-
-        private void afterClosed() {
-            SOCKETS.remove(host);
-            NotifyReactor
-                    .getInstance()
-                    .publishEvent(new DisconnectionEvent(this.host, this.username, this.password, this.version));
-        }
-
-        private void handler(String topic, JarbootEvent event) {
-            Set<Subscriber> subs = SUBS.getOrDefault(topic, null);
-            if (null != subs && !subs.isEmpty()) {
-                subs.forEach(sub -> {
-                    Executor executor = sub.executor();
-                    //执行本地事件
-                    final Runnable job = () -> sub.onEvent(event);
-                    if (null == executor) {
-                        job.run();
-                    } else {
-                        executor.execute(job);
-                    }
-                });
-            }
         }
     }
 

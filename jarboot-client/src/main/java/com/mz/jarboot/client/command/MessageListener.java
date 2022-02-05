@@ -5,6 +5,11 @@ package com.mz.jarboot.client.command;
  */
 public interface MessageListener {
     /**
+     * 连接打开
+     */
+    void onOpen();
+
+    /**
      * 消息接收事件
      * @param text 消息内容
      */

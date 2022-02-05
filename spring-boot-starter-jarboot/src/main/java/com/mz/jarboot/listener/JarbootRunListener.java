@@ -17,9 +17,13 @@ public class JarbootRunListener implements SpringApplicationRunListener {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private volatile boolean startByJarboot = false;
 
-
+    /**
+     * SpringApplicationRunListener default construct
+     * @param app app
+     * @param args args
+     */
     public JarbootRunListener(SpringApplication app, String[] args) {
-
+        //do nothing
     }
 
     @Override
