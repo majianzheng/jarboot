@@ -41,7 +41,7 @@ public class WebSocketAgentServer {
                          @PathParam("service") String serviceName,
                          @PathParam("sid") String sid) {
         logger.debug("目标进程断开连接, id:{}, serviceName:{}, sid:{}", session.getId(), serviceName, sid);
-        AgentManager.getInstance().offline(serviceName, sid);
+        AgentManager.getInstance().offline(sid);
     }
 
     /**

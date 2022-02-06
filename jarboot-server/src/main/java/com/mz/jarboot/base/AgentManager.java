@@ -88,10 +88,9 @@ public class AgentManager {
 
     /**
      * 进程下线
-     * @param serviceName 服务名
      * @param sid sid服务唯一id
      */
-    public void offline(String serviceName, String sid) {
+    public void offline(String sid) {
         final AgentOperator client = clientMap.remove(sid);
         if (null == client) {
             return;
@@ -106,7 +105,7 @@ public class AgentManager {
         } else {
             localServices.remove(pid);
         }
-        String msg = String.format("\033[1;96m%s\033[0m 下线！", serviceName);
+        String msg = String.format("\033[1;96m%s\033[0m 下线！", client.getName());
         MessageUtils.console(sid, msg);
         synchronized (client) {
             //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
@@ -116,7 +115,7 @@ public class AgentManager {
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                ServiceOfflineEvent event = new ServiceOfflineEvent(serviceName, sid);
+                ServiceOfflineEvent event = new ServiceOfflineEvent(client.getName(), sid);
                 NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
             }
@@ -214,17 +213,16 @@ public class AgentManager {
 
     /**
      * 等待服务启动完成
-     * @param service 服务名
      * @param sid 服务唯一id
      * @param millis 时间
      */
-    public void waitServiceStarted(String service, String sid, int millis) {
+    public void waitServiceStarted(String sid, int millis) {
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
             try {
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
-                    logger.error("Wait service connect timeout, {}", service);
+                    logger.error("Wait service connect timeout, sid:{}", sid);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -233,7 +231,7 @@ public class AgentManager {
             }
             client = clientMap.getOrDefault(sid, null);
             if (null == client) {
-                String msg = formatErrorMsg(service, "connect timeout!");
+                String msg = formatErrorMsg(sid, "connect timeout!");
                 MessageUtils.console(sid, msg);
                 return;
             }
@@ -242,9 +240,9 @@ public class AgentManager {
         synchronized (client) {
             if (!ClientState.STARTING.equals(client.getState())) {
                 logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
-                        service, client.getState());
+                        client.getName(), client.getState());
                 MessageUtils.console(sid,
-                        service + " is not starting, wait started error. status:" + client.getState());
+                        client.getName() + " is not starting, wait started error. status:" + client.getState());
                 return;
             }
             try {

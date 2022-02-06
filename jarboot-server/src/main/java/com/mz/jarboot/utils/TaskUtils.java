@@ -77,10 +77,9 @@ public class TaskUtils {
 
     /**
      * 启动服务进程
-     * @param service 服务名
      * @param setting 服务配置
      */
-    public static void startService(String service, ServiceSetting setting) {
+    public static void startService(ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
         String serverPath = setting.getWorkspace() + File.separator + setting.getName();
@@ -116,7 +115,7 @@ public class TaskUtils {
                 .append("-noverify -Dspring.output.ansi.enabled=always")
                 .append(StringUtils.SPACE)
                 // Java agent
-                .append(SettingUtils.getAgentStartOption(service, sid))
+                .append(SettingUtils.getAgentStartOption(setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (StringUtils.isBlank(setting.getCommand())) {
             //获取启动的jar文件
@@ -152,7 +151,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServiceStarted(service, sid, maxStartTime);
+        AgentManager.getInstance().waitServiceStarted(sid, maxStartTime);
     }
 
     /**

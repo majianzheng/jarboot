@@ -123,13 +123,13 @@ public class ClientProxy implements AbstractEventRegistry {
 
                     @Override
                     public void onClosed(WebSocket webSocket, int code, String reason) {
-                        afterClosed();
+                        afterClosed(host, username, password, version);
                     }
 
                     @Override
                     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
                         logger.warn(t.getMessage(), t);
-                        afterClosed();
+                        afterClosed(host, username, password, version);
                     }
                 });
         try {
@@ -222,7 +222,7 @@ public class ClientProxy implements AbstractEventRegistry {
         //ignore
     }
 
-    private void recvMessage(ByteString bytes) {
+    private static void recvMessage(ByteString bytes) {
         int i1 = bytes.indexOf(SPLIT);
         if (i1 <= 0) {
             return;
@@ -240,14 +240,14 @@ public class ClientProxy implements AbstractEventRegistry {
         }
     }
 
-    private void afterClosed() {
+    private static void afterClosed(String host, String username, String password, String version) {
         SOCKETS.remove(host);
         NotifyReactor
                 .getInstance()
                 .publishEvent(new DisconnectionEvent(host, username, password, version));
     }
 
-    private void handler(String topic, JarbootEvent event) {
+    private static void handler(String topic, JarbootEvent event) {
         Set<Subscriber> subs = SUBS.getOrDefault(topic, null);
         if (null != subs && !subs.isEmpty()) {
             subs.forEach(sub -> {

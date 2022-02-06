@@ -210,7 +210,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
-            TaskUtils.startService(server, setting);
+            TaskUtils.startService(setting);
             //记录启动结束时间，减去判定时间修正
 
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
