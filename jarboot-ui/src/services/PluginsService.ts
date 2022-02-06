@@ -1,7 +1,7 @@
 import Request from '../common/Request';
 import ErrorUtil from "../common/ErrorUtil";
 import CommonNotice from "../common/CommonNotice";
-import {requestFinishCallback} from "@/common/JarBootConst";
+import {requestFinishCallback} from "@/common/CommonConst";
 
 const baseUrl = "/api/jarboot/plugins";
 

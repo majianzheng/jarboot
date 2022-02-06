@@ -8,12 +8,11 @@ import com.mz.jarboot.api.AgentService;
  * 通过Jarboot类加载器，反射操作jarboot-core内部类
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1181", "unused"})
 public class AgentServiceImpl implements AgentService {
     public static final Class<?> OPERATOR_CLASS;
-    private static final String SERVER_NAME;
+    private static final String SERVICE_NAME;
     private static final String SET_STARTED = "setStarted";
-    private static final String RESTART_SELF = "restartSelf";
     private static final String NOTICE_INFO = "noticeInfo";
     private static final String NOTICE_WARN = "noticeWarn";
     private static final String NOTICE_ERROR = "noticeError";
@@ -21,16 +20,16 @@ public class AgentServiceImpl implements AgentService {
 
     static {
         Class<?> tmp = null;
-        String server = "";
+        String serviceName = "";
         ClassLoader classLoader = JarbootAgent.getJarbootClassLoader();
         try {
             tmp = classLoader.loadClass("com.mz.jarboot.core.basic.AgentServiceOperator");
-            server = (String)tmp.getMethod("getServer").invoke(null);
+            serviceName = (String)tmp.getMethod("getServiceName").invoke(null);
         } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
         OPERATOR_CLASS = tmp;
-        SERVER_NAME = server;
+        SERVICE_NAME = serviceName;
     }
 
     @Override
@@ -39,15 +38,6 @@ public class AgentServiceImpl implements AgentService {
             //启动完成
             OPERATOR_CLASS.getMethod(SET_STARTED).invoke(null);
         } catch (Exception e) {
-            e.printStackTrace(JarbootAgent.getPs());
-        }
-    }
-
-    @Override
-    public void restartSelf() {
-        try {
-            OPERATOR_CLASS.getMethod(RESTART_SELF).invoke(null);
-        } catch (Throwable e) {
             e.printStackTrace(JarbootAgent.getPs());
         }
     }
@@ -83,8 +73,8 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String getServerName() {
-        return SERVER_NAME;
+    public String getServiceName() {
+        return SERVICE_NAME;
     }
 
     @Override

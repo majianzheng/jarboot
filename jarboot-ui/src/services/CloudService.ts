@@ -15,6 +15,13 @@ export default class CloudService {
         return Request.get(`${urlBase}/version`, {});
     }
 
+    /**
+     * 检查是否为docker版本
+     */
+    public static checkInDocker() {
+        return Request.get(`${urlBase}/checkInDocker`, {});
+    }
+
     public static pushServerDirectory(file: File) {
         let form :FormData = new FormData();
         if (file) {

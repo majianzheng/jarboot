@@ -25,11 +25,11 @@ public enum CommandType {
      */
     UNKNOWN;
 
-    public char value() {
-        return (char)this.ordinal();
+    public byte value() {
+        return (byte)this.ordinal();
     }
 
-    public static CommandType fromChar(char index) {
+    public static CommandType fromChar(byte index) {
         CommandType[] values = CommandType.values();
         if (index > values.length - 1) {
             return CommandType.UNKNOWN;

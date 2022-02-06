@@ -1,6 +1,6 @@
 import {notification} from 'antd';
 import ErrorUtil from "@/common/ErrorUtil";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {getLocale} from "@@/plugin-locale/localeExports";
 
 /**
@@ -66,7 +66,7 @@ export default class CommonNotice {
 }
 
 const notSelectInfo = () => {
-    if (JarBootConst.ZH_CN === getLocale()) {
+    if (CommonConst.ZH_CN === getLocale()) {
         CommonNotice.info('请点击选择一行执行');
     } else {
         CommonNotice.info('Please select one to operate');

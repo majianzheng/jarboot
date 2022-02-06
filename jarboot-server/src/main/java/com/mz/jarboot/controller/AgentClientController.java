@@ -1,14 +1,16 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.AgentClientPojo;
+import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.protocol.CommandResponse;
 import com.mz.jarboot.common.utils.NetworkUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.event.AgentResponseEvent;
+import com.mz.jarboot.event.ServiceStartedEvent;
 import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -20,33 +22,37 @@ import java.util.Objects;
  * 内部接口，与jarboot-core交互，非开放
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/public/agent")
+@RequestMapping(value = CommonConst.AGENT_CLIENT_CONTEXT)
 @Controller
 public class AgentClientController {
 
     /**
      * 命令执行结果反馈接口
-     * @param server 服务名
+     * @param serviceName 服务名
      * @param raw 执行结果数据
      * @return 处理结果
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple onResponse(@RequestParam String server, @RequestParam String sid, @RequestBody String raw) {
+    public ResponseSimple onResponse(@RequestParam String serviceName, @RequestParam String sid, @RequestBody byte[] raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
-        AgentManager.getInstance().handleAgentResponse(server, sid, resp, null);
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new AgentResponseEvent(serviceName, sid, resp, null));
         return new ResponseSimple();
     }
 
     /**
      * 通知启动成功完成
-     * @param server 服务名
+     * @param serviceName 服务名
      * @return 处理结果
      */
     @GetMapping(value="/setStarted")
     @ResponseBody
-    public ResponseSimple setStarted(@RequestParam String server, @RequestParam String sid) {
-        AgentManager.getInstance().onServerStarted(server, sid);
+    public ResponseSimple setStarted(@RequestParam String serviceName, @RequestParam String sid) {
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new ServiceStartedEvent(serviceName, sid));
         return new ResponseSimple();
     }
 
@@ -57,7 +63,7 @@ public class AgentClientController {
      */
     @PostMapping(value="/agentClient")
     @ResponseBody
-    public AgentClientPojo getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
+    public AgentClient getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
         final int limit = 3;
         String[] array = code.split(CommonConst.COMMA_SPLIT, limit);
         if (limit != array.length) {
@@ -67,21 +73,21 @@ public class AgentClientController {
         String instanceName = array[1];
         String command = array[2];
 
-        AgentClientPojo agentClientPojo = new AgentClientPojo();
-        agentClientPojo.setDiagnose(true);
+        AgentClient agentClient = new AgentClient();
+        agentClient.setDiagnose(true);
         String server = StringUtils.isEmpty(command) ? ("NoName-" + pid) : TaskUtils.parseCommandSimple(command);
-        agentClientPojo.setServer(server);
+        agentClient.setServiceName(server);
         String clientAddr = this.getActualAddr(request);
-        agentClientPojo.setClientAddr(clientAddr);
+        agentClient.setClientAddr(clientAddr);
         final char atSplit = '@';
         int i = instanceName.indexOf(atSplit);
         String machineName = instanceName.substring(i);
         i = PidFileHelper.INSTANCE_NAME.indexOf(atSplit);
         String localMachineName = PidFileHelper.INSTANCE_NAME.substring(i);
         boolean isLocal = NetworkUtils.hostLocal(clientAddr) && localMachineName.equalsIgnoreCase(machineName);
-        agentClientPojo.setLocal(isLocal);
+        agentClient.setLocal(isLocal);
         if (isLocal) {
-            agentClientPojo.setSid(pid);
+            agentClient.setSid(pid);
         } else {
             //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
             int h = Objects.hash(instanceName, System.nanoTime());
@@ -97,10 +103,10 @@ public class AgentClientController {
                     .append(server)
                     .append(CommonConst.COMMA_SPLIT)
                     .append(String.format("%x-%x", h, System.nanoTime()));
-            agentClientPojo.setSid(sb.toString());
+            agentClient.setSid(sb.toString());
         }
 
-        return agentClientPojo;
+        return agentClient;
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.mz.jarboot.core.stream;
 
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.utils.HttpUtils;
 
@@ -9,14 +11,14 @@ import com.mz.jarboot.core.utils.HttpUtils;
  * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
-    private static final String API = "/api/jarboot/public/agent/response?server=";
+    private static final String API = CommonConst.AGENT_CLIENT_CONTEXT + "/response";
 
     @Override
-    public void write(String data) {
-        String url = API +
-                EnvironmentContext.getClientData().getServer() +
-                "&sid=" +
-                EnvironmentContext.getClientData().getSid();
+    public void write(byte[] data) {
+        final String url = new ApiStringBuilder(API)
+                .add(CommonConst.SERVICE_NAME_PARAM, EnvironmentContext.getAgentClient().getServiceName())
+                .add(CommonConst.SID_PARAM, EnvironmentContext.getAgentClient().getSid())
+                .build();
         HttpUtils.postSimple(url, data);
     }
 }

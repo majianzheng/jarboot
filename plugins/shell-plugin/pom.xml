@@ -13,7 +13,9 @@
     <artifactId>shell-plugin</artifactId>
     <name>Jarboot shell plugin</name>
     <description>Jarboot shell simple plugin</description>
-    
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>io.github.majianzheng</groupId>

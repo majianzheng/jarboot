@@ -3,7 +3,7 @@ package com.mz.jarboot.core.advisor;
 import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.express.ExpressFactory;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.common.utils.StringUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S112", "PMD.AbstractClassShouldStartWithAbstractNamingRule"})
 public abstract class AdviceListenerAdapter implements AdviceListener, JobAware {
     private static final  AtomicLong ID_GENERATOR = new AtomicLong(0);
     private String commandId;
@@ -57,20 +57,20 @@ public abstract class AdviceListenerAdapter implements AdviceListener, JobAware 
     }
 
     @Override
-    final public void before(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args)
+    public final void before(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args)
             throws Throwable {
         before(clazz.getClassLoader(), clazz, new JarbootMethod(clazz, methodName, methodDesc), target, args);
     }
 
     @Override
-    final public void afterReturning(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
+    public final void afterReturning(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
             Object returnObject) throws Throwable {
         afterReturning(clazz.getClassLoader(), clazz, new JarbootMethod(clazz, methodName, methodDesc), target, args,
                 returnObject);
     }
 
     @Override
-    final public void afterThrowing(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
+    public final void afterThrowing(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
             Throwable throwable) throws Throwable {
         afterThrowing(clazz.getClassLoader(), clazz, new JarbootMethod(clazz, methodName, methodDesc), target, args,
                 throwable);
@@ -151,7 +151,7 @@ public abstract class AdviceListenerAdapter implements AdviceListener, JobAware 
      * @param process the process to be aborted
      * @param limit   the limit to be printed
      */
-    protected void abortProcess(CommandCoreSession process, int limit) {
+    protected void abortProcess(AbstractCommandSession process, int limit) {
         process.console("Command execution times exceed limit: " + limit
                 + ", so command will exit. You can set it with -n option.\n");
         process.end();

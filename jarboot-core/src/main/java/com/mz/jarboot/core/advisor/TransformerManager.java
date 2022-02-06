@@ -15,7 +15,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class TransformerManager {
     private static final Logger logger = LogUtils.getLogger();
     private ClassFileTransformer classFileTransformer;
@@ -36,24 +35,24 @@ public class TransformerManager {
                                     Class<?> classBeingRedefined,
                                     ProtectionDomain protectionDomain,
                                     byte[] classfileBuffer) throws IllegalClassFormatException {
-                for (ClassFileTransformer classFileTransformer : reTransformers) {
-                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                for (ClassFileTransformer transformer : reTransformers) {
+                    byte[] transformResult = transformer.transform(loader, className, classBeingRedefined,
                             protectionDomain, classfileBuffer);
                     if (transformResult != null) {
                         classfileBuffer = transformResult;
                     }
                 }
 
-                for (ClassFileTransformer classFileTransformer : watchTransformers) {
-                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                for (ClassFileTransformer transformer : watchTransformers) {
+                    byte[] transformResult = transformer.transform(loader, className, classBeingRedefined,
                             protectionDomain, classfileBuffer);
                     if (transformResult != null) {
                         classfileBuffer = transformResult;
                     }
                 }
 
-                for (ClassFileTransformer classFileTransformer : traceTransformers) {
-                    byte[] transformResult = classFileTransformer.transform(loader, className, classBeingRedefined,
+                for (ClassFileTransformer transformer : traceTransformers) {
+                    byte[] transformResult = transformer.transform(loader, className, classBeingRedefined,
                             protectionDomain, classfileBuffer);
                     if (transformResult != null) {
                         classfileBuffer = transformResult;

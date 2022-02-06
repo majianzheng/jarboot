@@ -12,6 +12,10 @@
     <artifactId>jarboot-agent</artifactId>
     <name>Jarboot agent</name>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.majianzheng</groupId>

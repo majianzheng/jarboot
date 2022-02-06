@@ -1,5 +1,7 @@
 package com.mz.jarboot.common;
 
+import com.mz.jarboot.common.pojo.ResultCodeConst;
+
 /**
  * 项目内异常类
  * @author majianzheng

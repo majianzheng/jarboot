@@ -2,7 +2,7 @@ package com.mz.jarboot.security;
 
 import com.mz.jarboot.base.PermissionsCache;
 import com.mz.jarboot.common.ConcurrentWeakKeyHashMap;
-import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForList;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.PrivilegeService;

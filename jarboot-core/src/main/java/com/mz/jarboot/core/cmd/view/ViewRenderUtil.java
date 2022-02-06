@@ -20,24 +20,24 @@ import static java.lang.String.format;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1319", "squid:S2386", "PMD.UndefineMagicConstantRule"})
 public class ViewRenderUtil {
 
     /** Thread State Colors */
-    public static final EnumMap<Thread.State, String> colorMapping = new EnumMap<Thread.State, String>(Thread.State.class);
+    public static final EnumMap<Thread.State, String> COLORS = new EnumMap<>(Thread.State.class);
     static {
-        colorMapping.put(Thread.State.NEW, "cyan");
-        colorMapping.put(Thread.State.RUNNABLE, "green");
-        colorMapping.put(Thread.State.BLOCKED, "red");
-        colorMapping.put(Thread.State.WAITING, "yellow");
-        colorMapping.put(Thread.State.TIMED_WAITING, "magenta");
-        colorMapping.put(Thread.State.TERMINATED, "blue");
+        COLORS.put(Thread.State.NEW, "cyan");
+        COLORS.put(Thread.State.RUNNABLE, "green");
+        COLORS.put(Thread.State.BLOCKED, "red");
+        COLORS.put(Thread.State.WAITING, "yellow");
+        COLORS.put(Thread.State.TIMED_WAITING, "magenta");
+        COLORS.put(Thread.State.TERMINATED, "blue");
     }
 
     /**
      * Render key-value table
-     * @param map
-     * @return
+     * @param map map
+     * @return table
      */
     public static String renderKeyValueTable(Map<String, String> map) {
         TableElement table = new TableElement();
@@ -52,8 +52,8 @@ public class ViewRenderUtil {
 
     /**
      * Render change result vo
-     * @param result
-     * @return
+     * @param result result
+     * @return table element
      */
     public static TableElement renderChangeResult(ChangeResultVO result) {
         TableElement table = new TableElement();
@@ -65,8 +65,8 @@ public class ViewRenderUtil {
 
     /**
      * Render EnhancerAffectVO
-     * @param affectVO
-     * @return
+     * @param affectVO affect
+     * @return string
      */
     public static String renderEnhancerAffect(EnhancerAffectVO affectVO) {
         final StringBuilder infoSB = new StringBuilder();
@@ -91,7 +91,9 @@ public class ViewRenderUtil {
                 affectVO.getListenerId()));
 
         if (affectVO.getThrowable() != null) {
-            infoSB.append("\nEnhance error! exception: " + affectVO.getThrowable());
+            infoSB
+                    .append("\nEnhance error! exception: ")
+                    .append(affectVO.getThrowable());
         }
         infoSB.append("\n");
 
@@ -116,7 +118,7 @@ public class ViewRenderUtil {
         List<List<String>> rows = new ArrayList<>();
         for (ThreadVO thread : threads) {
             List<String> row = new ArrayList<>();
-            String color = colorMapping.get(thread.getState());
+            String color = COLORS.get(thread.getState());
             String time = formatTimeMills(thread.getTime());
             String deltaTime = formatTimeMillsToSeconds(thread.getDeltaTime());
             double cpu = thread.getCpu();
@@ -231,4 +233,6 @@ public class ViewRenderUtil {
         }
         return str;
     }
+
+    private ViewRenderUtil() {}
 }

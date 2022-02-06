@@ -312,7 +312,7 @@ jarboot$ thread -n 3
     at com.mz.jarboot.core.cmd.impl.ThreadCommand.processTopBusyThreads(ThreadCommand.java:209)
     at com.mz.jarboot.core.cmd.impl.ThreadCommand.run(ThreadCommand.java:120)
     at com.mz.jarboot.core.basic.EnvironmentContext.runCommand(EnvironmentContext.java:162)
-    at com.mz.jarboot.core.cmd.CommandDispatcher.execute(CommandDispatcher.java:35)
+    at com.mz.jarboot.core.cmd.CommandRequestSubscriber.execute(CommandDispatcher.java:35)
     at com.mz.jarboot.core.server.JarbootBootstrap$1.onText(JarbootBootstrap.java:94)
     at com.mz.jarboot.core.ws.WebSocketClientHandler.channelRead0(WebSocketClientHandler.java:83)
     at io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:99)

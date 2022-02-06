@@ -8,9 +8,7 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public abstract class TraceNode {
-
     protected TraceNode parent;
     protected List<TraceNode> children;
 
@@ -26,13 +24,13 @@ public abstract class TraceNode {
 
     private int marks = 0;
 
-    public TraceNode(String type) {
+    protected TraceNode(String type) {
         this.type = type;
     }
 
     public void addChild(TraceNode child) {
         if (children == null) {
-            children = new ArrayList<TraceNode>();
+            children = new ArrayList<>();
         }
         this.children.add(child);
         child.setParent(this);

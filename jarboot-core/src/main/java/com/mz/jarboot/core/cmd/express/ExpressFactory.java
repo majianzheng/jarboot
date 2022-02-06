@@ -5,7 +5,7 @@ package com.mz.jarboot.core.cmd.express;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S4065", "squid:S1118", "squid:S5164"})
 public class ExpressFactory {
 
     private static final ThreadLocal<com.mz.jarboot.core.cmd.express.Express> expressRef = new ThreadLocal<com.mz.jarboot.core.cmd.express.Express>() {
@@ -17,8 +17,8 @@ public class ExpressFactory {
 
     /**
      * get ThreadLocal Express Object
-     * @param object
-     * @return
+     * @param object obj
+     * @return express
      */
     public static com.mz.jarboot.core.cmd.express.Express threadLocalExpress(Object object) {
         return expressRef.get().reset().bind(object);

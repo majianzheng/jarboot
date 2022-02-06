@@ -17,7 +17,6 @@ import java.util.Set;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 class ClassDumpTransformer implements ClassFileTransformer {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -33,12 +32,13 @@ class ClassDumpTransformer implements ClassFileTransformer {
 
     public ClassDumpTransformer(Set<Class<?>> classesToEnhance, File directory) {
         this.classesToEnhance = classesToEnhance;
-        this.dumpResult = new HashMap<Class<?>, File>();
+        this.dumpResult = new HashMap<>();
         this.jarbootLogHome = new File(LogUtils.getLogDir());
         this.directory = directory;
     }
 
     @Override
+    @SuppressWarnings("squid:S1168")
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer)
             throws IllegalClassFormatException {

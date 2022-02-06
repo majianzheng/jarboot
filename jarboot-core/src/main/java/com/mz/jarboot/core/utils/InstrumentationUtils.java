@@ -11,7 +11,7 @@ import java.util.Set;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1181", "SpellCheckingInspection"})
 public class InstrumentationUtils {
     private static final Logger logger = LogUtils.getLogger();
 

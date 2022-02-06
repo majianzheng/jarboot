@@ -7,10 +7,14 @@ import com.mz.jarboot.core.cmd.impl.ThreadCommand;
 import com.mz.jarboot.core.cmd.impl.TraceCommand;
 import com.mz.jarboot.core.cmd.internal.CancelCommand;
 import com.mz.jarboot.core.cmd.internal.ExitCommand;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,14 +23,15 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S5838")
 public class CommandBuilderTest {
     @Test
-    public void testBuild() {
+    public void testBuild() throws IOException {
         //测试trace命令构建
-        String line = CommandType.USER_PUBLIC.value() + "123\rtrace demo.Test run 'params.length>=0' -n 5";
+        byte[] line = toByte(CommandType.USER_PUBLIC.value(),
+                "123\rtrace demo.Test run 'params.length>=0' -n 5");
         CommandRequest request = new CommandRequest();
-        CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
+        AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
@@ -37,9 +42,10 @@ public class CommandBuilderTest {
         assertEquals(5, trace.getNumberOfLimit());
         assertEquals("params.length>=0", trace.getConditionExpress());
 
-        line = CommandType.USER_PUBLIC.value() + "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3";
+        line = toByte(CommandType.USER_PUBLIC.value(),
+                "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3");
         request = new CommandRequest();
-        session = Mockito.mock(CommandCoreSession.class);
+        session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof TraceCommand).isTrue();
@@ -53,7 +59,7 @@ public class CommandBuilderTest {
         assertEquals(3, patterns.size());
 
         //测试thread命令构建
-        line = CommandType.USER_PUBLIC.value() + "123\rthread 1";
+        line = toByte(CommandType.USER_PUBLIC.value(), "123\rthread 1");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -69,7 +75,7 @@ public class CommandBuilderTest {
         }
 
         //测试thread命令构建
-        line = CommandType.USER_PUBLIC.value() + "123\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient";
+        line = toByte(CommandType.USER_PUBLIC.value(), "123\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -94,21 +100,30 @@ public class CommandBuilderTest {
     }
 
     @Test
-    public void testInternalBuild() {
+    public void testInternalBuild() throws IOException {
         //测试trace命令构建
-        String line = CommandType.USER_PUBLIC.value() + "123\rexit";
+        byte[] line = toByte(CommandType.USER_PUBLIC.value(), "123\rexit");
         CommandRequest request = new CommandRequest();
-        CommandCoreSession session = Mockito.mock(CommandCoreSession.class);
+        AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
         AbstractCommand cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof ExitCommand).isTrue();
         assertEquals("exit", cmd.getName());
 
-        line = CommandType.INTERNAL.value() + "123\rcancel ";
+        line = toByte(CommandType.INTERNAL.value(), "123\rcancel ");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
         assertThat(cmd instanceof CancelCommand).isTrue();
         assertEquals("cancel", cmd.getName());
+    }
+
+    private byte[] toByte(Byte type, String cmd) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        if (null != type) {
+            byteArrayOutputStream.write(type);
+        }
+        byteArrayOutputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
+        return byteArrayOutputStream.toByteArray();
     }
 }

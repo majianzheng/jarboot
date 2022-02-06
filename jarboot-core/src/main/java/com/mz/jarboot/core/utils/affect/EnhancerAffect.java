@@ -17,7 +17,6 @@ import static java.lang.String.format;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
-@SuppressWarnings("all")
 public final class EnhancerAffect extends Affect {
 
     private final AtomicInteger cCnt = new AtomicInteger();
@@ -30,13 +29,9 @@ public final class EnhancerAffect extends Affect {
     /**
      * dumpClass的文件存放集合
      */
-    private final Collection<File> classDumpFiles = new ArrayList<File>();
+    private final Collection<File> classDumpFiles = new ArrayList<>();
 
-    private final List<String> methods = new ArrayList<String>();
-
-    public EnhancerAffect() {
-
-    }
+    private final List<String> methods = new ArrayList<>();
 
     /**
      * 影响类统计
@@ -123,7 +118,6 @@ public final class EnhancerAffect extends Affect {
 
     @Override
     public String toString() {
-        //TODO removing EnhancerAffect.toString(), replace with ViewRenderUtil.renderEnhancerAffect()
         final StringBuilder infoSB = new StringBuilder();
         if (GlobalOptions.isDump
                 && !classDumpFiles.isEmpty()) {
@@ -144,7 +138,7 @@ public final class EnhancerAffect extends Affect {
                 cost(),
                 listenerId));
         if (this.throwable != null) {
-            infoSB.append("\nEnhance error! exception: " + this.throwable);
+            infoSB.append("\nEnhance error! exception: ").append(this.throwable);
         }
         return infoSB.toString();
     }

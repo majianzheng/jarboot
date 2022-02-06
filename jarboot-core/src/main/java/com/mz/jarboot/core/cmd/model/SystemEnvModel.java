@@ -7,15 +7,14 @@ import java.util.Map;
  * sysenv KV Result
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class SystemEnvModel extends ResultModel {
 
-    private Map<String, String> env = new HashMap<String, String>();
+    private Map<String, String> env = new HashMap<>();
 
     public SystemEnvModel() {
     }
 
-    public SystemEnvModel(Map env) {
+    public SystemEnvModel(Map<String, String> env) {
         this.putAll(env);
     }
 
@@ -31,7 +30,7 @@ public class SystemEnvModel extends ResultModel {
         return env.put(key, value);
     }
 
-    public void putAll(Map m) {
+    public void putAll(Map<String, String> m) {
         env.putAll(m);
     }
 

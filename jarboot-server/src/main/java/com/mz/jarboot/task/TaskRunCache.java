@@ -1,17 +1,20 @@
 package com.mz.jarboot.task;
 
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CacheDirHelper;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.ServerRunning;
+import com.mz.jarboot.api.pojo.ServiceInstance;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +33,8 @@ public class TaskRunCache {
     /** 需要排除的工作空间里的目录 */
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
+    @Autowired
+    private AbstractEventRegistry eventRegistry;
     /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
     /** 正在启动中的服务 */
@@ -38,15 +43,15 @@ public class TaskRunCache {
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
     /**
-     * 获取服务路径列表
-     * @return 服务路径列表
+     * 获取服务名称列表
+     * @return 服务名称列表
      */
-    public List<String> getServerPathList() {
-        File[] serviceDirs = this.getServerDirs();
+    public List<String> getServiceNameList() {
+        File[] serviceDirs = this.getServiceDirs();
         List<String> paths = new ArrayList<>();
         if (null != serviceDirs && serviceDirs.length > 0) {
             for (File f : serviceDirs) {
-                paths.add(f.getPath());
+                paths.add(f.getName());
             }
         }
         return paths;
@@ -56,7 +61,7 @@ public class TaskRunCache {
      * 获取服务目录列表
      * @return 服务目录
      */
-    public File[] getServerDirs() {
+    public File[] getServiceDirs() {
         String servicesPath = SettingUtils.getWorkspace();
         File servicesDir = new File(servicesPath);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
@@ -71,35 +76,39 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
+    public ServiceInstance getService(File serverDir) {
+        ServiceInstance process = new ServiceInstance();
+        process.setName(serverDir.getName());
+        String path = serverDir.getPath();
+        String sid = SettingUtils.createSid(path);
+        process.setSid(sid);
+        process.setPath(path);
+        process.setGroup(this.getGroup(sid, path));
+
+        if (this.isStarting(sid)) {
+            process.setStatus(CommonConst.STARTING);
+        } else if (this.isStopping(sid)) {
+            process.setStatus(CommonConst.STOPPING);
+        } else if (AgentManager.getInstance().isOnline(sid)) {
+            process.setStatus(CommonConst.RUNNING);
+        } else {
+            process.setStatus(CommonConst.STOPPED);
+        }
+        return process;
+    }
+
     /**
      * 获取服务列表
      * @return 服务列表
      */
-    public List<ServerRunning> getServerList() {
-        List<ServerRunning> serverList = new ArrayList<>();
-        File[] serviceDirs = getServerDirs();
+    public List<ServiceInstance> getServiceList() {
+        List<ServiceInstance> serverList = new ArrayList<>();
+        File[] serviceDirs = getServiceDirs();
         if (null == serviceDirs || serviceDirs.length <= 0) {
             return serverList;
         }
-        for (File f : serviceDirs) {
-            ServerRunning process = new ServerRunning();
-            process.setName(f.getName());
-            String path = f.getPath();
-            String sid = SettingUtils.createSid(path);
-            process.setSid(sid);
-            process.setPath(path);
-            process.setGroup(this.getGroup(sid, path));
-
-            if (this.isStarting(sid)) {
-                process.setStatus(TaskStatus.STARTING.name());
-            } else if (this.isStopping(sid)) {
-                process.setStatus(TaskStatus.STOPPING.name());
-            } else if (AgentManager.getInstance().isOnline(sid)) {
-                process.setStatus(TaskStatus.RUNNING.name());
-            } else {
-                process.setStatus(TaskStatus.STOPPED.name());
-            }
-
+        for (File file : serviceDirs) {
+            ServiceInstance process = getService(file);
             serverList.add(process);
         }
         return serverList;
@@ -138,11 +147,11 @@ public class TaskRunCache {
     }
 
     private String getGroup(String sid, String path) {
-        ServerSetting setting = PropertyFileUtils.getServerSettingBySid(sid);
+        ServiceSetting setting = PropertyFileUtils.getServiceSettingBySid(sid);
         if (null != setting) {
             return setting.getGroup();
         }
-        setting = PropertyFileUtils.getServerSetting(path);
+        setting = PropertyFileUtils.getServiceSettingByPath(path);
         if (null == setting) {
             return StringUtils.EMPTY;
         }
@@ -207,5 +216,7 @@ public class TaskRunCache {
                 excludeDirSet.add(s.trim());
             }
         }
+        //订阅任务状态变化事件
+        NotifyReactor.getInstance().registerSubscriber(new TaskStatusChangeSubscriber(this.eventRegistry));
     }
 }

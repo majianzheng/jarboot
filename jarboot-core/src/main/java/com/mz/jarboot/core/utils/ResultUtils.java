@@ -9,28 +9,28 @@ import java.util.List;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S1854")
 public class ResultUtils {
 
     /**
      * 分页处理class列表，转换为className列表
-     * @param classes
-     * @param pageSize
-     * @param handler
+     * @param classes class
+     * @param pageSize page size
+     * @param handler handler
      */
     public static void processClassNames(Collection<Class<?>> classes, int pageSize, PaginationHandler<List<String>> handler) {
-        List<String> classNames = new ArrayList<String>(pageSize);
+        List<String> classNames = new ArrayList<>(pageSize);
         int segment = 0;
-        for (Class aClass : classes) {
+        for (Class<?> aClass : classes) {
             classNames.add(aClass.getName());
             //slice segment
             if(classNames.size() >= pageSize) {
                 handler.handle(classNames, segment++);
-                classNames = new ArrayList<String>(pageSize);
+                classNames = new ArrayList<>(pageSize);
             }
         }
         //last segment
-        if (classNames.size() > 0) {
+        if (!classNames.isEmpty()) {
             handler.handle(classNames, segment++);
         }
     }

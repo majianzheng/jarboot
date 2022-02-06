@@ -22,6 +22,11 @@ public class JarbootAutoConfiguration {
         return JarbootFactory.createAgentService();
     }
 
+    @Bean
+    public JarbootTemplate jarbootTemplate(JarbootConfigProperties properties) {
+        return new JarbootTemplate(properties);
+    }
+
     @Bean("spring.env")
     public CommandProcessor springEnv(Environment environment) {
         return new com.mz.jarboot.command.SpringEnvCommandProcessor(environment);

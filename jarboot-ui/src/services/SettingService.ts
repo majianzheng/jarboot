@@ -8,11 +8,11 @@ const settingUrl = "/api/jarboot/setting";
 export default class SettingService {
     /**
      * 获取服务配置
-     * @param path 服务路径
+     * @param serviceName 服务名
      * @returns {Promise<any>}
      */
-    public static getServerSetting(path: string) {
-        return Request.get(`${settingUrl}/serverSetting`, {path});
+    public static getServerSetting(serviceName: string) {
+        return Request.get(`${settingUrl}/serviceSetting`, {serviceName});
     }
 
     /**
@@ -20,7 +20,7 @@ export default class SettingService {
      * @param setting 配置信息
      */
     public static submitServerSetting(setting: any) {
-        return Request.post(`${settingUrl}/serverSetting`, setting);
+        return Request.post(`${settingUrl}/serviceSetting`, setting);
     }
 
     /**
@@ -41,23 +41,23 @@ export default class SettingService {
 
     /**
      * 获取vm配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file vm内容
      * @returns {Promise<any>}
      */
-    public static getVmOptions(path: string, file: string) {
-        return Request.get(`${settingUrl}/vmoptions`, {path, file});
+    public static getVmOptions(serviceName: string, file: string) {
+        return Request.get(`${settingUrl}/vmoptions`, {serviceName, file});
     }
 
     /**
      * 保存vm配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file 文件名
      * @param content vm内容
      */
-    public static saveVmOptions(path: string, file: string, content: string) {
+    public static saveVmOptions(serviceName: string, file: string, content: string) {
         let form = new FormData();
-        form.append('path', path);
+        form.append('serviceName', serviceName);
         form.append('file', file);
         form.append('content', content);
         return Request.post(`${settingUrl}/vmoptions`, form);

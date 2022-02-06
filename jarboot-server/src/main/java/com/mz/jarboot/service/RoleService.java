@@ -1,6 +1,6 @@
 package com.mz.jarboot.service;
 
-import com.mz.jarboot.common.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForList;
 import com.mz.jarboot.entity.RoleInfo;
 
 import java.util.List;

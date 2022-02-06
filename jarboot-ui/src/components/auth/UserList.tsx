@@ -1,7 +1,7 @@
 import {memo, default as React, useEffect, useState} from "react";
 import { useIntl } from 'umi';
 import CommonTable from "@/components/table";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {FormOutlined, SyncOutlined, UserAddOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import UserService from "@/services/UserService";
 import CommonNotice from "@/common/CommonNotice";
@@ -81,7 +81,7 @@ const UserList = memo(() => {
         rowSelection: _getRowSelection(),
         onRow: _onRowClick,
         showHeader: true,
-        scroll: JarBootConst.PANEL_HEIGHT,
+        scroll: CommonConst.PANEL_HEIGHT,
     };
 
     const onCreate = () => {
@@ -106,7 +106,7 @@ const UserList = memo(() => {
             return;
         }
         const user = selected.selectedRows[0];
-        if (JarBootConst.currentUser.username === user.username) {
+        if (CommonConst.currentUser.username === user.username) {
             //不可删除自己
             CommonNotice.info(intl.formatMessage({id: 'CAN_NOT_REMOVE_SELF'}));
             return;
@@ -162,10 +162,10 @@ const UserList = memo(() => {
         isCreate && success && query();
     };
 
-    tableOption.scroll = { y: JarBootConst.PANEL_HEIGHT};
+    tableOption.scroll = { y: CommonConst.PANEL_HEIGHT};
     return <><CommonTable option={tableOption}
                           toolbar={_getTbBtnProps()} showToolbarName={true}
-                          height={JarBootConst.PANEL_HEIGHT}/>
+                          height={CommonConst.PANEL_HEIGHT}/>
         {visible && <ModifyUserModal visible={true} isCreate={isCreate} username={username} onClose={onClose}/>}
     </>;
 });

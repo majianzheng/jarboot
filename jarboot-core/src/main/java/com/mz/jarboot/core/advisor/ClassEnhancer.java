@@ -19,6 +19,7 @@ import com.alibaba.deps.org.objectweb.asm.tree.AbstractInsnNode;
 import com.alibaba.deps.org.objectweb.asm.tree.ClassNode;
 import com.alibaba.deps.org.objectweb.asm.tree.MethodInsnNode;
 import com.alibaba.deps.org.objectweb.asm.tree.MethodNode;
+import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.utils.JarbootCheckUtils;
@@ -47,7 +48,7 @@ import static java.lang.System.arraycopy;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("java:S3740")
 public class ClassEnhancer implements ClassFileTransformer {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -61,7 +62,7 @@ public class ClassEnhancer implements ClassFileTransformer {
     private Set<Class<?>> matchingClasses = null;
 
     // 被增强的类的缓存
-    private final static Map<Class<?>, Object> classBytesCache = new WeakHashMap<Class<?>, Object>();
+    private static final Map<Class<?>, Object> classBytesCache = new WeakHashMap<>();
     private static SpyImpl spyImpl = new SpyImpl();
 
     static {
@@ -82,6 +83,7 @@ public class ClassEnhancer implements ClassFileTransformer {
         affect.setListenerId(listener.id());
     }
 
+    @SuppressWarnings({"squid:S1181", "java:S3776", "squid:S1141", "squid:S1168", "squid:S135", "java:S1066", "PointlessBooleanExpression"})
     @Override
     public byte[] transform(final ClassLoader inClassLoader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -116,14 +118,14 @@ public class ClassEnhancer implements ClassFileTransformer {
             interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyInterceptor3.class));
 
             if (this.isTracing) {
-                if (this.skipJDKTrace == false) { //NOSONAR
-                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor1.class));
-                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor2.class));
-                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor3.class));
-                } else {
+                if (this.skipJDKTrace) {
                     interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceExcludeJDKInterceptor1.class));
                     interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceExcludeJDKInterceptor2.class));
                     interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceExcludeJDKInterceptor3.class));
+                } else {
+                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor1.class));
+                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor2.class));
+                    interceptorProcessors.addAll(defaultInterceptorClassParser.parse(SpyInterceptors.SpyTraceInterceptor3.class));
                 }
             }
 
@@ -168,8 +170,8 @@ public class ClassEnhancer implements ClassFileTransformer {
 
             for (MethodNode methodNode : matchedMethods) {
                 if (AsmUtils.isNative(methodNode)) {
-                    logger.info("ignore native method: {}",
-                            AsmUtils.methodDeclaration(Type.getObjectType(classNode.name), methodNode));
+                    final String method = AsmUtils.methodDeclaration(Type.getObjectType(classNode.name), methodNode);
+                    logger.info("ignore native method: {}", method);
                     continue;
                 }
                 // 先查找是否有 atBeforeInvoke 函数，如果有，则说明已经有trace了，则直接不再尝试增强，直接插入 listener
@@ -191,7 +193,7 @@ public class ClassEnhancer implements ClassFileTransformer {
                                     methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc, listener);
                         }
                     }
-                }else {
+                } else {
                     MethodProcessor methodProcessor = new MethodProcessor(classNode, methodNode, groupLocationFilter);
                     for (InterceptorProcessor interceptor : interceptorProcessors) {
                         try {
@@ -207,7 +209,8 @@ public class ClassEnhancer implements ClassFileTransformer {
                             }
 
                         } catch (Exception e) {
-                            logger.error("enhancer error, class: {}, method: {}, interceptor: {}", classNode.name, methodNode.name, interceptor.getClass().getName(), e);
+                            logger.error("enhancer error, class: {}, method: {}, interceptor: {}",
+                                    classNode.name, methodNode.name, interceptor.getClass().getName(), e);
                         }
                     }
                 }
@@ -253,8 +256,10 @@ public class ClassEnhancer implements ClassFileTransformer {
      * 是否需要忽略
      */
     private boolean isIgnore(MethodNode methodNode, Matcher methodNameMatcher) {
-        return null == methodNode || isAbstract(methodNode.access) || !methodNameMatcher.matching(methodNode.name)
-                || JarbootCheckUtils.isEquals(methodNode.name, "<clinit>");
+        return null == methodNode ||
+                isAbstract(methodNode.access) ||
+                !methodNameMatcher.matching(methodNode.name) ||
+                JarbootCheckUtils.isEquals(methodNode.name, "<clinit>");
     }
 
     /**
@@ -264,7 +269,7 @@ public class ClassEnhancer implements ClassFileTransformer {
         if (!GlobalOptions.isDump) {
             return;
         }
-        final File dumpClassFile = new File("./arthas-class-dump/" + className + ".class");
+        final File dumpClassFile = new File("./jarboot-class-dump/" + className + ".class");
         final File classPath = new File(dumpClassFile.getParent());
 
         // 创建类所在的包路径
@@ -292,13 +297,11 @@ public class ClassEnhancer implements ClassFileTransformer {
      * @param classes 类集合
      */
     private void filter(Set<Class<?>> classes) {
-        final Iterator<Class<?>> it = classes.iterator();
-        while (it.hasNext()) {
-            final Class<?> clazz = it.next();
-            if (null == clazz || isSelf(clazz) || isUnsafeClass(clazz) || isUnsupportedClass(clazz) || isExclude(clazz)) {
-                it.remove();
-            }
-        }
+        classes.removeIf(clazz -> null == clazz ||
+                isSelf(clazz) ||
+                isUnsafeClass(clazz) ||
+                isUnsupportedClass(clazz) ||
+                isExclude(clazz));
     }
 
     private boolean isExclude(Class<?> clazz) {
@@ -331,6 +334,7 @@ public class ClassEnhancer implements ClassFileTransformer {
     }
 
 
+    @SuppressWarnings({"squid:S1141", "squid:S1193", "java:S3776", "unchecked"})
     public synchronized EnhancerAffect enhance(final Instrumentation inst) throws UnmodifiableClassException {
         // 获取需要增强的类集合
         this.matchingClasses = GlobalOptions.isDisableSubClass
@@ -354,7 +358,8 @@ public class ClassEnhancer implements ClassFileTransformer {
                 arraycopy(matchingClasses.toArray(), 0, classArray, 0, size);
                 if (classArray.length > 0) {
                     inst.retransformClasses(classArray);
-                    logger.info("Success to batch transform classes: {}", Arrays.toString(classArray));
+                    final String classes = Arrays.toString(classArray);
+                    logger.info("Success to batch transform classes: {}", classes);
                 }
             } else {
                 // for each 增强
@@ -369,7 +374,7 @@ public class ClassEnhancer implements ClassFileTransformer {
                         } else if (t instanceof RuntimeException) {
                             throw (RuntimeException) t;
                         } else {
-                            throw new RuntimeException(t);
+                            throw new JarbootRunException(t);
                         }
                     }
                 }
@@ -388,7 +393,7 @@ public class ClassEnhancer implements ClassFileTransformer {
      * @param inst             inst
      * @param classNameMatcher 类名匹配
      * @return 增强影响范围
-     * @throws UnmodifiableClassException
+     * @throws UnmodifiableClassException Unmodifiable class exception
      */
     public static synchronized EnhancerAffect reset(final Instrumentation inst, final Matcher classNameMatcher)
             throws UnmodifiableClassException {

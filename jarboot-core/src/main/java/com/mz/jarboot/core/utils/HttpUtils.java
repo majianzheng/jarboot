@@ -2,9 +2,11 @@ package com.mz.jarboot.core.utils;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.utils.BasicTypeConvert;
 import com.mz.jarboot.common.utils.JsonUtils;
-import com.mz.jarboot.common.ResponseSimple;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
+import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.*;
 
 import java.util.concurrent.TimeUnit;
@@ -15,12 +17,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpUtils {
     /** 服务基址 */
-    private static String baseUrl =String.format("http://%s",
+    private static String baseUrl = (CommonConst.HTTP +
             System.getProperty(CommonConst.REMOTE_PROP, "127.0.0.1:9899"));
     /** 连接超时 */
     private static final long CONNECT_TIMEOUT = 10L;
     /** 写超时 */
     private static final long READ_WRITE_TIMEOUT = 5L;
+    /** application json media */
+    private static final String JSON_TYPE = "application/json";
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse(JSON_TYPE);
     /** 连接池实例 */
     public static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
@@ -37,28 +42,37 @@ public class HttpUtils {
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T postJson(String url, Object object, Class<T> type) {
+    public static <T> T postObj(String url, Object object, Class<T> type) {
         String json = object instanceof String ? (String)object : JsonUtils.toJsonString(object);
         if (null == json) {
             json = "";
         }
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), json);
+        RequestBody requestBody = RequestBody.create(JSON_MEDIA_TYPE, json);
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
                 .post(requestBody);
-        return doRequest(requestBuilder, type);
+        String resp = doRequest(requestBuilder);
+        if (type.isPrimitive()) {
+            return BasicTypeConvert.convert(resp, type);
+        }
+        return JsonUtils.readValue(resp, type);
     }
 
     /**
      * Post请求Simple
      * @param api api接口
-     * @param json 传入的参数
+     * @param buf 传入的参数
      */
-    public static void postSimple(String api, String json) {
+    public static void postSimple(String api, byte[] buf) {
         String url = baseUrl + api;
-        ResponseSimple resp = postJson(url, json, ResponseSimple.class);
-        checkSimple(resp);
+        RequestBody requestBody = RequestBody.create(JSON_MEDIA_TYPE, buf);
+        Request.Builder requestBuilder = new Request
+                .Builder()
+                .url(url)
+                .post(requestBody);
+        String resp = doRequest(requestBuilder);
+        checkSimple(JsonUtils.readValue(resp, ResponseSimple.class));
     }
 
     /**
@@ -68,12 +82,29 @@ public class HttpUtils {
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T getJson(String url, Class<T> type) {
+    public static <T> T getObj(String url, Class<T> type) {
         Request.Builder requestBuilder = new Request
                 .Builder()
                 .url(url)
                 .get();
-        return doRequest(requestBuilder, type);
+        String resp = doRequest(requestBuilder);
+        if (type.isPrimitive()) {
+            return BasicTypeConvert.convert(resp, type);
+        }
+        return JsonUtils.readValue(resp, type);
+    }
+
+    /**
+     * Get请求
+     * @param url url
+     * @return response
+     */
+    public static String getString(String url) {
+        Request.Builder requestBuilder = new Request
+                .Builder()
+                .url(url)
+                .get();
+        return doRequest(requestBuilder);
     }
 
     /**
@@ -82,7 +113,7 @@ public class HttpUtils {
      */
     public static void getSimple(String api) {
         String url = baseUrl + api;
-        ResponseSimple resp = getJson(url, ResponseSimple.class);
+        ResponseSimple resp = getObj(url, ResponseSimple.class);
         checkSimple(resp);
     }
 
@@ -103,30 +134,22 @@ public class HttpUtils {
         }
     }
 
-    private static <T> T doRequest(Request.Builder requestBuilder, Class<T> type) {
+    private static String doRequest(Request.Builder requestBuilder) {
         requestBuilder.addHeader("Cookie", "");
-        requestBuilder.addHeader("Accept", "application/json");
+        requestBuilder.addHeader("Accept", JSON_TYPE);
         requestBuilder.addHeader("Content-Type", "application/json;charset=UTF-8");
         Request request = requestBuilder.build();
 
         Call call = HTTP_CLIENT.newCall(request);
-        T resp = null;
         try {
             ResponseBody response = call.execute().body();
             if (null != response) {
-                String body = response.string();
-                if (type.isPrimitive()) {
-                    return BasicTypeConvert.convert(body, type);
-                }
-                if (String.class.equals(type)) {
-                    return (T) body;
-                }
-                resp = JsonUtils.readValue(body, type);
+                return response.string();
             }
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
-        return resp;
+        return StringUtils.EMPTY;
     }
 
     private HttpUtils() {}

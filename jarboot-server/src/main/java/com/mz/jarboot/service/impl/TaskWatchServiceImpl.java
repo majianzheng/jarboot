@@ -1,28 +1,31 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.api.event.WorkspaceChangeEvent;
+import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
+import com.mz.jarboot.common.notify.AbstractEventRegistry;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.TaskRunCache;
-import com.mz.jarboot.api.pojo.ServerRunning;
-import com.mz.jarboot.api.pojo.ServerSetting;
-import com.mz.jarboot.event.TaskEvent;
-import com.mz.jarboot.event.TaskEventEnum;
+import com.mz.jarboot.api.pojo.ServiceInstance;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -37,15 +40,18 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @Component
-public class TaskWatchServiceImpl implements TaskWatchService {
+public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final int MIN_MODIFY_WAIT_TIME = 3;
     private static final int MAX_MODIFY_WAIT_TIME = 600;
 
     @Autowired
-    private ApplicationContext ctx;
-    @Autowired
     private TaskRunCache taskRunCache;
+    @Autowired
+    private ServiceManager serverMgrService;
+    @Autowired
+    private AbstractEventRegistry eventRegistry;
+
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
 
     @Value("${jarboot.file-shake-time:5}")
@@ -77,15 +83,14 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         this.monitorThread.start();
 
         //路径监控消费者
-        threadFactory.newThread(this::pathMonitorConsumer).start();
+        NotifyReactor.getInstance().registerSubscriber(this);
 
         //attach已经处于启动的进程
-        threadFactory.newThread(this::attachRunningServer).start();
+        this.attachRunningServer();
 
         if (enableAutoStartServices) {
             logger.info("Auto starting services...");
-            TaskEvent ev = new TaskEvent(TaskEventEnum.AUTO_START_ALL);
-            ctx.publishEvent(ev);
+            serverMgrService.oneClickStart();
         }
 
         //启动后置脚本
@@ -94,6 +99,19 @@ public class TaskWatchServiceImpl implements TaskWatchService {
                     .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome))
                     .start();
         }
+        //注册工作空间改变事件订阅
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<WorkspaceChangeEvent>() {
+            @Override
+            public void onEvent(WorkspaceChangeEvent event) {
+                eventRegistry.receiveEvent(eventRegistry.createTopic(WorkspaceChangeEvent.class), event);
+                changeWorkspace(event.getWorkspace());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return WorkspaceChangeEvent.class;
+            }
+        });
     }
 
     /**
@@ -101,10 +119,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      *
      * @param workspace 工作空间
      */
-    @Override
-    public void changeWorkspace(String workspace) {
-        WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
-                StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
+    private void changeWorkspace(String workspace) {
+        MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         //中断原监控线程
         monitorThread.interrupt();
         try {
@@ -115,7 +131,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         }
         if (monitorThread.isAlive()) {
             logger.error("工作空间监控线程退出失败！");
-            WebSocketManager.getInstance().notice("工作空间监控线程中断失败，请重启Jarboot重试！", NoticeEnum.ERROR);
+            MessageUtils.error("工作空间监控线程中断失败，请重启Jarboot重试！");
             return;
         }
         this.curWorkspace = workspace;
@@ -123,8 +139,40 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         this.monitorThread.start();
     }
 
+    @Override
+    public void onEvent(ServiceFileChangeEvent event) {
+        //取出后
+        HashSet<String> services = new HashSet<>();
+        try {
+            String serviceName;
+            //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
+            while (null != (serviceName = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
+                services.add(serviceName);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
+        List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(list)) {
+            final String msg = "监控到工作空间文件更新，开始重启相关服务...";
+            MessageUtils.info(msg);
+            serverMgrService.restartService(list);
+        }
+    }
+
+    @Override
+    public Executor executor() {
+        return TaskUtils.getTaskExecutor();
+    }
+
+    @Override
+    public Class<? extends JarbootEvent> subscribeType() {
+        return ServiceFileChangeEvent.class;
+    }
+
     private void attachRunningServer() {
-        List<ServerRunning> runningServers = taskRunCache.getServerList();
+        List<ServiceInstance> runningServers = taskRunCache.getServiceList();
         if (CollectionUtils.isEmpty(runningServers)) {
             return;
         }
@@ -149,42 +197,9 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             pathWatchMonitor(watchService);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
-            WebSocketManager.getInstance().notice("工作空间监控异常：" + ex.getMessage(), NoticeEnum.ERROR);
+            MessageUtils.error("工作空间监控异常：" + ex.getMessage());
         } catch (InterruptedException ex) {
             //线程退出
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * 目录监控事件处理
-     */
-    private void pathMonitorConsumer() {
-        try {
-            for (; ; ) {
-                String path = modifiedServiceQueue.take();
-                //取出后
-                HashSet<String> services = new HashSet<>();
-                services.add(path);
-                //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
-                while (null != (path = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
-                    services.add(path);
-                }
-                //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
-                List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
-                if (!CollectionUtils.isEmpty(list)) {
-                    TaskEvent event = new TaskEvent(TaskEventEnum.RESTART);
-                    event.setPaths(list);
-                    final String msg = "监控到工作空间文件更新，开始重启相关服务...";
-                    WebSocketManager.getInstance().notice(msg, NoticeEnum.INFO);
-                    ctx.publishEvent(event);
-                }
-                if (!starting) {
-                    logger.info("current is not starting");
-                    break;
-                }
-            }
-        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -193,7 +208,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
      * 缓存文件的时间戳
      */
     private void storeCurFileModifyTime() {
-        File[] serverDirs = taskRunCache.getServerDirs();
+        File[] serverDirs = taskRunCache.getServiceDirs();
         if (null == serverDirs || serverDirs.length <= 0) {
             return;
         }
@@ -211,7 +226,8 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
         }
         for (File serverDir : serverDirs) {
-            Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
+            Collection<File> files = FileUtils
+                    .listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
             if (!CollectionUtils.isEmpty(files)) {
                 File recordFile = getRecordFile(serverDir.getPath());
                 if (null != recordFile) {
@@ -252,7 +268,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
             }
             if (!key.reset()) {
                 logger.error("处理失败，重置错误");
-                WebSocketManager.getInstance().notice("工作空间监控异常，请重启Jarboot解决！", NoticeEnum.ERROR);
+                MessageUtils.error("工作空间监控异常，请重启Jarboot解决！");
                 break;
             }
         }
@@ -267,17 +283,18 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         //创建事件或修改事件
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-            String path = curWorkspace + File.separator + service;
+            final String path = curWorkspace + File.separator + service;
             String sid= SettingUtils.createSid(path);
             //创建或修改文件
             if (!AgentManager.getInstance().isOnline(sid)) {
                 //当前不处于正在运行的状态
                 return;
             }
-            ServerSetting setting = PropertyFileUtils.getServerSetting(path);
+            ServiceSetting setting = PropertyFileUtils.getServiceSettingByPath(path);
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && Objects.equals(sid, setting.getSid())) {
                 //启用了路径监控配置
-                modifiedServiceQueue.put(path);
+                modifiedServiceQueue.put(service);
+                NotifyReactor.getInstance().publishEvent(new ServiceFileChangeEvent());
             }
         }
         //删除事件
@@ -293,7 +310,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
 
     private boolean checkJarUpdate(String path) {
         File serverDir = new File(path);
-        Collection<File> files = FileUtils.listFiles(serverDir, CommonConst.JAR_FILE_EXT, true);
+        Collection<File> files = FileUtils.listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }
@@ -319,7 +336,7 @@ public class TaskWatchServiceImpl implements TaskWatchService {
         return updateFlag;
     }
 
-    private void doAttachRunningServer(ServerRunning server) {
+    private void doAttachRunningServer(ServiceInstance server) {
         if (AgentManager.getInstance().isOnline(server.getSid())) {
             //已经是在线状态
             return;

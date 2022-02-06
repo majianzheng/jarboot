@@ -19,7 +19,7 @@ public class ExtendCommand extends AbstractCommand {
         this.args = args;
     }
 
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S1181")
     @Override
     public void run() {
         String result = "";

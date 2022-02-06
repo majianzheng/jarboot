@@ -5,12 +5,12 @@ import com.mz.jarboot.api.cmd.annotation.Summary;
 import com.mz.jarboot.api.cmd.spi.CommandProcessor;
 import com.mz.jarboot.common.protocol.CommandConst;
 import com.mz.jarboot.common.protocol.CommandRequest;
-import com.mz.jarboot.common.protocol.CommandType;
+import com.mz.jarboot.common.utils.CommandCliParser;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.cmd.impl.*;
 import com.mz.jarboot.core.cmd.internal.*;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
@@ -22,48 +22,49 @@ import java.util.concurrent.ConcurrentHashMap;
  * Create the command instance by the command line
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S2386", "squid:S1181", "SpellCheckingInspection"})
 public class CommandBuilder {
     private static final Logger logger = LogUtils.getLogger();
-    private static final Map<String, Class<? extends AbstractCommand>> commandMap = new ConcurrentHashMap<>(32);
+    private static final Map<String, Class<? extends AbstractCommand>> CMDS = new ConcurrentHashMap<>(32);
     public static final Map<String, CommandProcessor> EXTEND_MAP = new ConcurrentHashMap<>(16);
 
     static {
-        commandMap.put("bytes", BytesCommand.class);
-        commandMap.put("jvm", JvmCommand.class);
-        commandMap.put("stdout", StdOutCommand.class);
-        commandMap.put("sysprop", SysPropCommand.class);
-        commandMap.put("dump", DumpClassCommand.class);
-        commandMap.put("heapdump", HeapDumpCommand.class);
-        commandMap.put("sysenv", SystemEnvCommand.class);
-        commandMap.put("help", HelpCommand.class);
+        CMDS.put("bytes", BytesCommand.class);
+        CMDS.put("jvm", JvmCommand.class);
+        CMDS.put("stdout", StdOutCommand.class);
+        CMDS.put("sysprop", SysPropCommand.class);
+        CMDS.put("dump", DumpClassCommand.class);
+        CMDS.put("heapdump", HeapDumpCommand.class);
+        CMDS.put("sysenv", SystemEnvCommand.class);
+        CMDS.put("help", HelpCommand.class);
 
-        commandMap.put("jad", JadCommand.class);
-        commandMap.put("classloader", ClassLoaderCommand.class);
-        commandMap.put("sc", SearchClassCommand.class);
-        commandMap.put("sm", SearchMethodCommand.class);
-        commandMap.put("ognl", OgnlCommand.class);
+        CMDS.put("jad", JadCommand.class);
+        CMDS.put("classloader", ClassLoaderCommand.class);
+        CMDS.put("sc", SearchClassCommand.class);
+        CMDS.put("sm", SearchMethodCommand.class);
+        CMDS.put("ognl", OgnlCommand.class);
 
         //资源监控类
-        commandMap.put("dashboard", DashboardCommand.class);
-        commandMap.put("thread", ThreadCommand.class);
-        commandMap.put("watch", WatchCommand.class);
-        commandMap.put("trace", TraceCommand.class);
-        commandMap.put("tt", TimeTunnelCommand.class);
-        commandMap.put("stack", StackCommand.class);
+        CMDS.put("dashboard", DashboardCommand.class);
+        CMDS.put("thread", ThreadCommand.class);
+        CMDS.put("watch", WatchCommand.class);
+        CMDS.put("trace", TraceCommand.class);
+        CMDS.put("tt", TimeTunnelCommand.class);
+        CMDS.put("stack", StackCommand.class);
         //初始化内部命令实现
-        commandMap.put(CommandConst.EXIT_CMD, ExitCommand.class);
-        commandMap.put(CommandConst.CANCEL_CMD, CancelCommand.class);
-        commandMap.put(CommandConst.HEARTBEAT, HeartbeatCommand.class);
-        commandMap.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
-        commandMap.put(CommandConst.SHUTDOWN, ShutdownCommand.class);
-        commandMap.put("close", ShutdownCommand.class);
+        CMDS.put(CommandConst.EXIT_CMD, ExitCommand.class);
+        CMDS.put(CommandConst.CANCEL_CMD, CancelCommand.class);
+        CMDS.put(CommandConst.HEARTBEAT, HeartbeatCommand.class);
+        CMDS.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
+        CMDS.put(CommandConst.SHUTDOWN, ShutdownCommand.class);
+        CMDS.put("close", ShutdownCommand.class);
         //初始化jdk的spi
         initJdkSpi();
     }
+
     private CommandBuilder(){}
-    public static AbstractCommand build(CommandRequest request, CommandCoreSession session) {
-        CommandType type = request.getCommandType();
+
+    public static AbstractCommand build(CommandRequest request, AbstractCommandSession session) {
         String commandLine = request.getCommandLine();
         int p = commandLine.indexOf(' ');
         String name;
@@ -77,8 +78,7 @@ public class CommandBuilder {
         }
         name = name.toLowerCase();
         AbstractCommand command = null;
-        Class<? extends AbstractCommand> cls = commandMap.getOrDefault(name, null);
-        String errorMsg = StringUtils.EMPTY;
+        Class<? extends AbstractCommand> cls = CMDS.getOrDefault(name, null);
         if (null == cls) {
             // 尝试从SPI加载扩展命令
             return createFromSpi(name, args, session);
@@ -89,10 +89,10 @@ public class CommandBuilder {
             //设置命令名
             command.setName(name);
             //处理命令参数
-            CommandArgsParser parser = new CommandArgsParser(args, command);
+            CommandCliParser parser = new CommandCliParser(args, command);
             parser.postConstruct();
         } catch (Throwable e) {
-            errorMsg = e.getMessage();
+            String errorMsg = e.getMessage();
             logger.error(errorMsg, e);
             if (null != command) {
                 command.printHelp();
@@ -108,9 +108,9 @@ public class CommandBuilder {
         return command;
     }
 
-    public static Map<String, String> getAllCommandDesciption() {
+    public static Map<String, String> getAllCommandDescription() {
         Map<String, String> sortedMap = new LinkedHashMap<>(16);
-        commandMap
+        CMDS
                 .entrySet()
                 .stream()
                 .filter(v -> !v.getValue().getSuperclass().equals(AbstractInternalCommand.class))
@@ -144,7 +144,7 @@ public class CommandBuilder {
         if (StringUtils.isEmpty(name)) {
             return null;
         }
-        Class<?> cls = commandMap.getOrDefault(name, null);
+        Class<?> cls = CMDS.getOrDefault(name, null);
         if (null == cls) {
             CommandProcessor p = EXTEND_MAP.getOrDefault(name, null);
             if (null != p) {
@@ -154,9 +154,9 @@ public class CommandBuilder {
         return cls;
     }
 
-    private static ExtendCommand createFromSpi(String cmd, String args, CommandCoreSession session) {
+    private static ExtendCommand createFromSpi(String cmd, String args, AbstractCommandSession session) {
         String errorMsg = "command not found.";
-        CommandProcessor processor = EXTEND_MAP.computeIfAbsent(cmd, k -> findJdkCmdSpi(k));
+        CommandProcessor processor = EXTEND_MAP.computeIfAbsent(cmd, CommandBuilder::findJdkCmdSpi);
         if (null == processor) {
             AgentServiceOperator.noticeInfo(errorMsg, session.getSessionId());
             session.end(false, errorMsg);
@@ -171,12 +171,12 @@ public class CommandBuilder {
             extendCmd = new ExtendCommand(processor);
             extendCmd.setName(cmd);
             extendCmd.setSession(session);
-            CommandArgsParser parser = new CommandArgsParser(args, processor);
+            CommandCliParser parser = new CommandCliParser(args, processor);
             parser.postConstruct();
-            extendCmd.setArgs(parser.getSplitedArgs());
+            extendCmd.setArgs(parser.getCliArgs());
             processor.postConstruct(
                     EnvironmentContext.getInstrumentation(),
-                    EnvironmentContext.getClientData().getServer());
+                    EnvironmentContext.getAgentClient().getServiceName());
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
             errorMsg = e.getMessage();
@@ -201,9 +201,7 @@ public class CommandBuilder {
 
     private static void initJdkSpi() {
         ServiceLoader<CommandProcessor> services = ServiceLoader.load(CommandProcessor.class);
-        Iterator<CommandProcessor> iter = services.iterator();
-        while (iter.hasNext()) {
-            CommandProcessor p = iter.next();
+        for (CommandProcessor p : services) {
             try {
                 Name name = p.getClass().getAnnotation(Name.class);
                 if (null != name && null != EXTEND_MAP.putIfAbsent(name.value(), p)) {

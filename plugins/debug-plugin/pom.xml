@@ -13,7 +13,9 @@
     <artifactId>debug-plugin</artifactId>
     <name>Jarboot debug plugin</name>
     <description>Jarboot debug plugin</description>
-    
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -15,9 +15,9 @@ import java.util.Map;
  *
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class ThreadView implements ResultView<ThreadModel> {
 
+    @SuppressWarnings("java:S3776")
     @Override
     public String render(ThreadModel result) {
         if (result.getThreadInfo() != null) {

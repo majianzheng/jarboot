@@ -1,6 +1,8 @@
 package com.mz.jarboot.api;
 
 import com.mz.jarboot.api.exception.JarbootRunException;
+import com.mz.jarboot.api.service.ServiceManager;
+import com.mz.jarboot.api.service.SettingService;
 
 /**
  * Jarboot Factory
@@ -8,6 +10,8 @@ import com.mz.jarboot.api.exception.JarbootRunException;
  */
 public class JarbootFactory {
     private static final String AGENT_CLASS = "com.mz.jarboot.agent.client.AgentServiceImpl";
+    private static final String SERVICE_MANAGER_CLASS = "com.mz.jarboot.client.ServiceManagerClient";
+    private static final String SETTING_CLIENT_CLASS = "com.mz.jarboot.client.SettingClient";
 
     private static Object springApplicationContext = null;
     /**
@@ -24,12 +28,50 @@ public class JarbootFactory {
         }
     }
 
+    /**
+     * 创建服务管理客户端
+     * 需要引入jarboot-client包
+     * @param host Jarboot服务地址
+     * @param user 用户名
+     * @param password 用户密码
+     * @return 服务管理客户端
+     */
+    public static ServiceManager createServiceManager(String host, String user, String password) {
+        checkHost(host);
+        try {
+            Class<?> cls = Class.forName(SERVICE_MANAGER_CLASS);
+            return (ServiceManager)cls
+                    .getConstructor(String.class, String.class, String.class)
+                    .newInstance(host, user, password);
+        } catch (Exception e) {
+            throw new JarbootRunException(e.getMessage(), e);
+        }
+    }
+
+    public static SettingService createSettingService(String host, String user, String password) {
+        checkHost(host);
+        try {
+            Class<?> cls = Class.forName(SETTING_CLIENT_CLASS);
+            return (SettingService)cls
+                    .getConstructor(String.class, String.class, String.class)
+                    .newInstance(host, user, password);
+        } catch (Exception e) {
+            throw new JarbootRunException(e.getMessage(), e);
+        }
+    }
+
     public static Object getSpringApplicationContext() {
         return springApplicationContext;
     }
 
     public static void setSpringApplicationContext(Object context) {
         springApplicationContext = context;
+    }
+
+    private static void checkHost(String host) {
+        if (null == host || host.isEmpty()) {
+            throw new JarbootRunException("host is empty!");
+        }
     }
 
     private JarbootFactory() {

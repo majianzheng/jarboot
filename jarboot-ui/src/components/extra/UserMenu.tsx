@@ -1,5 +1,5 @@
 import React, {memo, useState} from "react";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {Avatar, Menu, Popover} from "antd";
 import {CaretDownOutlined, LogoutOutlined, FormOutlined, UserOutlined} from "@ant-design/icons";
 import {useIntl} from "umi";
@@ -27,7 +27,7 @@ const UserPopMenu = memo((props: any) => {
     const onClose = () => {
         setVisible(false);
     };
-    const username = JarBootConst.currentUser.username;
+    const username = CommonConst.currentUser.username;
     return <>
         <Menu onClick={handleClick} selectedKeys={[]}
               defaultSelectedKeys={['user-title']} mode="inline"
@@ -58,7 +58,7 @@ const UserMenu = (props: UserMenuProp) => {
                     mouseLeaveDelay={0.5}
                     onVisibleChange={(visible) => setUserMenuVisible(visible)}
                     placement="bottomRight">
-        <Avatar className={props.className} alt={JarBootConst.currentUser.username} icon={icon}/>
+        <Avatar className={props.className} alt={CommonConst.currentUser.username} icon={icon}/>
         <CaretDownOutlined style={{verticalAlign: 'text-top', position: "relative", top: '-2px'}}/>
     </Popover>;
 };

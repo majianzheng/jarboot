@@ -4,7 +4,7 @@ import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.matcher.*;
 import java.util.ArrayList;
@@ -141,7 +141,7 @@ public class TraceCommand extends EnhancerCommand {
 
 
     @Override
-    protected AdviceListener getAdviceListener(CommandCoreSession process) {
+    protected AdviceListener getAdviceListener(AbstractCommandSession process) {
         if (pathPatterns == null || pathPatterns.isEmpty()) {
             return new TraceAdviceListener(this, process, GlobalOptions.verbose || this.verbose);
         } else {

@@ -4,12 +4,10 @@ import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +27,15 @@ public class TaskUtils {
     private static int maxStartTime = 12000;
     /** 任务调度线程池 */
     private static final ScheduledExecutorService TASK_EXECUTOR;
+    /** 是否使用nohup启动服务 */
+    private static final boolean USE_NOHUP;
 
     static {
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
+        USE_NOHUP = (!Boolean.getBoolean("docker") && (OSUtils.isLinux() || OSUtils.isMac()));
     }
 
     /**
@@ -54,18 +55,17 @@ public class TaskUtils {
 
     /**
      * 杀死服务进程
-     * @param server 服务名
+     * @param sid 服务sid
      */
-    public static void killServer(String server, String sid) {
+    public static void killService(String sid) {
         //先尝试向目标进程发送停止命令
-        boolean isOk = AgentManager.getInstance().killClient(server, sid);
+        boolean isOk = AgentManager.getInstance().gracefulExit(sid);
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
             if (AgentManager.getInstance().isOnline(sid)) {
-                logger.warn("未能成功退出，将执行强制杀死命令：{}", server);
-                WebSocketManager.getInstance().notice("服务" + server +
-                        "未等到退出消息，将执行强制退出命令！", NoticeEnum.WARN);
+                logger.warn("未能成功退出，将执行强制杀死命令：{}", sid);
+                MessageUtils.warn("服务(sid:" + sid + ")未等到退出消息，将执行强制退出命令！");
             }
             String pid = getPid(sid);
             if (!pid.isEmpty()) {
@@ -77,15 +77,18 @@ public class TaskUtils {
 
     /**
      * 启动服务进程
-     * @param server 服务名
      * @param setting 服务配置
      */
-    public static void startServer(String server, ServerSetting setting) {
+    public static void startService(ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
-        String serverPath = setting.getPath();
+        String serverPath = setting.getWorkspace() + File.separator + setting.getName();
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
+
+        if (USE_NOHUP) {
+            cmdBuilder.append("nohup ");
+        }
 
         // java命令
         if (StringUtils.isBlank(setting.getJdkPath())) {
@@ -112,11 +115,11 @@ public class TaskUtils {
                 .append("-noverify -Dspring.output.ansi.enabled=always")
                 .append(StringUtils.SPACE)
                 // Java agent
-                .append(SettingUtils.getAgentStartOption(server, sid))
+                .append(SettingUtils.getAgentStartOption(setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (StringUtils.isBlank(setting.getCommand())) {
             //获取启动的jar文件
-            String jar = SettingUtils.getJarPath(setting);
+            String jar = SettingUtils.getJarPath(serverPath);
             if (StringUtils.isBlank(jar)) {
                 return;
             }
@@ -144,11 +147,11 @@ public class TaskUtils {
         }
 
         //打印命令行
-        WebSocketManager.getInstance().sendConsole(sid, cmd);
+        MessageUtils.console(sid, cmd);
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServerStarted(server, sid, maxStartTime);
+        AgentManager.getInstance().waitServiceStarted(sid, maxStartTime);
     }
 
     /**
@@ -163,9 +166,9 @@ public class TaskUtils {
         Object vm = null;
         try {
             vm = VMUtils.getInstance().attachVM(pid);
-            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getAttachArgs());
+            VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getLocalhost());
         } catch (Exception e) {
-            WebSocketManager.getInstance().printException(sid, e);
+            MessageUtils.printException(sid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -237,7 +240,7 @@ public class TaskUtils {
             Runtime.getRuntime().exec(command, en, dir);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice("Start task error " + e.getMessage(), NoticeEnum.ERROR);
+            MessageUtils.error("Start task error " + e.getMessage());
         }
     }
 
@@ -276,10 +279,10 @@ public class TaskUtils {
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
+            MessageUtils.warn(e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-            WebSocketManager.getInstance().notice(e.getMessage(), NoticeEnum.WARN);
+            MessageUtils.warn(e.getMessage());
         } finally {
             if (null != p) {
                 try {

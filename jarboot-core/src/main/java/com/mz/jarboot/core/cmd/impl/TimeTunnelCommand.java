@@ -11,7 +11,7 @@ import com.mz.jarboot.core.cmd.model.RowAffectModel;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -42,7 +42,7 @@ import static java.lang.String.format;
         "  tt -s '{params[0] > 1}' -w '{params}' \n" +
         "  tt --delete-all\n" +
         CoreConstant.WIKI + CoreConstant.WIKI_HOME + "tt")
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S1181", "squid:S1192", "squid:S1141"})
 public class TimeTunnelCommand extends EnhancerCommand {
     /** 时间隧道(时间碎片的集合) */
     private static final Map<Integer, TimeFragment> timeFragmentMap = new LinkedHashMap<>();
@@ -305,13 +305,13 @@ public class TimeTunnelCommand extends EnhancerCommand {
     }
 
     @Override
-    protected AdviceListener getAdviceListener(CommandCoreSession process) {
+    protected AdviceListener getAdviceListener(AbstractCommandSession process) {
         return new com.mz.jarboot.core.cmd.impl.TimeTunnelAdviceListener(this, process,
                 GlobalOptions.verbose || this.verbose);
     }
 
-    // 展示指定记录
     private void processShow() {
+        // 展示指定记录
         RowAffect affect = new RowAffect();
         try {
             TimeFragment tf = timeFragmentMap.get(index);
@@ -363,20 +363,19 @@ public class TimeTunnelCommand extends EnhancerCommand {
         }
     }
 
-    // do search timeFragmentMap
     private void processSearch() {
+        // do search timeFragmentMap
         RowAffect affect = new RowAffect();
         try {
             // 匹配的时间片段
             Map<Integer, TimeFragment> matchingTimeSegmentMap = new LinkedHashMap<>();
             for (Map.Entry<Integer, TimeFragment> entry : timeFragmentMap.entrySet()) {
-                int index = entry.getKey();
                 TimeFragment tf = entry.getValue();
                 Advice advice = tf.getAdvice();
 
                 // 搜索出匹配的时间片段
                 if ((ExpressFactory.threadLocalExpress(advice)).is(searchExpress)) {
-                    matchingTimeSegmentMap.put(index, tf);
+                    matchingTimeSegmentMap.put(entry.getKey(), tf);
                 }
             }
 
@@ -408,8 +407,8 @@ public class TimeTunnelCommand extends EnhancerCommand {
         }
     }
 
-    // 删除指定记录
     private void processDelete() {
+        // 删除指定记录
         RowAffect affect = new RowAffect();
         if (timeFragmentMap.remove(index) != null) {
             affect.rCnt(1);
@@ -468,6 +467,7 @@ public class TimeTunnelCommand extends EnhancerCommand {
     /**
      * 重放指定记录
      */
+    @SuppressWarnings("java:S2142")
     private void processPlay() {
         TimeFragment tf = timeFragmentMap.get(index);
         if (null == tf) {

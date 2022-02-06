@@ -1,21 +1,24 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
-import {FuncCode, JarBootConst, MsgData, MsgReq} from "@/common/JarBootConst";
-import CommonNotice from "@/common/CommonNotice";
+import {FuncCode, CommonConst, MsgData, MsgReq} from "@/common/CommonConst";
 import { message } from 'antd';
 import CommonUtils from "@/common/CommonUtils";
 import { MessageType } from "antd/lib/message";
 
-enum NoticeLevel {
+enum NotifyType {
     /** 提示 */
     INFO,
-
     /** 警告 */
     WARN,
-
     /** 错误 */
-    ERROR
+    ERROR,
+    /** 控制台消息打印 */
+    CONSOLE,
+    /** 执行执行完成 */
+    COMMAND_END,
+    /** Json类型的执行结果 */
+    JSON_RESULT,
 }
 
 let msg: any = null;
@@ -70,7 +73,7 @@ class WsManager {
      * @param sid sid
      */
     public static callFunc(func: FuncCode, sid: string) {
-        const msg = {server: '', sid, body: '', func};
+        const msg = {service: '', sid, body: '', func};
         WsManager.sendMessage(msg);
     }
 
@@ -81,6 +84,10 @@ class WsManager {
     public static sendMessage(msgReq: MsgReq) {
         if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
             const text = JSON.stringify(msgReq);
+            if (text.length > 2048) {
+                Logger.error("send message exceed max length.", text);
+                return;
+            }
             WsManager.websocket.send(text);
             return;
         }
@@ -92,7 +99,6 @@ class WsManager {
      * 初始化Websocket
      */
     public static initWebsocket() {
-        WsManager.addMessageHandler(MSG_EVENT.NOTICE, WsManager.notice);
         WsManager.addMessageHandler(MSG_EVENT.GLOBAL_LOADING, WsManager.globalLoading);
         if (WsManager.websocket) {
             if (WebSocket.OPEN === WsManager.websocket.readyState ||
@@ -100,45 +106,16 @@ class WsManager {
                 return;
             }
         }
-        let url = process.env.NODE_ENV === 'development' ?
-            `ws://${window.location.hostname}:9899/jarboot/public/service/ws?token=` :
-            `ws://${window.location.host}/jarboot/public/service/ws?token=`;
-        url += CommonUtils.getRawToken();
+        const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
+        const url = process.env.NODE_ENV === 'development' ?
+            `ws://${window.location.hostname}:9899/jarboot/main/service/ws?${token}` :
+            `ws://${window.location.host}/jarboot/main/service/ws?${token}`;
         WsManager.websocket = new WebSocket(url);
         WsManager.websocket.onmessage = WsManager.onMessage;
         WsManager.websocket.onopen = WsManager.onOpen;
         WsManager.websocket.onclose = WsManager.onClose;
         WsManager.websocket.onerror = WsManager.onError;
     }
-
-    /**
-     * Notice提示事件处理
-     * @param data 消息
-     */
-    private static notice = (data: MsgData) => {
-        const body: string = data.body;
-        const index = body.indexOf(',');
-        const level = parseInt(body.substring(0, index));
-        const msg = body.substring(index + 1);
-        switch (level) {
-            case NoticeLevel.INFO:
-                CommonNotice.info(msg);
-                Logger.log(msg);
-                break;
-            case NoticeLevel.WARN:
-                CommonNotice.warn(msg);
-                Logger.warn(msg);
-                break;
-            case NoticeLevel.ERROR:
-                CommonNotice.error(msg);
-                Logger.error(msg);
-                break;
-            default:
-                CommonNotice.error(`通知级别错误${level}`, msg);
-                Logger.log('未知的通知级别', body);
-                break;
-        }
-    };
 
     /**
      * 全局Loading消息处理
@@ -149,7 +126,7 @@ class WsManager {
         if (StringUtil.isEmpty(body)) {
             return;
         }
-        const index = body.indexOf(JarBootConst.PROTOCOL_SPLIT);
+        const index = body.indexOf(CommonConst.PROTOCOL_SPLIT);
         const hasSplit = -1 === index;
         const key = hasSplit ? body : body.substring(0, index);
         const handle = WsManager.LOADING_MAP.get(key);
@@ -174,21 +151,24 @@ class WsManager {
             return;
         }
         const resp: string = e.data;
+        if ('ping' === resp) {
+            return;
+        }
         try {
-            let i = resp.indexOf(JarBootConst.PROTOCOL_SPLIT);
+            let i = resp.indexOf(CommonConst.PROTOCOL_SPLIT);
             if (-1 === i) {
                 Logger.warn(`协议错误，${resp}`);
                 return;
             }
             const sid = 0 === i ? '' : resp.substring(0, i);
-            let k = resp.indexOf(JarBootConst.PROTOCOL_SPLIT, i + 1);
+            let k = resp.indexOf(CommonConst.PROTOCOL_SPLIT, i + 1);
             if (-1 === k) {
                 Logger.warn(`协议错误，获取事件类型失败，${resp}`);
                 return;
             }
             const event = parseInt(resp.substring(i + 1, k));
             const body = resp.substring(k + 1);
-            let data: MsgData = {event, body, sid};
+            const data: MsgData = {event, body, sid};
             const handler = WsManager.HANDLERS.get(data.event);
             handler && handler(data);
         } catch (error) {
@@ -257,4 +237,4 @@ class WsManager {
     }
 }
 
-export { WsManager }
+export { WsManager, NotifyType }

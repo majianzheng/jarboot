@@ -21,6 +21,7 @@ import java.util.LinkedList;
  * cat
  * @author jianzhengma
  */
+@SuppressWarnings({"squid:S3776", "unused"})
 @Name("cat")
 @Summary("View the file content")
 @Description("Example:\n cat fileName \n cat -n fileName\n cat -n -h[head] 10 fileName\n" +
@@ -117,7 +118,6 @@ public class CatCommandProcessor implements CommandProcessor {
             session.end(false, e.getMessage());
         }
     }
-    @SuppressWarnings("all")
     private void printMiddleFile(CommandSession session, LineNumberReader lr) throws IOException {
         String[] split = this.lineNumber.split(SPLIT_CHAR);
         if (split.length == 1) {

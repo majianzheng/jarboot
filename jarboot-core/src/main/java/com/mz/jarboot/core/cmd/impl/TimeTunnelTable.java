@@ -17,9 +17,9 @@ import java.util.Map;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"java:S1192", "java:S1118"})
 public class TimeTunnelTable {
-    // 各列名称
+    /** 各列名称 */
     private static final String[] TABLE_COL_TITLE = new String[]{
             "INDEX",
             "TIMESTAMP",
@@ -45,8 +45,8 @@ public class TimeTunnelTable {
         return table;
     }
 
-    // 绘制TimeTunnel表格
     public static Element drawTimeTunnelTable(List<TimeFragmentVO> timeFragmentList, boolean withHeader){
+        // 绘制TimeTunnel表格
         TableElement table = createTable();
         if (withHeader) {
             fillTableHeader(table);
@@ -57,8 +57,8 @@ public class TimeTunnelTable {
         return table;
     }
 
-    // 填充表格行
     static TableElement fillTableRow(TableElement table, TimeFragmentVO tf) {
+        // 填充表格行
         return table.row(
                 "" + tf.getIndex(),
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(tf.getTimestamp()),

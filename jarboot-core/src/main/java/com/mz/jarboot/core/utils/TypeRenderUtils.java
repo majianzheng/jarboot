@@ -21,7 +21,6 @@ import java.util.List;
  * @author majianzheng
  * 以下代码由开源项目Arthas重构
  */
-@SuppressWarnings("all")
 public class TypeRenderUtils {
 
     public static String drawInterface(Class<?> clazz) {
@@ -32,7 +31,7 @@ public class TypeRenderUtils {
         return StringUtils.concat("\n", method.getParameterTypes());
     }
 
-    public static String drawParameters(Constructor constructor) {
+    public static String drawParameters(Constructor<?> constructor) {
         return StringUtils.concat("\n", constructor.getParameterTypes());
     }
 
@@ -48,7 +47,7 @@ public class TypeRenderUtils {
         return StringUtils.concat("\n", method.getExceptionTypes());
     }
 
-    public static String drawExceptions(Constructor constructor) {
+    public static String drawExceptions(Constructor<?> constructor) {
         return StringUtils.concat("\n", constructor.getExceptionTypes());
     }
 
@@ -115,7 +114,7 @@ public class TypeRenderUtils {
     }
 
     public static String[] getAnnotations(Annotation[] annotations) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (annotations != null && annotations.length > 0) {
             for (Annotation annotation : annotations) {
                 list.add(StringUtils.classname(annotation.annotationType()));
@@ -124,13 +123,13 @@ public class TypeRenderUtils {
         return list.toArray(new String[0]);
     }
 
-    public static String[] getInterfaces(Class clazz) {
-        Class[] interfaces = clazz.getInterfaces();
+    public static String[] getInterfaces(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
         return ClassUtils.getClassNameList(interfaces);
     }
 
-    public static String[] getSuperClass(Class clazz) {
-        List<String> list = new ArrayList<String>();
+    public static String[] getSuperClass(Class<?> clazz) {
+        List<String> list = new ArrayList<>();
         Class<?> superClass = clazz.getSuperclass();
         if (null != superClass) {
             list.add(StringUtils.classname(superClass));
@@ -145,8 +144,8 @@ public class TypeRenderUtils {
         return list.toArray(new String[0]);
     }
 
-    public static String[] getClassloader(Class clazz) {
-        List<String> list = new ArrayList<String>();
+    public static String[] getClassloader(Class<?> clazz) {
+        List<String> list = new ArrayList<>();
         ClassLoader loader = clazz.getClassLoader();
         if (null != loader) {
             list.add(loader.toString());
@@ -161,13 +160,13 @@ public class TypeRenderUtils {
         return list.toArray(new String[0]);
     }
 
-    public static FieldVO[] getFields(Class clazz) {
+    public static FieldVO[] getFields(Class<?> clazz) {
         Field[] fields = clazz.getDeclaredFields();
-        if (fields == null || fields.length == 0) {
+        if (fields.length == 0) {
             return new FieldVO[0];
         }
 
-        List<FieldVO> list = new ArrayList<FieldVO>(fields.length);
+        List<FieldVO> list = new ArrayList<>(fields.length);
         for (Field field : fields) {
             FieldVO fieldVO = new FieldVO();
             fieldVO.setName(field.getName());
@@ -185,12 +184,12 @@ public class TypeRenderUtils {
         return list.toArray(new FieldVO[0]);
     }
 
+    @SuppressWarnings({"java:CallToDeprecatedMethod", "java:S1874", "java:S3011"})
     private static Object getFieldValue(Field field) {
         final boolean isAccessible = field.isAccessible();
         try {
             field.setAccessible(true);
-            Object value = field.get(null);
-            return value;
+            return field.get(null);
         } catch (IllegalAccessException e) {
             // no op
         } finally {
@@ -199,4 +198,5 @@ public class TypeRenderUtils {
         return null;
     }
 
+    private TypeRenderUtils() {}
 }

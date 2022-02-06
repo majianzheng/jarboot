@@ -4,7 +4,7 @@ import com.mz.jarboot.api.cmd.annotation.*;
 import com.mz.jarboot.core.GlobalOptions;
 import com.mz.jarboot.core.advisor.AdviceListener;
 import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.SearchUtils;
 import com.mz.jarboot.core.utils.matcher.Matcher;
 
@@ -185,7 +185,7 @@ public class WatchCommand extends EnhancerCommand {
     }
 
     @Override
-    protected AdviceListener getAdviceListener(CommandCoreSession process) {
+    protected AdviceListener getAdviceListener(AbstractCommandSession process) {
         return new WatchAdviceListener(this, process, GlobalOptions.verbose || this.verbose);
     }
 }

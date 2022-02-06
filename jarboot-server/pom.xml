@@ -12,7 +12,10 @@
 	<name>Jarboot server</name>
 	<description>jarboot server</description>
 	<packaging>jar</packaging>
-
+	<properties>
+		<maven.install.skip>true</maven.install.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

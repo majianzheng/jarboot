@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.advisor;
 
 import com.alibaba.deps.org.objectweb.asm.Type;
+import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.utils.StringUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -11,7 +12,6 @@ import java.lang.reflect.Method;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
 public class JarbootMethod {
     private final Class<?> clazz;
     private final String methodName;
@@ -20,6 +20,7 @@ public class JarbootMethod {
     private Constructor<?> constructor;
     private Method method;
 
+    @SuppressWarnings({"java:S1181", "PMD.UndefineMagicConstantRule"})
     private void initMethod() {
         if (constructor != null || method != null) {
             return;
@@ -36,52 +37,41 @@ public class JarbootMethod {
                 final Class<?> argumentClass;
                 final Type argumentAsmType = asmType.getArgumentTypes()[index];
                 switch (argumentAsmType.getSort()) {
-                case Type.BOOLEAN: {
+                case Type.BOOLEAN:
                     argumentClass = boolean.class;
                     break;
-                }
-                case Type.CHAR: {
+                case Type.CHAR:
                     argumentClass = char.class;
                     break;
-                }
-                case Type.BYTE: {
+                case Type.BYTE:
                     argumentClass = byte.class;
                     break;
-                }
-                case Type.SHORT: {
+                case Type.SHORT:
                     argumentClass = short.class;
                     break;
-                }
-                case Type.INT: {
+                case Type.INT:
                     argumentClass = int.class;
                     break;
-                }
-                case Type.FLOAT: {
+                case Type.FLOAT:
                     argumentClass = float.class;
                     break;
-                }
-                case Type.LONG: {
+                case Type.LONG:
                     argumentClass = long.class;
                     break;
-                }
-                case Type.DOUBLE: {
+                case Type.DOUBLE:
                     argumentClass = double.class;
                     break;
-                }
-                case Type.ARRAY: {
+                case Type.ARRAY:
                     argumentClass = toClass(loader, argumentAsmType.getInternalName());
                     break;
-                }
-                case Type.VOID: {
+                case Type.VOID:
                     argumentClass = void.class;
                     break;
-                }
                 case Type.OBJECT:
                 case Type.METHOD:
-                default: {
+                default:
                     argumentClass = toClass(loader, argumentAsmType.getClassName());
                     break;
-                }
                 }
 
                 argsClasses[index] = argumentClass;
@@ -93,7 +83,7 @@ public class JarbootMethod {
                 this.method = clazz.getDeclaredMethod(methodName, argsClasses);
             }
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new JarbootRunException(e);
         }
 
     }
@@ -126,6 +116,7 @@ public class JarbootMethod {
         return "ERROR_METHOD";
     }
 
+    @SuppressWarnings("squid:CallToDeprecatedMethod")
     public boolean isAccessible() {
         initMethod();
         if (this.method != null) {

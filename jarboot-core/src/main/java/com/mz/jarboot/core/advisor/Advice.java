@@ -5,7 +5,7 @@ package com.mz.jarboot.core.advisor;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings("all")
+@SuppressWarnings("squid:S00107")
 public class Advice {
 
     private final ClassLoader loader;
@@ -103,8 +103,8 @@ public class Advice {
                 method,
                 target,
                 params,
-                null, //returnObj
-                null, //throwExp
+                null,
+                null,
                 AccessPoint.ACCESS_BEFORE.getValue()
         );
     }
@@ -122,7 +122,7 @@ public class Advice {
                 target,
                 params,
                 returnObj,
-                null, //throwExp
+                null,
                 AccessPoint.ACCESS_AFTER_RETUNING.getValue()
         );
     }
@@ -139,7 +139,7 @@ public class Advice {
                 method,
                 target,
                 params,
-                null, //returnObj
+                null,
                 throwExp,
                 AccessPoint.ACCESS_AFTER_THROWING.getValue()
         );

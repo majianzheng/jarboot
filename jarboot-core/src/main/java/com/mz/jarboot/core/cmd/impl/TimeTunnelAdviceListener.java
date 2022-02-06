@@ -6,7 +6,7 @@ import com.mz.jarboot.core.advisor.JarbootMethod;
 import com.mz.jarboot.core.cmd.express.ExpressException;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadLocalWatch;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import java.util.Date;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S4065", "squid:S5164", "squid:S1226"})
 public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
     private static final Logger logger = LogUtils.getLogger();
     private final ThreadLocal<ObjectStack> argsRef = new ThreadLocal<ObjectStack>() {
@@ -27,7 +27,7 @@ public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
     };
 
     private TimeTunnelCommand command;
-    private CommandCoreSession process;
+    private AbstractCommandSession process;
 
     /** 第一次启动标记 */
     private volatile boolean isFirst = true;
@@ -35,7 +35,7 @@ public class TimeTunnelAdviceListener extends AdviceListenerAdapter {
     /** 方法执行时间戳 */
     private final ThreadLocalWatch threadLocalWatch = new ThreadLocalWatch();
 
-    public TimeTunnelAdviceListener(TimeTunnelCommand command, CommandCoreSession process, boolean verbose) {
+    public TimeTunnelAdviceListener(TimeTunnelCommand command, AbstractCommandSession process, boolean verbose) {
         this.command = command;
         this.process = process;
         super.setVerbose(verbose);

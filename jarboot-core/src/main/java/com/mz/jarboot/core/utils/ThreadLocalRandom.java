@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * //since 1.7 //author Doug Lea
  */
 
-@SuppressWarnings("all")
+@SuppressWarnings({"all"})
 public class ThreadLocalRandom extends Random {
     private static final AtomicLong seedUniquifier = new AtomicLong();
 
@@ -130,6 +130,7 @@ public class ThreadLocalRandom extends Random {
      * The actual ThreadLocal
      */
     private static final ThreadLocal<ThreadLocalRandom> localRandom = new ThreadLocal<ThreadLocalRandom>() {
+        @Override
         protected ThreadLocalRandom initialValue() {
             return new ThreadLocalRandom();
         }
@@ -150,6 +151,7 @@ public class ThreadLocalRandom extends Random {
      * @throws UnsupportedOperationException
      *             always
      */
+    @Override
     public void setSeed(long seed) {
         if (initialized) {
             throw new UnsupportedOperationException();
@@ -157,6 +159,7 @@ public class ThreadLocalRandom extends Random {
         rnd = (seed ^ multiplier) & mask;
     }
 
+    @Override
     protected int next(int bits) {
         rnd = (rnd * multiplier + addend) & mask;
         return (int) (rnd >>> (48 - bits));

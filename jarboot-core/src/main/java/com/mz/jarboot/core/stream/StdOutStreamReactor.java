@@ -1,12 +1,18 @@
 package com.mz.jarboot.core.stream;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.common.notify.NotifyReactor;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.basic.AgentServiceOperator;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.event.StdoutAppendEvent;
 import com.mz.jarboot.core.utils.LogUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 标准输出流、错误流重定向反应器
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"squid:S106", "squid:S1181"})
 public class StdOutStreamReactor {
     private static final Logger logger = LogUtils.getLogger();
 
@@ -35,11 +41,15 @@ public class StdOutStreamReactor {
     /** 上一次的打印时间 */
     private volatile long lastStdTime = 0;
     /** 启动完成判定时间 */
-    private long startDetermineTime = 5000;
+    private final long startDetermineTime;
     /** 是否正在唤醒 */
-    private final AtomicBoolean wakeuping = new AtomicBoolean(false);
+    private final AtomicBoolean wakeup = new AtomicBoolean(false);
     /** 监控终端输出的定时任务，负责判定是否启动完成 */
     private ScheduledFuture<?> watchFuture;
+    /** std文件输出 */
+    private FileOutputStream stdoutFileStream = null;
+    /** std事件订阅 */
+    private final Subscriber<StdoutAppendEvent> subscriber;
 
     /**
      * 标准输出流显示是否开启
@@ -66,7 +76,7 @@ public class StdOutStreamReactor {
         //启动监控线程，监控间隔2秒
         final long delay = 2;
         watchFuture = EnvironmentContext
-                .getScheduledExecutorService()
+                .getScheduledExecutor()
                 .scheduleWithFixedDelay(this::determineStarted, delay, delay, TimeUnit.SECONDS);
     }
 
@@ -81,17 +91,22 @@ public class StdOutStreamReactor {
             }
             System.setOut(stdOutPrintStream);
             System.setErr(stdOutPrintStream);
+            if (this.isStdoutFileAlways()) {
+                this.openStdoutFileStream();
+            }
             this.isOn = true;
         } else {
             if (this.isOn) {
                 //恢复默认
                 System.setErr(defaultErr);
                 System.setOut(defaultOut);
+                this.closeStdFileStreamQuietly();
                 this.isOn = false;
             }
         }
     }
 
+    @SuppressWarnings("java:S3011")
     private void enableAnsiLogColor() {
         try {
             Class<?> cls = Class.forName("com.mz.jarboot.common.AnsiLog");
@@ -108,7 +123,7 @@ public class StdOutStreamReactor {
      * @param text 文本
      */
     private void stdStartingPrint(String text) {
-        ResultStreamDistributor.stdPrint(text);
+        this.stdPrint(text);
         //更新计时
         lastStdTime = System.currentTimeMillis();
     }
@@ -123,7 +138,26 @@ public class StdOutStreamReactor {
         defaultOut = System.out;
         defaultErr = System.err;
         stdOutPrintStream = new PrintStream(consoleOutputStream, true);
+        subscriber = new Subscriber<StdoutAppendEvent>() {
+            @Override
+            public void onEvent(StdoutAppendEvent event) {
+                if (null != stdoutFileStream) {
+                    try {
+                        stdoutFileStream.write(event.getText().getBytes());
+                    } catch (Exception e) {
+                        logger.debug("write stdout file failed, will close stdout file.", e);
+                        closeStdFileStreamQuietly();
+                    }
+                }
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return StdoutAppendEvent.class;
+            }
+        };
         this.init();
+        this.openStdoutFileStream();
         this.enableAnsiLogColor();
     }
 
@@ -131,19 +165,68 @@ public class StdOutStreamReactor {
      * 懒加载，私有内部类模式单例
      */
     private static class StdOutStreamReactorHolder {
-        static StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
+        static final StdOutStreamReactor INSTANCE = new StdOutStreamReactor();
+    }
+
+    private void openStdoutFileStream() {
+        //先关闭旧文件
+        this.closeStdFileStreamQuietly();
+        String fileName = System.getProperty(CoreConstant.STD_OUT_FILE);
+        if (StringUtils.isEmpty(fileName)) {
+            return;
+        }
+        File file = new File(fileName);
+        try {
+            if (file.exists()) {
+                if (!file.isFile()) {
+                    logger.warn("stdout file {} is exists and is not a file!", fileName);
+                    return;
+                }
+                FileUtils.deleteQuietly(file);
+            }
+            if (!file.createNewFile()) {
+                logger.error("create stdout file failed. file: {}", fileName);
+                return;
+            }
+            stdoutFileStream = new FileOutputStream(file);
+            NotifyReactor.getInstance().registerSubscriber(this.subscriber);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
+        }
     }
 
     /**
      * 初始化
      */
     private void init() {
+
         // 输出不满一行的字符串
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //退格
-        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor::stdBackspace);
+        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor.getInstance()::stdBackspace);
         //默认开启
         this.enabled(true);
+    }
+
+    private void stdPrint(String text) {
+        NotifyReactor.getInstance().publishEvent(new StdoutAppendEvent(text));
+    }
+
+    private void closeStdFileStreamQuietly() {
+        if (null != stdoutFileStream) {
+            try {
+                stdoutFileStream.close();
+            } catch (Exception e) {
+                //ignore
+            } finally {
+                stdoutFileStream = null;
+                NotifyReactor.getInstance().deregisterSubscriber(this.subscriber);
+            }
+        }
+    }
+
+    private boolean isStdoutFileAlways() {
+        return Boolean.getBoolean(CoreConstant.STD_OUT_FILE_ALWAYS);
     }
 
     /**
@@ -151,13 +234,13 @@ public class StdOutStreamReactor {
      */
     private void onWakeup() {
         //io唤醒机制，当IO第一次变动时，等待一段时间后触发刷新，忽视等待期间的事件，然后开始新的一轮
-        //检查是否正在等待weakup
-        if (wakeuping.compareAndSet(false, true)) {
+        //检查是否正在等待wakeup
+        if (wakeup.compareAndSet(false, true)) {
             return;
         }
         //启动延时任务，防抖动设计，忽视中间变化
         EnvironmentContext
-                .getScheduledExecutorService()
+                .getScheduledExecutor()
                 .schedule(this::flush, WAIT_TIME, TimeUnit.MILLISECONDS);
     }
 
@@ -165,8 +248,8 @@ public class StdOutStreamReactor {
      * IO刷新
      */
     private void flush() {
-        //CAS判定，只有启动了weakup延迟后才可刷新
-        if (wakeuping.compareAndSet(true, false)) {
+        //CAS判定，只有启动了wakeup延迟后才可刷新
+        if (wakeup.compareAndSet(true, false)) {
             stdOutPrintStream.flush();
         }
     }
@@ -179,7 +262,7 @@ public class StdOutStreamReactor {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功
-        consoleOutputStream.setPrintHandler(ResultStreamDistributor::stdPrint);
+        consoleOutputStream.setPrintHandler(this::stdPrint);
         //通知Jarboot server启动完成
         try {
             AgentServiceOperator.setStarted();
@@ -190,6 +273,9 @@ public class StdOutStreamReactor {
                 //启动完成，取消计划任务
                 watchFuture.cancel(true);
                 watchFuture = null;
+            }
+            if (!this.isStdoutFileAlways()) {
+                this.closeStdFileStreamQuietly();
             }
         }
     }

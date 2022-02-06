@@ -1,6 +1,6 @@
 import React, {memo, useEffect, useState} from "react";
 import { useIntl } from 'umi';
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import CommonNotice from "@/common/CommonNotice";
 import ErrorUtil from "@/common/ErrorUtil";
 import PrivilegeService from "@/services/PrivilegeService";
@@ -14,7 +14,7 @@ import {Col, Menu, Row, Card, Tree} from "antd";
 const PrivilegeMgr = memo(() => {
     const intl = useIntl();
     let [loading, setLoading] = useState(true);
-    let [selected, setSelected] = useState(JarBootConst.ADMIN_ROLE);
+    let [selected, setSelected] = useState(CommonConst.ADMIN_ROLE);
     let [data, setData] = useState([] as any[]);
     let [permissionTree, setPermissionTree] = useState([] as any[]);
     let [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -28,7 +28,7 @@ const PrivilegeMgr = memo(() => {
     };
 
     const onCheck = (checkedKeysValue: any, info: any) => {
-        if (JarBootConst.ADMIN_ROLE === selected) {
+        if (CommonConst.ADMIN_ROLE === selected) {
             // 内置角色权限，不可修改
             CommonNotice.info("ADMIN_ROLE can not modify!");
             return;
@@ -75,13 +75,13 @@ const PrivilegeMgr = memo(() => {
         setExpandedKeys([tree[0].key]);
         // 获取角色的权限
         permissionTree = tree;
-        queryPermission(JarBootConst.ADMIN_ROLE);
+        queryPermission(CommonConst.ADMIN_ROLE);
     };
 
-    const queryPermission = (role: string = JarBootConst.ADMIN_ROLE) => {
+    const queryPermission = (role: string = CommonConst.ADMIN_ROLE) => {
         setLoading(true);
         let treeSelect: any = [];
-        if (JarBootConst.ADMIN_ROLE === role) {
+        if (CommonConst.ADMIN_ROLE === role) {
             // ADMIN_ROLE 拥有所有权限
             permissionTree.forEach(node => {
                 treeSelect.push(node.key);
@@ -138,7 +138,7 @@ const PrivilegeMgr = memo(() => {
     };
 
     return <Row>
-        <Col span={6} style={{height: (JarBootConst.PANEL_HEIGHT - 66), overflowY: "auto"}}>
+        <Col span={6} style={{height: (CommonConst.PANEL_HEIGHT - 66), overflowY: "auto"}}>
             <Menu selectedKeys={[selected]} mode="inline" onClick={onSelect}>
                 <Menu.ItemGroup title={<span>
                     <span>{intl.formatMessage({id: 'ROLE'})}</span>
@@ -151,7 +151,7 @@ const PrivilegeMgr = memo(() => {
         <Col span={18}>
             <Card title={intl.formatMessage({id: 'PERMISSION_CONTROL_TITLE'})}
                   size={"small"} bordered={false} loading={loading}>
-                <div style={{height: (JarBootConst.PANEL_HEIGHT - 60), overflowY: "auto"}}>
+                <div style={{height: (CommonConst.PANEL_HEIGHT - 60), overflowY: "auto"}}>
                     <Tree checkable
                           onExpand={onExpand}
                           expandedKeys={expandedKeys}

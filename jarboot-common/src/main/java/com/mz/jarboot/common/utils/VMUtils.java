@@ -16,7 +16,7 @@ import java.util.Map;
  * VM操作，为了兼容多种jdk版本的编译，使用了反射的方式
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"PMD.ClassNamingShouldBeCamelRule"})
 public class VMUtils {
     /** attach方法 */
     private Method attach;
@@ -71,7 +71,7 @@ public class VMUtils {
      * @return VM实例列表 <pid, command>
      */
     public Map<String, String> listVM() {
-        HashMap<String, String> vmMap = new HashMap<>();
+        HashMap<String, String> vmMap = new HashMap<>(16);
         List<?> list;
         try {
             list = (List<?>) listVM.invoke(null);
@@ -107,6 +107,7 @@ public class VMUtils {
         return null != listVM;
     }
 
+    @SuppressWarnings("java:S2095")
     private void init() {
         final String vmClassName = "com.sun.tools.attach.VirtualMachine";
         final String vmdClassName = "com.sun.tools.attach.VirtualMachineDescriptor";
@@ -118,11 +119,11 @@ public class VMUtils {
         } catch (ClassNotFoundException e) {
             //ignore
         }
-        try {// NOSONAR
+        try {
             if (null == vmClass || null == vmdClass) {
                 //当前可能是用jre在运行，尝试加载tools.jar
                 URL url = getVMToolsUrl();
-                URLClassLoader classLoader = new URLClassLoader(new URL[]{url});// NOSONAR
+                URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
                 vmClass = classLoader.loadClass(vmClassName);
                 vmdClass = classLoader.loadClass(vmdClassName);
             }

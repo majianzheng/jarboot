@@ -20,7 +20,7 @@ public class ArrayUtils {
      * @return a {@code long} array, {@code null} if null array input
      * @throws NullPointerException if array content is {@code null}
      */
-    @SuppressWarnings("all")
+    @SuppressWarnings({"UnnecessaryUnboxing", "SingleStatementInBlock", "squid:S1168"})
     public static long[] toPrimitive(final Long[] array) {
         if (array == null) {
             return null;

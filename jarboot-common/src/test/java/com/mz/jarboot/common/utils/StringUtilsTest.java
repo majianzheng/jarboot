@@ -10,19 +10,18 @@ import java.util.*;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class StringUtilsTest {
     @Rule public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testHumanReadableByteCount() {
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1023L), "1023 B");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L), "1.0 KiB");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L * 1024L), "1.0 MiB");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L * 1024L - 100), "1023.9 KiB");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L * 1024 * 1024L), "1.0 GiB");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L * 1024 * 1024 * 1024L), "1.0 TiB");
-        Assert.assertEquals(StringUtils.humanReadableByteCount(1024L * 1024 * 1024 * 1024 * 1024), "1.0 PiB");
+        Assert.assertEquals("1023 B", StringUtils.humanReadableByteCount(1023L));
+        Assert.assertEquals("1.0 KiB", StringUtils.humanReadableByteCount(1024L));
+        Assert.assertEquals("1.0 MiB", StringUtils.humanReadableByteCount(1024L * 1024L));
+        Assert.assertEquals("1023.9 KiB", StringUtils.humanReadableByteCount(1024L * 1024L - 100));
+        Assert.assertEquals("1.0 GiB", StringUtils.humanReadableByteCount(1024L * 1024 * 1024L));
+        Assert.assertEquals("1.0 TiB", StringUtils.humanReadableByteCount(1024L * 1024 * 1024 * 1024L));
+        Assert.assertEquals("1.0 PiB", StringUtils.humanReadableByteCount(1024L * 1024 * 1024 * 1024 * 1024));
     }
 
     @Test
@@ -35,7 +34,7 @@ public class StringUtilsTest {
 
     @Test
     public void testCommaDelimitedListToSet() {
-        TreeSet set = new TreeSet();
+        TreeSet<String> set = new TreeSet<>();
         set.add("foo");
         Assert.assertEquals(set, StringUtils.commaDelimitedListToSet("foo"));
     }
@@ -234,9 +233,9 @@ public class StringUtilsTest {
 
     @Test
     public void testSplit() {
-        Assert.assertNull(StringUtils.split("AAAAAAA@@", "AAAAAAAA"));
-        Assert.assertNull(StringUtils.split("@", ""));
-        Assert.assertNull(StringUtils.split("", "AAAAAAAA"));
+        Assert.assertNotNull(StringUtils.split("AAAAAAA@@", "AAAAAAAA"));
+        Assert.assertNotNull(StringUtils.split("@", ""));
+        Assert.assertNotNull(StringUtils.split("", "AAAAAAAA"));
         Assert.assertArrayEquals(new String[] {"", ""}, StringUtils.split("A", "A"));
         Assert.assertArrayEquals(new String[] {"foo", "foo"}, StringUtils.split("foo,foo", ","));
     }
@@ -318,12 +317,11 @@ public class StringUtilsTest {
 
     @Test
     public void testToStringArray() {
-        final Collection<String> collection = null;
-        final ArrayList<String> arrayList = new ArrayList<String>();
-        final ArrayList<String> arrayList2 = new ArrayList<String>();
+        final ArrayList<String> arrayList = new ArrayList<>();
+        final ArrayList<String> arrayList2 = new ArrayList<>();
         arrayList2.add("foo");
 
-        Assert.assertNull(StringUtils.toStringArray(collection));
+        Assert.assertNull(StringUtils.toStringArray(null));
         Assert.assertArrayEquals(new String[] {}, StringUtils.toStringArray(arrayList));
         Assert.assertArrayEquals(new String[] {"foo"}, StringUtils.toStringArray(arrayList2));
     }
@@ -407,5 +405,12 @@ public class StringUtilsTest {
     @Test
     public void testClassLoaderHash() {
         Assert.assertEquals("null", StringUtils.classLoaderHash(null));
+    }
+
+    @Test
+    public void testRandomString() {
+        String str = StringUtils.randomString(5);
+        Assert.assertNotNull(str);
+        Assert.assertEquals(5, str.length());
     }
 }

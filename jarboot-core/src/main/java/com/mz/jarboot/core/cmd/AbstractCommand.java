@@ -3,7 +3,7 @@ package com.mz.jarboot.core.cmd;
 import com.mz.jarboot.api.cmd.annotation.Description;
 import com.mz.jarboot.api.cmd.annotation.Name;
 import com.mz.jarboot.api.cmd.annotation.Summary;
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 import com.mz.jarboot.core.session.Completion;
 import com.mz.jarboot.common.utils.StringUtils;
 
@@ -13,7 +13,7 @@ import com.mz.jarboot.common.utils.StringUtils;
  */
 public abstract class AbstractCommand {
     protected String name = StringUtils.EMPTY;
-    protected CommandCoreSession session;
+    protected AbstractCommandSession session;
 
     /**
      * 命令是否执行中
@@ -35,11 +35,11 @@ public abstract class AbstractCommand {
         return name;
     }
 
-    public void setSession(CommandCoreSession session) {
+    public void setSession(AbstractCommandSession session) {
         this.session = session;
     }
 
-    public CommandCoreSession getSession() {
+    public AbstractCommandSession getSession() {
         return session;
     }
 

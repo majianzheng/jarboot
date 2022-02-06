@@ -1,7 +1,7 @@
 package com.mz.jarboot.common.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mz.jarboot.common.AgentClientPojo;
+import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.AnsiLog;
 import org.junit.Test;
 
@@ -23,9 +23,9 @@ public class JsonUtilsTest {
     @Test
     public void testReadValue() {
         String content = "{\"resultCode\":-1,\"resultMsg\":null,\"total\":null,\"clientAddr\":\"192.168.1.100\"," +
-                "\"local\":null,\"server\":null,\"sid\":\"test-sid\"," +
+                "\"local\":null,\"serviceName\":null,\"sid\":\"test-sid\"," +
                 "\"host\":\"192.168.1.101:9899\",\"diagnose\":true}";
-        AgentClientPojo obj = JsonUtils.readValue(content, AgentClientPojo.class);
+        AgentClient obj = JsonUtils.readValue(content, AgentClient.class);
         assertNotNull(obj);
         assertEquals("192.168.1.101:9899", obj.getHost());
         assertEquals("test-sid", obj.getSid());
@@ -35,7 +35,7 @@ public class JsonUtilsTest {
 
     @Test
     public void testToJsonString() {
-        AgentClientPojo obj = new AgentClientPojo();
+        AgentClient obj = new AgentClient();
         obj.setDiagnose(true);
         obj.setHost("192.168.1.101:9899");
         obj.setClientAddr("192.168.1.100");
@@ -45,7 +45,7 @@ public class JsonUtilsTest {
         assertNotNull(content);
         assertFalse(content.isEmpty());
         AnsiLog.info(content);
-        obj = JsonUtils.readValue(content, AgentClientPojo.class);
+        obj = JsonUtils.readValue(content, AgentClient.class);
         assertNotNull(obj);
         assertEquals("192.168.1.100", obj.getClientAddr());
     }

@@ -8,11 +8,11 @@ import {WsManager} from "@/common/WsManager";
 import { useIntl, getLocale } from 'umi';
 import OAuthService from "@/services/OAuthService";
 import CommonNotice from "@/common/CommonNotice";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import StringUtil from "@/common/StringUtil";
 import {SelectLang, UserMenu, ProjectHome, JarbootVersion} from "@/components/extra";
 import CommonUtils from "@/common/CommonUtils";
-import ServerMgrView, {OnlineDebugView} from "@/components/servers";
+import ServiceManagerView, {OnlineDebugView} from "@/components/servers";
 import {Setting} from "@/components/setting";
 import AuthControl from "@/components/auth";
 
@@ -29,7 +29,7 @@ const TabPanes = memo((props: any) => {
                  tabBarExtraContent={props.extra}
                  style={{margin: '0 5px 0 5px'}}>
         <TabPane key={'0'} tab={intl.formatMessage({id: 'SERVICES_MGR'})}>
-            <ServerMgrView/>
+            <ServiceManagerView/>
         </TabPane>
         <TabPane key={'8'} tab={intl.formatMessage({id: 'ONLINE_DEBUG'})}>
             <OnlineDebugView/>
@@ -74,7 +74,7 @@ const index = memo(() => {
                 CommonUtils.loginPage();
                 return;
             }
-            JarBootConst.currentUser = resp.result;
+            CommonConst.currentUser = resp.result;
             welcome();
         }).catch(CommonNotice.errorFormatted);
     }, []);
@@ -85,7 +85,7 @@ const index = memo(() => {
 
     const rightExtra = <div className={styles.rightExtra}>
         <JarbootVersion/>
-        <Button type={"text"} href={JarBootConst.DOCS_URL}
+        <Button type={"text"} href={CommonConst.DOCS_URL}
                 style={{top: '-5px'}} target={"_blank"}>
             {intl.formatMessage({id: 'MENU_DOCS'})}
         </Button>

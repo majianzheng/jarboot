@@ -1,7 +1,7 @@
 package com.mz.jarboot.common.utils;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.ResultCodeConst;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import org.apache.commons.io.FileUtils;
 
 import java.awt.*;
@@ -16,9 +16,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * 以下代码，有一部分摘自开源项目Arthas
+ * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"unused", "java:S3776", "PMD.UndefineMagicConstantRule", "PMD.ClassNamingShouldBeCamelRule"})
 public class OSUtils {
     private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
     private static final String OPERATING_SYSTEM_ARCH = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
@@ -97,7 +97,7 @@ public class OSUtils {
      * @return 路径下的配置
      */
     public static Map<String, String> readRegistryNode(String nodePath) {
-        Map<String, String> regMap = new HashMap<>();
+        Map<String, String> regMap = new HashMap<>(16);
         try {
             Process process = Runtime.getRuntime().exec(new String[] {"reg", "query", nodePath});
             process.getOutputStream().close();
@@ -126,11 +126,13 @@ public class OSUtils {
      * @param url 地址
      */
     public static void browse(String url) {
-        if (OSUtils.isWindows()) {// windows
+        if (OSUtils.isWindows()) {
+            // windows
             browseInWindows(url);
             return;
         }
-        if (OSUtils.isMac()) {// Mac
+        if (OSUtils.isMac()) {
+            // Mac
             try {
                 Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
                 Method openURL = fileMgr.getDeclaredMethod("openURL", String.class);
@@ -144,7 +146,7 @@ public class OSUtils {
         String[] browsers = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
         String browser = null;
         try {
-            for (int count = 0; count < browsers.length && browser == null; count++) { // 执行代码，在brower有值后跳出，
+            for (int count = 0; count < browsers.length && browser == null; count++) {
                 // 这里是如果进程创建成功了，==0是表示正常结束。
                 if (Runtime.getRuntime().exec(new String[]{"which", browsers[count]}).waitFor() == 0) {
                     browser = browsers[count];

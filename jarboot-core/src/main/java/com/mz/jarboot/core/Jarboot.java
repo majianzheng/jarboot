@@ -2,6 +2,7 @@ package com.mz.jarboot.core;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.core.constant.CoreConstant;
@@ -24,7 +25,6 @@ public class Jarboot {
     private static final String HOST_ARG = "host";
     private static final String CMD_ARG = "command";
     private static final String OPTION_PRE = "-";
-    private static final String JARBOOT_HOST_ENV = "JARBOOT_HOST";
 
     /** Jarboot 服务地址 */
     private String host = "127.0.0.1:9899";
@@ -48,7 +48,7 @@ public class Jarboot {
     private Jarboot(String [] args) {
         this.args = args;
         initJarbootHome();
-        String hostEnv = System.getenv(JARBOOT_HOST_ENV);
+        String hostEnv = System.getenv(CommonConst.JARBOOT_HOST_ENV);
         if (!StringUtils.isEmpty(hostEnv)) {
             this.host = hostEnv;
         }
@@ -168,22 +168,16 @@ public class Jarboot {
         if (notInitialized) {
             return;
         }
-        String banner = AnsiLog.enableColor() ? colorBanner()
-              : "     ,--.               ,--.                   ,--.   \n" +
-                "     |  | ,--,--.,--.--.|  |-.  ,---.  ,---. ,-'  '-. \n" +
-                ",--. |  |' ,-.  ||  .--'| .-. '| .-. || .-. |'-.  .-' \n" +
-                "|  '-'  /\\ '-'  ||  |   | `-' |' '-' '' '-' '  |  |   \n" +
-                " `-----'  `--`--'`--'    `---'  `---'  `---'   `--'   ";
-        AnsiLog.println(banner);
+        BannerUtils.print();
         if (Boolean.TRUE.equals(this.help)) {
             //打印帮助
             printHelp();
             return;
         }
         AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
-        String url = String.format("http://%s/api/jarboot/cloud/version", host);
+        String url = CommonConst.HTTP + host + CommonConst.CLOUD_CONTEXT + "/version";
         try {
-            String version = HttpUtils.getJson(url, String.class);
+            String version = HttpUtils.getString(url);
             AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
         } catch (Exception e) {
             AnsiLog.error(e);
@@ -320,7 +314,7 @@ public class Jarboot {
     }
 
     private void printHomePage() {
-        String url = String.format("http://%s/jarboot/index.html", host);
+        String url = CommonConst.HTTP + host + "/jarboot/index.html";
         AnsiLog.println("Visit online diagnose: {}", AnsiLog.blue(url));
     }
 
@@ -330,7 +324,7 @@ public class Jarboot {
         sb
                 .append("Help: \n")
                 .append("The jarboot host default form environment variable: `")
-                .append(AnsiLog.cyan(JARBOOT_HOST_ENV))
+                .append(AnsiLog.cyan(CommonConst.JARBOOT_HOST_ENV))
                 .append("`, if none will use `127.0.0.1:9899`.\nAnd you can also use `-h` or `--host` pass it.\n")
                 .append("Attach process:\nUsage: ")
                 .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -pid [eg: 6868]"))
@@ -352,13 +346,5 @@ public class Jarboot {
         ;
         AnsiLog.println(sb.toString());
         printHomePage();
-    }
-
-    private String colorBanner() {
-        return          "\033[31m     ,--.\033[0m\033[32m        \033[0m\033[33m       \033[0m\033[34m,--.   \033[0m\033[35m       \033[0m\033[36m       \033[0m\033[31m  ,--.   \033[0m\n" +
-                        "\033[31m     |  |\033[0m\033[32m ,--,--.\033[0m\033[33m,--.--.\033[0m\033[34m|  |-. \033[0m\033[35m ,---. \033[0m\033[36m ,---. \033[0m\033[31m,-'  '-. \033[0m\n" +
-                        "\033[31m,--. |  |\033[0m\033[32m' ,-.  |\033[0m\033[33m|  .--'\033[0m\033[34m| .-. '\033[0m\033[35m| .-. |\033[0m\033[36m| .-. |\033[0m\033[31m'-.  .-' \033[0m\n" +
-                        "\033[31m|  '-'  /\033[0m\033[32m\\ '-'  |\033[0m\033[33m|  |  \033[0m\033[34m | `-' |\033[0m\033[35m' '-' '\033[0m\033[36m' '-' '\033[0m\033[31m  |  |   \033[0m\n" +
-                        "\033[31m `-----' \033[0m\033[32m `--`--'\033[0m\033[33m`--'   \033[0m\033[34m `---' \033[0m\033[35m `---' \033[0m\033[36m `---' \033[0m\033[31m  `--'   \033[0m\n";
     }
 }

@@ -1,18 +1,20 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.event.NoticeEnum;
-import com.mz.jarboot.event.WsEventEnum;
+import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
 import com.mz.jarboot.security.JwtTokenManager;
+import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
-import com.mz.jarboot.ws.WebSocketManager;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +31,7 @@ import java.util.Base64;
 /**
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/cloud")
+@RequestMapping(value = CommonConst.CLOUD_CONTEXT)
 @Controller
 public class CloudController {
     @Value("${docker:false}")
@@ -44,35 +46,31 @@ public class CloudController {
     @GetMapping(value="/version")
     @ResponseBody
     public String getVersion() {
-        String results = "v" + VersionUtils.version;
-        if (isInDocker) {
-            results += "(Docker)";
-        }
-        return results;
+        return VersionUtils.version;
+    }
+
+    @GetMapping(value="/checkInDocker")
+    @ResponseBody
+    public Boolean checkInDocker() {
+        return isInDocker;
     }
 
     /**
      * 拉取服务目录
      * @param name 服务名
-     * @param token token认证
      * @param response Servlet response
      * @throws IOException IO 异常
      */
     @GetMapping(value="/pull/server")
     public void pullServerDirectory(HttpServletRequest request,
                                     @RequestParam String name,
-                                    @RequestParam(required = false) String token,
                                     HttpServletResponse response) throws IOException {
-        //token校验
-        if (StringUtils.isEmpty(token)) {
-            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        }
-        jwtTokenManager.validateToken(token);
+        validateToken(request);
 
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
         }
-        File dir = FileUtils.getFile(SettingUtils.getServerPath(name));
+        File dir = FileUtils.getFile(SettingUtils.getServicePath(name));
         if (!dir.exists()) {
             response.sendError(404, "服务不存在！" + name);
             return;
@@ -94,9 +92,11 @@ public class CloudController {
     @ResponseBody
     public ResponseSimple pushServerDirectory(HttpServletRequest request,
                                               @RequestParam("file") MultipartFile file) {
-        //token校验
-        String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        jwtTokenManager.validateToken(token);
+        if (jwtTokenManager.getEnabled()) {
+            //token校验
+            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            jwtTokenManager.validateToken(token);
+        }
         //临时目录，用于操作ZIP文件
         String filename = file.getOriginalFilename();
         String name = StringUtils.stripEnd(filename, ".zip");
@@ -125,13 +125,13 @@ public class CloudController {
             if (!out.exists()) {
                 FileUtils.forceMkdir(out);
             }
-            WebSocketManager.getInstance().globalLoading(id, "上传成功，开始解压缩...");
+            MessageUtils.globalLoading(id, "上传成功，开始解压缩...");
             //解压ZIP压缩文件
             ZipUtils.unZip(zipFie, out);
             File[] dirs = out.listFiles();
             //必须保证解压后仅有一个文件夹
             if (null == dirs || 1 != dirs.length || !dirs[0].isDirectory()) {
-                WebSocketManager.getInstance().notice("压缩文件中应当仅有一个文件夹！", NoticeEnum.INFO);
+                MessageUtils.info("压缩文件中应当仅有一个文件夹！");
                 return;
             }
             //解压后的文件夹
@@ -144,27 +144,26 @@ public class CloudController {
             if (isExist) {
                 String sid = SettingUtils.createSid(dest.getPath());
                 if (AgentManager.getInstance().isOnline(sid)) {
-                    WebSocketManager.getInstance().notice(name + " 正在运行，请先停止再导入！", NoticeEnum.INFO);
+                    MessageUtils.info(name + " 正在运行，请先停止再导入！");
                     return;
                 }
-                WebSocketManager.getInstance().globalLoading(id, name + " 已存在，正在清除原目录...");
+                MessageUtils.globalLoading(id, name + " 已存在，正在清除原目录...");
                 //先删除
                 FileUtils.deleteDirectory(dest);
             }
             //移动到工作空间目录
-            WebSocketManager.getInstance().globalLoading(id, name + " 解压完成，开始拷贝...");
+            MessageUtils.globalLoading(id, name + " 解压完成，开始拷贝...");
             FileUtils.copyDirectory(dir, dest);
-            WebSocketManager.getInstance().globalLoading(id, name + " 推送完成！");
+            MessageUtils.globalLoading(id, name + " 推送完成！");
             //通知前端刷新列表
             if (isExist) {
-                WebSocketManager.getInstance().notice(name + " 更新成功！", NoticeEnum.INFO);
+                MessageUtils.info(name + " 更新成功！");
             } else {
-                WebSocketManager.getInstance().publishGlobalEvent(StringUtils.SPACE,
-                        StringUtils.EMPTY, WsEventEnum.WORKSPACE_CHANGE);
-                WebSocketManager.getInstance().notice("推送成功，新增服务 " + name, NoticeEnum.INFO);
+                MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+                MessageUtils.info("推送成功，新增服务 " + name);
             }
         } catch (Exception e) {
-            WebSocketManager.getInstance().notice("推送失败！" + e.getMessage(), NoticeEnum.ERROR);
+            MessageUtils.error("推送失败！" + e.getMessage());
         } finally {
             //最终清理临时目录
             try {
@@ -172,26 +171,20 @@ public class CloudController {
             } catch (Exception e) {
                 //ignore
             }
-            WebSocketManager.getInstance().globalLoading(id, StringUtils.EMPTY);
+            MessageUtils.globalLoading(id, StringUtils.EMPTY);
         }
     }
 
     /**
      * 从服务器下载文件
      * @param file base64编码的文件全路径名
-     * @param token token认证
      * @param response Servlet response
      */
     @GetMapping(value="/download/{file}")
     public void download(HttpServletRequest request,
                          @PathVariable("file") String file,
-                         @RequestParam(required = false) String token,
                          HttpServletResponse response) throws IOException {
-        if (StringUtils.isEmpty(token)) {
-            token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        }
-        //token校验
-        jwtTokenManager.validateToken(token);
+        validateToken(request);
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);
@@ -210,6 +203,17 @@ public class CloudController {
                 outputStream.write(buff, 0, len);
             }
             outputStream.flush();
+        }
+    }
+
+    private void validateToken(HttpServletRequest request) {
+        if (jwtTokenManager.getEnabled()) {
+            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+            //token校验
+            if (StringUtils.isEmpty(token)) {
+                token = request.getParameter(AuthConst.ACCESS_TOKEN);
+            }
+            jwtTokenManager.validateToken(token);
         }
     }
 

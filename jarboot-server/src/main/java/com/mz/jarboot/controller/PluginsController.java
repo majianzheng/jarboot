@@ -1,8 +1,9 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.ResponseForList;
-import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.api.pojo.PluginInfo;
 import com.mz.jarboot.service.PluginsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
  * 插件管理
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/plugins")
+@RequestMapping(value = CommonConst.PLUGINS_CONTEXT)
 @RestController
 @Permission
 public class PluginsController {

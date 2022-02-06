@@ -1,10 +1,17 @@
 package com.mz.jarboot.common.protocol;
 
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.common.utils.StringUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 /**
  * We defined a response data structure or protocol used give back the executed result.
  * @author majianzheng
  */
-public class CommandResponse implements CmdProtocol {
+public class CommandResponse implements CmdProtocol, JarbootEvent {
     private Boolean success;
     private ResponseType responseType = ResponseType.UNKNOWN;
     private String body;
@@ -15,39 +22,52 @@ public class CommandResponse implements CmdProtocol {
      * @return The data which to send by network.
      */
     @Override
-    public String toRaw() {
+    public byte[] toRaw() {
         //控制位 0 响应类型、1 是否成功、2保留填-
-        char cb = this.responseType.value();
+        byte cb = this.responseType.value();
         if (Boolean.TRUE.equals(success)) {
-            cb = (char)(cb | CommandConst.SUCCESS_FLAG);
+            cb = (byte)(cb | CommandConst.SUCCESS_FLAG);
         }
-        if (null == sessionId || sessionId.isEmpty()) {
-            sessionId = CommandConst.SESSION_COMMON;
+        byte[] buf = null;
+        try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream(1024)) {
+            byteStream.write(cb);
+            byteStream.write(body.getBytes(StandardCharsets.UTF_8));
+            byteStream.write(CommandConst.PROTOCOL_SPLIT);
+            if (StringUtils.isNotEmpty(sessionId)) {
+                byteStream.write(sessionId.getBytes(StandardCharsets.UTF_8));
+            }
+            buf = byteStream.toByteArray();
+        } catch (IOException e) {
+            //ignore
         }
-        return new StringBuilder()
-                .append(cb)
-                .append(body)
-                .append(CommandConst.PROTOCOL_SPLIT)
-                .append(sessionId)
-                .toString();
+        return buf;
     }
     @Override
-    public void fromRaw(String raw) {
-        char h = raw.charAt(0);
+    public void fromRaw(byte[] raw) {
+        byte h = raw[0];
         this.success = CommandConst.SUCCESS_FLAG == (CommandConst.SUCCESS_FLAG & h);
         //取反再与得到真实响应类型
         this.responseType = ResponseType.fromChar(h);
-        int index = raw.lastIndexOf(CommandConst.PROTOCOL_SPLIT);
+        int index = -1;
+        for (int i = raw.length - 1; i > 0; --i) {
+            if (CommandConst.PROTOCOL_SPLIT == raw[i]) {
+                index = i;
+                break;
+            }
+        }
         if (-1 == index) {
             this.success = false;
             this.body = "协议错误，未发现sessionId";
             return;
         }
-        this.body = raw.substring(1, index);
-        this.sessionId = raw.substring(index + 1);
+        this.body = new String(raw, 1, index - 1, StandardCharsets.UTF_8);
+        final int len = (raw.length - index - 1);
+        if (len > 0) {
+            this.sessionId = new String(raw, index + 1, len, StandardCharsets.UTF_8);
+        }
     }
 
-    public static CommandResponse createFromRaw(String raw) {
+    public static CommandResponse createFromRaw(byte[] raw) {
         CommandResponse response = new CommandResponse();
         response.fromRaw(raw);
         return response;

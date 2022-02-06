@@ -8,7 +8,6 @@ import org.junit.rules.ExpectedException;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class ArrayUtilsTest {
 
     @Rule
@@ -20,6 +19,7 @@ public class ArrayUtilsTest {
     }
 
     @Test
+    @SuppressWarnings({"ConstantConditions", "java:S5776"})
     public void testToPrimitive() {
         Assert.assertArrayEquals(ArrayUtils.toPrimitive(null), null);
         Assert.assertArrayEquals(ArrayUtils.toPrimitive(new Long[0]), new long[0]);

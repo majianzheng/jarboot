@@ -6,6 +6,10 @@ package com.mz.jarboot.core.constant;
  */
 public class CoreConstant {
     public static final String START_DETERMINE_TIME_KEY = "start.determine.time";
+    /** ig: -Djarboot.stdout.file=start.out */
+    public static final String STD_OUT_FILE = "jarboot.stdout.file";
+    /** jarboot.stdout.file.always=true则一直记录，否则进程启动成功后停止记录 */
+    public static final String STD_OUT_FILE_ALWAYS = "jarboot.stdout.file.always";
     
     public static final String DUMP_DIR = "classdump";
 
@@ -14,7 +18,7 @@ public class CoreConstant {
      * 向jarboot-service发送的长度小于该值时使用WebSocket发送，否则通过http
      * 为了增大jarboot-service的最大连接数，WebSocket的服务端将接收缓存配置的较小
      */
-    public static final int SOCKET_MAX_SEND = 8000;
+    public static final int SOCKET_MAX_SEND = 4000;
 
     /**
      * 方法执行耗时

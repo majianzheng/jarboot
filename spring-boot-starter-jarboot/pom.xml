@@ -28,5 +28,9 @@
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.majianzheng</groupId>
+            <artifactId>jarboot-client</artifactId>
+        </dependency>
     </dependencies>
 </project>

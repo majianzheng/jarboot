@@ -1,33 +1,35 @@
 package com.mz.jarboot.core.stream;
 
-import com.mz.jarboot.common.protocol.CmdProtocol;
-import com.mz.jarboot.common.protocol.CommandConst;
+import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.cmd.model.ResultModel;
 import com.mz.jarboot.core.cmd.view.ResultView;
 import com.mz.jarboot.core.cmd.view.ResultViewResolver;
-import com.mz.jarboot.core.constant.CoreConstant;
+import com.mz.jarboot.core.event.ResponseEventBuilder;
+import com.mz.jarboot.core.event.StdoutAppendEvent;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
-
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
  * @author majianzheng
  */
-public class ResultStreamDistributor extends Thread {
+public class ResultStreamDistributor {
     private static final Logger logger = LogUtils.getLogger();
 
-    /** Message queue */
-    private final LinkedBlockingQueue<CmdProtocol> queue = new LinkedBlockingQueue<>(16384);
-    private final ResponseStream http = new HttpResponseStreamImpl();
-    private final ResponseStream socket = new SocketResponseStreamImpl();
+    private final ResponseStream stream = new ResponseStreamDelegate();
     private final ResultViewResolver resultViewResolver = new ResultViewResolver();
+
+    public static ResultStreamDistributor getInstance() {
+        return ResultStreamDistributorHolder.INST;
+    }
 
     /** instance holder */
     private static class ResultStreamDistributorHolder {
@@ -39,50 +41,25 @@ public class ResultStreamDistributor extends Thread {
      * @param model   数据
      * @param session 会话
      */
-    @SuppressWarnings("all")
-    public static void appendResult(ResultModel model, String session) {
+    @SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
+    public void appendResult(ResultModel model, String session) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {
             logger.info("获取视图解析失败！{}, {}", model.getName(), model.getClass());
             return;
         }
         String text = resultView.render(model);
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(resultView.isJson() ? ResponseType.JSON_RESULT : ResponseType.CONSOLE);
-        resp.setBody(text);
-        resp.setSessionId(session);
-        write(resp);
-    }
-
-    /**
-     * 标准输出，忽略格式，html代码会以纯文本的形式打印出来
-     * @param text 文本
-     */
-    public static void stdPrint(String text) {
-        if (StringUtils.isEmpty(text)) {
-            return;
-        }
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.STD_PRINT);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        write(resp);
+        NotifyType type = resultView.isJson() ? NotifyType.JSON_RESULT : NotifyType.CONSOLE;
+        response(true, ResponseType.NOTIFY, type.body(text), session);
     }
 
     /**
      * 标准输出，退格
      * @param num 次数
      */
-    public static void stdBackspace(int num) {
+    void stdBackspace(int num) {
         if (num > 0) {
-            CommandResponse resp = new CommandResponse();
-            resp.setSuccess(true);
-            resp.setResponseType(ResponseType.BACKSPACE);
-            resp.setBody(String.valueOf(num));
-            resp.setSessionId(CommandConst.SESSION_COMMON);
-            write(resp);
+            response(true, ResponseType.BACKSPACE, String.valueOf(num), StringUtils.EMPTY);
         }
     }
 
@@ -90,52 +67,58 @@ public class ResultStreamDistributor extends Thread {
      * 分布式日志记录
      * @param text 日志
      */
-    public static void log(String text) {
-        CommandResponse resp = new CommandResponse();
-        resp.setSuccess(true);
-        resp.setResponseType(ResponseType.LOG_APPENDER);
-        resp.setBody(text);
-        resp.setSessionId(CommandConst.SESSION_COMMON);
-        write(resp);
+    public void log(String text) {
+        response(true, ResponseType.LOG_APPENDER, text, StringUtils.EMPTY);
     }
 
-    /**
-     * 发送数据
-     * @param resp 数据
-     */
-    @SuppressWarnings("all")
-    public static void write(CmdProtocol resp) {
-        ResultStreamDistributorHolder.INST.queue.offer(resp);
+    public void response(boolean success, ResponseType type, String body, String id) {
+        NotifyReactor
+                .getInstance()
+                .publishEvent(new ResponseEventBuilder()
+                        .success(success)
+                        .type(type)
+                        .body(body)
+                        .session(id)
+                        .build());
     }
 
-    @Override
-    public void run() {
-        for (; ; ) {
-            try {
-                CmdProtocol resp = queue.take();
-                sendToServer(resp);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            } catch (Exception e) {
-                //ignore
-            }
-        }
-    }
-
-    private static void sendToServer(CmdProtocol resp) {
+    private void sendToServer(CommandResponse resp) {
         if (WsClientFactory.getInstance().isOnline()) {
             //根据数据包的大小选择合适的通讯方式
-            String raw = resp.toRaw();
-            ResponseStream stream = (raw.length() < CoreConstant.SOCKET_MAX_SEND) ?
-                    ResultStreamDistributorHolder.INST.socket : ResultStreamDistributorHolder.INST.http;
+            byte[] raw = resp.toRaw();
             stream.write(raw);
         }
     }
 
     private ResultStreamDistributor() {
-        this.setDaemon(true);
-        this.setName("jarboot.stream");
-        this.start();
+        //命令响应事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<CommandResponse>() {
+            @Override
+            public void onEvent(CommandResponse event) {
+                sendToServer(event);
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return CommandResponse.class;
+            }
+        });
+        //std文本输出事件
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<StdoutAppendEvent>() {
+            @Override
+            public void onEvent(StdoutAppendEvent event) {
+                sendToServer(new ResponseEventBuilder()
+                        .success(true)
+                        .type(ResponseType.STD_PRINT)
+                        .body(event.getText())
+                        .session(StringUtils.EMPTY)
+                        .build());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return StdoutAppendEvent.class;
+            }
+        });
     }
 }

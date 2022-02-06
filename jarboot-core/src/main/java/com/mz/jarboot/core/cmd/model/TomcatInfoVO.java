@@ -7,14 +7,11 @@ import java.util.List;
  *
  * @author majianzheng
  */
-@SuppressWarnings("all")
+@SuppressWarnings("unused")
 public class TomcatInfoVO {
 
     private List<ConnectorStats> connectorStats;
     private List<ThreadPool> threadPools;
-
-    public TomcatInfoVO() {
-    }
 
     public List<ConnectorStats> getConnectorStats() {
         return connectorStats;

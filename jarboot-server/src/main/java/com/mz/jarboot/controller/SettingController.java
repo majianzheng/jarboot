@@ -1,12 +1,13 @@
 package com.mz.jarboot.controller;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.api.pojo.ServerSetting;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.ResponseForList;
-import com.mz.jarboot.common.ResponseForObject;
-import com.mz.jarboot.common.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.utils.SettingUtils;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
  * 系统配置
  * @author majianzheng
  */
-@RequestMapping(value = "/api/jarboot/setting")
+@RequestMapping(value = CommonConst.SETTING_CONTEXT)
 @RestController
 @Permission
 public class SettingController {
@@ -29,15 +30,15 @@ public class SettingController {
 
     /**
      * 获取服务配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @return 服务配置
      */
-    @GetMapping(value="/serverSetting")
+    @GetMapping(value="/serviceSetting")
     @ResponseBody
     @Permission("Get Server Setting")
-    public ResponseForObject<ServerSetting> getServerSetting(String path) {
+    public ResponseForObject<ServiceSetting> getServerSetting(String serviceName) {
         try {
-            ServerSetting results = settingService.getServerSetting(path);
+            ServiceSetting results = settingService.getServiceSetting(serviceName);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -48,12 +49,12 @@ public class SettingController {
      * 提交服务配置
      * @param setting 服务配置
      */
-    @PostMapping(value="/serverSetting")
+    @PostMapping(value="/serviceSetting")
     @ResponseBody
     @Permission("Submit Server Setting")
-    public ResponseSimple submitServerSetting(@RequestBody ServerSetting setting) {
+    public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
         try {
-            settingService.submitServerSetting(setting);
+            settingService.submitServiceSetting(setting);
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);
@@ -95,16 +96,16 @@ public class SettingController {
 
     /**
      * 获取服务的VM配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file vm文件路径
      * @return vm配置
      */
     @GetMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Get Server jvm options")
-    public ResponseForObject<String> getVmOptions(String path, String file) {
+    public ResponseForObject<String> getVmOptions(String serviceName, String file) {
         try {
-            String results = settingService.getVmOptions(path, file);
+            String results = settingService.getVmOptions(serviceName, file);
             return new ResponseForObject<>(results);
         } catch (JarbootException e) {
             return new ResponseForObject<>(e);
@@ -113,7 +114,7 @@ public class SettingController {
 
     /**
      * 保存服务的JVM配置
-     * @param path 服务路径
+     * @param serviceName 服务路径
      * @param file vm配置文件路径
      * @param content vm配置文件内容
      * @return 执行结果
@@ -121,9 +122,9 @@ public class SettingController {
     @PostMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Save Server jvm options")
-    public ResponseSimple saveVmOptions(String path, String file, String content) {
+    public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
         try {
-            settingService.saveVmOptions(path, file, content);
+            settingService.saveVmOptions(serviceName, file, content);
             return new ResponseSimple();
         } catch (JarbootException e) {
             return new ResponseSimple(e);
@@ -135,7 +136,7 @@ public class SettingController {
     @Permission("Add trusted host")
     public ResponseSimple addTrustedHost(String host) throws IOException {
         SettingUtils.addTrustedHost(host);
-        AgentManager.getInstance().onAddTrustedHost(host);
+        AgentManager.getInstance().addTrustedHost(host);
         return new ResponseSimple();
     }
 

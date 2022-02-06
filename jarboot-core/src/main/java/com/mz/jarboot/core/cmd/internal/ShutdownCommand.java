@@ -28,7 +28,7 @@ public class ShutdownCommand extends AbstractInternalCommand {
     @Override
     public void run() {
         //尽可用于在线诊断进程
-        if (!PidFileHelper.getServerPidString(EnvironmentContext.getClientData().getSid()).isEmpty()) {
+        if (!PidFileHelper.getServerPidString(EnvironmentContext.getAgentClient().getSid()).isEmpty()) {
             session.console("This command only use in `online diagnose` process.");
             session.console("命令仅可用于`在线诊断`的进程。");
             session.end();

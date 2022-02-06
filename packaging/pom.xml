@@ -13,7 +13,10 @@
 
     <artifactId>jarboot-packaging</artifactId>
     <name>Jarboot packaging</name>
-
+    <properties>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <build>
         <finalName>jarboot</finalName>
         <plugins>

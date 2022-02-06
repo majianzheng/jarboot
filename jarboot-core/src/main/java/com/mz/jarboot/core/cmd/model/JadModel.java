@@ -6,7 +6,6 @@ import java.util.NavigableMap;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("all")
 public class JadModel extends ResultModel {
     private ClassVO classInfo;
     private String location;
@@ -21,9 +20,6 @@ public class JadModel extends ResultModel {
     @Override
     public String getName() {
         return "jad";
-    }
-
-    public JadModel() {
     }
 
     public ClassVO getClassInfo() {

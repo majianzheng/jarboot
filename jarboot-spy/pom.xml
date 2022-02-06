@@ -12,7 +12,9 @@
 
     <artifactId>jarboot-spy</artifactId>
     <name>Jarboot Spy</name>
-
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <build>
         <finalName>jarboot-spy</finalName>
         <plugins>

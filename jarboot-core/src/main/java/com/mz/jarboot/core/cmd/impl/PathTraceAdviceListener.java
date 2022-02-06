@@ -1,6 +1,6 @@
 package com.mz.jarboot.core.cmd.impl;
 
-import com.mz.jarboot.core.session.CommandCoreSession;
+import com.mz.jarboot.core.session.AbstractCommandSession;
 
 /**
  * @author majianzheng
@@ -8,7 +8,7 @@ import com.mz.jarboot.core.session.CommandCoreSession;
  */
 public class PathTraceAdviceListener extends AbstractTraceAdviceListener {
 
-    public PathTraceAdviceListener(TraceCommand command, CommandCoreSession process) {
+    public PathTraceAdviceListener(TraceCommand command, AbstractCommandSession process) {
         super(command, process);
     }
 }

@@ -52,8 +52,9 @@ public class PluginInfo {
 
     @Override
     public String toString() {
-        return "PluginInfoDTO{" +
-                "name='" + name + '\'' +
+        return "PluginInfo{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", type='" + type + '\'' +
                 ", lastModified=" + lastModified +

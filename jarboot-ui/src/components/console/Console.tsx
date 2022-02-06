@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './index.less';
 import StringUtil from "@/common/StringUtil";
 import Logger from "@/common/Logger";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import {ColorBasic, Color256, ColorBrightness} from "@/components/console/ColorTable";
 
 interface ConsoleProps {
@@ -34,11 +34,11 @@ enum EventType {
 }
 
 interface ConsoleEvent {
-    /** 是否显示 */
+    /** 事件类型 */
     type: EventType,
-    /** 是否显示 */
+    /** 文本 */
     text?: string,
-    /** 是否显示 */
+    /** 退格次数 */
     backspaceNum?: number,
 }
 
@@ -154,7 +154,7 @@ const Banner = (
         </p>
         <br/>
         <br/>
-        <p>Jarboot console, docs: <span className={styles.cyan}>{JarBootConst.DOCS_URL}</span></p>
+        <p>Jarboot console, docs: <span className={styles.cyan}>{CommonConst.DOCS_URL}</span></p>
         <p>Diagnose command, type ‘help’ and hit ‘ENTER’ to see.</p>
     </div>
 );
@@ -172,6 +172,7 @@ class Console extends React.PureComponent<ConsoleProps> {
     private intervalHandle: NodeJS.Timeout|null = null;
     private finishHandle: NodeJS.Timeout|null = null;
     private sgrOption: SgrOption = {...DEFAULT_SGR_OPTION};
+    private codeRef = React.createRef<HTMLElement>();
 
     componentDidMount() {
         this.intervalHandle = null;
@@ -191,7 +192,7 @@ class Console extends React.PureComponent<ConsoleProps> {
 
         const {pubsub, id, content} = this.props;
         //初始化code dom
-        this.codeDom = document.querySelector(`code[id="id-console-${id}"]`) as Element;
+        this.codeDom = this.codeRef.current;
         if (content?.length) {
             this.resetContent(this.props.content);
         }
@@ -942,7 +943,7 @@ class Console extends React.PureComponent<ConsoleProps> {
         if (this.props.wrap) {
             style.whiteSpace = "pre-wrap";
         }
-        return <code id={`id-console-${this.props.id}`}
+        return <code ref={this.codeRef}
                      style={style}
                      className={styles.console}>
             {Banner}

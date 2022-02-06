@@ -8,7 +8,7 @@ import com.alibaba.bytekit.agent.inst.InstrumentApi;
  * @author majianzheng
  * 以下代码来自开源项目Arthas
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"unused", "squid:S1610", "squid:S00101", "PMD.ClassNamingShouldBeCamelRule", "PMD.UndefineMagicConstantRule", "PMD.AbstractClassShouldStartWithAbstractNamingRule"})
 @Instrument(Class = "java.lang.ClassLoader")
 public abstract class ClassLoader_Instrument {
     public Class<?> loadClass(String name) throws ClassNotFoundException {
@@ -19,7 +19,6 @@ public abstract class ClassLoader_Instrument {
             }
         }
 
-        Class clazz = InstrumentApi.invokeOrigin();
-        return clazz;
+        return InstrumentApi.<Class>invokeOrigin();
     }
 }

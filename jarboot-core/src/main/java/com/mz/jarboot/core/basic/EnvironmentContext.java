@@ -1,11 +1,13 @@
 package com.mz.jarboot.core.basic;
 
 import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.pojo.AgentClient;
+import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.advisor.TransformerManager;
 import com.mz.jarboot.core.cmd.AbstractCommand;
 import com.mz.jarboot.core.cmd.internal.AbstractInternalCommand;
-import com.mz.jarboot.core.session.CommandCoreSession;
-import com.mz.jarboot.core.session.CommandSessionImpl;
+import com.mz.jarboot.core.session.AbstractCommandSession;
+import com.mz.jarboot.core.session.CoreCommandSession;
 import com.mz.jarboot.core.utils.LogUtils;
 import org.slf4j.Logger;
 
@@ -20,7 +22,7 @@ public class EnvironmentContext {
     private static Logger logger = LogUtils.getLogger();
 
     /** 客户端信息 */
-    private static AgentClientPojo clientData;
+    private static AgentClient agentClient;
     /** 是否初始化 */
     private static boolean initialized = false;
     /** transformerManager */
@@ -28,7 +30,7 @@ public class EnvironmentContext {
     /** instrumentation用于类查找、增强 */
     private static Instrumentation instrumentation;
     /** 连接会话 */
-    private static ConcurrentMap<String, CommandCoreSession> sessionMap = new ConcurrentHashMap<>(16);
+    private static ConcurrentMap<String, AbstractCommandSession> sessionMap = new ConcurrentHashMap<>(16);
     /** 正在执行的命令 */
     private static ConcurrentMap<String, AbstractCommand> runningCommandMap = new ConcurrentHashMap<>(16);
     /** Schedule线程调度 */
@@ -39,17 +41,17 @@ public class EnvironmentContext {
     /**
      * 环境初始化
      * @param home 工作目录
-     * @param clientData 客户端数据
+     * @param agentClient 客户端数据
      * @param inst {@link Instrumentation}
      */
-    public static synchronized void init(String home, AgentClientPojo clientData, Instrumentation inst) {
+    public static synchronized void init(String home, AgentClient agentClient, Instrumentation inst) {
         logger = LogUtils.getLogger();
         //此时日志还未初始化，在此方法内禁止打印日志信息
         if (null != home) {
             EnvironmentContext.jarbootHome = home;
         }
-        if (null != clientData) {
-            EnvironmentContext.clientData = clientData;
+        if (null != agentClient) {
+            EnvironmentContext.agentClient = agentClient;
         }
         if (null != inst) {
             EnvironmentContext.instrumentation = inst;
@@ -61,14 +63,14 @@ public class EnvironmentContext {
 
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
         scheduledExecutorService = Executors.newScheduledThreadPool(coreSize,
-                JarbootThreadFactory.createThreadFactory("jarboot-sh-cmd", true));
+                JarbootThreadFactory.createThreadFactory("jarboot-sh-pool", true));
         initialized = true;
     }
 
     public static synchronized void destroy() {
         cleanSession();
         scheduledExecutorService.shutdown();
-        EnvironmentContext.clientData = null;
+        EnvironmentContext.agentClient = null;
         EnvironmentContext.transformerManager.destroy();
         EnvironmentContext.transformerManager = null;
         scheduledExecutorService = null;
@@ -105,11 +107,11 @@ public class EnvironmentContext {
         return initialized;
     }
 
-    public static AgentClientPojo getClientData() {
-        return clientData;
+    public static AgentClient getAgentClient() {
+        return agentClient;
     }
 
-    public static ScheduledExecutorService getScheduledExecutorService() {
+    public static ScheduledExecutorService getScheduledExecutor() {
         return scheduledExecutorService;
     }
 
@@ -121,8 +123,11 @@ public class EnvironmentContext {
         return transformerManager;
     }
 
-    public static CommandCoreSession registerSession(String sessionId) {
-        return sessionMap.computeIfAbsent(sessionId, key -> new CommandSessionImpl(sessionId));
+    public static AbstractCommandSession registerSession(String sessionId) {
+        if (StringUtils.isEmpty(sessionId)) {
+            return new CoreCommandSession(StringUtils.EMPTY);
+        }
+        return sessionMap.computeIfAbsent(sessionId, key -> new CoreCommandSession(sessionId));
     }
 
     /**
@@ -130,7 +135,7 @@ public class EnvironmentContext {
      * @return 是否结束
      */
     public static boolean checkJobEnd(String sessionId, String jobId) {
-        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
+        AbstractCommandSession session = sessionMap.getOrDefault(sessionId, null);
         if (null == session) {
             return true;
         }
@@ -149,7 +154,7 @@ public class EnvironmentContext {
         if (null == command) {
             return;
         }
-        final CommandCoreSession session = command.getSession();
+        final AbstractCommandSession session = command.getSession();
         if (checkCommandRunning(session)) {
             return;
         }
@@ -158,22 +163,21 @@ public class EnvironmentContext {
             session.end(false, "Command not allowed");
             return;
         }
-        scheduledExecutorService.execute(() -> {
-            if (checkCommandRunning(session)) {
-                return;
-            }
-            //开始执行命令，更新正在执行的命令
-            session.setRunning();
-            runningCommandMap.put(session.getSessionId(), command);
-            try {
-                command.run();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                session.end(false, e.getMessage());
-                String msg = "命令（" + command.getName() + "）执行失败！<br>" + e.getMessage();
-                AgentServiceOperator.noticeError(msg, session.getSessionId());
-            }
-        });
+
+        if (checkCommandRunning(session)) {
+            return;
+        }
+        //开始执行命令，更新正在执行的命令
+        session.setRunning();
+        runningCommandMap.put(session.getSessionId(), command);
+        try {
+            command.run();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            session.end(false, e.getMessage());
+            String msg = "命令（" + command.getName() + "）执行失败！<br>" + e.getMessage();
+            AgentServiceOperator.noticeError(msg, session.getSessionId());
+        }
     }
 
     /**
@@ -186,7 +190,7 @@ public class EnvironmentContext {
             command.cancel();
             runningCommandMap.remove(sessionId);
         }
-        CommandCoreSession session = sessionMap.getOrDefault(sessionId, null);
+        AbstractCommandSession session = sessionMap.getOrDefault(sessionId, null);
         if (null != session) {
             session.cancel();
             session.end();
@@ -194,7 +198,7 @@ public class EnvironmentContext {
         }
     }
 
-    private static boolean checkCommandRunning(final CommandCoreSession session) {
+    private static boolean checkCommandRunning(final AbstractCommandSession session) {
         if (session.isRunning()) {
             AbstractCommand cmd = runningCommandMap.getOrDefault(session.getSessionId(), null);
             if (null == cmd) {

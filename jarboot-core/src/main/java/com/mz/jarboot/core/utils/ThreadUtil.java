@@ -15,12 +15,12 @@ import java.util.Map;
  * 以下代码来自开源项目Arthas
  * @author majianzheng
  */
-@SuppressWarnings("all")
-abstract public class ThreadUtil {
+@SuppressWarnings({"java:S3014", "java:S1192", "java:S1181", "java:S1444", "java:S1104"})
+public class ThreadUtil {
 
     private static final BlockingLockInfo EMPTY_INFO = new BlockingLockInfo();
 
-    private static ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    private static final ThreadMXBean THREAD_MX_BEAN = ManagementFactory.getThreadMXBean();
 
     private static boolean detectedEagleEye = false;
     public static boolean foundEagleEye = false;
@@ -43,7 +43,7 @@ abstract public class ThreadUtil {
         while (root.enumerate(threads, true) == threads.length) {
             threads = new Thread[threads.length * 2];
         }
-        List<ThreadVO> list = new ArrayList<ThreadVO>(threads.length);
+        List<ThreadVO> list = new ArrayList<>(threads.length);
         for (Thread thread : threads) {
             if (thread != null) {
                 ThreadVO threadVO = createThreadVO(thread);
@@ -69,10 +69,10 @@ abstract public class ThreadUtil {
     /**
      * 获取所有线程List
      * 
-     * @return
+     * @return thread list
      */
     public static List<Thread> getThreadList() {
-        List<Thread> result = new ArrayList<Thread>();
+        List<Thread> result = new ArrayList<>();
         ThreadGroup root = getRoot();
         Thread[] threads = new Thread[root.activeCount()];
         while (root.enumerate(threads, true) == threads.length) {
@@ -95,14 +95,15 @@ abstract public class ThreadUtil {
      *
      * @return the BlockingLockInfo object, or an empty object if not found.
      */
+    @SuppressWarnings("java:S3776")
     public static BlockingLockInfo findMostBlockingLock() {
-        ThreadInfo[] infos = threadMXBean.dumpAllThreads(threadMXBean.isObjectMonitorUsageSupported(),
-                threadMXBean.isSynchronizerUsageSupported());
+        ThreadInfo[] infos = THREAD_MX_BEAN.dumpAllThreads(THREAD_MX_BEAN.isObjectMonitorUsageSupported(),
+                THREAD_MX_BEAN.isSynchronizerUsageSupported());
 
         // a map of <LockInfo.getIdentityHashCode, number of thread blocking on this>
-        Map<Integer, Integer> blockCountPerLock = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> blockCountPerLock = new HashMap<>();
         // a map of <LockInfo.getIdentityHashCode, the thread info that holding this lock
-        Map<Integer, ThreadInfo> ownerThreadPerLock = new HashMap<Integer, ThreadInfo>();
+        Map<Integer, ThreadInfo> ownerThreadPerLock = new HashMap<>();
 
         for (ThreadInfo info: infos) {
             if (info == null) {
@@ -135,7 +136,7 @@ abstract public class ThreadUtil {
         }
 
         // find the thread that is holding the lock that blocking the largest number of threads.
-        int mostBlockingLock = 0; // System.identityHashCode(null) == 0
+        int mostBlockingLock = 0;
         int maxBlockingCount = 0;
         for (Map.Entry<Integer, Integer> entry: blockCountPerLock.entrySet()) {
             if (entry.getValue() > maxBlockingCount && ownerThreadPerLock.get(entry.getKey()) != null) {
@@ -176,6 +177,7 @@ abstract public class ThreadUtil {
      * @param blockingThreadCount 阻塞了其他线程的数量
      * @return the string representation of the thread stack
      */
+    @SuppressWarnings("java:S3776")
     public static String getFullStacktrace(ThreadInfo threadInfo, double cpuUsage, long deltaTime, long time, int lockIdentityHashCode,
                                            int blockingThreadCount) {
         StringBuilder sb = new StringBuilder("\"" + threadInfo.getThreadName() + "\"" + " Id="
@@ -222,7 +224,7 @@ abstract public class ThreadUtil {
                         sb.append('\n');
                         break;
                     case TIMED_WAITING:
-                        sb.append("\t-  waiting on ").append(threadInfo.getLockInfo());
+                        sb.append("\t-  timed waiting on ").append(threadInfo.getLockInfo());
                         sb.append('\n');
                         break;
                     default:
@@ -263,6 +265,7 @@ abstract public class ThreadUtil {
         return sb.toString().replace("\t", "    ");
     }
 
+    @SuppressWarnings("java:S3776")
     public static String getFullStacktrace(BusyThreadInfo threadInfo, int lockIdentityHashCode, int blockingThreadCount) {
         StringBuilder sb = new StringBuilder("\"" + threadInfo.getName() + "\"");
         if (threadInfo.getId() > 0) {
@@ -318,7 +321,7 @@ abstract public class ThreadUtil {
                         sb.append('\n');
                         break;
                     case TIMED_WAITING:
-                        sb.append("\t-  waiting on ").append(threadInfo.getLockInfo());
+                        sb.append("\t-  timed waiting on ").append(threadInfo.getLockInfo());
                         sb.append('\n');
                         break;
                     default:
@@ -371,22 +374,22 @@ abstract public class ThreadUtil {
      * demo.MathGame.main(MathGame.java:16)
      * </pre>
      */
-    private static int MAGIC_STACK_DEPTH = 0;
+    private static int magicStackDepth = 0;
 
     private static int findTheSpyAPIDepth(StackTraceElement[] stackTraceElementArray) {
-        if (MAGIC_STACK_DEPTH > 0) {
-            return MAGIC_STACK_DEPTH;
+        if (magicStackDepth > 0) {
+            return magicStackDepth;
         }
-        if (MAGIC_STACK_DEPTH > stackTraceElementArray.length) {
+        if (magicStackDepth > stackTraceElementArray.length) {
             return 0;
         }
         for (int i = 0; i < stackTraceElementArray.length; ++i) {
             if (SpyAPI.class.getName().equals(stackTraceElementArray[i].getClassName())) {
-                MAGIC_STACK_DEPTH = i + 1;
+                magicStackDepth = i + 1;
                 break;
             }
         }
-        return MAGIC_STACK_DEPTH;
+        return magicStackDepth;
     }
 
     /**
@@ -402,7 +405,7 @@ abstract public class ThreadUtil {
         stackModel.setPriority(currentThread.getPriority());
         stackModel.setClassloader(getTCCL(currentThread));
 
-        getEagleeyeTraceInfo(loader, currentThread, stackModel);
+        getEagleeyeTraceInfo(loader, stackModel);
 
 
         //stack
@@ -424,7 +427,7 @@ abstract public class ThreadUtil {
 
         //trace_id
         StackModel stackModel = new StackModel();
-        getEagleeyeTraceInfo(loader, currentThread, stackModel);
+        getEagleeyeTraceInfo(loader, stackModel);
         threadNode.setTraceId(stackModel.getTraceId());
         threadNode.setRpcId(stackModel.getRpcId());
         return threadNode;
@@ -459,7 +462,7 @@ abstract public class ThreadUtil {
         }
     }
 
-    private static void getEagleeyeTraceInfo(ClassLoader loader, Thread currentThread, StackModel stackModel) {
+    private static void getEagleeyeTraceInfo(ClassLoader loader, StackModel stackModel) {
         if(loader == null) {
             return;
         }
@@ -493,4 +496,5 @@ abstract public class ThreadUtil {
         }
     }
 
+    private ThreadUtil() {}
 }

@@ -8,9 +8,9 @@ import {
     CaretRightFilled,
     PoweroffOutlined
 } from '@ant-design/icons';
-import ServerMgrService from "@/services/ServerMgrService";
+import ServiceManager from "@/services/ServiceManager";
 import styles from "./index.less";
-import {JarBootConst} from "@/common/JarBootConst";
+import {CommonConst} from "@/common/CommonConst";
 import * as React from "react";
 import {RestartIcon} from "@/components/icons";
 
@@ -32,25 +32,25 @@ const BottomBar = (props: BottomBarProp) => {
 
     const oneClickRestart = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickRestart();
+        ServiceManager.oneClickRestart();
     };
 
     const oneClickStart = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickStart();
+        ServiceManager.oneClickStart();
     };
 
     const oneClickStop = () => {
         disableOnClickButton();
-        ServerMgrService.oneClickStop();
+        ServiceManager.oneClickStop();
     };
 
     const onViewModeChange = (key: string) => {
         let value = '';
         switch (key) {
-            case JarBootConst.CONTENT_VIEW:
-                value = (props.contentView === JarBootConst.CONSOLE_VIEW) ?
-                    JarBootConst.CONFIG_VIEW : JarBootConst.CONSOLE_VIEW;
+            case CommonConst.CONTENT_VIEW:
+                value = (props.contentView === CommonConst.CONSOLE_VIEW) ?
+                    CommonConst.CONFIG_VIEW : CommonConst.CONSOLE_VIEW;
                 break;
             default:
                 return;
@@ -74,12 +74,12 @@ const BottomBar = (props: BottomBarProp) => {
         let text = '';
         let key = '';
         switch (view) {
-            case JarBootConst.CONFIG_VIEW:
+            case CommonConst.CONFIG_VIEW:
                 icon = <SettingOutlined className={styles.toolButtonIcon}/>;
                 text = intl.formatMessage({id: 'SERVICES_CONF'});
                 key = 'contentView';
                 break;
-            case JarBootConst.CONSOLE_VIEW:
+            case CommonConst.CONSOLE_VIEW:
                 icon = <CodeFilled className={styles.toolButtonConsoleIcon}/>;
                 text = intl.formatMessage({id: 'CONSOLE_VIEW'});
                 key = 'contentView';
@@ -108,7 +108,7 @@ const BottomBar = (props: BottomBarProp) => {
 };
 
 BottomBar.defaultProps = {
-    contentView: JarBootConst.CONFIG_VIEW,
+    contentView: CommonConst.CONFIG_VIEW,
 };
 
 export default memo(BottomBar);
