@@ -141,9 +141,9 @@ public class ServiceManagerClient implements ServiceManager {
 
     @Override
     public void attach(String pid) {
-        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/attach");
-        asb.add(ClientConst.PID_PARAM, pid);
-        final String api = asb.build();
+        final String api = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/attach")
+                .add(ClientConst.PID_PARAM, pid)
+                .build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
@@ -152,8 +152,8 @@ public class ServiceManagerClient implements ServiceManager {
     @Override
     public void deleteService(String serviceName) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/service";
-        FormBody.Builder builder = new FormBody.Builder();
-        builder.add(CommonConst.SERVICE_NAME_PARAM, serviceName);
+        FormBody.Builder builder = new FormBody.Builder()
+                .add(CommonConst.SERVICE_NAME_PARAM, serviceName);
         String response = this.clientProxy.reqApi(api, HttpMethod.DELETE, builder.build());
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
@@ -197,9 +197,9 @@ public class ServiceManagerClient implements ServiceManager {
      */
     @Override
     public ServiceInstance getService(String serviceName) {
-        ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/service");
-        asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName);
-        final String api = asb.build();
+        final String api = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/service")
+                .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
+                .build();
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, ServiceInstance.class);

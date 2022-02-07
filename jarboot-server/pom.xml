@@ -93,6 +93,10 @@
 	<profiles>
 		<profile>
 			<id>release</id>
+			<properties>
+				<maven.install.skip>true</maven.install.skip>
+				<maven.deploy.skip>true</maven.deploy.skip>
+			</properties>
 			<build>
 				<plugins>
 					<!-- 打包前，编译jarboot-ui前端代码并部署到static下 -->
