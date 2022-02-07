@@ -23,6 +23,12 @@
       "type": "java.lang.String",
       "defaultValue": "jarboot",
       "description": "Jarboot server password."
+    },
+    {
+      "name": "spring.jarboot.enabled",
+      "type": "java.lang.String",
+      "defaultValue": "true",
+      "description": "Jarboot client enabled."
     }
   ]
 }
