@@ -21,18 +21,18 @@ public class JarbootExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(JarbootExceptionHandler.class);
     
     @ExceptionHandler(AccessException.class)
-    private ResponseEntity<String> handleAccessException(AccessException e) {
+    public ResponseEntity<String> handleAccessException(AccessException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
     
     @ExceptionHandler(IllegalArgumentException.class)
-    private ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
         LOGGER.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(getAllExceptionMsg(e));
     }
 
     @ExceptionHandler(JarbootException.class)
-    private ResponseEntity<ResponseSimple> handleJarbootException(JarbootException e) {
+    public ResponseEntity<ResponseSimple> handleJarbootException(JarbootException e) {
         LOGGER.error(e.getMessage(), e);
         ResponseSimple resp = new ResponseSimple();
         resp.setResultCode(e.getErrorCode());
@@ -41,7 +41,7 @@ public class JarbootExceptionHandler {
     }
 
     @ExceptionHandler(JarbootRunException.class)
-    private ResponseEntity<ResponseSimple> handleJarbootRunException(JarbootRunException e) {
+    public ResponseEntity<ResponseSimple> handleJarbootRunException(JarbootRunException e) {
         LOGGER.error(e.getMessage(), e);
         ResponseSimple resp = new ResponseSimple();
         resp.setResultCode(-1);
@@ -50,7 +50,7 @@ public class JarbootExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    private ResponseEntity<String> handleException(Exception e) {
+    public ResponseEntity<String> handleException(Exception e) {
         LOGGER.error(CommonConst.JARBOOT_NAME, e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(getAllExceptionMsg(e));
     }
