@@ -2,7 +2,10 @@ FROM openjdk:12-jdk
 
 EXPOSE 9899
 
+ARG VERSION
+
 ENV JARBOOT_DOCKER true
+ENV VERSION $VERSION
 
 COPY jarboot /jarboot
 
