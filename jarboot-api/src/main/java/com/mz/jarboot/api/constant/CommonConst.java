@@ -14,6 +14,7 @@ public class CommonConst {
     public static final int DEFAULT_PORT = 9899;
 
     public static final String BIN_NAME = "bin";
+    public static final String COMPONENTS_NAME = "components";
     public static final String JAVA_CMD = "java";
     public static final String EXE_EXT = ".exe";
     public static final String JAR_EXT = ".jar";

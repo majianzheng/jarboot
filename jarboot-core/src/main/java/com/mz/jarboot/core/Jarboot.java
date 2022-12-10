@@ -305,7 +305,7 @@ public class Jarboot {
     }
 
     private String getJarbootAgentPath() {
-        File agentJar = FileUtils.getFile(jarbootHome, CommonConst.BIN_NAME, CommonConst.AGENT_JAR_NAME);
+        File agentJar = FileUtils.getFile(jarbootHome, CommonConst.COMPONENTS_NAME, CommonConst.AGENT_JAR_NAME);
         if (agentJar.exists()) {
             return agentJar.getPath();
         } else {

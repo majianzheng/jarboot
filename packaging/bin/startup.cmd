@@ -6,9 +6,9 @@ set "JAVA=%JAVA_HOME%\bin\java.exe"
 setlocal enabledelayedexpansion
 
 set JARBOOT_HOME=%~dp0
-set JARBOOT_HOME=%JARBOOT_HOME:~0,-1%
+set JARBOOT_HOME=%JARBOOT_HOME:~0,-5%
 
-set "SERVER=%JARBOOT_HOME%\bin\jarboot-server.jar"
+set "SERVER=%JARBOOT_HOME%\components\jarboot-server.jar"
 
 rem JVM Configuration
 set "JARBOOT_JVM_OPTS=-Xms256m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:-UseLargePages"

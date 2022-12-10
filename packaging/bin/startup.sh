@@ -42,8 +42,9 @@ export SERVER="jarboot-server"
 CUR_DIR=`pwd`
 export JAVA_HOME
 export JAVA="$JAVA_HOME/bin/java"
-export JARBOOT_HOME=`cd $(dirname $0); pwd`
-cd "${JARBOOT_HOME}"
+export JARBOOT_HOME=$(cd `dirname $0`/../; pwd)
+source $JARBOOT_HOME/bin/common.sh || exit
+pushd "${JARBOOT_HOME}"
 #===========================================================================================
 # JVM Configuration
 #===========================================================================================
@@ -60,7 +61,7 @@ else
 fi
 JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=plugins/server -Dfile.encoding=UTF-8"
 
-JAR_FILE=bin/${SERVER}.jar
+JAR_FILE=components/${SERVER}.jar
 
 JAVA_OPT="${JAVA_OPT} -jar ${JAR_FILE}"
 
@@ -80,4 +81,4 @@ fi
 echo "$JAVA ${JAVA_OPT}" > logs/start.out 2>&1 &
 nohup $JAVA ${JAVA_OPT} jarboot.jarboot >> logs/start.out 2>&1 &
 echo "jarboot is starting，you can check the ${JARBOOT_HOME}/logs/start.out"
-cd "${CUR_DIR}"
+popd

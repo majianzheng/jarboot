@@ -40,7 +40,7 @@ fi
 
 export JAVA_HOME
 export JAVA="$JAVA_HOME/bin/java"
-export JARBOOT_HOME=`cd $(dirname $0); pwd`
-CLASS_PATH="${JARBOOT_HOME}/bin/jarboot-core.jar:${JARBOOT_HOME}/bin/jarboot-agent.jar"
+export JARBOOT_HOME=$(cd `dirname $0`/../; pwd)
+CLASS_PATH="${JARBOOT_HOME}/components/jarboot-core.jar:${JARBOOT_HOME}/components/jarboot-agent.jar"
 # start
 $JAVA -classpath "${CLASS_PATH}" com.mz.jarboot.core.Jarboot "$@"

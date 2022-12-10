@@ -41,7 +41,7 @@ public class SettingUtils {
     /** Jarboot配置文件路径 */
     private static final String JARBOOT_CONF;
     /** Jarboot的bin文件夹路径 */
-    private static final String BIN_DIR;
+    private static final String COMPONENTS_DIR;
     /** Jarboot的日志路径 */
     private static final String LOG_DIR;
     /** jarboot-agent.jar文件的路径 */
@@ -59,7 +59,7 @@ public class SettingUtils {
         final String home = System.getProperty(CommonConst.JARBOOT_HOME);
         final String conf = home + File.separator + "conf" + File.separator;
         JARBOOT_CONF = conf + "jarboot.properties";
-        BIN_DIR = home + File.separator + "bin";
+        COMPONENTS_DIR = home + File.separator + CommonConst.COMPONENTS_NAME;
         LOG_DIR = home + File.separator + "logs";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
@@ -81,7 +81,7 @@ public class SettingUtils {
      * 初始化Agent路径
      */
     private static void initAgentJarPath() {
-        File jarFile = new File(BIN_DIR, CommonConst.AGENT_JAR_NAME);
+        File jarFile = new File(COMPONENTS_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
         if (jarFile.exists()) {
             agentJar = jarFile.getPath();

@@ -11,19 +11,19 @@
   <files>
     <file>
       <source>../jarboot-agent/target/jarboot-agent-jar-with-dependencies.jar</source>
-      <destName>bin/jarboot-agent.jar</destName>
+      <destName>components/jarboot-agent.jar</destName>
     </file>
     <file>
       <source>../jarboot-spy/target/jarboot-spy.jar</source>
-      <destName>bin/jarboot-spy.jar</destName>
+      <destName>components/jarboot-spy.jar</destName>
     </file>
     <file>
       <source>../jarboot-core/target/jarboot-core.jar</source>
-      <destName>bin/jarboot-core.jar</destName>
+      <destName>components/jarboot-core.jar</destName>
     </file>
     <file>
       <source>../jarboot-server/target/jarboot-server.jar</source>
-      <destName>bin/jarboot-server.jar</destName>
+      <destName>components/jarboot-server.jar</destName>
     </file>
     <file>
       <source>../jarboot-server/src/main/resources/jarboot.properties</source>
@@ -44,24 +44,30 @@
 
     <file>
       <source>bin/shutdown.sh</source>
+      <destName>bin/shutdown.sh</destName>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>bin/shutdown.cmd</source>
+      <destName>bin/shutdown.cmd</destName>
     </file>
     <file>
       <source>bin/startup.sh</source>
+      <destName>bin/startup.sh</destName>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>bin/startup.cmd</source>
+      <destName>bin/startup.cmd</destName>
     </file>
     <file>
       <source>bin/jt.sh</source>
+      <destName>bin/jt.sh</destName>
       <fileMode>0755</fileMode>
     </file>
     <file>
       <source>bin/jt.cmd</source>
+      <destName>bin/jt.cmd</destName>
     </file>
   </files>
 </assembly>
