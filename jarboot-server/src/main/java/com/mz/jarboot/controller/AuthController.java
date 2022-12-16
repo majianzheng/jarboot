@@ -1,6 +1,7 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.pojo.ResponseForList;
 import com.mz.jarboot.common.pojo.ResponseForObject;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
@@ -59,12 +60,20 @@ public class AuthController {
     @ResponseBody
     public ResponseForObject<Object> getCurrentUser(HttpServletRequest request) {
         ResponseForObject<Object> current = new ResponseForObject<>();
-        String token = resolveToken(request);
-        if (StringUtils.isEmpty(token)) {
+        String token;
+        try {
+            token = resolveToken(request);
+            if (StringUtils.isEmpty(token)) {
+                current.setResultCode(ResultCodeConst.NOT_EXIST);
+                current.setResultMsg("当前未登录");
+                return current;
+            }
+        } catch (Exception e) {
             current.setResultCode(ResultCodeConst.NOT_EXIST);
             current.setResultMsg("当前未登录");
             return current;
         }
+
         Authentication authentication = jwtTokenManager.getAuthentication(token);
         current.setResult(authentication.getPrincipal());
         return current;
@@ -167,7 +176,7 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authenticate);
         } catch (AuthenticationException e) {
-            throw new AccessException("Login failed");
+            throw new JarbootException("Login failed");
         }
 
         if (null == authenticate || StringUtils.isBlank(authenticate.getName())) {

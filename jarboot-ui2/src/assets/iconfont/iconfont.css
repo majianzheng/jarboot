@@ -1,0 +1,84 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 3820706 */
+  src: url('iconfont.woff2') format('woff2'),
+       url('iconfont.woff') format('woff'),
+       url('iconfont.ttf') format('truetype'),
+       url('iconfont.svg') format('svg');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-github:before {
+  content: "\e611";
+}
+
+.icon-debug:before {
+  content: "\e60e";
+}
+
+.icon-dashboard:before {
+  content: "\e60f";
+}
+
+.icon-role:before {
+  content: "\e610";
+}
+
+.icon-export:before {
+  content: "\e608";
+}
+
+.icon-plugin:before {
+  content: "\e609";
+}
+
+.icon-privilege:before {
+  content: "\e60a";
+}
+
+.icon-import:before {
+  content: "\e60b";
+}
+
+.icon-restart:before {
+  content: "\e60c";
+}
+
+.icon-remote:before {
+  content: "\e60d";
+}
+
+.icon-panda:before {
+  content: "\e604";
+}
+
+.icon-delete:before {
+  content: "\e605";
+}
+
+.icon-stopped:before {
+  content: "\e606";
+}
+
+.icon-text-wrap:before {
+  content: "\e607";
+}
+
+.icon-language:before {
+  content: "\e601";
+}
+
+.icon-dark:before {
+  content: "\e602";
+}
+
+.icon-light:before {
+  content: "\e603";
+}
+

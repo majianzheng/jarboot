@@ -53,7 +53,7 @@ public class AppEnvironment {
     }
 
     private static void checkEnvironment() {
-        String binDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + "bin";
+        String binDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.COMPONENTS_NAME;
         //先检查jarboot-agent.jar文件
         checkFile(binDir, CommonConst.AGENT_JAR_NAME);
         //检查jarboot-core.jar文件，该文件必须和jarboot-agent.jar处于同一目录下
