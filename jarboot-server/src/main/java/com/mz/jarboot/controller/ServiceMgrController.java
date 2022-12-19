@@ -2,6 +2,7 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.api.service.ServiceManager;
@@ -37,6 +38,13 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseForList<ServiceInstance> getServiceList() {
         List<ServiceInstance> results = serviceManager.getServiceList();
+        return new ResponseForList<>(results, results.size());
+    }
+
+    @GetMapping("/groups")
+    @ResponseBody
+    public ResponseForList<ServiceGroup> getServiceGroup() {
+        List<ServiceGroup> results = serviceManager.getServiceGroup();
         return new ResponseForList<>(results, results.size());
     }
 

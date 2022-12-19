@@ -26,6 +26,5 @@ coverage
 *.njsproj
 *.sln
 *.sw?
-components.d.ts
 package-lock.json
 *.lock

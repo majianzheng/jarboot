@@ -22,7 +22,7 @@ const host = 'http://localhost:9899';
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': path.join(__dirname, "./src")
     }
   },
   server: {
@@ -68,7 +68,7 @@ export default defineConfig({
       ]
     }),
     createSvgIconsPlugin({
-      iconDirs: [path.resolve(process.cwd(), 'src/icons')],
+      iconDirs: [path.resolve(process.cwd(), 'src/assets')],
       symbolId: 'icon-[dir]-[name]',
       customDomId: '__svg__icons__dom__',
     }),

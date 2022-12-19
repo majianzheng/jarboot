@@ -1,9 +1,11 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../views/home.vue';
 import Services from '@/views/services/services.vue';
+import OnlineDiagnose from "@/views/diagnose/OnlineDiagnose.vue";
 import login from '@/views/login.vue';
 import OAuthService from "@/services/OAuthService";
 import StringUtil from "@/common/StringUtil";
+import {useUserStore} from "@/stores";
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -24,7 +26,7 @@ const router = createRouter({
         {
           path: '/diagnose',
           name: 'diagnose',
-          component: Services
+          component: OnlineDiagnose
         },
         {
           path: '/authority',
@@ -47,12 +49,14 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   }
-  const resp = await OAuthService.getCurrentUser();
-  console.info('login resp:', resp);
-  if (StringUtil.isEmpty(resp?.result?.username)) {
+  const resp = (await OAuthService.getCurrentUser()) as any;
+  const user = resp?.result;
+  if (StringUtil.isEmpty(user?.username)) {
     next({ path: '/login', force: true });
     return;
   }
+  const userStore = useUserStore();
+  userStore.setCurrentUser(user);
   next();
   // 权限检验
 });

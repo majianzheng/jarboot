@@ -6,6 +6,7 @@ import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.ServiceManager;
@@ -60,6 +61,21 @@ public class ServiceManagerClient implements ServiceManager {
             JsonNode node = result.get(i);
             ServiceInstance serviceInstance = JsonUtils.treeToValue(node, ServiceInstance.class);
             list.add(serviceInstance);
+        }
+        return list;
+    }
+
+    @Override
+    public List<ServiceGroup> getServiceGroup() {
+        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/groups";
+        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode result = ResponseUtils.parseResult(response, api);
+        List<ServiceGroup> list = new ArrayList<>();
+        final int size = result.size();
+        for (int i = 0; i < size; ++i) {
+            JsonNode node = result.get(i);
+            ServiceGroup group = JsonUtils.treeToValue(node, ServiceGroup.class);
+            list.add(group);
         }
         return list;
     }

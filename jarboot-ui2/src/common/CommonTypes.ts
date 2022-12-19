@@ -1,0 +1,55 @@
+
+export enum FuncCode {
+    CMD_FUNC,
+    CANCEL_FUNC,
+    TRUST_ONCE_FUNC,
+    CHECK_TRUSTED_FUNC,
+    DETACH_FUNC,
+}
+
+export type MsgData = {
+    event: number;
+    sid: string;
+    body: any;
+}
+export type MsgReq = {
+    service?: string;
+    sid?: string;
+    body: string;
+    func: FuncCode;
+}
+export enum CONSOLE_TOPIC {
+    APPEND_LINE,
+    STD_PRINT,
+    BACKSPACE,
+    FINISH_LOADING,
+    INSERT_TO_HEADER,
+    START_LOADING,
+    CLEAR_CONSOLE,
+    SCROLL_TO_END,
+    SCROLL_TO_TOP,
+}
+export interface TreeNode {
+    sid?: string;
+    title?: string;
+    key?: string;
+    selectable?: boolean;
+}
+
+export interface ServiceInstance extends TreeNode {
+    name: string;
+    status?: string;
+    group?: string;
+    path?: string;
+    children?: ServiceInstance[];
+}
+
+export interface JvmProcess extends TreeNode {
+    fullName?: string;
+    pid: number;
+    attached: boolean;
+    remote: string;
+    attaching: boolean;
+    trusted: boolean;
+    children?: JvmProcess[];
+}

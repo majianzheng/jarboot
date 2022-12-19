@@ -16,6 +16,18 @@
   #app {
   }
 }
+.__container-wrapper {
+  position: fixed;
+  height: 100vh;
+}
+@side-width: 320px;
+@tree-icon-size: 1.18em;
+@tree-toolbar-width: 32px;
+@tree-font-size: 1.12em;
+@table-font-size: 1.1em;
+@table-status-icon-size: 1.14em;
+@bottom-bar-height: 28px;
+
 @primary-color: #1da57a;
 @body-background: #fff;
 //控制台终端样式
@@ -31,43 +43,40 @@
 @status-stopping-color: #d4380d;
 @status-stopped-color: #C16666;
 
-//工具栏样式
-@bar-border: 1px solid #ddd;
-@bar-background-color: #f5f5f5;
 @bar-icon-size: 18px;
-@bar-button-hover-background: #e6e6e6;
-
 @code-editor-font-size: 1.16em;
 
-.toolButtonIcon {
-  color: @primary-color;
+.tool-button-icon {
+  color: var(--el-color-primary);
 }
-.toolButtonRedIcon {
-  color: #d90000;
+.tool-button-red-icon {
+  color: var(--el-color-error);
 }
-.toolButtonConsoleIcon {
+.tool-button-console-icon {
   color: rgba(0, 0, 0, 0.9);
 }
-.toolButtonIcon, .toolButtonRedIcon, .toolButtonConsoleIcon {
+.tool-button-icon, .tool-button-red-icon, .tool-button-console-icon {
   font-size: @bar-icon-size;
   vertical-align: middle;
 }
-.codeEditor {
+.code-editor {
   font-size: @code-editor-font-size;
 }
-.commonBar {
-  background-color: @bar-background-color;
-  border: @bar-border;
+.common-bar {
+  background: var(--toolbar-bg-color);
+  border: var(--el-border);
   overflow: hidden;
-}
-.commonBarButtonHover {
-  background: @bar-button-hover-background;
-  cursor: pointer;
-}
-.commonBarButtonDisable {
-  background-color: inherit;
-  cursor: not-allowed;
-  opacity: 0.5;
+  .tool-button {
+    :hover {
+      background: var(--tool-button-hover-color);
+      cursor: pointer;
+    }
+    :disabled {
+      background-color: inherit;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
 }
 //文本选择禁用
 .textNoSelect {
@@ -75,11 +84,6 @@
   -moz-user-select: none;
   -o-user-select: none;
   user-select: none;
-}
-.pageContainer {
-  max-height: calc(100vh - 66px);
-  overflow: auto;
-  background: @body-background;
 }
 
 //全局滚动条样式

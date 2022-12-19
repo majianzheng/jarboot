@@ -49,7 +49,7 @@ export default class Request {
                 //没有授权，跳转到登录界面
                 router.push({path: '/login'}).then(() => console.info('未登陆，跳转到登陆界面...')) ;
             }
-            return response.data;
+            return response.data as any;
         });
         // 请求拦截器，塞入token以便鉴权
         axios.interceptors.request.use(request => {

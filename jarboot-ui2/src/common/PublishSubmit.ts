@@ -2,7 +2,7 @@
  * 事件订阅、发布接口
  * @author majianzheng
  */
-interface PublishSubmit {
+export default interface PublishSubmit {
     /**
      * 订阅事件
      * @param namespace 命名空间

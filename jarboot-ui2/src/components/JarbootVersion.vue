@@ -7,7 +7,7 @@ import CloudService from "@/services/CloudService";
 import {ref} from "vue";
 
 const version = ref('');
-CloudService.getVersion().then((resp: string) => version.value = resp);
+CloudService.getVersion().then((resp) => version.value = resp as unknown as string);
 
 </script>
 

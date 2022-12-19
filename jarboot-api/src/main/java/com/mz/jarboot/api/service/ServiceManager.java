@@ -4,6 +4,7 @@ import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 
@@ -20,6 +21,12 @@ public interface ServiceManager {
      * @return 服务列表
      */
     List<ServiceInstance> getServiceList();
+
+    /**
+     * 获取服务组列表
+     * @return 服务分组
+     */
+    List<ServiceGroup> getServiceGroup();
 
     /**
      * 获取服务信息

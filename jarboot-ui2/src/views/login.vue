@@ -22,7 +22,7 @@
           <el-input v-model="ruleForm.password" :prefix-icon="Lock" :placeholder="$t('PASSWORD')" type="password" autocomplete="off" />
         </el-form-item>
         <el-form-item>
-          <el-button class="login-button" type="primary" @click="submitForm(ruleFormRef)">
+          <el-button :loading="loading" class="login-button" type="primary" @click="submitForm(ruleFormRef)">
             {{$t('LOGIN')}}
           </el-button>
         </el-form-item>
@@ -33,13 +33,11 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { reactive, ref } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { User, Lock } from "@element-plus/icons-vue";
-import router from "@/router";
-import OAuthService from "@/services/OAuthService";
-import CommonNotice from "@/common/CommonNotice";
 import CommonUtils from "@/common/CommonUtils";
+import {useUserStore} from "@/stores";
 
 const ruleFormRef = ref<FormInstance>()
 
@@ -47,29 +45,23 @@ const ruleForm = reactive({
   username: '',
   password: '',
 })
-const t = getCurrentInstance()?.appContext.config.globalProperties.$t;
+const userStore = useUserStore();
 const rules = reactive({
-  password: [{ required: true, message: t && t('INPUT_USERNAME'), trigger: 'blur' }],
-  username: [{ required: true, message: t && t('INPUT_PASSWORD'), trigger: 'blur' }],
+  password: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
+  username: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
 });
+const loading = ref(false);
 
-const submitForm = (formEl: FormInstance | undefined) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
-  formEl.validate((valid) => {
-    if (!valid) {
-      console.log('error submit!');
-      return false;
-    }
-    OAuthService.login(ruleForm.username, ruleForm.password).then(resp => {
-      if (resp.resultCode !== 0) {
-        CommonNotice.errorFormatted(resp);
-        return;
-      }
-      const user: any = resp.result;
-      CommonUtils.storeToken(user.accessToken);
-      router.push('/')
-    }).catch(CommonNotice.errorFormatted);
-  })
+  const valid = await formEl.validate();
+  if (!valid) {
+    console.log('error submit!');
+    return false;
+  }
+  loading.value = true;
+  await userStore.login(ruleForm.username, ruleForm.password);
+  loading.value = false;
 }
 </script>
 <style lang="less" scoped>

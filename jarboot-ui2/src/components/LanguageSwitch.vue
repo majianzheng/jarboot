@@ -1,13 +1,13 @@
 <template>
 <div class="__language-wrapper">
-  <el-popover placement="bottom">
-    <template #reference>
-      <i class="iconfont icon-language"></i>
+  <el-dropdown>
+    <i class="iconfont icon-language"></i>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item v-for="row in languageList" @click="toggle(row.value)">{{row.name}}</el-dropdown-item>
+      </el-dropdown-menu>
     </template>
-    <div>
-      <div v-for="row in languageList" @click="toggle(row.value)">{{row.name}}</div>
-    </div>
-  </el-popover>
+  </el-dropdown>
 </div>
 </template>
 
@@ -34,8 +34,10 @@ const languageList = computed(() => list.filter(row => locale.value != row.value
 .__language-wrapper {
   display: inline-block;
   .icon-language {
-    color: var(--el-text-color-regular);
-    font-size: var(--el-font-size-large);
+    position: relative;
+    top: 2px;
+    color: var(--color-hight);
+    font-size: var(--el-font-size-extra-large);
   }
 }
 </style>

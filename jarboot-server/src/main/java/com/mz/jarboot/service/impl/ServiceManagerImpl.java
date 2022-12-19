@@ -7,6 +7,7 @@ import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
@@ -57,6 +58,29 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     @Override
     public List<ServiceInstance> getServiceList() {
         return taskRunCache.getServiceList();
+    }
+
+    @Override
+    public List<ServiceGroup> getServiceGroup() {
+        List<ServiceInstance> serviceList = taskRunCache.getServiceList();
+        List<ServiceGroup> groups = new ArrayList<>();
+        if (CollectionUtils.isEmpty(serviceList)) {
+            return groups;
+        }
+        HashMap<String, ServiceGroup> map = new HashMap<>(16);
+        serviceList.forEach(service -> {
+            map.compute(service.getGroup(), (k, v) -> {
+                if (null == v) {
+                    v = new ServiceGroup();
+                    v.setName(service.getGroup());
+                    v.setChildren(new ArrayList<>());
+                    groups.add(v);
+                }
+                v.getChildren().add(service);
+                return v;
+            });
+        });
+        return groups;
     }
 
     /**

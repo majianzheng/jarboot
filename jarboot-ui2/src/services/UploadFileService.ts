@@ -1,7 +1,7 @@
 import Request from '../common/Request';
 import ErrorUtil from "../common/ErrorUtil";
 import CommonNotice from "../common/CommonNotice";
-import {requestFinishCallback} from "@/common/CommonConst";
+import {requestFinishCallback} from "@/common/CommonTypes";
 
 const baseUrl = "/api/jarboot/upload";
 

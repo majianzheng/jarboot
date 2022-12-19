@@ -1,38 +1,10 @@
 import Request from "@/common/Request";
 import CommonNotice from "@/common/CommonNotice";
-import {requestFinishCallback} from "@/common/CommonConst";
+import CommonUtils from "@/common/CommonUtils";
 import StringUtil from "@/common/StringUtil";
-import React from "react";
+import type {ServiceInstance} from "@/common/CommonTypes";
 
 const urlBase = "/api/jarboot/services";
-
-interface TreeNode {
-    sid: string;
-    name: string;
-    title: string | React.ReactNode;
-    key: string;
-    isLeaf?: boolean;
-    children?: TreeNode[];
-    icon?: React.ReactNode;
-    selectable?: boolean;
-}
-
-interface ServiceInstance extends TreeNode {
-    status: string;
-    group: string;
-    path: string;
-}
-
-interface JvmProcess extends TreeNode {
-    fullName?: string;
-    pid: number;
-    attached: boolean;
-    remote: string;
-    attaching: boolean;
-    trusted: boolean;
-}
-
-export { ServiceInstance, JvmProcess, TreeNode };
 /**
  * 服务管理
  */
@@ -46,6 +18,10 @@ export default class ServiceManager {
         Request.get(urlBase, {})
             .then(callback)
             .catch(CommonNotice.errorFormatted);
+    }
+
+    public static getServiceGroup() {
+        return Request.get(urlBase + '/groups', {});
     }
 
     /**
@@ -83,7 +59,7 @@ export default class ServiceManager {
      */
     public static oneClickRestart() {
         Request.get(`${urlBase}/oneClickRestart`, {}
-        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
+        ).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -91,7 +67,7 @@ export default class ServiceManager {
      */
     public static oneClickStart() {
         Request.get(`${urlBase}/oneClickStart`, {}
-        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
+        ).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -99,7 +75,7 @@ export default class ServiceManager {
      */
     public static oneClickStop() {
         Request.get(`${urlBase}/oneClickStop`, {}
-        ).then(requestFinishCallback).catch(CommonNotice.errorFormatted);
+        ).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
     }
 
     /**
@@ -144,7 +120,7 @@ export default class ServiceManager {
     private static parseParam(services: ServiceInstance[]): string[] {
         const set = new Set<string>();
         services.forEach(value => {
-            if (value.isLeaf) {
+            if (!value.children?.length) {
                 set.add(value.name as string);
                 return;
             }

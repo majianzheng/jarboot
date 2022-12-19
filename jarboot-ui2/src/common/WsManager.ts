@@ -1,10 +1,10 @@
 import Logger from "@/common/Logger";
 import StringUtil from "@/common/StringUtil";
 import { MSG_EVENT } from "@/common/EventConst";
-import {FuncCode, CommonConst, MsgData, MsgReq} from "@/common/CommonConst";
-import { message } from 'antd';
+import CommonConst from "@/common/CommonConst";
 import CommonUtils from "@/common/CommonUtils";
-import { MessageType } from "antd/lib/message";
+import { ElMessage } from 'element-plus';
+import type {FuncCode, MsgData, MsgReq} from '@/common/CommonTypes';
 
 enum NotifyType {
     /** 提示 */
@@ -33,7 +33,7 @@ class WsManager {
     /** 事件处理回调 */
     private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
     /** 全局Loading事件 */
-    private static readonly LOADING_MAP = new Map<string, MessageType>();
+    private static readonly LOADING_MAP = new Map<string, any>();
     /** websocket句柄 */
     private static websocket: any = null;
     /** 重连setInterval的句柄 */
@@ -107,7 +107,7 @@ class WsManager {
             }
         }
         const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-        const url = process.env.NODE_ENV === 'development' ?
+        const url = import.meta.env.DEV ?
             `ws://${window.location.hostname}:9899/jarboot/main/service/ws?${token}` :
             `ws://${window.location.host}/jarboot/main/service/ws?${token}`;
         WsManager.websocket = new WebSocket(url);
@@ -132,11 +132,11 @@ class WsManager {
         const handle = WsManager.LOADING_MAP.get(key);
         WsManager.LOADING_MAP.delete(key);
         if (hasSplit) {
-            handle && handle();
+            handle && handle.close();
         } else {
             const duration = 0;
-            const content = body.substring(index + 1);
-            WsManager.LOADING_MAP.set(key, message.loading({content, key, duration}, duration));
+            const message = body.substring(index + 1);
+            WsManager.LOADING_MAP.set(key, ElMessage({message, icon: 'Loading', key, duration}));
         }
     };
 
@@ -179,7 +179,7 @@ class WsManager {
     private static onOpen = () => {
         Logger.log("连接Websocket服务器成功！");
         if (msg) {
-            msg();
+            msg.close();
             msg = null;
             //重连成功，刷新状态
             const handler = WsManager.HANDLERS.get(WsManager.RECONNECTED_EVENT);
@@ -215,7 +215,7 @@ class WsManager {
         if (null !== WsManager.fd) {
             return;
         }
-        msg = message.loading('reconnecting...', 0);
+        msg = ElMessage({message: 'reconnecting...', duration: 0});
         WsManager.fd = setInterval(() => {
             if (null === WsManager.fd) {
                 //已经进入连onOpen

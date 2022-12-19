@@ -1,11 +1,9 @@
-import CommonNotice from "./CommonNotice";
-import ErrorUtil from "./ErrorUtil";
 
 /**
  * 通用常量定义
  * @author majianzheng
  */
-class CommonConst {
+export default class CommonConst {
     public static readonly DOCS_URL = "https://www.yuque.com/jarboot/usage/quick-start";
     public static readonly PROTOCOL_SPLIT = '\r';
 
@@ -40,32 +38,3 @@ class CommonConst {
 
     public static readonly LOCALHOST = 'localhost';
 }
-
-interface MsgData {
-    event: number;
-    sid: string;
-    body: any;
-}
-
-enum FuncCode {
-    CMD_FUNC,
-    CANCEL_FUNC,
-    TRUST_ONCE_FUNC,
-    CHECK_TRUSTED_FUNC,
-    DETACH_FUNC,
-}
-
-interface MsgReq {
-    service?: string;
-    sid?: string;
-    body: string;
-    func: FuncCode;
-}
-
-const requestFinishCallback = (resp: any) => {
-    if (resp.resultCode !== 0) {
-        CommonNotice.error(ErrorUtil.formatErrResp(resp));
-    }
-};
-
-export {CommonConst, MsgData, MsgReq, FuncCode, requestFinishCallback};

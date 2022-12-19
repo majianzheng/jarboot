@@ -1,4 +1,7 @@
-import {CommonConst} from "./CommonConst";
+import CommonConst from "./CommonConst";
+import {getCurrentInstance} from "vue";
+import CommonNotice from "@/common/CommonNotice";
+import ErrorUtil from "@/common/ErrorUtil";
 
 /**
  * @author majianzheng
@@ -8,19 +11,10 @@ export default class CommonUtils {
     private static readonly TOKEN_PREFIX = "Bearer ";
     public static readonly ACCESS_TOKEN = 'accessToken';
 
-    public static loginPage() {
-        localStorage.removeItem(CommonConst.TOKEN_KEY);
-        if (0 === window.location.pathname.indexOf(CommonUtils.HOME_PREFIX)) {
-            location.assign('/jarboot/login.html');
-            return;
-        }
-        location.assign('/login.html');
+    public static translate(s : string) {
+        const t = getCurrentInstance()?.appContext.config.globalProperties.$t;
+        return t ? t(s) : s;
     }
-
-    public static homePage() {
-
-    }
-
     public static getToken(): string {
         let token = localStorage.getItem(CommonConst.TOKEN_KEY);
         if (!token) {
@@ -34,6 +28,10 @@ export default class CommonUtils {
             token = CommonUtils.TOKEN_PREFIX + token;
         }
         localStorage.setItem(CommonConst.TOKEN_KEY, token);
+    }
+
+    public static deleteToken() {
+        localStorage.removeItem(CommonConst.TOKEN_KEY);
     }
 
     public static getRawToken(): string {
@@ -53,4 +51,10 @@ export default class CommonUtils {
         a.href = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
         a.click();
     }
+
+    public static requestFinishCallback = (resp: any) => {
+        if (resp.resultCode !== 0) {
+            CommonNotice.error(ErrorUtil.formatErrResp(resp));
+        }
+    };
 }
