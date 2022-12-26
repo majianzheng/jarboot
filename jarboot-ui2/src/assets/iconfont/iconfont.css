@@ -8,10 +8,29 @@
 
 .iconfont {
   font-family: "iconfont" !important;
-  font-size: 16px;
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-config:before {
+  content: "\e615";
+}
+
+.icon-onekey:before {
+  content: "\e616";
+}
+
+.icon-clear:before {
+  content: "\e612";
+}
+
+.icon-to-bottom:before {
+  content: "\e613";
+}
+
+.icon-to-top:before {
+  content: "\e614";
 }
 
 .icon-github:before {

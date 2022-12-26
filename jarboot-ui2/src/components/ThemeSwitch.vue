@@ -22,6 +22,9 @@ const toggleDark = useToggle(isDark)
 .theme-switch-wrap {
   display: inline-block;
   height: 24px;
+  :hover {
+    cursor: pointer;
+  }
 }
 .theme-switch {
   display: flex;

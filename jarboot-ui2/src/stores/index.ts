@@ -10,6 +10,23 @@ import Logger from "@/common/Logger";
 import {PUB_TOPIC, pubsub} from "@/views/services/ServerPubsubImpl";
 import {CONSOLE_TOPIC} from "@/common/CommonTypes";
 
+export const useBasicStore = defineStore({
+  id: 'basic',
+  state: () => ({
+    version: '',
+    innerHeight: window.innerHeight,
+    innerWidth: window.innerWidth,
+  }),
+  actions: {
+    update() {
+      this.$patch({innerHeight: window.innerHeight, innerWidth: window.innerWidth});
+    },
+    setVersion(version) {
+      console.info('.>>>>>>', version);
+      this.$patch({version});
+    }
+  }
+});
 
 export const useUserStore = defineStore({
   id: 'user',
@@ -49,25 +66,73 @@ export const useServicesStore = defineStore({
   state: () => ({
     loading: true,
     groups: [] as ServiceInstance[],
+    instanceList: [] as ServiceInstance[],
+    activatedList: [] as ServiceInstance[],
     activated: {} as ServiceInstance,
-    selected: [] as ServiceInstance[],
+    // 当前选中的节点
+    currentNode: [] as ServiceInstance[],
+    checked: [] as ServiceInstance[],
   }),
   actions: {
     async reload() {
       this.$patch({loading: true});
       const resp = (await ServiceManager.getServiceGroup()) as any;
       if (0 !== resp.resultCode) {
-        CommonNotice.errorFormatted(resp);
         return;
       }
-      const groups = resp.result;
-      this.$patch({groups, loading: false});
+      const groups = resp.result || [];
+      const instanceList = [];
+      groups.forEach(group => ((group.children||[]).forEach(s => instanceList.push(s))));
+      this.$patch({groups, instanceList, loading: false});
     },
     startServices() {
-
+      const services = [];
+      this.currentNode.forEach(node => {
+            if (node.children?.length > 0) {
+              services.push(...node.children);
+            } else {
+              services.push(node);
+            }
+      });
+      ServiceManager.startService(services, () => {});
     },
     stopServices() {
-
+      const services = [];
+      this.currentNode.forEach(node => {
+        if (node.children?.length > 0) {
+          services.push(...node.children);
+        } else {
+          services.push(node);
+        }
+      });
+      ServiceManager.stopService(services, () => {});
+    },
+    currentChange(data, node) {
+      if (node.isLeaf) {
+        const index = this.activatedList.findIndex(item => item.sid === data.sid);
+        if (-1 === index) {
+          const activatedList = [...this.activatedList, data];
+          this.$patch({activated: data, activatedList});
+        } else {
+          this.$patch({activated: data});
+        }
+      }
+      this.$patch({currentNode: [data]});
+    },
+    closeServiceTerminal(instance) {
+      const activatedList = this.activatedList.filter(item => item.sid !== instance.sid);
+      let activated = {...this.activated};
+      if (this.activated.sid === instance.sid) {
+        if (activatedList.length > 0) {
+          activated = activatedList[0];
+        } else {
+          activated = {};
+        }
+      }
+      this.$patch({activated, activatedList});
+    },
+    checkChange(checked) {
+      this.$patch({checked});
     },
     setStatus(sid: string, status: string) {
       const groups = [...this.groups];

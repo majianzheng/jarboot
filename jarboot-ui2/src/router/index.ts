@@ -21,12 +21,18 @@ const router = createRouter({
       children: [
         {
           path: '',
-          component: Services
+          component: Services,
+          meta: {
+            keepAlive: true
+          }
         },
         {
           path: '/diagnose',
           name: 'diagnose',
-          component: OnlineDiagnose
+          component: OnlineDiagnose,
+          meta: {
+            keepAlive: true
+          }
         },
         {
           path: '/authority',

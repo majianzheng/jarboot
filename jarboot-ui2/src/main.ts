@@ -11,6 +11,7 @@ import {createI18n} from 'vue-i18n';
 import App from './App.vue';
 import router from './router';
 import zh from './locales/zh-CN';
+import zhTw from './locales/zh-TW';
 import en from './locales/en-US';
 import "./assets/iconfont/iconfont.css";
 import "./assets/iconfont/iconfont.js";
@@ -23,6 +24,7 @@ const i18n = createI18n({
     legacy: false,
     messages: {
         'zh-CN': zh,   // 中文语言包
+        'zh-TW': zhTw,   // 中文繁体语言包
         'en-US': en    // 英文语言包
     }
 })

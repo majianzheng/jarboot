@@ -10,11 +10,7 @@ export default class OAuthService {
      * 获取当前用户
      */
     public static getCurrentUser() {
-        let token = localStorage.getItem("token");
-        if (null === token) {
-            token = '';
-        }
-        return Request.get(`${urlBase}/getCurrentUser?token=${token}`, {});
+        return Request.get(`${urlBase}/getCurrentUser`, {});
     }
 
     /**

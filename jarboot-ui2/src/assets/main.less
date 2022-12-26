@@ -55,10 +55,6 @@
 .tool-button-console-icon {
   color: rgba(0, 0, 0, 0.9);
 }
-.tool-button-icon, .tool-button-red-icon, .tool-button-console-icon {
-  font-size: @bar-icon-size;
-  vertical-align: middle;
-}
 .code-editor {
   font-size: @code-editor-font-size;
 }
@@ -66,17 +62,22 @@
   background: var(--toolbar-bg-color);
   border: var(--el-border);
   overflow: hidden;
-  .tool-button {
-    :hover {
-      background: var(--tool-button-hover-color);
-      cursor: pointer;
-    }
-    :disabled {
-      background-color: inherit;
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
+}
+.tool-button {
+  &:hover {
+    background: var(--tool-button-hover-color);
+    cursor: pointer;
   }
+  &:disabled {
+    background-color: inherit;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+.command-prefix {
+  color: lightgray;
+  margin: 0 10px 0 2px;
+  .textNoSelect();
 }
 //文本选择禁用
 .textNoSelect {
@@ -103,4 +104,20 @@
   box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   background   : rgb(0 0 0 / 25%);
+}
+
+.ui-spin {
+  animation: span-frame1 3s infinite linear;
+}
+
+@keyframes span-frame1
+{
+  from {transform: rotate(0deg);}
+  to {transform: rotate(359deg);}
+}
+
+@keyframes span-frame2
+{
+  from {transform: rotate(0deg);}
+  to {transform: rotate(-359deg);}
 }

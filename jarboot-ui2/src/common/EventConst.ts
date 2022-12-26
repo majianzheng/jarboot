@@ -11,3 +11,10 @@ export enum MSG_EVENT {
     JVM_PROCESS_CHANGE, //java进程变化事件
     GLOBAL_LOADING, //全局Loading提示
 }
+export enum FuncCode {
+    CMD_FUNC,
+    CANCEL_FUNC,
+    TRUST_ONCE_FUNC,
+    CHECK_TRUSTED_FUNC,
+    DETACH_FUNC,
+}

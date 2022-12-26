@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
+import {RouterLink, RouterView, useRoute} from 'vue-router';
 import CommonConst from "@/common/CommonConst";
 import {useUserStore} from "@/stores";
-import {onMounted} from "vue";
+import {computed, onMounted} from "vue";
 import {WsManager} from "@/common/WsManager";
 
 const openDoc = () => window.open(CommonConst.DOCS_URL);
@@ -13,6 +13,8 @@ const menus = [
   { path: '/authority', name: 'AUTH_CONTROL'},
   { path: '/setting', name: 'SETTING'},
 ];
+const route = useRoute();
+const key = computed(() => route.name !== undefined ? route.name : Date.now());
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
   console.log(`%c(灬°ω°灬) `, 'color:magenta');
@@ -37,10 +39,18 @@ onMounted(() => {
       <div style="flex: auto;"></div>
       <div class="right-extra">
         <div class="tools-box">
-          <jarboot-version class="tool-button"></jarboot-version>
-          <el-button class="tool-button" size="small" link @click="openDoc">{{ $t('MENU_DOCS') }}</el-button>
-          <theme-switch class="tool-button"></theme-switch>
-          <language-switch class="tool-button"></language-switch>
+          <div class="menu-button">
+            <jarboot-version></jarboot-version>
+          </div>
+          <div class="menu-button">
+            <el-button size="small" link @click="openDoc">{{ $t('MENU_DOCS') }}</el-button>
+          </div>
+          <div class="menu-button">
+            <theme-switch></theme-switch>
+          </div>
+          <div class="menu-button">
+            <language-switch></language-switch>
+          </div>
         </div>
         <div class="user-avatar">
           <el-dropdown>
@@ -61,7 +71,13 @@ onMounted(() => {
         </div>
       </div>
     </header>
-    <RouterView />
+    <router-view v-slot="{ Component }">
+      <transition>
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
+      </transition>
+    </router-view>
   </main>
 </template>
 <style lang="less" scoped>
@@ -98,10 +114,11 @@ header {
   .right-extra {
     display: flex;
     .tools-box {
+      display: flex;
       margin: 10px 5px;
       border-right: var(--el-border);
     }
-    .tool-button {
+    .menu-button {
       margin-right: 15px;
     }
     .user-avatar {

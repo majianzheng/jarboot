@@ -1,17 +1,36 @@
 <template>
-  <code class="console" :style="codeStyle" ref="code"></code>
+  <code class="console" :style="{height: props.height, whiteSpace: props.wrap ? 'pre-wrap' : ''}" ref="consoleRef">
+    <slot name="content">
+      {{props.content}}
+    </slot>
+  </code>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted, computed} from 'vue';
-import {SgrOption, EventType, ConsoleEvent, DEFAULT_SGR_OPTION} from "@/components/console/index";
+import {ref, onMounted, onUnmounted} from 'vue';
 import {ColorBasic, ColorBrightness, Color256} from './ColorTable';
 import Logger from '@/common/Logger';
 import StringUtil from "@/common/StringUtil";
 import PublishSubmit from "@/common/PublishSubmit";
 import {CONSOLE_TOPIC} from "@/common/CommonTypes";
+import {ConsoleEvent, EventType, SgrOption} from "@/components/console/ConsoleTypes";
 
-export type ConsoleProps = {
+const DEFAULT_SGR_OPTION: SgrOption = {
+  backgroundColor: '',
+  exchange: false,
+  foregroundColor: '',
+  hide: false,
+  weaken: false,
+  bold: false,
+  oblique: false,
+  underline: false,
+  overline: false,
+  through: false,
+  slowBlink: false,
+  fastBlink: false,
+};
+
+type ConsoleProps = {
   /** 是否显示 */
   visible?: boolean;
   /** 初始内容 */
@@ -36,19 +55,10 @@ const AUTO_CLEAN_LINE = 12000;
 const MAX_UPDATE_DELAY = 128;
 const MAX_FINISHED_DELAY = MAX_UPDATE_DELAY * 2;
 const BEGIN = '[';
-const console = ref<HTMLElement>(null as unknown as HTMLElement);
+const consoleRef = ref<HTMLElement>(null as unknown as HTMLElement);
 const loading = document.createElement('p');
 const props = defineProps<ConsoleProps>();
-const codeStyle = computed(() => {
-  const style = {} as any;
-  if (props.height) {
-    style.hight = props.height;
-  }
-  if (props.wrap) {
-    style['white-space'] = 'pre-wrap';
-  }
-  return style;
-});
+
 let isStartLoading = false;
 let eventQueue = [] as ConsoleEvent[];
 let finishHandle: any = null;
@@ -57,16 +67,16 @@ let lines = [] as HTMLElement[];
 let sgrOption: SgrOption = {...DEFAULT_SGR_OPTION};
 const resetContent = (text: string|undefined) => {
   if (text?.length) {
-    console.value && (console.value.innerHTML = ansiCompile(text as string));
+    consoleRef.value && (consoleRef.value.innerHTML = ansiCompile(text as string));
   }
 };
 
 const onClear = () => {
-  if (!console.value?.children?.length) {
+  if (!consoleRef.value?.children?.length) {
     return;
   }
   const initLength = isStartLoading ? 2 : 1;
-  if (console.value.children.length <= initLength) {
+  if (consoleRef.value.children.length <= initLength) {
     return;
   }
   eventQueue.push({type: EventType.CLEAR_EVENT});
@@ -78,7 +88,7 @@ const onStartLoading = () => {
     return;
   }
   try {
-    console.value.append(loading);
+    consoleRef.value.append(loading);
     isStartLoading = true;
   } catch (e) {
     Logger.error(e);
@@ -94,7 +104,7 @@ const onFinishLoading = (str?: string) => {
   finishHandle = setTimeout(() => {
     finishHandle = null;
     try {
-      console.value.removeChild(loading);
+      consoleRef.value.removeChild(loading);
     } catch (error) {
       //ignore
     }
@@ -120,8 +130,8 @@ const onBackspace = (num: string) => {
   eventQueue.push({type: EventType.BACKSPACE_EVENT, backspaceNum});
   trigEvent();
 };
-const scrollToEnd = () => (console.value.scrollTop = console.value.scrollHeight);
-const scrollToTop = () => (console.value.scrollTop = 0);
+const scrollToEnd = () => (consoleRef.value.scrollTop = consoleRef.value.scrollHeight);
+const scrollToTop = () => (consoleRef.value.scrollTop = 0);
 const trigEvent = () => {
   if (intervalHandle) {
     //已经触发
@@ -152,12 +162,12 @@ const eventLoop = () => {
     eventQueue = [];
     lines = [];
     //检查是否需要清理，如果超过最大行数则移除最老的行
-    const count = console.value.children.length;
+    const count = consoleRef.value.children.length;
     if (count > MAX_LINE) {
       //超出的行数加上一次性清理的行
       const waitDeleteLineCount = count - MAX_LINE + AUTO_CLEAN_LINE;
       for (let i = 0; i < waitDeleteLineCount; ++i) {
-        console.value.removeChild(console.value.children[0]);
+        consoleRef.value.removeChild(consoleRef.value.children[0]);
       }
     }
   }
@@ -175,7 +185,7 @@ const handleEvent = (event: ConsoleEvent) => {
         handleBackspace(event);
         break;
       case EventType.CLEAR_EVENT:
-        handleClear();
+        handleClear(event);
         break;
       default:
         break;
@@ -184,13 +194,13 @@ const handleEvent = (event: ConsoleEvent) => {
     Logger.error(e);
   }
 };
-const handleClear = () => {
+const handleClear = (event: ConsoleEvent) => {
   if (isStartLoading) {
     //如果处于加载中，则保留加载的动画
-    console.value.innerHTML = "";
-    console.value.append(loading);
+    consoleRef.value.innerHTML = event?.text || '';
+    consoleRef.value.append(loading);
   } else {
-    console.value.innerHTML = "";
+    consoleRef.value.innerHTML = event?.text || '';
   }
 }
 const handleConsole = (event: ConsoleEvent) => {
@@ -246,7 +256,7 @@ const handleStdPrint = (event: ConsoleEvent) => {
       }
     } else {
       //当前为空时，插入新的p和br
-      console.value.insertAdjacentHTML('afterbegin', `<p>${left}</p><br/>`);
+      consoleRef.value.insertAdjacentHTML('afterbegin', `<p>${left}</p><br/>`);
     }
     //得到下一个待处理的子串
     text = text.substring(index + 1);
@@ -270,7 +280,7 @@ const updateStdPrint = (text: string) => {
       last.after(createNewLine(text));
     }
   } else {
-    console.value.insertAdjacentHTML('afterbegin', `<p>${text}</p>`);
+    consoleRef.value.insertAdjacentHTML('afterbegin', `<p>${text}</p>`);
   }
 }
 const createNewLine = (content: string) => {
@@ -331,11 +341,11 @@ const removeDeleted = (line: HTMLElement, len: number) => {
   line.innerHTML = html;
 };
 const getLastLine = (): Element|null => {
-  if (!console.value.children?.length) {
+  if (!consoleRef.value.children?.length) {
     return null;
   }
-  const len = console.value.children.length;
-  return isStartLoading ? console.value.children[len - 2] : console.value.children[len - 1];
+  const len = consoleRef.value.children.length;
+  return isStartLoading ? consoleRef.value.children[len - 2] : consoleRef.value.children[len - 1];
 }
 /**
  * Ansi核心算法入口
@@ -386,7 +396,7 @@ const ansiCompile = (content: string): string => {
 }
 const rawText = (text: string): string => {
   if (text.length) {
-    return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return text.replace('<', '&lt;').replace('>', '&gt;');
   }
   return text;
 };
@@ -697,11 +707,11 @@ onMounted(() => {
   loading.append(three3);
   loading.setAttribute('class', 'loading');
 
-  const {pubsub, id, content} = props;
+  const {pubsub, id} = props;
   //初始化code dom
-  if (content?.length) {
-    resetContent(props.content);
-  }
+  // if (content?.length) {
+  //   resetContent(props.content);
+  // }
 
   if (pubsub) {
     //初始化事件订阅
@@ -768,33 +778,6 @@ onUnmounted(() => {
     tr > td, tr > th {
       padding: 0 6px 0 6px;
     }
-  }
-  .banner {
-    margin: 0 0 12px 15px;
-  }
-  .black {
-    color: black;
-  }
-  .red {
-    color: red;
-  }
-  .green {
-    color: lawngreen;
-  }
-  .yellow {
-    color: yellow;
-  }
-  .blue {
-    color: blueviolet;
-  }
-  .magenta {
-    color: magenta;
-  }
-  .cyan {
-    color: cyan;
-  }
-  .white {
-    color: white;
   }
 }
 

@@ -1,7 +1,7 @@
 <template>
 <div class="__language-wrapper">
   <el-dropdown>
-    <i class="iconfont icon-language"></i>
+    <el-button class="menu-button" size="small" link><i class="iconfont icon-language"></i></el-button>
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item v-for="row in languageList" @click="toggle(row.value)">{{row.name}}</el-dropdown-item>
@@ -24,6 +24,7 @@ const toggle = (language: string) => {
 
 const list = [
   {name: '中文', value: 'zh-CN'},
+  {name: '繁體', value: 'zh-TW'},
   {name: 'English', value: 'en-US'},
 ]
 
@@ -34,8 +35,6 @@ const languageList = computed(() => list.filter(row => locale.value != row.value
 .__language-wrapper {
   display: inline-block;
   .icon-language {
-    position: relative;
-    top: 2px;
     color: var(--color-hight);
     font-size: var(--el-font-size-extra-large);
   }

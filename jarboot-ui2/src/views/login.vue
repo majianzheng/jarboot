@@ -16,10 +16,23 @@
           class="demo-ruleForm"
       >
         <el-form-item label="" prop="username">
-          <el-input v-model="ruleForm.username" :prefix-icon="User" :placeholder="$t('USER_NAME')" autocomplete="off"/>
+          <el-input
+              v-model="ruleForm.username"
+              :prefix-icon="User"
+              :placeholder="$t('USER_NAME')"
+              @keydown.native.enter="submitForm(ruleFormRef)"
+              clearable
+              autocomplete="off"/>
         </el-form-item>
         <el-form-item label="" prop="password">
-          <el-input v-model="ruleForm.password" :prefix-icon="Lock" :placeholder="$t('PASSWORD')" type="password" autocomplete="off" />
+          <el-input
+              v-model="ruleForm.password"
+              :prefix-icon="Lock"
+              :placeholder="$t('PASSWORD')"
+              @keydown.native.enter="submitForm(ruleFormRef)"
+              clearable
+              show-password
+              type="password" autocomplete="off" />
         </el-form-item>
         <el-form-item>
           <el-button :loading="loading" class="login-button" type="primary" @click="submitForm(ruleFormRef)">

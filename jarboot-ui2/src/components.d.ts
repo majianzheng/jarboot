@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    Banner: typeof import('./components/super-panel/Banner.vue')['default']
     Console: typeof import('./components/console/Console.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -15,6 +16,7 @@ declare module '@vue/runtime-core' {
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElIcon: typeof import('element-plus/es')['ElIcon']
@@ -25,6 +27,7 @@ declare module '@vue/runtime-core' {
     LanguageSwitch: typeof import('./components/LanguageSwitch.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SuperPanel: typeof import('./components/super-panel/SuperPanel.vue')['default']
     SvgIcon: typeof import('./components/SvgIcon.vue')['default']
     ThemeSwitch: typeof import('./components/ThemeSwitch.vue')['default']
   }

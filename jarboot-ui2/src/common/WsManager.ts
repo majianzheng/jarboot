@@ -4,7 +4,8 @@ import { MSG_EVENT } from "@/common/EventConst";
 import CommonConst from "@/common/CommonConst";
 import CommonUtils from "@/common/CommonUtils";
 import { ElMessage } from 'element-plus';
-import type {FuncCode, MsgData, MsgReq} from '@/common/CommonTypes';
+import {FuncCode} from "@/common/EventConst";
+import type {MsgData, MsgReq} from '@/common/CommonTypes';
 
 enum NotifyType {
     /** 提示 */

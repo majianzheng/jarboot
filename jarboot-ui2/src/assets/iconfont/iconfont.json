@@ -6,6 +6,41 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "33523001",
+      "name": "icon_config",
+      "font_class": "config",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "33523002",
+      "name": "OneKey",
+      "font_class": "onekey",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "33522995",
+      "name": "clear",
+      "font_class": "clear",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "33522996",
+      "name": "qudibu_to-bottom",
+      "font_class": "to-bottom",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
+      "icon_id": "33522997",
+      "name": "qudingbu_to-top",
+      "font_class": "to-top",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
       "icon_id": "33408504",
       "name": "github",
       "font_class": "github",

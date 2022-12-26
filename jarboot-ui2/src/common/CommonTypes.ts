@@ -1,11 +1,4 @@
-
-export enum FuncCode {
-    CMD_FUNC,
-    CANCEL_FUNC,
-    TRUST_ONCE_FUNC,
-    CHECK_TRUSTED_FUNC,
-    DETACH_FUNC,
-}
+import {FuncCode} from "@/common/EventConst";
 
 export type MsgData = {
     event: number;

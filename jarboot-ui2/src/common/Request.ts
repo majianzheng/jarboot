@@ -1,6 +1,12 @@
 import axios from "axios";
 import CommonUtils from "./CommonUtils";
 import router from '../router';
+import CommonNotice from "@/common/CommonNotice";
+
+const http = axios.create({
+    baseURL: "",
+    timeOut: 30000,
+});
 
 /**
  * Http请求封装
@@ -13,7 +19,7 @@ export default class Request {
      * @param params 请求参数Map
      */
     static get(url: string, params: any) {
-        return axios.get(url, {params: params,});
+        return http.get(url, {params: params,});
     }
 
     /**
@@ -22,7 +28,7 @@ export default class Request {
      * @param params 请求参数
      */
     static post(url: string, params: any) {
-        return axios.post(url, params);
+        return http.post(url, params);
     }
 
     /**
@@ -31,7 +37,7 @@ export default class Request {
      * @param params 请求参数
      */
     static put(url: string, params: any) {
-        return axios.put(url, params);
+        return http.put(url, params);
     }
 
     /**
@@ -40,19 +46,39 @@ export default class Request {
      * @param params 请求参数
      */
     static delete(url: string, params: any) {
-        return axios.delete(url, params);
+        return http.delete(url, params);
     }
 
     public static init() {
-        axios.interceptors.response.use(response => {
+        http.interceptors.response.use(response => {
             if (401 === response?.status) {
                 //没有授权，跳转到登录界面
                 router.push({path: '/login'}).then(() => console.info('未登陆，跳转到登陆界面...')) ;
             }
-            return response.data as any;
+            let data = response.data;
+            if (typeof data == 'string' && (data.startsWith('{') || data.startsWith('['))) {
+                try {
+                    const temp = JSON.parse(data);
+                    if (temp) {
+                        data = temp;
+                    }
+                } catch (error) {
+                    //
+                }
+            }
+            if (data.hasOwnProperty('resultCode') && 0 !== data.resultCode) {
+                return Promise.reject(data);
+            }
+            return data;
+        }, error => {
+            const msg = `请求${error.config.url}发生错误：`;
+            console.error(msg, error);
+            CommonNotice.error(msg);
+            return Promise.reject(error);
         });
+
         // 请求拦截器，塞入token以便鉴权
-        axios.interceptors.request.use(request => {
+        http.interceptors.request.use(request => {
             let token = CommonUtils.getToken();
             if (request.headers && token.length) {
                 request.headers['Authorization'] = token;
