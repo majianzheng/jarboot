@@ -13,8 +13,6 @@ const menus = [
   { path: '/authority', name: 'AUTH_CONTROL'},
   { path: '/setting', name: 'SETTING'},
 ];
-const route = useRoute();
-const key = computed(() => route.name !== undefined ? route.name : Date.now());
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
   console.log(`%c(灬°ω°灬) `, 'color:magenta');

@@ -22,7 +22,6 @@ export const useBasicStore = defineStore({
       this.$patch({innerHeight: window.innerHeight, innerWidth: window.innerWidth});
     },
     setVersion(version) {
-      console.info('.>>>>>>', version);
       this.$patch({version});
     }
   }

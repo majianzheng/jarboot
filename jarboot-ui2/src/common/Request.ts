@@ -66,10 +66,11 @@ export default class Request {
                     //
                 }
             }
-            if (data.hasOwnProperty('resultCode') && 0 !== data.resultCode) {
+            const resultCode = data.resultCode ?? -1;
+            if (data.hasOwnProperty('resultCode') && resultCode < 0) {
                 return Promise.reject(data);
             }
-            return data;
+            return Promise.resolve(data);
         }, error => {
             const msg = `请求${error.config.url}发生错误：`;
             console.error(msg, error);

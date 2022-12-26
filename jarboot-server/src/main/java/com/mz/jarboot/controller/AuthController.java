@@ -64,13 +64,13 @@ public class AuthController {
         try {
             token = resolveToken(request);
             if (StringUtils.isEmpty(token)) {
-                current.setResultCode(ResultCodeConst.NOT_EXIST);
+                current.setResultCode(ResultCodeConst.NOT_LOGIN_ERROR);
                 current.setResultMsg("当前未登录");
                 return current;
             }
         } catch (Exception e) {
-            current.setResultCode(ResultCodeConst.NOT_EXIST);
-            current.setResultMsg("当前未登录");
+            current.setResultCode(ResultCodeConst.NOT_LOGIN_ERROR);
+            current.setResultMsg("当前未登录: " + e.getMessage());
             return current;
         }
 

@@ -24,6 +24,7 @@ public final class ResultCodeConst {
 	/** 内部错误 **/
 	public static final int INTERNAL_ERROR = -9999;
 
+	public static final int NOT_LOGIN_ERROR = 401;
 	private ResultCodeConst() {
 
 	}
