@@ -125,6 +125,8 @@ public class PropertyFileUtils {
         setting.setVm(jvm);
         String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);
         setting.setArgs(args);
+        String appType  = properties.getProperty(SettingPropConst.APP_TYPE, "java");
+        setting.setApplicationType(appType);
         checkAndGetHome(setting, properties);
 
         //环境变量

@@ -14,30 +14,46 @@
         <div class="tool-button tool-button-red-icon"><i class="iconfont icon-dashboard"></i> </div>
         <div class="tool-button tool-button-icon"><i class="iconfont icon-import"></i> </div>
       </div>
-      <el-tree
-          :data="services.groups"
-          default-expand-all
-          ref="treeRef"
-          :props="defaultProps"
-          highlight-current
-          @check-change="checkChanged"
-          @node-click="handleNodeClick">
-        <template #default="{ node, data }">
-          <div style="width: 100%;">
-            <div style="width: 100%;" v-if="node.isLeaf" @click="services.currentChange(data, node)">
-              <i v-if="CommonConst.STATUS_STOPPED === data.status" class="iconfont icon-stopped status-stopped"></i>
-              <el-icon v-else-if="CommonConst.STATUS_STARTING === data.status" class="status-starting ui-spin"><Loading/></el-icon>
-              <el-icon v-else-if="CommonConst.STATUS_STOPPING === data.status" class="status-stopping ui-spin"><Loading/></el-icon>
-              <el-icon v-else-if="CommonConst.STATUS_STARTED === data.status" class="status-running"><CaretRight/></el-icon>
-              <span class="__tree-title">{{ data.name }}</span>
+      <div style="width: 100%; padding: 3px 1px;">
+        <el-input v-model="services.search" placeholder="" prefix-icon="Search" size="small"/>
+        <el-tree
+            v-show="'service' === services.currentTab"
+            ref="treeRef"
+            :data="services.groups"
+            :props="defaultProps"
+            default-expand-all
+            highlight-current
+            @check-change="checkChanged"
+            @node-click="handleNodeClick">
+          <template #default="{ node, data }">
+            <div style="width: 100%;">
+              <div v-if="node.isLeaf" style="width: 100%;" @click="services.currentChange(data, node)">
+                <el-icon v-if="CommonConst.STATUS_STOPPED === data.status" class="status-stopped"><SuccessFilled /></el-icon>
+                <el-icon v-else-if="CommonConst.STATUS_STARTING === data.status" class="status-starting ui-spin">
+                  <Loading/>
+                </el-icon>
+                <el-icon v-else-if="CommonConst.STATUS_STOPPING === data.status" class="status-stopping ui-spin">
+                  <Loading/>
+                </el-icon>
+                <el-icon v-else-if="CommonConst.STATUS_STARTED === data.status" class="status-running">
+                  <CaretRight/>
+                </el-icon>
+                <span class="__tree-title">{{ data.name }}</span>
+                <el-icon class="edit-btn"><Edit /></el-icon>
+              </div>
+              <div v-else>
+                <el-icon class="group-icon">
+                  <Menu/>
+                </el-icon>
+                <span class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
+              </div>
             </div>
-            <div v-else>
-              <el-icon class="group-icon"><Menu /></el-icon>
-              <span class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
-            </div>
-          </div>
-        </template>
-      </el-tree>
+          </template>
+        </el-tree>
+        <div class="bottom-tab">
+
+        </div>
+      </div>
     </div>
     <div class="server-content">
       <super-panel
@@ -83,7 +99,7 @@ const doCommand = (service: ServiceInstance, cmd: string) => {
   WsManager.sendMessage({service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC});
 }
 const doCancel = (service: ServiceInstance) => {
-  WsManager.callFunc(FuncCode.CANCEL_FUNC, service.sid);
+  WsManager.callFunc(FuncCode.CANCEL_FUNC, service.sid || '');
 }
 
 const onStatusChange = (data: MsgData) => {
@@ -119,6 +135,11 @@ onUnmounted(() => {
       width: 100%;
       background: var(--side-bg-color);
     }
+    .edit-btn {
+      position: absolute;
+      right: 10px;
+      color: var(--el-color-primary);
+    }
   }
   .__tree-title {
     margin-left: 6px;
@@ -152,7 +173,7 @@ onUnmounted(() => {
     color: var(--el-color-success);
   }
   .status-stopped {
-    color: var(--el-color-error);
+    color: var(--el-color-info);
   }
   .status-starting {
     color: var(--el-color-primary);
@@ -172,6 +193,16 @@ onUnmounted(() => {
   }
   .attachedStatus, .noAttachedStatus {
     font-size: @tree-icon-size;
+  }
+  .bottom-tab {
+    position: absolute;
+    bottom: 62px;
+    display: flex;
+    height: 28px;
+    width: 282px;
+    background: var(--toolbar-bg-color);
+    border: var(--el-border);
+    overflow: hidden;
   }
 }
 </style>

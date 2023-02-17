@@ -91,12 +91,9 @@ export default class ServiceManager {
 
     /**
      * 获取未被服务管理的JVM进程信息
-     * @param callback
      */
-    public static getJvmProcesses(callback: any) {
-        Request.get(`${urlBase}/jvmProcesses`, {})
-            .then(callback)
-            .catch(CommonNotice.errorFormatted);
+    public static getJvmProcesses() {
+        return Request.get(`${urlBase}/jvmProcesses`, {});
     }
 
     /**

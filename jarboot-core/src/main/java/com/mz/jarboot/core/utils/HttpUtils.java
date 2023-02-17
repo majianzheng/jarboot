@@ -7,6 +7,7 @@ import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.core.basic.EnvironmentContext;
 import okhttp3.*;
 
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ public class HttpUtils {
             .readTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
             .writeTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
             .followRedirects(false)
+            .dispatcher(new Dispatcher(EnvironmentContext.getScheduledExecutor()))
             .build();
 
     /**

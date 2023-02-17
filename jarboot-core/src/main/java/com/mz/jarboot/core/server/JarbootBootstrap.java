@@ -62,10 +62,6 @@ public class JarbootBootstrap {
 
         //4.客户端初始化
         this.initClient();
-        if (Boolean.TRUE.equals(clientData.getDiagnose())) {
-            WsClientFactory.getInstance().scheduleHeartbeat();
-        }
-
         //fix: attach本地进程时未初始化而不显示控制台输出的问题，初始化标准输出流
         initStdStream(isPremain);
     }

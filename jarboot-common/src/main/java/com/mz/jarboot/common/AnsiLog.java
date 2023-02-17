@@ -54,6 +54,11 @@ public class AnsiLog {
     private static final String ERROR_COLOR_PREFIX = "[" + colorStr("ERROR", RED) + "] ";
 
     static {
+        final String always = "always";
+        final String key = "spring.output.ansi.enabled";
+        if (always.equals(System.getProperty(key))) {
+            enableColor = true;
+        }
         if (System.console() != null) {
             enableColor = true;
             // windows dos, do not support color

@@ -22,5 +22,7 @@ public class SettingPropConst {
     public static final String JDK_PATH = "jdkPath";
     public static final String ENV = "env";
 
+    public static final String APP_TYPE = "applicationType";
+
     private SettingPropConst() {}
 }

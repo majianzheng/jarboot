@@ -1,5 +1,5 @@
 <template>
-  <div class="super-panel" @dblclick="focusInput">
+  <div class="super-panel" ref="panelRef">
     <div class="super-panel-header" :style="{width: (width -2) + 'px'}">
       <div>
         <el-button @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
@@ -114,6 +114,7 @@ const state = ref( {
 const MAX_HISTORY = 100;
 const historyMap = new Map<string, HistoryProp>();
 const inputRef = ref<InstanceType<typeof ElInput>>();
+const panelRef = ref<InstanceType<typeof HTMLDivElement>>();
 const basic = useBasicStore();
 const emit = defineEmits<{
   (e: 'close', sid: string): void
@@ -202,6 +203,7 @@ onMounted(() => {
   // pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
   pubsub.submit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
   historyMap.set(key, {cur: 0, history: []} as HistoryProp);
+  panelRef.value.onmouseenter = focusInput;
 });
 onUnmounted(() => {
   const key = props.sid;

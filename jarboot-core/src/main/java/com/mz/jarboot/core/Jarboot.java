@@ -36,6 +36,8 @@ public class Jarboot {
     private Boolean help;
     /** 是否是同步执行命令 */
     private Boolean sync;
+    /** 是否是shell命令 */
+    private Boolean shell;
     /** 传入的参数 */
     private final String[] args;
     /** Jarboot安装目录 */
@@ -87,6 +89,13 @@ public class Jarboot {
                 case "-async":
                 case "--async":
                     verifyField(CMD_ARG, optionHash);
+                    command = new ArrayList<>();
+                    break;
+                case "-c":
+                case "--command":
+                    verifyField(CMD_ARG, optionHash);
+                    this.shell = true;
+                    this.sync = true;
                     command = new ArrayList<>();
                     break;
                 case "-help":
@@ -225,12 +234,14 @@ public class Jarboot {
         AnsiLog.info("Starting process: {}", command);
         //处理
         ArrayList<String> list = new ArrayList<>();
-        list.add(CommonConst.JAVA_CMD);
-        list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
-        list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
-        list.add("-noverify");
-        list.add("-Dspring.output.ansi.enabled=always");
-        list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
+        if (!Boolean.TRUE.equals(this.shell)) {
+            list.add(CommonConst.JAVA_CMD);
+            list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
+            list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
+            list.add("-noverify");
+            list.add("-Dspring.output.ansi.enabled=always");
+            list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
+        }
         list.addAll(command);
         String[] cmd = list.toArray(new String[0]);
         try {
@@ -243,7 +254,8 @@ public class Jarboot {
                 while (-1 != (b = inputStream.read())) {
                     AnsiLog.write(b);
                 }
-                process.waitFor();
+                int code = process.waitFor();
+                System.exit(code);
             } else {
                 Thread.sleep(3000);
             }

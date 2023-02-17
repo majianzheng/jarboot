@@ -55,12 +55,13 @@ public class SettingUtils {
     private static final String TRUSTED_HOSTS_FILE;
     private static HashSet<String> trustedHosts = new HashSet<>(16);
 
+    private static final String HOME_PATH = System.getProperty(CommonConst.JARBOOT_HOME);
+
     static {
-        final String home = System.getProperty(CommonConst.JARBOOT_HOME);
-        final String conf = home + File.separator + "conf" + File.separator;
+        final String conf = HOME_PATH + File.separator + "conf" + File.separator;
         JARBOOT_CONF = conf + "jarboot.properties";
-        COMPONENTS_DIR = home + File.separator + CommonConst.COMPONENTS_NAME;
-        LOG_DIR = home + File.separator + "logs";
+        COMPONENTS_DIR = HOME_PATH + File.separator + CommonConst.COMPONENTS_NAME;
+        LOG_DIR = HOME_PATH + File.separator + "logs";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
@@ -69,12 +70,16 @@ public class SettingUtils {
         TRUSTED_HOSTS_FILE = conf + "trusted-hosts.conf";
         initTrustedHosts();
         //初始化默认目录及配置路径
-        DEFAULT_WORKSPACE = home + File.separator + CommonConst.SERVICES;
+        DEFAULT_WORKSPACE = HOME_PATH + File.separator + CommonConst.SERVICES;
     }
 
     public static void init(int port) {
         SettingUtils.localHost = "127.0.0.1:" + port;
         SettingUtils.port = port;
+    }
+
+    public static String getHomePath() {
+        return HOME_PATH;
     }
 
     /**

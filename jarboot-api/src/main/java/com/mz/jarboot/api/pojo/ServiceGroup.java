@@ -2,6 +2,9 @@ package com.mz.jarboot.api.pojo;
 
 import java.util.List;
 
+/**
+ * @author mazheng
+ */
 public class ServiceGroup {
     private String name;
     private List<ServiceInstance> children;

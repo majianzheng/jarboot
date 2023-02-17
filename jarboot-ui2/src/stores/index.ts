@@ -4,7 +4,7 @@ import CommonNotice from "@/common/CommonNotice";
 import CommonUtils from "@/common/CommonUtils";
 import router from "@/router";
 import ServiceManager from "@/services/ServiceManager";
-import type {ServiceInstance} from "@/common/CommonTypes";
+import type {ServiceInstance, JvmProcess} from "@/common/CommonTypes";
 import CommonConst from "@/common/CommonConst";
 import Logger from "@/common/Logger";
 import {PUB_TOPIC, pubsub} from "@/views/services/ServerPubsubImpl";
@@ -64,8 +64,12 @@ export const useServicesStore = defineStore({
   id: 'services',
   state: () => ({
     loading: true,
+    search: '',
+    currentTab: 'service',
     groups: [] as ServiceInstance[],
     instanceList: [] as ServiceInstance[],
+    jvmGroups: [] as JvmProcess[],
+    jvmList: [] as JvmProcess[],
     activatedList: [] as ServiceInstance[],
     activated: {} as ServiceInstance,
     // 当前选中的节点
@@ -83,6 +87,17 @@ export const useServicesStore = defineStore({
       const instanceList = [];
       groups.forEach(group => ((group.children||[]).forEach(s => instanceList.push(s))));
       this.$patch({groups, instanceList, loading: false});
+    },
+    async reloadJvmList() {
+      this.$patch({loading: true});
+      const resp = (await ServiceManager.getJvmProcesses()) as any;
+      if (0 !== resp.resultCode) {
+        return;
+      }
+      const jvmGroups = resp.result || [];
+      const jvmList = [];
+      jvmGroups.forEach(group => ((group.children||[]).forEach(s => jvmList.push(s))));
+      this.$patch({jvmGroups, jvmList, loading: false});
     },
     startServices() {
       const services = [];

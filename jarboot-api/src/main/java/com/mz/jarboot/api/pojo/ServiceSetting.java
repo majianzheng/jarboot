@@ -80,6 +80,9 @@ public class ServiceSetting implements Serializable {
      */
     private Boolean jarUpdateWatch;
 
+    /** 应用类型 java or shell */
+    private String applicationType;
+
     public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
@@ -97,6 +100,7 @@ public class ServiceSetting implements Serializable {
         this.args = args;
         this.daemon = daemon;
         this.jarUpdateWatch = jarUpdateWatch;
+        this.applicationType = "java";
     }
 
     public String getName() {
@@ -209,6 +213,14 @@ public class ServiceSetting implements Serializable {
 
     public void setJarUpdateWatch(Boolean jarUpdateWatch) {
         this.jarUpdateWatch = jarUpdateWatch;
+    }
+
+    public String getApplicationType() {
+        return applicationType;
+    }
+
+    public void setApplicationType(String applicationType) {
+        this.applicationType = applicationType;
     }
 
     @Override

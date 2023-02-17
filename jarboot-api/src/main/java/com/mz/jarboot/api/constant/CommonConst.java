@@ -72,5 +72,7 @@ public class CommonConst {
 
     public static final String REMOTE_SID_PREFIX = "remote-";
 
+    public static final String SHELL_TYPE = "shell";
+
     private CommonConst(){}
 }

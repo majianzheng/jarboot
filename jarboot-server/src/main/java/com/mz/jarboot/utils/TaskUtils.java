@@ -117,16 +117,32 @@ public class TaskUtils {
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(setting.getName(), sid))
                 .append(StringUtils.SPACE);
-        if (StringUtils.isBlank(setting.getCommand())) {
-            //获取启动的jar文件
-            String jar = SettingUtils.getJarPath(serverPath);
-            if (StringUtils.isBlank(jar)) {
-                return;
-            }
-            // 待执行的jar
-            cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
+        if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
+            cmdBuilder
+                    .append("-classpath")
+                    .append(StringUtils.SPACE)
+                    .append(SettingUtils.getHomePath())
+                    .append("/components/jarboot-core.jar:")
+                    .append(SettingUtils.getHomePath())
+                    .append("/components/jarboot-agent.jar")
+                    .append(StringUtils.SPACE)
+                    .append("com.mz.jarboot.core.Jarboot")
+                    .append(StringUtils.SPACE)
+                    .append("-c")
+                    .append(StringUtils.SPACE)
+                    .append(setting.getCommand());
         } else {
-            cmdBuilder.append(setting.getCommand());
+            if (StringUtils.isBlank(setting.getCommand())) {
+                //获取启动的jar文件
+                String jar = SettingUtils.getJarPath(serverPath);
+                if (StringUtils.isBlank(jar)) {
+                    return;
+                }
+                // 待执行的jar
+                cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
+            } else {
+                cmdBuilder.append(setting.getCommand());
+            }
         }
 
         // 传入参数

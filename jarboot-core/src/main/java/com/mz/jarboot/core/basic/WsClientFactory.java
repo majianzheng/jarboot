@@ -15,6 +15,7 @@ import com.mz.jarboot.core.cmd.InternalCommandSubscriber;
 import com.mz.jarboot.core.event.HeartbeatEvent;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
+import com.mz.jarboot.core.utils.ThreadUtil;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -22,6 +23,7 @@ import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -136,7 +138,9 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                             .get()
                             .url(url)
                             .build(), this);
-            if (!latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS)) {
+            if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS)) {
+                scheduleHeartbeat();
+            } else {
                 logger.warn("wait connect timeout.");
                 this.destroyClient();
             }
@@ -193,9 +197,6 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         HttpUtils.setBaseUrl(CommonConst.HTTP + host);
         closeSession();
         createSingletonClient();
-        if (Boolean.TRUE.equals(EnvironmentContext.getAgentClient().getDiagnose())) {
-            scheduleHeartbeat();
-        }
     }
 
     /**
@@ -252,6 +253,27 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             if (!online) {
                 this.destroyClient();
             }
+        }
+        // 检测线程，若只剩下最后一个非守护线程则退出
+        List<Thread> threads = ThreadUtil.getThreadList();
+        boolean exist = false;
+        int count = 0;
+        boolean alive = false;
+        final String name = "DestroyJavaVM";
+        for (Thread thread : threads) {
+            if (!thread.isDaemon()) {
+                if (thread.getName().equals(name)) {
+                    exist = true;
+                } else {
+                    ++count;
+                }
+                if (thread.getName().startsWith("OkHttp WebSocket")) {
+                    alive = true;
+                }
+            }
+        }
+        if (exist && alive && count == 1) {
+            this.destroyClient();
         }
     }
 
