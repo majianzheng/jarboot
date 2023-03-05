@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {RouterLink, RouterView, useRoute} from 'vue-router';
+import {RouterLink, RouterView} from 'vue-router';
 import CommonConst from "@/common/CommonConst";
 import {useUserStore} from "@/stores";
-import {computed, onMounted} from "vue";
+import {onMounted} from "vue";
 import {WsManager} from "@/common/WsManager";
 
 const openDoc = () => window.open(CommonConst.DOCS_URL);

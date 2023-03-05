@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 /**
@@ -177,17 +178,23 @@ public class Jarboot {
         if (notInitialized) {
             return;
         }
-        BannerUtils.print();
+        if (!Boolean.TRUE.equals(this.shell)) {
+            BannerUtils.print();
+        }
         if (Boolean.TRUE.equals(this.help)) {
             //打印帮助
             printHelp();
             return;
         }
-        AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
+        if (!Boolean.TRUE.equals(this.shell)) {
+            AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
+        }
         String url = CommonConst.HTTP + host + CommonConst.CLOUD_CONTEXT + "/version";
         try {
             String version = HttpUtils.getString(url);
-            AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
+            if (!Boolean.TRUE.equals(this.shell)) {
+                AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
+            }
         } catch (Exception e) {
             AnsiLog.error(e);
             AnsiLog.error("Check Jarboot server {} failed! Please input running Jarboot server host.", host);
@@ -231,7 +238,7 @@ public class Jarboot {
     }
 
     private void doCommand() {
-        AnsiLog.info("Starting process: {}", command);
+        AnsiLog.info("starting: {}", String.join(" ", command));
         //处理
         ArrayList<String> list = new ArrayList<>();
         if (!Boolean.TRUE.equals(this.shell)) {
@@ -247,8 +254,10 @@ public class Jarboot {
         try {
             Process process = Runtime.getRuntime().exec(cmd);
             if (Boolean.TRUE.equals(this.sync)) {
-                AnsiLog.info("Sync execute command waiting command exit.");
-                printHomePage();
+                if (!Boolean.TRUE.equals(this.shell)) {
+                    AnsiLog.info("Sync execute command waiting command exit.");
+                    printHomePage();
+                }
                 InputStream inputStream = process.getInputStream();
                 int b = -1;
                 while (-1 != (b = inputStream.read())) {

@@ -61,7 +61,8 @@ export default {
     NEXT_BTN: '下一步',
     DASHBOARD: '仪錶盘',
     SERVER_EMPTY: '當前工作空間下未搜索到服務。',
-    MODIFY: '修改',
+    MODIFY: '编辑',
+    SAVE: '保存',
     DELETE: '删除',
     CREATE: '新增',
     SUCCESS: '成功！',
@@ -81,6 +82,7 @@ export default {
     TEXT_WRAP: '自動换行',
     AUTO_SCROLL_END: '自動滚動到底部',
     SCROLL_TO_TOP: '滚動到顶部',
+    APP_TYPE: '应用类型',
 
     //服務配置
     SERVER_LIST_TITLE: '服務列錶',
@@ -138,6 +140,7 @@ export default {
     UPLOAD_FILE_EMPTY: `成功上傳的文件为空`,
     SELECT_ONE_OP: '請选择要操作的項',
     COMMAND_RUNNING: '正在執行命令："{command}"，請先停止命令再執行',
+    SAVE_OR_CANCEL: '是否要保存對檔案的更改？',
 
     //帮助
     HELP: '帮助',

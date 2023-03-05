@@ -40,9 +40,14 @@ public class ServiceSetting implements Serializable {
     private String command;
     
     /**
-     * 自定义的JVM参数
+     * 自定义的JVM参数文件
      */
     private String vm;
+
+    /**
+     * 自定义的JVM参数文件内容
+     */
+    private String vmContent;
     
     /**
      * 启动的优先级，从1开始，越大优先级越高，最高的优先启动
@@ -157,6 +162,14 @@ public class ServiceSetting implements Serializable {
 
     public void setVm(String vm) {
         this.vm = vm;
+    }
+
+    public String getVmContent() {
+        return vmContent;
+    }
+
+    public void setVmContent(String vmContent) {
+        this.vmContent = vmContent;
     }
 
     public Integer getPriority() {

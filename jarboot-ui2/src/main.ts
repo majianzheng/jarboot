@@ -16,7 +16,7 @@ import en from './locales/en-US';
 import "./assets/iconfont/iconfont.css";
 import "./assets/iconfont/iconfont.js";
 import './assets/main.less';
-
+import VueCodemirror from 'vue-codemirror';
 
 const i18n = createI18n({
     globalInjection: true,
@@ -35,6 +35,7 @@ app.use(createPinia())
 app.use(router)
 app.use(ElementPlus)
 app.use(i18n)
+app.use(VueCodemirror)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }

@@ -21,7 +21,7 @@ export const useBasicStore = defineStore({
     update() {
       this.$patch({innerHeight: window.innerHeight, innerWidth: window.innerWidth});
     },
-    setVersion(version) {
+    setVersion(version: string) {
       this.$patch({version});
     }
   }
@@ -83,8 +83,8 @@ export const useServicesStore = defineStore({
       if (0 !== resp.resultCode) {
         return;
       }
-      const groups = resp.result || [];
-      const instanceList = [];
+      const groups = (resp.result || []) as ServiceInstance[];
+      const instanceList = [] as ServiceInstance[];
       groups.forEach(group => ((group.children||[]).forEach(s => instanceList.push(s))));
       this.$patch({groups, instanceList, loading: false});
     },
@@ -94,13 +94,13 @@ export const useServicesStore = defineStore({
       if (0 !== resp.resultCode) {
         return;
       }
-      const jvmGroups = resp.result || [];
-      const jvmList = [];
+      const jvmGroups = (resp.result || []) as JvmProcess[];
+      const jvmList = [] as JvmProcess[];
       jvmGroups.forEach(group => ((group.children||[]).forEach(s => jvmList.push(s))));
       this.$patch({jvmGroups, jvmList, loading: false});
     },
     startServices() {
-      const services = [];
+      const services = [] as ServiceInstance[];
       this.currentNode.forEach(node => {
             if (node.children?.length > 0) {
               services.push(...node.children);
@@ -111,7 +111,7 @@ export const useServicesStore = defineStore({
       ServiceManager.startService(services, () => {});
     },
     stopServices() {
-      const services = [];
+      const services = [] as ServiceInstance[];
       this.currentNode.forEach(node => {
         if (node.children?.length > 0) {
           services.push(...node.children);

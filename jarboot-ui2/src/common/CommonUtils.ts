@@ -10,10 +10,13 @@ export default class CommonUtils {
     private static readonly HOME_PREFIX = '/jarboot/';
     private static readonly TOKEN_PREFIX = "Bearer ";
     public static readonly ACCESS_TOKEN = 'accessToken';
+    private static t: any;
+    public static init() {
+        CommonUtils.t = getCurrentInstance()?.appContext.config.globalProperties.$t;
+    }
 
     public static translate(s : string) {
-        const t = getCurrentInstance()?.appContext.config.globalProperties.$t;
-        return t ? t(s) : s;
+        return CommonUtils.t ? CommonUtils.t(s) : s;
     }
     public static getToken(): string {
         let token = localStorage.getItem(CommonConst.TOKEN_KEY);

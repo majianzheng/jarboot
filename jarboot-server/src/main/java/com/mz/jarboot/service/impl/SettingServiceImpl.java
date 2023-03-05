@@ -3,6 +3,7 @@ package com.mz.jarboot.service.impl;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.exception.JarbootRunException;
+import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.OSUtils;
@@ -15,17 +16,20 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
+import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -35,24 +39,59 @@ import java.util.*;
 @Service
 public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    @Autowired
+    private TaskRunCache taskRunCache;
 
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
-        return PropertyFileUtils.getServiceSetting(serviceName);
+        ServiceSetting setting =  PropertyFileUtils.getServiceSetting(serviceName);
+        setting.setVmContent(this.getVmOptions(serviceName, setting.getVm()));
+        return setting;
     }
 
     @Override
     public void submitServiceSetting(ServiceSetting setting) {
+        String type = setting.getApplicationType();
+        if (StringUtils.isBlank(type)) {
+            throw new JarbootRunException("应用类型不可为空！");
+        }
+        if (StringUtils.isEmpty(setting.getName())) {
+            throw new JarbootRunException("名称不可为空！");
+        }
+        if (!Arrays.asList(CommonConst.SHELL_TYPE, CommonConst.JAVA_CMD).contains(type)) {
+            throw new JarbootRunException("应用类型仅支持java与shell！");
+        }
+        if (CommonConst.SHELL_TYPE.equals(type) && StringUtils.isEmpty(setting.getCommand())) {
+            throw new JarbootRunException("启动命令不可为空！");
+        }
         final String path = SettingUtils.getServicePath(setting.getName());
-        File file = getConfAndCheck(path);
-        Properties prop = PropertyFileUtils.getProperties(file);
+        String sid = SettingUtils.createSid(path);
+        if (StringUtils.isNotEmpty(setting.getSid()) && !setting.getSid().equals(sid)) {
+            // 发生了重命名，获取工作空间下所有服务
+            renameService(setting, path);
+            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        }
+        File settingFile = SettingUtils.getServiceSettingFile(path);
+        Properties properties = fillSettingProperties(setting, path, settingFile);
+        setting.setWorkspace(SettingUtils.getWorkspace());
+        saveSettingProperties(settingFile, properties);
+        // 保存vmContent
+        if (CommonConst.JAVA_CMD.equals(type)) {
+            saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
+        }
+        //更新缓存配置，根据文件时间戳判定是否更新了
+        PropertyFileUtils.getServiceSetting(setting.getName());
+    }
+
+    private Properties fillSettingProperties(ServiceSetting setting, String path, File settingFile) {
+        Properties properties = settingFile.exists() ? PropertyFileUtils.getProperties(settingFile) : new Properties();
         String command = setting.getCommand();
         if (null == command) {
             command = StringUtils.EMPTY;
         } else {
             command = command.replace('\n', ' ');
         }
-        prop.setProperty(SettingPropConst.COMMAND, command);
+        properties.setProperty(SettingPropConst.COMMAND, command);
         String vm = setting.getVm();
         if (null == vm) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
@@ -61,63 +100,72 @@ public class SettingServiceImpl implements SettingService {
                 checkFileExist(vm, path);
             }
         }
-        prop.setProperty(SettingPropConst.VM, vm);
+        properties.setProperty(SettingPropConst.APP_TYPE, setting.getApplicationType());
+        properties.setProperty(SettingPropConst.VM, vm);
         String args = setting.getArgs();
         if (null == args) {
             args = StringUtils.EMPTY;
         }
-        prop.setProperty(SettingPropConst.ARGS, args);
+        properties.setProperty(SettingPropConst.ARGS, args);
         String group = setting.getGroup();
         if (null == group) {
             group = StringUtils.EMPTY;
         }
-        prop.setProperty(SettingPropConst.GROUP, group);
+        properties.setProperty(SettingPropConst.GROUP, group);
         if (null == setting.getPriority()) {
-            prop.setProperty(SettingPropConst.PRIORITY, StringUtils.EMPTY);
+            properties.setProperty(SettingPropConst.PRIORITY, StringUtils.EMPTY);
         } else {
-            prop.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
+            properties.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
         }
-        checkAndSet(path, setting, prop);
+        checkAndSet(path, setting, properties);
         if (null == setting.getDaemon()) {
-            prop.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
+            properties.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty(SettingPropConst.DAEMON, setting.getDaemon().toString());
+            properties.setProperty(SettingPropConst.DAEMON, setting.getDaemon().toString());
         }
         if (null == setting.getJarUpdateWatch()) {
-            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
+            properties.setProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
         } else {
-            prop.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
+            properties.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
         }
-        setting.setWorkspace(SettingUtils.getWorkspace());
-        saveServerConfig(path, setting, file, prop);
+        return properties;
     }
 
-    private void saveServerConfig(String path, ServiceSetting setting, File file, Properties prop) {
-        //检查文件名是否修改
-        ServiceSetting preSetting = PropertyFileUtils.getServiceSetting(setting.getName());
-        if (!Objects.equals(setting.getName(), preSetting.getName())) {
-            String sid = SettingUtils.createSid(path);
-            //名字发生了变更，需要修改文件夹的名字，先检查是否正在运行
-            if (AgentManager.getInstance().isOnline(sid)) {
+    private void renameService(ServiceSetting setting, String path) {
+        List<ServiceInstance> services = taskRunCache.getServiceList();
+        ServiceInstance pre = services
+                .stream()
+                .filter(service -> setting.getSid().equals(service.getSid()))
+                .findFirst().orElse(null);
+        if (null != pre) {
+            if (AgentManager.getInstance().isOnline(pre.getSid())) {
                 throw new JarbootRunException("服务正在运行，请先停止服务再重命名服务！");
             }
-            PropertyFileUtils.storeProperties(file, prop);
-            //开始重命名
-            File dir = FileUtils.getFile(path);
-            File renamed = FileUtils.getFile(SettingUtils.getWorkspace(), setting.getName());
-            if (renamed.exists()) {
-                throw new JarbootRunException(setting.getName() + "已经存在！");
+            File newDir = FileUtils.getFile(SettingUtils.getWorkspace(), setting.getName());
+            if (newDir.exists()) {
+                throw new JarbootRunException(setting.getName() + "已经存在，重命名失败！");
             }
-            if (!dir.renameTo(renamed)) {
+            String prePath = pre.getPath();
+            if (!FileUtils.getFile(prePath).renameTo(FileUtils.getFile(path))) {
                 throw new JarbootRunException("重命名服务失败！");
             }
-            //重命名成功，发布工作空间变化事件
-            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
-        } else {
-            PropertyFileUtils.storeProperties(file, prop);
         }
-        //更新缓存配置，根据文件时间戳判定是否更新了
-        PropertyFileUtils.getServiceSetting(setting.getName());
+    }
+
+    private void saveSettingProperties(File file, Properties properties) {
+        boolean isNew = false;
+        if (Files.notExists(file.getParentFile().toPath())) {
+            try {
+                FileUtils.forceMkdir(file.getParentFile());
+                isNew = true;
+            } catch (IOException e) {
+                throw new JarbootRunException("创建服务目录失败！" + e.getMessage(), e);
+            }
+        }
+        PropertyFileUtils.storeProperties(file, properties);
+        if (isNew) {
+            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        }
     }
 
     private void checkAndSet(String path, ServiceSetting setting, Properties prop) {
@@ -191,6 +239,9 @@ public class SettingServiceImpl implements SettingService {
         }
         File f = path.toFile();
         if (!f.exists()) {
+            if (StringUtils.isEmpty(content)) {
+                return;
+            }
             try {
                 if (!f.createNewFile()) {
                     throw new JarbootException("Create file failed.");

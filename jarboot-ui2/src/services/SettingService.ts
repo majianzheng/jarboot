@@ -2,6 +2,25 @@ import Request from '../common/Request';
 
 const settingUrl = "/api/jarboot/setting";
 
+export type ServerSetting = {
+    applicationType: 'java'|'shell'|'executable';
+    args: string;
+    command: string;
+    daemon: boolean;
+    env: string;
+    group: string;
+    jarUpdateWatch: boolean;
+    jdkPath: string;
+    lastModified: bigint;
+    name: string;
+    priority: number;
+    sid: string;
+    vm: string;
+    vmContent: string;
+    workDirectory: string;
+    workspace: string;
+};
+
 /**
  * 配置服务
  */

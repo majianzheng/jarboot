@@ -62,6 +62,7 @@ export default {
     DASHBOARD: 'Dashboard',
     SERVER_EMPTY: 'Current workspace searched empty.',
     MODIFY: 'Modify',
+    SAVE: 'Save',
     DELETE: 'Delete',
     CREATE: 'Create',
     SUCCESS: 'Success!',
@@ -81,6 +82,7 @@ export default {
     TEXT_WRAP: 'Text wrap',
     AUTO_SCROLL_END: 'Auto scroll to end',
     SCROLL_TO_TOP: 'Scroll to top',
+    APP_TYPE: 'Application type',
 
     //服务配置
     SERVER_LIST_TITLE: 'Services',
@@ -138,6 +140,7 @@ export default {
     UPLOAD_FILE_EMPTY: `Upload file of done is empty.`,
     SELECT_ONE_OP: 'Please select one item to operate.',
     COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
+    SAVE_OR_CANCEL: 'Do you want to save changes to the file?',
 
     //帮助
     HELP: 'Help',

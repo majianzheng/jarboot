@@ -12,6 +12,10 @@
     "lint": "eslint jarboot-ui --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@codemirror/lang-html": "^6.4.2",
+    "@codemirror/lang-javascript": "^6.1.4",
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/theme-one-dark": "^6.1.1",
     "@element-plus/icons-vue": "^2.0.10",
     "axios": "^1.2.1",
     "codemirror": "^6.0.1",

@@ -92,7 +92,7 @@ class ServerPubsubImpl implements PublishSubmit {
         const msg = body.substring(index + 1);
         switch (type) {
             case NotifyType.INFO:
-                CommonNotice.info(msg);
+                CommonNotice.success(msg);
                 Logger.log(msg);
                 break;
             case NotifyType.WARN:
