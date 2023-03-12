@@ -53,9 +53,6 @@
             </div>
           </template>
         </el-tree>
-        <div class="bottom-tab">
-
-        </div>
       </div>
     </div>
     <div class="server-content">
@@ -103,7 +100,7 @@
             </template>
           </el-input>
           <div v-if="serviceState.showVmEdit" style="width: 100%">
-            <file-editor v-model="configForm.vmContent" height="200px" :name="configForm.vm" @change="onChange"></file-editor>
+            <file-editor v-model="configForm.vmContent" height="200px" :name="configForm.vm" mode="text/x-properties"></file-editor>
           </div>
         </el-form-item>
         <el-form-item :label="$t('MAIN_ARGS_LABEL')" prop="args">
@@ -200,7 +197,6 @@ const editService = async (row: ServiceInstance) => {
   configForm = reactive<ServerSetting>(data);
   serviceState.value.showEdit = true;
 };
-const onChange = (content: string) => console.info(configForm.vmContent, content);
 const newService = () => {
   serviceState.value.isNew = true;
   configForm = reactive<ServerSetting>(defaultSetting);
@@ -228,7 +224,6 @@ const doCancel = (service: ServiceInstance) => {
 
 const saveConfig = async () => {
   const validate = await configRef.value?.validate();
-  console.info('>>>>>', validate, configForm);
   if (!validate) {
     return;
   }

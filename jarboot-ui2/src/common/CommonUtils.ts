@@ -15,8 +15,19 @@ export default class CommonUtils {
         CommonUtils.t = getCurrentInstance()?.appContext.config.globalProperties.$t;
     }
 
-    public static translate(s : string) {
-        return CommonUtils.t ? CommonUtils.t(s) : s;
+    public static translate(s : string, ...args: any[]) {
+        let msg = (CommonUtils.t ? CommonUtils.t(s) : s) as string;
+        //{size}
+        if (!args?.length) {
+            return msg;
+        }
+        args.forEach((arg: any) => {
+            for (const key in arg) {
+                const reg = `{${key}}`;
+                msg = msg.replaceAll(reg, arg[key]);
+            }
+        });
+        return msg;
     }
     public static getToken(): string {
         let token = localStorage.getItem(CommonConst.TOKEN_KEY);

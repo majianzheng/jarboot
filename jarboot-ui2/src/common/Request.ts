@@ -5,7 +5,7 @@ import CommonNotice from "@/common/CommonNotice";
 
 const http = axios.create({
     baseURL: "",
-    timeOut: 30000,
+    timeout: 30000,
 });
 
 /**
