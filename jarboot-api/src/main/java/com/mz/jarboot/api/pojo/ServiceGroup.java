@@ -5,30 +5,40 @@ import java.util.List;
 /**
  * @author mazheng
  */
-public class ServiceGroup {
-    private String name;
-    private List<ServiceInstance> children;
+public class ServiceGroup extends ServiceInstance {
+    private String host;
+    private List<ServiceGroup> children;
 
-    public String getName() {
-        return name;
+    public static ServiceGroup wrapGroup(ServiceInstance instance) {
+        ServiceGroup group = new ServiceGroup();
+        group.setName(instance.getName());
+        group.setStatus(instance.getStatus());
+        group.setPath(instance.getPath());
+        group.setSid(instance.getSid());
+        return group;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getHost() {
+        return host;
     }
 
-    public List<ServiceInstance> getChildren() {
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public List<ServiceGroup> getChildren() {
         return children;
     }
 
-    public void setChildren(List<ServiceInstance> children) {
+    public void setChildren(List<ServiceGroup> children) {
         this.children = children;
     }
 
     @Override
     public String toString() {
         return "ServiceGroup{" +
-                "name='" + name + '\'' +
+                "host='" + host + '\'' +
+                ", name='" + getName() + '\'' +
                 ", children=" + children +
                 '}';
     }

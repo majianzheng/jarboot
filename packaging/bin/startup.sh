@@ -48,7 +48,7 @@ pushd "${JARBOOT_HOME}"
 #===========================================================================================
 # JVM Configuration
 #===========================================================================================
-JAVA_OPT="${JAVA_OPT} -Xms256m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=500"
+JAVA_OPT="${JAVA_OPT} -Xms512m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=500"
 JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=logs/java_heapdump.hprof"
 JAVA_OPT="${JAVA_OPT} -XX:-UseLargePages"
 

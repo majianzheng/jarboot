@@ -62,25 +62,42 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     @Override
     public List<ServiceGroup> getServiceGroup() {
-        List<ServiceInstance> serviceList = taskRunCache.getServiceList();
         List<ServiceGroup> groups = new ArrayList<>();
+        ServiceGroup localGroup = getLocalGroup();
+        groups.add(localGroup);
+        // 获取集群其它服务器的组信息
+        return groups;
+    }
+
+    private ServiceGroup getLocalGroup() {
+        List<ServiceInstance> serviceList = taskRunCache.getServiceList();
+        ServiceGroup localGroup = new ServiceGroup();
+        localGroup.setHost("localhost");
+        localGroup.setChildren(new ArrayList<>());
         if (CollectionUtils.isEmpty(serviceList)) {
-            return groups;
+            return localGroup;
         }
         HashMap<String, ServiceGroup> map = new HashMap<>(16);
+        List<ServiceGroup> list = new ArrayList<>();
         serviceList.forEach(service -> {
-            map.compute(service.getGroup(), (k, v) -> {
-                if (null == v) {
-                    v = new ServiceGroup();
-                    v.setName(service.getGroup());
-                    v.setChildren(new ArrayList<>());
-                    groups.add(v);
-                }
-                v.getChildren().add(service);
-                return v;
-            });
+            ServiceGroup sg = ServiceGroup.wrapGroup(service);
+            if (StringUtils.isEmpty(service.getGroup())) {
+                localGroup.getChildren().add(sg);
+            } else {
+                map.compute(service.getGroup(), (k, v) -> {
+                    if (null == v) {
+                        v = new ServiceGroup();
+                        v.setName(service.getGroup());
+                        v.setChildren(new ArrayList<>());
+                        list.add(v);
+                    }
+                    v.getChildren().add(sg);
+                    return v;
+                });
+            }
         });
-        return groups;
+        localGroup.getChildren().addAll(list);
+        return localGroup;
     }
 
     /**

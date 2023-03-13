@@ -41,6 +41,10 @@
       <source>../plugins/debug-plugin/target/debug-plugin.jar</source>
       <destName>plugins/server/debug-plugin.jar</destName>
     </file>
+    <file>
+      <source>conf/cluster.conf</source>
+      <destName>conf/cluster.conf</destName>
+    </file>
 
     <file>
       <source>bin/shutdown.sh</source>

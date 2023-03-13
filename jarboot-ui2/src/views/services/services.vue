@@ -45,10 +45,10 @@
                 <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
               </div>
               <div v-else>
-                <el-icon class="group-icon">
-                  <Menu/>
-                </el-icon>
-                <span class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
+                <el-icon v-if="data.host" class="group-icon"><HomeFilled /></el-icon>
+                <el-icon v-else class="group-icon"><Menu/></el-icon>
+                <span v-if="data.host" class="__tree-title">{{ data.host}}</span>
+                <span v-else class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
               </div>
             </div>
           </template>
