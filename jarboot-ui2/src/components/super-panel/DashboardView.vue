@@ -67,7 +67,7 @@ const state = reactive({
   history: [] as any[],
 });
 const threadChartRef = ref();
-const MAX_RECORD = 100;
+const MAX_RECORD = 30;
 
 let threadChart = null as unknown as EChartsType;
 
@@ -80,10 +80,14 @@ watch(() => props.data, (newData: any) => {
   if (state.history.length > MAX_RECORD) {
     state.history.shift();
   }
-  nextTick(updateChart);
+  updateChart();
 });
 watch(() => props.height, resizeChart);
 watch(() => props.width, resizeChart);
+
+const initThreadChart = () => {
+  threadChart = echarts.init(threadChartRef.value, isDark.value ? 'dark' : undefined);
+};
 
 const updateThreadChart = () => {
   const his = [...state.history];
@@ -96,13 +100,19 @@ const updateThreadChart = () => {
     const RUNNABLE = {
       name: 'RUNNABLE',
       type: 'line',
+      stack: 'Total',
+      areaStyle: {},
       smooth: true,
+      showSymbol: false,
       data: []
     };
     const BLOCKED = {
       name: 'BLOCKED',
       type: 'line',
+      stack: 'Total',
+      areaStyle: {},
       smooth: true,
+      showSymbol: false,
       data: []
     };
     const WAITING = {
@@ -127,13 +137,16 @@ const updateThreadChart = () => {
   const total = {
     name: 'total',
     type: 'line',
+    stack: 'Total',
     smooth: true,
+    areaStyle: {},
+    showSymbol: false,
     data: [] as any[]
   };
   const map = {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED} as any;
   const states = ['NEW', 'RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED'];
   const xData = [] as string[];
-  his.slice(-20).forEach((item: any) => {
+  his.forEach((item: any) => {
     const timestamp = item.runtimeInfo.timestamp;
     const date = new Date(timestamp);
     states.forEach(state => {
@@ -169,6 +182,9 @@ const updateThreadChart = () => {
           backgroundColor: '#6a7985'
         }
       }
+    },
+    legend: {
+      data: ['RUNNABLE', 'BLOCKED', 'total']
     },
     xAxis: {
       type: 'time',
@@ -208,7 +224,7 @@ const updateChart = () => {
 }
 
 onMounted(() => {
-  threadChart = echarts.init(threadChartRef.value);
+  initThreadChart();
 });
 const stateColor = (state: any) => {
   let color;
