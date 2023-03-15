@@ -99,18 +99,7 @@ export const useServicesStore = defineStore({
       jvmGroups.forEach(group => ((group.children||[]).forEach(s => jvmList.push(s))));
       this.$patch({jvmGroups, jvmList, loading: false});
     },
-    startServices() {
-      const services = [] as ServiceInstance[];
-      this.currentNode.forEach(node => {
-            if (node.children?.length > 0) {
-              services.push(...node.children);
-            } else {
-              services.push(node);
-            }
-      });
-      ServiceManager.startService(services, () => {});
-    },
-    stopServices() {
+    getSelected() {
       const services = [] as ServiceInstance[];
       this.currentNode.forEach(node => {
         if (node.children?.length > 0) {
@@ -119,7 +108,13 @@ export const useServicesStore = defineStore({
           services.push(node);
         }
       });
-      ServiceManager.stopService(services, () => {});
+      return services;
+    },
+    startServices() {
+      ServiceManager.startService(this.getSelected(), () => {});
+    },
+    stopServices() {
+      ServiceManager.stopService(this.getSelected(), () => {});
     },
     currentChange(data, node) {
       if (node.isLeaf) {

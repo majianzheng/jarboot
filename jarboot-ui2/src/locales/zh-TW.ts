@@ -146,4 +146,8 @@ export default {
     HELP: '帮助',
     QUICK_START: '快速開始',
     ABOUT_TEXT: 'Jarboot 是一個Java進程啟動、調試、诊斷的平台，可以管理、監控及诊斷運行的的Java進程。',
+    THREAD: '线程',
+    RUNNABLE: '运行中',
+    BLOCKED: '阻塞中',
+    TOTAL: '全部',
 };

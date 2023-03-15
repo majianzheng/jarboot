@@ -1,15 +1,13 @@
 <template>
   <el-tabs v-model="state.tab">
     <el-tab-pane label="概览" name="overview">
-      <el-row>
+      <el-row :gutter="5">
         <el-col :span="12">
-          <div ref="threadChartRef" :style="{width: '100%', height: (viewHeight / 2) + 'px'}"></div>
+          <div class="board-panel" ref="threadChartRef" :style="{width: '100%', height: (viewHeight / 2) + 'px'}"></div>
         </el-col>
         <el-col :span="12">
-          堆内存趋势
+          <div class="board-panel" ref="heapChartRef" :style="{width: '100%', height: (viewHeight / 2) + 'px'}"></div>
         </el-col>
-      </el-row>
-      <el-row>
         <el-col :span="12">
           线程趋势
         </el-col>
@@ -54,6 +52,7 @@ import * as echarts from "echarts";
 import type {EChartsType, EChartsOption} from "echarts";
 import {nextTick, reactive, watch, onMounted, computed, ref} from "vue";
 import {useDark} from "@vueuse/core";
+import CommonUtils from "@/common/CommonUtils";
 
 const isDark = useDark();
 const props = defineProps<{
@@ -67,9 +66,11 @@ const state = reactive({
   history: [] as any[],
 });
 const threadChartRef = ref();
+const heapChartRef = ref();
 const MAX_RECORD = 30;
 
 let threadChart = null as unknown as EChartsType;
+let heapChart = null as unknown as EChartsType;
 
 const resizeChart = () => {
   threadChart?.resize();
@@ -88,17 +89,13 @@ watch(() => props.width, resizeChart);
 const initThreadChart = () => {
   threadChart = echarts.init(threadChartRef.value, isDark.value ? 'dark' : undefined);
 };
+const initHeapChart = () => {
+  heapChart = echarts.init(heapChartRef.value, isDark.value ? 'dark' : undefined);
+};
 
-const updateThreadChart = () => {
-  const his = [...state.history];
-    const NEW = {
-      name: 'NEW',
-      type: 'line',
-      smooth: true,
-      data: []
-    };
+const updateThreadChart = (his: any[]) => {
     const RUNNABLE = {
-      name: 'RUNNABLE',
+      name: CommonUtils.translate('RUNNABLE'),
       type: 'line',
       stack: 'Total',
       areaStyle: {},
@@ -107,7 +104,7 @@ const updateThreadChart = () => {
       data: []
     };
     const BLOCKED = {
-      name: 'BLOCKED',
+      name: CommonUtils.translate('BLOCKED'),
       type: 'line',
       stack: 'Total',
       areaStyle: {},
@@ -115,27 +112,9 @@ const updateThreadChart = () => {
       showSymbol: false,
       data: []
     };
-    const WAITING = {
-      name: 'WAITING',
-      type: 'line',
-      smooth: true,
-      data: []
-    };
-    const TIMED_WAITING = {
-      name: 'TIMED_WAITING',
-      type: 'line',
-      smooth: true,
-      data: []
-    };
-    const TERMINATED = {
-      name: 'TERMINATED',
-      type: 'line',
-      smooth: true,
-      data: []
-    };
 
   const total = {
-    name: 'total',
+    name: CommonUtils.translate('TOTAL'),
     type: 'line',
     stack: 'Total',
     smooth: true,
@@ -143,8 +122,8 @@ const updateThreadChart = () => {
     showSymbol: false,
     data: [] as any[]
   };
-  const map = {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED} as any;
-  const states = ['NEW', 'RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED'];
+  const map = {RUNNABLE, BLOCKED} as any;
+  const states = ['RUNNABLE', 'BLOCKED'];
   const xData = [] as string[];
   his.forEach((item: any) => {
     const timestamp = item.runtimeInfo.timestamp;
@@ -169,9 +148,9 @@ const updateThreadChart = () => {
     xData.push(`${date.getHours()}:${date.getMinutes()} ${date.getSeconds()}`);
   });
 
-  const option: EChartsOption = {
+  const option = {
     title: {
-      text: 'Thread'
+      text: CommonUtils.translate('THREAD')
     },
     darkMode: isDark.value,
     tooltip: {
@@ -184,7 +163,7 @@ const updateThreadChart = () => {
       }
     },
     legend: {
-      data: ['RUNNABLE', 'BLOCKED', 'total']
+      data: ['RUNNABLE', 'BLOCKED', 'TOTAL'].map(i => CommonUtils.translate(i))
     },
     xAxis: {
       type: 'time',
@@ -199,12 +178,18 @@ const updateThreadChart = () => {
         show: false
       }
     },
-    series: [/*NEW, */RUNNABLE, BLOCKED, /*WAITING, TIMED_WAITING, TERMINATED,*/ total]
-  };
+    series: [RUNNABLE, BLOCKED, total]
+  } as EChartsOption;
   if (his.length <= 1) {
     threadChart.setOption(option);
   } else {
     threadChart.setOption({
+      title: {
+        text: CommonUtils.translate('THREAD')
+      },
+      legend: {
+        data: ['RUNNABLE', 'BLOCKED', 'TOTAL'].map(i => CommonUtils.translate(i))
+      },
       series: [
         {
           data: RUNNABLE.data
@@ -219,12 +204,18 @@ const updateThreadChart = () => {
     });
   }
 };
+const updateHeapChart = (history: any[]) => {
+
+};
+
 const updateChart = () => {
-  updateThreadChart();
+  const his = [...state.history];
+  updateThreadChart(his);
 }
 
 onMounted(() => {
   initThreadChart();
+  initHeapChart();
 });
 const stateColor = (state: any) => {
   let color;
@@ -266,5 +257,10 @@ const cpuColorFormat = (cpu: number) => {
 </script>
 
 <style lang="less" scoped>
-
+.board-panel {
+  border-radius: 4px;
+  opacity: 1;
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(229,240,252,0.30) 100%);
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+}
 </style>

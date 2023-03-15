@@ -146,4 +146,8 @@ export default {
     HELP: 'Help',
     QUICK_START: 'Quick start',
     ABOUT_TEXT: 'Jarboot is a platform for Java process startup, debugging and diagnosis，which can manage, monitor and debug a series of Java instance.',
+    THREAD: 'Thread',
+    RUNNABLE: 'Running',
+    BLOCKED: 'Blocked',
+    TOTAL: 'Total',
 };

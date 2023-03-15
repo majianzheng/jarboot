@@ -14,7 +14,7 @@
         <div @click="newService" class="tool-button tool-button-icon">
           <el-icon><Plus /></el-icon>
         </div>
-        <div class="tool-button tool-button-red-icon"><i class="iconfont icon-dashboard"></i> </div>
+        <div @click="doDashboardCmd" class="tool-button tool-button-red-icon"><i class="iconfont icon-dashboard"></i> </div>
         <div class="tool-button tool-button-icon"><i class="iconfont icon-import"></i> </div>
       </div>
       <div style="width: 100%; padding: 3px 1px;">
@@ -215,6 +215,11 @@ const checkChanged = () => {
   const checked = nodes?.map(node => ({...node})) || [];
   services.checkChange(checked);
 };
+const doDashboardCmd = () => {
+  const service = services.activated;
+  service && doCommand(service, 'dashboard');
+};
+
 const doCommand = (service: ServiceInstance, cmd: string) => {
   WsManager.sendMessage({service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC});
 }
