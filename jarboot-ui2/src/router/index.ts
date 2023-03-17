@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../views/home.vue';
 import Services from '@/views/services/services.vue';
-import OnlineDiagnose from "@/views/diagnose/OnlineDiagnose.vue";
+import Setting from '@/views/setting/setting.vue';
 import login from '@/views/login.vue';
 import OAuthService from "@/services/OAuthService";
 import StringUtil from "@/common/StringUtil";
@@ -27,22 +27,9 @@ const router = createRouter({
           }
         },
         {
-          path: '/diagnose',
-          name: 'diagnose',
-          component: OnlineDiagnose,
-          meta: {
-            keepAlive: true
-          }
-        },
-        {
-          path: '/authority',
-          name: 'authority',
-          component: Services
-        },
-        {
           path: '/setting',
           name: 'setting',
-          component: Services
+          component: Setting
         },
       ]
     },

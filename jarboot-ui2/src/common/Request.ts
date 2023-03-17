@@ -19,7 +19,7 @@ export default class Request {
      * @param params 请求参数Map
      */
     static get(url: string, params: any) {
-        return http.get(url, {params: params,});
+        return http.get<any, any>(url, {params: params,});
     }
 
     /**
@@ -28,7 +28,7 @@ export default class Request {
      * @param params 请求参数
      */
     static post(url: string, params: any) {
-        return http.post(url, params);
+        return http.post<any, any>(url, params);
     }
 
     /**
@@ -37,7 +37,7 @@ export default class Request {
      * @param params 请求参数
      */
     static put(url: string, params: any) {
-        return http.put(url, params);
+        return http.put<any, any>(url, params);
     }
 
     /**
@@ -46,7 +46,7 @@ export default class Request {
      * @param params 请求参数
      */
     static delete(url: string, params: any) {
-        return http.delete(url, params);
+        return http.delete<any, any>(url, params);
     }
 
     public static init() {

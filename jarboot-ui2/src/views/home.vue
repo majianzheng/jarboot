@@ -9,8 +9,8 @@ const openDoc = () => window.open(CommonConst.DOCS_URL);
 const user = useUserStore();
 const menus = [
   { path: '/', name: 'SERVICES_MGR'},
-  { path: '/diagnose', name: 'ONLINE_DEBUG'},
-  { path: '/authority', name: 'AUTH_CONTROL'},
+  // { path: '/diagnose', name: 'ONLINE_DEBUG'},
+  // { path: '/authority', name: 'AUTH_CONTROL'},
   { path: '/setting', name: 'SETTING'},
 ];
 const welcome = () => {
