@@ -1,42 +1,68 @@
 <template>
-  <div class="setting-form">
-    <el-form ref="configRef" :role="rules" :model="settingFormData" label-width="220px" status-icon>
-      <el-form-item :label="$t('SERVERS_PATH')" prop="workspace">
-        <el-input v-model="settingFormData.workspace" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
-      </el-form-item>
-      <el-form-item :label="$t('DEFAULT_VM_OPT')" prop="defaultVmOptions">
-        <el-input v-model="settingFormData.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
-      </el-form-item>
-      <el-form-item :label="$t('AUTO_START_AFTER_INIT')" prop="servicesAutoStart">
-        <el-input v-model="settingFormData.servicesAutoStart" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button>{{$t('SUBMIT_BTN')}}</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="setting-wrapper">
+    <div class="menu-side">
+      <el-menu
+          :default-active="data"
+          v-model="data"
+          class="el-menu-vertical-demo"
+          :collapse="false"
+          :collapse-transition="true"
+          :router="true"
+      >
+        <el-menu-item index="/setting/common">
+          <el-icon><setting /></el-icon>
+          <template #title>系统配置</template>
+        </el-menu-item>
+        <el-menu-item index="/setting/user">
+          <el-icon><UserFilled /></el-icon>
+          <template #title>用户管理</template>
+        </el-menu-item>
+      </el-menu>
+    </div>
+    <div class="setting-content">
+      <router-view v-slot="{ Component }">
+        <transition>
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </transition>
+      </router-view>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive} from "vue";
-import SettingService from "@/services/SettingService";
+import {onMounted, ref, watch} from "vue";
+import { useRoute } from 'vue-router';
 
-const rules = {};
-let settingFormData = reactive({
-  workspace: '',
-  defaultVmOptions: '',
-  servicesAutoStart: false,
-});
+const route = useRoute();
 
-onMounted(async () => {
-  const resp = await SettingService.getGlobalSetting();
-  console.info(resp);
-  settingFormData = reactive(resp.result);
-})
+const data = ref(route.path);
+watch(
+    () => route.path,
+    newPath => {
+      console.info('path', newPath);
+      data.value = newPath;
+    }
+);
+onMounted(() => data.value = route.path);
+
 </script>
 
-<style scoped>
-.setting-form {
-  padding: 5px;
+<style lang="less" scoped>
+@import "@/assets/main.less";
+.setting-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  .menu-side {
+    width: 120px;
+    height: 100%;
+  }
+  .setting-content {
+    flex: auto;
+    padding: 5px;
+  }
 }
+
 </style>

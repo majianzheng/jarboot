@@ -150,4 +150,16 @@ export default {
     RUNNABLE: 'Running',
     BLOCKED: 'Blocked',
     TOTAL: 'Total',
+    OVERVIEW: 'Overview',
+    ACTIVE_THREAD: 'Active thread',
+    HEAP_USED: 'Heap used',
+    NON_HEAP_USED: 'Non heap used',
+    HEAP: 'Heap',
+    NON_HEAP: 'Non heap',
+    CPU_USED: 'CPU used',
+    ACTIVE: 'Active',
+    PEAK_VALUE: 'Peak value',
+    USED: 'used',
+    SUBMITTED: 'submitted',
+    MAX: 'max'
 };

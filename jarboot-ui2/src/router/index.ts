@@ -2,6 +2,8 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../views/home.vue';
 import Services from '@/views/services/services.vue';
 import Setting from '@/views/setting/setting.vue';
+import CommonSetting from "@/views/setting/CommonSetting.vue";
+import UserManager from "@/views/setting/UserManager.vue";
 import login from '@/views/login.vue';
 import OAuthService from "@/services/OAuthService";
 import StringUtil from "@/common/StringUtil";
@@ -29,7 +31,24 @@ const router = createRouter({
         {
           path: '/setting',
           name: 'setting',
-          component: Setting
+          component: Setting,
+          children: [
+            {
+              path: 'common',
+              component: CommonSetting,
+              meta: {
+                keepAlive: true
+              }
+            },
+            {
+              path: 'user',
+              name: 'user',
+              component: UserManager,
+              meta: {
+                keepAlive: true
+              }
+            }
+          ]
         },
       ]
     },

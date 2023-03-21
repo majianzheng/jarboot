@@ -150,4 +150,16 @@ export default {
     RUNNABLE: '运行中',
     BLOCKED: '阻塞中',
     TOTAL: '全部',
+    OVERVIEW: '概览',
+    ACTIVE_THREAD: '活动线程',
+    HEAP_USED: '堆内存使用量',
+    NON_HEAP_USED: '非堆内存使用量',
+    HEAP: '堆内存',
+    NON_HEAP: '非堆内存',
+    CPU_USED: 'CPU占用率',
+    ACTIVE: '活动',
+    PEAK_VALUE: 'Peak value',
+    USED: '已用',
+    SUBMITTED: '已提交',
+    MAX: '最大'
 };

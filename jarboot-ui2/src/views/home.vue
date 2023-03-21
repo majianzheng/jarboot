@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {RouterLink, RouterView} from 'vue-router';
+import {RouterView, useRoute, useRouter} from 'vue-router';
 import CommonConst from "@/common/CommonConst";
 import {useUserStore} from "@/stores";
 import {onMounted} from "vue";
@@ -7,11 +7,14 @@ import {WsManager} from "@/common/WsManager";
 
 const openDoc = () => window.open(CommonConst.DOCS_URL);
 const user = useUserStore();
+const route = useRoute();
+const router = useRouter();
+
 const menus = [
-  { path: '/', name: 'SERVICES_MGR'},
+  { path: '/', name: 'SERVICES_MGR', module: ''},
   // { path: '/diagnose', name: 'ONLINE_DEBUG'},
   // { path: '/authority', name: 'AUTH_CONTROL'},
-  { path: '/setting', name: 'SETTING'},
+  { path: '/setting/common', name: 'SETTING', module: 'setting'},
 ];
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
@@ -19,6 +22,20 @@ const welcome = () => {
   console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
   WsManager.initWebsocket();
 };
+
+const isActive = (path: string, module: string): boolean => {
+  if (route.path === path) {
+    return true;
+  }
+  return !!module && route.path.includes(module);
+};
+
+const goTo = (path: string, isActive: boolean) => {
+  if (route.path !== path && !isActive) {
+    router.push({path});
+  }
+};
+
 onMounted(() => {
   welcome();
 });
@@ -31,7 +48,9 @@ onMounted(() => {
       <img alt="Jarboot logo" class="logo" src="@/assets/logo.png"/>
       <div class="wrapper">
         <nav>
-          <RouterLink v-for="menu in menus" :to="menu.path">{{ $t(menu.name) }}</RouterLink>
+          <a v-for="menu in menus"
+             :class="{'router-link-exact-active': isActive(menu.path, menu.module)}"
+             @click="goTo(menu.path, isActive(menu.path, menu.module))">{{ $t(menu.name) }}</a>
         </nav>
       </div>
       <div style="flex: auto;"></div>
@@ -70,7 +89,7 @@ onMounted(() => {
       </div>
     </header>
     <router-view v-slot="{ Component }">
-      <transition>
+      <transition name="slide-fade">
         <keep-alive>
           <component :is="Component" />
         </keep-alive>
@@ -97,12 +116,14 @@ header {
       color: var(--el-text-color-regular);
       padding: 2px 16px;
       display: inline-block;
+      cursor: pointer;
       &:hover {
         color: var(--el-color-primary-light-3)
       }
       &.router-link-exact-active {
         color: var(--el-color-primary);
         border-bottom: 2px solid var(--el-color-primary);
+        cursor: default;
       }
       &:first-of-type {
         margin-left: 28px;

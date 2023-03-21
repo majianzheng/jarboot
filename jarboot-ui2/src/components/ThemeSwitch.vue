@@ -1,11 +1,11 @@
 <template>
   <div class="theme-switch-wrap">
-    <div class="theme-switch" @click="toggleDark()">
+    <div class="theme-switch" @click="toggleDark();$emit('changed', isDark)">
       <div class="theme-icon light" :style="{opacity: isDark ? 0 : 1}">
         <i class="iconfont icon-light"></i>
       </div>
       <div style="flex: auto;"></div>
-      <div class="theme-icon" :style="{opacity: isDark ? 1 : 0}">
+      <div id="dark-icon-id" class="theme-icon" :style="{opacity: isDark ? 1 : 0}">
         <i class="iconfont icon-dark"></i>
       </div>
     </div>

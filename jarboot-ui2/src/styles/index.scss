@@ -7,6 +7,7 @@
   --side-bg-color: #ffffff;
   --tool-button-hover-color: #d4d4d4;
   --panel-header-bg-color: #eaeaea87;
+  --board-panel-body-color: #ffffff;
 }
 :root.dark {
   --color-hight: #fff;
@@ -14,6 +15,7 @@
   --side-bg-color: #212121;
   --tool-button-hover-color: #717171;
   --panel-header-bg-color: #2f2d3191;
+  --board-panel-body-color: rgba(41,52,65,1);
 }
 
 body {
