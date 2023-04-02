@@ -6,6 +6,8 @@ export type ServerSetting = {
     applicationType: 'java'|'shell'|'executable';
     args: string;
     command: string;
+
+    scheduleType: string;
     daemon: boolean;
     env: string;
     group: string;

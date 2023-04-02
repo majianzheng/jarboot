@@ -85,7 +85,23 @@ export const useServicesStore = defineStore({
       }
       const groups = (resp.result || []) as ServiceInstance[];
       const instanceList = [] as ServiceInstance[];
-      groups.forEach(group => ((group.children||[]).forEach(s => instanceList.push(s))));
+      groups.forEach(group => ((group.children||[]).forEach(s => {
+        if (s.sid) {
+          instanceList.push(s);
+        } else {
+          (s.children || []).forEach(c => {
+            if (c.sid) {
+              instanceList.push(c);
+            } else {
+              (c.children || []).forEach(c1 => {
+                if (c1.sid) {
+                  instanceList.push(c1);
+                }
+              })
+            }
+          })
+        }
+      })));
       this.$patch({groups, instanceList, loading: false});
     },
     async reloadJvmList() {
@@ -99,10 +115,14 @@ export const useServicesStore = defineStore({
       jvmGroups.forEach(group => ((group.children||[]).forEach(s => jvmList.push(s))));
       this.$patch({jvmGroups, jvmList, loading: false});
     },
+
+    attach(pid: number) {
+      ServiceManager.attach(pid).then(r => console.log(r));
+    },
     getSelected() {
       const services = [] as ServiceInstance[];
-      this.currentNode.forEach(node => {
-        if (node.children?.length > 0) {
+      this.currentNode.forEach((node: ServiceInstance) => {
+        if (node?.children && node.children.length > 0) {
           services.push(...node.children);
         } else {
           services.push(node);
@@ -116,7 +136,7 @@ export const useServicesStore = defineStore({
     stopServices() {
       ServiceManager.stopService(this.getSelected(), () => {});
     },
-    currentChange(data, node) {
+    currentChange(data: ServiceInstance, node: any) {
       if (node.isLeaf) {
         const index = this.activatedList.findIndex(item => item.sid === data.sid);
         if (-1 === index) {
@@ -128,60 +148,80 @@ export const useServicesStore = defineStore({
       }
       this.$patch({currentNode: [data]});
     },
-    closeServiceTerminal(instance) {
+    closeServiceTerminal(instance: ServiceInstance) {
       const activatedList = this.activatedList.filter(item => item.sid !== instance.sid);
       let activated = {...this.activated};
       if (this.activated.sid === instance.sid) {
         if (activatedList.length > 0) {
           activated = activatedList[0];
         } else {
-          activated = {};
+          activated = {} as ServiceInstance;
         }
       }
       this.$patch({activated, activatedList});
     },
-    checkChange(checked) {
+    checkChange(checked: ServiceInstance[]) {
       this.$patch({checked});
     },
     setStatus(sid: string, status: string) {
       const groups = [...this.groups];
-      for (let i = 0; i < groups.length; ++i) {
-        const group = groups[i];
-        const children = group.children || [];
-        const service = children.find(item => (item.sid === sid));
-        if (service && service.status !== status) {
-          if (CommonConst.STATUS_STARTING === status) {
-            this.$patch({activated: service});
-          }
-          service.status = status;
-          this.$patch({groups});
-          const name = service.name;
-          switch (status) {
-            case CommonConst.STATUS_STARTING:
-              // 激活终端显示
-              //activeConsole(key);
-              Logger.log(`${name} 启动中...`);
-              pubsub.publish(sid, CONSOLE_TOPIC.CLEAR_CONSOLE);
-              pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
-              break;
-            case CommonConst.STATUS_STOPPING:
-              Logger.log(`${name} 停止中...`);
-              pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
-              break;
-            case CommonConst.STATUS_STARTED:
-              Logger.log(`${name} 已启动`);
-              pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-              pubsub.publish(sid, PUB_TOPIC.FOCUS_CMD_INPUT);
-              break;
-            case CommonConst.STATUS_STOPPED:
-              Logger.log(`${name} 已停止`);
-              pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-              break;
-            default:
-              return {};
-          }
-          return;
+      const service = this.instanceList.find(item => (item.sid === sid));
+
+      if (service && service.status !== status) {
+        if (CommonConst.STATUS_STARTING === status) {
+          this.$patch({activated: service});
         }
+        console.info("status change,", status, service);
+        const name = service.name;
+        switch (status) {
+          case CommonConst.STATUS_STARTING:
+            // 激活终端显示
+            //activeConsole(key);
+            service.status = status;
+            Logger.log(`${name} 启动中...`);
+            pubsub.publish(sid, CONSOLE_TOPIC.CLEAR_CONSOLE);
+            pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
+            break;
+          case CommonConst.STATUS_STOPPING:
+            service.status = status;
+            Logger.log(`${name} 停止中...`);
+            pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
+            break;
+          case CommonConst.STATUS_STOPPED:
+            service.status = status;
+            Logger.log(`${name} 已停止`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case CommonConst.STATUS_STARTED:
+            if (!service.pid) {
+              service.status = status;
+            }
+            Logger.log(`${name} 已启动`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            pubsub.publish(sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+            break;
+          case CommonConst.ATTACHING:
+            service.attaching = true;
+            service.attached = false;
+            Logger.log(`${name} 已停止`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case CommonConst.ATTACHED:
+            service.attached = true;
+            service.attaching = false;
+            Logger.log(`${name} 已停止`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case CommonConst.EXITED:
+            service.attached = false;
+            service.attaching = false;
+            Logger.log(`${name} 已停止`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          default:
+            return {};
+        }
+        this.$patch({groups});
       }
     }
   }

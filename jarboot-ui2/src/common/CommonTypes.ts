@@ -1,4 +1,4 @@
-import {FuncCode} from "@/common/EventConst";
+import type {FuncCode} from "@/common/EventConst";
 
 export type MsgData = {
     event: number;
@@ -34,6 +34,16 @@ export interface ServiceInstance extends TreeNode {
     status?: string;
     group?: string;
     path?: string;
+
+    onlineDebug: boolean;
+
+    attaching: boolean;
+
+    pid: number;
+
+    remote: boolean;
+
+    attached: boolean;
     children?: ServiceInstance[];
 }
 

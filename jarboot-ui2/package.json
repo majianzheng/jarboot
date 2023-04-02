@@ -18,6 +18,7 @@
     "codemirror": "^5.63.3",
     "echarts": "^5.4.1",
     "element-plus": "^2.2.26",
+    "lodash": "^4.17.21",
     "pinia": "^2.0.28",
     "vue": "^3.2.45",
     "vue-i18n": "^9.2.2",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",
     "@types/jsdom": "^20.0.1",
+    "@types/lodash": "^4.14.191",
     "@types/node": "^18.11.12",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vitejs/plugin-vue-jsx": "^3.0.0",

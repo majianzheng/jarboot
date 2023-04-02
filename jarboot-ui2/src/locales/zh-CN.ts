@@ -158,7 +158,7 @@ export default {
     NON_HEAP: '非堆内存',
     CPU_USED: 'CPU占用率',
     ACTIVE: '活动',
-    PEAK_VALUE: 'Peak value',
+    PEAK_VALUE: '峰值',
     USED: '已用',
     SUBMITTED: '已提交',
     MAX: '最大'

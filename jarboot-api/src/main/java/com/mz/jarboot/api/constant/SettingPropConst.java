@@ -24,5 +24,11 @@ public class SettingPropConst {
 
     public static final String APP_TYPE = "applicationType";
 
+    public static final String SCHEDULE_TYPE = "scheduleType";
+
+    public static final String SCHEDULE_ONCE = "once";
+
+    public static final String SCHEDULE_LONE = "long-times";
+
     private SettingPropConst() {}
 }

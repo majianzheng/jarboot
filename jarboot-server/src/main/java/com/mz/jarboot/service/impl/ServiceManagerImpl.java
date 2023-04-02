@@ -1,6 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
@@ -80,9 +81,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         HashMap<String, ServiceGroup> map = new HashMap<>(16);
         List<ServiceGroup> list = new ArrayList<>();
         serviceList.forEach(service -> {
-            ServiceGroup sg = ServiceGroup.wrapGroup(service);
             if (StringUtils.isEmpty(service.getGroup())) {
-                localGroup.getChildren().add(sg);
+                localGroup.getChildren().add(service);
             } else {
                 map.compute(service.getGroup(), (k, v) -> {
                     if (null == v) {
@@ -91,11 +91,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                         v.setChildren(new ArrayList<>());
                         list.add(v);
                     }
-                    v.getChildren().add(sg);
+                    v.getChildren().add(service);
                     return v;
                 });
             }
         });
+        ServiceGroup jvmGroup = new ServiceGroup();
+        jvmGroup.setOnlineDebug(true);
+        jvmGroup.setName("ONLINE_DEBUG");
+        jvmGroup.setChildren(new ArrayList<>());
+        jvmGroup.getChildren().addAll(this.getJvmProcesses());
+        list.add(jvmGroup);
         localGroup.getChildren().addAll(list);
         return localGroup;
     }
@@ -266,7 +272,12 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 NotifyReactor
                         .getInstance()
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
-                MessageUtils.error("启动服务" + server + "失败！");
+                MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
+                if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+                    MessageUtils.error("启动服务" + server + "失败！");
+                } else {
+                    MessageUtils.info("启动服务" + server + "完成！");
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -516,14 +527,16 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
         }
 
-        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
-        String s = sdf.format(new Date());
-        if (null != setting && Boolean.TRUE.equals(setting.getDaemon())) {
-            MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s));
-            //启动
-            TaskUtils.getTaskExecutor().execute(() -> this.startSingleService(setting));
-        } else {
-            MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
+        if (null != setting && SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+            final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
+            String s = sdf.format(new Date());
+            if (Boolean.TRUE.equals(setting.getDaemon())) {
+                MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s));
+                //启动
+                TaskUtils.getTaskExecutor().execute(() -> this.startSingleService(setting));
+            } else {
+                MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
+            }
         }
     }
 

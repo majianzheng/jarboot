@@ -88,6 +88,8 @@ public class ServiceSetting implements Serializable {
     /** 应用类型 java or shell */
     private String applicationType;
 
+    private String scheduleType;
+
     public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
@@ -234,6 +236,14 @@ public class ServiceSetting implements Serializable {
 
     public void setApplicationType(String applicationType) {
         this.applicationType = applicationType;
+    }
+
+    public String getScheduleType() {
+        return scheduleType;
+    }
+
+    public void setScheduleType(String scheduleType) {
+        this.scheduleType = scheduleType;
     }
 
     @Override

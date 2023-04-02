@@ -64,6 +64,9 @@ public class SettingServiceImpl implements SettingService {
         if (CommonConst.SHELL_TYPE.equals(type) && StringUtils.isEmpty(setting.getCommand())) {
             throw new JarbootRunException("启动命令不可为空！");
         }
+        if (!SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) && !SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+            throw new JarbootRunException("执行计划类型错误！");
+        }
         final String path = SettingUtils.getServicePath(setting.getName());
         String sid = SettingUtils.createSid(path);
         if (StringUtils.isNotEmpty(setting.getSid()) && !setting.getSid().equals(sid)) {
@@ -118,6 +121,7 @@ public class SettingServiceImpl implements SettingService {
             properties.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
         }
         checkAndSet(path, setting, properties);
+        properties.setProperty(SettingPropConst.SCHEDULE_TYPE, setting.getScheduleType());
         if (null == setting.getDaemon()) {
             properties.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {

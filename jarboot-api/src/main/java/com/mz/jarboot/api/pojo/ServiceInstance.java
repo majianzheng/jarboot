@@ -3,11 +3,9 @@ package com.mz.jarboot.api.pojo;
 /**
  * @author majianzheng
  */
-public class ServiceInstance {
+public class ServiceInstance extends AbstractInstance {
     private String status;
-    private String name;
     private String group;
-    private String sid;
     private String path;
 
     public String getStatus() {
@@ -18,28 +16,12 @@ public class ServiceInstance {
         this.status = status;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getGroup() {
         return group;
     }
 
     public void setGroup(String group) {
         this.group = group;
-    }
-
-    public String getSid() {
-        return sid;
-    }
-
-    public void setSid(String sid) {
-        this.sid = sid;
     }
 
     public String getPath() {
@@ -54,9 +36,9 @@ public class ServiceInstance {
     public String toString() {
         return "ServiceInstance{" +
                 "status='" + status + '\'' +
-                ", name='" + name + '\'' +
+                ", name='" + getName() + '\'' +
                 ", group='" + group + '\'' +
-                ", sid='" + sid + '\'' +
+                ", sid='" + getSid() + '\'' +
                 ", path='" + path + '\'' +
                 '}';
     }

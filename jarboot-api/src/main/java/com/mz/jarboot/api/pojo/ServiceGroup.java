@@ -5,18 +5,11 @@ import java.util.List;
 /**
  * @author mazheng
  */
-public class ServiceGroup extends ServiceInstance {
+public class ServiceGroup extends AbstractInstance {
     private String host;
-    private List<ServiceGroup> children;
 
-    public static ServiceGroup wrapGroup(ServiceInstance instance) {
-        ServiceGroup group = new ServiceGroup();
-        group.setName(instance.getName());
-        group.setStatus(instance.getStatus());
-        group.setPath(instance.getPath());
-        group.setSid(instance.getSid());
-        return group;
-    }
+    private Boolean onlineDebug;
+    private List<AbstractInstance> children;
 
     public String getHost() {
         return host;
@@ -26,12 +19,20 @@ public class ServiceGroup extends ServiceInstance {
         this.host = host;
     }
 
-    public List<ServiceGroup> getChildren() {
+    public List<AbstractInstance> getChildren() {
         return children;
     }
 
-    public void setChildren(List<ServiceGroup> children) {
+    public void setChildren(List<AbstractInstance> children) {
         this.children = children;
+    }
+
+    public Boolean getOnlineDebug() {
+        return onlineDebug;
+    }
+
+    public void setOnlineDebug(Boolean onlineDebug) {
+        this.onlineDebug = onlineDebug;
     }
 
     @Override

@@ -135,6 +135,7 @@ class WsManager {
         if (hasSplit) {
             handle && handle.close();
         } else {
+            handle && handle.close();
             const duration = 0;
             const message = body.substring(index + 1);
             WsManager.LOADING_MAP.set(key, ElMessage({message, icon: 'Loading', key, duration}));

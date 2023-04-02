@@ -137,7 +137,7 @@ const emit = defineEmits<{
   (e: 'execute', value: string): void
   (e: 'cancel', value: string): void
 }>();
-const height = computed(() => (basic.innerHeight - 115));
+const height = computed(() => (basic.innerHeight - 110));
 const width = computed(() => (basic.innerWidth - 338));
 const middleTitle = computed(() => {
   if (state.view) {
@@ -227,10 +227,10 @@ const setScrollToEnd = () => {
 };
 
 const renderView = (resultData: any) => {
-  console.info('>>>>>>result:', resultData);
   const cmd = resultData.name;
   state.data = resultData;
   state.view = cmd;
+  state.executing = cmd;
 };
 
 const onExecQuickCmd = (cmd: string) => {

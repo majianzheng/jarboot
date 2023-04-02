@@ -5,22 +5,12 @@ import java.util.Objects;
 /**
  * @author majianzheng
  */
-public class JvmProcess {
-    private String sid;
+public class JvmProcess extends AbstractInstance {
     private String pid;
-    private String name;
     private String fullName;
     private Boolean attached;
     private String remote;
     private Boolean trusted;
-
-    public String getSid() {
-        return sid;
-    }
-
-    public void setSid(String sid) {
-        this.sid = sid;
-    }
 
     public String getPid() {
         return pid;
@@ -28,14 +18,6 @@ public class JvmProcess {
 
     public void setPid(String pid) {
         this.pid = pid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getFullName() {
@@ -79,20 +61,20 @@ public class JvmProcess {
             return false;
         }
         JvmProcess that = (JvmProcess) o;
-        return Objects.equals(sid, that.sid);
+        return Objects.equals(getSid(), that.getSid());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sid);
+        return Objects.hash(getSid());
     }
 
     @Override
     public String toString() {
         return "JvmProcess{" +
-                "sid='" + sid + '\'' +
+                "sid='" + getSid() + '\'' +
                 ", pid='" + pid + '\'' +
-                ", name='" + name + '\'' +
+                ", name='" + getSid() + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", attached=" + attached +
                 ", remote='" + remote + '\'' +

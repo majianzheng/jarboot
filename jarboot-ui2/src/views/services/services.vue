@@ -14,8 +14,12 @@
         <div @click="newService" class="tool-button tool-button-icon">
           <el-icon><Plus /></el-icon>
         </div>
-        <div @click="doDashboardCmd" class="tool-button tool-button-red-icon"><i class="iconfont icon-dashboard"></i> </div>
-        <div class="tool-button tool-button-icon"><i class="iconfont icon-import"></i> </div>
+        <div @click="doDashboardCmd" class="tool-button tool-button-red-icon" :class="{disabled: !services.activated?.sid}"><i class="iconfont icon-dashboard"></i> </div>
+        <div class="tool-button tool-button-icon" :class="{disabled: serviceState.importing}" @click="onImport">
+          <Loading v-if="serviceState.importing" class="ui-spin"/>
+          <i v-else class="iconfont icon-import"></i>
+        </div>
+        <div class="tool-button tool-button-icon" :class="{disabled: !services.activated?.sid || services.activated?.pid}" @click="exportServer"><i class="iconfont icon-export"></i> </div>
       </div>
       <div style="width: 100%; padding: 3px 1px;">
         <el-input v-model="services.search" placeholder="" prefix-icon="Search" size="small"/>
@@ -32,7 +36,7 @@
             <div style="width: 100%;">
               <div v-if="node.isLeaf" style="width: 100%;" @click="services.currentChange(data, node)">
                 <el-icon v-if="CommonConst.STATUS_STOPPED === data.status" class="status-stopped"><SuccessFilled /></el-icon>
-                <el-icon v-else-if="CommonConst.STATUS_STARTING === data.status" class="status-starting ui-spin">
+                <el-icon v-else-if="CommonConst.STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin">
                   <Loading/>
                 </el-icon>
                 <el-icon v-else-if="CommonConst.STATUS_STOPPING === data.status" class="status-stopping ui-spin">
@@ -41,14 +45,28 @@
                 <el-icon v-else-if="CommonConst.STATUS_STARTED === data.status" class="status-running">
                   <CaretRight/>
                 </el-icon>
-                <span class="__tree-title">{{ data.name }}</span>
-                <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
+                <el-icon v-else-if="data.attached" class="status-running">
+                  <i class="iconfont icon-debug"></i>
+                </el-icon>
+                <el-icon v-else-if="data.pid" class="status-stopped">
+                  <i class="iconfont icon-debug"></i>
+                </el-icon>
+                <span class="__tree-title" @dblclick="services.attach(data.pid)">{{ data.name }}</span>
+                <el-tooltip content="Attach" v-if="data.pid && !data.attached">
+                  <el-icon @click="services.attach(data.pid)" class="edit-btn"><Connection/></el-icon>
+                </el-tooltip>
+                <el-tooltip content="Detach" v-if="data.pid && data.attached">
+                  <el-icon @click="detach(data)" class="edit-btn"><CircleCloseFilled/></el-icon>
+                </el-tooltip>
+                <el-tooltip :content="$t('MODIFY')" v-if="!data.pid">
+                  <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
+                </el-tooltip>
               </div>
               <div v-else>
                 <el-icon v-if="data.host" class="group-icon"><HomeFilled /></el-icon>
-                <el-icon v-else class="group-icon"><Menu/></el-icon>
+                <el-icon v-else class="group-icon"><Platform v-if="data.onlineDebug"/><Folder v-else/></el-icon>
                 <span v-if="data.host" class="__tree-title">{{ data.host}}</span>
-                <span v-else class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
+                <span v-else class="__tree-title">{{ data.onlineDebug ? $t(data.name) : data.name || $t('DEFAULT_GROUP') }}</span>
               </div>
             </div>
           </template>
@@ -79,10 +97,10 @@
           <el-input v-model="configForm.group" :placeholder="$t('GROUP_PLACEHOLDER')"></el-input>
         </el-form-item>
         <el-form-item :label="$t('APP_TYPE')" prop="applicationType">
-          <el-select v-model="configForm.applicationType">
-            <el-option value="java" label="Java"></el-option>
-            <el-option value="shell" label="Shell"></el-option>
-          </el-select>
+          <el-radio-group v-model="configForm.applicationType">
+            <el-radio label="java">Java</el-radio>
+            <el-radio label="shell">Shell</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('COMMAND_LABEL')" prop="command">
           <el-input
@@ -115,10 +133,16 @@
         <el-form-item :label="$t('ENV_LABEL')" prop="env">
           <el-input placeholder="eg: ENV1=val1,ENV2=val2" auto-complete="off" auto-correct="off" auto-capitalize="off" v-model="configForm.env"></el-input>
         </el-form-item>
-        <el-form-item :label="$t('DAEMON_LABEL')" prop="daemon">
+        <el-form-item :label="'运行计划'" prop="daemon">
+          <el-radio-group v-model="configForm.scheduleType">
+            <el-radio label="once">单次执行</el-radio>
+            <el-radio label="long-times">长期运行</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-show="'long-times' === configForm.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
           <el-switch v-model="configForm.daemon"></el-switch>
         </el-form-item>
-        <el-form-item :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="jarUpdateWatch">
+        <el-form-item v-show="'long-times' === configForm.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="jarUpdateWatch">
           <el-switch v-model="configForm.jarUpdateWatch"></el-switch>
         </el-form-item>
       </el-form>
@@ -133,7 +157,7 @@
 </template>
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted, reactive, h} from 'vue';
-import {ElForm, ElTree, FormRules} from 'element-plus';
+import {ElForm, ElMessage, ElMessageBox, ElTree, FormRules} from 'element-plus';
 import CommonConst from '@/common/CommonConst';
 import {pubsub, PUB_TOPIC} from "@/views/services/ServerPubsubImpl";
 import type {MsgData, ServiceInstance} from "@/common/CommonTypes";
@@ -143,6 +167,7 @@ import {useServicesStore} from "@/stores";
 import SettingService, {ServerSetting} from "@/services/SettingService";
 import CommonUtils from "@/common/CommonUtils";
 import CommonNotice from "@/common/CommonNotice";
+import CloudService from "@/services/CloudService";
 
 const defaultProps = {
   children: 'children',
@@ -152,6 +177,7 @@ type ServiceState = {
   isNew: boolean;
   showEdit: boolean;
   showVmEdit: boolean;
+  importing: boolean;
 };
 const treeRef = ref<InstanceType<typeof ElTree>>();
 const configRef = ref<InstanceType<typeof ElForm>>();
@@ -161,12 +187,14 @@ const serviceState = ref<ServiceState>( {
   isNew: false,
   showEdit: false,
   showVmEdit: false,
+  importing: false,
 });
 const defaultSetting: ServerSetting = {
   name: '',
   group: '',
   applicationType: 'java',
   args: '',
+  scheduleType: 'once',
   command: '',
   daemon: false,
   env: '',
@@ -190,9 +218,7 @@ const rules = reactive<FormRules>({
 });
 const editService = async (row: ServiceInstance) => {
   serviceState.value.isNew = false;
-  console.info('row:', row)
   const resp = await SettingService.getServerSetting(row.name);
-  console.info("resp:", resp);
   const data = (resp.result || defaultSetting) as ServerSetting;
   configForm = reactive<ServerSetting>(data);
   serviceState.value.showEdit = true;
@@ -207,7 +233,6 @@ const onCloseEdit = () => {
   serviceState.value.showVmEdit = false;
 };
 const handleNodeClick = (row: ServiceInstance) => {
-  console.info('row', row);
 };
 
 const checkChanged = () => {
@@ -217,7 +242,7 @@ const checkChanged = () => {
 };
 const doDashboardCmd = () => {
   const service = services.activated;
-  service && doCommand(service, 'dashboard');
+  service?.sid && doCommand(service, 'dashboard');
 };
 
 const doCommand = (service: ServiceInstance, cmd: string) => {
@@ -246,16 +271,70 @@ const onStatusChange = (data: MsgData) => {
 };
 const reload = () => services.reload();
 
+const detach = (server: ServiceInstance) => {
+  if (!server.sid) {
+    return;
+  }
+  const sid = server.sid || '';
+  if (server.remote) {
+    ElMessageBox.confirm(CommonUtils.translate('DETACH_MSG'), CommonUtils.translate('WARN'), {type: 'warning',})
+        .then(() => {
+          WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
+        })
+        .catch(() => {
+
+        });
+  } else {
+    WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
+  }
+};
+
+const exportServer = () => {
+  if (services.activated.name) {
+    if (services.activated.pid) {
+      return;
+    }
+    CommonUtils.exportServer(services.activated.name);
+  }
+}
+
+const onImport = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/zip';
+  input.onchange = () => {
+    if (!input.files?.length) {
+      return;
+    }
+    const file = input.files[0];
+    serviceState.value.importing = true;
+    const message = CommonUtils.translate('START_UPLOAD_INFO', {name: file.name});
+    CommonNotice.info(message);
+    CloudService.pushServerDirectory(file).then(resp => {
+      if (0 !== resp.resultCode) {
+        CommonNotice.errorFormatted(resp);
+      }
+      serviceState.value.importing = false;
+    }).catch(error => {
+      CommonNotice.errorFormatted(error);
+      serviceState.value.importing = false;
+    });
+  };
+  input.click();
+};
+
 onMounted(() => {
   services.reload();
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, reload);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+  pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
 });
 onUnmounted(() => {
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, reload);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
+  pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
 });
 </script>
 

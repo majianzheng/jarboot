@@ -129,6 +129,8 @@ public class PropertyFileUtils {
         setting.setApplicationType(appType);
         checkAndGetHome(setting, properties);
 
+        setting.setScheduleType(properties.getProperty(SettingPropConst.SCHEDULE_TYPE, SettingPropConst.SCHEDULE_ONCE));
+
         //环境变量
         String env = properties.getProperty(SettingPropConst.ENV, StringUtils.EMPTY);
         if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {

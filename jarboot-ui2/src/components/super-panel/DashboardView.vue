@@ -11,7 +11,7 @@
           <div class="board-panel">
             <div ref="heapChartRef" :style="{width: '100%', height: chartHeight}"></div>
             <span class="mem-board-tool">
-              <el-radio-group v-model="state.memType" @change="updateHeapChart(state.history)">
+              <el-radio-group size="small" v-model="state.memType" @change="updateHeapChart(state.history)">
                 <el-radio label="heap" size="small">{{$t('HEAP')}}</el-radio>
                 <el-radio label="nonheap" size="small">{{$t('NON_HEAP')}}</el-radio>
               </el-radio-group>
@@ -25,14 +25,16 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="5" style="margin-top: 5px">
+      <el-row :gutter="5" style="margin-top: 5px" :style="{height: (viewHeight/2) + 'px'}">
         <el-col :span="12">
           <div class="board-panel">
             <div ref="cpuChartRef" :style="{width: '100%', height: chartHeight}"></div>
           </div>
         </el-col>
         <el-col :span="12">
-          堆内存趋势
+          <div class="board-panel">
+            <div :style="{width: '100%', height: chartHeight}"></div>
+          </div>
         </el-col>
       </el-row>
     </el-tab-pane>
@@ -73,6 +75,7 @@ import * as echarts from "echarts";
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import CommonUtils from "@/common/CommonUtils";
 import {useI18n} from "vue-i18n";
+import {round} from 'lodash';
 
 const { locale } = useI18n();
 const props = defineProps<{
@@ -80,6 +83,7 @@ const props = defineProps<{
   height: number;
   width: number;
 }>();
+const MB_NUM = 1024 * 1024;
 const viewHeight = computed(() => props.height - 32);
 const chartHeight = computed(() => (((props.height - 50) / 2) + 'px'));
 const state = reactive({
@@ -89,13 +93,14 @@ const state = reactive({
   noHeapOption: '',
   heapOptions: [],
   noHeapOptions: [],
+  threadPeakSize: 0,
   history: [] as any[],
 });
 const threadChartRef = ref();
 const heapChartRef = ref();
 const cpuChartRef = ref();
 const MAX_RECORD = 500;
-
+const PRECISION = 2;
 let threadChart = null as unknown as EChartsType;
 let heapChart = null as unknown as EChartsType;
 let cpuChart = null as unknown as EChartsType;
@@ -138,8 +143,10 @@ const initCpuChart = () => {
 };
 const getAfterFixData = (his: any[]): any[] => {
   let last = MAX_RECORD - his.length;
-  if (last > 100) {
-    last = 100;
+  if (last > (MAX_RECORD * 3 / 4)) {
+    const n = (his.length % 100);
+    const expectLength = n > 80 ? (200 + his.length - n) : (100 + his.length - n);
+    last = expectLength - his.length;
   }
   const afterFixData = [] as any[];
   if (last === 0) {
@@ -166,7 +173,7 @@ const creatData = (date: Date, value: number) => {
     ]
   };
 };
-const createOption = (title: string, series: any[], unit: string = '') => {
+const createOption = (title: string, series: any[], subtext: string = '', unit: string = '') => {
   let isDark = checkIsDark();
   (series || []).forEach(item => {
     if (!item.type) {
@@ -185,8 +192,12 @@ const createOption = (title: string, series: any[], unit: string = '') => {
   return {
     title: {
       text: title,
+      subtext,
       textStyle: {
         color: isDark ? '#eeeeee' : '#313131',
+      },
+      subtextStyle: {
+        color: isDark ? '#d4d4d4' : '#373737',
       }
     },
     tooltip: {
@@ -255,7 +266,11 @@ const updateThreadChart = (his: any[]) => {
   if (afterFixData.length > 0) {
     total.data.push(...afterFixData);
   }
-  const option = createOption(CommonUtils.translate('THREAD'), [RUNNABLE, total]);
+  const activeSize = (props.data.threads as any[]).length;
+  const peak = Math.max(state.threadPeakSize, activeSize);
+  state.threadPeakSize = peak;
+  const subtext = `${CommonUtils.translate('ACTIVE')}: ${activeSize}    ${CommonUtils.translate('PEAK_VALUE')}: ${peak}`;
+  const option = createOption(CommonUtils.translate('THREAD'), [RUNNABLE, total], subtext);
   threadChart.setOption(option, false, true);
 };
 const updateHeapChart = (history: any[]) => {
@@ -268,14 +283,14 @@ const updateHeapChart = (history: any[]) => {
     data: [] as any[]
   };
   const afterFixData = getAfterFixData(history);
+  const type = 'heap' === state.memType ? state.heapOption : state.noHeapOption;
   history.forEach((item: any) => {
     let timestamp = item.runtimeInfo.timestamp;
     let date = new Date(timestamp);
-    const type = 'heap' === state.memType ? state.heapOption : state.noHeapOption;
     const heap = ((item?.memoryInfo as any)[state.memType] || []).find((i: any) => type === i.name);
     if (heap) {
-      submitted.data.push(creatData(date, heap.total/(1024 * 1024)));
-      used.data.push(creatData(date, heap.used/(1024 * 1024)));
+      submitted.data.push(creatData(date, round(heap.total/MB_NUM, PRECISION)));
+      used.data.push(creatData(date, round(heap.used/MB_NUM, PRECISION)));
     }
   });
   if (afterFixData.length > 0) {
@@ -283,7 +298,12 @@ const updateHeapChart = (history: any[]) => {
     used.data.push(...afterFixData);
   }
   const title = 'heap' === state.memType ? CommonUtils.translate('HEAP_USED') : CommonUtils.translate('NON_HEAP_USED');
-  const option = createOption(title, [submitted, used], ' Mb');
+  const heap = ((props.data?.memoryInfo as any)[state.memType] || []).find((i: any) => type === i.name);
+  const totalSize = round(heap.total/MB_NUM, PRECISION);
+  const usedSize = round(heap.used/MB_NUM, PRECISION);
+  const maxSize = round(heap.max/MB_NUM, PRECISION);
+  const subtext = `${CommonUtils.translate('USED')}: ${usedSize} Mb    ${CommonUtils.translate('SUBMITTED')}: ${totalSize} Mb    ${CommonUtils.translate('MAX')}: ${maxSize} Mb`;
+  const option = createOption(title, [submitted, used], subtext, ' Mb');
   heapChart.setOption(option, false, true);
 };
 const updateCpuChart = (history: any[]) => {
@@ -299,12 +319,17 @@ const updateCpuChart = (history: any[]) => {
     (item.threads || []).forEach((thread: any) => {
       cpu += thread.cpu;
     });
-    submitted.data.push(creatData(date, cpu));
+    submitted.data.push(creatData(date, round(cpu, PRECISION)));
   });
   if (afterFixData.length > 0) {
     submitted.data.push(...afterFixData);
   }
-  const option = createOption(CommonUtils.translate('CPU_USED'), [submitted], '%');
+  let cpu = 0;
+  (props.data.threads || []).forEach((thread: any) => {
+    cpu += thread.cpu;
+  });
+  const subtext = `${CommonUtils.translate('CPU_USED')}: ${round(cpu, PRECISION)}%`;
+  const option = createOption(CommonUtils.translate('CPU_USED'), [submitted], subtext, '%');
   cpuChart.setOption(option, false, true);
 };
 
@@ -389,7 +414,6 @@ const cpuColorFormat = (cpu: number) => {
   opacity: 1;
   background: linear-gradient(180deg, var(--board-panel-body-color) 0%, rgba(229,240,252,0.30) 100%);
   box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
-  padding: 3px;
 }
 .mem-board-tool {
   position: absolute;
