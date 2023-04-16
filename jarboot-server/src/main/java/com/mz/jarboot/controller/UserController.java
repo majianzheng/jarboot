@@ -61,6 +61,7 @@ public class UserController {
     /**
      * 修改密码
      * @param username 用户名
+     * @param oldPassword 旧密码
      * @param password 密码
      * @param request  http请求
      * @return 执行结果
@@ -68,12 +69,12 @@ public class UserController {
     @PutMapping
     @ResponseBody
     @Permission
-    public ResponseSimple updateUserPassword(String username, String password, HttpServletRequest request) {
+    public ResponseSimple updateUserPassword(String username, String oldPassword, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
         ResponseSimple result = new ResponseSimple();
         //只有ADMIN和自己可修改
         if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || java.util.Objects.equals(username, currentLoginUser)) {
-            userService.updateUserPassword(username, password);
+            userService.updateUserPassword(currentLoginUser, username, oldPassword, password);
         } else {
             result.setResultCode(ResultCodeConst.VALIDATE_FAILED);
             result.setResultMsg("Only ROLE_ADMIN or self can modify the password!");

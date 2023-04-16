@@ -29,7 +29,7 @@
 	<groupId>io.github.majianzheng</groupId>
 	<artifactId>jarboot-all</artifactId>
 	<version>${revision}</version>
-	<name>Jarboot ${project.version}</name>
+	<name>Jarboot</name>
 	<description>Top Jarboot project pom.xml</description>
 	<url>https://github.com/majianzheng/jarboot</url>
 
@@ -58,7 +58,7 @@
 		<sonar.exclusions>file:**/generated-sources/**,**/test/**</sonar.exclusions>
 
 		<!-- dependency version -->
-		<spring.version>2.6.2</spring.version>
+		<spring.version>2.7.10</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<jjwt.version>0.11.2</jjwt.version>
@@ -66,7 +66,11 @@
 		<olgn.version>3.1.19</olgn.version>
 
 		<!-- plugin version -->
+		<maven-resources-version>2.6</maven-resources-version>
+		<maven-compiler-version>3.11.0</maven-compiler-version>
 		<maven-flatten-version>1.2.7</maven-flatten-version>
+		<maven-shade-plugin-version>3.4.1</maven-shade-plugin-version>
+		<maven-jar-plugin-version>2.4</maven-jar-plugin-version>
 		<dependency-mediator-maven-plugin.version>1.0.2</dependency-mediator-maven-plugin.version>
 		<maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
@@ -206,6 +210,37 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>${maven-resources-version}</version>
+					<configuration>
+						<delimiters>
+							<delimiter>@</delimiter>
+						</delimiters>
+						<useDefaultDelimiters>false</useDefaultDelimiters>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-version}</version>
+					<configuration>
+						<source>1.8</source>
+						<target>1.8</target>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>${maven-shade-plugin-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven-jar-plugin-version}</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>

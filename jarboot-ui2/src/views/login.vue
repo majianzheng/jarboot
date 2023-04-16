@@ -7,35 +7,34 @@
         <div>{{$t('INTERNAL_SYS_TIP1')}}</div>
       </div>
       <el-form
-          ref="ruleFormRef"
-          :model="ruleForm"
+          ref="loginFormRef"
+          :model="loginForm"
           status-icon
           :rules="rules"
           label-width="0"
           size="large"
-          class="demo-ruleForm"
       >
         <el-form-item label="" prop="username">
           <el-input
-              v-model="ruleForm.username"
+              v-model="loginForm.username"
               :prefix-icon="User"
               :placeholder="$t('USER_NAME')"
-              @keydown.native.enter="submitForm(ruleFormRef)"
+              @keydown.native.enter="submitForm(loginFormRef)"
               clearable
               autocomplete="off"/>
         </el-form-item>
         <el-form-item label="" prop="password">
           <el-input
-              v-model="ruleForm.password"
+              v-model="loginForm.password"
               :prefix-icon="Lock"
               :placeholder="$t('PASSWORD')"
-              @keydown.native.enter="submitForm(ruleFormRef)"
+              @keydown.native.enter="submitForm(loginFormRef)"
               clearable
               show-password
               type="password" autocomplete="off" />
         </el-form-item>
         <el-form-item>
-          <el-button :loading="loading" class="login-button" type="primary" @click="submitForm(ruleFormRef)">
+          <el-button :loading="loading" class="login-button" type="primary" @click="submitForm(loginFormRef)">
             {{$t('LOGIN')}}
           </el-button>
         </el-form-item>
@@ -52,9 +51,9 @@ import { User, Lock } from "@element-plus/icons-vue";
 import CommonUtils from "@/common/CommonUtils";
 import {useUserStore} from "@/stores";
 
-const ruleFormRef = ref<FormInstance>()
+const loginFormRef = ref<FormInstance>()
 
-const ruleForm = reactive({
+const loginForm = reactive({
   username: '',
   password: '',
 })
@@ -73,7 +72,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     return false;
   }
   loading.value = true;
-  await userStore.login(ruleForm.username, ruleForm.password);
+  await userStore.login(loginForm.username, loginForm.password);
   loading.value = false;
 }
 </script>

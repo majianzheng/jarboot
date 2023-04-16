@@ -119,6 +119,7 @@ export default {
     SIGN_OUT: '退出',
     INTERNAL_SYS_TIP: `内部系统，不可暴露到公网`,
     INTERNAL_SYS_TIP1: ` `,
+    OLD_PASSWORD: '请输入旧密码',
     REPEAT_PASSWORD: '请输入确认密码',
     INPUT_PASSWORD: '请输入密码',
     INPUT_USERNAME: '请输入用户名',

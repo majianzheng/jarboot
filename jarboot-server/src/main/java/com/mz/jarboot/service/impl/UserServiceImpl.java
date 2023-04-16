@@ -77,8 +77,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void updateUserPassword(String username, String password) {
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+    public void updateUserPassword(String currentLoginUser, String username, String oldPassword, String password) {
+        if (StringUtils.isEmpty(currentLoginUser) || StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             throw new JarbootException("User or password is empty!");
         }
         User user = userDao.findFirstByUsername(username);
@@ -88,6 +88,11 @@ public class UserServiceImpl implements UserService {
                 user.setUsername(AuthConst.JARBOOT_USER);
             } else {
                 throw new JarbootException("User:" + username + " is not exist!");
+            }
+        }
+        if (!AuthConst.JARBOOT_USER.equals(currentLoginUser)) {
+            if (!PasswordEncoderUtil.matches(oldPassword, user.getPassword())) {
+                throw new JarbootException("Password or username is not correct!");
             }
         }
         user.setPassword(PasswordEncoderUtil.encode(password));

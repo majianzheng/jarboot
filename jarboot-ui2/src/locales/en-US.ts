@@ -119,6 +119,7 @@ export default {
     SIGN_OUT: 'Sign out',
     INTERNAL_SYS_TIP: `Internal system.`,
     INTERNAL_SYS_TIP1: `Not exposed to the public network`,
+    OLD_PASSWORD: 'Please input old password!',
     REPEAT_PASSWORD: 'Please input repeat password!',
     INPUT_PASSWORD: 'Please input password!',
     INPUT_USERNAME: 'Please input your user name!',

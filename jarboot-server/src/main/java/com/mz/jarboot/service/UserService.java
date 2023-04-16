@@ -22,10 +22,12 @@ public interface UserService {
 
     /**
      * 更新密码
+     * @param loginUsername 当前登陆的用户
      * @param username 用户
+     * @param oldPassword 旧密码
      * @param password 密码
      */
-    void updateUserPassword(String username, String password);
+    void updateUserPassword(String loginUsername ,String username, String oldPassword, String password);
 
     /**
      * 根据用户名获取用户信息
