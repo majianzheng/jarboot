@@ -93,7 +93,7 @@ import {CONSOLE_TOPIC} from "@/common/CommonTypes";
 import StringUtil from "@/common/StringUtil";
 import {ElInput} from "element-plus";
 import {useBasicStore} from "@/stores";
-import Banner from "./Banner.vue";
+import Banner from "./banner.vue";
 import CommonNotice from "@/common/CommonNotice";
 import CommonUtils from "@/common/CommonUtils";
 

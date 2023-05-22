@@ -71,4 +71,47 @@ export default class CommonUtils {
             CommonNotice.error(ErrorUtil.formatErrResp(resp));
         }
     };
+
+    public static download(url: string, filename: string, callback?: (result: boolean, msg?: string) => void) {
+        const xhr = new XMLHttpRequest();
+        //GET请求,请求路径url,async(是否异步)
+        xhr.open('GET', url, true);
+        //设置请求头参数
+        xhr.setRequestHeader('Authorization', CommonUtils.getToken());
+        //设置响应类型为 blob
+        xhr.responseType = 'blob';
+        //关键部分
+        xhr.onload = function (e) {
+            //如果请求执行成功
+            if (this.status == 200) {
+                const blob = this.response;
+                const a = document.createElement('a');
+                //创键临时url对象
+                const objUrl = URL.createObjectURL(blob);
+                a.href = objUrl;
+                a.download=filename;
+                a.click();
+                //释放之前创建的URL对象
+                window.URL.revokeObjectURL(objUrl);
+                a.remove();
+                callback && callback(true);
+            } else {
+                callback && callback(false, '下载失败，状态码：' + this.status);
+            }
+        };
+        //发送请求
+        xhr.send();
+    }
+
+    public static downloadTextAsFile(text: string, filename: string) {
+        const a = document.createElement('a');
+        //创键临时url对象
+        const objUrl = URL.createObjectURL(new Blob([text], {type: 'text/plain'}));
+        a.href = objUrl;
+        a.download = filename;
+        a.click();
+        //释放之前创建的URL对象
+        window.URL.revokeObjectURL(objUrl);
+        a.remove();
+    }
 }
