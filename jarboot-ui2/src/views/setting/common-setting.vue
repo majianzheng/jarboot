@@ -11,15 +11,15 @@
         <el-input v-model="settingFormData.servicesAutoStart" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button>{{$t('SUBMIT_BTN')}}</el-button>
+        <el-button>{{ $t('SUBMIT_BTN') }}</el-button>
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive} from "vue";
-import SettingService from "@/services/SettingService";
+import { onMounted, reactive } from 'vue';
+import SettingService from '@/services/SettingService';
 
 const rules = {};
 let settingFormData = reactive({
@@ -32,9 +32,7 @@ onMounted(async () => {
   const resp = await SettingService.getGlobalSetting();
   console.info(resp);
   settingFormData = reactive(resp.result);
-})
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

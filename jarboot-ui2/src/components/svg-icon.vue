@@ -7,9 +7,9 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  prefix: {type: String, default: 'icon',},
-  icon: {type: String, required: true,},
-  color: {type: String, default: ''},
+  prefix: { type: String, default: 'icon' },
+  icon: { type: String, required: true },
+  color: { type: String, default: '' },
 });
 
 const symbolId = computed(() => `#${props.prefix}-${props.icon}`);

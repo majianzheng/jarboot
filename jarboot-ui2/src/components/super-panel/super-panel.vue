@@ -1,14 +1,14 @@
 <template>
   <div class="super-panel" ref="panelRef">
-    <div class="super-panel-header" :style="{width: (width -2) + 'px'}">
+    <div class="super-panel-header" :style="{ width: width - 2 + 'px' }">
       <div>
         <el-button @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
-        <span class="panel-title">{{props.name}}</span>
+        <span class="panel-title">{{ props.name }}</span>
       </div>
       <div class="panel-middle-title">
         <span v-if="!!state.executing || !!state.view">
-          <el-icon v-if="state.executing" style="position: relative;top:3px;" class="ui-spin"><Loading/></el-icon>
-          <span style="margin: 0 6px;">{{middleTitle}}</span>
+          <el-icon v-if="state.executing" style="position: relative; top: 3px" class="ui-spin"><Loading /></el-icon>
+          <span style="margin: 0 6px">{{ middleTitle }}</span>
           <el-button v-if="!!state.executing" link class="tool-button" @click="$emit('cancel')" :title="$t('CANCEL')">
             <template #icon>
               <i class="iconfont icon-stopped tool-button-red-icon"></i>
@@ -25,77 +25,65 @@
         <div class="tool-button" @click="clearDisplay" :title="$t('CLEAR')">
           <i class="iconfont icon-clear tool-button-red-icon"></i>
         </div>
-        <div
-            class="tool-button"
-            :title="$t('SCROLL_TO_TOP')"
-            @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
+        <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
           <i class="iconfont icon-to-top"></i>
         </div>
-        <div
-            class="tool-button"
-            :title="$t('AUTO_SCROLL_END')"
-            @click="setScrollToEnd"
-            :class="{active: state.autoScrollEnd}">
+        <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd" :class="{ active: state.autoScrollEnd }">
           <i class="iconfont icon-to-bottom"></i>
         </div>
-        <div class="tool-button" :title="$t('TEXT_WRAP')" :class="{active: state.textWrap}" @click="state.textWrap = !state.textWrap"><i class="iconfont icon-text-wrap"></i></div>
+        <div class="tool-button" :title="$t('TEXT_WRAP')" :class="{ active: state.textWrap }" @click="state.textWrap = !state.textWrap">
+          <i class="iconfont icon-text-wrap"></i>
+        </div>
       </div>
     </div>
-    <div class="terminal-view" :style="{width: width + 'px'}" v-show="!state.view">
-      <console
-          :id="props.sid"
-          :height="height + 'px'"
-          :pubsub="pubsub"
-          :auto-scroll-end="state.autoScrollEnd"
-          :wrap="state.textWrap">
+    <div class="terminal-view" :style="{ width: width + 'px' }" v-show="!state.view">
+      <console :id="props.sid" :height="height + 'px'" :pubsub="pubsub" :auto-scroll-end="state.autoScrollEnd" :wrap="state.textWrap">
         <template #content>
           <banner></banner>
         </template>
       </console>
       <el-input
-          :disabled="!!state.executing"
-          @keydown.native.enter="doExecCommand"
-          @keyup.up="historyUp"
-          @keyup.down="historyDown"
-          size="small"
-          :placeholder="$t('COMMAND_PLACEHOLDER')"
-          auto-complete="off"
-          auto-correct="off"
-          auto-capitalize="off"
-          spell-check="false"
-          v-model="state.command"
-          ref="inputRef"
-          class="command-input">
+        :disabled="!!state.executing"
+        @keydown.native.enter="doExecCommand"
+        @keyup.up="historyUp"
+        @keyup.down="historyDown"
+        size="small"
+        :placeholder="$t('COMMAND_PLACEHOLDER')"
+        auto-complete="off"
+        auto-correct="off"
+        auto-capitalize="off"
+        spell-check="false"
+        v-model="state.command"
+        ref="inputRef"
+        class="command-input">
         <template #prefix>
           <span>
-            <el-icon v-if="state.executing" class="ui-spin"><Loading/></el-icon>
+            <el-icon v-if="state.executing" class="ui-spin"><Loading /></el-icon>
             <el-icon v-else><ArrowRight /></el-icon>
           </span>
         </template>
       </el-input>
     </div>
-    <div :style="{width: width + 'px', position: 'fixed'}" v-if="state.view === 'jad'">
+    <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'jad'">
       <file-editor v-model="state.data.source" :readonly="true" :name="'xxx.java'" :height="height + 28"></file-editor>
     </div>
-    <div :style="{width: width + 'px', position: 'fixed'}" v-if="state.view === 'dashboard'">
+    <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'dashboard'">
       <dashboard-view :data="state.data" :height="height" :width="width"></dashboard-view>
     </div>
-    <div :style="{width: width + 'px', position: 'fixed'}" v-if="state.view === 'heapdump'">
-      堆转储
-    </div>
+    <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'heapdump'">堆转储</div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, onUnmounted, ref, reactive} from 'vue';
-import {pubsub, PUB_TOPIC} from "@/views/services/ServerPubsubImpl";
-import {CONSOLE_TOPIC} from "@/common/CommonTypes";
-import StringUtil from "@/common/StringUtil";
-import {ElInput} from "element-plus";
-import {useBasicStore} from "@/stores";
-import Banner from "./banner.vue";
-import CommonNotice from "@/common/CommonNotice";
-import CommonUtils from "@/common/CommonUtils";
+import { computed, onMounted, onUnmounted, ref, reactive } from 'vue';
+import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
+import { CONSOLE_TOPIC } from '@/common/CommonTypes';
+import StringUtil from '@/common/StringUtil';
+import { ElInput } from 'element-plus';
+import { useBasicStore } from '@/stores';
+import Banner from './banner.vue';
+import CommonNotice from '@/common/CommonNotice';
+import CommonUtils from '@/common/CommonUtils';
 
 /**
  * 执行记录，上下键
@@ -105,7 +93,7 @@ type HistoryProp = {
   cur: number;
   /** 历史记录存储 */
   history: string[];
-}
+};
 type SuperPanelState = {
   view: string;
   executing: string | null;
@@ -113,7 +101,7 @@ type SuperPanelState = {
   data: any;
   textWrap: boolean;
   autoScrollEnd: boolean;
-}
+};
 const props = defineProps<{
   name: string;
   sid: string;
@@ -133,12 +121,12 @@ const inputRef = ref<InstanceType<typeof ElInput>>();
 const panelRef = ref<InstanceType<typeof HTMLDivElement>>();
 const basic = useBasicStore();
 const emit = defineEmits<{
-  (e: 'close', sid: string): void
-  (e: 'execute', value: string): void
-  (e: 'cancel', value: string): void
+  (e: 'close', sid: string): void;
+  (e: 'execute', value: string): void;
+  (e: 'cancel', value: string): void;
 }>();
-const height = computed(() => (basic.innerHeight - 110));
-const width = computed(() => (basic.innerWidth - 338));
+const height = computed(() => basic.innerHeight - 110);
+const width = computed(() => basic.innerWidth - 338);
 const middleTitle = computed(() => {
   if (state.view) {
     if ('jad' === state.view) {
@@ -153,11 +141,11 @@ const middleTitle = computed(() => {
   }
   return state.executing || '';
 });
-const historyProp = {cur: 0, history: []} as HistoryProp;
+const historyProp = { cur: 0, history: [] } as HistoryProp;
 let lastFocusTime = Date.now();
 
 const focusInput = () => {
-  if ((Date.now() - lastFocusTime) > 1000) {
+  if (Date.now() - lastFocusTime > 1000) {
     inputRef?.value?.focus();
     lastFocusTime = Date.now();
   }
@@ -187,7 +175,7 @@ const doExecCommand = () => {
   state.view = '';
 
   pubsub.publish(props.sid, CONSOLE_TOPIC.APPEND_LINE, `<span class="command-prefix">$</span>${cmd}`);
-  emit("execute", cmd);
+  emit('execute', cmd);
   state.command = '';
   const history = historyProp.history;
   if (history.length > 0 && history[history.length - 1] === cmd) {
@@ -235,7 +223,7 @@ const renderView = (resultData: any) => {
 
 const onExecQuickCmd = (cmd: string) => {
   if (state.executing) {
-    CommonNotice.info(CommonUtils.translate('COMMAND_RUNNING', {command: state.executing}));
+    CommonNotice.info(CommonUtils.translate('COMMAND_RUNNING', { command: state.executing }));
     return;
   }
   if (StringUtil.isEmpty(cmd)) {
@@ -251,7 +239,7 @@ onMounted(() => {
   pubsub.submit(key, PUB_TOPIC.RENDER_JSON, renderView);
   pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
   pubsub.submit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
-  historyMap.set(key, {cur: 0, history: []} as HistoryProp);
+  historyMap.set(key, { cur: 0, history: [] } as HistoryProp);
   if (panelRef?.value) {
     panelRef.value.onmouseenter = focusInput;
   }
@@ -263,11 +251,10 @@ onUnmounted(() => {
   pubsub.unSubmit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
   pubsub.unSubmit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
 });
-
 </script>
 
 <style lang="less">
-@import "@/assets/main.less";
+@import '@/assets/main.less';
 .super-panel {
   position: absolute;
   margin-top: 3px;
@@ -319,7 +306,8 @@ onUnmounted(() => {
       .commandRightIcon {
         color: #1890ff;
       }
-      .el-input__wrapper, input.el-input__inner {
+      .el-input__wrapper,
+      input.el-input__inner {
         border: none;
         box-shadow: none;
         background: @console-background;

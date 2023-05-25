@@ -122,24 +122,24 @@ import 'codemirror/mode/mscgen/mscgen';
 import 'codemirror/mode/wast/wast';
 
 export const parseModeByFilename = (filename: string) => {
-    // 根据文件名推测模式
-    let info = CodeMirror?.findModeByFileName(filename);
-    if (!info) {
-        const index = filename.lastIndexOf('.');
-        if (index > 0) {
-            const ext = filename.substring(index + 1);
-            info = CodeMirror?.findModeByExtension(ext);
-        }
+  // 根据文件名推测模式
+  let info = CodeMirror?.findModeByFileName(filename);
+  if (!info) {
+    const index = filename.lastIndexOf('.');
+    if (index > 0) {
+      const ext = filename.substring(index + 1);
+      info = CodeMirror?.findModeByExtension(ext);
     }
-    if (info) {
-        if ('javascript' === info.mode) {
-            return {name: 'javascript', json: true};
-        }
-        if (typeof info.mime === 'string' && info.mime) {
-            return info.mime;
-        }
-        return {name: info.mode};
+  }
+  if (info) {
+    if ('javascript' === info.mode) {
+      return { name: 'javascript', json: true };
     }
+    if (typeof info.mime === 'string' && info.mime) {
+      return info.mime;
+    }
+    return { name: info.mode };
+  }
 
-    return "text/plain";
-}
+  return 'text/plain';
+};

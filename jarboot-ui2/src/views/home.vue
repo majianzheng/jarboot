@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {RouterView, useRoute, useRouter} from 'vue-router';
-import CommonConst from "@/common/CommonConst";
-import {useUserStore} from "@/stores";
-import {onMounted} from "vue";
-import {WsManager} from "@/common/WsManager";
+import { RouterView, useRoute, useRouter } from 'vue-router';
+import CommonConst from '@/common/CommonConst';
+import { useUserStore } from '@/stores';
+import { onMounted } from 'vue';
+import { WsManager } from '@/common/WsManager';
 
 const openDoc = () => window.open(CommonConst.DOCS_URL);
 const user = useUserStore();
@@ -11,10 +11,10 @@ const route = useRoute();
 const router = useRouter();
 
 const menus = [
-  { path: '/', name: 'SERVICES_MGR', module: ''},
+  { path: '/', name: 'SERVICES_MGR', module: '' },
   // { path: '/diagnose', name: 'ONLINE_DEBUG'},
   // { path: '/authority', name: 'AUTH_CONTROL'},
-  { path: '/setting/common', name: 'SETTING', module: 'setting'},
+  { path: '/setting/common', name: 'SETTING', module: 'setting' },
 ];
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
@@ -32,28 +32,31 @@ const isActive = (path: string, module: string): boolean => {
 
 const goTo = (path: string, isActive: boolean) => {
   if (route.path !== path && !isActive) {
-    router.push({path});
+    router.push({ path });
   }
 };
 
 onMounted(() => {
   welcome();
 });
-
 </script>
 
 <template>
   <main>
     <header>
-      <img alt="Jarboot logo" class="logo" src="@/assets/logo.png"/>
+      <img alt="Jarboot logo" class="logo" src="@/assets/logo.png" />
       <div class="wrapper">
         <nav>
-          <a v-for="menu in menus"
-             :class="{'router-link-exact-active': isActive(menu.path, menu.module)}"
-             @click="goTo(menu.path, isActive(menu.path, menu.module))">{{ $t(menu.name) }}</a>
+          <a
+            v-for="(menu, i) in menus"
+            :key="i"
+            :class="{ 'router-link-exact-active': isActive(menu.path, menu.module) }"
+            @click="goTo(menu.path, isActive(menu.path, menu.module))"
+            >{{ $t(menu.name) }}</a
+          >
         </nav>
       </div>
-      <div style="flex: auto;"></div>
+      <div style="flex: auto"></div>
       <div class="right-extra">
         <div class="tools-box">
           <div class="menu-button">
@@ -73,15 +76,15 @@ onMounted(() => {
           <el-dropdown>
             <span>
               <el-avatar>
-                <SvgIcon icon="panda" style="width: 26px; height: 26px;"/>
+                <SvgIcon icon="panda" style="width: 26px; height: 26px" />
               </el-avatar>
-              <el-icon class="el-icon--right"><arrow-down/></el-icon>
+              <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item icon="UserFilled">{{user.username}}</el-dropdown-item>
-                <el-dropdown-item icon="Edit">{{$t('MODIFY_PWD')}}</el-dropdown-item>
-                <el-dropdown-item icon="Right" @click="user.logout()">{{$t('SIGN_OUT')}}</el-dropdown-item>
+                <el-dropdown-item icon="UserFilled">{{ user.username }}</el-dropdown-item>
+                <el-dropdown-item icon="Edit">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
+                <el-dropdown-item icon="Right" @click="user.logout()">{{ $t('SIGN_OUT') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -118,7 +121,7 @@ header {
       display: inline-block;
       cursor: pointer;
       &:hover {
-        color: var(--el-color-primary-light-3)
+        color: var(--el-color-primary-light-3);
       }
       &.router-link-exact-active {
         color: var(--el-color-primary);

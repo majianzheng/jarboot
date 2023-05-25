@@ -1,14 +1,7 @@
 <template>
   <div class="setting-wrapper">
     <div class="menu-side">
-      <el-menu
-          :default-active="data"
-          v-model="data"
-          class="el-menu-vertical-demo"
-          :collapse="false"
-          :collapse-transition="true"
-          :router="true"
-      >
+      <el-menu :default-active="data" v-model="data" class="el-menu-vertical-demo" :collapse="false" :collapse-transition="true" :router="true">
         <el-menu-item index="/setting/common">
           <el-icon><setting /></el-icon>
           <template #title>系统配置</template>
@@ -32,25 +25,24 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, ref, watch} from "vue";
+import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
 const data = ref(route.path);
 watch(
-    () => route.path,
-    newPath => {
-      console.info('path', newPath);
-      data.value = newPath;
-    }
+  () => route.path,
+  newPath => {
+    console.info('path', newPath);
+    data.value = newPath;
+  }
 );
-onMounted(() => data.value = route.path);
-
+onMounted(() => (data.value = route.path));
 </script>
 
 <style lang="less" scoped>
-@import "@/assets/main.less";
+@import '@/assets/main.less';
 .setting-wrapper {
   display: flex;
   width: 100%;
@@ -64,5 +56,4 @@ onMounted(() => data.value = route.path);
     padding: 5px;
   }
 }
-
 </style>

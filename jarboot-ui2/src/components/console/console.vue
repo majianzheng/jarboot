@@ -1,19 +1,19 @@
 <template>
-  <code class="console" :style="{height: props.height, whiteSpace: props.wrap ? 'pre-wrap' : ''}" ref="consoleRef">
+  <code class="console" :style="{ height: props.height, whiteSpace: props.wrap ? 'pre-wrap' : '' }" ref="consoleRef">
     <slot name="content">
-      {{props.content}}
+      {{ props.content }}
     </slot>
   </code>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted} from 'vue';
-import {ColorBasic, ColorBrightness, Color256} from './ColorTable';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { ColorBasic, ColorBrightness, Color256 } from './ColorTable';
 import Logger from '@/common/Logger';
-import StringUtil from "@/common/StringUtil";
-import PublishSubmit from "@/common/PublishSubmit";
-import {CONSOLE_TOPIC} from "@/common/CommonTypes";
-import {ConsoleEvent, EventType, SgrOption} from "@/components/console/ConsoleTypes";
+import StringUtil from '@/common/StringUtil';
+import PublishSubmit from '@/common/PublishSubmit';
+import { CONSOLE_TOPIC } from '@/common/CommonTypes';
+import { ConsoleEvent, EventType, SgrOption } from '@/components/console/ConsoleTypes';
 
 const DEFAULT_SGR_OPTION: SgrOption = {
   backgroundColor: '',
@@ -45,7 +45,7 @@ type ConsoleProps = {
   autoScrollEnd?: boolean;
   /** 文字超出边界时是否自动换行 */
   wrap: boolean;
-}
+};
 
 //最大行数
 const MAX_LINE = 16384;
@@ -64,8 +64,9 @@ let eventQueue = [] as ConsoleEvent[];
 let finishHandle: any = null;
 let intervalHandle: any = null;
 let lines = [] as HTMLElement[];
-let sgrOption: SgrOption = {...DEFAULT_SGR_OPTION};
-const resetContent = (text: string|undefined) => {
+let sgrOption: SgrOption = { ...DEFAULT_SGR_OPTION };
+
+const resetContent = (text: string | undefined) => {
   if (text?.length) {
     consoleRef.value && (consoleRef.value.innerHTML = ansiCompile(text as string));
   }
@@ -79,7 +80,7 @@ const onClear = () => {
   if (consoleRef.value.children.length <= initLength) {
     return;
   }
-  eventQueue.push({type: EventType.CLEAR_EVENT});
+  eventQueue.push({ type: EventType.CLEAR_EVENT });
   //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
   trigEvent();
 };
@@ -112,12 +113,12 @@ const onFinishLoading = (str?: string) => {
   }, MAX_FINISHED_DELAY);
 };
 const onStdPrint = (text: string | undefined) => {
-  eventQueue.push({type: EventType.STD_PRINT_EVENT, text});
+  eventQueue.push({ type: EventType.STD_PRINT_EVENT, text });
   trigEvent();
 };
 const onConsole = (line: string | undefined) => {
   if (StringUtil.isString(line)) {
-    eventQueue.push({type: EventType.CONSOLE_EVENT, text: line,});
+    eventQueue.push({ type: EventType.CONSOLE_EVENT, text: line });
     //异步延迟MAX_UPDATE_DELAY毫秒，统一插入
     trigEvent();
   }
@@ -127,7 +128,7 @@ const onBackspace = (num: string) => {
   if (!Number.isInteger(backspaceNum)) {
     return;
   }
-  eventQueue.push({type: EventType.BACKSPACE_EVENT, backspaceNum});
+  eventQueue.push({ type: EventType.BACKSPACE_EVENT, backspaceNum });
   trigEvent();
 };
 const scrollToEnd = () => (consoleRef.value.scrollTop = consoleRef.value.scrollHeight);
@@ -148,7 +149,7 @@ const eventLoop = () => {
     eventQueue.forEach(handleEvent);
     if (lines.length) {
       if (!isStartLoading) {
-        onStartLoading()
+        onStartLoading();
       }
       //使用虚拟节点将MAX_UPDATE_DELAY时间内的所有更新一块append渲染，减轻浏览器负担
       const fragment = document.createDocumentFragment();
@@ -202,10 +203,10 @@ const handleClear = (event: ConsoleEvent) => {
   } else {
     consoleRef.value.innerHTML = event?.text || '';
   }
-}
+};
 const handleConsole = (event: ConsoleEvent) => {
   lines.push(createConsoleDiv(event));
-}
+};
 const createConsoleDiv = (event: ConsoleEvent) => {
   if (event.text?.length) {
     const text = ansiCompile(event.text as string);
@@ -214,7 +215,7 @@ const createConsoleDiv = (event: ConsoleEvent) => {
     return div;
   }
   return document.createElement('br');
-}
+};
 const handleStdPrint = (event: ConsoleEvent) => {
   if (!event.text?.length) {
     return;
@@ -248,11 +249,11 @@ const handleStdPrint = (event: ConsoleEvent) => {
       if ('BR' === last.nodeName) {
         last.before(createNewLine(left));
       } else if ('P' === last.nodeName) {
-        last.insertAdjacentHTML("beforeend", left);
+        last.insertAdjacentHTML('beforeend', left);
         last.insertAdjacentHTML('afterend', '<br/>');
       } else {
         //其它标签
-        last.insertAdjacentHTML("afterend", `<p>${left}</p><br/>`);
+        last.insertAdjacentHTML('afterend', `<p>${left}</p><br/>`);
       }
     } else {
       //当前为空时，插入新的p和br
@@ -266,7 +267,7 @@ const handleStdPrint = (event: ConsoleEvent) => {
     //换行符不在最后一位时，会剩下最后一个子字符串
     updateStdPrint(text);
   }
-}
+};
 const updateStdPrint = (text: string) => {
   text = ansiCompile(rawText(text));
   let last = getLastLine() as HTMLElement;
@@ -275,14 +276,14 @@ const updateStdPrint = (text: string) => {
       last.replaceWith(createNewLine(text));
     }
     if ('P' === last.nodeName) {
-      last.insertAdjacentHTML("beforeend", text);
+      last.insertAdjacentHTML('beforeend', text);
     } else {
       last.after(createNewLine(text));
     }
   } else {
     consoleRef.value.insertAdjacentHTML('afterbegin', `<p>${text}</p>`);
   }
-}
+};
 const createNewLine = (content: string) => {
   const line = document.createElement('p');
   line.innerHTML = content;
@@ -310,7 +311,7 @@ const handleBackspace = (event: ConsoleEvent) => {
       last.replaceWith(document.createElement('br'));
     }
   }
-}
+};
 /**
  * 退格删除算法，留下保留的长度，剩下的去除
  * @param line p节点
@@ -319,34 +320,34 @@ const handleBackspace = (event: ConsoleEvent) => {
 const removeDeleted = (line: HTMLElement, len: number) => {
   let html = '';
   let nodes = line.childNodes;
-  for(let i = 0; i < nodes.length; ++i){
+  for (let i = 0; i < nodes.length; ++i) {
     const node = nodes[i];
-    const isText = ('#text' === node.nodeName);
-    let text = isText ? (node.nodeValue || '') : ((node as HTMLElement).innerText);
+    const isText = '#text' === node.nodeName;
+    let text = isText ? node.nodeValue || '' : (node as HTMLElement).innerText;
     const remained = len - text.length;
     if (remained > 0) {
-      html += (isText ? text : ((node as HTMLElement).outerHTML));
+      html += isText ? text : (node as HTMLElement).outerHTML;
       len = remained;
     } else {
-      text = (0 === remained) ? text : text.substring(0, len);
+      text = 0 === remained ? text : text.substring(0, len);
       if (isText) {
         html += text;
       } else {
         (node as HTMLElement).innerText = text;
-        html += ((node as HTMLElement).outerHTML);
+        html += (node as HTMLElement).outerHTML;
       }
       break;
     }
   }
   line.innerHTML = html;
 };
-const getLastLine = (): Element|null => {
+const getLastLine = (): Element | null => {
   if (!consoleRef.value.children?.length) {
     return null;
   }
   const len = consoleRef.value.children.length;
   return isStartLoading ? consoleRef.value.children[len - 2] : consoleRef.value.children[len - 1];
-}
+};
 /**
  * Ansi核心算法入口
  * @param content 待解析的内容
@@ -369,12 +370,12 @@ const ansiCompile = (content: string): string => {
     //格式控制
     if (preStyle.length) {
       const styled = styleText(content.substring(preIndex, begin), preStyle);
-      const text = (preIndex > 0 && -1 !== preBegin) ? (content.substring(0, preBegin) + styled) : styled;
-      content = (text + content.substring(mIndex + 1));
+      const text = preIndex > 0 && -1 !== preBegin ? content.substring(0, preBegin) + styled : styled;
+      content = text + content.substring(mIndex + 1);
       preIndex = text.length;
     } else {
       const text = content.substring(0, begin);
-      content = (text + content.substring(mIndex + 1));
+      content = text + content.substring(mIndex + 1);
       preIndex = text.length;
     }
     //解析termStyle: 32m、 48;5;4m
@@ -387,13 +388,13 @@ const ansiCompile = (content: string): string => {
   const style = toStyle();
   if (style.length) {
     if (preIndex > 0) {
-      content = (content.substring(0, preIndex) + styleText(content.substring(preIndex), style));
+      content = content.substring(0, preIndex) + styleText(content.substring(preIndex), style);
     } else {
       content = styleText(content, style);
     }
   }
   return content;
-}
+};
 const rawText = (text: string): string => {
   if (text.length) {
     return text.replace('<', '&lt;').replace('>', '&gt;');
@@ -427,8 +428,8 @@ const parseTermStyle = (styles: string): boolean => {
     if (isNaN(number)) {
       return false;
     }
-    const index = (number % 10);
-    const type = Math.floor((number / 10));
+    const index = number % 10;
+    const type = Math.floor(number / 10);
     switch (type) {
       case 0:
         //特殊格式控制
@@ -488,7 +489,7 @@ const parseTermStyle = (styles: string): boolean => {
     }
   }
   return true;
-}
+};
 /**
  * 256色、24位色解析
  * @param sgrList 颜色参数
@@ -541,7 +542,7 @@ const specCtl = (index: number, value: boolean) => {
     case 0:
       //关闭所有格式，还原为初始状态，轻拷贝
       if (value) {
-        sgrOption = {...DEFAULT_SGR_OPTION};
+        sgrOption = { ...DEFAULT_SGR_OPTION };
       }
       break;
     case 1:
@@ -583,7 +584,7 @@ const specCtl = (index: number, value: boolean) => {
     default:
       break;
   }
-}
+};
 /**
  * 前景色设置
  * @param index {number} 类型
@@ -607,7 +608,7 @@ const setForeground = (index: number, sgrList: string[], basic: boolean) => {
       sgrOption.foregroundColor = fontColor;
       break;
   }
-}
+};
 /**
  * 背景色设置
  * @param index {number} 类型
@@ -630,7 +631,7 @@ const setBackground = (index: number, sgrList: string[], basic: boolean) => {
       sgrOption.backgroundColor = bgColor;
       break;
   }
-}
+};
 /**
  * 将Ansi的配置转换为css样式
  * @private
@@ -671,7 +672,7 @@ const toStyle = (): string => {
     decorationLine += `overline `;
   }
   if (decorationLine.length) {
-    style += `text-decoration-line:${decorationLine.trim()};`
+    style += `text-decoration-line:${decorationLine.trim()};`;
   }
   if (sgrOption.weaken) {
     style += `opacity:.5;`;
@@ -685,11 +686,10 @@ const toStyle = (): string => {
     animation = `blink 200ms infinite `;
   }
   if (animation.length) {
-    style += `animation:${animation};-webkit-animation:${animation};`
+    style += `animation:${animation};-webkit-animation:${animation};`;
   }
   return style;
-}
-
+};
 
 onMounted(() => {
   intervalHandle = null;
@@ -707,7 +707,7 @@ onMounted(() => {
   loading.append(three3);
   loading.setAttribute('class', 'loading');
 
-  const {pubsub, id} = props;
+  const { pubsub, id } = props;
   //初始化code dom
   // if (content?.length) {
   //   resetContent(props.content);
@@ -724,10 +724,10 @@ onMounted(() => {
     pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
     pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);
   }
-})
+});
 onUnmounted(() => {
   intervalHandle = null;
-  const {pubsub, id} = props;
+  const { pubsub, id } = props;
   if (pubsub) {
     pubsub.unSubmit(id, CONSOLE_TOPIC.APPEND_LINE, onConsole);
     pubsub.unSubmit(id, CONSOLE_TOPIC.STD_PRINT, onStdPrint);
@@ -742,11 +742,11 @@ onUnmounted(() => {
 </script>
 
 <style lang="less">
-@import "@/assets/main.less";
+@import '@/assets/main.less';
 
 @console-line-height: 1.186;
 
-.console{
+.console {
   flex: none;
   height: 100%;
   width: 100%;
@@ -761,21 +761,23 @@ onUnmounted(() => {
   scrollbar-width: none;
   //IE、Edge自动隐藏滚动条
   -ms-overflow-style: -ms-autohiding-scrollbar;
-  p, div {
+  p,
+  div {
     margin: 0;
     ln {
-      color:gray;
-      margin:0 8px 0 2px;
+      color: gray;
+      margin: 0 8px 0 2px;
       min-width: 45px;
       display: inline-block;
       border-right: 1px solid;
       .textNoSelect();
     }
-  };
+  }
   table {
     border: inset olivedrab;
     margin: 0 0 0 15px;
-    tr > td, tr > th {
+    tr > td,
+    tr > th {
       padding: 0 6px 0 6px;
     }
   }
@@ -783,19 +785,19 @@ onUnmounted(() => {
 
 .console::-webkit-scrollbar {
   /*滚动条整体样式*/
-  width : @scrollbar-size;
+  width: @scrollbar-size;
   height: 0;
 }
 
-.loading{
-  width:150px;
-  margin:2px auto;
+.loading {
+  width: 150px;
+  margin: 2px auto;
   text-align: center;
-  div{
+  div {
     width: 18px;
     height: 18px;
     border-radius: 100%;
-    display:inline-block;
+    display: inline-block;
     background-color: #1ee6e2;
     -webkit-animation: three 1.4s infinite ease-in-out;
     animation: three 1.4s infinite ease-in-out;
@@ -803,43 +805,55 @@ onUnmounted(() => {
     animation-fill-mode: both;
   }
 }
-.loading .three1{
-  -webkit-animation-delay: -0.30s;
-  animation-delay: -0.30s;
+.loading .three1 {
+  -webkit-animation-delay: -0.3s;
+  animation-delay: -0.3s;
 }
-.loading .three2{
+.loading .three2 {
   -webkit-animation-delay: -0.15s;
   animation-delay: -0.15s;
 }
 @-webkit-keyframes three {
-  0%, 80%, 100% {-webkit-transform: scale(0.0) }
-  40% { -webkit-transform: scale(1.0) }
+  0%,
+  80%,
+  100% {
+    -webkit-transform: scale(0);
+  }
+  40% {
+    -webkit-transform: scale(1);
+  }
 }
 @keyframes three {
-  0%, 80%, 100% {-webkit-transform: scale(0.0) }
-  40% { -webkit-transform: scale(1.0) }
+  0%,
+  80%,
+  100% {
+    -webkit-transform: scale(0);
+  }
+  40% {
+    -webkit-transform: scale(1);
+  }
 }
 //闪烁
 @keyframes blink {
   from {
-    opacity: 1.0;
+    opacity: 1;
   }
   50% {
     opacity: 0.4;
   }
   to {
-    opacity: 1.0;
+    opacity: 1;
   }
 }
 @-webkit-keyframes blink {
   from {
-    opacity: 1.0;
+    opacity: 1;
   }
   50% {
     opacity: 0.4;
   }
   to {
-    opacity: 1.0;
+    opacity: 1;
   }
 }
 </style>

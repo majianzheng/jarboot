@@ -1,13 +1,13 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../views/home.vue';
 import Services from '@/views/services/services.vue';
 import Setting from '@/views/setting/setting.vue';
-import CommonSetting from "@/views/setting/CommonSetting.vue";
-import UserManager from "@/views/setting/UserManager.vue";
+import CommonSetting from '@/views/setting/common-setting.vue';
+import UserManager from '@/views/setting/user-manager.vue';
 import login from '@/views/login.vue';
-import OAuthService from "@/services/OAuthService";
-import StringUtil from "@/common/StringUtil";
-import {useUserStore} from "@/stores";
+import OAuthService from '@/services/OAuthService';
+import StringUtil from '@/common/StringUtil';
+import { useUserStore } from '@/stores';
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -15,7 +15,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: login
+      component: login,
     },
     {
       path: '/',
@@ -25,8 +25,8 @@ const router = createRouter({
           path: '',
           component: Services,
           meta: {
-            keepAlive: true
-          }
+            keepAlive: true,
+          },
         },
         {
           path: '/setting',
@@ -37,22 +37,22 @@ const router = createRouter({
               path: 'common',
               component: CommonSetting,
               meta: {
-                keepAlive: true
-              }
+                keepAlive: true,
+              },
             },
             {
               path: 'user',
               name: 'user',
               component: UserManager,
               meta: {
-                keepAlive: true
-              }
-            }
-          ]
+                keepAlive: true,
+              },
+            },
+          ],
         },
-      ]
+      ],
     },
-  ]
+  ],
 });
 
 router.beforeEach(async (to, from, next) => {
@@ -73,4 +73,4 @@ router.beforeEach(async (to, from, next) => {
   // 权限检验
 });
 
-export default router
+export default router;

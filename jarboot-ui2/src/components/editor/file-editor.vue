@@ -1,15 +1,15 @@
 <template>
   <code-mirror
-      :value="content.value"
-      :options="options"
-      @focus="emit('focus')"
-      @contentChanged="onChange"
-      :height="editorHeight"
-      @ready="emit('ready')"></code-mirror>
+    :value="content.value"
+    :options="options"
+    @focus="emit('focus')"
+    @contentChanged="onChange"
+    :height="editorHeight"
+    @ready="emit('ready')"></code-mirror>
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onMounted, reactive} from 'vue';
+import { computed, nextTick, onMounted, reactive } from 'vue';
 
 // require styles
 import 'codemirror/lib/codemirror.css';
@@ -23,7 +23,7 @@ import 'codemirror/addon/fold/brace-fold.js';
 import 'codemirror/addon/fold/comment-fold.js';
 import 'codemirror/addon/selection/active-line';
 
-import {parseModeByFilename} from "@/components/editor/LangUtils";
+import { parseModeByFilename } from '@/components/editor/LangUtils';
 
 const props = defineProps<{
   /** 文件名 */
@@ -32,9 +32,9 @@ const props = defineProps<{
   modelValue?: string;
   readonly?: boolean;
   fullScreen?: boolean;
-  height?: string|number;
+  height?: string | number;
   /** 自定义显示模式，默认根据文件名推测 */
-  mode?: string|{name: string};
+  mode?: string | { name: string };
 }>();
 
 const content = reactive({
@@ -49,7 +49,7 @@ const editorHeight = computed(() => {
 
 const options = reactive({
   tabSize: 4,
-  mode: {name: 'java'},
+  mode: { name: 'java' },
   theme: 'material',
   line: true,
   connect: 'align',
@@ -64,12 +64,11 @@ const options = reactive({
   fullScreen: false,
 });
 
-
 const emit = defineEmits<{
-  (e: 'change', content: string): void
-  (e: 'focus'): void
-  (e: 'ready'): void
-  (e: 'update:modelValue', value: string): void
+  (e: 'change', content: string): void;
+  (e: 'focus'): void;
+  (e: 'ready'): void;
+  (e: 'update:modelValue', value: string): void;
 }>();
 const onChange = (value: string) => {
   emit('change', value);
@@ -84,11 +83,8 @@ onMounted(() => {
   } else {
     options.mode = parseModeByFilename(props.name);
   }
-  nextTick(() => content.value = props.modelValue || '');
+  nextTick(() => (content.value = props.modelValue || ''));
 });
-
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

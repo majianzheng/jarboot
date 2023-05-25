@@ -1,5 +1,5 @@
 <template>
-<pre class="terminal-banner">
+  <pre class="terminal-banner">
 <div class="red">
 
 
@@ -113,8 +113,8 @@
 </template>
 
 <script setup lang="ts">
-import CommonConst from "@/common/CommonConst";
-import {useBasicStore} from "@/stores";
+import CommonConst from '@/common/CommonConst';
+import { useBasicStore } from '@/stores';
 const versionStore = useBasicStore();
 const openDocs = () => window.open(CommonConst.DOCS_URL);
 </script>
@@ -124,8 +124,8 @@ const openDocs = () => window.open(CommonConst.DOCS_URL);
   display: flex;
   white-space: pre;
   tab-size: 4;
-  word-wrap:normal;
-  font-size:13px;
+  word-wrap: normal;
+  font-size: 13px;
   line-height: 1.42857143;
   word-break: break-all;
   margin: 0 6px;

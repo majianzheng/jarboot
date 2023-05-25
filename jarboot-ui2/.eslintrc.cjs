@@ -11,5 +11,10 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 'latest'
+  },
+  rules: {
+    'vue/no-deprecated-v-on-native-modifier': 0,
+    'vue/multi-word-component-names': 0,
+    'vue/no-parsing-error': 0,
   }
 }
