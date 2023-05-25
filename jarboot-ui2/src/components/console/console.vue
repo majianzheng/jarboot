@@ -66,12 +66,6 @@ let intervalHandle: any = null;
 let lines = [] as HTMLElement[];
 let sgrOption: SgrOption = { ...DEFAULT_SGR_OPTION };
 
-const resetContent = (text: string | undefined) => {
-  if (text?.length) {
-    consoleRef.value && (consoleRef.value.innerHTML = ansiCompile(text as string));
-  }
-};
-
 const onClear = () => {
   if (!consoleRef.value?.children?.length) {
     return;
@@ -490,6 +484,32 @@ const parseTermStyle = (styles: string): boolean => {
   }
   return true;
 };
+
+function parseRgb(sgrList: string[]): string {
+  //依次取出r、g、b的值
+  const r = parseInt(sgrList.shift() as string);
+  if (isNaN(r)) {
+    return '';
+  }
+  const g = parseInt(sgrList.shift() as string);
+  if (isNaN(g)) {
+    return '';
+  }
+  const b = parseInt(sgrList.shift() as string);
+  if (isNaN(b)) {
+    return '';
+  }
+  return `rgb(${r},${g},${b})`;
+}
+
+function parseColor256(sgrList: string[]): string {
+  const index = parseInt(sgrList.shift() as string);
+  if (isNaN(index)) {
+    return '';
+  }
+  return Color256[index] || '';
+}
+
 /**
  * 256色、24位色解析
  * @param sgrList 颜色参数
@@ -503,28 +523,11 @@ const parseSgr256Or24Color = (sgrList: string[]): string => {
   switch (type) {
     case '2':
       //使用24位色彩格式，格式为：2;r;g;b
-      //依次取出r、g、b的值
-      const r = parseInt(sgrList.shift() as string);
-      if (isNaN(r)) {
-        return color;
-      }
-      const g = parseInt(sgrList.shift() as string);
-      if (isNaN(g)) {
-        return color;
-      }
-      const b = parseInt(sgrList.shift() as string);
-      if (isNaN(b)) {
-        return color;
-      }
-      color = `rgb(${r},${g},${b})`;
+      color = parseRgb(sgrList);
       break;
     case '5':
       //使用256色彩索引表
-      const index = parseInt(sgrList.shift() as string);
-      if (isNaN(index)) {
-        return color;
-      }
-      color = Color256[index] || '';
+      color = parseColor256(sgrList);
       break;
     default:
       break;
@@ -596,16 +599,14 @@ const setForeground = (index: number, sgrList: string[], basic: boolean) => {
   switch (index) {
     case 8:
       //设置前景色
-      const color = parseSgr256Or24Color(sgrList);
-      sgrOption.foregroundColor = color;
+      sgrOption.foregroundColor = parseSgr256Or24Color(sgrList);
       break;
     case 9:
       //恢复默认
       sgrOption.foregroundColor = '';
       break;
     default:
-      const fontColor = (basic ? ColorBasic[index] : ColorBrightness[index]) || '';
-      sgrOption.foregroundColor = fontColor;
+      sgrOption.foregroundColor = (basic ? ColorBasic[index] : ColorBrightness[index]) || '';
       break;
   }
 };
@@ -619,16 +620,14 @@ const setForeground = (index: number, sgrList: string[], basic: boolean) => {
 const setBackground = (index: number, sgrList: string[], basic: boolean) => {
   switch (index) {
     case 8:
-      const color = parseSgr256Or24Color(sgrList);
-      sgrOption.backgroundColor = color;
+      sgrOption.backgroundColor = parseSgr256Or24Color(sgrList);
       break;
     case 9:
       //恢复默认
       sgrOption.backgroundColor = '';
       break;
     default:
-      const bgColor = (basic ? ColorBasic[index] : ColorBrightness[index]) || '';
-      sgrOption.backgroundColor = bgColor;
+      sgrOption.backgroundColor = (basic ? ColorBasic[index] : ColorBrightness[index]) || '';
       break;
   }
 };

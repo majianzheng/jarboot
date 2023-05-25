@@ -71,7 +71,7 @@ import * as echarts from 'echarts';
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import CommonUtils from '@/common/CommonUtils';
 import { useI18n } from 'vue-i18n';
-import { round } from 'lodash';
+import { debounce, round } from 'lodash';
 
 const { locale } = useI18n();
 const props = defineProps<{
@@ -128,8 +128,8 @@ watch(
     updateChart();
   }
 );
-watch(() => props.height, resizeChart);
-watch(() => props.width, resizeChart);
+
+watch(() => [props.height, props.width], debounce(resizeChart, 1000, { maxWait: 3000 }));
 
 const initThreadChart = () => {
   threadChart = echarts.init(threadChartRef.value);

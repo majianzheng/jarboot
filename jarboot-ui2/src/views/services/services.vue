@@ -37,8 +37,7 @@
           :props="defaultProps"
           default-expand-all
           highlight-current
-          @check-change="checkChanged"
-          @node-click="handleNodeClick">
+          @check-change="checkChanged">
           <template #default="{ node, data }">
             <div style="width: 100%">
               <div v-if="node.isLeaf" style="width: 100%" @click="services.currentChange(data, node)">
@@ -253,7 +252,6 @@ const onCloseEdit = () => {
   configForm = reactive<ServerSetting>(defaultSetting);
   serviceState.value.showVmEdit = false;
 };
-const handleNodeClick = (row: ServiceInstance) => {};
 
 const checkChanged = () => {
   const nodes = treeRef.value?.getCheckedNodes();

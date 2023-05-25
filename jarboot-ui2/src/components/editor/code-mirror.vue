@@ -40,20 +40,20 @@ const props = defineProps({
     default: false,
   },
   options: {
-    type: Object,
-    default: {},
+    type: Object as any,
+    default: {} as any,
   },
   events: {
     type: Array,
-    default: [],
+    default: [] as any[],
   },
   globalOptions: {
     type: Object,
-    default: {},
+    default: {} as any,
   },
   globalEvents: {
     type: Array,
-    default: [],
+    default: [] as any[],
   },
 });
 const emit = defineEmits(['ready', 'contentChanged', 'input']);
@@ -167,7 +167,7 @@ const switchMerge = () => {
   // Save current values
   const history = cminstance.doc.history;
   const cleanGeneration = cminstance.doc.cleanGeneration;
-  props.options.value = cminstance.getValue();
+  props.options['value'] = cminstance.getValue() as any;
   destroy();
   initialize();
   // Restore values
@@ -175,15 +175,17 @@ const switchMerge = () => {
   cminstance.doc.cleanGeneration = cleanGeneration;
 };
 
-watch(props.options, newOptions => {
-  console.info('>>>>>>options:', newOptions);
-  if (!cminstance) {
-    return;
+watch(
+  () => props.options,
+  newOptions => {
+    if (!cminstance) {
+      return;
+    }
+    for (const key in newOptions) {
+      cminstance.setOption(key, newOptions[key]);
+    }
   }
-  for (const key in newOptions) {
-    cminstance.setOption(key, newOptions[key]);
-  }
-});
+);
 watch(
   () => props.merge,
   () => {

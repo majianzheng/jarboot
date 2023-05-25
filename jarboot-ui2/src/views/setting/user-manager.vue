@@ -1,9 +1,7 @@
-<template></template>
+<template>
+  <div>用户管理</div>
+</template>
 
-<script>
-export default {
-  name: 'UserManager',
-};
-</script>
+<script lang="ts" setup></script>
 
 <style scoped></style>

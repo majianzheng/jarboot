@@ -13,8 +13,10 @@ module.exports = {
     ecmaVersion: 'latest'
   },
   rules: {
+    'no-prototype-builtins': 0,
     'vue/no-deprecated-v-on-native-modifier': 0,
     'vue/multi-word-component-names': 0,
     'vue/no-parsing-error': 0,
+    'vue/no-mutating-props': 0,
   }
 }

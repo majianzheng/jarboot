@@ -4,7 +4,7 @@
       <el-button class="menu-button" size="small" link><i class="iconfont icon-language"></i></el-button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item v-for="row in languageList" @click="toggle(row.value)">{{ row.name }}</el-dropdown-item>
+          <el-dropdown-item v-for="(row, i) in languageList" :key="i" @click="toggle(row.value)">{{ row.name }}</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
