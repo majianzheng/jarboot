@@ -1,0 +1,7 @@
+spring:
+  web:
+    resources:
+      static-locations:
+        - file:jarboot-server/target/smart-doc/
+        - classpath:/resources/
+        - classpath:/static/

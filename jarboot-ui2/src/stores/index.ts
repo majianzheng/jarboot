@@ -1,6 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import OAuthService from '@/services/OAuthService';
-import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ServiceManager from '@/services/ServiceManager';
@@ -44,12 +43,7 @@ export const useUserStore = defineStore({
       router.push('/login');
     },
     async login(username: string, password: string) {
-      const resp = await OAuthService.login(username, password);
-      if ((resp as any).resultCode !== 0) {
-        CommonNotice.errorFormatted(resp);
-        return;
-      }
-      const user: any = (resp as any).result;
+      const user: any = await OAuthService.login(username, password);
       CommonUtils.storeToken(user.accessToken);
       this.$patch({ ...user });
       await router.push('/');
@@ -79,11 +73,8 @@ export const useServicesStore = defineStore({
   actions: {
     async reload() {
       this.$patch({ loading: true });
-      const resp = (await ServiceManager.getServiceGroup()) as any;
-      if (0 !== resp.resultCode) {
-        return;
-      }
-      const groups = (resp.result || []) as ServiceInstance[];
+      const result = (await ServiceManager.getServiceGroup()) as any;
+      const groups = (result || []) as ServiceInstance[];
       const instanceList = [] as ServiceInstance[];
       groups.forEach(group =>
         (group.children || []).forEach(s => {
@@ -108,11 +99,8 @@ export const useServicesStore = defineStore({
     },
     async reloadJvmList() {
       this.$patch({ loading: true });
-      const resp = (await ServiceManager.getJvmProcesses()) as any;
-      if (0 !== resp.resultCode) {
-        return;
-      }
-      const jvmGroups = (resp.result || []) as JvmProcess[];
+      const result = (await ServiceManager.getJvmProcesses()) as any;
+      const jvmGroups = (result || []) as JvmProcess[];
       const jvmList = [] as JvmProcess[];
       jvmGroups.forEach(group => (group.children || []).forEach(s => jvmList.push(s)));
       this.$patch({ jvmGroups, jvmList, loading: false });

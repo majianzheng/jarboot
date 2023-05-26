@@ -131,8 +131,8 @@ public class HttpUtils {
         if (null == resp) {
             throw new JarbootException("返回结果解析json失败!");
         }
-        if (resp.getResultCode() != ResultCodeConst.SUCCESS) {
-            throw new JarbootException(resp.getResultCode(), resp.getResultMsg());
+        if (resp.getCode() != ResultCodeConst.SUCCESS) {
+            throw new JarbootException(resp.getCode(), resp.getMsg());
         }
     }
 

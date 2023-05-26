@@ -7,9 +7,10 @@ import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.common.pojo.ResponseForList;
-import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -41,6 +42,10 @@ public class ServiceMgrController {
         return new ResponseForList<>(results, results.size());
     }
 
+    /**
+     * 获取服务组列表
+     * @return
+     */
     @GetMapping("/groups")
     @ResponseBody
     public ResponseForList<ServiceGroup> getServiceGroup() {
@@ -130,12 +135,12 @@ public class ServiceMgrController {
      */
     @GetMapping(value="/base64Encoder")
     @ResponseBody
-    public ResponseForObject<String> base64Encoder(String data) {
+    public ResponseVo<String> base64Encoder(String data) {
         if (StringUtils.isEmpty(data)) {
-            return new ResponseForObject<>(ResultCodeConst.EMPTY_PARAM, "参数为空");
+            return new ResponseVo<>(ResultCodeConst.EMPTY_PARAM, "参数为空");
         }
         data = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
-        return new ResponseForObject<>(data);
+        return new ResponseVo<>(data);
     }
 
     /**
@@ -151,6 +156,7 @@ public class ServiceMgrController {
 
     /**
      * attach进程
+     * @param pid 进程PID
      * @return 执行结果
      */
     @GetMapping(value="/attach")
@@ -162,6 +168,7 @@ public class ServiceMgrController {
 
     /**
      * 删除服务
+     * @param serviceName 服务名
      * @return 执行结果
      */
     @DeleteMapping(value="/service")
@@ -174,12 +181,13 @@ public class ServiceMgrController {
 
     /**
      * 获取服务信息
+     * @param serviceName 服务名
      * @return 服务信息
      */
     @GetMapping(value="/service")
     @ResponseBody
-    public ResponseForObject<ServiceInstance> getServer(String serviceName) {
+    public ResponseVo<ServiceInstance> getServer(String serviceName) {
         ServiceInstance result = serviceManager.getService(serviceName);
-        return new ResponseForObject<>(result);
+        return HttpResponseUtils.success(result);
     }
 }

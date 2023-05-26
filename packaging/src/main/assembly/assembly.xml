@@ -8,6 +8,21 @@
     <format>zip</format>
   </formats>
 
+  <fileSets>
+    <fileSet>
+      <directory>bin</directory>
+      <outputDirectory>bin</outputDirectory>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../jarboot-ui2/dist</directory>
+      <outputDirectory>fe/jarboot</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../jarboot-server/target/smart-doc</directory>
+      <outputDirectory>fe/api-doc</outputDirectory>
+    </fileSet>
+  </fileSets>
   <files>
     <file>
       <source>../jarboot-agent/target/jarboot-agent-jar-with-dependencies.jar</source>
@@ -44,34 +59,6 @@
     <file>
       <source>conf/cluster.conf</source>
       <destName>conf/cluster.conf</destName>
-    </file>
-
-    <file>
-      <source>bin/shutdown.sh</source>
-      <destName>bin/shutdown.sh</destName>
-      <fileMode>0755</fileMode>
-    </file>
-    <file>
-      <source>bin/shutdown.cmd</source>
-      <destName>bin/shutdown.cmd</destName>
-    </file>
-    <file>
-      <source>bin/startup.sh</source>
-      <destName>bin/startup.sh</destName>
-      <fileMode>0755</fileMode>
-    </file>
-    <file>
-      <source>bin/startup.cmd</source>
-      <destName>bin/startup.cmd</destName>
-    </file>
-    <file>
-      <source>bin/jt.sh</source>
-      <destName>bin/jt.sh</destName>
-      <fileMode>0755</fileMode>
-    </file>
-    <file>
-      <source>bin/jt.cmd</source>
-      <destName>bin/jt.cmd</destName>
     </file>
   </files>
 </assembly>

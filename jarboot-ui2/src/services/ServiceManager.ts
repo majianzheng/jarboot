@@ -28,7 +28,7 @@ export default class ServiceManager {
    */
   public static startService(services: ServiceInstance[], callback: any) {
     const param = ServiceManager.parseParam(services);
-    Request.post(`${urlBase}/startService`, param).then(callback).catch(CommonNotice.errorFormatted);
+    Request.post(`${urlBase}/startService`, param).then(callback);
   }
 
   /**
@@ -38,7 +38,7 @@ export default class ServiceManager {
    */
   public static stopService(services: ServiceInstance[], callback: any) {
     const param = ServiceManager.parseParam(services);
-    Request.post(`${urlBase}/stopService`, param).then(callback).catch(CommonNotice.errorFormatted);
+    Request.post(`${urlBase}/stopService`, param).then(callback);
   }
 
   /**
@@ -48,21 +48,21 @@ export default class ServiceManager {
    */
   public static restartService(services: ServiceInstance[], callback: any) {
     const param = ServiceManager.parseParam(services);
-    Request.post(`${urlBase}/restartService`, param).then(callback).catch(CommonNotice.errorFormatted);
+    Request.post(`${urlBase}/restartService`, param).then(callback);
   }
 
   /**
    * 一键重启
    */
   public static oneClickRestart() {
-    Request.get(`${urlBase}/oneClickRestart`, {}).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
+    Request.get(`${urlBase}/oneClickRestart`, {}).then(CommonUtils.requestFinishCallback);
   }
 
   /**
    * 一键启动
    */
   public static oneClickStart() {
-    Request.get(`${urlBase}/oneClickStart`, {}).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
+    Request.get(`${urlBase}/oneClickStart`, {}).then(CommonUtils.requestFinishCallback);
   }
 
   /**

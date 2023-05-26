@@ -3,7 +3,8 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.pojo.ResponseForList;
-import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseVo;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.RoleService;
@@ -32,9 +33,9 @@ public class RoleController {
     @PutMapping
     @ResponseBody
     @Permission("Add Role")
-    public ResponseSimple addRole(String role, String username) {
+    public ResponseVo<String> addRole(String role, String username) {
         roleService.addRole(role, username);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -44,8 +45,8 @@ public class RoleController {
      */
     @GetMapping("/search")
     @ResponseBody
-    public List<String> searchRoles(@RequestParam String role) {
-        return roleService.findRolesLikeRoleName(role);
+    public ResponseVo<List<String>> searchRoles(@RequestParam String role) {
+        return HttpResponseUtils.success(roleService.findRolesLikeRoleName(role));
     }
 
     /**
@@ -57,14 +58,14 @@ public class RoleController {
     @DeleteMapping
     @ResponseBody
     @Permission("Delete Role")
-    public ResponseSimple deleteRole(@RequestParam String role,
+    public ResponseVo<String> deleteRole(@RequestParam String role,
                                      @RequestParam(name = "username", defaultValue = StringUtils.EMPTY) String username) {
         if (StringUtils.isBlank(username)) {
             roleService.deleteRole(role);
         } else {
             roleService.deleteRole(role, username);
         }
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**

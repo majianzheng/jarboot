@@ -1,7 +1,4 @@
 import Request from '../common/Request';
-import ErrorUtil from '../common/ErrorUtil';
-import CommonNotice from '../common/CommonNotice';
-import { requestFinishCallback } from '@/common/CommonTypes';
 
 const baseUrl = '/api/jarboot/plugins';
 
@@ -25,8 +22,6 @@ export default class PluginsService {
     const form = new FormData();
     form.append('type', type);
     form.append('filename', filename);
-    return Request.delete(baseUrl, form)
-      .then(requestFinishCallback)
-      .catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+    return Request.delete(baseUrl, form);
   }
 }

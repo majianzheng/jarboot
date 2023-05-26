@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface PrivilegeDao extends JpaRepository<Privilege, Long> {
 
-    /*
+    /**
      * 根据角色获取所有权限信息
      * @param role 角色
      * @return 权限信息

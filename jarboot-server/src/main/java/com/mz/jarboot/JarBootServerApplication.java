@@ -11,7 +11,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author majianzheng
  */
 @SpringBootApplication(scanBasePackages = "com.mz.jarboot")
-@PropertySource(value={"classpath:jarboot.properties", "file:${JARBOOT_HOME}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
+@PropertySource(value={"file:${JARBOOT_HOME}/conf/jarboot.properties"}, ignoreResourceNotFound=true)
 public class JarBootServerApplication {
 
 	public static void main(String[] args) {

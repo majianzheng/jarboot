@@ -6,7 +6,7 @@ import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.pojo.ResponseForList;
-import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
@@ -36,12 +36,12 @@ public class SettingController {
     @GetMapping(value="/serviceSetting")
     @ResponseBody
     @Permission("Get Server Setting")
-    public ResponseForObject<ServiceSetting> getServerSetting(String serviceName) {
+    public ResponseVo<ServiceSetting> getServerSetting(String serviceName) {
         try {
             ServiceSetting results = settingService.getServiceSetting(serviceName);
-            return new ResponseForObject<>(results);
+            return new ResponseVo<>(results);
         } catch (JarbootException e) {
-            return new ResponseForObject<>(e);
+            return new ResponseVo<>(e);
         }
     }
 
@@ -68,12 +68,12 @@ public class SettingController {
     @GetMapping(value="/globalSetting")
     @ResponseBody
     @Permission("Get Global Setting")
-    public ResponseForObject<GlobalSetting> getGlobalSetting() {
+    public ResponseVo<GlobalSetting> getGlobalSetting() {
         try {
             GlobalSetting results = settingService.getGlobalSetting();
-            return new ResponseForObject<>(results);
+            return new ResponseVo<>(results);
         } catch (JarbootException e) {
-            return new ResponseForObject<>(e);
+            return new ResponseVo<>(e);
         }
     }
 
@@ -103,12 +103,12 @@ public class SettingController {
     @GetMapping(value="/vmoptions")
     @ResponseBody
     @Permission("Get Server jvm options")
-    public ResponseForObject<String> getVmOptions(String serviceName, String file) {
+    public ResponseVo<String> getVmOptions(String serviceName, String file) {
         try {
             String results = settingService.getVmOptions(serviceName, file);
-            return new ResponseForObject<>(results);
+            return new ResponseVo<>(results);
         } catch (JarbootException e) {
-            return new ResponseForObject<>(e);
+            return new ResponseVo<>(e);
         }
     }
 
@@ -131,6 +131,12 @@ public class SettingController {
         }
     }
 
+    /**
+     * 增加信任主机
+     * @param host 主机
+     * @return
+     * @throws IOException
+     */
     @PostMapping(value="/trustedHost")
     @ResponseBody
     @Permission("Add trusted host")
@@ -140,6 +146,12 @@ public class SettingController {
         return new ResponseSimple();
     }
 
+    /**
+     * 移除信任主机
+     * @param host 主机
+     * @return
+     * @throws IOException
+     */
     @DeleteMapping(value="/trustedHost")
     @ResponseBody
     @Permission("Delete trusted host")
@@ -148,6 +160,10 @@ public class SettingController {
         return new ResponseSimple();
     }
 
+    /**
+     * 获取信任主机
+     * @return 信任主机列表
+     */
     @GetMapping(value="/trustedHost")
     @ResponseBody
     public ResponseForList<String> getTrustedHosts() {

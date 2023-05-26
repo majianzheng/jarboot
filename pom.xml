@@ -83,6 +83,7 @@
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
+		<smart-doc-maven-plugin.version>2.6.7</smart-doc-maven-plugin.version>
 		<!-- dependency version related to plugin -->
 		<extra-enforcer-rules.version>1.0-beta-4</extra-enforcer-rules.version>
 		<p3c-pmd.version>1.3.0</p3c-pmd.version>
@@ -304,6 +305,41 @@
 					<artifactId>exec-maven-plugin</artifactId>
 					<version>${exec-maven-plugin.version}</version>
 				</plugin>
+				<plugin>
+					<groupId>com.github.shalousun</groupId>
+					<artifactId>smart-doc-maven-plugin</artifactId>
+					<version>${smart-doc-maven-plugin.version}</version>
+					<configuration>
+						<!--指定项目名称-->
+						<projectName>${project.name}</projectName>
+						<!--smart-doc实现自动分析依赖树加载第三方依赖的源码，如果一些框架依赖库加载不到导致报错，这时请使用excludes排除掉-->
+						<excludes>
+							<!--格式为：groupId:artifactId;参考如下-->
+							<!--也可以支持正则式如：com.alibaba:.* -->
+							<exclude>com.alibaba:fastjson</exclude>
+						</excludes>
+						<!--includes配置用于配置加载外部依赖源码,配置后插件会按照配置项加载外部源代码而不是自动加载所有，因此使用时需要注意-->
+						<!--smart-doc能自动分析依赖树加载所有依赖源码，原则上会影响文档构建效率，因此你可以使用includes来让插件加载你配置的组件-->
+						<includes>
+							<!--格式为：groupId:artifactId;参考如下-->
+							<!--也可以支持正则式如：com.alibaba:.* -->
+							<!-- 如果配置了includes的情况下， 使用了jpa的分页需要include所使用的源码包 -->
+							<include>org.springframework.data:spring-data-commons</include>
+						</includes>
+					</configuration>
+					<executions>
+						<execution>
+							<!--如果不需要在执行编译时启动smart-doc，则将phase注释掉-->
+							<phase>compile</phase>
+							<goals>
+								<!--smart-doc提供了html、openapi、markdown等goal，可按需配置-->
+								<goal>html</goal>
+								<goal>markdown</goal>
+								<goal>postman</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -453,6 +489,23 @@
 	</build>
 
 	<profiles>
+		<profile>
+			<!-- 本地开发环境 -->
+			<id>dev</id>
+			<properties>
+				<env>dev</env>
+			</properties>
+			<activation>
+				<!-- 设置默认激活这个配置 -->
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<env>prod</env>
+			</properties>
+		</profile>
 		<profile>
 			<id>release</id>
 			<build>

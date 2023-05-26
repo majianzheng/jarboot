@@ -4,8 +4,9 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.*;
-import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
+ * Cloud
  * @author majianzheng
  */
 @RequestMapping(value = CommonConst.CLOUD_CONTEXT)
@@ -49,6 +51,10 @@ public class CloudController {
         return VersionUtils.version;
     }
 
+    /**
+     * 检测是否在docker
+     * @return
+     */
     @GetMapping(value="/checkInDocker")
     @ResponseBody
     public Boolean checkInDocker() {
@@ -90,8 +96,8 @@ public class CloudController {
      */
     @PostMapping("/push/server")
     @ResponseBody
-    public ResponseSimple pushServerDirectory(HttpServletRequest request,
-                                              @RequestParam("file") MultipartFile file) {
+    public ResponseVo<String> pushServerDirectory(HttpServletRequest request,
+                                          @RequestParam("file") MultipartFile file) {
         if (jwtTokenManager.getEnabled()) {
             //token校验
             String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
@@ -103,7 +109,7 @@ public class CloudController {
         final File tempDir = CacheDirHelper.getTempDir(name);
         if (tempDir.exists()) {
             //文件正在处理中
-            return new ResponseSimple(ResultCodeConst.ALREADY_EXIST, "文件" + filename + "正在处理中...");
+            return HttpResponseUtils.error(ResultCodeConst.ALREADY_EXIST, "文件" + filename + "正在处理中...");
         }
         try {
             FileUtils.forceMkdir(tempDir);
@@ -114,7 +120,7 @@ public class CloudController {
         } catch (Exception e) {
             throw new JarbootRunException(e.getMessage(), e);
         }
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     private void doPushServer(File tempDir, File zipFie) {

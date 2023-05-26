@@ -6,35 +6,35 @@ package com.mz.jarboot.common.pojo;
  */
 public abstract class BaseResponse {
 	/**默认成功*/
-	protected int resultCode = ResultCodeConst.SUCCESS;
-	protected String resultMsg;
-	protected Long total;
+	protected int code = ResultCodeConst.SUCCESS;
+	protected String msg;
+	protected boolean success;
 
 	protected BaseResponse() {
 		
 	}
 	
-	public int getResultCode() {
-		return resultCode;
+	public int getCode() {
+		return code;
 	}
 	
-	public void setResultCode(int resultCode) {
-		this.resultCode = resultCode;
+	public void setCode(int code) {
+		this.code = code;
 	}
 
-	public String getResultMsg() {
-		return resultMsg;
+	public String getMsg() {
+		return msg;
 	}
 
-	public void setResultMsg(String resultMsg) {
-		this.resultMsg = resultMsg;
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
 
-	public Long getTotal() {
-		return total;
+	public boolean getSuccess() {
+		return success;
 	}
 
-	public void setTotal(Long total) {
-		this.total = total;
+	public void setSuccess(boolean success) {
+		this.success = success;
 	}
 }

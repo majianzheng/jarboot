@@ -200,8 +200,8 @@ public class JarbootBootstrap {
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }
-        if (0 != clientData.getResultCode()) {
-            throw new JarbootException(clientData.getResultCode(), clientData.getResultMsg());
+        if (0 != clientData.getCode()) {
+            throw new JarbootException(clientData.getCode(), clientData.getMsg());
         }
         clientData.setHost(host);
         return clientData;

@@ -29,9 +29,9 @@ let settingFormData = reactive({
 });
 
 onMounted(async () => {
-  const resp = await SettingService.getGlobalSetting();
-  console.info(resp);
-  settingFormData = reactive(resp.result);
+  const result: any = await SettingService.getGlobalSetting();
+  console.info(result);
+  settingFormData = reactive(result);
 });
 </script>
 

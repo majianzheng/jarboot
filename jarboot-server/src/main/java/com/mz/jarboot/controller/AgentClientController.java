@@ -29,6 +29,7 @@ public class AgentClientController {
     /**
      * 命令执行结果反馈接口
      * @param serviceName 服务名
+     * @param sid sid
      * @param raw 执行结果数据
      * @return 处理结果
      */
@@ -45,6 +46,7 @@ public class AgentClientController {
     /**
      * 通知启动成功完成
      * @param serviceName 服务名
+     * @param sid sid
      * @return 处理结果
      */
     @GetMapping(value="/setStarted")

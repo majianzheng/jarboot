@@ -61,9 +61,8 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   }
-  const resp = (await OAuthService.getCurrentUser()) as any;
-  const user = resp?.result;
-  if (401 === resp?.resultCode || StringUtil.isEmpty(user?.username)) {
+  const user = (await OAuthService.getCurrentUser()) as any;
+  if (StringUtil.isEmpty(user?.username)) {
     next({ path: '/login', force: true });
     return;
   }

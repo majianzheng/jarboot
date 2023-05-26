@@ -17,6 +17,8 @@ spring:
       enabled: true
       max-file-size: 512MB
       max-request-size: 512MB
+  profiles:
+    active: @env@
   jpa:
     hibernate:
       ddl-auto: update
@@ -29,6 +31,3 @@ spring:
     hikari:
       minimum-idle: 2
       pool-name: jarboot_db_pool
-logging:
-  file:
-    name: ${JARBOOT_HOME}/logs/jarboot.log

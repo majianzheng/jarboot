@@ -25,6 +25,13 @@ public class PluginsStaticController {
     @Autowired
     private PluginsService pluginsService;
 
+    /**
+     * 加载插件页面
+     * @param type 类型
+     * @param plugin 插件
+     * @param file 文件
+     * @param response
+     */
     @GetMapping("/page/{type}/{plugin}/{file}")
     @ResponseBody
     public void page(@PathVariable("type") String type,

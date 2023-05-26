@@ -69,9 +69,8 @@ public class AgentClient extends ResponseSimple {
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +
-                ", resultCode=" + resultCode +
-                ", resultMsg='" + resultMsg + '\'' +
-                ", total=" + total +
+                ", resultCode=" + code +
+                ", resultMsg='" + msg + '\'' +
                 '}';
     }
 }

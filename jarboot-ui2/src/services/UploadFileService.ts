@@ -1,7 +1,4 @@
 import Request from '../common/Request';
-import ErrorUtil from '../common/ErrorUtil';
-import CommonNotice from '../common/CommonNotice';
-import { requestFinishCallback } from '@/common/CommonTypes';
 
 const baseUrl = '/api/jarboot/upload';
 
@@ -55,8 +52,6 @@ export default class UploadFileService {
   public static clearUploadFileInCache(serviceName: string) {
     const form = new FormData();
     form.append('serviceName', serviceName);
-    Request.delete(baseUrl, form)
-      .then(requestFinishCallback)
-      .catch(error => CommonNotice.error(ErrorUtil.formatErrResp(error)));
+    Request.delete(baseUrl, form);
   }
 }

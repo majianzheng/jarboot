@@ -12,22 +12,27 @@ public class ResponseSimple extends BaseResponse{
 		
 	}
 	
-	public ResponseSimple(int resultCode){
-		this.resultCode = resultCode;
+	public ResponseSimple(int code){
+		this.code = code;
 	}
 	
-	public ResponseSimple(int resultCode, String resultMsg) {
-		this.resultCode = resultCode;
-		this.resultMsg = resultMsg;
+	public ResponseSimple(int code, String resultMsg) {
+		this.code = code;
+		this.msg = resultMsg;
+	}
+
+	public ResponseSimple(String resultMsg) {
+		this.code = -1;
+		this.msg = resultMsg;
 	}
 
 	public ResponseSimple(Throwable e) {
-		this.resultMsg = e.getMessage();
+		this.msg = e.getMessage();
 		if(e instanceof JarbootException) {
 			JarbootException eTmp = (JarbootException)e;
-			this.resultCode = eTmp.getErrorCode();
+			this.code = eTmp.getErrorCode();
 		}else {
-			this.resultCode = ResultCodeConst.INTERNAL_ERROR;
+			this.code = ResultCodeConst.INTERNAL_ERROR;
 		}
 	}
 	

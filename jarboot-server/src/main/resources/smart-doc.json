@@ -1,0 +1,36 @@
+{
+  "projectName": "Jarboot API文档",
+  "isStrict": true,
+  "allInOne": true,
+  "packageFilters": "com.mz.jarboot.controller.*",
+  "packageExcludeFilters": "com.mz.jarboot.controller.AuthController",
+  "allInOneDocFileName":"index.html",
+  "outPath": "./target/smart-doc",
+  "requestExample": true,
+  "style":"xt256",
+  "createDebugPage": true,
+  "serverEnv": "http://{{server}}",
+  "language": "CHINESE",
+  "debugEnvName": "Jarboot API测试环境",
+  "ignoreRequestParams": ["org.springframework.ui.ModelMap"],
+  "coverOld": true,
+  "requestHeaders": [{
+    "name": "Authorization",
+    "type": "string",
+    "desc": "用户认证",
+    "value":"",
+    "required": true,
+    "since": "-",
+    "pathPatterns": "/api/jarboot/**",
+    "excludePathPatterns":"/api/jarboot/auth/**"
+  }],
+  "revisionLogs": [
+    {
+      "version": "1.0.0",
+      "revisionTime": "2023-05-26",
+      "status": "创建",
+      "author": "马建正",
+      "remarks": "创建Open Api文档"
+    }
+  ]
+}

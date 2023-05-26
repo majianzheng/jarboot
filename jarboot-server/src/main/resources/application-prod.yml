@@ -1,0 +1,10 @@
+spring:
+  web:
+    resources:
+      static-locations:
+        - file:${JARBOOT_HOME}/fe/
+        - classpath:/resources/
+        - classpath:/static/
+logging:
+  file:
+    name: ${JARBOOT_HOME}/logs/jarboot.log

@@ -1,5 +1,7 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import org.springframework.security.core.Authentication;
@@ -38,7 +40,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 this.tokenManager.validateToken(jwt);
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Validate token failed!");
+                handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "token校验失败，请重新登录");
                 return;
             }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
@@ -46,13 +48,23 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             if (permissionManager.hasPermission(authentication.getName(), request)) {
                 chain.doFilter(request, response);
             } else {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden!");
+                handleError(response, HttpServletResponse.SC_OK, 402, "当前角色没有权限");
             }
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized!");
+            handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "未登录");
         }
     }
-    
+
+    private void handleError(HttpServletResponse response, int status, int code, String msg) throws IOException {
+        ResponseSimple responseVo = new ResponseSimple();
+        responseVo.setCode(code);
+        responseVo.setMsg(msg);
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getOutputStream().write(JsonUtils.toJsonBytes(responseVo));
+        response.getOutputStream().flush();
+    }
+
     /**
      * Get token from header.
      */

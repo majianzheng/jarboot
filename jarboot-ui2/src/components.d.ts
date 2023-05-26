@@ -7,7 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    AppLink: typeof import('./components/AppLink.vue')['default']
     Banner: typeof import('./components/super-panel/banner.vue')['default']
     CodeMirror: typeof import('./components/editor/code-mirror.vue')['default']
     Console: typeof import('./components/console/console.vue')['default']
@@ -41,13 +40,14 @@ declare module '@vue/runtime-core' {
     FileEditor: typeof import('./components/editor/file-editor.vue')['default']
     JarbootVersion: typeof import('./components/jarboot-version.vue')['default']
     LanguageSwitch: typeof import('./components/language-switch.vue')['default']
-    ModifyUserDialog: typeof import('./components/ModifyUserDialog.vue')['default']
     ModifyUserForm: typeof import('./components/modify-user-form.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SuperPanel: typeof import('./components/super-panel/super-panel.vue')['default']
     SvgIcon: typeof import('./components/svg-icon.vue')['default']
+    TablePro: typeof import('./components/table-pro.vue')['default']
     ThemeSwitch: typeof import('./components/theme-switch.vue')['default']
+    TwoSidesPro: typeof import('./components/two-sides-pro.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

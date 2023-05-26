@@ -2,7 +2,7 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.service.UploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +42,9 @@ public class UploadServiceFileController {
     @GetMapping(value="/start")
     @ResponseBody
     @Permission("Upload service file")
-    public ResponseForObject<Boolean> startUpload(String serviceName) {
+    public ResponseVo<Boolean> startUpload(String serviceName) {
         boolean exist = uploadFileService.startUpload(serviceName);
-        return new ResponseForObject<>(exist);
+        return new ResponseVo<>(exist);
     }
 
     /**

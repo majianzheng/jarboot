@@ -3,7 +3,7 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.pojo.ResponseForList;
-import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -76,8 +76,8 @@ public class UserController {
         if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || java.util.Objects.equals(username, currentLoginUser)) {
             userService.updateUserPassword(currentLoginUser, username, oldPassword, password);
         } else {
-            result.setResultCode(ResultCodeConst.VALIDATE_FAILED);
-            result.setResultMsg("Only ROLE_ADMIN or self can modify the password!");
+            result.setCode(ResultCodeConst.VALIDATE_FAILED);
+            result.setMsg("Only ROLE_ADMIN or self can modify the password!");
         }
         return result;
     }
@@ -90,9 +90,9 @@ public class UserController {
     @GetMapping
     @ResponseBody
     @Permission
-    public ResponseForObject<User> findUserByUsername(String username) {
+    public ResponseVo<User> findUserByUsername(String username) {
         User user = userService.findUserByUsername(username);
-        return new ResponseForObject<>(user);
+        return new ResponseVo<>(user);
     }
 
     /**

@@ -4,4 +4,4 @@
 projectDir=$(cd `dirname $0`/../; pwd)
 source $projectDir/build/common.sh || exit
 
-mvn clean install
+mvn clean install -P prod

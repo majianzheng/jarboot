@@ -18,8 +18,8 @@ export default class Request {
    * @param url
    * @param params 请求参数Map
    */
-  static get(url: string, params: any) {
-    return http.get<any, any>(url, { params: params });
+  static get<T>(url: string, params: any) {
+    return http.get<any, T>(url, { params: params });
   }
 
   /**
@@ -27,8 +27,8 @@ export default class Request {
    * @param url 请求地址
    * @param params 请求参数
    */
-  static post(url: string, params: any) {
-    return http.post<any, any>(url, params);
+  static post<T>(url: string, params: any) {
+    return http.post<any, T>(url, params);
   }
 
   /**
@@ -36,8 +36,8 @@ export default class Request {
    * @param url 请求地址
    * @param params 请求参数
    */
-  static put(url: string, params: any) {
-    return http.put<any, any>(url, params);
+  static put<T>(url: string, params: any) {
+    return http.put<any, T>(url, params);
   }
 
   /**
@@ -45,8 +45,8 @@ export default class Request {
    * @param url 请求地址
    * @param params 请求参数
    */
-  static delete(url: string, params: any) {
-    return http.delete<any, any>(url, params);
+  static delete<T>(url: string, params: any) {
+    return http.delete<any, T>(url, params);
   }
 
   public static init() {
@@ -54,7 +54,8 @@ export default class Request {
       response => {
         if (401 === response?.status) {
           //没有授权，跳转到登录界面
-          router.push({ path: '/login' }).then(() => console.info('未登陆，跳转到登陆界面...'));
+          CommonUtils.deleteToken();
+          return router.push({ path: '/login' }).then(() => console.info('未登陆，跳转到登陆界面...'));
         }
         let data = response.data;
         if (typeof data == 'string' && (data.startsWith('{') || data.startsWith('['))) {
@@ -67,16 +68,29 @@ export default class Request {
             //
           }
         }
-        const resultCode = data.resultCode ?? -1;
-        if (data.hasOwnProperty('resultCode') && resultCode < 0) {
+        if (typeof data == 'string') {
+          return Promise.resolve(data);
+        }
+        const resultCode = data.code ?? -1;
+        if (resultCode === 401) {
+          CommonNotice.warn(data.msg || '请登录！');
+          CommonUtils.deleteToken();
+          return router.push({ name: 'login' });
+        }
+        if (resultCode != 0) {
+          CommonNotice.error(data.msg || '请求服务器失败');
           return Promise.reject(data);
         }
-        return Promise.resolve(data);
+        const result = data?.data;
+        return Promise.resolve(result || data);
       },
       error => {
-        const msg = `请求${error.config.url}发生错误：`;
+        if (error.config && error.config.loading) {
+          error.config.loading.close();
+        }
+        const msg = `请求发生错误：${error.message || ''}`;
         console.error(msg, error);
-        CommonNotice.error(msg);
+        CommonNotice.error('请求服务器失败');
         return Promise.reject(error);
       }
     );

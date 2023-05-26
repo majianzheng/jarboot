@@ -72,6 +72,17 @@
 
 	<build>
 		<finalName>jarboot-server</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>application.yml</include>
+					<include>banner.txt</include>
+					<include>application-${env}.yml</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -92,59 +103,45 @@
 	</build>
 	<profiles>
 		<profile>
+			<id>prod</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.shalousun</groupId>
+						<artifactId>smart-doc-maven-plugin</artifactId>
+						<configuration>
+							<!--指定项目名称-->
+							<projectName>Jarboot API文档</projectName>
+							<!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
+							<configFile>./src/main/resources/smart-doc.json</configFile>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>dev</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.shalousun</groupId>
+						<artifactId>smart-doc-maven-plugin</artifactId>
+						<configuration>
+							<!--指定项目名称-->
+							<projectName>Jarboot API文档(调试)</projectName>
+							<!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
+							<configFile>./src/main/resources/smart-doc-dev.json</configFile>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>release</id>
 			<properties>
 				<maven.install.skip>true</maven.install.skip>
 				<maven.deploy.skip>true</maven.deploy.skip>
 			</properties>
-			<build>
-				<plugins>
-					<!-- 打包前，编译jarboot-ui前端代码并部署到static下 -->
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<executions>
-							<!-- 先安装或更新依赖 -->
-							<execution>
-								<id>jarboot-ui-init</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>yarn</executable>
-									<workingDirectory>../jarboot-ui</workingDirectory>
-									<arguments>
-										<argument>install</argument>
-									</arguments>
-								</configuration>
-							</execution>
-							<!-- 执行编译，会自动将编译输出部署到static下 -->
-							<execution>
-								<id>compile-jarboot-ui</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>yarn</executable>
-									<workingDirectory>../jarboot-ui</workingDirectory>
-									<arguments>
-										<argument>build</argument>
-									</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 </project>

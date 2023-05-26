@@ -79,9 +79,8 @@ import { computed, onMounted, onUnmounted, ref, reactive } from 'vue';
 import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
 import { CONSOLE_TOPIC } from '@/common/CommonTypes';
 import StringUtil from '@/common/StringUtil';
-import { ElInput } from 'element-plus';
+import type { ElInput } from 'element-plus';
 import { useBasicStore } from '@/stores';
-import Banner from './banner.vue';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 

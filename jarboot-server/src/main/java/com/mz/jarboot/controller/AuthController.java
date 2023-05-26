@@ -3,19 +3,17 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.pojo.ResponseForList;
-import com.mz.jarboot.common.pojo.ResponseForObject;
+import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
-import com.mz.jarboot.exception.AccessException;
 import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.RoleService;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,7 +46,7 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private RoleService roleService;
-    @Value("${jarboot.token.expire.seconds:18000}")
+    @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
 
     /**
@@ -58,24 +56,24 @@ public class AuthController {
      */
     @GetMapping(value="/getCurrentUser")
     @ResponseBody
-    public ResponseForObject<Object> getCurrentUser(HttpServletRequest request) {
-        ResponseForObject<Object> current = new ResponseForObject<>();
+    public ResponseVo<Object> getCurrentUser(HttpServletRequest request) {
+        ResponseVo<Object> current = new ResponseVo<>();
         String token;
         try {
             token = resolveToken(request);
             if (StringUtils.isEmpty(token)) {
-                current.setResultCode(ResultCodeConst.NOT_LOGIN_ERROR);
-                current.setResultMsg("当前未登录");
+                current.setCode(ResultCodeConst.NOT_LOGIN_ERROR);
+                current.setMsg("当前未登录");
                 return current;
             }
         } catch (Exception e) {
-            current.setResultCode(ResultCodeConst.NOT_LOGIN_ERROR);
-            current.setResultMsg("当前未登录: " + e.getMessage());
+            current.setCode(ResultCodeConst.NOT_LOGIN_ERROR);
+            current.setMsg("当前未登录: " + e.getMessage());
             return current;
         }
 
         Authentication authentication = jwtTokenManager.getAuthentication(token);
-        current.setResult(authentication.getPrincipal());
+        current.setData(authentication.getPrincipal());
         return current;
     }
 
@@ -86,20 +84,12 @@ public class AuthController {
      */
     @PostMapping(value="/login")
     @ResponseBody
-    public ResponseForObject<JarbootUser> login(HttpServletRequest request) {
+    public ResponseVo<JarbootUser> login(HttpServletRequest request) {
         String token = getToken(request);
-        ResponseForObject<JarbootUser> result = new ResponseForObject<>();
-
         String username = request.getParameter(PARAM_USERNAME);
         if (StringUtils.isEmpty(username) && !StringUtils.isBlank(token)) {
             // 已经登录了，鉴定权限
-            try {
-                jwtTokenManager.validateToken(token);
-            } catch (ExpiredJwtException e) {
-                throw new AccessException("Token expired!");
-            } catch (Exception e) {
-                throw new AccessException("Token invalid!");
-            }
+            jwtTokenManager.validateToken(token);
             Authentication authentication = jwtTokenManager.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             username = authentication.getName();
@@ -108,8 +98,7 @@ public class AuthController {
                 String password = request.getParameter(PARAM_PASSWORD);
                 token = resolveTokenFromUser(username, password);
             } catch (Exception e) {
-                result.setResultCode(HttpStatus.UNAUTHORIZED.value());
-                result.setResultMsg("Login failed, user name or password error.");
+                return HttpResponseUtils.error(e.getMessage(), e);
             }
         }
         JarbootUser user = new JarbootUser();
@@ -125,9 +114,8 @@ public class AuthController {
                 }
             }
         }
-        result.setResult(user);
 
-        return result;
+        return HttpResponseUtils.success(user);
     }
 
     /**
@@ -137,7 +125,7 @@ public class AuthController {
      */
     public List<RoleInfo> getRoles(String username) {
         ResponseForList<RoleInfo> roleInfoList = roleService.getRolesByUserName(username, DEFAULT_PAGE_NO, Integer.MAX_VALUE);
-        List<RoleInfo> roleInfos = roleInfoList.getResult();
+        List<RoleInfo> roleInfos = roleInfoList.getData();
         if (CollectionUtils.isEmpty(roleInfos) && AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
             roleInfos = new ArrayList<>();
             RoleInfo roleInfo = new RoleInfo();
@@ -159,9 +147,7 @@ public class AuthController {
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = getToken(request);
         if (StringUtils.isBlank(bearerToken)) {
-            String userName = request.getParameter(PARAM_USERNAME);
-            String password = request.getParameter(PARAM_PASSWORD);
-            bearerToken = resolveTokenFromUser(userName, password);
+            return StringUtils.EMPTY;
         }
         return bearerToken;
     }
@@ -176,7 +162,7 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authenticate);
         } catch (AuthenticationException e) {
-            throw new JarbootException("Login failed");
+            throw new JarbootException(e.getMessage(), e);
         }
 
         if (null == authenticate || StringUtils.isBlank(authenticate.getName())) {

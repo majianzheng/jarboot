@@ -26,10 +26,10 @@ public class JwtTokenManager {
     
     private static final String AUTHORITIES_KEY = "auth";
 
-    @Value("${jarboot.token.expire.seconds:18000}")
+    @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
 
-    @Value("${jarboot.token.secret.key:}")
+    @Value("${jarboot.token.secret.key:SecretKey012345678901234567899876543210012345678901234567890123456789}")
     private String secretKey;
     @Value("${jarboot.security.enabled:true}")
     private boolean enabled;

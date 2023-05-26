@@ -62,10 +62,10 @@ public class PermissionManager {
     }
     private Set<String> getRolesFromDb(String username) {
         ResponseForList<RoleInfo> resp = roleService.getRolesByUserName(username, 0, Integer.MAX_VALUE);
-        if (0 != resp.getResultCode()) {
+        if (0 != resp.getCode()) {
             return new HashSet<>();
         }
-        List<RoleInfo> roles = resp.getResult();
+        List<RoleInfo> roles = resp.getData();
         if (CollectionUtils.isEmpty(roles)) {
             return new HashSet<>();
         }

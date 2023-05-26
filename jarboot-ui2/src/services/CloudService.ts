@@ -12,14 +12,14 @@ export default class CloudService {
    * @returns {Promise<any>}
    */
   public static getVersion() {
-    return Request.get(`${urlBase}/version`, {});
+    return Request.get<string>(`${urlBase}/version`, {});
   }
 
   /**
    * 检查是否为docker版本
    */
   public static checkInDocker() {
-    return Request.get(`${urlBase}/checkInDocker`, {});
+    return Request.get<boolean>(`${urlBase}/checkInDocker`, {});
   }
 
   public static pushServerDirectory(file: File) {

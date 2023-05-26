@@ -22,7 +22,7 @@ public class JsonUtilsTest {
 
     @Test
     public void testReadValue() {
-        String content = "{\"resultCode\":-1,\"resultMsg\":null,\"total\":null,\"clientAddr\":\"192.168.1.100\"," +
+        String content = "{\"code\":-1,\"msg\":null,\"clientAddr\":\"192.168.1.100\"," +
                 "\"local\":null,\"serviceName\":null,\"sid\":\"test-sid\"," +
                 "\"host\":\"192.168.1.101:9899\",\"diagnose\":true}";
         AgentClient obj = JsonUtils.readValue(content, AgentClient.class);
@@ -30,7 +30,7 @@ public class JsonUtilsTest {
         assertEquals("192.168.1.101:9899", obj.getHost());
         assertEquals("test-sid", obj.getSid());
         assertEquals(true, obj.getDiagnose());
-        assertEquals(-1, obj.getResultCode());
+        assertEquals(-1, obj.getCode());
     }
 
     @Test
@@ -40,7 +40,7 @@ public class JsonUtilsTest {
         obj.setHost("192.168.1.101:9899");
         obj.setClientAddr("192.168.1.100");
         obj.setSid("test-sid");
-        obj.setResultCode(-1);
+        obj.setCode(-1);
         String content = JsonUtils.toJsonString(obj);
         assertNotNull(content);
         assertFalse(content.isEmpty());
