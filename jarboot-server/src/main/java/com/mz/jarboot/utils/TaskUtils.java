@@ -1,6 +1,5 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.utils.OSUtils;
@@ -239,27 +238,14 @@ public class TaskUtils {
      * @param workHome 工作目录
      */
     public static void startTask(String command, String environment, String workHome) {
-        String[] en;
-        if (StringUtils.isBlank(environment)) {
-            en = null;
-        } else {
-            en = environment.split(CommonConst.COMMA_SPLIT);
-        }
-        File dir = null;
-        if (StringUtils.isNotEmpty(workHome)) {
-            dir = new File(workHome);
-            if (!dir.exists() || !dir.isDirectory()) {
-                dir = null;
-            }
-        }
-
         try {
-            Runtime.getRuntime().exec(command, en, dir);
+            Runtime.getRuntime().exec(command, parseEnv(environment), toCurrentDir(workHome));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             MessageUtils.error("Start task error " + e.getMessage());
         }
     }
+
 
     public static String parseCommandSimple(String command) {
         command = command.trim();
@@ -309,6 +295,27 @@ public class TaskUtils {
                 }
             }
         }
+    }
+
+    private static File toCurrentDir(String workHome) {
+        File dir = null;
+        if (StringUtils.isNotEmpty(workHome)) {
+            dir = new File(workHome);
+            if (!dir.exists() || !dir.isDirectory()) {
+                dir = null;
+            }
+        }
+        return dir;
+    }
+
+    private static String[] parseEnv(String environment) {
+        String[] en;
+        if (StringUtils.isBlank(environment)) {
+            en = null;
+        } else {
+            en = environment.split(CommonConst.COMMA_SPLIT);
+        }
+        return en;
     }
 
     private TaskUtils(){}

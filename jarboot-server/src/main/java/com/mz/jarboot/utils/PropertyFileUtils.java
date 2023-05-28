@@ -266,8 +266,7 @@ public class PropertyFileUtils {
 
     private static String parsePropLine(String line, Map<String, String> props) {
         line = line.trim();
-        if (line.indexOf(CommonConst.EQUAL_CHAR) <= 0 ||
-                0 == line.indexOf(SettingPropConst.COMMENT_PREFIX)) {
+        if (line.indexOf(CommonConst.EQUAL_CHAR) <= 0 || line.startsWith(SettingPropConst.COMMENT_PREFIX)) {
             throw new JarbootException();
         }
         String[] spliced = line.split("=", 2);

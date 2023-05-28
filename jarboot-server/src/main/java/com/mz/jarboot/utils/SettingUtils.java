@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author majianzheng
@@ -89,7 +90,7 @@ public class SettingUtils {
         File jarFile = new File(COMPONENTS_DIR, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
         if (jarFile.exists()) {
-            agentJar = jarFile.getPath();
+            agentJar = jarFile.getAbsolutePath();
         } else {
             logger.error("文件不存在 {}",  agentJar);
             System.exit(-1);
@@ -270,7 +271,7 @@ public class SettingUtils {
         }
         if (jarList.iterator().hasNext()) {
             File jarFile = jarList.iterator().next();
-            return jarFile.getPath();
+            return jarFile.getAbsolutePath();
         }
         return StringUtils.EMPTY;
     }
@@ -308,7 +309,7 @@ public class SettingUtils {
             path = getPath(servicePath, file);
         }
         File f = path.toFile();
-        StringBuilder sb = new StringBuilder();
+        String vm = StringUtils.EMPTY;
         if (f.exists()) {
             List<String> lines;
             try {
@@ -317,14 +318,13 @@ public class SettingUtils {
                 MessageUtils.warn(e.getMessage());
                 throw new JarbootException("Read file error.", e);
             }
-            lines.stream()
+            vm = lines.stream()
                     //去除首尾空格
                     .map(String::trim)
                     //以#开头的视为注释
-                    .filter(line -> SettingPropConst.COMMENT_PREFIX != line.charAt(0))
-                    .forEach(line -> sb.append(line).append(StringUtils.SPACE));
+                    .filter(line -> !line.startsWith(SettingPropConst.COMMENT_PREFIX))
+                    .collect(Collectors.joining(StringUtils.SPACE));
         }
-        String vm = sb.toString().trim();
         if (StringUtils.isBlank(vm)) {
             vm = SettingUtils.getDefaultJvmArg().trim();
         }

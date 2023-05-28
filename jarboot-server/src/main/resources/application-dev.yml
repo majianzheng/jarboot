@@ -1,3 +1,4 @@
+JARBOOT_HOME: packaging/target/jarboot-bin/jarboot
 spring:
   web:
     resources:

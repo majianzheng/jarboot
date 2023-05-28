@@ -9,7 +9,7 @@ public class SettingPropConst {
     public static final String VALUE_FALSE = "false";
     public static final String DEFAULT_PRIORITY = "1";
 
-    public static final char COMMENT_PREFIX = '#';
+    public static final String COMMENT_PREFIX = "#";
 
     public static final String GROUP = "group";
     public static final String VM = "vm";

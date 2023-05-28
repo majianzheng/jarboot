@@ -80,6 +80,7 @@
 					<include>application.yml</include>
 					<include>banner.txt</include>
 					<include>application-${env}.yml</include>
+					<include>META-INF/spring.factories</include>
 				</includes>
 			</resource>
 		</resources>

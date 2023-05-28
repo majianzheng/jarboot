@@ -2,28 +2,43 @@ package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
+import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
+import com.mz.jarboot.service.TaskWatchService;
+import com.mz.jarboot.utils.SettingUtils;
+import com.mz.jarboot.utils.TaskUtils;
+import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringApplicationRunListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
+
 import java.io.File;
+import java.time.Duration;
 
 /**
  * check file is all exist and environment is jdk.
  * @author majianzheng
  */
-public class AppEnvironment {
-    /**
-     * 初始化并检查环境
-     */
-    public static void initAndCheck() {
+public class AppEnvironment implements SpringApplicationRunListener {
+    private String homePath;
+
+    public AppEnvironment(SpringApplication app, String[] args) {
+        // ignore
+    }
+    @Override
+    public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
         //初始化工作目录
-        String homePath = System.getenv(CommonConst.JARBOOT_HOME);
+        homePath = environment.getProperty(CommonConst.JARBOOT_HOME);
         if (null == homePath || homePath.isEmpty()) {
-            homePath = System.getProperty(CommonConst.JARBOOT_HOME, null);
+            homePath = System.getenv(CommonConst.JARBOOT_HOME);
             if (null == homePath) {
-                homePath = System.getProperty("user.home") + File.separator + CommonConst.JARBOOT_NAME;
+                AnsiLog.error("获取JARBOOT_HOME失败！");
+                System.exit(-1);
             }
         }
         //检查安装路径是否存在空格
@@ -52,8 +67,33 @@ public class AppEnvironment {
         }
     }
 
-    private static void checkEnvironment() {
-        String binDir = System.getProperty(CommonConst.JARBOOT_HOME) + File.separator + CommonConst.COMPONENTS_NAME;
+    @Override
+    public void started(ConfigurableApplicationContext context, Duration timeTaken) {
+        //最大启动超时时间配置
+        int maxStartTime = context
+                .getEnvironment()
+                .getProperty("jarboot.services.max-start-time", int.class, 120000);
+        TaskUtils.setMaxStartTime(maxStartTime);
+
+        //获取当前端口配置
+        int port = context
+                .getEnvironment()
+                .getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
+        SettingUtils.init(port);
+
+        //最大优雅退出等待时间配置
+        int maxExitTime = context
+                .getEnvironment()
+                .getProperty("jarboot.services.max-graceful-exit-time", int.class, CommonConst.MAX_WAIT_EXIT_TIME);
+        AgentManager.getInstance().setMaxGracefulExitTime(maxExitTime);
+
+        //启动TaskWatchService
+        TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
+        taskWatchService.init();
+    }
+
+    private void checkEnvironment() {
+        String binDir = homePath + File.separator + CommonConst.COMPONENTS_NAME;
         //先检查jarboot-agent.jar文件
         checkFile(binDir, CommonConst.AGENT_JAR_NAME);
         //检查jarboot-core.jar文件，该文件必须和jarboot-agent.jar处于同一目录下
@@ -76,6 +116,4 @@ public class AppEnvironment {
             throw new JarbootRunException(String.format("检查环境错误，%s不是文件类型。", fileName));
         }
     }
-
-    private AppEnvironment() { }
 }
