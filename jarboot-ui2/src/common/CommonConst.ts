@@ -2,36 +2,34 @@
  * 通用常量定义
  * @author majianzheng
  */
-export default class CommonConst {
-  public static readonly DOCS_URL = 'https://www.yuque.com/jarboot/usage/quick-start';
-  public static readonly PROTOCOL_SPLIT = '\r';
+export const DOCS_URL = 'https://www.yuque.com/jarboot/usage/quick-start';
+export const PROTOCOL_SPLIT = '\r';
 
-  public static readonly CONTENT_VIEW = 'contentView';
-  public static readonly CONFIG_VIEW = 'config';
-  public static readonly CONSOLE_VIEW = 'console';
+export const CONTENT_VIEW = 'contentView';
+export const CONFIG_VIEW = 'config';
+export const CONSOLE_VIEW = 'console';
 
-  //进程状态
-  public static readonly STATUS_STARTED = 'RUNNING';
-  public static readonly STATUS_STOPPED = 'STOPPED';
-  public static readonly STATUS_STARTING = 'STARTING';
-  public static readonly STATUS_STOPPING = 'STOPPING';
+//进程状态
+export const STATUS_STARTED = 'RUNNING';
+export const STATUS_STOPPED = 'STOPPED';
+export const STATUS_STARTING = 'STARTING';
+export const STATUS_STOPPING = 'STOPPING';
 
-  //Online debug
-  public static readonly ATTACHING = 'ATTACHING';
-  public static readonly ATTACHED = 'ATTACHED';
-  public static readonly EXITED = 'EXITED';
-  public static readonly NOT_TRUSTED = 'NOT_TRUSTED';
-  public static readonly TRUSTED = 'TRUSTED';
+//Online debug
+export const ATTACHING = 'ATTACHING';
+export const ATTACHED = 'ATTACHED';
+export const EXITED = 'EXITED';
+export const NOT_TRUSTED = 'NOT_TRUSTED';
+export const TRUSTED = 'TRUSTED';
 
-  public static PANEL_HEIGHT = window.innerHeight - 62;
-  public static HIGHLIGHT_STYLE = { backgroundColor: '#ffc069', padding: 0 };
+export const PANEL_HEIGHT = window.innerHeight - 62;
+export const HIGHLIGHT_STYLE = { backgroundColor: '#ffc069', padding: 0 };
 
-  public static ZH_CN = 'zh-CN';
+export const ZH_CN = 'zh-CN';
 
-  //token
-  public static TOKEN_KEY = 'token';
-  public static currentUser: any = { username: '', globalAdmin: false };
-  public static ADMIN_ROLE = 'ROLE_ADMIN';
+//token
+export const TOKEN_KEY = 'token';
+export const currentUser: any = { username: '', globalAdmin: false };
+export const ADMIN_ROLE = 'ROLE_ADMIN';
 
-  public static readonly LOCALHOST = 'localhost';
-}
+export const LOCALHOST = 'localhost';

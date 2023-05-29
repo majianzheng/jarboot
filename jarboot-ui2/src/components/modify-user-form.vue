@@ -45,7 +45,7 @@
 import StringUtil from '@/common/StringUtil';
 import { User, Lock } from '@element-plus/icons-vue';
 import { onMounted, reactive, ref } from 'vue';
-import { FormInstance } from 'element-plus';
+import type { FormInstance } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 
 const props = defineProps({

@@ -1,7 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
@@ -32,16 +32,16 @@ public class RoleServiceImpl implements RoleService {
     private PrivilegeDao privilegeDao;
 
     @Override
-    public ResponseForList<RoleInfo> getRoles(int pageNo, int pageSize) {
+    public PagedList<RoleInfo> getRoles(int pageNo, int pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
         Page<RoleInfo> all = roleDao.findAll(page);
-        return new ResponseForList<>(all.getContent(), all.getTotalElements());
+        return new PagedList<>(all.getContent(), all.getTotalElements());
     }
 
     @Override
-    public ResponseForList<RoleInfo> getRolesByUserName(String username, int pageNo, int pageSize) {
+    public PagedList<RoleInfo> getRolesByUserName(String username, int pageNo, int pageSize) {
         Page<RoleInfo> page = roleDao.getRoleByUsername(username, PageRequest.of(pageNo, pageSize));
-        return new ResponseForList<>(page.getContent(), page.getTotalElements());
+        return new PagedList<>(page.getContent(), page.getTotalElements());
     }
 
     @Override

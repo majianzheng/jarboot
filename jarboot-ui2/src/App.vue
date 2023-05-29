@@ -9,7 +9,7 @@ import { useBasicStore } from '@/stores';
 import CommonUtils from '@/common/CommonUtils';
 
 const { locale } = useI18n();
-const locales = { 'zh-CN': zhCn, 'zh-TW': zhTw, 'en-US': en };
+const locales = { 'zh-CN': zhCn, 'zh-TW': zhTw, 'en-US': en } as any;
 const language = computed(() => locales[locale.value]);
 const basic = useBasicStore();
 onMounted(() => {

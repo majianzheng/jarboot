@@ -1,6 +1,6 @@
 package com.mz.jarboot.service;
 
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.entity.User;
 
 /**
@@ -42,5 +42,5 @@ public interface UserService {
      * @param pageSize 页大小
      * @return 用户列表
      */
-    ResponseForList<User> getUsers(int pageNo, int pageSize);
+    PagedList<User> getUsers(int pageNo, int pageSize);
 }

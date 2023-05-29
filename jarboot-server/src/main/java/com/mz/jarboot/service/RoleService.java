@@ -1,6 +1,6 @@
 package com.mz.jarboot.service;
 
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.entity.RoleInfo;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface RoleService {
      * @param pageSize pageSize
      * @return roles page info
      */
-    ResponseForList<RoleInfo> getRoles(int pageNo, int pageSize);
+    PagedList<RoleInfo> getRoles(int pageNo, int pageSize);
 
     /**
      * query the user's roles by username.
@@ -28,7 +28,7 @@ public interface RoleService {
      * @param pageSize pageSize
      * @return roles page info
      */
-    ResponseForList<RoleInfo> getRolesByUserName(String username, int pageNo, int pageSize);
+    PagedList<RoleInfo> getRolesByUserName(String username, int pageNo, int pageSize);
 
     /**
      * assign role to user.

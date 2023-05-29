@@ -3,11 +3,11 @@ import OAuthService from '@/services/OAuthService';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ServiceManager from '@/services/ServiceManager';
-import type { ServiceInstance, JvmProcess } from '@/common/CommonTypes';
-import CommonConst from '@/common/CommonConst';
+import type { ServiceInstance, JvmProcess } from '@/types';
+import { ATTACHED, ATTACHING, EXITED, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 import Logger from '@/common/Logger';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
-import { CONSOLE_TOPIC } from '@/common/CommonTypes';
+import { CONSOLE_TOPIC } from '@/types';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -158,13 +158,13 @@ export const useServicesStore = defineStore({
       const service = this.instanceList.find(item => item.sid === sid);
 
       if (service && service.status !== status) {
-        if (CommonConst.STATUS_STARTING === status) {
+        if (STATUS_STARTING === status) {
           this.$patch({ activated: service });
         }
         console.info('status change,', status, service);
         const name = service.name;
         switch (status) {
-          case CommonConst.STATUS_STARTING:
+          case STATUS_STARTING:
             // 激活终端显示
             //activeConsole(key);
             service.status = status;
@@ -172,17 +172,17 @@ export const useServicesStore = defineStore({
             pubsub.publish(sid, CONSOLE_TOPIC.CLEAR_CONSOLE);
             pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
             break;
-          case CommonConst.STATUS_STOPPING:
+          case STATUS_STOPPING:
             service.status = status;
             Logger.log(`${name} 停止中...`);
             pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
             break;
-          case CommonConst.STATUS_STOPPED:
+          case STATUS_STOPPED:
             service.status = status;
             Logger.log(`${name} 已停止`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
-          case CommonConst.STATUS_STARTED:
+          case STATUS_STARTED:
             if (!service.pid) {
               service.status = status;
             }
@@ -190,19 +190,19 @@ export const useServicesStore = defineStore({
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             pubsub.publish(sid, PUB_TOPIC.FOCUS_CMD_INPUT);
             break;
-          case CommonConst.ATTACHING:
+          case ATTACHING:
             service.attaching = true;
             service.attached = false;
             Logger.log(`${name} 已停止`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
-          case CommonConst.ATTACHED:
+          case ATTACHED:
             service.attached = true;
             service.attaching = false;
             Logger.log(`${name} 已停止`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
-          case CommonConst.EXITED:
+          case EXITED:
             service.attached = false;
             service.attaching = false;
             Logger.log(`${name} 已停止`);

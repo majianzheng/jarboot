@@ -1,8 +1,6 @@
 import Request from '@/common/Request';
-import CommonNotice from '@/common/CommonNotice';
-import CommonUtils from '@/common/CommonUtils';
 import StringUtil from '@/common/StringUtil';
-import type { ServiceInstance } from '@/common/CommonTypes';
+import type { ServiceInstance } from '@/types';
 
 const urlBase = '/api/jarboot/services';
 /**
@@ -10,13 +8,8 @@ const urlBase = '/api/jarboot/services';
  */
 export default class ServiceManager {
   /**
-   * 获取服务列表
-   * @param callback
+   * 获取服务组
    */
-  public static getServiceList(callback: any) {
-    Request.get(urlBase, {}).then(callback).catch(CommonNotice.errorFormatted);
-  }
-
   public static getServiceGroup() {
     return Request.get(urlBase + '/groups', {});
   }
@@ -28,7 +21,7 @@ export default class ServiceManager {
    */
   public static startService(services: ServiceInstance[], callback: any) {
     const param = ServiceManager.parseParam(services);
-    Request.post(`${urlBase}/startService`, param).then(callback);
+    return Request.post(`${urlBase}/startService`, param).then(callback);
   }
 
   /**
@@ -38,7 +31,7 @@ export default class ServiceManager {
    */
   public static stopService(services: ServiceInstance[], callback: any) {
     const param = ServiceManager.parseParam(services);
-    Request.post(`${urlBase}/stopService`, param).then(callback);
+    return Request.post(`${urlBase}/stopService`, param).then(callback);
   }
 
   /**
@@ -55,21 +48,21 @@ export default class ServiceManager {
    * 一键重启
    */
   public static oneClickRestart() {
-    Request.get(`${urlBase}/oneClickRestart`, {}).then(CommonUtils.requestFinishCallback);
+    return Request.get(`${urlBase}/oneClickRestart`, {});
   }
 
   /**
    * 一键启动
    */
   public static oneClickStart() {
-    Request.get(`${urlBase}/oneClickStart`, {}).then(CommonUtils.requestFinishCallback);
+    return Request.get(`${urlBase}/oneClickStart`, {});
   }
 
   /**
    * 一键停止
    */
   public static oneClickStop() {
-    Request.get(`${urlBase}/oneClickStop`, {}).then(CommonUtils.requestFinishCallback).catch(CommonNotice.errorFormatted);
+    return Request.get(`${urlBase}/oneClickStop`, {});
   }
 
   /**

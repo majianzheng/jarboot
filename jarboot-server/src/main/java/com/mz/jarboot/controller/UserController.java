@@ -2,10 +2,11 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.User;
@@ -103,8 +104,8 @@ public class UserController {
      */
     @GetMapping(value="/getUsers")
     @ResponseBody
-    public ResponseForList<User> getUsers(int pageNo, int pageSize) {
-        return userService.getUsers(pageNo, pageSize);
+    public ResponseVo<PagedList<User>> getUsers(int pageNo, int pageSize) {
+        return HttpResponseUtils.success(userService.getUsers(pageNo, pageSize));
     }
 
     private String getCurrentLoginName(HttpServletRequest request) {

@@ -2,7 +2,7 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
@@ -124,8 +124,8 @@ public class AuthController {
      * @return 角色
      */
     public List<RoleInfo> getRoles(String username) {
-        ResponseForList<RoleInfo> roleInfoList = roleService.getRolesByUserName(username, DEFAULT_PAGE_NO, Integer.MAX_VALUE);
-        List<RoleInfo> roleInfos = roleInfoList.getData();
+        PagedList<RoleInfo> roleInfoList = roleService.getRolesByUserName(username, DEFAULT_PAGE_NO, Integer.MAX_VALUE);
+        List<RoleInfo> roleInfos = roleInfoList.getRows();
         if (CollectionUtils.isEmpty(roleInfos) && AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
             roleInfos = new ArrayList<>();
             RoleInfo roleInfo = new RoleInfo();

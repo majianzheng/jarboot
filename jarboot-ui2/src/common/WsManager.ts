@@ -1,11 +1,11 @@
 import Logger from '@/common/Logger';
 import StringUtil from '@/common/StringUtil';
 import { MSG_EVENT } from '@/common/EventConst';
-import CommonConst from '@/common/CommonConst';
+import { PROTOCOL_SPLIT } from '@/common/CommonConst';
 import CommonUtils from '@/common/CommonUtils';
 import { ElMessage } from 'element-plus';
 import type { FuncCode } from '@/common/EventConst';
-import type { MsgData, MsgReq } from '@/common/CommonTypes';
+import type { MsgData, MsgReq } from '@/types';
 
 enum NotifyType {
   /** 提示 */
@@ -126,7 +126,7 @@ class WsManager {
     if (StringUtil.isEmpty(body)) {
       return;
     }
-    const index = body.indexOf(CommonConst.PROTOCOL_SPLIT);
+    const index = body.indexOf(PROTOCOL_SPLIT);
     const hasSplit = -1 === index;
     const key = hasSplit ? body : body.substring(0, index);
     const handle = WsManager.LOADING_MAP.get(key);
@@ -156,13 +156,13 @@ class WsManager {
       return;
     }
     try {
-      const i = resp.indexOf(CommonConst.PROTOCOL_SPLIT);
+      const i = resp.indexOf(PROTOCOL_SPLIT);
       if (-1 === i) {
         Logger.warn(`协议错误，${resp}`);
         return;
       }
       const sid = 0 === i ? '' : resp.substring(0, i);
-      const k = resp.indexOf(CommonConst.PROTOCOL_SPLIT, i + 1);
+      const k = resp.indexOf(PROTOCOL_SPLIT, i + 1);
       if (-1 === k) {
         Logger.warn(`协议错误，获取事件类型失败，${resp}`);
         return;

@@ -1,7 +1,5 @@
-import CommonConst from './CommonConst';
+import { TOKEN_KEY } from './CommonConst';
 import { getCurrentInstance } from 'vue';
-import CommonNotice from '@/common/CommonNotice';
-import ErrorUtil from '@/common/ErrorUtil';
 
 /**
  * @author majianzheng
@@ -30,7 +28,7 @@ export default class CommonUtils {
     return msg;
   }
   public static getToken(): string {
-    let token = localStorage.getItem(CommonConst.TOKEN_KEY);
+    let token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
       token = '';
     }
@@ -41,15 +39,15 @@ export default class CommonUtils {
     if (0 !== token.indexOf(CommonUtils.TOKEN_PREFIX)) {
       token = CommonUtils.TOKEN_PREFIX + token;
     }
-    localStorage.setItem(CommonConst.TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_KEY, token);
   }
 
   public static deleteToken() {
-    localStorage.removeItem(CommonConst.TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   }
 
   public static getRawToken(): string {
-    let token = localStorage.getItem(CommonConst.TOKEN_KEY);
+    let token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
       return '';
     }
@@ -65,12 +63,6 @@ export default class CommonUtils {
     a.href = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
     a.click();
   }
-
-  public static requestFinishCallback = (resp: any) => {
-    if (resp.resultCode !== 0) {
-      CommonNotice.error(ErrorUtil.formatErrResp(resp));
-    }
-  };
 
   public static download(url: string, filename: string, callback?: (result: boolean, msg?: string) => void) {
     const xhr = new XMLHttpRequest();

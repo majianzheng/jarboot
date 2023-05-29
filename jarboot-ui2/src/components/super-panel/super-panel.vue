@@ -77,7 +77,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, reactive } from 'vue';
 import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
-import { CONSOLE_TOPIC } from '@/common/CommonTypes';
+import { CONSOLE_TOPIC } from '@/types';
 import StringUtil from '@/common/StringUtil';
 import type { ElInput } from 'element-plus';
 import { useBasicStore } from '@/stores';

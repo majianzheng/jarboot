@@ -2,7 +2,7 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.auth.annotation.Permission;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -76,8 +76,8 @@ public class RoleController {
      */
     @GetMapping(value="/getRoles")
     @ResponseBody
-    public ResponseForList<RoleInfo> getRoles(Integer pageNo, Integer pageSize) {
-        return roleService.getRoles(pageNo, pageSize);
+    public ResponseVo<PagedList<RoleInfo>> getRoles(Integer pageNo, Integer pageSize) {
+        return HttpResponseUtils.success(roleService.getRoles(pageNo, pageSize));
     }
 
     /**
@@ -86,7 +86,7 @@ public class RoleController {
      */
     @GetMapping(value="/getRoleList")
     @ResponseBody
-    public ResponseForList<String> getRoleList() {
-        return new ResponseForList<>(roleService.getRoleList());
+    public ResponseVo<List<String>> getRoleList() {
+        return HttpResponseUtils.success(roleService.getRoleList());
     }
 }

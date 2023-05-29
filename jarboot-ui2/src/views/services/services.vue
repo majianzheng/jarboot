@@ -28,7 +28,7 @@
           <i class="iconfont icon-export"></i>
         </div>
       </div>
-      <div style="width: 100%; padding: 3px 1px">
+      <div style="width: 300px; padding: 3px 1px">
         <el-input v-model="services.search" placeholder="" prefix-icon="Search" size="small" />
         <el-tree
           v-show="'service' === services.currentTab"
@@ -41,14 +41,14 @@
           <template #default="{ node, data }">
             <div style="width: 100%">
               <div v-if="node.isLeaf" style="width: 100%" @click="services.currentChange(data, node)">
-                <el-icon v-if="CommonConst.STATUS_STOPPED === data.status" class="status-stopped"><SuccessFilled /></el-icon>
-                <el-icon v-else-if="CommonConst.STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin">
+                <el-icon v-if="STATUS_STOPPED === data.status" class="status-stopped"><SuccessFilled /></el-icon>
+                <el-icon v-else-if="STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin">
                   <Loading />
                 </el-icon>
-                <el-icon v-else-if="CommonConst.STATUS_STOPPING === data.status" class="status-stopping ui-spin">
+                <el-icon v-else-if="STATUS_STOPPING === data.status" class="status-stopping ui-spin">
                   <Loading />
                 </el-icon>
-                <el-icon v-else-if="CommonConst.STATUS_STARTED === data.status" class="status-running">
+                <el-icon v-else-if="STATUS_STARTED === data.status" class="status-running">
                   <CaretRight />
                 </el-icon>
                 <el-icon v-else-if="data.attached" class="status-running">
@@ -178,16 +178,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, reactive } from 'vue';
 import { ElForm, ElMessageBox, ElTree, type FormRules } from 'element-plus';
-import CommonConst from '@/common/CommonConst';
+import { STATUS_STOPPED, STATUS_STARTING, STATUS_STOPPING, STATUS_STARTED } from '@/common/CommonConst';
 import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
-import type { MsgData, ServiceInstance } from '@/common/CommonTypes';
 import { WsManager } from '@/common/WsManager';
 import { FuncCode } from '@/common/EventConst';
 import { useServicesStore } from '@/stores';
-import SettingService, { type ServerSetting } from '@/services/SettingService';
+import SettingService from '@/services/SettingService';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import CloudService from '@/services/CloudService';
+import type { ServerSetting, MsgData, ServiceInstance } from '@/types';
 
 const defaultProps = {
   children: 'children',
@@ -238,8 +238,7 @@ const rules = reactive<FormRules>({
 });
 const editService = async (row: ServiceInstance) => {
   serviceState.value.isNew = false;
-  const resp = await SettingService.getServerSetting(row.name);
-  const data = (resp.result || defaultSetting) as ServerSetting;
+  const data: ServerSetting = await SettingService.getServerSetting(row.name);
   configForm = reactive<ServerSetting>(data);
   serviceState.value.showEdit = true;
 };
@@ -255,7 +254,7 @@ const onCloseEdit = () => {
 
 const checkChanged = () => {
   const nodes = treeRef.value?.getCheckedNodes();
-  const checked = nodes?.map(node => ({ ...node })) || [];
+  const checked = nodes?.map(node => ({ ...node })) || ([] as any[]);
   services.checkChange(checked);
 };
 const doDashboardCmd = () => {
@@ -275,13 +274,9 @@ const saveConfig = async () => {
   if (!validate) {
     return;
   }
-  const resp = await SettingService.submitServerSetting({ ...configForm }).catch(CommonNotice.errorFormatted);
+  await SettingService.submitServerSetting({ ...configForm });
   serviceState.value.showEdit = false;
-  if (0 === resp?.resultCode) {
-    CommonNotice.success(CommonUtils.translate('SUCCESS'));
-  } else {
-    CommonNotice.errorFormatted(resp);
-  }
+  CommonNotice.success(CommonUtils.translate('SUCCESS'));
 };
 
 const onStatusChange = (data: MsgData) => {
@@ -318,7 +313,7 @@ const onImport = () => {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'application/zip';
-  input.onchange = () => {
+  input.onchange = async () => {
     if (!input.files?.length) {
       return;
     }
@@ -326,17 +321,11 @@ const onImport = () => {
     serviceState.value.importing = true;
     const message = CommonUtils.translate('START_UPLOAD_INFO', { name: file.name });
     CommonNotice.info(message);
-    CloudService.pushServerDirectory(file)
-      .then(resp => {
-        if (0 !== resp.resultCode) {
-          CommonNotice.errorFormatted(resp);
-        }
-        serviceState.value.importing = false;
-      })
-      .catch(error => {
-        CommonNotice.errorFormatted(error);
-        serviceState.value.importing = false;
-      });
+    try {
+      await CloudService.pushServerDirectory(file);
+    } finally {
+      serviceState.value.importing = false;
+    }
   };
   input.click();
 };
@@ -363,7 +352,6 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   .server-side {
-    width: @side-width;
     display: flex;
     height: 100%;
     background: var(--side-bg-color);
@@ -381,7 +369,8 @@ onUnmounted(() => {
     margin-left: 6px;
   }
   .__tool-bar {
-    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
     display: flex;
     padding: 0;
     flex-direction: column;

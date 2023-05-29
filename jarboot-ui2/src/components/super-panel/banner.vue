@@ -105,7 +105,7 @@
 
  version: v{{versionStore.version}}
 
- Jarboot console, docs: <el-button @click="openDocs" link class="cyan">{{CommonConst.DOCS_URL }}</el-button>
+ Jarboot console, docs: <el-button @click="openDocs" link class="cyan">{{ DOCS_URL }}</el-button>
 
  Diagnose command, type ‘help’ and hit ‘ENTER’ to see.
   </div>
@@ -113,10 +113,10 @@
 </template>
 
 <script setup lang="ts">
-import CommonConst from '@/common/CommonConst';
+import { DOCS_URL } from '@/common/CommonConst';
 import { useBasicStore } from '@/stores';
 const versionStore = useBasicStore();
-const openDocs = () => window.open(CommonConst.DOCS_URL);
+const openDocs = () => window.open(DOCS_URL);
 </script>
 
 <style lang="less" scoped>

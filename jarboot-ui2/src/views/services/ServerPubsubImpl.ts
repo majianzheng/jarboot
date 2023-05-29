@@ -1,8 +1,8 @@
 import { NotifyType, WsManager } from '@/common/WsManager';
 import { MSG_EVENT } from '@/common/EventConst';
-import type { MsgData } from '@/common/CommonTypes';
+import type { MsgData } from '@/types';
 import Logger from '@/common/Logger';
-import { CONSOLE_TOPIC } from '@/common/CommonTypes';
+import { CONSOLE_TOPIC } from '@/types';
 import CommonNotice from '@/common/CommonNotice';
 import type PublishSubmit from '@/common/PublishSubmit';
 

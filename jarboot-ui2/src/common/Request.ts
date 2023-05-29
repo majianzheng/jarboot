@@ -71,7 +71,7 @@ export default class Request {
         if (typeof data == 'string') {
           return Promise.resolve(data);
         }
-        const resultCode = data.code ?? -1;
+        const resultCode = data.code ?? 0;
         if (resultCode === 401) {
           CommonNotice.warn(data.msg || '请登录！');
           CommonUtils.deleteToken();

@@ -2,7 +2,7 @@ package com.mz.jarboot.security;
 
 import com.mz.jarboot.base.PermissionsCache;
 import com.mz.jarboot.common.ConcurrentWeakKeyHashMap;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.PrivilegeService;
@@ -61,11 +61,8 @@ public class PermissionManager {
         return false;
     }
     private Set<String> getRolesFromDb(String username) {
-        ResponseForList<RoleInfo> resp = roleService.getRolesByUserName(username, 0, Integer.MAX_VALUE);
-        if (0 != resp.getCode()) {
-            return new HashSet<>();
-        }
-        List<RoleInfo> roles = resp.getData();
+        PagedList<RoleInfo> resp = roleService.getRolesByUserName(username, 0, Integer.MAX_VALUE);
+        List<RoleInfo> roles = resp.getRows();
         if (CollectionUtils.isEmpty(roles)) {
             return new HashSet<>();
         }

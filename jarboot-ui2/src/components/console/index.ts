@@ -1,5 +1,5 @@
 import Console from './console.vue';
-import { ConsoleEvent, EventType, SgrOption } from '@/components/console/ConsoleTypes';
+import { type ConsoleEvent, EventType, type SgrOption } from '@/components/console/ConsoleTypes';
 
 export { EventType, ConsoleEvent, SgrOption };
 

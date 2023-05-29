@@ -379,7 +379,7 @@ public class SettingUtils {
         trustedHosts = lines;
     }
 
-    public static Collection<String> getTrustedHosts() {
+    public static Set<String> getTrustedHosts() {
         return trustedHosts;
     }
 

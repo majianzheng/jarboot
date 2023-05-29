@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from 'vue-router';
-import CommonConst from '@/common/CommonConst';
+import { DOCS_URL } from '@/common/CommonConst';
 import { useUserStore } from '@/stores';
 import { onMounted } from 'vue';
 import { WsManager } from '@/common/WsManager';
 
-const openDoc = () => window.open(CommonConst.DOCS_URL);
+const openDoc = () => window.open(DOCS_URL);
 const user = useUserStore();
 const route = useRoute();
 const router = useRouter();
@@ -94,9 +94,10 @@ onMounted(() => {
     <router-view v-slot="{ Component }">
       <transition name="slide-fade">
         <keep-alive>
-          <component :is="Component" />
+          <component :is="Component" :key="route.path" v-if="route.meta.keepAlive" />
         </keep-alive>
       </transition>
+      <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
   </main>
 </template>

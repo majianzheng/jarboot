@@ -1,7 +1,7 @@
 package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
@@ -116,11 +116,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseForList<User> getUsers(int pageNo, int pageSize) {
+    public PagedList<User> getUsers(int pageNo, int pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
         Page<User> all = userDao.findAll(page);
         List<User> result = all.getContent();
-        return new ResponseForList<>(result, all.getTotalElements());
+        return new PagedList<>(result, all.getTotalElements());
     }
 
     @Transactional(rollbackFor = Throwable.class)

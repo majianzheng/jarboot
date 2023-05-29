@@ -1,5 +1,4 @@
 import { ElNotification } from 'element-plus';
-import ErrorUtil from './ErrorUtil';
 
 /**
  * 通知组件
@@ -56,13 +55,5 @@ export default class CommonNotice {
       message: description,
       type: 'warning',
     });
-  };
-
-  /**
-   * 错误通知
-   * @param error 消息
-   */
-  static errorFormatted = (error: any) => {
-    CommonNotice.error(ErrorUtil.formatErrResp(error));
   };
 }

@@ -11,9 +11,9 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { ColorBasic, ColorBrightness, Color256 } from './ColorTable';
 import Logger from '@/common/Logger';
 import StringUtil from '@/common/StringUtil';
-import PublishSubmit from '@/common/PublishSubmit';
-import { CONSOLE_TOPIC } from '@/common/CommonTypes';
-import { ConsoleEvent, EventType, SgrOption } from '@/components/console/ConsoleTypes';
+import type PublishSubmit from '@/common/PublishSubmit';
+import { CONSOLE_TOPIC } from '@/types';
+import { type ConsoleEvent, EventType, type SgrOption } from '@/components/console/ConsoleTypes';
 
 const DEFAULT_SGR_OPTION: SgrOption = {
   backgroundColor: '',

@@ -6,7 +6,7 @@ import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.api.service.ServiceManager;
-import com.mz.jarboot.common.pojo.ResponseForList;
+import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
@@ -37,9 +37,9 @@ public class ServiceMgrController {
      */
     @GetMapping
     @ResponseBody
-    public ResponseForList<ServiceInstance> getServiceList() {
+    public ResponseVo<List<ServiceInstance>> getServiceList() {
         List<ServiceInstance> results = serviceManager.getServiceList();
-        return new ResponseForList<>(results, results.size());
+        return HttpResponseUtils.success(results);
     }
 
     /**
@@ -48,9 +48,9 @@ public class ServiceMgrController {
      */
     @GetMapping("/groups")
     @ResponseBody
-    public ResponseForList<ServiceGroup> getServiceGroup() {
+    public ResponseVo<List<ServiceGroup>> getServiceGroup() {
         List<ServiceGroup> results = serviceManager.getServiceGroup();
-        return new ResponseForList<>(results, results.size());
+        return HttpResponseUtils.success(results);
     }
 
     /**
@@ -149,9 +149,9 @@ public class ServiceMgrController {
      */
     @GetMapping(value="/jvmProcesses")
     @ResponseBody
-    public ResponseForList<JvmProcess> getJvmProcesses() {
+    public ResponseVo<List<JvmProcess>> getJvmProcesses() {
         List<JvmProcess> results = serviceManager.getJvmProcesses();
-        return new ResponseForList<>(results, results.size());
+        return HttpResponseUtils.success(results);
     }
 
     /**

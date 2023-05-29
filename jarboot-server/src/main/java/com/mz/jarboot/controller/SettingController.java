@@ -5,17 +5,17 @@ import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.pojo.ResponseForList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * 系统配置
@@ -166,7 +166,7 @@ public class SettingController {
      */
     @GetMapping(value="/trustedHost")
     @ResponseBody
-    public ResponseForList<String> getTrustedHosts() {
-        return new ResponseForList<>(new ArrayList<>(SettingUtils.getTrustedHosts()));
+    public ResponseVo<Set<String>> getTrustedHosts() {
+        return HttpResponseUtils.success(SettingUtils.getTrustedHosts());
     }
 }

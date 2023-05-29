@@ -49,7 +49,7 @@ const editorHeight = computed(() => {
 
 const options = reactive({
   tabSize: 4,
-  mode: { name: 'java' },
+  mode: { name: 'java' } as any,
   theme: 'material',
   line: true,
   connect: 'align',
