@@ -15,7 +15,7 @@
       </el-card>
     </div>
     <div style="width: 0">
-      <div class="_collapse_box" :style="getStyle()" @click="state.collapsed = !state.collapsed">
+      <div class="_collapse_box" :style="getStyle()" @click="collapse">
         <el-icon v-if="state.collapsed"><CaretRight /></el-icon>
         <el-icon v-else><CaretLeft /></el-icon>
       </div>
@@ -38,20 +38,27 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive } from 'vue';
+import { onMounted, reactive, watch } from 'vue';
 
 const props = defineProps({
   bodyHeight: { type: String, default: '100px' },
   leftWidth: { type: String, default: '300px' },
   leftTitle: { type: String, default: '左侧标题' },
   rightTitle: { type: String, default: '右侧侧标题' },
-  defaultCollapsed: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: false },
   showHeader: { type: Boolean, default: true },
 });
-
+const emit = defineEmits<{
+  (e: 'collapsed:modelValue', value: boolean): void;
+}>();
 const state = reactive({
   collapsed: false,
 });
+
+watch(
+  () => props.collapsed,
+  value => (state.collapsed = value)
+);
 
 const getStyle = () => {
   if (state.collapsed) {
@@ -60,8 +67,13 @@ const getStyle = () => {
   return { left: '-8px' };
 };
 
+function collapse() {
+  state.collapsed = !state.collapsed;
+  emit('collapsed:modelValue', state.collapsed);
+}
+
 onMounted(() => {
-  state.collapsed = props.defaultCollapsed;
+  state.collapsed = props.collapsed;
 });
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div v-loading="services.loading" class="__container-wrapper server-mgr">
-    <two-sides-pro :show-header="false" :body-height="basic.innerHeight - 50 + 'px'">
+    <two-sides-pro :show-header="false" :body-height="basic.innerHeight - 50 + 'px'" v-model:collapsed="serviceState.collapsed">
       <template #left-content>
         <div class="server-side">
           <div class="common-bar __tool-bar">
@@ -242,6 +242,7 @@ const serviceState = reactive({
   showEdit: false,
   showVmEdit: false,
   importing: false,
+  collapsed: false,
   activatedList: [] as ServiceInstance[],
   activated: {} as ServiceInstance,
   // 当前选中的节点
