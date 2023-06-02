@@ -354,8 +354,8 @@ onMounted(() => {
     margin: 0;
   }
   .el-pagination.is-background .el-pager li:not(.disabled).active {
-    background-color: @theme-blue;
-    border-color: @theme-blue;
+    background-color: var(--el-pagination-bg-color);
+    border-color: var(--el-border-color);
   }
   .el-pagination__editor.el-input {
     width: 34px;

@@ -53,7 +53,7 @@ onMounted(() => (data.value = route.path));
   }
   .setting-content {
     flex: auto;
-    padding: 5px;
+    padding: 10px;
   }
 }
 </style>

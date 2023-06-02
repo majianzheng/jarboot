@@ -4,18 +4,20 @@ import { DOCS_URL } from '@/common/CommonConst';
 import { useUserStore } from '@/stores';
 import { onMounted } from 'vue';
 import { WsManager } from '@/common/WsManager';
+import routesConfig from '@/router/routes-config';
+import StringUtil from '@/common/StringUtil';
 
 const openDoc = () => window.open(DOCS_URL);
 const user = useUserStore();
 const route = useRoute();
 const router = useRouter();
 
-const menus = [
-  { path: '/', name: 'SERVICES_MGR', module: '' },
-  // { path: '/diagnose', name: 'ONLINE_DEBUG'},
-  // { path: '/authority', name: 'AUTH_CONTROL'},
-  { path: '/setting/common', name: 'SETTING', module: 'setting' },
-];
+const filterMenu = (config: any): boolean => {
+  return config.meta.menu && StringUtil.isNotEmpty(config.meta.module);
+};
+
+const menus = routesConfig.filter(config => filterMenu(config)).map(config => ({ name: config.name, module: config.meta.module }));
+
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
   console.log(`%c(灬°ω°灬) `, 'color:magenta');
@@ -23,16 +25,16 @@ const welcome = () => {
   WsManager.initWebsocket();
 };
 
-const isActive = (path: string, module: string): boolean => {
-  if (route.path === path) {
+const isActive = (name: string, module: string): boolean => {
+  if (route.name === name) {
     return true;
   }
-  return !!module && route.path.includes(module);
+  return route.meta.module === module;
 };
 
-const goTo = (path: string, isActive: boolean) => {
-  if (route.path !== path && !isActive) {
-    router.push({ path });
+const goTo = (name: string, module: string) => {
+  if (route.name !== name && !isActive(name, module)) {
+    router.push({ name });
   }
 };
 
@@ -50,9 +52,9 @@ onMounted(() => {
           <a
             v-for="(menu, i) in menus"
             :key="i"
-            :class="{ 'router-link-exact-active': isActive(menu.path, menu.module) }"
-            @click="goTo(menu.path, isActive(menu.path, menu.module))"
-            >{{ $t(menu.name) }}</a
+            :class="{ 'router-link-exact-active': isActive(menu.name, menu.module) }"
+            @click="goTo(menu.name, menu.module)"
+            >{{ $t(menu.module) }}</a
           >
         </nav>
       </div>

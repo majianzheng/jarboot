@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="configRef" :role="rules" :model="settingFormData" label-width="220px" status-icon>
+    <el-form ref="configRef" :role="rules" :model="settingFormData" label-width="auto" status-icon>
       <el-form-item :label="$t('SERVERS_PATH')" prop="workspace">
         <el-input v-model="settingFormData.workspace" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>

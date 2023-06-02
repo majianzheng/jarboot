@@ -54,6 +54,17 @@ public class ServiceMgrController {
     }
 
     /**
+     * 获取JVM组列表
+     * @return
+     */
+    @GetMapping("/jvmGroups")
+    @ResponseBody
+    public ResponseVo<List<ServiceGroup>> getJvmGroup() {
+        List<ServiceGroup> results = serviceManager.getJvmGroup();
+        return HttpResponseUtils.success(results);
+    }
+
+    /**
      * 启动服务
      * @param services 服务列表
      * @return 执行结果

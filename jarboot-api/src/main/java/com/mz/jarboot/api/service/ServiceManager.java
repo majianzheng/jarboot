@@ -29,6 +29,12 @@ public interface ServiceManager {
     List<ServiceGroup> getServiceGroup();
 
     /**
+     * 获取Vm组列表
+     * @return 服务分组
+     */
+    List<ServiceGroup> getJvmGroup();
+
+    /**
      * 获取服务信息
      * @param serviceName 服务名称
      * @return 服务信息 {@link ServiceInstance}

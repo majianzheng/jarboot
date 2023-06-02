@@ -72,6 +72,7 @@ export default {
   CANCEL: '取消',
   EXPORT: '導出',
   IMPORT: '導入',
+  OPERATOR: '操作',
   IMPORT_INFO: `導入的服務{name}已经存在，是否覆蓋？`,
   UPLOAD_INFO: `上傳更新{name}前是否备份服務，以便部署出錯后恢复？`,
   START_UPLOAD_INFO: `開始上傳文件{name}...`,

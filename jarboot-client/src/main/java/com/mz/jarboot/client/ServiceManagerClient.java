@@ -17,6 +17,7 @@ import com.mz.jarboot.client.utlis.ResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import okhttp3.FormBody;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,17 @@ public class ServiceManagerClient implements ServiceManager {
     @Override
     public List<ServiceGroup> getServiceGroup() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/groups";
+        return doGetGroups(api);
+    }
+
+    @Override
+    public List<ServiceGroup> getJvmGroup() {
+        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/jvmGroups";
+        return doGetGroups(api);
+    }
+
+    @NotNull
+    private List<ServiceGroup> doGetGroups(String api) {
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
         List<ServiceGroup> list = new ArrayList<>();

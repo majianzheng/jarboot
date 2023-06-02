@@ -19,9 +19,9 @@ export default class ServiceManager {
    * @param services
    * @param callback
    */
-  public static startService(services: ServiceInstance[], callback: any) {
+  public static startService(services: ServiceInstance[]) {
     const param = ServiceManager.parseParam(services);
-    return Request.post(`${urlBase}/startService`, param).then(callback);
+    return Request.post(`${urlBase}/startService`, param);
   }
 
   /**
@@ -29,9 +29,9 @@ export default class ServiceManager {
    * @param services
    * @param callback
    */
-  public static stopService(services: ServiceInstance[], callback: any) {
+  public static stopService(services: ServiceInstance[]) {
     const param = ServiceManager.parseParam(services);
-    return Request.post(`${urlBase}/stopService`, param).then(callback);
+    return Request.post(`${urlBase}/stopService`, param);
   }
 
   /**
@@ -80,7 +80,7 @@ export default class ServiceManager {
    * 获取未被服务管理的JVM进程信息
    */
   public static getJvmProcesses() {
-    return Request.get(`${urlBase}/jvmProcesses`, {});
+    return Request.get(`${urlBase}/jvmGroups`, {});
   }
 
   /**

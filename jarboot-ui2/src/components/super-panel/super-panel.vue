@@ -124,8 +124,8 @@ const emit = defineEmits<{
   (e: 'execute', value: string): void;
   (e: 'cancel', value: string): void;
 }>();
-const height = computed(() => basic.innerHeight - 110);
-const width = computed(() => basic.innerWidth - 338);
+const height = computed(() => basic.innerHeight - 118);
+const width = computed(() => basic.innerWidth - 358);
 const middleTitle = computed(() => {
   if (state.view) {
     if ('jad' === state.view) {
@@ -294,6 +294,8 @@ onUnmounted(() => {
   .terminal-view {
     display: flex;
     flex-direction: column;
+    border: var(--el-border);
+    border-top: none;
     .command-input {
       background: @console-background;
       color: @console-color;

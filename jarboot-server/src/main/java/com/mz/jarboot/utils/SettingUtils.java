@@ -12,6 +12,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 
 import java.io.*;
@@ -36,15 +37,15 @@ public class SettingUtils {
     /** 默认VM参数属性key */
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     /** 默认的工作空间路径 */
-    private static final String DEFAULT_WORKSPACE;
+    private static String defaultWorkspace;
     /** Jarboot启动后自动启动其管理的服务的属性配置key */
     private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
     /** Jarboot配置文件路径 */
-    private static final String JARBOOT_CONF;
+    private static String jarbootConf;
     /** Jarboot的bin文件夹路径 */
-    private static final String COMPONENTS_DIR;
+    private static String componentsDir;
     /** Jarboot的日志路径 */
-    private static final String LOG_DIR;
+    private static String logDir;
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
     /** file encoding选项 */
@@ -53,41 +54,41 @@ public class SettingUtils {
     private static String localHost = "127.0.0.1:9899";
     private static int port = 9899;
     /** 受信任的远程服务器 */
-    private static final String TRUSTED_HOSTS_FILE;
+    private static String trustedHostsFile;
     private static HashSet<String> trustedHosts = new HashSet<>(16);
 
-    private static final String HOME_PATH = System.getProperty(CommonConst.JARBOOT_HOME);
+    private static String homePath = System.getProperty(CommonConst.JARBOOT_HOME);
 
-    static {
-        final String conf = HOME_PATH + File.separator + "conf" + File.separator;
-        JARBOOT_CONF = conf + "jarboot.properties";
-        COMPONENTS_DIR = HOME_PATH + File.separator + CommonConst.COMPONENTS_NAME;
-        LOG_DIR = HOME_PATH + File.separator + "logs";
+    public static void init(ApplicationContext context, String homePath) {
+        SettingUtils.homePath = homePath;
+        int port = context.getEnvironment().getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
+        SettingUtils.localHost = "127.0.0.1:" + port;
+        SettingUtils.port = port;
+
+        final String conf = homePath + File.separator + "conf" + File.separator;
+        jarbootConf = conf + "jarboot.properties";
+        componentsDir = homePath + File.separator + CommonConst.COMPONENTS_NAME;
+        logDir = homePath + File.separator + "logs";
         //jarboot-agent.jar的路径获取
         initAgentJarPath();
         //初始化路径配置，先查找
         initGlobalSetting();
         //初始化受信任服务器列表
-        TRUSTED_HOSTS_FILE = conf + "trusted-hosts.conf";
+        trustedHostsFile = conf + "trusted-hosts.conf";
         initTrustedHosts();
         //初始化默认目录及配置路径
-        DEFAULT_WORKSPACE = HOME_PATH + File.separator + CommonConst.SERVICES;
-    }
-
-    public static void init(int port) {
-        SettingUtils.localHost = "127.0.0.1:" + port;
-        SettingUtils.port = port;
+        defaultWorkspace = homePath + File.separator + CommonConst.SERVICES;
     }
 
     public static String getHomePath() {
-        return HOME_PATH;
+        return homePath;
     }
 
     /**
      * 初始化Agent路径
      */
     private static void initAgentJarPath() {
-        File jarFile = new File(COMPONENTS_DIR, CommonConst.AGENT_JAR_NAME);
+        File jarFile = new File(componentsDir, CommonConst.AGENT_JAR_NAME);
         //先尝试从当前路径下获取jar的位置
         if (jarFile.exists()) {
             agentJar = jarFile.getAbsolutePath();
@@ -101,7 +102,7 @@ public class SettingUtils {
      * 初始化系统配置
      */
     private static void initGlobalSetting() {
-        File conf = new File(JARBOOT_CONF);
+        File conf = new File(jarbootConf);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
@@ -112,7 +113,7 @@ public class SettingUtils {
     }
 
     private static void initTrustedHosts() {
-        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        File file = FileUtils.getFile(trustedHostsFile);
         if (!file.exists()) {
             return;
         }
@@ -149,7 +150,7 @@ public class SettingUtils {
             }
         }
 
-        File file = FileUtils.getFile(JARBOOT_CONF);
+        File file = FileUtils.getFile(jarbootConf);
         try {
             HashMap<String, String> props = new HashMap<>(4);
             if (null == setting.getDefaultVmOptions()) {
@@ -192,7 +193,7 @@ public class SettingUtils {
     public static String getWorkspace() {
         String path = GLOBAL_SETTING.getWorkspace();
         if (StringUtils.isBlank(path)) {
-            path = DEFAULT_WORKSPACE;
+            path = defaultWorkspace;
         }
         return path;
     }
@@ -202,7 +203,7 @@ public class SettingUtils {
      * @return 日志目录
      */
     public static String getLogDir() {
-        return LOG_DIR;
+        return logDir;
     }
 
     /**
@@ -372,7 +373,7 @@ public class SettingUtils {
         if (trustedHosts.contains(host)) {
             return;
         }
-        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        File file = FileUtils.getFile(trustedHostsFile);
         HashSet<String> lines = new HashSet<>(trustedHosts);
         lines.add(host);
         FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
@@ -391,7 +392,7 @@ public class SettingUtils {
         if (!trustedHosts.contains(host)) {
             return;
         }
-        File file = FileUtils.getFile(TRUSTED_HOSTS_FILE);
+        File file = FileUtils.getFile(trustedHostsFile);
         HashSet<String> lines = new HashSet<>(trustedHosts);
         lines.remove(host);
         FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);

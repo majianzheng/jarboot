@@ -70,6 +70,18 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         return groups;
     }
 
+    @Override
+    public List<ServiceGroup> getJvmGroup() {
+        List<ServiceGroup> groups = new ArrayList<>();
+        // 获取集群其它服务器的组信息
+        ServiceGroup localGroup = new ServiceGroup();
+        groups.add(localGroup);
+        localGroup.setHost("localhost");
+        localGroup.setChildren(new ArrayList<>());
+        localGroup.getChildren().addAll(this.getJvmProcesses());
+        return groups;
+    }
+
     private ServiceGroup getLocalGroup() {
         List<ServiceInstance> serviceList = taskRunCache.getServiceList();
         ServiceGroup localGroup = new ServiceGroup();
@@ -96,12 +108,6 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 });
             }
         });
-        ServiceGroup jvmGroup = new ServiceGroup();
-        jvmGroup.setOnlineDebug(true);
-        jvmGroup.setName("ONLINE_DEBUG");
-        jvmGroup.setChildren(new ArrayList<>());
-        jvmGroup.getChildren().addAll(this.getJvmProcesses());
-        list.add(jvmGroup);
         localGroup.getChildren().addAll(list);
         return localGroup;
     }

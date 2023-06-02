@@ -19,10 +19,12 @@ public class ServiceGroup extends AbstractInstance {
         this.host = host;
     }
 
+    @Override
     public List<AbstractInstance> getChildren() {
         return children;
     }
 
+    @Override
     public void setChildren(List<AbstractInstance> children) {
         this.children = children;
     }

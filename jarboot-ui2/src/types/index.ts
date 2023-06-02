@@ -64,7 +64,7 @@ export type ServerSetting = {
   group: string;
   jarUpdateWatch: boolean;
   jdkPath: string;
-  lastModified: bigint;
+  lastModified: number;
   name: string;
   priority: number;
   sid: string;

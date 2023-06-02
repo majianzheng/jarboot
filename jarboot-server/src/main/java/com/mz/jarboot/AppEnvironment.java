@@ -69,17 +69,14 @@ public class AppEnvironment implements SpringApplicationRunListener {
 
     @Override
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
+        //初始化配置
+        SettingUtils.init(context, homePath);
+
         //最大启动超时时间配置
         int maxStartTime = context
                 .getEnvironment()
                 .getProperty("jarboot.services.max-start-time", int.class, 120000);
         TaskUtils.setMaxStartTime(maxStartTime);
-
-        //获取当前端口配置
-        int port = context
-                .getEnvironment()
-                .getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
-        SettingUtils.init(port);
 
         //最大优雅退出等待时间配置
         int maxExitTime = context

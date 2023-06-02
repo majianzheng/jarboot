@@ -1,8 +1,8 @@
 <template>
   <div class="flex two-sides-container">
     <div :style="{ width: props.leftWidth, display: state.collapsed ? 'none' : 'block' }">
-      <el-card>
-        <template #header>
+      <el-card :body-style="{ padding: 0 }">
+        <template #header v-if="showHeader">
           <div class="flex header">
             <slot name="left-title">{{ props.leftTitle }}</slot>
             <div style="flex: auto"></div>
@@ -21,8 +21,8 @@
       </div>
     </div>
     <div style="flex: auto">
-      <el-card>
-        <template #header>
+      <el-card :body-style="{ padding: 0 }">
+        <template #header v-if="showHeader">
           <div class="flex header">
             <slot name="right-title">{{ props.rightTitle }}</slot>
             <div style="flex: auto"></div>
@@ -46,6 +46,7 @@ const props = defineProps({
   leftTitle: { type: String, default: '左侧标题' },
   rightTitle: { type: String, default: '右侧侧标题' },
   defaultCollapsed: { type: Boolean, default: false },
+  showHeader: { type: Boolean, default: true },
 });
 
 const state = reactive({
@@ -94,5 +95,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  z-index: 2;
 }
 </style>
