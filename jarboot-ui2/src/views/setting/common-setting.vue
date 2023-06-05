@@ -1,38 +1,53 @@
 <template>
   <div>
-    <el-form ref="configRef" :role="rules" :model="settingFormData" label-width="auto" status-icon>
+    <el-form ref="configRef" :role="rules" :model="state.form" label-width="auto" status-icon>
       <el-form-item :label="$t('SERVERS_PATH')" prop="workspace">
-        <el-input v-model="settingFormData.workspace" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
+        <el-input v-model="state.form.workspace" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>
       <el-form-item :label="$t('DEFAULT_VM_OPT')" prop="defaultVmOptions">
-        <el-input v-model="settingFormData.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
+        <el-input v-model="state.form.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>
       <el-form-item :label="$t('AUTO_START_AFTER_INIT')" prop="servicesAutoStart">
-        <el-input v-model="settingFormData.servicesAutoStart" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button>{{ $t('SUBMIT_BTN') }}</el-button>
+        <el-switch v-model="state.form.servicesAutoStart"></el-switch>
       </el-form-item>
     </el-form>
+    <div class="__setting_footer">
+      <el-button :loading="state.loading" type="primary" @click="save">{{ $t('SUBMIT_BTN') }}</el-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, reactive } from 'vue';
 import SettingService from '@/services/SettingService';
+import CommonNotice from '@/common/CommonNotice';
+import CommonUtils from '@/common/CommonUtils';
 
 const rules = {};
-let settingFormData = reactive({
-  workspace: '',
-  defaultVmOptions: '',
-  servicesAutoStart: false,
+let state = reactive({
+  loading: false,
+  form: {
+    workspace: '',
+    defaultVmOptions: '',
+    servicesAutoStart: false,
+  },
 });
 
+async function save() {
+  state.loading = true;
+  await SettingService.submitGlobalSetting({ ...state.form });
+  CommonNotice.success(CommonUtils.translate('SUCCESS'));
+  state.loading = false;
+}
+
 onMounted(async () => {
-  const result: any = await SettingService.getGlobalSetting();
-  console.info(result);
-  settingFormData = reactive(result);
+  state.form = await SettingService.getGlobalSetting();
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.__setting_footer {
+  display: flex;
+  justify-content: center;
+}
+</style>

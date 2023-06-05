@@ -1,1 +1,1 @@
-version=${project.version}
+version=@project.version@

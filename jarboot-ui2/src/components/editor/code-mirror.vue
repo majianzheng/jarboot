@@ -56,7 +56,29 @@ const props = defineProps({
     default: [] as any[],
   },
 });
-const emit = defineEmits(['ready', 'contentChanged', 'input']);
+const emit = defineEmits([
+  'ready',
+  'contentChanged',
+  'input',
+  'scroll',
+  'changes',
+  'beforeChange',
+  'cursorActivity',
+  'keyHandled',
+  'inputRead',
+  'electricInput',
+  'beforeSelectionChange',
+  'viewportChange',
+  'swapDoc',
+  'gutterClick',
+  'gutterContextMenu',
+  'focus',
+  'blur',
+  'refresh',
+  'optionChange',
+  'scrollCursorIntoView',
+  'update',
+]);
 const initialize = () => {
   const cmOptions = Object.assign({}, props.globalOptions, props.options);
   if (props.merge) {

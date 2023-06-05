@@ -6,6 +6,69 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "312499",
+      "name": "file-binary",
+      "font_class": "binary",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "7656259",
+      "name": "logo-javascript",
+      "font_class": "javascript",
+      "unicode": "e799",
+      "unicode_decimal": 59289
+    },
+    {
+      "icon_id": "8219249",
+      "name": "文件_压缩包",
+      "font_class": "tar",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "703054",
+      "name": "language-python-text",
+      "font_class": "python",
+      "unicode": "e916",
+      "unicode_decimal": 59670
+    },
+    {
+      "icon_id": "869802",
+      "name": "java",
+      "font_class": "java",
+      "unicode": "e746",
+      "unicode_decimal": 59206
+    },
+    {
+      "icon_id": "35336021",
+      "name": "jar",
+      "font_class": "jar",
+      "unicode": "e8ae",
+      "unicode_decimal": 59566
+    },
+    {
+      "icon_id": "11249896",
+      "name": "terminal",
+      "font_class": "terminal",
+      "unicode": "e861",
+      "unicode_decimal": 59489
+    },
+    {
+      "icon_id": "13303090",
+      "name": "exe",
+      "font_class": "exe",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "35334891",
+      "name": "golang",
+      "font_class": "golang",
+      "unicode": "e84f",
+      "unicode_decimal": 59471
+    },
+    {
       "icon_id": "33523001",
       "name": "icon_config",
       "font_class": "config",

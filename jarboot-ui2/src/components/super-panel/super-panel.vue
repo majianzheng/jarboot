@@ -1,6 +1,6 @@
 <template>
   <div class="super-panel" ref="panelRef">
-    <div class="super-panel-header" :style="{ width: width - 2 + 'px' }">
+    <div class="super-panel-header" :style="{ width: width + 'px' }">
       <div>
         <el-button @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
         <span class="panel-title">{{ props.name }}</span>
@@ -105,6 +105,7 @@ const props = defineProps<{
   name: string;
   sid: string;
   remote?: string;
+  width: number;
 }>();
 const state = reactive({
   view: '',
@@ -122,10 +123,9 @@ const basic = useBasicStore();
 const emit = defineEmits<{
   (e: 'close', sid: string): void;
   (e: 'execute', value: string): void;
-  (e: 'cancel', value: string): void;
+  (e: 'cancel'): void;
 }>();
 const height = computed(() => basic.innerHeight - 118);
-const width = computed(() => basic.innerWidth - 358);
 const middleTitle = computed(() => {
   if (state.view) {
     if ('jad' === state.view) {

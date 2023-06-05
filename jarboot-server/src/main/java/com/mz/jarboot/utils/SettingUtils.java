@@ -48,6 +48,7 @@ public class SettingUtils {
     private static String logDir;
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
+    private static String coreJar;
     /** file encoding选项 */
     private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
     /** 本地地址 */
@@ -94,6 +95,14 @@ public class SettingUtils {
             agentJar = jarFile.getAbsolutePath();
         } else {
             logger.error("文件不存在 {}",  agentJar);
+            System.exit(-1);
+        }
+        jarFile = new File(componentsDir, "jarboot-core.jar");
+        //先尝试从当前路径下获取jar的位置
+        if (jarFile.exists()) {
+            coreJar = jarFile.getAbsolutePath();
+        } else {
+            logger.error("文件不存在 {}",  coreJar);
             System.exit(-1);
         }
     }
@@ -218,6 +227,10 @@ public class SettingUtils {
 
     public static String getAgentJar() {
         return agentJar;
+    }
+
+    public static String getCoreJar() {
+        return coreJar;
     }
 
     private static String getAgentArgs(String serviceName, String sid) {

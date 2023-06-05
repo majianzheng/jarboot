@@ -50,7 +50,7 @@ export const useUserStore = defineStore({
   },
 });
 
-export const useServicesStore = defineStore({
+export const useServiceStore = defineStore({
   id: 'services',
   state: () => ({
     loading: true,

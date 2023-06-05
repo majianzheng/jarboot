@@ -16,6 +16,7 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
+import com.mz.jarboot.service.FileService;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
@@ -41,11 +42,15 @@ public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private TaskRunCache taskRunCache;
+    @Autowired
+    private FileService fileService;
 
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
         ServiceSetting setting =  PropertyFileUtils.getServiceSetting(serviceName);
         setting.setVmContent(this.getVmOptions(serviceName, setting.getVm()));
+        String path = SettingUtils.getWorkspace() + File.separator + serviceName;
+        fileService.getFiles(path, true);
         return setting;
     }
 
@@ -96,7 +101,7 @@ public class SettingServiceImpl implements SettingService {
         }
         properties.setProperty(SettingPropConst.COMMAND, command);
         String vm = setting.getVm();
-        if (null == vm) {
+        if (StringUtils.isEmpty(vm)) {
             vm = SettingPropConst.DEFAULT_VM_FILE;
         } else {
             if (!SettingPropConst.DEFAULT_VM_FILE.equals(vm)) {

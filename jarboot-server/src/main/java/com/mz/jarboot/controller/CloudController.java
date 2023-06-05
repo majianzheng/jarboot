@@ -17,6 +17,7 @@ import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -96,8 +97,7 @@ public class CloudController {
      */
     @PostMapping("/push/server")
     @ResponseBody
-    public ResponseVo<String> pushServerDirectory(HttpServletRequest request,
-                                          @RequestParam("file") MultipartFile file) {
+    public ResponseVo<String> pushServerDirectory(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         if (jwtTokenManager.getEnabled()) {
             //token校验
             String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
@@ -195,20 +195,13 @@ public class CloudController {
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);
         if (!target.exists() || !target.isFile()) {
-            response.sendError(404, "文件不存在！" + fileName);
-            return;
+            throw new JarbootException(404, "文件不存在！" + fileName);
         }
         setDownloadRespHeader(response, target.getName());
-        byte[] buff = new byte[2048];
         //创建缓冲输入流
         try (FileInputStream fis = new FileInputStream(target);
-             OutputStream outputStream = response.getOutputStream();
-             BufferedInputStream bis = new BufferedInputStream(fis)){
-            int len = -1;
-            while (-1 != (len = bis.read(buff))) {
-                outputStream.write(buff, 0, len);
-            }
-            outputStream.flush();
+             OutputStream outputStream = response.getOutputStream()){
+            IOUtils.copy(fis, outputStream);
         }
     }
 

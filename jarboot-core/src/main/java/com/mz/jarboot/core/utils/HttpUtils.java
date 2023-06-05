@@ -7,7 +7,6 @@ import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.core.basic.EnvironmentContext;
 import okhttp3.*;
 
 import java.util.concurrent.TimeUnit;
@@ -33,7 +32,6 @@ public class HttpUtils {
             .readTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
             .writeTimeout(READ_WRITE_TIMEOUT, TimeUnit.SECONDS)
             .followRedirects(false)
-            .dispatcher(new Dispatcher(EnvironmentContext.getScheduledExecutor()))
             .build();
 
     /**
@@ -143,10 +141,9 @@ public class HttpUtils {
         Request request = requestBuilder.build();
 
         Call call = HTTP_CLIENT.newCall(request);
-        try {
-            ResponseBody response = call.execute().body();
-            if (null != response) {
-                return response.string();
+        try (Response response = call.execute(); ResponseBody body = response.body()) {
+            if (null != body) {
+                return body.string();
             }
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);

@@ -2,7 +2,7 @@
   .'  .' `\                   ,'  , `.           
 ,---.'     \               ,-+-,.' _ |   ,---.   
 |   |  .`\  |           ,-+-. ;   , ||  '   ,'\   [5m✨ [0m[1;4;95mJarboot server demo[0m[5m ✨[0m
-:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |  version: [35mv${project.version}[0m
+:   : |  '  |   ,---.  ,--.'|'   |  || /   /   |  version: [35mv@project.version@[0m
 |   ' '  ;  :  /     \|   |  ,', |  |,.   ; ,. :  Github: [36mhttps://github.com/majianzheng/jarboot[0m[5m ⭐️[0m
 '   | ;  .  | /    /  |   | /  | |--' '   | |: :  Gitee: [36mhttps://gitee.com/majz0908/jarboot[0m
 |   | :  |  '.    ' / |   : |  | ,    '   | .; :[31m

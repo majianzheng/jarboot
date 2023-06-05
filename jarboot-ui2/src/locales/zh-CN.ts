@@ -84,6 +84,12 @@ export default {
   AUTO_SCROLL_END: '自动滚动到底部',
   SCROLL_TO_TOP: '滚动到顶部',
   APP_TYPE: '应用类型',
+  ADD_FILE: '新增文件',
+  ADD_FOLDER: '新增文件夹',
+  NOT_TEXT_FILE: '文件不是文本类型，是否继续编辑？',
+  SAVE_CONFIG_AND_ENABLE_FILE: '保存配置以便启用文件管理',
+  DOWNLOAD: '下载',
+  FAILED: '失败',
 
   //服务配置
   SERVER_LIST_TITLE: '服务列表',
@@ -98,8 +104,8 @@ export default {
   COMMAND_EXAMPLE: '示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
 
   //插件
-  PLUGIN_UPLOAD_TITLE: '上传插件',
-  PLUGIN_FILE: '文件',
+  UPLOAD_TITLE: '上传',
+  FILE: '文件',
   UPLOAD_BUTTON: '点击上传',
 
   //全局配置

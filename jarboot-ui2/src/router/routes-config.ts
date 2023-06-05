@@ -4,21 +4,23 @@ export default [
   {
     path: '/services',
     name: PAGE_SERVICE,
-    component: () => import('@/views/services/services.vue'),
+    component: () => import('@/views/services/service-manager.vue'),
     meta: {
       keepAlive: true,
       menu: true,
       module: 'SERVICES_MGR',
+      code: 'SERVICES_MGR',
     },
   },
   {
     path: '/jvm-diagnose',
     name: PAGE_JVM,
-    component: () => import('@/views/services/services.vue'),
+    component: () => import('@/views/services/service-manager.vue'),
     meta: {
       keepAlive: true,
       menu: true,
       module: 'ONLINE_DEBUG',
+      code: 'ONLINE_DEBUG',
     },
   },
   {
@@ -29,6 +31,7 @@ export default [
       keepAlive: true,
       menu: true,
       module: 'SETTING',
+      code: 'SETTING',
     },
     children: [
       {
@@ -38,6 +41,7 @@ export default [
         meta: {
           keepAlive: true,
           module: 'SETTING',
+          code: 'SYSTEM_SETTING',
         },
       },
       {
@@ -47,6 +51,7 @@ export default [
         meta: {
           keepAlive: true,
           module: 'SETTING',
+          code: 'USER_LIST',
         },
       },
     ],

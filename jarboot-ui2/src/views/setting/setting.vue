@@ -1,12 +1,12 @@
 <template>
   <div class="setting-wrapper">
     <div class="menu-side">
-      <el-menu :default-active="data" v-model="data" class="el-menu-vertical-demo" :collapse="false" :collapse-transition="true" :router="true">
-        <el-menu-item index="/setting/common">
+      <el-menu :default-active="data" v-model="data" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
+        <el-menu-item :index="PAGE_COMMON">
           <el-icon><setting /></el-icon>
           <template #title>系统配置</template>
         </el-menu-item>
-        <el-menu-item index="/setting/user">
+        <el-menu-item :index="PAGE_USER">
           <el-icon><UserFilled /></el-icon>
           <template #title>用户管理</template>
         </el-menu-item>
@@ -26,19 +26,32 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { PAGE_COMMON, PAGE_SETTING, PAGE_USER } from '@/common/route-name-constants';
 
 const route = useRoute();
+const router = useRouter();
 
-const data = ref(route.path);
+const data = ref(route.name);
 watch(
-  () => route.path,
-  newPath => {
-    console.info('path', newPath);
-    data.value = newPath;
+  () => route.name,
+  value => {
+    data.value = value;
   }
 );
-onMounted(() => (data.value = route.path));
+
+function doSelect(name: string) {
+  router.push({ name });
+}
+
+onMounted(() => {
+  if (PAGE_SETTING === route.name) {
+    router.push({ name: PAGE_COMMON });
+    data.value = PAGE_COMMON;
+    return;
+  }
+  data.value = route.name;
+});
 </script>
 
 <style lang="less" scoped>
@@ -55,5 +68,8 @@ onMounted(() => (data.value = route.path));
     flex: auto;
     padding: 10px;
   }
+}
+.menu-vertical {
+  height: calc(100vh - 70px);
 }
 </style>

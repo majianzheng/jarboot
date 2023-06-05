@@ -95,8 +95,8 @@ export default {
     COMMAND_EXAMPLE: "示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName",
 
     //插件
-    PLUGIN_UPLOAD_TITLE: '上传插件',
-    PLUGIN_FILE: '文件',
+    UPLOAD_TITLE: '上传插件',
+    FILE: '文件',
     UPLOAD_BUTTON: '点击上传',
 
     //全局配置

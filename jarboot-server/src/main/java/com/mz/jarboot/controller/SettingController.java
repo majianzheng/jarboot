@@ -7,7 +7,6 @@ import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
-import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.utils.SettingUtils;
@@ -37,12 +36,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Get Server Setting")
     public ResponseVo<ServiceSetting> getServerSetting(String serviceName) {
-        try {
-            ServiceSetting results = settingService.getServiceSetting(serviceName);
-            return new ResponseVo<>(results);
-        } catch (JarbootException e) {
-            return new ResponseVo<>(e);
-        }
+        ServiceSetting results = settingService.getServiceSetting(serviceName);
+        return new ResponseVo<>(results);
     }
 
     /**
@@ -53,12 +48,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
-        try {
-            settingService.submitServiceSetting(setting);
-            return new ResponseSimple();
-        } catch (JarbootException e) {
-            return new ResponseSimple(e);
-        }
+        settingService.submitServiceSetting(setting);
+        return new ResponseSimple();
     }
 
     /**
@@ -69,12 +60,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Get Global Setting")
     public ResponseVo<GlobalSetting> getGlobalSetting() {
-        try {
-            GlobalSetting results = settingService.getGlobalSetting();
-            return new ResponseVo<>(results);
-        } catch (JarbootException e) {
-            return new ResponseVo<>(e);
-        }
+        GlobalSetting results = settingService.getGlobalSetting();
+        return new ResponseVo<>(results);
     }
 
     /**
@@ -86,12 +73,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Submit Global Setting")
     public ResponseSimple submitGlobalSetting(@RequestBody GlobalSetting setting) {
-        try {
-            settingService.submitGlobalSetting(setting);
-            return new ResponseSimple();
-        } catch (JarbootException e) {
-            return new ResponseSimple(e);
-        }
+        settingService.submitGlobalSetting(setting);
+        return new ResponseSimple();
     }
 
     /**
@@ -104,12 +87,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Get Server jvm options")
     public ResponseVo<String> getVmOptions(String serviceName, String file) {
-        try {
-            String results = settingService.getVmOptions(serviceName, file);
-            return new ResponseVo<>(results);
-        } catch (JarbootException e) {
-            return new ResponseVo<>(e);
-        }
+        String results = settingService.getVmOptions(serviceName, file);
+        return new ResponseVo<>(results);
     }
 
     /**
@@ -123,12 +102,8 @@ public class SettingController {
     @ResponseBody
     @Permission("Save Server jvm options")
     public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
-        try {
-            settingService.saveVmOptions(serviceName, file, content);
-            return new ResponseSimple();
-        } catch (JarbootException e) {
-            return new ResponseSimple(e);
-        }
+        settingService.saveVmOptions(serviceName, file, content);
+        return new ResponseSimple();
     }
 
     /**

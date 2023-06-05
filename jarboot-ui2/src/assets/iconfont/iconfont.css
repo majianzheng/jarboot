@@ -13,6 +13,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-binary:before {
+  content: "\e61d";
+}
+
+.icon-javascript:before {
+  content: "\e799";
+}
+
+.icon-tar:before {
+  content: "\e617";
+}
+
+.icon-python:before {
+  content: "\e916";
+}
+
+.icon-java:before {
+  content: "\e746";
+}
+
+.icon-jar:before {
+  content: "\e8ae";
+}
+
+.icon-terminal:before {
+  content: "\e861";
+}
+
+.icon-exe:before {
+  content: "\e635";
+}
+
+.icon-golang:before {
+  content: "\e84f";
+}
+
 .icon-config:before {
   content: "\e615";
 }

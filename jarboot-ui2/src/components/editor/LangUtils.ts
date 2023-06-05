@@ -143,3 +143,15 @@ export const parseModeByFilename = (filename: string) => {
 
   return 'text/plain';
 };
+
+export function canEdit(filename: string): boolean {
+  let info = CodeMirror?.findModeByFileName(filename);
+  if (!info) {
+    const index = filename.lastIndexOf('.');
+    if (index > 0) {
+      const ext = filename.substring(index + 1);
+      info = CodeMirror?.findModeByExtension(ext);
+    }
+  }
+  return !!info;
+}

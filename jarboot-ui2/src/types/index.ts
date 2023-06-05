@@ -53,6 +53,13 @@ export type UserGroup = {
   count?: number;
 };
 
+export type FileNode = {
+  name: string;
+  key: string;
+  directory: boolean;
+  children: FileNode[];
+};
+
 export type ServerSetting = {
   applicationType: 'java' | 'shell' | 'executable';
   args: string;
@@ -72,6 +79,7 @@ export type ServerSetting = {
   vmContent: string;
   workDirectory: string;
   workspace: string;
+  serviceDir: FileNode;
 };
 export type GlobalSetting = {
   workspace: string;

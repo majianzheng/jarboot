@@ -1,5 +1,6 @@
 <template>
   <code-mirror
+    v-if="content.visible"
     :value="content.value"
     :options="options"
     @focus="emit('focus')"
@@ -9,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, reactive } from 'vue';
+import { computed, nextTick, onMounted, reactive, watch } from 'vue';
 
 // require styles
 import 'codemirror/lib/codemirror.css';
@@ -38,6 +39,7 @@ const props = defineProps<{
 }>();
 
 const content = reactive({
+  visible: false,
   value: '',
 });
 const editorHeight = computed(() => {
@@ -75,7 +77,7 @@ const onChange = (value: string) => {
   emit('update:modelValue', value);
 };
 
-onMounted(() => {
+function init() {
   options.readOnly = props.readonly || false;
   options.fullScreen = props.fullScreen || false;
   if (props.mode) {
@@ -83,8 +85,14 @@ onMounted(() => {
   } else {
     options.mode = parseModeByFilename(props.name);
   }
+  console.info('>>>>', options.mode);
   nextTick(() => (content.value = props.modelValue || ''));
-});
+  content.visible = true;
+}
+
+watch(() => [props.name, props.mode], init);
+
+onMounted(init);
 </script>
 
 <style scoped></style>

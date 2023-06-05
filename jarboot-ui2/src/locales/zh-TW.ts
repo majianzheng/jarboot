@@ -84,6 +84,12 @@ export default {
   AUTO_SCROLL_END: '自動滚動到底部',
   SCROLL_TO_TOP: '滚動到顶部',
   APP_TYPE: '应用类型',
+  ADD_FILE: '新增文件',
+  ADD_FOLDER: '新增資料夾',
+  NOT_TEXT_FILE: '檔案不是文字類型，是否繼續編輯？',
+  SAVE_CONFIG_AND_ENABLE_FILE: '保存配寘以便啟用文件管理',
+  DOWNLOAD: '下载',
+  FAILED: '失败',
 
   //服務配置
   SERVER_LIST_TITLE: '服務列錶',
@@ -98,8 +104,8 @@ export default {
   COMMAND_EXAMPLE: '示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
 
   //挿件
-  PLUGIN_UPLOAD_TITLE: '上傳挿件',
-  PLUGIN_FILE: '文件',
+  UPLOAD_TITLE: '上傳挿件',
+  FILE: '文件',
   UPLOAD_BUTTON: '點擊上傳',
 
   //全局配置

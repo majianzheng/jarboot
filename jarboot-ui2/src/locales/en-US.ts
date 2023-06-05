@@ -84,6 +84,12 @@ export default {
   AUTO_SCROLL_END: 'Auto scroll to end',
   SCROLL_TO_TOP: 'Scroll to top',
   APP_TYPE: 'Application type',
+  ADD_FILE: 'New file',
+  ADD_FOLDER: 'New a new directory',
+  NOT_TEXT_FILE: 'The file is not of text type. Do you want to continue editing?',
+  SAVE_CONFIG_AND_ENABLE_FILE: 'Save configuration to enable file management',
+  DOWNLOAD: 'Download',
+  FAILED: 'Failed',
 
   //服务配置
   SERVER_LIST_TITLE: 'Services',
@@ -98,8 +104,8 @@ export default {
   COMMAND_EXAMPLE: 'Example:  1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
 
   //插件
-  PLUGIN_UPLOAD_TITLE: 'Upload plugin',
-  PLUGIN_FILE: 'file',
+  UPLOAD_TITLE: 'Upload plugin',
+  FILE: 'file',
   UPLOAD_BUTTON: 'Click to Upload',
 
   //全局配置界面

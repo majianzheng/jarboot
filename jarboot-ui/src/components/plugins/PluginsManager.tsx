@@ -166,7 +166,7 @@ const PluginsManager = () => {
             <Layout>
                 {url && <iframe frameBorder={0} width={'100%'} height={'100%'} src={url}/>}
             </Layout>
-            {visible && <Modal title={intl.formatMessage({id: 'PLUGIN_UPLOAD_TITLE'})}
+            {visible && <Modal title={intl.formatMessage({id: 'UPLOAD_TITLE'})}
                                visible={true} maskClosable={false}
                                width={600}
                                destroyOnClose={true}
@@ -179,7 +179,7 @@ const PluginsManager = () => {
                             <Select.Option value={"agent"}>agent</Select.Option>
                         </Select>
                     </Form.Item>
-                    <Form.Item label={intl.formatMessage({id: 'PLUGIN_FILE'})} name={"file"}>
+                    <Form.Item label={intl.formatMessage({id: 'FILE'})} name={"file"}>
                         <Upload {...props}>
                             <Button icon={<UploadOutlined />}>{intl.formatMessage({id: 'UPLOAD_BUTTON'})}</Button>
                         </Upload>

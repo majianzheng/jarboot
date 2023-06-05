@@ -121,8 +121,8 @@ public class TaskUtils {
             cmdBuilder
                     .append("-classpath")
                     .append(StringUtils.SPACE)
-                    .append(SettingUtils.getHomePath())
-                    .append("/components/jarboot-core.jar:")
+                    .append(SettingUtils.getCoreJar())
+                    .append(":")
                     .append(SettingUtils.getAgentJar())
                     .append(StringUtils.SPACE)
                     .append("com.mz.jarboot.core.Jarboot")
@@ -160,9 +160,16 @@ public class TaskUtils {
             //解析相对路径或绝对路径，得到真实路径
             workHome = getAbsolutePath(workHome, serverPath);
         }
+        String displayCmd = cmd;
+        if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
+            displayCmd = setting.getCommand();
+            if (StringUtils.isNotEmpty(setting.getArgs())) {
+                displayCmd = displayCmd + " " + setting.getArgs();
+            }
+        }
 
         //打印命令行
-        MessageUtils.console(sid, cmd);
+        MessageUtils.console(sid, displayCmd);
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟

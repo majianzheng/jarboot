@@ -1,7 +1,7 @@
 <template>
   <div class="flex two-sides-container">
     <div :style="{ width: props.leftWidth, display: state.collapsed ? 'none' : 'block' }">
-      <el-card :body-style="{ padding: 0 }">
+      <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
             <slot name="left-title">{{ props.leftTitle }}</slot>
@@ -21,7 +21,7 @@
       </div>
     </div>
     <div style="flex: auto">
-      <el-card :body-style="{ padding: 0 }">
+      <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
             <slot name="right-title">{{ props.rightTitle }}</slot>
@@ -49,7 +49,7 @@ const props = defineProps({
   showHeader: { type: Boolean, default: true },
 });
 const emit = defineEmits<{
-  (e: 'collapsed:modelValue', value: boolean): void;
+  (e: 'update:collapsed', value: boolean): void;
 }>();
 const state = reactive({
   collapsed: false,
@@ -69,7 +69,7 @@ const getStyle = () => {
 
 function collapse() {
   state.collapsed = !state.collapsed;
-  emit('collapsed:modelValue', state.collapsed);
+  emit('update:collapsed', state.collapsed);
 }
 
 onMounted(() => {
@@ -93,9 +93,9 @@ onMounted(() => {
   display: flex;
 }
 ._collapse_box {
-  background: #ffffff;
+  background: var(--side-bg-color);
   box-sizing: border-box;
-  border: 1px solid #ebeef5;
+  border: var(--el-border);
   box-shadow: 0 1px 12px 0 rgba(0, 0, 0, 0.08);
   width: 16px;
   height: 60px;

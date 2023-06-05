@@ -90,6 +90,8 @@ public class ServiceSetting implements Serializable {
 
     private String scheduleType;
 
+    private FileNode serviceDir;
+
     public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
@@ -244,6 +246,14 @@ public class ServiceSetting implements Serializable {
 
     public void setScheduleType(String scheduleType) {
         this.scheduleType = scheduleType;
+    }
+
+    public FileNode getServiceDir() {
+        return serviceDir;
+    }
+
+    public void setServiceDir(FileNode serviceDir) {
+        this.serviceDir = serviceDir;
     }
 
     @Override

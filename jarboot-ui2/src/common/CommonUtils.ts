@@ -64,10 +64,10 @@ export default class CommonUtils {
     a.click();
   }
 
-  public static download(url: string, filename: string, callback?: (result: boolean, msg?: string) => void) {
+  public static download(url: string, filename: string, method = 'GET', body: any, callback?: (result: boolean, msg?: string) => void) {
     const xhr = new XMLHttpRequest();
     //GET请求,请求路径url,async(是否异步)
-    xhr.open('GET', url, true);
+    xhr.open(method, url, true);
     //设置请求头参数
     xhr.setRequestHeader('Authorization', CommonUtils.getToken());
     //设置响应类型为 blob
@@ -92,7 +92,7 @@ export default class CommonUtils {
       }
     };
     //发送请求
-    xhr.send();
+    xhr.send(body);
   }
 
   public static downloadTextAsFile(text: string, filename: string) {

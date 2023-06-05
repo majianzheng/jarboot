@@ -54,6 +54,6 @@ public class JarbootExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseSimple> handleException(Exception e) {
         LOGGER.error(e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.OK).body(HttpResponseUtils.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpResponseUtils.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
     }
 }
