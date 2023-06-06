@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElMessageBox, ElTree, UploadFile, type UploadProgressEvent } from 'element-plus';
+import { ElMessageBox, ElTree, type UploadFile, type UploadProgressEvent } from 'element-plus';
 import FileService from '@/services/FileService';
 import { onMounted, reactive, ref, watch } from 'vue';
 import CommonUtils from '@/common/CommonUtils';

@@ -24,6 +24,16 @@ export default [
     },
   },
   {
+    path: '/terminal',
+    name: 'terminal',
+    component: () => import('@/components/terminal.vue'),
+    meta: {
+      keepAlive: true,
+      menu: true,
+      module: 'TERMINAL',
+    },
+  },
+  {
     path: '/setting',
     name: PAGE_SETTING,
     component: () => import('@/views/setting/setting.vue'),

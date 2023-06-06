@@ -10,6 +10,7 @@ export default {
   SETTING: 'Setting',
   ABOUT: 'About',
   MENU_DOCS: 'DOCS',
+  TERMINAL: 'Terminal',
 
   //服务管理
   ONE_KEY_START: 'Start All',

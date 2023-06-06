@@ -2,14 +2,17 @@ package com.mz.jarboot.terminal;
 
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.JarbootThreadFactory;
-import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.ws.SessionOperator;
+import com.pty4j.PtyProcess;
+import com.pty4j.PtyProcessBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
 import java.io.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 控制台终端
@@ -17,14 +20,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TerminalProcess {
     private static final Logger logger = LoggerFactory.getLogger(TerminalProcess.class);
-    private Process process;
+    private PtyProcess process;
     private Thread readerThread;
     private OutputStream outputStream;
     private SessionOperator operator;
     public void init(Session session) {
         operator = new SessionOperator(session);
+        operator.newMessage(BannerUtils.colorBanner());
         try {
-            process = Runtime.getRuntime().exec(new String[]{"bash", "-i"});
+            String[] cmd = { "/bin/sh", "-l" };
+            Map<String, String> env = new HashMap<>(System.getenv());
+            env.put("TERM", "xterm");
+            process = new PtyProcessBuilder().setCommand(cmd).setWindowsAnsiColorEnabled(true).setEnvironment(env).start();
+
             outputStream = process.getOutputStream();
             readerThread = JarbootThreadFactory
                     .createThreadFactory("terminal-", true)
@@ -40,9 +48,6 @@ public class TerminalProcess {
             logger.error("终端进程已停止！");
             return;
         }
-        if (!cmd.endsWith(StringUtils.LF)) {
-            cmd += StringUtils.LF;
-        }
         try {
             outputStream.write(cmd.getBytes());
             outputStream.flush();
@@ -52,8 +57,9 @@ public class TerminalProcess {
     }
 
     public void destroy() {
-        process.destroy();
+        process.destroyForcibly();
         try {
+            process.waitFor();
             readerThread.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -62,20 +68,21 @@ public class TerminalProcess {
     }
 
     private void run() {
-        try (InputStream inputStream = process.getInputStream();
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-             BufferedReader reader = new BufferedReader(inputStreamReader)) {
-            while (process.isAlive()) {
-                sendMsg(reader);
+        try (InputStream inputStream = process.getInputStream()) {
+            int i = 0;
+            byte[] buffer = new byte[2048];
+            while ((i = inputStream.read(buffer)) != -1) {
+                String msg = new String(buffer, 0, i);
+                sendMsg(msg);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }
 
-    private void sendMsg(BufferedReader reader) {
+    private void sendMsg(String str) {
         try {
-            operator.newMessage(reader.readLine());
+            operator.newMessage(str);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

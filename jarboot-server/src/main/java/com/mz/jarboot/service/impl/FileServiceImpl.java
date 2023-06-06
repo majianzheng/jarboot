@@ -141,7 +141,8 @@ public class FileServiceImpl implements FileService {
         if (null == path) {
             throw new JarbootException("目录为null");
         }
-        if (path.contains("..")) {
+        final String rel = "..";
+        if (path.contains(rel)) {
             throw new JarbootException("禁用相对目录");
         }
     }

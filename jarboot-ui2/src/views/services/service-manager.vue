@@ -73,8 +73,8 @@
                     </el-tooltip>
                   </div>
                   <div v-else>
-                    <el-icon v-if="data.host" class="group-icon icon-position"><HomeFilled /></el-icon>
-                    <el-icon v-else class="group-icon icon-position"><Platform v-if="data.onlineDebug" /><Folder v-else /></el-icon>
+                    <el-icon v-if="data.host" class="group-icon"><HomeFilled /></el-icon>
+                    <el-icon v-else class="group-icon"><Folder /></el-icon>
                     <span v-if="data.host" class="__tree-title">{{ data.host }}</span>
                     <span v-else class="__tree-title">{{ data.onlineDebug ? $t(data.name) : data.name || $t('DEFAULT_GROUP') }}</span>
                   </div>
@@ -560,12 +560,15 @@ onUnmounted(() => {
     }
     .edit-btn {
       position: absolute;
+      font-size: 1.268em;
       right: 10px;
       color: var(--el-color-primary);
     }
   }
   .__tree-title {
     margin-left: 6px;
+    position: relative;
+    top: -3px;
   }
   .__tool-bar {
     min-width: 36px;
@@ -619,6 +622,7 @@ onUnmounted(() => {
   }
   .group-icon {
     color: @primary-color;
+    font-size: 1.268em;
   }
   .attachedStatus,
   .noAttachedStatus {

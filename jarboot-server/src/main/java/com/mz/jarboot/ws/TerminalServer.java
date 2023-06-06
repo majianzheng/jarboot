@@ -15,7 +15,7 @@ import javax.websocket.server.ServerEndpoint;
 @RestController
 public class TerminalServer {
     private static final Logger logger = LoggerFactory.getLogger(TerminalServer.class);
-    private final TerminalProcess terminal = new TerminalProcess();;
+    private final TerminalProcess terminal = new TerminalProcess();
     @OnOpen
     public void onOpen(Session session) {
         terminal.init(session);

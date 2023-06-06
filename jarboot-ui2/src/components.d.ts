@@ -53,6 +53,7 @@ declare module '@vue/runtime-core' {
     SuperPanel: typeof import('./components/super-panel/super-panel.vue')['default']
     SvgIcon: typeof import('./components/svg-icon.vue')['default']
     TablePro: typeof import('./components/table-pro.vue')['default']
+    Terminal: typeof import('./components/terminal.vue')['default']
     ThemeSwitch: typeof import('./components/theme-switch.vue')['default']
     TwoSidesPro: typeof import('./components/two-sides-pro.vue')['default']
   }

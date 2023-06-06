@@ -10,6 +10,7 @@ export default {
   SETTING: '设置',
   ABOUT: '关于',
   MENU_DOCS: '文档',
+  TERMINAL: '终端',
 
   //服务管理
   ONE_KEY_START: '一键启动',

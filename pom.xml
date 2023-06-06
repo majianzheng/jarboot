@@ -64,6 +64,7 @@
 		<jjwt.version>0.11.2</jjwt.version>
 		<cfr.version>0.151</cfr.version>
 		<olgn.version>3.1.19</olgn.version>
+		<pty4j.version>0.12.5</pty4j.version>
 
 		<!-- plugin version -->
 		<maven-resources-version>2.6</maven-resources-version>
@@ -186,6 +187,11 @@
 				<groupId>ognl</groupId>
 				<artifactId>ognl</artifactId>
 				<version>${olgn.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.pty4j</groupId>
+				<artifactId>pty4j</artifactId>
+				<version>${pty4j.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -576,4 +582,25 @@
 			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>maven-ali</id>
+			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://maven.aliyun.com/repository/spring</url>
+		</repository>
+		<repository>
+			<id>maven_central</id>
+			<name>Maven Central</name>
+			<url>https://repo.maven.apache.org/maven2/</url>
+		</repository>
+		<repository>
+			<id>jetbrains</id>
+			<name>jetbrains</name>
+			<url>https://packages.jetbrains.team/maven/p/jcs/maven/</url>
+		</repository>
+	</repositories>
 </project>

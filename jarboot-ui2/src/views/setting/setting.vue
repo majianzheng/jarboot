@@ -1,7 +1,7 @@
 <template>
   <div class="setting-wrapper">
     <div class="menu-side">
-      <el-menu :default-active="data" v-model="data" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
+      <el-menu v-model="data.routeName" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
         <el-menu-item :index="PAGE_COMMON">
           <el-icon><setting /></el-icon>
           <template #title>系统配置</template>
@@ -25,33 +25,35 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PAGE_COMMON, PAGE_SETTING, PAGE_USER } from '@/common/route-name-constants';
 
 const route = useRoute();
 const router = useRouter();
 
-const data = ref(route.name);
-watch(
-  () => route.name,
-  value => {
-    data.value = value;
+const data = reactive({
+  routeName: '',
+});
+watch(() => route.name, init);
+
+function init() {
+  if (PAGE_SETTING === route.name) {
+    const name = data.routeName || PAGE_COMMON;
+    router.push({ name });
+    data.routeName = name;
+    return;
   }
-);
+  if ('SETTING' === route.meta.module) {
+    data.routeName = route.name as string;
+  }
+}
 
 function doSelect(name: string) {
   router.push({ name });
 }
 
-onMounted(() => {
-  if (PAGE_SETTING === route.name) {
-    router.push({ name: PAGE_COMMON });
-    data.value = PAGE_COMMON;
-    return;
-  }
-  data.value = route.name;
-});
+onMounted(init);
 </script>
 
 <style lang="less" scoped>
