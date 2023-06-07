@@ -54,10 +54,10 @@
                     <el-icon v-else-if="isService && STATUS_STARTED === data.status" class="status-running icon-position">
                       <CaretRight />
                     </el-icon>
-                    <el-icon v-else-if="data.attached" class="status-running">
+                    <el-icon v-else-if="data.attached" class="status-running icon-size">
                       <i class="iconfont icon-debug"></i>
                     </el-icon>
-                    <el-icon v-else-if="data.pid" class="status-stopped">
+                    <el-icon v-else-if="data.pid" class="status-stopped icon-size">
                       <i class="iconfont icon-debug"></i>
                     </el-icon>
                     <span class="__tree-title" v-if="isService">{{ data.name }}</span>
@@ -189,7 +189,12 @@
           <el-empty v-if="serviceState.isNew" style="width: 100%" :description="$t('SAVE_CONFIG_AND_ENABLE_FILE')">
             <el-button type="primary" @click="saveAndInit">{{ $t('SAVE') }}</el-button>
           </el-empty>
-          <file-manager v-else :base-dir="serviceState.configForm.name" :with-root="true"></file-manager>
+          <file-manager
+            v-else
+            :base-dir="serviceState.configForm.name"
+            :with-root="true"
+            :head-tools="headTools"
+            :row-tools="rowTools"></file-manager>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -275,6 +280,22 @@ const rules = reactive<FormRules>({
   applicationType: [{ required: true, message: '不可为空', trigger: 'blur' }],
 });
 
+const headTools = {
+  refresh: true,
+  delete: true,
+  upload: true,
+  addFile: true,
+  addFolder: true,
+};
+const rowTools = {
+  download: true,
+  edit: true,
+  delete: true,
+  upload: true,
+  addFile: true,
+  addFolder: true,
+};
+
 function getWidth() {
   if (serviceState.collapsed) {
     return basic.innerWidth - 18;
@@ -292,8 +313,11 @@ watch(
 );
 
 function filterService(_value: any, data: ServiceInstance) {
-  if (!serviceState.search || !data.name) {
+  if (!serviceState.search) {
     return true;
+  }
+  if (!data.name) {
+    return false;
   }
   return data.name.includes(serviceState.search);
 }
@@ -619,6 +643,9 @@ onUnmounted(() => {
     font-size: 1.268em;
     position: relative;
     top: 2px;
+  }
+  .icon-size {
+    font-size: 1.268em;
   }
   .group-icon {
     color: @primary-color;

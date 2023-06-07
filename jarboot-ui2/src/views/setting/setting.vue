@@ -3,8 +3,7 @@
     <div class="menu-side">
       <el-menu :default-active="data.routeName" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
         <el-menu-item :index="conf.name" v-for="(conf, i) in settingRoutes" :key="i">
-          <el-icon v-if="PAGE_COMMON === conf.name"><Setting /></el-icon>
-          <el-icon v-else><UserFilled /></el-icon>
+          <el-icon><Component :is="conf.meta.icon" /></el-icon>
           <template #title>{{ $t(conf.meta.code) }}</template>
         </el-menu-item>
       </el-menu>

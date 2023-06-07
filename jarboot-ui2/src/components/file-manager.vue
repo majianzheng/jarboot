@@ -8,11 +8,29 @@ import { canEdit } from '@/components/editor/LangUtils';
 import { useRoute } from 'vue-router';
 import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
+import { round } from 'lodash';
+import FileIcon from '@/components/file-icon.vue';
 
 const props = defineProps<{
   baseDir: string;
   withRoot: boolean;
+  headTools?: {
+    refresh?: boolean;
+    delete?: boolean;
+    upload?: boolean;
+    addFile?: boolean;
+    addFolder?: boolean;
+  };
+  rowTools?: {
+    download?: boolean;
+    edit?: boolean;
+    delete?: boolean;
+    upload?: boolean;
+    addFile?: boolean;
+    addFolder?: boolean;
+  };
 }>();
+
 const defaultProps = {
   children: 'children',
   label: 'name',
@@ -84,16 +102,57 @@ function getHeader() {
   return headers;
 }
 
-function handleSuccess(_resp: any, file: UploadFile) {
+function handleSuccess(file: UploadFile, data: FileNode) {
+  let child = createNode(file, data);
+  child.progress = null;
+  treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
   CommonNotice.success(`${CommonUtils.translate('UPLOAD_TITLE')}${file.name}${CommonUtils.translate('SUCCESS')}`);
 }
 
-function handleChange(_resp: any, file: UploadFile) {
-  console.info('file upload:', file);
+function createNode(file: UploadFile, data: FileNode): FileNode {
+  const name = file.name;
+  let child = data.children?.find(value => value.name === name);
+  if (child) {
+    if (null === child.progress || undefined === child.progress) {
+      child.progress = 0;
+      child.size = file.size;
+      treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
+    }
+  } else {
+    const key = '' + file.uid;
+    child = {
+      key,
+      name,
+      directory: false,
+      parent: data.name,
+      progress: 0,
+      size: 0,
+    };
+    treeRef.value?.append(child, data);
+  }
+  return child;
 }
 
-function handleProgress(evt: UploadProgressEvent, uploadFile: UploadFile) {
-  console.info('>>>>>handleProgress', evt, uploadFile);
+function handleChange(file: UploadFile, data: FileNode) {
+  createNode(file, data);
+}
+
+function handleProgress(evt: UploadProgressEvent, file: UploadFile, data: FileNode) {
+  let child = createNode(file, data);
+  let progress: number | null = round(evt.percent, 2);
+  if (progress >= 100) {
+    progress = null;
+  }
+  child.progress = progress;
+  //console.info('handleProgress>>', { ...child });
+  treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
+}
+
+function showProgress(data: FileNode) {
+  if (null == data.progress) {
+    return false;
+  }
+  return data.progress > 0 && data.progress < 100;
 }
 
 async function addFolder(node: any) {
@@ -102,7 +161,6 @@ async function addFolder(node: any) {
     CommonNotice.warn('Name is empty!');
     return;
   }
-  console.info('>>>.', name);
   const key = await FileService.addDirectory(parseFilePath(node) + '/' + name.value);
   await getData();
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
@@ -174,50 +232,21 @@ function clickBtn(btn: string) {
   }
 }
 
-function getFileIcon(data: FileNode) {
-  if (!data.name || data.directory) {
-    return null;
-  }
-  const i = data.name.lastIndexOf('.');
-  if (i < 0) {
-    return null;
-  }
-  const extend = data.name.substring(i + 1);
-  switch (extend) {
-    case 'js':
-      return 'javascript';
-    case 'jar':
-      return 'jar';
-    case 'exe':
-      return 'exe';
-    case 'py':
-      return 'python';
-    case 'go':
-      return 'golang';
-    case 'sh':
-    case 'cmd':
-    case 'bat':
-      return 'terminal';
-    case 'tar':
-    case 'zip':
-    case '7z':
-    case 'gz':
-      return 'tar';
-  }
-  return null;
-}
-
 onMounted(getData);
 </script>
 
 <template>
   <div style="width: 100%" v-loading="state.loading">
-    <div class="file-tool-bar">
-      <el-button type="primary" icon="Refresh" plain @click="getData">{{ $t('REFRESH_BTN') }}</el-button>
-      <el-button type="primary" icon="UploadFilled" plain @click="clickBtn('upload')">{{ $t('UPLOAD_TITLE') }}</el-button>
-      <el-button type="primary" icon="DocumentAdd" plain @click="clickBtn('addFile')">{{ $t('ADD_FILE') }}</el-button>
-      <el-button type="primary" icon="FolderAdd" plain @click="clickBtn('addFolder')">{{ $t('ADD_FOLDER') }}</el-button>
-      <el-button type="danger" icon="Delete" plain @click="clickBtn('delete')">{{ $t('DELETE') }}</el-button>
+    <div class="file-tool-bar" v-if="headTools">
+      <el-button v-if="headTools.refresh" type="primary" icon="Refresh" plain @click="getData">{{ $t('REFRESH_BTN') }}</el-button>
+      <el-button v-if="headTools.upload" type="primary" icon="UploadFilled" plain @click="clickBtn('upload')">{{
+        $t('UPLOAD_TITLE')
+      }}</el-button>
+      <el-button v-if="headTools.addFile" type="primary" icon="DocumentAdd" plain @click="clickBtn('addFile')">{{ $t('ADD_FILE') }}</el-button>
+      <el-button v-if="headTools.addFolder" type="primary" icon="FolderAdd" plain @click="clickBtn('addFolder')">{{
+        $t('ADD_FOLDER')
+      }}</el-button>
+      <el-button v-if="headTools.delete" type="danger" icon="Delete" plain @click="clickBtn('delete')">{{ $t('DELETE') }}</el-button>
     </div>
     <el-tree
       ref="treeRef"
@@ -230,29 +259,36 @@ onMounted(getData);
       <template #default="{ node, data }">
         <div class="node-row">
           <div style="flex: auto">
-            <span class="row-icon-style">
-              <el-icon v-if="data.directory"><Folder /></el-icon>
-              <i v-else-if="getFileIcon(data)" class="iconfont" :class="'icon-' + getFileIcon(data)"></i>
-              <el-icon v-else-if="canEdit(data.name)"><Document /></el-icon>
-              <i v-else class="iconfont icon-binary"></i>
-            </span>
-            <span>{{ data.name }}</span>
+            <file-icon class="row-icon-style" :filename="data.name" :directory="data.directory"></file-icon>
+            <el-popover placement="top-start" :title="data.name" :width="350" trigger="click" :content="data.name">
+              <template #reference>
+                <span :title="data.name">
+                  {{ data.name }}
+                  <span v-if="showProgress(data)">
+                    <el-progress class="upload-progress" :stroke-width="16" text-inside :percentage="data.progress" striped striped-flow />
+                  </span>
+                </span>
+              </template>
+              <template #default>
+                <span>size: {{ data.size || 0 }}</span>
+              </template>
+            </el-popover>
           </div>
-          <div class="node-row-tool">
+          <div class="node-row-tool" v-if="rowTools">
             <el-upload
+              v-if="rowTools.upload"
               :action="'/api/jarboot/file-manager/file'"
               :headers="getHeader()"
               :data="{ path: parseFilePath(node) }"
-              :on-success="handleSuccess"
-              :on-change="handleChange"
-              :on-progress="handleProgress"
+              :on-success="(_resp: any, file: UploadFile) => handleSuccess(file, data)"
+              :on-progress="(evt: UploadProgressEvent, file: UploadFile) => handleProgress(evt, file, data)"
               :show-file-list="false"
               class="upload-btn">
               <el-tooltip :content="$t('UPLOAD_TITLE')">
                 <el-button v-if="data.directory" link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
               </el-tooltip>
             </el-upload>
-            <el-tooltip :content="$t('DOWNLOAD')">
+            <el-tooltip v-if="rowTools.download" :content="$t('DOWNLOAD')">
               <el-button
                 v-if="!data.directory"
                 link
@@ -261,7 +297,7 @@ onMounted(getData);
                 @click="download(node)"
                 :id="genId('download', data)"></el-button>
             </el-tooltip>
-            <el-tooltip :content="$t('ADD_FILE')">
+            <el-tooltip v-if="rowTools.addFile" :content="$t('ADD_FILE')">
               <el-button
                 v-if="data.directory"
                 link
@@ -270,7 +306,7 @@ onMounted(getData);
                 :id="genId('addFile', data)"
                 @click="addFile(node)"></el-button>
             </el-tooltip>
-            <el-tooltip :content="$t('ADD_FOLDER')">
+            <el-tooltip v-if="rowTools.addFolder" :content="$t('ADD_FOLDER')">
               <el-button
                 v-if="data.directory"
                 link
@@ -279,10 +315,10 @@ onMounted(getData);
                 :id="genId('addFolder', data)"
                 @click="addFolder(node)"></el-button>
             </el-tooltip>
-            <el-tooltip :content="$t('MODIFY')">
+            <el-tooltip v-if="rowTools.edit" :content="$t('MODIFY')">
               <el-button v-if="!data.directory" link type="primary" icon="Edit" @click="handleEdit(node)" :id="genId('edit', data)"></el-button>
             </el-tooltip>
-            <el-tooltip :content="$t('DELETE')">
+            <el-tooltip v-if="rowTools.delete" :content="$t('DELETE')">
               <el-button v-if="data.parent" link type="danger" icon="Delete" @click="handleDelete(node)" :id="genId('delete', data)"></el-button>
             </el-tooltip>
           </div>
@@ -326,5 +362,11 @@ onMounted(getData);
     height: 24px;
     margin-right: 12px;
   }
+}
+.upload-progress {
+  display: inline-block;
+  position: relative;
+  top: 3px;
+  width: 100px;
 }
 </style>

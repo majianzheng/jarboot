@@ -55,9 +55,12 @@ export type UserGroup = {
 
 export type FileNode = {
   name: string;
+  parent?: string;
   key: string;
   directory: boolean;
-  children: FileNode[];
+  progress: number | null;
+  size?: number;
+  children?: FileNode[];
 };
 
 export type ServerSetting = {

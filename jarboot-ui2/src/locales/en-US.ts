@@ -11,6 +11,8 @@ export default {
   ABOUT: 'About',
   MENU_DOCS: 'DOCS',
   TERMINAL: 'Terminal',
+  TOOLS: 'Tool',
+  FILE_MGR: 'File manager',
 
   //服务管理
   ONE_KEY_START: 'Start All',

@@ -25,7 +25,7 @@ public class TerminalProcess {
     private Thread readerThread;
     private OutputStream outputStream;
     private SessionOperator operator;
-    public void init(Session session) {
+    public synchronized void init(Session session) {
         operator = new SessionOperator(session);
         operator.newMessage(BannerUtils.colorBanner());
         try {
@@ -61,11 +61,13 @@ public class TerminalProcess {
         process.setWinSize(new WinSize(columns, rows));
     }
 
-    public void destroy() {
+    public synchronized void destroy() {
         process.destroyForcibly();
         try {
             process.waitFor();
-            readerThread.join();
+            if (null != readerThread) {
+                readerThread.join();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

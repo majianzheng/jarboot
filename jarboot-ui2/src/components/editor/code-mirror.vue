@@ -128,14 +128,8 @@ const initialize = () => {
       cminstance.on(event, (...args) => {
         // @ts-ignore
         emit(event, ...args);
-        const lowerCaseEvent = event.replace(/([A-Z])/g, '-$1').toLowerCase();
-        if (lowerCaseEvent !== event) {
-          // @ts-ignore
-          emit(lowerCaseEvent, ...args);
-        }
       });
     });
-  console.info('........', cminstance);
   cminstance.display.wrapper.style.height = props.height;
   emit('ready', codemirror);
   unseenLineMarkers();

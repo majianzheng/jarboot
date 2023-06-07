@@ -7,6 +7,13 @@ export const PAGE_SERVICE = 'service-mgr';
 /** 在线诊断 */
 export const PAGE_JVM = 'jvm-diagnose';
 
+/** 工具 */
+export const TOOLS = 'tools';
+
+export const FILE_MGR = 'file-mgr';
+
+export const TERM = 'terminal';
+
 /** 配置 */
 export const PAGE_SETTING = 'setting';
 

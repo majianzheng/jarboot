@@ -6,6 +6,41 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "521043",
+      "name": "CSS格式化",
+      "font_class": "css",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "521044",
+      "name": "HTML格式化",
+      "font_class": "html",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
+      "icon_id": "6496026",
+      "name": "Vue",
+      "font_class": "Vue",
+      "unicode": "e79a",
+      "unicode_decimal": 59290
+    },
+    {
+      "icon_id": "13304114",
+      "name": "typescript",
+      "font_class": "typescript",
+      "unicode": "e6a3",
+      "unicode_decimal": 59043
+    },
+    {
+      "icon_id": "24849345",
+      "name": "文件管理",
+      "font_class": "file-manager",
+      "unicode": "e643",
+      "unicode_decimal": 58947
+    },
+    {
       "icon_id": "312499",
       "name": "file-binary",
       "font_class": "binary",

@@ -11,6 +11,8 @@ export default {
   ABOUT: '关于',
   MENU_DOCS: '文档',
   TERMINAL: '终端',
+  TOOLS: '工具',
+  FILE_MGR: '文件管理',
 
   //服务管理
   ONE_KEY_START: '一键启动',

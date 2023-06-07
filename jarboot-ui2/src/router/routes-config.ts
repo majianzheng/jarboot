@@ -1,4 +1,4 @@
-import { PAGE_COMMON, PAGE_JVM, PAGE_SERVICE, PAGE_SETTING, PAGE_USER } from '@/common/route-name-constants';
+import { FILE_MGR, PAGE_COMMON, PAGE_JVM, PAGE_SERVICE, PAGE_SETTING, PAGE_USER, TERM, TOOLS } from '@/common/route-name-constants';
 
 export default [
   {
@@ -25,13 +25,38 @@ export default [
   },
   {
     path: '/terminal',
-    name: 'terminal',
+    name: TOOLS,
     component: () => import('@/views/tools/tools-main.vue'),
     meta: {
       keepAlive: true,
       menu: true,
-      module: 'TERMINAL',
+      module: 'TOOLS',
+      code: 'TOOLS',
     },
+    children: [
+      {
+        path: 'file-manager',
+        name: FILE_MGR,
+        component: () => import('@/views/tools/file-cloud.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'TOOLS',
+          icon: 'icon-file-manager',
+          code: 'FILE_MGR',
+        },
+      },
+      {
+        path: 'terminal',
+        name: TERM,
+        component: () => import('@/views/tools/web-terminal.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'TOOLS',
+          icon: 'icon-terminal',
+          code: 'TERMINAL',
+        },
+      },
+    ],
   },
   {
     path: '/setting',
@@ -51,6 +76,7 @@ export default [
         meta: {
           keepAlive: true,
           module: 'SETTING',
+          icon: 'Setting',
           code: 'SYSTEM_SETTING',
         },
       },
@@ -61,6 +87,7 @@ export default [
         meta: {
           keepAlive: true,
           module: 'SETTING',
+          icon: 'UserFilled',
           code: 'USER_LIST',
         },
       },

@@ -32,12 +32,13 @@ public class TerminalServer {
         if (null != rowParam && !rowParam.isEmpty()) {
             row = Integer.parseInt(rowParam.get(0));
         }
-        logger.info("启动终端，宽：{}, 高：{}", col, row);
+        logger.info("启动终端session:{}，宽：{}, 高：{}", session.getId(), col, row);
         terminal.setWinSize(col, row);
     }
     @OnClose
     public void onClose( Session session) {
         terminal.destroy();
+        logger.info("销毁终端session:{}", session.getId());
     }
     @OnError
     public void onError(Session session, Throwable error) {
@@ -55,10 +56,10 @@ public class TerminalServer {
         TermSize size = JsonUtils.readValue(message, TermSize.class);
         if (null == size) {
             String msg = new String(message, StandardCharsets.UTF_8);
-            logger.error("解析窗口大小失败,msg:{}", msg);
+            logger.error("session({}), 解析窗口大小失败,msg:{}", session.getId(), msg);
             return;
         }
-        logger.info("更新窗口大小，col:{}, row:{}", size.getCol(), size.getRow());
+        logger.info("session({}), 更新窗口大小，col:{}, row:{}", session.getId(), size.getCol(), size.getRow());
         terminal.setWinSize(size.getCol(), size.getRow());
     }
 

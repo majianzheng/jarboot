@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import 'xterm/css/xterm.css';
 import { Terminal } from 'xterm';
 import { AttachAddon } from 'xterm-addon-attach';
@@ -100,10 +100,14 @@ function init() {
   term.open(termRef.value as HTMLDivElement);
   fitAddon.fit();
   term.focus();
-  console.info('>>>modes:', term.modes);
 }
 
 onMounted(init);
+onUnmounted(() => {
+  console.info('onUnmounted terminal.');
+  term.dispose();
+  websocket.close();
+});
 </script>
 
 <style scoped>
