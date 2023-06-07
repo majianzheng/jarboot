@@ -1,14 +1,11 @@
 <template>
   <div class="setting-wrapper">
     <div class="menu-side">
-      <el-menu v-model="data.routeName" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
-        <el-menu-item :index="PAGE_COMMON">
-          <el-icon><setting /></el-icon>
-          <template #title>系统配置</template>
-        </el-menu-item>
-        <el-menu-item :index="PAGE_USER">
-          <el-icon><UserFilled /></el-icon>
-          <template #title>用户管理</template>
+      <el-menu :default-active="data.routeName" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
+        <el-menu-item :index="conf.name" v-for="(conf, i) in settingRoutes" :key="i">
+          <el-icon v-if="PAGE_COMMON === conf.name"><Setting /></el-icon>
+          <el-icon v-else><UserFilled /></el-icon>
+          <template #title>{{ $t(conf.meta.code) }}</template>
         </el-menu-item>
       </el-menu>
     </div>
@@ -28,6 +25,7 @@
 import { onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PAGE_COMMON, PAGE_SETTING, PAGE_USER } from '@/common/route-name-constants';
+import routesConfig from '@/router/routes-config';
 
 const route = useRoute();
 const router = useRouter();
@@ -35,6 +33,9 @@ const router = useRouter();
 const data = reactive({
   routeName: '',
 });
+
+const settingRoutes = routesConfig.find(config => PAGE_SETTING === config.name)?.children || ([] as any[]);
+
 watch(() => route.name, init);
 
 function init() {

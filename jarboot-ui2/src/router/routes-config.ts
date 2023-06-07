@@ -26,7 +26,7 @@ export default [
   {
     path: '/terminal',
     name: 'terminal',
-    component: () => import('@/components/terminal.vue'),
+    component: () => import('@/views/tools/tools-main.vue'),
     meta: {
       keepAlive: true,
       menu: true,

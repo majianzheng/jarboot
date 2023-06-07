@@ -6,6 +6,7 @@ import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.ws.SessionOperator;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
+import com.pty4j.WinSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,10 @@ public class TerminalProcess {
         } catch (IOException e) {
             throw new JarbootException(e.getMessage(), e);
         }
+    }
+
+    public void setWinSize(int columns, int rows) {
+        process.setWinSize(new WinSize(columns, rows));
     }
 
     public void destroy() {
