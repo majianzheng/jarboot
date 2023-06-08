@@ -90,7 +90,7 @@
             v-for="(s, i) in serviceState.activatedList"
             :key="i"
             v-show="serviceState.activated.sid === s.sid"
-            :sid="s.sid as string"
+            :sid="s.sid"
             @close="closeServiceTerminal(s)"
             @execute="cmd => doCommand(s, cmd)"
             @cancel="doCancel(s)"
@@ -282,7 +282,7 @@ const rules = reactive<FormRules>({
 
 const headTools = {
   refresh: true,
-  delete: true,
+  delete: false,
   upload: true,
   addFile: true,
   addFolder: true,
@@ -312,14 +312,14 @@ watch(
   (value: string) => treeRef.value?.filter(value)
 );
 
-function filterService(_value: any, data: ServiceInstance) {
-  if (!serviceState.search) {
+function filterService(value: string, data: ServiceInstance) {
+  if (!value) {
     return true;
   }
   if (!data.name) {
     return false;
   }
-  return data.name.includes(serviceState.search);
+  return data.name.includes(value);
 }
 
 async function editService(row: ServiceInstance) {

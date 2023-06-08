@@ -37,6 +37,7 @@ const defaultProps = {
 };
 const emit = defineEmits<{
   (e: 'edit', path: string, content: string): void;
+  (e: 'select', file: FileNode): void;
 }>();
 
 const state = reactive({
@@ -50,13 +51,13 @@ const route = useRoute();
 const treeRef = ref<InstanceType<typeof ElTree>>();
 const prefix = `${route.name as string}-${Date.now()}`;
 
-watch(() => [props.baseDir, props.withRoot], getData);
+watch(() => [props.baseDir, props.withRoot], reload);
 
 function genId(btn: string, data: any) {
   return `${prefix}-${btn}-${data.key}`;
 }
 
-async function getData() {
+async function reload() {
   state.loading = true;
   try {
     state.data = await FileService.getFiles(props.baseDir, props.withRoot);
@@ -92,7 +93,7 @@ async function handleDelete(node: any) {
   const path = parseFilePath(node);
   await ElMessageBox.confirm(CommonUtils.translate('DELETE') + path + '?', CommonUtils.translate('WARN'), {});
   await FileService.deleteFile(path);
-  await getData();
+  await reload();
   CommonNotice.success(`${CommonUtils.translate('DELETE')}${CommonUtils.translate('SUCCESS')}`);
 }
 
@@ -133,10 +134,6 @@ function createNode(file: UploadFile, data: FileNode): FileNode {
   return child;
 }
 
-function handleChange(file: UploadFile, data: FileNode) {
-  createNode(file, data);
-}
-
 function handleProgress(evt: UploadProgressEvent, file: UploadFile, data: FileNode) {
   let child = createNode(file, data);
   let progress: number | null = round(evt.percent, 2);
@@ -144,7 +141,6 @@ function handleProgress(evt: UploadProgressEvent, file: UploadFile, data: FileNo
     progress = null;
   }
   child.progress = progress;
-  //console.info('handleProgress>>', { ...child });
   treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
 }
 
@@ -162,7 +158,7 @@ async function addFolder(node: any) {
     return;
   }
   const key = await FileService.addDirectory(parseFilePath(node) + '/' + name.value);
-  await getData();
+  await reload();
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
   treeRef.value?.setCurrentKey(key);
 }
@@ -183,7 +179,7 @@ async function saveFile() {
   let key = '';
   if (state.isNew) {
     key = await FileService.newFile(state.file.path, state.file.content);
-    await getData();
+    await reload();
   } else {
     key = await FileService.writeFile(state.file.path, state.file.content);
   }
@@ -232,21 +228,47 @@ function clickBtn(btn: string) {
   }
 }
 
-onMounted(getData);
+function filterService(value: any, data: FileNode) {
+  if (!value) {
+    return true;
+  }
+  if (!data.name) {
+    return false;
+  }
+  return data.name.includes(value);
+}
+
+function filter(value: string) {
+  treeRef.value?.filter(value);
+}
+
+function getCurrentNode() {
+  return treeRef.value?.getCurrentNode();
+}
+
+defineExpose({
+  reload,
+  filter,
+  getCurrentNode,
+});
+
+onMounted(reload);
 </script>
 
 <template>
   <div style="width: 100%" v-loading="state.loading">
-    <div class="file-tool-bar" v-if="headTools">
-      <el-button v-if="headTools.refresh" type="primary" icon="Refresh" plain @click="getData">{{ $t('REFRESH_BTN') }}</el-button>
-      <el-button v-if="headTools.upload" type="primary" icon="UploadFilled" plain @click="clickBtn('upload')">{{
+    <div class="file-tool-bar" v-show="headTools">
+      <el-button v-show="headTools?.refresh" type="primary" icon="Refresh" plain @click="reload">{{ $t('REFRESH_BTN') }}</el-button>
+      <el-button v-show="headTools?.upload" type="primary" icon="UploadFilled" plain @click="clickBtn('upload')">{{
         $t('UPLOAD_TITLE')
       }}</el-button>
-      <el-button v-if="headTools.addFile" type="primary" icon="DocumentAdd" plain @click="clickBtn('addFile')">{{ $t('ADD_FILE') }}</el-button>
-      <el-button v-if="headTools.addFolder" type="primary" icon="FolderAdd" plain @click="clickBtn('addFolder')">{{
+      <el-button v-show="headTools?.addFile" type="primary" icon="DocumentAdd" plain @click="clickBtn('addFile')">{{
+        $t('ADD_FILE')
+      }}</el-button>
+      <el-button v-show="headTools?.addFolder" type="primary" icon="FolderAdd" plain @click="clickBtn('addFolder')">{{
         $t('ADD_FOLDER')
       }}</el-button>
-      <el-button v-if="headTools.delete" type="danger" icon="Delete" plain @click="clickBtn('delete')">{{ $t('DELETE') }}</el-button>
+      <el-button v-show="headTools?.delete" type="danger" icon="Delete" plain @click="clickBtn('delete')">{{ $t('DELETE') }}</el-button>
     </div>
     <el-tree
       ref="treeRef"
@@ -254,6 +276,8 @@ onMounted(getData);
       :props="defaultProps"
       :default-expand-all="true"
       :expand-on-click-node="false"
+      :filter-node-method="filterService"
+      @current-change="data => emit('select', data)"
       node-key="key"
       highlight-current>
       <template #default="{ node, data }">
@@ -274,9 +298,9 @@ onMounted(getData);
               </template>
             </el-popover>
           </div>
-          <div class="node-row-tool" v-if="rowTools">
+          <div class="node-row-tool" v-show="rowTools || !data.parent">
             <el-upload
-              v-if="rowTools.upload"
+              v-show="rowTools?.upload || !data.parent"
               :action="'/api/jarboot/file-manager/file'"
               :headers="getHeader()"
               :data="{ path: parseFilePath(node) }"
@@ -288,7 +312,7 @@ onMounted(getData);
                 <el-button v-if="data.directory" link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
               </el-tooltip>
             </el-upload>
-            <el-tooltip v-if="rowTools.download" :content="$t('DOWNLOAD')">
+            <el-tooltip v-show="rowTools?.download" :content="$t('DOWNLOAD')">
               <el-button
                 v-if="!data.directory"
                 link
@@ -297,7 +321,7 @@ onMounted(getData);
                 @click="download(node)"
                 :id="genId('download', data)"></el-button>
             </el-tooltip>
-            <el-tooltip v-if="rowTools.addFile" :content="$t('ADD_FILE')">
+            <el-tooltip v-show="rowTools?.addFile || !data.parent" :content="$t('ADD_FILE')">
               <el-button
                 v-if="data.directory"
                 link
@@ -306,7 +330,7 @@ onMounted(getData);
                 :id="genId('addFile', data)"
                 @click="addFile(node)"></el-button>
             </el-tooltip>
-            <el-tooltip v-if="rowTools.addFolder" :content="$t('ADD_FOLDER')">
+            <el-tooltip v-show="rowTools?.addFolder || !data.parent" :content="$t('ADD_FOLDER')">
               <el-button
                 v-if="data.directory"
                 link
@@ -315,10 +339,13 @@ onMounted(getData);
                 :id="genId('addFolder', data)"
                 @click="addFolder(node)"></el-button>
             </el-tooltip>
-            <el-tooltip v-if="rowTools.edit" :content="$t('MODIFY')">
+            <el-tooltip v-show="!data.parent" :content="$t('REFRESH_BTN')">
+              <el-button v-if="data.directory" link type="primary" icon="Refresh" @click="reload"></el-button>
+            </el-tooltip>
+            <el-tooltip v-show="rowTools?.edit" :content="$t('MODIFY')">
               <el-button v-if="!data.directory" link type="primary" icon="Edit" @click="handleEdit(node)" :id="genId('edit', data)"></el-button>
             </el-tooltip>
-            <el-tooltip v-if="rowTools.delete" :content="$t('DELETE')">
+            <el-tooltip v-show="rowTools?.delete" :content="$t('DELETE')">
               <el-button v-if="data.parent" link type="danger" icon="Delete" @click="handleDelete(node)" :id="genId('delete', data)"></el-button>
             </el-tooltip>
           </div>
@@ -353,6 +380,7 @@ onMounted(getData);
 .node-row {
   width: 100%;
   display: flex;
+  line-height: 24px;
   .node-row-tool {
     width: 100px;
     display: flex;

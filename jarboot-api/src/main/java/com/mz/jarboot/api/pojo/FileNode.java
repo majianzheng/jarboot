@@ -18,6 +18,10 @@ public class FileNode {
 
     private String key;
 
+    private Long modifyTime;
+
+    private Long size;
+
     /** 子文件 */
     private List<FileNode> children;
 

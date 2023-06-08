@@ -12,7 +12,7 @@
             v-model="loginForm.username"
             :prefix-icon="User"
             :placeholder="$t('USER_NAME')"
-            @keydown.native.enter="submitForm(loginFormRef)"
+            @keydown.enter="submitForm(loginFormRef)"
             clearable
             autocomplete="off" />
         </el-form-item>
@@ -21,7 +21,7 @@
             v-model="loginForm.password"
             :prefix-icon="Lock"
             :placeholder="$t('PASSWORD')"
-            @keydown.native.enter="submitForm(loginFormRef)"
+            @keydown.enter="submitForm(loginFormRef)"
             clearable
             show-password
             type="password"
