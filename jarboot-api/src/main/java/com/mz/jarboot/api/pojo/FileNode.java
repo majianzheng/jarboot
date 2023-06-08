@@ -57,6 +57,22 @@ public class FileNode {
         this.key = key;
     }
 
+    public Long getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(Long modifyTime) {
+        this.modifyTime = modifyTime;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
     public List<FileNode> getChildren() {
         return children;
     }

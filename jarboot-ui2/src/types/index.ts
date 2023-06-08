@@ -60,6 +60,7 @@ export type FileNode = {
   directory: boolean;
   progress: number | null;
   size?: number;
+  modifyTime: number;
   children?: FileNode[];
 };
 

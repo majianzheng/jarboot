@@ -117,6 +117,7 @@ public class FileServiceImpl implements FileService {
         fileNode.setKey(genNodeKey(file));
         fileNode.setParent(file.getParentFile().getName());
         fileNode.setDirectory(file.isDirectory());
+        fileNode.setModifyTime(file.lastModified());
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (null == files || files.length == 0) {
@@ -129,6 +130,8 @@ public class FileServiceImpl implements FileService {
                 }
                 fileNode.getChildren().add(getFileNode(child));
             }
+        } else {
+            fileNode.setSize(file.length());
         }
         return fileNode;
     }
