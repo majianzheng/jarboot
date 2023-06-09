@@ -70,9 +70,12 @@ async function reload() {
 function parseFilePath(node: any) {
   let path = node.data.name;
   let parent = node.parent;
-  while (parent?.data.name) {
+  while (parent?.data.parent) {
     path = parent.data.name + '/' + path;
     parent = parent.parent;
+  }
+  if (props.baseDir) {
+    path = props.baseDir + '/' + path;
   }
   return path;
 }
@@ -205,8 +208,8 @@ function download(node: any) {
   });
 }
 
-function clickBtn(btn: string) {
-  let data = treeRef.value?.getCurrentNode() as FileNode;
+function clickBtn(btn: string, select?: FileNode) {
+  let data = (treeRef.value?.getCurrentNode() as FileNode) || select;
   if (!data) {
     return;
   }
@@ -250,6 +253,10 @@ function filter(value: string) {
 
 function getCurrentNode() {
   return treeRef.value?.getCurrentNode();
+}
+
+function isRoot(data: FileNode) {
+  return !data.parent && data.directory;
 }
 
 defineExpose({
@@ -318,7 +325,8 @@ onMounted(reload);
             </div>
             <div class="node-row-tool" v-show="rowTools || !data.parent">
               <el-upload
-                v-show="rowTools?.upload || !data.parent"
+                v-if="data.directory"
+                v-show="rowTools?.upload && data.parent"
                 :action="'/api/jarboot/file-manager/file'"
                 :headers="getHeader()"
                 :data="{ path: parseFilePath(node) }"
@@ -327,56 +335,43 @@ onMounted(reload);
                 :show-file-list="false"
                 class="upload-btn">
                 <el-tooltip :content="$t('UPLOAD_TITLE')">
-                  <el-button v-if="data.directory" link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
+                  <el-button link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
                 </el-tooltip>
               </el-upload>
-              <el-tooltip v-show="rowTools?.download" :content="$t('DOWNLOAD')">
-                <el-button
-                  v-if="!data.directory"
-                  link
-                  type="primary"
-                  icon="Download"
-                  @click="download(node)"
-                  :id="genId('download', data)"></el-button>
+              <el-tooltip v-if="isRoot(data)" :content="$t('UPLOAD_TITLE')">
+                <el-button link type="primary" icon="UploadFilled" @click.stop="clickBtn('upload', data)"></el-button>
               </el-tooltip>
-              <el-tooltip v-show="rowTools?.addFile || !data.parent" :content="$t('ADD_FILE')">
+              <el-tooltip v-if="!data.directory" v-show="rowTools?.download" :content="$t('DOWNLOAD')">
+                <el-button link type="primary" icon="Download" @click.stop="download(node)" :id="genId('download', data)"></el-button>
+              </el-tooltip>
+              <el-tooltip v-if="data.directory" v-show="rowTools?.addFile || !data.parent" :content="$t('ADD_FILE')">
+                <el-button v-if="isRoot(data)" link type="primary" icon="DocumentAdd" @click.stop="clickBtn('addFile', data)"></el-button>
                 <el-button
-                  v-if="data.directory"
+                  v-show="!isRoot(data)"
                   link
                   type="primary"
                   icon="DocumentAdd"
                   :id="genId('addFile', data)"
-                  @click="addFile(node)"></el-button>
+                  @click.stop="addFile(node)"></el-button>
               </el-tooltip>
-              <el-tooltip v-show="rowTools?.addFolder || !data.parent" :content="$t('ADD_FOLDER')">
+              <el-tooltip v-if="data.directory" v-show="rowTools?.addFolder || !data.parent" :content="$t('ADD_FOLDER')">
+                <el-button v-if="isRoot(data)" link type="primary" icon="FolderAdd" @click.stop="clickBtn('addFolder', data)"></el-button>
                 <el-button
-                  v-if="data.directory"
+                  v-show="!isRoot(data)"
                   link
                   type="primary"
                   icon="FolderAdd"
                   :id="genId('addFolder', data)"
-                  @click="addFolder(node)"></el-button>
+                  @click.stop="addFolder(node)"></el-button>
               </el-tooltip>
-              <el-tooltip v-show="!data.parent" :content="$t('REFRESH_BTN')">
-                <el-button v-if="data.directory" link type="primary" icon="Refresh" @click="reload"></el-button>
+              <el-tooltip v-if="isRoot(data)" :content="$t('REFRESH_BTN')">
+                <el-button link type="primary" icon="Refresh" @click.stop="reload"></el-button>
               </el-tooltip>
-              <el-tooltip v-show="rowTools?.edit" :content="$t('MODIFY')">
-                <el-button
-                  v-if="!data.directory"
-                  link
-                  type="primary"
-                  icon="Edit"
-                  @click="handleEdit(node)"
-                  :id="genId('edit', data)"></el-button>
+              <el-tooltip v-if="!data.directory" v-show="rowTools?.edit" :content="$t('MODIFY')">
+                <el-button link type="primary" icon="Edit" @click.stop="handleEdit(node)" :id="genId('edit', data)"></el-button>
               </el-tooltip>
-              <el-tooltip v-show="rowTools?.delete" :content="$t('DELETE')">
-                <el-button
-                  v-if="data.parent"
-                  link
-                  type="danger"
-                  icon="Delete"
-                  @click="handleDelete(node)"
-                  :id="genId('delete', data)"></el-button>
+              <el-tooltip v-if="data.parent" v-show="rowTools?.delete" :content="$t('DELETE')">
+                <el-button link type="danger" icon="Delete" @click.stop="handleDelete(node)" :id="genId('delete', data)"></el-button>
               </el-tooltip>
             </div>
           </div>
