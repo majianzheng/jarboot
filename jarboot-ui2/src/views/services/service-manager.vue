@@ -43,7 +43,7 @@
               :filter-node-method="filterService">
               <template #default="{ node, data }">
                 <div style="width: 100%">
-                  <div v-if="node.isLeaf" style="width: 100%" @click="currentChange(data, node)">
+                  <div v-if="node.isLeaf && !data.host" style="width: 100%" @click="currentChange(data, node)">
                     <el-icon v-if="isService && STATUS_STOPPED === data.status" class="status-stopped icon-position"><SuccessFilled /></el-icon>
                     <el-icon v-else-if="STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin icon-position">
                       <Loading />
@@ -191,7 +191,7 @@
           </el-empty>
           <file-manager
             v-else
-            :base-dir="serviceState.configForm.name"
+            :base-dir="userStore.userDir + '/' + serviceState.configForm.name"
             :with-root="true"
             :head-tools="headTools"
             :row-tools="rowTools"></file-manager>
@@ -213,7 +213,7 @@ import { ATTACHED, ATTACHING, EXITED, STATUS_STARTED, STATUS_STARTING, STATUS_ST
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import { WsManager } from '@/common/WsManager';
 import { FuncCode } from '@/common/EventConst';
-import { useBasicStore, useServiceStore } from '@/stores';
+import { useBasicStore, useServiceStore, useUserStore } from '@/stores';
 import SettingService from '@/services/SettingService';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
@@ -257,6 +257,8 @@ const configRef = ref<InstanceType<typeof ElForm>>();
 const route = useRoute();
 const basic = useBasicStore();
 const serviceStore = useServiceStore();
+const userStore = useUserStore();
+
 const serviceState = reactive({
   isNew: false,
   showEdit: false,

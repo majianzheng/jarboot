@@ -93,6 +93,8 @@ export default {
   SAVE_CONFIG_AND_ENABLE_FILE: 'Save configuration to enable file management',
   DOWNLOAD: 'Download',
   FAILED: 'Failed',
+  CREATE_TERM: 'Create terminal',
+  USER_DIR: 'User dir',
 
   //服务配置
   SERVER_LIST_TITLE: 'Services',
@@ -124,6 +126,7 @@ export default {
   USER_NAME: 'User',
   PASSWORD: 'Password',
   LOGIN: 'Login',
+  RE_PASSWORD: 'Repeat password',
   MODIFY_PWD: 'Modify password',
   CREATE_USER: 'Create user',
   SIGN_OUT: 'Sign out',
@@ -144,6 +147,9 @@ export default {
   DELETE_ROLE: `Do you want to delete this role?`,
   CAN_NOT_REMOVE_SELF: 'Can not delete current user!',
   PERMISSION_CONTROL_TITLE: `Access Permission Control`,
+  RESET_PASSWORD: 'Reset password',
+  PRIVILEGE_CONF: 'Privilege config',
+  ACCESS_PRIVILEGE: 'Access privilege',
 
   //交互提示信息
   SELECT_ONE_SERVER_INFO: 'Please select one server to operate.',
@@ -152,6 +158,7 @@ export default {
   SELECT_ONE_OP: 'Please select one item to operate.',
   COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
   SAVE_OR_CANCEL: 'Do you want to save changes to the file?',
+  PLEASE_INPUT: 'Please input ',
 
   //帮助
   HELP: 'Help',

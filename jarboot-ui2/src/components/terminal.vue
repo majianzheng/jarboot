@@ -1,9 +1,9 @@
 <template>
-  <div class="term-main" ref="termRef" :style="{ width: width + 'px', height: height + 'px' }"></div>
+  <div v-loading="state.loading" class="term-main" ref="termRef" :style="{ width: width + 'px', height: height + 'px' }"></div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import 'xterm/css/xterm.css';
 import { Terminal } from 'xterm';
 import { AttachAddon } from 'xterm-addon-attach';
@@ -16,29 +16,51 @@ import { SerializeAddon } from 'xterm-addon-serialize';
 import { SearchAddon } from 'xterm-addon-search';
 import CommonUtils from '@/common/CommonUtils';
 import { debounce, floor } from 'lodash';
+import { useUserStore } from '@/stores';
 
 //单个字符宽高： width: 8 height: 16
 const props = defineProps<{
   width: number;
   height: number;
+  useWebgl?: boolean;
   host?: string;
 }>();
+interface TermOption {
+  term: null | Terminal;
+  fitAddon: null | FitAddon;
+  websocket: null | WebSocket;
+}
+const emit = defineEmits<{
+  (e: 'connected', option: TermOption): void;
+  (e: 'disconnected', option: TermOption): void;
+}>();
+const userStore = useUserStore();
+
 const CHAR_WIDTH = 8;
 const CHAR_HEIGHT = 16;
 
+const state = reactive({
+  loading: true,
+  connected: false,
+});
+
 const termRef = ref<HTMLDivElement>();
 
-let term: Terminal;
-let websocket: WebSocket;
-let fitAddon: FitAddon;
+const termOption: TermOption = {
+  term: null,
+  websocket: null,
+  fitAddon: null,
+};
 
 watch(() => [props.height, props.width], debounce(updateSize, 1000, { maxWait: 3000 }));
 
 function updateSize() {
-  fitAddon.fit();
-  const winSize = { col: getCol(), row: getRow() };
-  const msg = JSON.stringify(winSize);
-  websocket && websocket.send(new Blob([msg], { type: 'text/plain' }));
+  termOption.fitAddon?.fit();
+  if (state.connected) {
+    const winSize = { col: getCol(), row: getRow() };
+    const msg = JSON.stringify(winSize);
+    termOption.websocket && termOption.websocket.send(new Blob([msg], { type: 'text/plain' }));
+  }
 }
 
 function getCol() {
@@ -50,25 +72,40 @@ function getRow() {
 }
 
 function createSocket() {
+  if (termOption.websocket) {
+    return termOption.websocket;
+  }
   const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-  const query = `col=${getCol()}&row=${getRow()}`;
+  const query = `col=${getCol()}&row=${getRow()}&userDir=${userStore.userDir}`;
   const url = import.meta.env.DEV
     ? `ws://${window.location.hostname}:9899/jarboot/main/terminal/ws?${token}&${query}`
     : `ws://${window.location.host}/jarboot/main/terminal/ws?${token}&${query}`;
   console.info('terminal connect to ' + url);
-  websocket = new WebSocket(url);
-  websocket.onopen = () => {
+  termOption.websocket = new WebSocket(url);
+  termOption.websocket.onopen = () => {
+    state.loading = false;
+    state.connected = true;
+    emit('connected', termOption);
     console.info('终端服务连接成功！');
   };
-  websocket.onerror = error => {
+  termOption.websocket.onerror = error => {
+    state.loading = false;
+    state.connected = false;
+    termOption.term?.writeln('连接出现错误！');
+    emit('disconnected', termOption);
     console.error('连接异常', error);
-    term.writeln('连接出现错误！');
   };
-  return websocket;
+  termOption.websocket.onclose = () => {
+    state.loading = false;
+    state.connected = false;
+    termOption.term?.writeln('连接断开！');
+    emit('disconnected', termOption);
+  };
+  return termOption.websocket;
 }
 
 function init() {
-  term = new Terminal({
+  termOption.term = new Terminal({
     fontSize: 14,
     cursorBlink: true,
     allowProposedApi: true,
@@ -82,31 +119,45 @@ function init() {
   const attachAddon = new AttachAddon(createSocket());
 
   // Attach the socket to term
-  term.loadAddon(attachAddon);
-  fitAddon = new FitAddon();
-  term.loadAddon(fitAddon);
-  term.loadAddon(new CanvasAddon());
-  const addon = new WebglAddon();
-  addon.onContextLoss(() => addon.dispose());
-  term.loadAddon(addon);
-  term.loadAddon(new WebLinksAddon());
+  termOption.term.loadAddon(attachAddon);
+  termOption.fitAddon = new FitAddon();
+  termOption.term.loadAddon(termOption.fitAddon);
+  termOption.term.loadAddon(new CanvasAddon());
+  if (props.useWebgl) {
+    const addon = new WebglAddon();
+    termOption.term.loadAddon(addon);
+  }
+  termOption.term.loadAddon(new WebLinksAddon());
   const unicode11Addon = new Unicode11Addon();
-  term.loadAddon(unicode11Addon);
-  term.unicode.activeVersion = '11';
+  termOption.term.loadAddon(unicode11Addon);
+  termOption.term.unicode.activeVersion = '11';
   const serializeAddon = new SerializeAddon();
-  term.loadAddon(serializeAddon);
+  termOption.term.loadAddon(serializeAddon);
   const searchAddon = new SearchAddon();
-  term.loadAddon(searchAddon);
-  term.open(termRef.value as HTMLDivElement);
-  fitAddon.fit();
-  term.focus();
+  termOption.term.loadAddon(searchAddon);
+  termOption.term.open(termRef.value as HTMLDivElement);
+  termOption.fitAddon.fit();
+  termOption.term.focus();
 }
+
+function fit() {
+  termOption.fitAddon?.fit();
+}
+
+function focus() {
+  termOption.term?.focus();
+}
+
+defineExpose({
+  fit,
+  focus,
+});
 
 onMounted(init);
 onUnmounted(() => {
   console.info('onUnmounted terminal.');
-  term.dispose();
-  websocket.close();
+  termOption.term?.dispose();
+  termOption.websocket?.close();
 });
 </script>
 
@@ -114,5 +165,6 @@ onUnmounted(() => {
 .term-main {
   width: 100%;
   min-height: 100px;
+  background: #263238;
 }
 </style>

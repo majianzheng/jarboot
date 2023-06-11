@@ -42,21 +42,6 @@ public interface ServiceManager {
     ServiceInstance getService(String serviceName);
 
     /**
-     * 一键重启，杀死所有服务进程，根据依赖重启
-     */
-    void oneClickRestart();
-
-    /**
-     * 一键启动，根据依赖重启
-     */
-    void oneClickStart();
-
-    /**
-     * 一键停止，杀死所有服务进程
-     */
-    void oneClickStop();
-
-    /**
      * 启动服务
      * @param serviceNames 服务列表
      */

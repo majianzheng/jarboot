@@ -1,4 +1,15 @@
-import { FILE_MGR, PAGE_COMMON, PAGE_JVM, PAGE_SERVICE, PAGE_SETTING, PAGE_USER, TERM, TOOLS } from '@/common/route-name-constants';
+import {
+  FILE_MGR,
+  PAGE_COMMON,
+  PAGE_JVM,
+  PAGE_PRIVILEGE,
+  PAGE_ROLE,
+  PAGE_SERVICE,
+  PAGE_SETTING,
+  PAGE_USER,
+  TERM,
+  TOOLS,
+} from '@/common/route-name-constants';
 
 export default [
   {
@@ -24,7 +35,7 @@ export default [
     },
   },
   {
-    path: '/terminal',
+    path: '/tools',
     name: TOOLS,
     component: () => import('@/views/tools/tools-main.vue'),
     meta: {
@@ -81,6 +92,17 @@ export default [
         },
       },
       {
+        path: 'role',
+        name: PAGE_ROLE,
+        component: () => import('@/views/setting/role-manager.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'SETTING',
+          icon: 'icon-role',
+          code: 'ROLE_MGR',
+        },
+      },
+      {
         path: 'user',
         name: PAGE_USER,
         component: () => import('@/views/setting/user-manager.vue'),
@@ -89,6 +111,17 @@ export default [
           module: 'SETTING',
           icon: 'UserFilled',
           code: 'USER_LIST',
+        },
+      },
+      {
+        path: 'privilege',
+        name: PAGE_PRIVILEGE,
+        component: () => import('@/views/setting/privilege-manager.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'SETTING',
+          icon: 'icon-privilege',
+          code: 'PRIVILEGE_MGR',
         },
       },
     ],

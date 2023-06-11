@@ -1,6 +1,5 @@
 package com.mz.jarboot.security;
 
-import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -20,7 +19,7 @@ public class JarbootUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.commaSeparatedStringToAuthorityList(StringUtils.EMPTY);
+        return AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRoles());
     }
 
     @Override

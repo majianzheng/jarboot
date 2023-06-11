@@ -15,7 +15,7 @@ public class AuthConst {
     public static final String JARBOOT_USER = "jarboot";
     public static final String ADMIN_ROLE = "ROLE_ADMIN";
 
-    public static final String REQUEST_PATH_SEPARATOR = "-->";
+    public static final String ROLE_PREFIX = "ROLE_";
 
     public static final long MAX_ROLE = 10000;
 }

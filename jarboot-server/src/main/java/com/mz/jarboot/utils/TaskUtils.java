@@ -82,7 +82,7 @@ public class TaskUtils {
     public static void startService(ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
-        String serverPath = setting.getWorkspace() + File.separator + setting.getName();
+        String serverPath = SettingUtils.getWorkspace() + File.separator + setting.getName();
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 

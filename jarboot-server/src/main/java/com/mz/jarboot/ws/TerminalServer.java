@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * @author mazheng
@@ -22,18 +21,6 @@ public class TerminalServer {
     @OnOpen
     public void onOpen(Session session) {
         terminal.init(session);
-        int col = 80;
-        int row = 100;
-        List<String> colParam = session.getRequestParameterMap().get("col");
-        List<String> rowParam = session.getRequestParameterMap().get("row");
-        if (null != colParam && !colParam.isEmpty()) {
-            col = Integer.parseInt(colParam.get(0));
-        }
-        if (null != rowParam && !rowParam.isEmpty()) {
-            row = Integer.parseInt(rowParam.get(0));
-        }
-        logger.info("启动终端session:{}，宽：{}, 高：{}", session.getId(), col, row);
-        terminal.setWinSize(col, row);
     }
     @OnClose
     public void onClose( Session session) {

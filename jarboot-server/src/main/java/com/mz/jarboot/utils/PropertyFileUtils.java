@@ -103,7 +103,6 @@ public class PropertyFileUtils {
      */
     public static ServiceSetting getServiceSettingByPath(String serverPath) {
         int p = Math.max(serverPath.lastIndexOf('/'), serverPath.lastIndexOf('\\'));
-        String workspace = serverPath.substring(0, p);
         String name = serverPath.substring(p + 1);
         String sid = SettingUtils.createSid(serverPath);
         File file = SettingUtils.getServiceSettingFile(serverPath);
@@ -118,7 +117,6 @@ public class PropertyFileUtils {
         String group = properties.getProperty(SettingPropConst.GROUP, StringUtils.EMPTY);
         setting.setGroup(group);
         setting.setSid(sid);
-        setting.setWorkspace(workspace);
         String cmd = properties.getProperty(SettingPropConst.COMMAND, StringUtils.EMPTY);
         setting.setCommand(cmd);
         String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
 import { zhCn, zhTw, en } from 'element-plus/lib/locale/index';
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, onUnmounted } from 'vue';
 import { useBasicStore } from '@/stores';
 import CommonUtils from '@/common/CommonUtils';
 
+const route = useRoute();
 const { locale } = useI18n();
 const locales = { 'zh-CN': zhCn, 'zh-TW': zhTw, 'en-US': en } as any;
 const language = computed(() => locales[locale.value]);
@@ -23,7 +24,14 @@ onUnmounted(() => {
 
 <template>
   <el-config-provider :locale="language">
-    <RouterView />
+    <router-view v-slot="{ Component }">
+      <transition name="slide-fade">
+        <keep-alive>
+          <component :is="Component" :key="route.path" v-if="route.meta.keepAlive" />
+        </keep-alive>
+      </transition>
+      <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
+    </router-view>
   </el-config-provider>
 </template>
 

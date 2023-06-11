@@ -19,16 +19,16 @@ public interface PrivilegeService {
     /**
      * 保持权限
      * @param role 角色
-     * @param resource 资源
+     * @param authCode 权限
      * @param permission 是否拥有权限
      */
-    void savePrivilege(String role, String resource, Boolean permission);
+    void savePrivilege(String role, String authCode, Boolean permission);
 
     /**
      * 判断角色是否拥有权限
      * @param role 角色
-     * @param resource 资源
+     * @param authCode 权限
      * @return 是否有权限
      */
-    boolean hasPrivilege(String role, String resource);
+    boolean hasPrivilege(String role, String authCode);
 }

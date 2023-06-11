@@ -14,29 +14,28 @@ public interface RoleService {
     /**
      * get roles by page.
      *
+     * @param role role
+     * @param name role name
      * @param pageNo pageNo
      * @param pageSize pageSize
      * @return roles page info
      */
-    PagedList<RoleInfo> getRoles(int pageNo, int pageSize);
+    PagedList<RoleInfo> getRoles(String role, String name, int pageNo, int pageSize);
 
     /**
-     * query the user's roles by username.
-     *
-     * @param username username
-     * @param pageNo pageNo
-     * @param pageSize pageSize
-     * @return roles page info
-     */
-    PagedList<RoleInfo> getRolesByUserName(String username, int pageNo, int pageSize);
-
-    /**
-     * assign role to user.
+     * assign role.
      *
      * @param role role
-     * @param userName username
+     * @param name name
      */
-    void addRole(String role, String userName);
+    void addRole(String role, String name);
+
+    /**
+     * 设置角色名
+     * @param role 角色
+     * @param name 名出
+     */
+    void setRoleName(String role, String name);
 
     /**
      * delete role.
@@ -45,13 +44,6 @@ public interface RoleService {
      */
     void deleteRole(String role);
 
-    /**
-     * delete user's role.
-     *
-     * @param role role
-     * @param username username
-     */
-    void deleteRole(String role, String username);
 
     /**
      * fuzzy query roles by role name.
@@ -65,5 +57,5 @@ public interface RoleService {
      * 获取角色列表
      * @return
      */
-    List<String> getRoleList();
+    List<RoleInfo> getRoleList();
 }

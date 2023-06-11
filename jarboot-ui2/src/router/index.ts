@@ -14,6 +14,15 @@ const router = createRouter({
       component: () => import('@/views/login.vue'),
     },
     {
+      path: '/win-terminal',
+      name: 'win-terminal',
+      component: () => import('@/views/win-terminal.vue'),
+      meta: {
+        keepAlive: true,
+        roles: ['ROLE_ADMIN'],
+      },
+    },
+    {
       path: '/',
       component: () => import('@/views/home.vue'),
       children: routesConfig,
@@ -37,6 +46,24 @@ router.beforeEach(async (to, from, next) => {
   }
   const userStore = useUserStore();
   userStore.setCurrentUser(user);
+  let permission: any = userStore.permission;
+  if (!permission) {
+    permission = await userStore.fetchPrivilege();
+  }
+  if ('jarboot' === userStore.username) {
+    // jarboot用户无需校验
+    next();
+    return;
+  }
+  const code = to?.meta?.code as string;
+  if (code) {
+    if (!permission[code]) {
+      // 无权限
+      console.info('>>>>', code, permission);
+      next({ name: PAGE_LOGIN, force: true });
+      return;
+    }
+  }
   next();
   // 权限检验
 });

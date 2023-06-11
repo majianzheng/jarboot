@@ -1,7 +1,6 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.api.pojo.PluginInfo;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
@@ -18,7 +17,6 @@ import java.util.List;
  */
 @RequestMapping(value = CommonConst.PLUGINS_CONTEXT)
 @RestController
-@Permission
 public class PluginsController {
     @Autowired
     private PluginsService pluginsService;
@@ -31,7 +29,6 @@ public class PluginsController {
      */
     @PostMapping
     @ResponseBody
-    @Permission("Add plugin")
     public ResponseVo<String> uploadPlugin(@RequestParam("file") MultipartFile file,
                                            @RequestParam("type") String type) {
         pluginsService.uploadPlugin(file, type);
@@ -56,7 +53,6 @@ public class PluginsController {
      */
     @DeleteMapping
     @ResponseBody
-    @Permission("Remove plugin")
     public ResponseVo<String> removePlugin(String type, String filename) {
         pluginsService.removePlugin(type, filename);
         return HttpResponseUtils.success();

@@ -93,30 +93,6 @@ public class ServiceManagerClient implements ServiceManager {
     }
 
     @Override
-    public void oneClickRestart() {
-        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/oneClickRestart";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
-    }
-
-    @Override
-    public void oneClickStart() {
-        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/oneClickStart";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
-    }
-
-    @Override
-    public void oneClickStop() {
-        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/oneClickStop";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
-    }
-
-    @Override
     public void startService(List<String> serviceNames) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/startService";
         String json = JsonUtils.toJsonString(serviceNames);

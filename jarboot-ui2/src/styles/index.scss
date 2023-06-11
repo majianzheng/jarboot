@@ -18,6 +18,19 @@
   --board-panel-body-color: rgba(41,52,65,1);
 }
 
+.el-tabs--card>.el-tabs__header {
+  height: 28px !important;
+  margin: 0 !important;
+}
+.el-tabs__new-tab {
+  margin: 2px;
+}
+.el-tabs__item {
+  height: 28px !important;
+}
+.el-tabs__nav-next, .el-tabs__nav-prev {
+  line-height: 28px !important;
+}
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

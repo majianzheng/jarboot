@@ -19,11 +19,9 @@ import java.io.IOException;
  */
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     private final JwtTokenManager tokenManager;
-    private final PermissionManager permissionManager;
 
-    public JwtAuthenticationTokenFilter(JwtTokenManager tokenManager, PermissionManager permissionManager) {
+    public JwtAuthenticationTokenFilter(JwtTokenManager tokenManager) {
         this.tokenManager = tokenManager;
-        this.permissionManager = permissionManager;
     }
     
     @Override
@@ -45,11 +43,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            if (permissionManager.hasPermission(authentication.getName(), request)) {
-                chain.doFilter(request, response);
-            } else {
-                handleError(response, HttpServletResponse.SC_OK, 402, "当前角色没有权限");
-            }
+            chain.doFilter(request, response);
         } else {
             handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "未登录");
         }

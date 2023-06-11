@@ -32,6 +32,27 @@ export default class FileService {
   }
 
   /**
+   * 解析路径
+   * @param node
+   * @param baseDir
+   */
+  public static parseFilePath(node: any, baseDir: string) {
+    let path = node.data.name;
+    let parent = node.parent;
+    if (!node.data?.parent) {
+      return baseDir;
+    }
+    while (parent?.data.parent) {
+      path = parent.data.name + '/' + path;
+      parent = parent.parent;
+    }
+    if (baseDir) {
+      path = baseDir + '/' + path;
+    }
+    return path;
+  }
+
+  /**
    * 删除文件
    * @param path
    */

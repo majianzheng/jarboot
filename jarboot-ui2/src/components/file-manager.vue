@@ -38,7 +38,7 @@ const defaultProps = {
 const emit = defineEmits<{
   (e: 'edit', path: string, content: string): void;
   (e: 'select', file: FileNode): void;
-  (e: 'node-click', file: FileNode): void;
+  (e: 'node-click', file: FileNode, path: string): void;
 }>();
 
 const state = reactive({
@@ -67,21 +67,8 @@ async function reload() {
   }
 }
 
-function parseFilePath(node: any) {
-  let path = node.data.name;
-  let parent = node.parent;
-  while (parent?.data.parent) {
-    path = parent.data.name + '/' + path;
-    parent = parent.parent;
-  }
-  if (props.baseDir) {
-    path = props.baseDir + '/' + path;
-  }
-  return path;
-}
-
 async function handleEdit(node: any) {
-  const path = parseFilePath(node);
+  const path = FileService.parseFilePath(node, props.baseDir);
   if (!canEdit(node.data?.name)) {
     // 非文本文件
     await ElMessageBox.confirm(CommonUtils.translate('NOT_TEXT_FILE'), CommonUtils.translate('WARN'));
@@ -94,7 +81,7 @@ async function handleEdit(node: any) {
 }
 
 async function handleDelete(node: any) {
-  const path = parseFilePath(node);
+  const path = FileService.parseFilePath(node, props.baseDir);
   await ElMessageBox.confirm(CommonUtils.translate('DELETE') + path + '?', CommonUtils.translate('WARN'), {});
   await FileService.deleteFile(path);
   await reload();
@@ -162,7 +149,7 @@ async function addFolder(node: any) {
     CommonNotice.warn('Name is empty!');
     return;
   }
-  const key = await FileService.addDirectory(parseFilePath(node) + '/' + name.value);
+  const key = await FileService.addDirectory(FileService.parseFilePath(node, props.baseDir) + '/' + name.value);
   await reload();
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
   treeRef.value?.setCurrentKey(key);
@@ -174,7 +161,7 @@ async function addFile(node: any) {
     CommonNotice.warn('Name is empty!');
     return;
   }
-  const path = parseFilePath(node) + '/' + name.value;
+  const path = FileService.parseFilePath(node, props.baseDir) + '/' + name.value;
   state.file = { path, content: '' };
   state.isNew = true;
   state.dialog = true;
@@ -198,7 +185,7 @@ function resetForm() {
 }
 
 function download(node: any) {
-  const path = parseFilePath(node);
+  const path = FileService.parseFilePath(node, props.baseDir);
   FileService.download(path, node.data.name, (result, msg) => {
     if (result) {
       CommonNotice.success(CommonUtils.translate('SUCCESS'));
@@ -259,6 +246,12 @@ function isRoot(data: FileNode) {
   return !data.parent && data.directory;
 }
 
+function nodeClick(data: FileNode) {
+  const node = treeRef.value?.getNode(data);
+  const path = FileService.parseFilePath(node, props.baseDir);
+  emit('node-click', data, path);
+}
+
 defineExpose({
   reload,
   filter,
@@ -291,7 +284,7 @@ onMounted(reload);
       :expand-on-click-node="false"
       :filter-node-method="filterService"
       @current-change="data => emit('select', data)"
-      @node-click="data => emit('node-click', data)"
+      @node-click="nodeClick"
       node-key="key"
       highlight-current>
       <template #default="{ node, data }">
@@ -324,55 +317,64 @@ onMounted(reload);
               </el-tooltip>
             </div>
             <div class="node-row-tool" v-show="rowTools || !data.parent">
-              <el-upload
-                v-if="data.directory"
-                v-show="rowTools?.upload && data.parent"
-                :action="'/api/jarboot/file-manager/file'"
-                :headers="getHeader()"
-                :data="{ path: parseFilePath(node) }"
-                :on-success="(_resp: any, file: UploadFile) => handleSuccess(file, data)"
-                :on-progress="(evt: UploadProgressEvent, file: UploadFile) => handleProgress(evt, file, data)"
-                :show-file-list="false"
-                class="upload-btn">
+              <span v-if="data.directory" v-show="rowTools?.upload && data.parent" class="row-btn">
+                <el-upload
+                  :action="'/api/jarboot/file-manager/file'"
+                  :headers="getHeader()"
+                  :data="{ path: FileService.parseFilePath(node, baseDir) }"
+                  :on-success="(_resp: any, file: UploadFile) => handleSuccess(file, data)"
+                  :on-progress="(evt: UploadProgressEvent, file: UploadFile) => handleProgress(evt, file, data)"
+                  :show-file-list="false">
+                  <el-tooltip :content="$t('UPLOAD_TITLE')">
+                    <el-button link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
+                  </el-tooltip>
+                </el-upload>
+              </span>
+              <span v-if="isRoot(data)" class="row-btn">
                 <el-tooltip :content="$t('UPLOAD_TITLE')">
-                  <el-button link type="primary" icon="UploadFilled" :id="genId('upload', data)"></el-button>
+                  <el-button link type="primary" icon="UploadFilled" @click.stop="clickBtn('upload', data)"></el-button>
                 </el-tooltip>
-              </el-upload>
-              <el-tooltip v-if="isRoot(data)" :content="$t('UPLOAD_TITLE')">
-                <el-button link type="primary" icon="UploadFilled" @click.stop="clickBtn('upload', data)"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="!data.directory" v-show="rowTools?.download" :content="$t('DOWNLOAD')">
-                <el-button link type="primary" icon="Download" @click.stop="download(node)" :id="genId('download', data)"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="data.directory" v-show="rowTools?.addFile || !data.parent" :content="$t('ADD_FILE')">
-                <el-button v-if="isRoot(data)" link type="primary" icon="DocumentAdd" @click.stop="clickBtn('addFile', data)"></el-button>
-                <el-button
-                  v-show="!isRoot(data)"
-                  link
-                  type="primary"
-                  icon="DocumentAdd"
-                  :id="genId('addFile', data)"
-                  @click.stop="addFile(node)"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="data.directory" v-show="rowTools?.addFolder || !data.parent" :content="$t('ADD_FOLDER')">
-                <el-button v-if="isRoot(data)" link type="primary" icon="FolderAdd" @click.stop="clickBtn('addFolder', data)"></el-button>
-                <el-button
-                  v-show="!isRoot(data)"
-                  link
-                  type="primary"
-                  icon="FolderAdd"
-                  :id="genId('addFolder', data)"
-                  @click.stop="addFolder(node)"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="isRoot(data)" :content="$t('REFRESH_BTN')">
-                <el-button link type="primary" icon="Refresh" @click.stop="reload"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="!data.directory" v-show="rowTools?.edit" :content="$t('MODIFY')">
-                <el-button link type="primary" icon="Edit" @click.stop="handleEdit(node)" :id="genId('edit', data)"></el-button>
-              </el-tooltip>
-              <el-tooltip v-if="data.parent" v-show="rowTools?.delete" :content="$t('DELETE')">
-                <el-button link type="danger" icon="Delete" @click.stop="handleDelete(node)" :id="genId('delete', data)"></el-button>
-              </el-tooltip>
+              </span>
+              <span v-if="!data.directory" v-show="rowTools?.download" class="row-btn">
+                <el-tooltip :content="$t('DOWNLOAD')">
+                  <el-button link type="primary" icon="Download" @click.stop="download(node)" :id="genId('download', data)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="isRoot(data)" class="row-btn">
+                <el-tooltip :content="$t('ADD_FILE')">
+                  <el-button link type="primary" icon="DocumentAdd" @click.stop="clickBtn('addFile', data)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="data.directory" v-show="!isRoot(data) && (rowTools?.addFile || !data.parent)" class="row-btn">
+                <el-tooltip :content="$t('ADD_FILE')">
+                  <el-button link type="primary" icon="DocumentAdd" :id="genId('addFile', data)" @click.stop="addFile(node)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="isRoot(data)" class="row-btn">
+                <el-tooltip :content="$t('ADD_FOLDER')">
+                  <el-button link type="primary" icon="FolderAdd" @click.stop="clickBtn('addFolder', data)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="data.directory" v-show="!isRoot(data) && (rowTools?.addFolder || !data.parent)" class="row-btn">
+                <el-tooltip :content="$t('ADD_FOLDER')">
+                  <el-button link type="primary" icon="FolderAdd" :id="genId('addFolder', data)" @click.stop="addFolder(node)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="isRoot(data)" class="row-btn">
+                <el-tooltip :content="$t('REFRESH_BTN')">
+                  <el-button link type="primary" icon="Refresh" @click.stop="reload"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="!data.directory" v-show="rowTools?.edit" class="row-btn">
+                <el-tooltip :content="$t('MODIFY')">
+                  <el-button link type="primary" icon="Edit" @click.stop="handleEdit(node)" :id="genId('edit', data)"></el-button>
+                </el-tooltip>
+              </span>
+              <span v-if="data.parent" v-show="rowTools?.delete" class="row-btn">
+                <el-tooltip :content="$t('DELETE')">
+                  <el-button link type="danger" icon="Delete" @click.stop="handleDelete(node)" :id="genId('delete', data)"></el-button>
+                </el-tooltip>
+              </span>
             </div>
           </div>
         </el-dropdown>
@@ -412,9 +414,12 @@ onMounted(reload);
     display: flex;
     justify-content: right;
   }
-  .upload-btn {
+  .row-btn {
     height: 24px;
-    margin-right: 12px;
+    margin-right: 5px;
+    &:last-child {
+      margin-right: 0;
+    }
   }
 }
 .upload-progress {

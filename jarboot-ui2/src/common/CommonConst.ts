@@ -33,3 +33,10 @@ export const currentUser: any = { username: '', globalAdmin: false };
 export const ADMIN_ROLE = 'ROLE_ADMIN';
 
 export const LOCALHOST = 'localhost';
+
+export const DEFAULT_PRIVILEGE = {
+  SERVICES_MGR: true,
+  ONLINE_DEBUG: true,
+  TOOLS: true,
+  FILE_MGR: true,
+};

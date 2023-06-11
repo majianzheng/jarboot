@@ -11,6 +11,8 @@
             v-model="state.searchParams[config.prop]"
             clearable
             class="fix-search-width"
+            autocomplete="off"
+            autocapitalize="off"
             :placeholder="parsePlaceHolder(config)"></el-input>
           <el-input-number
             :key="'input-number-' + index"
@@ -58,25 +60,31 @@
         </el-form-item>
         <slot name="search-form-item-after"></slot>
         <el-form-item>
-          <el-button @click="reset">重置</el-button>
-          <el-button type="primary" @click="search">查询</el-button>
+          <el-button @click="reset">{{ $t('RESET_BTN') }}</el-button>
+          <el-button type="primary" @click="search">{{ $t('SEARCH_BTN') }}</el-button>
         </el-form-item>
       </el-form>
       <slot name="after-search"></slot>
       <div style="flex: auto"></div>
       <slot name="right-extra"></slot>
     </div>
-    <el-table ref="tableRef" :data="state.data" v-loading="state.loading" :height="height" :max-height="maxHeight">
+    <el-table
+      ref="tableRef"
+      :data="state.data"
+      v-loading="state.loading"
+      :highlight-current-row="highlightCurrentRow"
+      :current-row-key="currentRowKey"
+      @current-change="(newRow, oldRow) => emit('current-change', newRow, oldRow)"
+      :height="height"
+      :max-height="maxHeight">
       <slot></slot>
     </el-table>
     <!-- 表格分页: 开始 -->
     <div v-if="props.showPagination" class="table-pagination">
       <div style="flex: auto"></div>
-      <div class="demonstration">
-        共 <span class="total">{{ state.totalCount || 0 }}</span> 条记录
-      </div>
       <el-pagination
         background
+        small="small"
         v-model:current-page="state.page"
         v-model:page-size="state.limit"
         :total="state.totalCount"
@@ -92,6 +100,7 @@
 import { nextTick, onMounted, reactive, ref, watch, type PropType } from 'vue';
 import { useRoute, useRouter, type LocationQueryValue } from 'vue-router';
 import StringUtil from '@/common/StringUtil';
+import CommonUtils from '@/common/CommonUtils';
 import type { SearchConfig } from '@/types';
 import type { ElTable } from 'element-plus';
 
@@ -100,14 +109,16 @@ const props = defineProps({
   totalCount: { type: Number, default: 0 },
   height: { type: [String, Number], required: false },
   maxHeight: { type: [String, Number], required: false },
+  currentRowKey: { type: String, default: '' },
   pageLayout: {
     type: String,
-    default: 'prev, pager, next, sizes, jumper',
+    default: 'total, prev, pager, next, sizes, jumper',
   },
+  highlightCurrentRow: { type: Boolean, default: false },
   dataSource: { type: [Array, Function], default: [] as any[] },
   clientPage: { type: Boolean, default: false },
   pageSizes: {
-    type: Object as PropType<number[]>,
+    type: Array as PropType<number[]>,
     default: [5, 10, 20, 50, 100] as number[],
   },
   searchConfig: { type: [Array<SearchConfig>], required: false },
@@ -115,6 +126,7 @@ const props = defineProps({
 const emit = defineEmits<{
   (e: 'update:totalCount', value: number): void;
   (e: 'reset-search'): void;
+  (e: 'current-change', currentRow: any, oldCurrentRow: any): void;
 }>();
 const route = useRoute();
 const router = useRouter();
@@ -136,7 +148,7 @@ const parsePlaceHolder = (config: SearchConfig): string => {
     return config.placeholder;
   }
   if (config.name) {
-    return `请输入${config.name}`;
+    return CommonUtils.translate(config.name as string);
   }
   return '请输入关键字查询';
 };
@@ -204,7 +216,7 @@ const updateDataList = () => {
     promise
       .then(result => {
         state.data = result?.rows || [];
-        const totalCount = result?.totalCount;
+        const totalCount = result?.total;
         state.totalCount = totalCount;
         emit('update:totalCount', totalCount);
       })

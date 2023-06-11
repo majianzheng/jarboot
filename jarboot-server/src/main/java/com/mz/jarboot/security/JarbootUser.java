@@ -7,7 +7,7 @@ public class JarbootUser {
     private String username;
     private String accessToken;
     private long tokenTtl;
-    private boolean globalAdmin;
+    private String roles;
 
     public String getUsername() {
         return username;
@@ -33,11 +33,11 @@ public class JarbootUser {
         this.tokenTtl = tokenTtl;
     }
 
-    public boolean getGlobalAdmin() {
-        return globalAdmin;
+    public String getRoles() {
+        return roles;
     }
 
-    public void setGlobalAdmin(boolean globalAdmin) {
-        this.globalAdmin = globalAdmin;
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }

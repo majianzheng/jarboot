@@ -26,19 +26,9 @@ public interface RoleDao extends JpaRepository<RoleInfo, Long> {
     /**
      * 根据角色和用户名删除
      * @param role 角色
-     * @param username 用户名
      */
     @Modifying
-    void deleteByRoleAndUsername(String role, String username);
-
-    /**
-     * 根据用户名获取角色
-     * @param username 用户名
-     * @param pageable 分页
-     * @return 角色信息列表
-     */
-    @Query(value = "select r from RoleInfo r where r.username=:username")
-    Page<RoleInfo> getRoleByUsername(@Param("username") String username, Pageable pageable);
+    void deleteByRole(String role);
 
     /**
      * 根据角色关键字寻找角色
@@ -48,13 +38,6 @@ public interface RoleDao extends JpaRepository<RoleInfo, Long> {
     @Query("select r.role from RoleInfo r where r.role like CONCAT('%',:role,'%')")
     List<String> findRolesLikeRoleName(@Param("role") String role);
 
-    /**
-     * 获取第一个符合指定角色和用户的角色信息
-     * @param role 角色
-     * @param username 用户名
-     * @return 角色信息
-     */
-    RoleInfo findFirstByRoleAndUsername(String role, String username);
 
     /**
      * 获取所有角色列表

@@ -7,12 +7,12 @@ import javax.persistence.UniqueConstraint;
 /**
  * @author majianzheng
  */
-@Table(name = Privilege.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"role", "resource"})})
+@Table(name = Privilege.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"role", "authCode"})})
 @Entity
 public class Privilege extends AbstractBaseEntity {
     public static final String TABLE_NAME = "jarboot_privilege";
     private String role;
-    private String resource;
+    private String authCode;
     private Boolean permission;
 
     public String getRole() {
@@ -23,12 +23,12 @@ public class Privilege extends AbstractBaseEntity {
         this.role = role;
     }
 
-    public String getResource() {
-        return resource;
+    public String getAuthCode() {
+        return authCode;
     }
 
-    public void setResource(String resource) {
-        this.resource = resource;
+    public void setAuthCode(String authCode) {
+        this.authCode = authCode;
     }
 
     public Boolean getPermission() {

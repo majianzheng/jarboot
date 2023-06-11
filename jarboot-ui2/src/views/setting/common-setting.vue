@@ -7,9 +7,6 @@
       <el-form-item :label="$t('DEFAULT_VM_OPT')" prop="defaultVmOptions">
         <el-input v-model="state.form.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>
-      <el-form-item :label="$t('AUTO_START_AFTER_INIT')" prop="servicesAutoStart">
-        <el-switch v-model="state.form.servicesAutoStart"></el-switch>
-      </el-form-item>
     </el-form>
     <div class="__setting_footer">
       <el-button :loading="state.loading" type="primary" @click="save">{{ $t('SUBMIT_BTN') }}</el-button>
@@ -29,7 +26,6 @@ let state = reactive({
   form: {
     workspace: '',
     defaultVmOptions: '',
-    servicesAutoStart: false,
   },
 });
 

@@ -23,10 +23,10 @@ public interface PrivilegeDao extends JpaRepository<Privilege, Long> {
     /**
      * 获取角色对某一资源的权限
      * @param role 角色
-     * @param resource 资源
+     * @param authCode 资源
      * @return 权限信息
      */
-    Privilege findFirstByRoleAndResource(String role, String resource);
+    Privilege findFirstByRoleAndAuthCode(String role, String authCode);
 
     /**
      * 根据角色删除所有权限信息

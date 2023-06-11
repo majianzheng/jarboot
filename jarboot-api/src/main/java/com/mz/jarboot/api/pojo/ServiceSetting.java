@@ -27,11 +27,6 @@ public class ServiceSetting implements Serializable {
      * 最后修改时间
      */
     private transient long lastModified;
-
-    /**
-     * 服务的文件夹路径
-     */
-    private String workspace;
     
     /**
      * 用户自定义的启动命令
@@ -90,8 +85,6 @@ public class ServiceSetting implements Serializable {
 
     private String scheduleType;
 
-    private FileNode serviceDir;
-
     public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
@@ -144,14 +137,6 @@ public class ServiceSetting implements Serializable {
         this.lastModified = lastModified;
     }
 
-    public String getWorkspace() {
-        return workspace;
-    }
-
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
-    }
-    
     public String getCommand() {
         return command;
     }
@@ -248,14 +233,6 @@ public class ServiceSetting implements Serializable {
         this.scheduleType = scheduleType;
     }
 
-    public FileNode getServiceDir() {
-        return serviceDir;
-    }
-
-    public void setServiceDir(FileNode serviceDir) {
-        this.serviceDir = serviceDir;
-    }
-
     @Override
     public String toString() {
         return "ServiceSetting{" +
@@ -263,7 +240,6 @@ public class ServiceSetting implements Serializable {
                 ", group='" + group + '\'' +
                 ", sid='" + sid + '\'' +
                 ", lastModified=" + lastModified +
-                ", workspace='" + workspace + '\'' +
                 ", command='" + command + '\'' +
                 ", vm='" + vm + '\'' +
                 ", priority=" + priority +

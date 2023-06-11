@@ -4,9 +4,7 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.api.service.ServiceManager;
-import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
@@ -26,7 +24,6 @@ import java.util.List;
  */
 @RequestMapping(value = CommonConst.SERVICE_MGR_CONTEXT)
 @Controller
-@Permission
 public class ServiceMgrController {
     @Autowired
     private ServiceManager serviceManager;
@@ -71,7 +68,6 @@ public class ServiceMgrController {
      */
     @PostMapping(value="/startService")
     @ResponseBody
-    @Permission
     public ResponseSimple startServer(@RequestBody List<String> services) {
         serviceManager.startService(services);
         return new ResponseSimple();
@@ -84,7 +80,6 @@ public class ServiceMgrController {
      */
     @PostMapping(value="/stopService")
     @ResponseBody
-    @Permission
     public ResponseSimple stopServer(@RequestBody List<String> services) {
         serviceManager.stopService(services);
         return new ResponseSimple();
@@ -97,45 +92,8 @@ public class ServiceMgrController {
      */
     @PostMapping(value="/restartService")
     @ResponseBody
-    @Permission
     public ResponseSimple restartServer(@RequestBody List<String> services) {
         serviceManager.restartService(services);
-        return new ResponseSimple();
-    }
-
-    /**
-     * 一键重启
-     * @return 执行结果
-     */
-    @GetMapping(value="/oneClickRestart")
-    @ResponseBody
-    @Permission
-    public ResponseSimple oneClickRestart() {
-        serviceManager.oneClickRestart();
-        return new ResponseSimple();
-    }
-
-    /**
-     * 一键启动
-     * @return 执行结果
-     */
-    @GetMapping(value="/oneClickStart")
-    @ResponseBody
-    @Permission
-    public ResponseSimple oneClickStart() {
-        serviceManager.oneClickStart();
-        return new ResponseSimple();
-    }
-
-    /**
-     * 一键停止
-     * @return 执行结果
-     */
-    @GetMapping(value="/oneClickStop")
-    @ResponseBody
-    @Permission
-    public ResponseSimple oneClickStop() {
-        serviceManager.oneClickStop();
         return new ResponseSimple();
     }
 
@@ -184,7 +142,6 @@ public class ServiceMgrController {
      */
     @DeleteMapping(value="/service")
     @ResponseBody
-    @Permission
     public ResponseSimple deleteServer(String serviceName) {
         serviceManager.deleteService(serviceName);
         return new ResponseSimple();

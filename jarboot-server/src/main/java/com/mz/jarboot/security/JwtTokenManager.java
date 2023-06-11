@@ -2,11 +2,13 @@ package com.mz.jarboot.security;
 
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
+import com.mz.jarboot.dao.UserDao;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,6 +35,8 @@ public class JwtTokenManager {
     private String secretKey;
     @Value("${jarboot.security.enabled:true}")
     private boolean enabled;
+    @Autowired
+    private UserDao userDao;
     private byte[] secretKeyBytes;
 
     public byte[] getSecretKeyBytes() {
@@ -45,31 +49,36 @@ public class JwtTokenManager {
     /**
      * Create token.
      *
-     * @param authentication auth info
+     * @param username auth info
      * @return token
      */
-    public String createToken(Authentication authentication) {
-        return createToken(authentication.getName());
-    }
-    
-    /**
-     * Create token.
-     *
-     * @param userName auth info
-     * @return token
-     */
-    public String createToken(String userName) {
-        
+    public String createToken(String username) {
+
         long now = System.currentTimeMillis();
-        
+        String roles = userDao.getUserRoles(username);
         Date validity;
         validity = new Date(now + expireSeconds * 1000L);
         
-        Claims claims = Jwts.claims().setSubject(userName);
+        Claims claims = Jwts.claims().setSubject(username);
+        claims.put(AUTHORITIES_KEY, roles);
         return Jwts.builder().setClaims(claims).setExpiration(validity)
                 .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
     }
-    
+
+    /**
+     * Create openapi token.
+     *
+     * @param username auth info
+     * @param roleName role
+     * @return token
+     */
+    public String createOpenApiToken(String username, String roleName) {
+        Claims claims = Jwts.claims().setSubject(username);
+        claims.put(AUTHORITIES_KEY, roleName);
+        return Jwts.builder().setClaims(claims)
+                .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
+    }
+
     /**
      * Get auth Info.
      *

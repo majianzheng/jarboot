@@ -1,4 +1,5 @@
 import { ElNotification } from 'element-plus';
+import CommonUtils from '@/common/CommonUtils';
 
 /**
  * 通知组件
@@ -10,10 +11,13 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static success(msg: string, description = '') {
+  static success(msg?: string, description?: string) {
+    if (!msg) {
+      msg = CommonUtils.translate('SUCCESS');
+    }
     ElNotification({
       title: msg,
-      message: description,
+      message: description || '',
       type: 'success',
     });
   }

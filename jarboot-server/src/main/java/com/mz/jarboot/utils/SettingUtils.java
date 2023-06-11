@@ -9,10 +9,14 @@ import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.entity.User;
+import com.mz.jarboot.service.UserService;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.CollectionUtils;
 
 import java.io.*;
@@ -38,8 +42,6 @@ public class SettingUtils {
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     /** 默认的工作空间路径 */
     private static String defaultWorkspace;
-    /** Jarboot启动后自动启动其管理的服务的属性配置key */
-    private static final String ENABLE_AUTO_START_KEY = "jarboot.services.enable-auto-start-after-start";
     /** Jarboot配置文件路径 */
     private static String jarbootConf;
     /** Jarboot的bin文件夹路径 */
@@ -60,6 +62,8 @@ public class SettingUtils {
 
     private static String homePath = System.getProperty(CommonConst.JARBOOT_HOME);
 
+    private static UserService userService;
+
     public static void init(ApplicationContext context, String homePath) {
         SettingUtils.homePath = homePath;
         int port = context.getEnvironment().getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
@@ -78,7 +82,8 @@ public class SettingUtils {
         trustedHostsFile = conf + "trusted-hosts.conf";
         initTrustedHosts();
         //初始化默认目录及配置路径
-        defaultWorkspace = homePath + File.separator + CommonConst.SERVICES;
+        defaultWorkspace = homePath + File.separator + CommonConst.WORKSPACE;
+        userService = context.getBean(UserService.class);
     }
 
     public static String getHomePath() {
@@ -116,9 +121,6 @@ public class SettingUtils {
                 PropertyFileUtils.getProperties(conf) : new Properties();
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
-        String s = properties.getProperty(ENABLE_AUTO_START_KEY, SettingPropConst.VALUE_FALSE);
-        boolean servicesAutoStart = SettingPropConst.VALUE_TRUE.equalsIgnoreCase(s);
-        GLOBAL_SETTING.setServicesAutoStart(servicesAutoStart);
     }
 
     private static void initTrustedHosts() {
@@ -173,7 +175,6 @@ public class SettingUtils {
                 props.put(ROOT_DIR_KEY, workspace);
             }
 
-            props.put(ENABLE_AUTO_START_KEY, String.valueOf(setting.getServicesAutoStart()));
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
             if (null == setting.getDefaultVmOptions()) {
@@ -290,13 +291,23 @@ public class SettingUtils {
         return StringUtils.EMPTY;
     }
 
+    public static String getCurrentLoginUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
+    }
+
     /**
      * 获取服务工作路径
      * @param serviceName 服务名
      * @return 路径
      */
     public static String getServicePath(String serviceName) {
-        return getWorkspace() + File.separator + serviceName;
+        User user = userService.findUserByUsername(getCurrentLoginUsername());
+        return getWorkspace() + File.separator + user.getUserDir() + File.separator + serviceName;
+    }
+
+    public static User getCurrentLoginUser() {
+        return userService.findUserByUsername(getCurrentLoginUsername());
     }
 
     /**

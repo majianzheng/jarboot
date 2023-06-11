@@ -27,7 +27,7 @@ public class CommonConst {
     public static final String JAR_FILE_EXT = "jar";
 
     public static final String JARBOOT_NAME = "jarboot";
-    public static final String SERVICES = "services";
+    public static final String WORKSPACE = "workspace";
 
     public static final String HTTP = "http://";
     public static final String HTTPS = "https://";

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @Component
+@Deprecated
 public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final int MIN_MODIFY_WAIT_TIME = 3;
@@ -58,8 +59,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
     private String afterStartExec;
-    @Value("${jarboot.services.enable-auto-start-after-start:false}")
-    private boolean enableAutoStartServices;
+
     private String curWorkspace;
     private boolean starting = false;
     private final ThreadFactory threadFactory = JarbootThreadFactory
@@ -87,11 +87,6 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
 
         //attach已经处于启动的进程
         this.attachRunningServer();
-
-        if (enableAutoStartServices) {
-            logger.info("Auto starting services...");
-            serverMgrService.oneClickStart();
-        }
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
@@ -172,7 +167,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     }
 
     private void attachRunningServer() {
-        List<ServiceInstance> runningServers = taskRunCache.getServiceList();
+        List<ServiceInstance> runningServers = taskRunCache.getServiceList("");
         if (CollectionUtils.isEmpty(runningServers)) {
             return;
         }
@@ -208,8 +203,8 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
      * 缓存文件的时间戳
      */
     private void storeCurFileModifyTime() {
-        File[] serverDirs = taskRunCache.getServiceDirs();
-        if (null == serverDirs || serverDirs.length <= 0) {
+        File[] serverDirs = taskRunCache.getServiceDirs("");
+        if (null == serverDirs) {
             return;
         }
         File recordDir = CacheDirHelper.getMonitorRecordDir();
@@ -220,7 +215,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         //清理失效的record文件
         File[] recordFiles = recordDir.listFiles();
         HashMap<String, File> recordFileMap = new HashMap<>(16);
-        if (null != recordFiles && recordFiles.length > 0) {
+        if (null != recordFiles) {
             for (File recordFile : recordFiles) {
                 recordFileMap.put(recordFile.getName(), recordFile);
             }

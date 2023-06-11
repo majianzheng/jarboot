@@ -25,26 +25,26 @@ public class PrivilegeServiceImpl implements PrivilegeService {
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void savePrivilege(String role, String resource, Boolean permission) {
+    public void savePrivilege(String role, String authCode, Boolean permission) {
         if (AuthConst.ADMIN_ROLE.equals(role)) {
             throw new JarbootException("Admin role can't modify!");
         }
-        Privilege privilege = privilegeDao.findFirstByRoleAndResource(role, resource);
+        Privilege privilege = privilegeDao.findFirstByRoleAndAuthCode(role, authCode);
         if (null == privilege) {
             privilege = new Privilege();
             privilege.setRole(role);
-            privilege.setResource(resource);
+            privilege.setAuthCode(authCode);
         }
         privilege.setPermission(permission);
         privilegeDao.save(privilege);
     }
 
     @Override
-    public boolean hasPrivilege(String role, String resource) {
+    public boolean hasPrivilege(String role, String authCode) {
         if (AuthConst.ADMIN_ROLE.equals(role)) {
             return true;
         }
-        Privilege privilege = privilegeDao.findFirstByRoleAndResource(role, resource);
+        Privilege privilege = privilegeDao.findFirstByRoleAndAuthCode(role, authCode);
 
         return null != privilege && Boolean.TRUE.equals(privilege.getPermission());
     }

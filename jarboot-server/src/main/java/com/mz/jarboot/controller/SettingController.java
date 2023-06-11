@@ -3,7 +3,6 @@ package com.mz.jarboot.controller;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
@@ -22,7 +21,6 @@ import java.util.Set;
  */
 @RequestMapping(value = CommonConst.SETTING_CONTEXT)
 @RestController
-@Permission
 public class SettingController {
     @Autowired
     private SettingService settingService;
@@ -34,7 +32,6 @@ public class SettingController {
      */
     @GetMapping(value="/serviceSetting")
     @ResponseBody
-    @Permission("Get Server Setting")
     public ResponseVo<ServiceSetting> getServerSetting(String serviceName) {
         ServiceSetting results = settingService.getServiceSetting(serviceName);
         return new ResponseVo<>(results);
@@ -46,7 +43,6 @@ public class SettingController {
      */
     @PostMapping(value="/serviceSetting")
     @ResponseBody
-    @Permission("Submit Server Setting")
     public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
         settingService.submitServiceSetting(setting);
         return new ResponseSimple();
@@ -58,7 +54,6 @@ public class SettingController {
      */
     @GetMapping(value="/globalSetting")
     @ResponseBody
-    @Permission("Get Global Setting")
     public ResponseVo<GlobalSetting> getGlobalSetting() {
         GlobalSetting results = settingService.getGlobalSetting();
         return new ResponseVo<>(results);
@@ -71,7 +66,6 @@ public class SettingController {
      */
     @PostMapping(value="/globalSetting")
     @ResponseBody
-    @Permission("Submit Global Setting")
     public ResponseSimple submitGlobalSetting(@RequestBody GlobalSetting setting) {
         settingService.submitGlobalSetting(setting);
         return new ResponseSimple();
@@ -85,7 +79,6 @@ public class SettingController {
      */
     @GetMapping(value="/vmoptions")
     @ResponseBody
-    @Permission("Get Server jvm options")
     public ResponseVo<String> getVmOptions(String serviceName, String file) {
         String results = settingService.getVmOptions(serviceName, file);
         return new ResponseVo<>(results);
@@ -100,7 +93,6 @@ public class SettingController {
      */
     @PostMapping(value="/vmoptions")
     @ResponseBody
-    @Permission("Save Server jvm options")
     public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
         settingService.saveVmOptions(serviceName, file, content);
         return new ResponseSimple();
@@ -114,7 +106,6 @@ public class SettingController {
      */
     @PostMapping(value="/trustedHost")
     @ResponseBody
-    @Permission("Add trusted host")
     public ResponseSimple addTrustedHost(String host) throws IOException {
         SettingUtils.addTrustedHost(host);
         AgentManager.getInstance().addTrustedHost(host);
@@ -129,7 +120,6 @@ public class SettingController {
      */
     @DeleteMapping(value="/trustedHost")
     @ResponseBody
-    @Permission("Delete trusted host")
     public ResponseSimple removeTrustedHost(String host) throws IOException {
         SettingUtils.removeTrustedHost(host);
         return new ResponseSimple();

@@ -46,15 +46,11 @@
     </file>
     <file>
       <source>../demo-server/target/demo-server.jar</source>
-      <destName>services/demo-server/demo-server.jar</destName>
+      <destName>workspace/default/demo-server/demo-server.jar</destName>
     </file>
     <file>
       <source>../plugins/shell-plugin/target/shell-plugin.jar</source>
       <destName>plugins/agent/shell-plugin.jar</destName>
-    </file>
-    <file>
-      <source>../plugins/debug-plugin/target/debug-plugin.jar</source>
-      <destName>plugins/server/debug-plugin.jar</destName>
     </file>
     <file>
       <source>conf/cluster.conf</source>

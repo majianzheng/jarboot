@@ -8,7 +8,7 @@ import com.mz.jarboot.api.pojo.ServiceSetting;
  * @author majianzheng
  */
 public class TaskLifecycleEvent implements JarbootEvent {
-    private String workspace;
+    private String workDirectory;
     private String sid;
     private String name;
     private String status;
@@ -19,11 +19,11 @@ public class TaskLifecycleEvent implements JarbootEvent {
     }
 
     public TaskLifecycleEvent(ServiceSetting setting, TaskLifecycle lifecycle) {
-        this(setting.getWorkspace(), setting.getSid(), setting.getName(), lifecycle);
+        this(setting.getWorkDirectory(), setting.getSid(), setting.getName(), lifecycle);
     }
 
-    public TaskLifecycleEvent(String workspace, String sid, String name, TaskLifecycle lifecycle) {
-        this.workspace = workspace;
+    public TaskLifecycleEvent(String workDirectory, String sid, String name, TaskLifecycle lifecycle) {
+        this.workDirectory = workDirectory;
         this.sid = sid;
         this.name = name;
         this.lifecycle = lifecycle;
@@ -44,12 +44,12 @@ public class TaskLifecycleEvent implements JarbootEvent {
         }
     }
 
-    public String getWorkspace() {
-        return workspace;
+    public String getWorkDirectory() {
+        return workDirectory;
     }
 
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    public void setWorkDirectory(String workDirectory) {
+        this.workDirectory = workDirectory;
     }
 
     public String getSid() {
@@ -87,7 +87,7 @@ public class TaskLifecycleEvent implements JarbootEvent {
     @Override
     public String toString() {
         return "TaskLifecycleEvent{" +
-                "workspace='" + workspace + '\'' +
+                "workspace='" + workDirectory + '\'' +
                 ", sid='" + sid + '\'' +
                 ", name='" + name + '\'' +
                 ", status='" + status + '\'' +

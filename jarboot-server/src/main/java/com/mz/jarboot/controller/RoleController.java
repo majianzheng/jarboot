@@ -1,7 +1,6 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
@@ -19,7 +18,6 @@ import java.util.List;
  */
 @RequestMapping(value = CommonConst.ROLE_CONTEXT)
 @RestController
-@Permission
 public class RoleController {
     @Autowired
     private RoleService roleService;
@@ -27,14 +25,26 @@ public class RoleController {
     /**
      * 分配角色
      * @param role 角色
-     * @param username 用户名
+     * @param name 角色名
      * @return 执行结果
      */
     @PutMapping
     @ResponseBody
-    @Permission("Add Role")
-    public ResponseVo<String> addRole(String role, String username) {
-        roleService.addRole(role, username);
+    public ResponseVo<String> addRole(String role, String name) {
+        roleService.addRole(role, name);
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 设置角色名
+     * @param role 角色
+     * @param name 角色名
+     * @return 执行结果
+     */
+    @PutMapping("/name")
+    @ResponseBody
+    public ResponseVo<String> setRoleName(String role, String name) {
+        roleService.setRoleName(role, name);
         return HttpResponseUtils.success();
     }
 
@@ -52,19 +62,12 @@ public class RoleController {
     /**
      * 删除角色
      * @param role 角色
-     * @param username 用户名
      * @return 执行结果
      */
     @DeleteMapping
     @ResponseBody
-    @Permission("Delete Role")
-    public ResponseVo<String> deleteRole(@RequestParam String role,
-                                     @RequestParam(name = "username", defaultValue = StringUtils.EMPTY) String username) {
-        if (StringUtils.isBlank(username)) {
-            roleService.deleteRole(role);
-        } else {
-            roleService.deleteRole(role, username);
-        }
+    public ResponseVo<String> deleteRole(@RequestParam String role) {
+        roleService.deleteRole(role);
         return HttpResponseUtils.success();
     }
 
@@ -76,8 +79,8 @@ public class RoleController {
      */
     @GetMapping(value="/getRoles")
     @ResponseBody
-    public ResponseVo<PagedList<RoleInfo>> getRoles(Integer pageNo, Integer pageSize) {
-        return HttpResponseUtils.success(roleService.getRoles(pageNo, pageSize));
+    public ResponseVo<PagedList<RoleInfo>> getRoles(String role, String name, Integer pageNo, Integer pageSize) {
+        return HttpResponseUtils.success(roleService.getRoles(role, name, pageNo, pageSize));
     }
 
     /**
@@ -86,7 +89,7 @@ public class RoleController {
      */
     @GetMapping(value="/getRoleList")
     @ResponseBody
-    public ResponseVo<List<String>> getRoleList() {
+    public ResponseVo<List<RoleInfo>> getRoleList() {
         return HttpResponseUtils.success(roleService.getRoleList());
     }
 }

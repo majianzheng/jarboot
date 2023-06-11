@@ -25,15 +25,24 @@ import { onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { FILE_MGR, TOOLS } from '@/common/route-name-constants';
 import routesConfig from '@/router/routes-config';
+import { useUserStore } from '@/stores';
 
 const route = useRoute();
 const router = useRouter();
+const user = useUserStore();
 
 const state = reactive({
   routeName: '',
 });
 
-const settingRoutes = routesConfig.find(config => TOOLS === config.name)?.children || ([] as any[]);
+const settingRoutes = (routesConfig.find(config => TOOLS === config.name)?.children || ([] as any[])).filter(config => {
+  if ('jarboot' !== user.username && config?.meta?.code) {
+    if (!user?.permission[config.meta.code]) {
+      return false;
+    }
+  }
+  return true;
+});
 
 watch(() => route.name, init);
 

@@ -2,16 +2,15 @@ package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
-import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.entity.RoleInfo;
+import com.mz.jarboot.dao.UserDao;
+import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
-import com.mz.jarboot.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,12 +19,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 鉴权接口
@@ -34,8 +30,6 @@ import java.util.List;
 @RequestMapping(value = CommonConst.AUTH_CONTEXT)
 @Controller
 public class AuthController {
-    private static final int DEFAULT_PAGE_NO = 1;
-
     private static final String PARAM_USERNAME = "username";
 
     private static final String PARAM_PASSWORD = "password";
@@ -45,7 +39,8 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private RoleService roleService;
+    private UserDao userDao;
+
     @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
 
@@ -56,25 +51,21 @@ public class AuthController {
      */
     @GetMapping(value="/getCurrentUser")
     @ResponseBody
-    public ResponseVo<Object> getCurrentUser(HttpServletRequest request) {
-        ResponseVo<Object> current = new ResponseVo<>();
+    public ResponseVo<User> getCurrentUser(HttpServletRequest request) {
         String token;
         try {
             token = resolveToken(request);
             if (StringUtils.isEmpty(token)) {
-                current.setCode(ResultCodeConst.NOT_LOGIN_ERROR);
-                current.setMsg("当前未登录");
-                return current;
+                return HttpResponseUtils.error(ResultCodeConst.NOT_LOGIN_ERROR, "当前未登录");
             }
         } catch (Exception e) {
-            current.setCode(ResultCodeConst.NOT_LOGIN_ERROR);
-            current.setMsg("当前未登录: " + e.getMessage());
-            return current;
+            return HttpResponseUtils.error(ResultCodeConst.NOT_LOGIN_ERROR, "当前未登录: " + e.getMessage());
         }
 
         Authentication authentication = jwtTokenManager.getAuthentication(token);
-        current.setData(authentication.getPrincipal());
-        return current;
+        User user = userDao.findFirstByUsername(authentication.getName());
+        user.setPassword(null);
+        return HttpResponseUtils.success(user);
     }
 
     /**
@@ -105,35 +96,8 @@ public class AuthController {
         user.setUsername(username);
         user.setAccessToken(token);
         user.setTokenTtl(expireSeconds);
-        List<RoleInfo> roleInfoInfoList = getRoles(username);
-        if (!CollectionUtils.isEmpty(roleInfoInfoList)) {
-            for (RoleInfo roleInfo : roleInfoInfoList) {
-                if (roleInfo.getRole().equals(AuthConst.ADMIN_ROLE)) {
-                    user.setGlobalAdmin(true);
-                    break;
-                }
-            }
-        }
-
+        user.setRoles(userDao.getUserRoles(username));
         return HttpResponseUtils.success(user);
-    }
-
-    /**
-     * 根据用户名获取角色
-     * @param username 用户名
-     * @return 角色
-     */
-    public List<RoleInfo> getRoles(String username) {
-        PagedList<RoleInfo> roleInfoList = roleService.getRolesByUserName(username, DEFAULT_PAGE_NO, Integer.MAX_VALUE);
-        List<RoleInfo> roleInfos = roleInfoList.getRows();
-        if (CollectionUtils.isEmpty(roleInfos) && AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
-            roleInfos = new ArrayList<>();
-            RoleInfo roleInfo = new RoleInfo();
-            roleInfo.setRole(AuthConst.ADMIN_ROLE);
-            roleInfo.setUsername(AuthConst.JARBOOT_USER);
-            roleInfos.add(roleInfo);
-        }
-        return roleInfos;
     }
 
     private String getToken(HttpServletRequest request) {
@@ -170,7 +134,6 @@ public class AuthController {
         } else {
             finalName = authenticate.getName();
         }
-
         return jwtTokenManager.createToken(finalName);
     }
 }

@@ -10,7 +10,7 @@
         <el-form-item label="" prop="username">
           <el-input
             v-model="loginForm.username"
-            :prefix-icon="User"
+            prefix-icon="User"
             :placeholder="$t('USER_NAME')"
             @keydown.enter="submitForm(loginFormRef)"
             clearable
@@ -19,7 +19,7 @@
         <el-form-item label="" prop="password">
           <el-input
             v-model="loginForm.password"
-            :prefix-icon="Lock"
+            prefix-icon="Lock"
             :placeholder="$t('PASSWORD')"
             @keydown.enter="submitForm(loginFormRef)"
             clearable
@@ -40,7 +40,6 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue';
 import type { FormInstance } from 'element-plus';
-import { User, Lock } from '@element-plus/icons-vue';
 import CommonUtils from '@/common/CommonUtils';
 import { useUserStore } from '@/stores';
 

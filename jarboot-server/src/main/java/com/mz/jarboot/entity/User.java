@@ -12,6 +12,10 @@ public class User extends AbstractBaseEntity {
     private String username;
     private String password;
 
+    private String userDir;
+
+    private String roles;
+
     public String getUsername() {
         return username;
     }
@@ -26,5 +30,21 @@ public class User extends AbstractBaseEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getUserDir() {
+        return userDir;
+    }
+
+    public void setUserDir(String userDir) {
+        this.userDir = userDir;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }

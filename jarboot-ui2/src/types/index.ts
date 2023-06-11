@@ -1,3 +1,5 @@
+import type { FuncCode } from '@/common/EventConst';
+
 export type SelectOption = {
   label: string;
   value: any;
@@ -28,29 +30,21 @@ export type ResponseVo = {
 export type SysUser = {
   id?: string;
   username: string;
-  role: number;
-  relName?: string;
-  studentCode?: string;
-  groupId?: string;
-  groupName?: string;
-  status?: number;
+  roles: string;
+  userDir: string;
   password?: string;
-  rePassword?: string;
-  updatedPassword?: boolean;
-  license?: boolean;
 };
 
-export interface UserLoginDto extends SysUser {
-  accessToken: string;
-  tokenTtl: number;
-}
-
-export type UserGroup = {
+export type RoleInfo = {
   id?: string;
+  role: string;
   name: string;
-  internal?: boolean;
-  createTime: number;
-  count?: number;
+};
+
+export type Privilege = {
+  role: string;
+  authCode: string;
+  permission: boolean;
 };
 
 export type FileNode = {
@@ -88,9 +82,7 @@ export type ServerSetting = {
 export type GlobalSetting = {
   workspace: string;
   defaultVmOptions: string;
-  servicesAutoStart: boolean;
 };
-import type { FuncCode } from '@/common/EventConst';
 
 export type MsgData = {
   event: number;

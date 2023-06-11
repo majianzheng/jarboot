@@ -11,8 +11,10 @@ public interface UserService {
      * 创建用户
      * @param username 用户名
      * @param password 密码
+     * @param roles 角色
+     * @param userDir 用户关联目录
      */
-    void createUser(String username, String password);
+    void createUser(String username, String password, String roles, String userDir);
 
     /**
      * 删除用户
@@ -30,6 +32,14 @@ public interface UserService {
     void updateUserPassword(String loginUsername ,String username, String oldPassword, String password);
 
     /**
+     * 更新用户信息
+     * @param username 用户
+     * @param roles 角色
+     * @param userDir 用户目录
+     */
+    void updateUser(String username, String roles, String userDir);
+
+    /**
      * 根据用户名获取用户信息
      * @param username 用户名
      * @return 用户信息
@@ -38,9 +48,11 @@ public interface UserService {
 
     /**
      * 获取用户列表
+     * @param username 用户名
+     * @param role 角色
      * @param pageNo 开始页
      * @param pageSize 页大小
      * @return 用户列表
      */
-    PagedList<User> getUsers(int pageNo, int pageSize);
+    PagedList<User> getUsers(String username, String role, int pageNo, int pageSize);
 }

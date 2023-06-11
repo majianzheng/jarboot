@@ -39,7 +39,7 @@ const props = defineProps<{
 }>();
 
 const content = reactive({
-  visible: false,
+  visible: true,
   value: '',
 });
 const editorHeight = computed(() => {
@@ -78,6 +78,7 @@ const onChange = (value: string) => {
 };
 
 function init() {
+  content.visible = false;
   options.readOnly = props.readonly || false;
   options.fullScreen = props.fullScreen || false;
   if (props.mode) {
@@ -86,8 +87,8 @@ function init() {
     options.mode = parseModeByFilename(props.name);
   }
   console.info('>>>>', options.mode);
-  nextTick(() => (content.value = props.modelValue || ''));
-  content.visible = true;
+  content.value = props.modelValue || '';
+  nextTick(() => (content.visible = true));
 }
 
 watch(() => [props.name, props.mode], init);

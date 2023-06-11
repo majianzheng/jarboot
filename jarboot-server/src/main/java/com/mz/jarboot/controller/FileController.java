@@ -1,7 +1,6 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.pojo.FileNode;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
@@ -23,7 +22,6 @@ import java.util.List;
  */
 @RequestMapping(value = "/api/jarboot/file-manager")
 @RestController
-@Permission
 public class FileController {
     @Autowired
     private FileService fileService;

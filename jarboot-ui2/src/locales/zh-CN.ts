@@ -93,6 +93,8 @@ export default {
   SAVE_CONFIG_AND_ENABLE_FILE: '保存配置以便启用文件管理',
   DOWNLOAD: '下载',
   FAILED: '失败',
+  CREATE_TERM: '新建终端',
+  USER_DIR: '用户目录',
 
   //服务配置
   SERVER_LIST_TITLE: '服务列表',
@@ -123,6 +125,7 @@ export default {
   //用户登录
   USER_NAME: '用户',
   PASSWORD: '密码',
+  RE_PASSWORD: '确认密码',
   LOGIN: '登录',
   MODIFY_PWD: '修改密码',
   CREATE_USER: '创建用户',
@@ -144,6 +147,9 @@ export default {
   DELETE_ROLE: `是否要删除该角色？`,
   CAN_NOT_REMOVE_SELF: '不可以删除当前登录的用户！',
   PERMISSION_CONTROL_TITLE: `访问权限控制`,
+  RESET_PASSWORD: '重置密码',
+  PRIVILEGE_CONF: '权限配置',
+  ACCESS_PRIVILEGE: '访问权限',
 
   //交互提示信息
   SELECT_ONE_SERVER_INFO: '请选择一个服务后操作',
@@ -152,6 +158,7 @@ export default {
   SELECT_ONE_OP: '请选择要操作的项',
   COMMAND_RUNNING: '正在执行命令："{command}"，请先停止命令再执行',
   SAVE_OR_CANCEL: '是否要保存对文件的更改？',
+  PLEASE_INPUT: '请输入',
 
   //帮助
   HELP: '帮助',

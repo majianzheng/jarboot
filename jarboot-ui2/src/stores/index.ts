@@ -4,6 +4,9 @@ import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ServiceManager from '@/services/ServiceManager';
 import type { ServiceInstance, JvmProcess } from '@/types';
+import { PAGE_LOGIN } from '@/common/route-name-constants';
+import PrivilegeService from '@/services/PrivilegeService';
+import { DEFAULT_PRIVILEGE } from '@/common/CommonConst';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -26,17 +29,20 @@ export const useUserStore = defineStore({
   id: 'user',
   state: () => ({
     username: '',
-    role: '',
+    roles: '',
+    userDir: '',
+    permission: null as any,
   }),
 
   actions: {
     logout() {
       this.$patch({
         username: '',
-        role: '',
+        roles: '',
+        userDir: '',
       });
       CommonUtils.deleteToken();
-      router.push('/login');
+      router.push({ name: PAGE_LOGIN }).then(r => {});
     },
     async login(username: string, password: string) {
       const user: any = await OAuthService.login(username, password);
@@ -46,6 +52,14 @@ export const useUserStore = defineStore({
     },
     setCurrentUser(user: any) {
       this.$patch({ ...user });
+    },
+    async fetchPrivilege() {
+      const privilegeList = (await PrivilegeService.getPrivilegeByRole(this.roles)) || [];
+      const permission = { ...DEFAULT_PRIVILEGE } as any;
+      privilegeList.forEach(privilege => (permission[privilege.authCode] = privilege.permission));
+      this.$patch({ permission });
+      console.info('>>>permission', permission);
+      return permission;
     },
   },
 });

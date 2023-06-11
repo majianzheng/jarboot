@@ -8,7 +8,6 @@ import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
-import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.boot.ConfigurableBootstrapContext;
@@ -83,10 +82,6 @@ public class AppEnvironment implements SpringApplicationRunListener {
                 .getEnvironment()
                 .getProperty("jarboot.services.max-graceful-exit-time", int.class, CommonConst.MAX_WAIT_EXIT_TIME);
         AgentManager.getInstance().setMaxGracefulExitTime(maxExitTime);
-
-        //启动TaskWatchService
-        TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
-        taskWatchService.init();
     }
 
     private void checkEnvironment() {

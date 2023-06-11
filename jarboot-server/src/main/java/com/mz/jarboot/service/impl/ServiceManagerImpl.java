@@ -58,7 +58,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     @Override
     public List<ServiceInstance> getServiceList() {
-        return taskRunCache.getServiceList();
+        return taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
     }
 
     @Override
@@ -83,7 +83,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     }
 
     private ServiceGroup getLocalGroup() {
-        List<ServiceInstance> serviceList = taskRunCache.getServiceList();
+
+        List<ServiceInstance> serviceList = taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
         ServiceGroup localGroup = new ServiceGroup();
         localGroup.setHost("localhost");
         localGroup.setChildren(new ArrayList<>());
@@ -121,55 +122,6 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     @Override
     public ServiceInstance getService(String serviceName) {
         return taskRunCache.getService(FileUtils.getFile(SettingUtils.getWorkspace(), serviceName));
-    }
-
-    /**
-     * 一键重启，杀死所有服务进程，根据依赖重启
-     */
-    @Override
-    public void oneClickRestart() {
-        if (this.taskRunCache.hasStartingOrStopping()) {
-            // 有任务在中间态，不允许执行
-            MessageUtils.info("存在未完成的任务，请稍后重启");
-            return;
-        }
-        //获取所有的服务
-        List<String> services = taskRunCache.getServiceNameList();
-        //同步控制，保证所有的都杀死后再重启
-        if (!CollectionUtils.isEmpty(services)) {
-            //启动服务
-            this.restartService(services);
-        }
-    }
-
-    /**
-     * 一键启动，根据依赖重启
-     */
-    @Override
-    public void oneClickStart() {
-        if (this.taskRunCache.hasStartingOrStopping()) {
-            // 有任务在中间态，不允许执行
-            MessageUtils.info("存在未完成的任务，请稍后启动");
-            return;
-        }
-        List<String> services = taskRunCache.getServiceNameList();
-        //启动服务
-        this.startService(services);
-    }
-
-    /**
-     * 一键停止，杀死所有服务进程
-     */
-    @Override
-    public void oneClickStop() {
-        if (this.taskRunCache.hasStartingOrStopping()) {
-            // 有任务在中间态，不允许执行
-            MessageUtils.info("存在未完成的任务，请稍后停止");
-            return;
-        }
-        List<String> services = taskRunCache.getServiceNameList();
-        //启动服务
-        this.stopService(services);
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.auth.annotation.Permission;
 import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
@@ -25,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 @RequestMapping(value = CommonConst.USER_CONTEXT)
 @RestController
-@Permission
 public class UserController {
     @Autowired
     private UserService userService;
@@ -36,13 +34,28 @@ public class UserController {
      * 创建用户
      * @param username 用户名
      * @param password 密码
+     * @param roles 角色
+     * @param userDir 用户目录
      * @return 执行结果
      */
     @PostMapping
     @ResponseBody
-    @Permission
-    public ResponseSimple createUser(String username, String password) {
-        userService.createUser(username, password);
+    public ResponseSimple createUser(String username, String password, String roles, String userDir) {
+        userService.createUser(username, password, roles, userDir);
+        return new ResponseSimple();
+    }
+
+    /**
+     * 修改用户
+     * @param username 用户名
+     * @param roles 角色
+     * @param userDir 用户目录
+     * @return 执行结果
+     */
+    @PostMapping("/update")
+    @ResponseBody
+    public ResponseSimple updateUser(String username, String roles, String userDir) {
+        userService.updateUser(username, roles, userDir);
         return new ResponseSimple();
     }
 
@@ -53,7 +66,6 @@ public class UserController {
      */
     @DeleteMapping
     @ResponseBody
-    @Permission
     public ResponseSimple deleteUser(Long id) {
         userService.deleteUser(id);
         return new ResponseSimple();
@@ -69,7 +81,6 @@ public class UserController {
      */
     @PutMapping
     @ResponseBody
-    @Permission
     public ResponseSimple updateUserPassword(String username, String oldPassword, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
         ResponseSimple result = new ResponseSimple();
@@ -90,7 +101,6 @@ public class UserController {
      */
     @GetMapping
     @ResponseBody
-    @Permission
     public ResponseVo<User> findUserByUsername(String username) {
         User user = userService.findUserByUsername(username);
         return new ResponseVo<>(user);
@@ -98,22 +108,28 @@ public class UserController {
 
     /**
      * 获取用户列表
+     * @param username 用户名
+     * @param role 角色
      * @param pageNo   页数
      * @param pageSize 页大小
      * @return 用户列表
      */
     @GetMapping(value="/getUsers")
     @ResponseBody
-    public ResponseVo<PagedList<User>> getUsers(int pageNo, int pageSize) {
-        return HttpResponseUtils.success(userService.getUsers(pageNo, pageSize));
+    public ResponseVo<PagedList<User>> getUsers(String username, String role, int pageNo, int pageSize) {
+        return HttpResponseUtils.success(userService.getUsers(username, role, pageNo, pageSize));
     }
 
     private String getCurrentLoginName(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (null != authentication) {
+            return authentication.getName();
+        }
         String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
         if (!StringUtils.isBlank(token) && token.startsWith(AuthConst.TOKEN_PREFIX)) {
             token =  token.substring(AuthConst.TOKEN_PREFIX.length());
         }
-        Authentication authentication = jwtTokenManager.getAuthentication(token);
+        authentication = jwtTokenManager.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return authentication.getName();
     }

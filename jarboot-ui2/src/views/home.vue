@@ -2,10 +2,14 @@
 import { RouterView, useRoute, useRouter } from 'vue-router';
 import { DOCS_URL } from '@/common/CommonConst';
 import { useUserStore } from '@/stores';
-import { onMounted } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { WsManager } from '@/common/WsManager';
 import routesConfig from '@/router/routes-config';
 import StringUtil from '@/common/StringUtil';
+
+const state = reactive({
+  dialog: false,
+});
 
 const openDoc = () => window.open(DOCS_URL);
 const user = useUserStore();
@@ -13,6 +17,11 @@ const route = useRoute();
 const router = useRouter();
 
 const filterMenu = (config: any): boolean => {
+  if ('jarboot' !== user.username && config?.meta?.code) {
+    if (!user?.permission[config.meta.code]) {
+      return false;
+    }
+  }
   return config.meta.menu && StringUtil.isNotEmpty(config.meta.module);
 };
 
@@ -85,7 +94,7 @@ onMounted(() => {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item icon="UserFilled">{{ user.username }}</el-dropdown-item>
-                <el-dropdown-item icon="Edit">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
+                <el-dropdown-item icon="Edit" @click="state.dialog = true">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
                 <el-dropdown-item icon="Right" @click="user.logout()">{{ $t('SIGN_OUT') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -101,6 +110,7 @@ onMounted(() => {
       </transition>
       <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
+    <modify-user-dialog v-model:visible="state.dialog" :username="user.username"></modify-user-dialog>
   </main>
 </template>
 <style lang="less" scoped>

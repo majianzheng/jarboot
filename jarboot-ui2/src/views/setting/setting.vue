@@ -1,9 +1,10 @@
 <template>
   <div class="setting-wrapper">
     <div class="menu-side">
-      <el-menu :default-active="data.routeName" class="menu-vertical" :collapse="false" :collapse-transition="true" @select="doSelect">
+      <el-menu :default-active="data.routeName" class="menu-vertical" :collapse="data.collapse" :collapse-transition="true" @select="doSelect">
         <el-menu-item :index="conf.name" v-for="(conf, i) in settingRoutes" :key="i">
-          <el-icon><Component :is="conf.meta.icon" /></el-icon>
+          <i v-if="(conf.meta.icon as string).startsWith('icon-')" class="__menu-icon iconfont" :class="conf.meta.icon"></i>
+          <el-icon v-else><Component :is="conf.meta.icon" /></el-icon>
           <template #title>{{ $t(conf.meta.code) }}</template>
         </el-menu-item>
       </el-menu>
@@ -23,17 +24,27 @@
 <script lang="ts" setup>
 import { onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { PAGE_COMMON, PAGE_SETTING, PAGE_USER } from '@/common/route-name-constants';
+import { PAGE_COMMON, PAGE_SETTING } from '@/common/route-name-constants';
 import routesConfig from '@/router/routes-config';
+import { useUserStore } from '@/stores';
 
 const route = useRoute();
 const router = useRouter();
+const user = useUserStore();
 
 const data = reactive({
   routeName: '',
+  collapse: true,
 });
 
-const settingRoutes = routesConfig.find(config => PAGE_SETTING === config.name)?.children || ([] as any[]);
+const settingRoutes = (routesConfig.find(config => PAGE_SETTING === config.name)?.children || ([] as any[])).filter(config => {
+  if ('jarboot' !== user.username && config?.meta?.code) {
+    if (!user?.permission[config.meta.code]) {
+      return false;
+    }
+  }
+  return true;
+});
 
 watch(() => route.name, init);
 
@@ -63,7 +74,6 @@ onMounted(init);
   width: 100%;
   height: 100%;
   .menu-side {
-    width: 120px;
     height: 100%;
   }
   .setting-content {
@@ -73,5 +83,9 @@ onMounted(init);
 }
 .menu-vertical {
   height: calc(100vh - 70px);
+}
+.__menu-icon {
+  font-size: 18px;
+  margin: 0 5px;
 }
 </style>

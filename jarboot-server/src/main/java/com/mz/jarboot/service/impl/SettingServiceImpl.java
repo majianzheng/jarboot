@@ -81,7 +81,6 @@ public class SettingServiceImpl implements SettingService {
         }
         File settingFile = SettingUtils.getServiceSettingFile(path);
         Properties properties = fillSettingProperties(setting, path, settingFile);
-        setting.setWorkspace(SettingUtils.getWorkspace());
         saveSettingProperties(settingFile, properties);
         // 保存vmContent
         if (CommonConst.JAVA_CMD.equals(type)) {
@@ -141,7 +140,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void renameService(ServiceSetting setting, String path) {
-        List<ServiceInstance> services = taskRunCache.getServiceList();
+        List<ServiceInstance> services = taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
         ServiceInstance pre = services
                 .stream()
                 .filter(service -> setting.getSid().equals(service.getSid()))
@@ -154,7 +153,7 @@ public class SettingServiceImpl implements SettingService {
             if (newDir.exists()) {
                 throw new JarbootRunException(setting.getName() + "已经存在，重命名失败！");
             }
-            String prePath = pre.getPath();
+            String prePath = SettingUtils.getServicePath(pre.getName());
             if (!FileUtils.getFile(prePath).renameTo(FileUtils.getFile(path))) {
                 throw new JarbootRunException("重命名服务失败！");
             }

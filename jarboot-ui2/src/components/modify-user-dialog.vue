@@ -1,13 +1,13 @@
 <template>
-  <div>
+  <el-dialog :title="$t('RESET_PASSWORD')" v-model="props.visible">
     <el-form :model="modifyUserForm" :rules="rules" label-width="0">
       <el-form-item prop="username">
-        <el-input :prefix-icon="User" :placeholder="$t('USER_NAME')" :readonly="StringUtil.isNotEmpty(props.userId)"></el-input>
+        <el-input prefix-icon="User" :model-value="username" :placeholder="$t('USER_NAME')" readonly></el-input>
       </el-form-item>
-      <el-form-item prop="oldPassword" v-if="StringUtil.isNotEmpty(props.userId)">
+      <el-form-item prop="oldPassword" v-if="'jarboot' !== userStore.username">
         <el-input
           v-model="modifyUserForm.oldPassword"
-          :prefix-icon="Lock"
+          prefix-icon="Lock"
           :placeholder="$t('OLD_PASSWORD')"
           @keydown.native.enter="submitForm"
           clearable
@@ -18,7 +18,7 @@
       <el-form-item prop="password">
         <el-input
           v-model="modifyUserForm.password"
-          :prefix-icon="Lock"
+          prefix-icon="Lock"
           :placeholder="$t('PASSWORD')"
           @keydown.native.enter="submitForm"
           clearable
@@ -29,7 +29,7 @@
       <el-form-item prop="rePassword">
         <el-input
           v-model="modifyUserForm.rePassword"
-          :prefix-icon="Lock"
+          prefix-icon="Lock"
           :placeholder="$t('REPEAT_PASSWORD')"
           @keydown.native.enter="submitForm"
           clearable
@@ -38,22 +38,29 @@
           autocomplete="off" />
       </el-form-item>
     </el-form>
-  </div>
+    <template #footer>
+      <el-button @click="() => emit('update:visible', false)">{{ $t('CANCEL') }}</el-button>
+      <el-button type="primary" :loading="loading" @click="submitForm">{{ $t('SUBMIT_BTN') }}</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
-import StringUtil from '@/common/StringUtil';
-import { User, Lock } from '@element-plus/icons-vue';
 import { onMounted, reactive, ref } from 'vue';
 import type { FormInstance } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
+import { useUserStore } from '@/stores';
+import UserService from '@/services/UserService';
 
 const props = defineProps({
-  title: { type: String, default: '修改用户密码' },
   visible: { type: Boolean, default: false },
-  userId: { type: String, default: '' },
   username: { type: String, default: '' },
 });
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void;
+}>();
+
+const userStore = useUserStore();
 const modifyUserForm = reactive({
   username: '',
   oldPassword: '',
@@ -71,9 +78,9 @@ const validRePassword = (rule: any, value: any, callback: any) => {
 
 const rules = reactive({
   password: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
-  username: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
+  oldPassword: [{ required: true, message: CommonUtils.translate('OLD_PASSWORD'), trigger: 'blur' }],
   rePassword: [
-    { required: true, message: CommonUtils.translate('OLD_PASSWORD'), trigger: 'blur' },
+    { required: true, message: CommonUtils.translate('REPEAT_PASSWORD'), trigger: 'blur' },
     { validator: validRePassword, trigger: 'blur' },
   ],
 });
@@ -88,8 +95,12 @@ const submitForm = async () => {
     return false;
   }
   loading.value = true;
-
-  loading.value = false;
+  try {
+    await UserService.updateUserPassword(props.username, modifyUserForm.password, modifyUserForm.oldPassword);
+    loading.value = false;
+  } finally {
+    emit('update:visible', false);
+  }
 };
 
 onMounted(() => {

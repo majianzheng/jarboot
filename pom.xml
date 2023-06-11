@@ -41,7 +41,6 @@
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>
 		<module>spring-boot-starter-jarboot</module>
-		<module>plugins/debug-plugin</module>
 		<module>plugins/shell-plugin</module>
 		<module>demo-server</module>
 		<module>packaging</module>

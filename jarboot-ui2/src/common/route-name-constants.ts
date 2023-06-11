@@ -22,3 +22,7 @@ export const PAGE_COMMON = 'common';
 
 /** 用户管理 */
 export const PAGE_USER = 'user';
+
+export const PAGE_ROLE = 'role';
+
+export const PAGE_PRIVILEGE = 'privilege';

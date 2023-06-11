@@ -12,6 +12,8 @@ import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.UserService;
 import com.mz.jarboot.utils.PasswordEncoderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,14 +29,10 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserDao userDao;
-    @Autowired
-    private RoleDao roleDao;
-    @Autowired
-    private PrivilegeDao privilegeDao;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void createUser(String username, String password) {
+    public void createUser(String username, String password, String roles, String userDir) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             throw new JarbootException("User or password is empty!");
         }
@@ -43,6 +41,12 @@ public class UserServiceImpl implements UserService {
         }
         User user = new User();
         user.setUsername(username);
+        user.setRoles(roles);
+        if (StringUtils.isEmpty(userDir)) {
+            user.setUserDir(username);
+        } else {
+            user.setUserDir(userDir);
+        }
         user.setPassword(PasswordEncoderUtil.encode(password));
         userDao.save(user);
     }
@@ -61,18 +65,6 @@ public class UserServiceImpl implements UserService {
             throw new JarbootException("The internal user, can't removed!");
         }
         userDao.delete(user);
-        Page<RoleInfo> roles = roleDao.getRoleByUsername(user.getUsername(), PageRequest.of(0, Integer.MAX_VALUE));
-        if (null == roles || roles.isEmpty()) {
-            return;
-        }
-        List<RoleInfo> list = roles.getContent();
-        roleDao.deleteAll(list);
-        list.forEach(roleInfo -> {
-            if (null == roleDao.findFirstByRole(roleInfo.getRole())) {
-                // 当前role已经没有任何关联的user，删除相关的权限
-                privilegeDao.deleteAllByRole(roleInfo.getRole());
-            }
-        });
     }
 
     @Override
@@ -100,6 +92,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void updateUser(String username, String roles, String userDir) {
+        if (StringUtils.isEmpty(username)) {
+            throw new JarbootException("User is empty!");
+        }
+        User user = userDao.findFirstByUsername(username);
+        if (null == user) {
+            throw new JarbootException("User:" + username + " is not exist!");
+        }
+        if (StringUtils.isNotEmpty(roles)) {
+            user.setRoles(roles);
+        }
+        if (StringUtils.isNotEmpty(userDir)) {
+            user.setUserDir(userDir);
+        }
+        userDao.save(user);
+    }
+
+    @Override
     public User findUserByUsername(String username) {
         if (StringUtils.isEmpty(username)) {
             throw new JarbootException("User name can't be empty!");
@@ -110,15 +120,32 @@ public class UserServiceImpl implements UserService {
             user = new User();
             // 使用默认的用户名和密码
             user.setUsername(AuthConst.JARBOOT_USER);
+            user.setRoles(AuthConst.ADMIN_ROLE);
             user.setPassword(PasswordEncoderUtil.encode(AuthConst.JARBOOT_USER));
         }
         return user;
     }
 
     @Override
-    public PagedList<User> getUsers(int pageNo, int pageSize) {
+    public PagedList<User> getUsers(String username, String role, int pageNo, int pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        Page<User> all = userDao.findAll(page);
+        ExampleMatcher match = ExampleMatcher.matching().withStringMatcher(ExampleMatcher.StringMatcher.STARTING);
+        if (StringUtils.isNotEmpty(username)) {
+            match = match.withMatcher("username", ExampleMatcher.GenericPropertyMatchers.contains());
+        }
+        if (StringUtils.isNotEmpty(role)) {
+            match = match.withMatcher("roles", ExampleMatcher.GenericPropertyMatchers.contains());
+        }
+        Page<User> all;
+        if (StringUtils.isNotEmpty(username) || StringUtils.isNotEmpty(role)) {
+            match = match.withIgnorePaths("password", "userDir");
+            User query = new User();
+            query.setUsername(username);
+            query.setRoles(role);
+            all = userDao.findAll(Example.of(query, match), page);
+        } else {
+            all = userDao.findAll(page);
+        }
         List<User> result = all.getContent();
         return new PagedList<>(result, all.getTotalElements());
     }
@@ -133,6 +160,8 @@ public class UserServiceImpl implements UserService {
         }
         user = new User();
         user.setUsername(AuthConst.JARBOOT_USER);
+        user.setRoles(AuthConst.ADMIN_ROLE);
+        user.setUserDir("default");
         user.setPassword(PasswordEncoderUtil.encode(AuthConst.JARBOOT_USER));
         userDao.save(user);
     }
