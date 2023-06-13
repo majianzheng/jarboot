@@ -73,6 +73,8 @@ public class RoleController {
 
     /**
      * 获取角色信息列表
+     * @param role 角色
+     * @param name 名称
      * @param pageNo 页数
      * @param pageSize 页大小
      * @return 角色信息列表

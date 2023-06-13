@@ -82,7 +82,7 @@ export default class Request {
           return Promise.reject(data);
         }
         const result = data?.data;
-        return Promise.resolve(result || data);
+        return Promise.resolve(result ?? data);
       },
       error => {
         if (error.config && error.config.loading) {

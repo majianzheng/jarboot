@@ -87,7 +87,10 @@ const initialize = () => {
   } else {
     codemirror = CodeMirror.fromTextArea(textarea.value, cmOptions);
     cminstance = codemirror;
-    cminstance.setValue(props.code || props.value || data.content);
+    const value = props.code || props.value || data?.content;
+    if ('string' === typeof value) {
+      cminstance.setValue(value);
+    }
   }
   // @ts-ignore
   cminstance.on('change', cm => {

@@ -50,7 +50,6 @@ declare module '@vue/runtime-core' {
     JarbootVersion: typeof import('./components/jarboot-version.vue')['default']
     LanguageSwitch: typeof import('./components/language-switch.vue')['default']
     ModifyUserDialog: typeof import('./components/modify-user-dialog.vue')['default']
-    ModifyUserForm: typeof import('./components/modify-user-form.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SuperPanel: typeof import('./components/super-panel/super-panel.vue')['default']

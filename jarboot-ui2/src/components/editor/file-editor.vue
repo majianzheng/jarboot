@@ -86,7 +86,6 @@ function init() {
   } else {
     options.mode = parseModeByFilename(props.name);
   }
-  console.info('>>>>', options.mode);
   content.value = props.modelValue || '';
   nextTick(() => (content.visible = true));
 }
