@@ -10,6 +10,8 @@ import javax.persistence.*;
 public class User extends AbstractBaseEntity {
     public static final String TABLE_NAME = "jarboot_user";
     private String username;
+
+    private String fullName;
     private String password;
 
     private String userDir;
@@ -22,6 +24,14 @@ public class User extends AbstractBaseEntity {
 
     public void setUsername(String userName) {
         this.username = userName;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getPassword() {

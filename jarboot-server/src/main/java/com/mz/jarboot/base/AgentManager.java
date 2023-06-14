@@ -3,6 +3,7 @@ package com.mz.jarboot.base;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.pojo.JvmProcess;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.*;
@@ -115,7 +116,7 @@ public class AgentManager {
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                ServiceOfflineEvent event = new ServiceOfflineEvent(client.getName(), sid);
+                ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting());
                 NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
             }
@@ -213,10 +214,11 @@ public class AgentManager {
 
     /**
      * 等待服务启动完成
-     * @param sid 服务唯一id
+     * @param setting 服务配置
      * @param millis 时间
      */
-    public void waitServiceStarted(String sid, int millis) {
+    public void waitServiceStarted(ServiceSetting setting, int millis) {
+        String sid = setting.getSid();
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
@@ -238,6 +240,7 @@ public class AgentManager {
         }
 
         synchronized (client) {
+            client.setSetting(setting);
             if (!ClientState.STARTING.equals(client.getState())) {
                 logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
                         client.getName(), client.getState());

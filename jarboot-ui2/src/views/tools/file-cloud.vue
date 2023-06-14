@@ -62,7 +62,7 @@ function getTabWidth() {
     <two-sides-pro
       :show-header="false"
       v-model:collapsed="state.collapsed"
-      :body-height="basicStore.innerHeight - 72 + 'px'"
+      :body-height="basicStore.innerHeight - 56 + 'px'"
       :left-width="state.sideWidth + 'px'">
       <template #left-content>
         <file-manager :with-root="true" :base-dir="userStore.userDir" @node-click="handleSelect"></file-manager>

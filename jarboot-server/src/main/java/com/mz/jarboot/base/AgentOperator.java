@@ -1,5 +1,6 @@
 package com.mz.jarboot.base;
 
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.ws.SessionOperator;
@@ -12,6 +13,7 @@ import javax.websocket.Session;
 public final class AgentOperator extends SessionOperator {
     private final String name;
     private final String sid;
+    private ServiceSetting setting;
     private ClientState state;
     private String pid;
     private boolean trusted;
@@ -47,6 +49,14 @@ public final class AgentOperator extends SessionOperator {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public ServiceSetting getSetting() {
+        return setting;
+    }
+
+    public void setSetting(ServiceSetting setting) {
+        this.setting = setting;
     }
 
     /**

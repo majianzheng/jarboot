@@ -30,6 +30,7 @@ export type ResponseVo = {
 export type SysUser = {
   id?: string;
   username: string;
+  fullName: string;
   roles: string;
   userDir: string;
   password?: string;

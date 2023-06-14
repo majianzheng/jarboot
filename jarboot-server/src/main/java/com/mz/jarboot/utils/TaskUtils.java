@@ -82,7 +82,7 @@ public class TaskUtils {
     public static void startService(ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
-        String serverPath = SettingUtils.getWorkspace() + File.separator + setting.getName();
+        String serverPath = SettingUtils.getWorkspace() + File.separator + setting.getUserDir() + File.separator + setting.getName();
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
@@ -173,7 +173,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServiceStarted(sid, maxStartTime);
+        AgentManager.getInstance().waitServiceStarted(setting, maxStartTime);
     }
 
     /**

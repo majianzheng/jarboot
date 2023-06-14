@@ -1,4 +1,4 @@
-package com.mz.jarboot.controller;
+package com.mz.jarboot.inner.controller;
 
 import com.mz.jarboot.service.PluginsService;
 import org.slf4j.Logger;

@@ -29,6 +29,7 @@ export const useUserStore = defineStore({
   id: 'user',
   state: () => ({
     username: '',
+    fullName: '',
     roles: '',
     userDir: '',
     permission: null as any,
@@ -38,6 +39,7 @@ export const useUserStore = defineStore({
     logout() {
       this.$patch({
         username: '',
+        fullName: '',
         roles: '',
         userDir: '',
       });
@@ -56,9 +58,9 @@ export const useUserStore = defineStore({
     async fetchPrivilege() {
       const privilegeList = (await PrivilegeService.getPrivilegeByRole(this.roles)) || [];
       const permission = { ...DEFAULT_PRIVILEGE } as any;
-      privilegeList.forEach(privilege => (permission[privilege.authCode] = privilege.permission));
+      // 多角色权限合并
+      privilegeList.forEach(privilege => (permission[privilege.authCode] = permission[privilege.authCode] || privilege.permission));
       this.$patch({ permission });
-      console.info('>>>permission', permission);
       return permission;
     },
   },

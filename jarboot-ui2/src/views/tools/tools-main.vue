@@ -78,7 +78,7 @@ onMounted(init);
   }
 }
 .menu-vertical {
-  height: calc(100vh - 80px);
+  height: calc(100vh - 70px);
   .__menu-icon {
     font-size: 26px;
   }

@@ -58,7 +58,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     @Override
     public List<ServiceInstance> getServiceList() {
-        return taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
+        return taskRunCache.getServiceList(SettingUtils.getCurrentUserDir());
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     private ServiceGroup getLocalGroup() {
 
-        List<ServiceInstance> serviceList = taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
+        List<ServiceInstance> serviceList = taskRunCache.getServiceList(SettingUtils.getCurrentUserDir());
         ServiceGroup localGroup = new ServiceGroup();
         localGroup.setHost("localhost");
         localGroup.setChildren(new ArrayList<>());
@@ -121,7 +121,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
      */
     @Override
     public ServiceInstance getService(String serviceName) {
-        return taskRunCache.getService(FileUtils.getFile(SettingUtils.getWorkspace(), serviceName));
+        String userDir = SettingUtils.getCurrentUserDir();
+        return taskRunCache.getService(SettingUtils.getCurrentUserDir(), FileUtils.getFile(SettingUtils.getWorkspace(), userDir, serviceName));
     }
 
     /**
@@ -134,14 +135,14 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         if (CollectionUtils.isEmpty(serviceNames)) {
             return;
         }
-
+        String userDir = SettingUtils.getCurrentUserDir();
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.startService0(serviceNames));
+        TaskUtils.getTaskExecutor().execute(() -> this.startService0(userDir, serviceNames));
     }
 
-    private void startService0(List<String> services) {
+    private void startService0(String userDir, List<String> services) {
         //获取服务的优先级启动顺序
-        final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStartPriority(services);
+        final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStartPriority(userDir, services);
         ArrayList<ServiceSetting> taskList = new ArrayList<>();
         ServiceSetting setting;
         while (null != (setting = priorityQueue.poll())) {
@@ -256,9 +257,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         if (CollectionUtils.isEmpty(serviceNames)) {
             return;
         }
-
+        String userDir = SettingUtils.getCurrentUserDir();
         //在线程池中执行，防止前端请求阻塞超时
-        TaskUtils.getTaskExecutor().execute(() -> this.stopService0(serviceNames));
+        TaskUtils.getTaskExecutor().execute(() -> this.stopService0(userDir, serviceNames));
     }
 
     @Override
@@ -357,9 +358,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         eventRegistry.deregisterSubscriber(topic, subscriber);
     }
 
-    private void stopService0(List<String> paths) {
+    private void stopService0(String userDir, List<String> paths) {
         //获取服务的优先级顺序，与启动相反的顺序依次终止
-        final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStopPriority(paths);
+        final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStopPriority(userDir, paths);
         ArrayList<ServiceSetting> taskList = new ArrayList<>();
         ServiceSetting setting;
         while (null != (setting = priorityQueue.poll())) {
@@ -443,19 +444,25 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
      */
     @Override
     public void restartService(List<String> serviceNames) {
+        String userDir = SettingUtils.getCurrentUserDir();
         //获取终止的顺序
         TaskUtils.getTaskExecutor().execute(() -> {
             //先依次终止
-            stopService0(serviceNames);
+            stopService0(userDir, serviceNames);
             //再依次启动
-            startService0(serviceNames);
+            startService0(userDir, serviceNames);
         });
     }
 
     @Override
     public void onEvent(ServiceOfflineEvent event) {
-        String serviceName = event.getServiceName();
-        String sid = event.getSid();
+        ServiceSetting setting = event.getSetting();
+        if (null == setting) {
+            logger.error("service offline event, service setting is null!");
+            return;
+        }
+        String serviceName = setting.getName();
+        String sid = setting.getSid();
         //检查进程是否存活
         String pid = TaskUtils.getPid(sid);
         if (!pid.isEmpty()) {
@@ -468,15 +475,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             TaskUtils.attach(sid);
             return;
         }
-        //获取是否开启了守护
-        ServiceSetting temp = PropertyFileUtils.getServiceSettingBySid(sid);
-        //检测配置更新
-        final ServiceSetting setting = null == temp ? null : PropertyFileUtils.getServiceSetting(temp.getName());
 
-        TaskLifecycleEvent lifecycleEvent = null == setting ?
-                new TaskLifecycleEvent(SettingUtils.getWorkspace(), sid, serviceName, TaskLifecycle.EXCEPTION_OFFLINE)
-                :
-                new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
+        TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);
 
@@ -485,7 +485,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
         }
 
-        if (null != setting && SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+        if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
             final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
             String s = sdf.format(new Date());
             if (Boolean.TRUE.equals(setting.getDaemon())) {

@@ -60,8 +60,17 @@
         <el-table-column prop="daemon" label="DAEMON" width="100" />
       </el-table>
     </el-tab-pane>
-    <el-tab-pane label="内存" name="third"> </el-tab-pane>
-    <el-tab-pane label="系统" name="system"> </el-tab-pane>
+    <el-tab-pane :label="$t('RUNTIME_INFO')" name="system">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="OS">{{ data.runtimeInfo?.osName }}</el-descriptions-item>
+        <el-descriptions-item label="OS Version">{{ data.runtimeInfo?.osVersion }}</el-descriptions-item>
+        <el-descriptions-item label="Java Version">{{ data.runtimeInfo?.javaVersion }}</el-descriptions-item>
+        <el-descriptions-item label="Java Home">{{ data.runtimeInfo?.javaHome }}</el-descriptions-item>
+        <el-descriptions-item label="System LoadAverage">{{ data.runtimeInfo?.systemLoadAverage }}</el-descriptions-item>
+        <el-descriptions-item label="Processors">{{ data.runtimeInfo?.processors }}</el-descriptions-item>
+        <el-descriptions-item label="Uptime">{{ data.runtimeInfo?.uptime }}</el-descriptions-item>
+      </el-descriptions>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
@@ -80,8 +89,8 @@ const props = defineProps<{
   width: number;
 }>();
 const MB_NUM = 1024 * 1024;
-const viewHeight = computed(() => props.height - 32);
-const chartHeight = computed(() => (props.height - 50) / 2 + 'px');
+const viewHeight = computed(() => props.height - 5);
+const chartHeight = computed(() => (props.height - 30) / 2 + 'px');
 const state = reactive({
   tab: 'overview',
   memType: 'heap',
@@ -90,6 +99,7 @@ const state = reactive({
   heapOptions: [],
   noHeapOptions: [],
   threadPeakSize: 0,
+  cpu: 0,
   history: [] as any[],
 });
 const threadChartRef = ref();
@@ -326,6 +336,7 @@ const updateCpuChart = (history: any[]) => {
   (props.data.threads || []).forEach((thread: any) => {
     cpu += thread.cpu;
   });
+  state.cpu = cpu;
   const subtext = `${CommonUtils.translate('CPU_USED')}: ${round(cpu, PRECISION)}%`;
   const option = createOption(CommonUtils.translate('CPU_USED'), [submitted], subtext, '%');
   cpuChart.setOption(option, false, true);

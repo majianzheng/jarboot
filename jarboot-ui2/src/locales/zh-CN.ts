@@ -124,6 +124,7 @@ export default {
 
   //用户登录
   USER_NAME: '用户',
+  FULL_NAME: '姓名',
   PASSWORD: '密码',
   RE_PASSWORD: '确认密码',
   LOGIN: '登录',
@@ -180,4 +181,5 @@ export default {
   USED: '已用',
   SUBMITTED: '已提交',
   MAX: '最大',
+  RUNTIME_INFO: '运行时信息',
 };

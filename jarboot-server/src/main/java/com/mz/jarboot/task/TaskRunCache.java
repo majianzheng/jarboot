@@ -10,8 +10,6 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.dao.UserDao;
-import com.mz.jarboot.service.UserService;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.common.utils.VMUtils;
@@ -37,8 +35,7 @@ public class TaskRunCache {
     private String excludeDirs;
     @Autowired
     private AbstractEventRegistry eventRegistry;
-    @Autowired
-    private UserService userService;
+
     /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
     /** 正在启动中的服务 */
@@ -65,13 +62,12 @@ public class TaskRunCache {
      * 获取服务目录列表
      * @return 服务目录
      */
-    public File[] getServiceDirs(String username) {
-        String servicesPath = SettingUtils.getWorkspace();
-        String userDir = userService.findUserByUsername(username).getUserDir();
-        File servicesDir = new File(servicesPath, userDir);
+    public File[] getServiceDirs(String userDir) {
+        String workspace = SettingUtils.getWorkspace();
+        File servicesDir = new File(workspace, userDir);
         if (!servicesDir.isDirectory() || !servicesDir.exists()) {
             if (!servicesDir.mkdirs()) {
-                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesPath + "目录创建失败");
+                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, workspace + "目录创建失败");
             }
         }
         File[] serviceDirs = servicesDir.listFiles(this::filterExcludeDir);
@@ -83,13 +79,13 @@ public class TaskRunCache {
         return serviceDirs;
     }
 
-    public ServiceInstance getService(File serverDir) {
+    public ServiceInstance getService(String userDir, File serverDir) {
         ServiceInstance process = new ServiceInstance();
         process.setName(serverDir.getName());
         String path = serverDir.getPath();
         String sid = SettingUtils.createSid(path);
         process.setSid(sid);
-        process.setGroup(this.getGroup(sid, path));
+        process.setGroup(this.getGroup(userDir, process.getName(), path));
 
         if (this.isStarting(sid)) {
             process.setStatus(CommonConst.STARTING);
@@ -107,14 +103,14 @@ public class TaskRunCache {
      * 获取服务列表
      * @return 服务列表
      */
-    public List<ServiceInstance> getServiceList(String username) {
+    public List<ServiceInstance> getServiceList(String userDir) {
         List<ServiceInstance> serverList = new ArrayList<>();
-        File[] serviceDirs = getServiceDirs(username);
+        File[] serviceDirs = getServiceDirs(userDir);
         if (null == serviceDirs) {
             return serverList;
         }
         for (File file : serviceDirs) {
-            ServiceInstance process = getService(file);
+            ServiceInstance process = getService(userDir, file);
             serverList.add(process);
         }
         return serverList;
@@ -152,12 +148,12 @@ public class TaskRunCache {
         stoppingCache.remove(sid);
     }
 
-    private String getGroup(String sid, String path) {
+    private String getGroup(String userDir, String serviceName, String sid) {
         ServiceSetting setting = PropertyFileUtils.getServiceSettingBySid(sid);
         if (null != setting) {
             return setting.getGroup();
         }
-        setting = PropertyFileUtils.getServiceSettingByPath(path);
+        setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
         if (null == setting) {
             return StringUtils.EMPTY;
         }

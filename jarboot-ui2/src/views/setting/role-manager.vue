@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basicStore.innerHeight - 200">
+    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basicStore.innerHeight - 180">
       <template v-slot:right-extra>
         <el-button type="primary" @click="createRole">{{ $t('CREATE') }}</el-button>
       </template>

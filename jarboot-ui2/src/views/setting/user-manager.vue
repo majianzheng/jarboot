@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basicStore.innerHeight - 200">
+    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basicStore.innerHeight - 180">
       <template v-slot:right-extra>
         <el-button type="primary" @click="createUser">{{ $t('CREATE') }}</el-button>
       </template>
@@ -20,6 +20,9 @@
         <el-form-item prop="username" :label="$t('USER_NAME')">
           <el-input v-model="state.form.username" :disabled="!state.isNew" :placeholder="$t('INPUT_USERNAME')"></el-input>
         </el-form-item>
+        <el-form-item prop="fullName" :label="$t('FULL_NAME')">
+          <el-input v-model="state.form.fullName" :placeholder="$t('INPUT_USERNAME')"></el-input>
+        </el-form-item>
         <el-form-item prop="roles" :label="$t('ROLE')">
           <el-select
             v-model="state.form.roles"
@@ -31,7 +34,11 @@
           </el-select>
         </el-form-item>
         <el-form-item prop="userDir" :label="$t('USER_DIR')">
-          <el-input v-model="state.form.userDir" :placeholder="$t('PLEASE_INPUT') + $t('USER_DIR')"></el-input>
+          <el-autocomplete
+            style="width: 100%"
+            :fetch-suggestions="queryUserDirs"
+            v-model="state.form.userDir"
+            :placeholder="$t('PLEASE_INPUT') + $t('USER_DIR')"></el-autocomplete>
         </el-form-item>
         <el-form-item v-if="state.isNew" prop="password" :label="$t('PASSWORD')">
           <el-input v-model="state.form.password" :placeholder="$t('INPUT_PASSWORD')"></el-input>
@@ -53,11 +60,12 @@
 import UserService from '@/services/UserService';
 import { computed, onMounted, reactive, ref } from 'vue';
 import type { SearchConfig, RoleInfo, SysUser } from '@/types';
-import { ElForm, ElMessageBox, FormRules } from 'element-plus';
+import { ElForm, ElMessageBox, type FormRules } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import RoleService from '@/services/RoleService';
-import { useBasicStore } from '@/stores';
+import { useBasicStore, useUserStore } from '@/stores';
+import { SYS_ROLE } from '@/common/CommonConst';
 
 const searchConfig = computed(
   () =>
@@ -77,9 +85,11 @@ const searchConfig = computed(
 );
 
 const basicStore = useBasicStore();
+const userStore = useUserStore();
 
 const resetForm = {
   username: '',
+  fullName: '',
   roles: [] as string[],
   userDir: '',
   password: '',
@@ -129,6 +139,13 @@ function formatRoles(_row: any, _col: string, cellValue: string) {
   return roles.map(role => `${state.roleMap[role] || role}`).join(',');
 }
 
+function queryUserDirs(query: string, cb: any) {
+  UserService.getUserDirs().then((list: string[]) => {
+    const filter = query ? list.filter(s => s.includes(query)) : list;
+    cb(filter.map(value => ({ value })));
+  });
+}
+
 function getList(params: any) {
   return UserService.getUsers(params.username, params.role, params.page, params.limit);
 }
@@ -162,23 +179,28 @@ async function save() {
   }
   state.loading = true;
   try {
+    const fullName = state.form.fullName || '';
     if (state.isNew) {
-      await UserService.createUser(state.form.username, state.form.password, state.form.roles.join(','), state.form.userDir);
+      await UserService.createUser(state.form.username, fullName, state.form.password, state.form.roles.join(','), state.form.userDir);
     } else {
-      await UserService.updateUser(state.form.username, state.form.roles.join(','), state.form.userDir);
+      await UserService.updateUser(state.form.username, fullName, state.form.roles.join(','), state.form.userDir);
     }
     state.drawer = false;
     tableRef.value.refresh();
+    // 是否当前用户
+    if (userStore.username === state.form.username) {
+      userStore.fullName = fullName;
+    }
     CommonNotice.success();
   } finally {
     state.loading = false;
   }
 }
 async function getRoleList() {
-  const roleList = await RoleService.getRoleList();
+  let roleList = await RoleService.getRoleList();
   const roleMap = {} as any;
   roleList.map(r => (roleMap[r.role] = r.name));
-  state.roleList = roleList;
+  state.roleList = roleList.filter(r => SYS_ROLE !== r.role);
   state.roleMap = roleMap;
 }
 onMounted(getRoleList);

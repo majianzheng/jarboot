@@ -302,8 +302,17 @@ public class SettingUtils {
      * @return 路径
      */
     public static String getServicePath(String serviceName) {
-        User user = userService.findUserByUsername(getCurrentLoginUsername());
-        return getWorkspace() + File.separator + user.getUserDir() + File.separator + serviceName;
+        String userDir = getCurrentUserDir();
+        return getServicePath(userDir, serviceName);
+    }
+
+    public static String getServicePath(String userDir, String serviceName) {
+        return getWorkspace() + File.separator + userDir + File.separator + serviceName;
+    }
+
+    public static String getCurrentUserDir() {
+        User user = getCurrentLoginUser();
+        return StringUtils.isEmpty(user.getUserDir()) ? user.getUsername() : user.getUserDir();
     }
 
     public static User getCurrentLoginUser() {

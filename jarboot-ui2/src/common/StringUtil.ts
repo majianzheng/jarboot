@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 /**
  * 字符串工具类
  * @author majianzheng
@@ -164,6 +166,24 @@ class StringUtil {
       result = str.substring(0, targetLength - 2) + '...';
     }
     return result;
+  }
+
+  /**
+   * 时间戳格式化
+   * @param time 时间戳
+   * @param pattern YYYY/MM/DD hh:mm:ss
+   */
+  public static timeFormat(time: number, pattern = 'yyyy-MM-DD HH:mm:ss') {
+    if (time) {
+      const formatStr = moment(time).format(pattern);
+      if (formatStr === 'Invalid date') {
+        return time;
+      } else {
+        return formatStr;
+      }
+    } else {
+      return '';
+    }
   }
 
   public static md5(string: string, bit: number) {

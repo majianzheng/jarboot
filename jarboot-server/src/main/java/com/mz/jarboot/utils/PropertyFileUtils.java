@@ -89,11 +89,14 @@ public class PropertyFileUtils {
 
     /**
      * 根据服务名获取服务配置
+     * @param userDir 用户目录
      * @param serviceName 服务名
      * @return 服务配置
      */
-    public static ServiceSetting getServiceSetting(String serviceName) {
-        return getServiceSettingByPath(SettingUtils.getWorkspace() + File.separator + serviceName);
+    public static ServiceSetting getServiceSetting(String userDir, String serviceName) {
+        ServiceSetting setting = getServiceSettingByPath(SettingUtils.getServicePath(userDir, serviceName));
+        setting.setUserDir(userDir);
+        return setting;
     }
 
     /**
@@ -101,7 +104,7 @@ public class PropertyFileUtils {
      * @param serverPath 字符串格式：服务的path
      * @return 服务配置
      */
-    public static ServiceSetting getServiceSettingByPath(String serverPath) {
+    private static ServiceSetting getServiceSettingByPath(String serverPath) {
         int p = Math.max(serverPath.lastIndexOf('/'), serverPath.lastIndexOf('\\'));
         String name = serverPath.substring(p + 1);
         String sid = SettingUtils.createSid(serverPath);
@@ -228,17 +231,18 @@ public class PropertyFileUtils {
 
     /**
      * 解析启动优先级配置
+     * @param userDir 用户目录
      * @param serviceNames 服务列表
      * @return 优先级排序结果
      */
-    public static Queue<ServiceSetting> parseStartPriority(List<String> serviceNames) {
+    public static Queue<ServiceSetting> parseStartPriority(String userDir, List<String> serviceNames) {
         //优先级最大的排在最前面
         PriorityQueue<ServiceSetting> queue = new PriorityQueue<>((o1, o2) -> o2.getPriority() - o1.getPriority());
         if (CollectionUtils.isEmpty(serviceNames)) {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServiceSetting setting = getServiceSetting(serviceName);
+            ServiceSetting setting = getServiceSetting(userDir, serviceName);
             queue.offer(setting);
         });
         return queue;
@@ -246,17 +250,18 @@ public class PropertyFileUtils {
 
     /**
      * 解析终止优先级配置，与启动优先级相反
+     * @param userDir 用户目录
      * @param serviceNames 服务列表，字符串：服务path
      * @return 排序结果
      */
-    public static Queue<ServiceSetting> parseStopPriority(List<String> serviceNames) {
+    public static Queue<ServiceSetting> parseStopPriority(String userDir, List<String> serviceNames) {
         //优先级小的排在最前面
         PriorityQueue<ServiceSetting> queue = new PriorityQueue<>(Comparator.comparingInt(ServiceSetting::getPriority));
         if (CollectionUtils.isEmpty(serviceNames)) {
             return queue;
         }
         serviceNames.forEach(serviceName -> {
-            ServiceSetting setting = getServiceSetting(serviceName);
+            ServiceSetting setting = getServiceSetting(userDir, serviceName);
             queue.offer(setting);
         });
         return queue;

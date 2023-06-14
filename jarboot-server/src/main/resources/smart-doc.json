@@ -3,7 +3,7 @@
   "isStrict": true,
   "allInOne": true,
   "packageFilters": "com.mz.jarboot.controller.*",
-  "packageExcludeFilters": "com.mz.jarboot.controller.AuthController",
+  "packageExcludeFilters": "",
   "allInOneDocFileName":"index.html",
   "outPath": "./target/smart-doc",
   "requestExample": true,

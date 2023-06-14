@@ -78,6 +78,7 @@ const emit = defineEmits([
   'optionChange',
   'scrollCursorIntoView',
   'update',
+  'save',
 ]);
 const initialize = () => {
   const cmOptions = Object.assign({}, props.globalOptions, props.options);
@@ -119,6 +120,7 @@ const initialize = () => {
     'optionChange',
     'scrollCursorIntoView',
     'update',
+    'save',
   ]
     // @ts-ignore
     .concat(props.events || [])

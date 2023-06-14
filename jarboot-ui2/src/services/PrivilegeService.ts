@@ -7,10 +7,10 @@ const urlBase = '/api/jarboot/privilege';
  * 权限管理操作
  */
 export default class PrivilegeService {
-  public static savePrivilege(role: string, username: string, permission: boolean) {
+  public static savePrivilege(role: string, authCode: string, permission: boolean) {
     const form: FormData = new FormData();
     form.append('role', role);
-    form.append('username', username);
+    form.append('authCode', authCode);
     form.append('permission', '' + permission);
     return Request.put(urlBase, form);
   }

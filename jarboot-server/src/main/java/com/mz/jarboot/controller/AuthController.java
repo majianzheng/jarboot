@@ -100,6 +100,27 @@ public class AuthController {
         return HttpResponseUtils.success(user);
     }
 
+    /**
+     * 创建Open Api的访问Token
+     * @param username 用户
+     * @param password 密码
+     * @return token
+     */
+    @PostMapping(value="/openApiToken")
+    @ResponseBody
+    public ResponseVo<String> createOpenApiToken(String username, String password) {
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
+                    password);
+            authenticationManager.authenticate(authenticationToken);
+        } catch (Exception e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
+        String roles = userDao.getUserRoles(username);
+        String token = jwtTokenManager.createOpenApiToken(username, roles);
+        return HttpResponseUtils.success(token);
+    }
+
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
         if (!StringUtils.isBlank(bearerToken) && bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {

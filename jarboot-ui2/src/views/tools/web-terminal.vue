@@ -38,7 +38,7 @@ interface TermOptions {
 
 const state = reactive({
   width: basicStore.innerWidth - 80,
-  height: basicStore.innerHeight - 103,
+  height: basicStore.innerHeight - 90,
   terms: [] as TermOptions[],
   active: 0,
 });
@@ -82,7 +82,7 @@ function onDisconnected(opt: TermOptions) {
 
 function resize() {
   state.width = basicStore.innerWidth - 80;
-  state.height = basicStore.innerHeight - 103;
+  state.height = basicStore.innerHeight - 90;
 }
 </script>
 

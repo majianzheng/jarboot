@@ -10,11 +10,12 @@ public interface UserService {
     /**
      * 创建用户
      * @param username 用户名
+     * @param fullName 姓名
      * @param password 密码
      * @param roles 角色
      * @param userDir 用户关联目录
      */
-    void createUser(String username, String password, String roles, String userDir);
+    void createUser(String username, String fullName, String password, String roles, String userDir);
 
     /**
      * 删除用户
@@ -29,15 +30,16 @@ public interface UserService {
      * @param oldPassword 旧密码
      * @param password 密码
      */
-    void updateUserPassword(String loginUsername ,String username, String oldPassword, String password);
+    void updateUserPassword(String loginUsername, String username, String oldPassword, String password);
 
     /**
      * 更新用户信息
      * @param username 用户
+     * @param fullName 姓名
      * @param roles 角色
      * @param userDir 用户目录
      */
-    void updateUser(String username, String roles, String userDir);
+    void updateUser(String username, String fullName, String roles, String userDir);
 
     /**
      * 根据用户名获取用户信息

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ElMessageBox, ElTree, type UploadFile, type UploadProgressEvent } from 'element-plus';
 import FileService from '@/services/FileService';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { canEdit } from '@/components/editor/LangUtils';
@@ -51,8 +51,6 @@ const state = reactive({
 const route = useRoute();
 const treeRef = ref<InstanceType<typeof ElTree>>();
 const prefix = `${route.name as string}-${Date.now()}`;
-
-watch(() => [props.baseDir, props.withRoot], reload);
 
 function genId(btn: string, data: any) {
   return `${prefix}-${btn}-${data.key}`;
@@ -312,7 +310,7 @@ onMounted(reload);
                   <div>{{ data.name }}</div>
                   <div v-if="data.directory">file count: {{ data.children.length || 0 }}</div>
                   <div v-else>size: {{ data.size || 0 }}</div>
-                  <div>modifyTime: {{ data.modifyTime || 0 }}</div>
+                  <div>modifyTime: {{ StringUtil.timeFormat(data.modifyTime || 0) }}</div>
                 </template>
               </el-tooltip>
             </div>

@@ -11,12 +11,18 @@ import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.UserService;
+import com.mz.jarboot.utils.SettingUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户管理
@@ -33,6 +39,7 @@ public class UserController {
     /**
      * 创建用户
      * @param username 用户名
+     * @param fullName 姓名
      * @param password 密码
      * @param roles 角色
      * @param userDir 用户目录
@@ -40,22 +47,23 @@ public class UserController {
      */
     @PostMapping
     @ResponseBody
-    public ResponseSimple createUser(String username, String password, String roles, String userDir) {
-        userService.createUser(username, password, roles, userDir);
+    public ResponseSimple createUser(String username, String fullName, String password, String roles, String userDir) {
+        userService.createUser(username, fullName, password, roles, userDir);
         return new ResponseSimple();
     }
 
     /**
      * 修改用户
      * @param username 用户名
+     * @param fullName 姓名
      * @param roles 角色
      * @param userDir 用户目录
      * @return 执行结果
      */
     @PostMapping("/update")
     @ResponseBody
-    public ResponseSimple updateUser(String username, String roles, String userDir) {
-        userService.updateUser(username, roles, userDir);
+    public ResponseSimple updateUser(String username, String fullName, String roles, String userDir) {
+        userService.updateUser(username, fullName, roles, userDir);
         return new ResponseSimple();
     }
 
@@ -118,6 +126,17 @@ public class UserController {
     @ResponseBody
     public ResponseVo<PagedList<User>> getUsers(String username, String role, int pageNo, int pageSize) {
         return HttpResponseUtils.success(userService.getUsers(username, role, pageNo, pageSize));
+    }
+
+    /**
+     * 获取所有用户目录
+     * @return 用户目录列表
+     */
+    @GetMapping(value="/userDirs")
+    @ResponseBody
+    public ResponseVo<List<String>> getUserDirs() {
+        File workspace = FileUtils.getFile(SettingUtils.getWorkspace());
+        return HttpResponseUtils.success(Arrays.asList(Objects.requireNonNull(workspace.list(), "工作目录为空！")));
     }
 
     private String getCurrentLoginName(HttpServletRequest request) {

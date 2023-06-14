@@ -85,15 +85,18 @@ onMounted(() => {
         </div>
         <div class="user-avatar">
           <el-dropdown>
-            <span>
+            <div style="display: flex">
               <el-avatar>
                 <SvgIcon icon="panda" style="width: 26px; height: 26px" />
               </el-avatar>
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
-            </span>
+              <div style="line-height: 40px; margin-left: 5px">
+                <span>{{ user.fullName || user.username }}</span>
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </div>
+            </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item icon="UserFilled">{{ user.username }}</el-dropdown-item>
+                <el-dropdown-item icon="UserFilled">{{ user.fullName || user.username }}</el-dropdown-item>
                 <el-dropdown-item icon="Edit" @click="state.dialog = true">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
                 <el-dropdown-item icon="Right" @click="user.logout()">{{ $t('SIGN_OUT') }}</el-dropdown-item>
               </el-dropdown-menu>
@@ -150,20 +153,22 @@ header {
     display: flex;
     .tools-box {
       display: flex;
-      margin: 10px 5px;
+      margin: auto 5px;
       border-right: var(--el-border);
     }
     .menu-button {
       margin-right: 15px;
     }
     .user-avatar {
-      margin: 2px 10px 0 10px;
+      margin: auto 10px;
       .el-icon--right {
         margin-left: 6px;
         position: relative;
-        top: -5px;
       }
     }
+  }
+  ._jarboot_username {
+    line-height: 40px;
   }
 }
 </style>

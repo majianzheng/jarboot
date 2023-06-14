@@ -2,7 +2,7 @@
   <el-dialog :title="$t('RESET_PASSWORD')" v-model="props.visible">
     <el-form :model="modifyUserForm" :rules="rules" label-width="0">
       <el-form-item prop="username">
-        <el-input prefix-icon="User" :model-value="username" :placeholder="$t('USER_NAME')" readonly></el-input>
+        <el-input prefix-icon="User" :model-value="fullName || username" :placeholder="$t('USER_NAME')" readonly></el-input>
       </el-form-item>
       <el-form-item prop="oldPassword" v-if="'jarboot' !== userStore.username">
         <el-input
@@ -55,6 +55,7 @@ import UserService from '@/services/UserService';
 const props = defineProps({
   visible: { type: Boolean, default: false },
   username: { type: String, default: '' },
+  fullName: { type: String, default: '' },
 });
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;

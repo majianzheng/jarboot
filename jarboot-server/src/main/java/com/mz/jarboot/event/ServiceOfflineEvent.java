@@ -1,32 +1,22 @@
 package com.mz.jarboot.event;
 
 import com.mz.jarboot.api.event.JarbootEvent;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 
 /**
  * @author majianzheng
  */
 public class ServiceOfflineEvent implements JarbootEvent {
-    private String serviceName;
-    private String sid;
-
-    public ServiceOfflineEvent(String serviceName, String sid) {
-        this.serviceName = serviceName;
-        this.sid = sid;
+    private ServiceSetting setting;
+    public ServiceOfflineEvent(ServiceSetting setting) {
+        this.setting = setting;
     }
 
-    public String getServiceName() {
-        return serviceName;
+    public ServiceSetting getSetting() {
+        return setting;
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public String getSid() {
-        return sid;
-    }
-
-    public void setSid(String sid) {
-        this.sid = sid;
+    public void setSetting(ServiceSetting setting) {
+        this.setting = setting;
     }
 }

@@ -47,7 +47,7 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
-        ServiceSetting setting =  PropertyFileUtils.getServiceSetting(serviceName);
+        ServiceSetting setting =  PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), serviceName);
         setting.setVmContent(this.getVmOptions(serviceName, setting.getVm()));
         String path = SettingUtils.getWorkspace() + File.separator + serviceName;
         fileService.getFiles(path, true);
@@ -87,7 +87,7 @@ public class SettingServiceImpl implements SettingService {
             saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
         }
         //更新缓存配置，根据文件时间戳判定是否更新了
-        PropertyFileUtils.getServiceSetting(setting.getName());
+        PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
     }
 
     private Properties fillSettingProperties(ServiceSetting setting, String path, File settingFile) {
@@ -140,7 +140,7 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void renameService(ServiceSetting setting, String path) {
-        List<ServiceInstance> services = taskRunCache.getServiceList(SettingUtils.getCurrentLoginUsername());
+        List<ServiceInstance> services = taskRunCache.getServiceList(SettingUtils.getCurrentUserDir());
         ServiceInstance pre = services
                 .stream()
                 .filter(service -> setting.getSid().equals(service.getSid()))

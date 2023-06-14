@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author majianzheng
  */
@@ -18,6 +20,13 @@ public interface UserDao extends JpaRepository<User, Long> {
      * @return 用户信息
      */
     User findFirstByUsername(String username);
+
+    /**
+     * 根据角色用户信息
+     * @param roles 角色
+     * @return
+     */
+    List<User> findAllByRolesLike(String roles);
 
     /**
      * 获取用户角色

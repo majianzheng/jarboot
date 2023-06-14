@@ -125,7 +125,7 @@ const emit = defineEmits<{
   (e: 'execute', value: string): void;
   (e: 'cancel'): void;
 }>();
-const height = computed(() => basic.innerHeight - 118);
+const height = computed(() => basic.innerHeight - 110);
 const middleTitle = computed(() => {
   if (state.view) {
     if ('jad' === state.view) {

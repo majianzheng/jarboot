@@ -1,4 +1,4 @@
-package com.mz.jarboot.controller;
+package com.mz.jarboot.inner.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.notify.NotifyReactor;

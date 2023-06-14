@@ -31,6 +31,7 @@ export const ZH_CN = 'zh-CN';
 export const TOKEN_KEY = 'token';
 export const currentUser: any = { username: '', globalAdmin: false };
 export const ADMIN_ROLE = 'ROLE_ADMIN';
+export const SYS_ROLE = 'ROLE_SYS';
 
 export const LOCALHOST = 'localhost';
 

@@ -14,6 +14,11 @@ public class ServiceSetting implements Serializable {
     private String name;
 
     /**
+     * 用户目录
+     */
+    private String userDir;
+
+    /**
      * 组名字，可为空
      */
     private String group;
@@ -231,6 +236,14 @@ public class ServiceSetting implements Serializable {
 
     public void setScheduleType(String scheduleType) {
         this.scheduleType = scheduleType;
+    }
+
+    public String getUserDir() {
+        return userDir;
+    }
+
+    public void setUserDir(String userDir) {
+        this.userDir = userDir;
     }
 
     @Override

@@ -7,18 +7,20 @@ const urlBase = '/api/jarboot/user';
  * 用户管理操作
  */
 export default class UserService {
-  public static createUser(username: string, password: string, roles: string, userDir: string) {
+  public static createUser(username: string, fullName: string, password: string, roles: string, userDir: string) {
     const form: FormData = new FormData();
     form.append('username', username);
+    form.append('fullName', fullName);
     form.append('password', password);
     form.append('roles', roles);
     form.append('userDir', userDir || '');
     return Request.post<ResponseVo>(urlBase, form);
   }
 
-  public static updateUser(username: string, roles: string, userDir: string) {
+  public static updateUser(username: string, fullName: string, roles: string, userDir: string) {
     const form: FormData = new FormData();
     form.append('username', username);
+    form.append('fullName', fullName);
     form.append('roles', roles);
     form.append('userDir', userDir || '');
     return Request.post<ResponseVo>(urlBase + '/update', form);
@@ -40,5 +42,9 @@ export default class UserService {
 
   public static getUsers(username: string, role: string, pageNo: number, pageSize: number) {
     return Request.get(`${urlBase}/getUsers`, { username, role, pageNo, pageSize });
+  }
+
+  public static getUserDirs() {
+    return Request.get<string[]>(`${urlBase}/userDirs`, {});
   }
 }

@@ -3,7 +3,7 @@
   "isStrict": true,
   "allInOne": true,
   "packageFilters": "com.mz.jarboot.controller.*",
-  "packageExcludeFilters": "com.mz.jarboot.controller.AuthController",
+  "packageExcludeFilters": "",
   "allInOneDocFileName":"index.html",
   "outPath": "./target/smart-doc",
   "requestExample": true,
@@ -18,11 +18,11 @@
     "name": "Authorization",
     "type": "string",
     "desc": "用户认证",
-    "value":"",
+    "value":"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqYXJib290IiwiYXV0aCI6IlJPTEVfU1lTLFJPTEVfQURNSU4ifQ.sMDOxWLXaktttrGUYHt9PnVqU8NMpYLJ3rskS0_dpL4",
     "required": true,
     "since": "-",
     "pathPatterns": "/api/**",
-    "excludePathPatterns":"/api/jarboot/login/**"
+    "excludePathPatterns":"/api/jarboot/auth/**"
   }],
   "revisionLogs": [
     {

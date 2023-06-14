@@ -6,7 +6,9 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.dao.PrivilegeDao;
 import com.mz.jarboot.dao.RoleDao;
+import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.RoleInfo;
+import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -17,17 +19,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author majianzheng
  */
 @Service
 public class RoleServiceImpl implements RoleService {
+    private static String PATTEN = "^ROLE_[A-Z0-9]{1,10}$";
     @Autowired
     private RoleDao roleDao;
     @Autowired
     private PrivilegeDao privilegeDao;
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public PagedList<RoleInfo> getRoles(String role, String name, int pageNo, int pageSize) {
@@ -55,16 +64,13 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public void addRole(String role, String name) {
-        if (StringUtils.isEmpty(role) || StringUtils.isEmpty(name)) {
-            throw new JarbootException("Argument can't be empty！");
-        }
-        if (!role.startsWith(AuthConst.ROLE_PREFIX)) {
-            throw new JarbootException("Role must start with \"ROLE_\"！");
-        }
+        checkParam(role, name);
         if (AuthConst.ADMIN_ROLE.equalsIgnoreCase(role)) {
-            throw new JarbootException("Role Admin is not permit to create！");
+            throw new JarbootException("Role Admin is not permit to create or modify！");
         }
-
+        if (AuthConst.SYS_ROLE.equalsIgnoreCase(role)) {
+            throw new JarbootException("Role SYSTEM is not permit to create or modify！");
+        }
         if (null == roleDao.findFirstByRole(role) && roleDao.countRoles() > AuthConst.MAX_ROLE) {
             throw new JarbootException("Role number exceed " + AuthConst.MAX_ROLE + "!");
         }
@@ -77,12 +83,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public void setRoleName(String role, String name) {
-        if (StringUtils.isEmpty(role) || StringUtils.isEmpty(name)) {
-            throw new JarbootException("Argument can't be empty！");
-        }
-        if (!role.startsWith(AuthConst.ROLE_PREFIX)) {
-            throw new JarbootException("Role must start with \"ROLE_\"！");
-        }
+        checkParam(role, name);
         RoleInfo r = roleDao.findFirstByRole(role);
         r.setName(name);
         roleDao.save(r);
@@ -94,8 +95,17 @@ public class RoleServiceImpl implements RoleService {
         if (StringUtils.isEmpty(role)) {
             throw new JarbootException("Argument role can't be empty！");
         }
-        if (AuthConst.ADMIN_ROLE.equals(role)) {
+        if (AuthConst.ADMIN_ROLE.equals(role) || AuthConst.SYS_ROLE.equals(role)) {
             throw new JarbootException("The internal role, can't delete.");
+        }
+        List<User> userList = userDao.findAllByRolesLike(role);
+        if (null != userList && !userList.isEmpty()) {
+            for (User user : userList) {
+                Set<String> roleSet = Arrays.stream(user.getRoles().split(",")).map(String::trim).collect(Collectors.toSet());
+                if (roleSet.contains(role)) {
+                    throw new JarbootException("Role is using by " + user.getUsername());
+                }
+            }
         }
         roleDao.deleteAllByRole(role);
         // 当前role已经没有任何关联的user，删除相关的权限
@@ -112,16 +122,33 @@ public class RoleServiceImpl implements RoleService {
         return roleDao.findAll();
     }
 
+    private void checkParam(String role, String name) {
+        if (StringUtils.isEmpty(role) || StringUtils.isEmpty(name)) {
+            throw new JarbootException("Argument can't be empty！");
+        }
+        if (!Pattern.matches(PATTEN, role)) {
+            throw new JarbootException("Role is not legal, must start with \"ROLE_\" and A-Z 0-9！");
+        }
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     @PostConstruct
     public void init() {
-        //检查是否存在ADMIN_ROLE，否则创建
-        RoleInfo roleInfo = roleDao.findFirstByRole(AuthConst.ADMIN_ROLE);
+        //检查是否存在，否则创建
+        RoleInfo roleInfo = roleDao.findFirstByRole(AuthConst.SYS_ROLE);
         if (null != roleInfo) {
             return;
         }
         roleInfo = new RoleInfo();
-        roleInfo.setName("Admin");
+        roleInfo.setName("SYSTEM");
+        roleInfo.setRole(AuthConst.SYS_ROLE);
+        roleDao.save(roleInfo);
+        roleInfo = roleDao.findFirstByRole(AuthConst.ADMIN_ROLE);
+        if (null != roleInfo) {
+            return;
+        }
+        roleInfo = new RoleInfo();
+        roleInfo.setName("ADMIN");
         roleInfo.setRole(AuthConst.ADMIN_ROLE);
         roleDao.save(roleInfo);
     }

@@ -4,10 +4,8 @@ import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.dao.PrivilegeDao;
 import com.mz.jarboot.dao.RoleDao;
 import com.mz.jarboot.dao.UserDao;
-import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.UserService;
 import com.mz.jarboot.utils.PasswordEncoderUtil;
@@ -20,31 +18,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author majianzheng
  */
 @Service
 public class UserServiceImpl implements UserService {
+    private static String PATTEN = "^[A-Za-z_0-9]{3,18}$";
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private RoleDao roleDao;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void createUser(String username, String password, String roles, String userDir) {
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
-            throw new JarbootException("User or password is empty!");
+    public void createUser(String username, String fullName, String password, String roles, String userDir) {
+        if (StringUtils.isEmpty(password)) {
+            throw new JarbootException("Password is empty!");
         }
         if (AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
-            throw new JarbootException("User:" + username + " is internal user!");
+            throw new JarbootException("Create user:" + username + " is internal user!");
         }
+        checkFullName(fullName);
+        checkUsernameAndRoles(username, roles);
         User user = new User();
         user.setUsername(username);
+        user.setFullName(fullName);
         user.setRoles(roles);
         if (StringUtils.isEmpty(userDir)) {
             user.setUserDir(username);
         } else {
+            if (StringUtils.containsWhitespace(userDir)) {
+                throw new JarbootException("User dir:" + userDir + " contains whitespace!");
+            }
+            if (!Pattern.matches(PATTEN, userDir)) {
+                throw new JarbootException("userDir must be A-Z a-z _ 0-9 length 3 to 18");
+            }
             user.setUserDir(userDir);
         }
         user.setPassword(PasswordEncoderUtil.encode(password));
@@ -92,21 +106,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(String username, String roles, String userDir) {
+    public void updateUser(String username, String fullName, String roles, String userDir) {
         if (StringUtils.isEmpty(username)) {
             throw new JarbootException("User is empty!");
         }
+        checkFullName(fullName);
         User user = userDao.findFirstByUsername(username);
         if (null == user) {
             throw new JarbootException("User:" + username + " is not exist!");
         }
         if (StringUtils.isNotEmpty(roles)) {
+            checkUsernameAndRoles(username, roles);
             user.setRoles(roles);
         }
         if (StringUtils.isNotEmpty(userDir)) {
             user.setUserDir(userDir);
         }
+        user.setFullName(fullName);
         userDao.save(user);
+    }
+
+    private void checkFullName(String fullName) {
+        if (StringUtils.isNotEmpty(fullName) && fullName.length() > 26) {
+            throw new JarbootException("Full name length is big than 26!");
+        }
     }
 
     @Override
@@ -150,6 +173,33 @@ public class UserServiceImpl implements UserService {
         return new PagedList<>(result, all.getTotalElements());
     }
 
+    private void checkUsernameAndRoles(String username, String roles) {
+        if (StringUtils.isEmpty(username)) {
+            throw new JarbootException("Username is empty!");
+        }
+        if (StringUtils.containsWhitespace(username)) {
+            throw new JarbootException("User:" + username + " contains whitespace!");
+        }
+        if (StringUtils.isEmpty(roles)) {
+            throw new JarbootException("Role is empty!");
+        }
+        if (StringUtils.containsWhitespace(roles)) {
+            throw new JarbootException("Role contains whitespace!");
+        }
+        if (!Pattern.matches(PATTEN, username)) {
+            throw new JarbootException("Username must be A-Z a-z _ 0-9 length 3 to 18");
+        }
+        Set<String> roleSet = Arrays.stream(roles.split(",")).map(String::trim).collect(Collectors.toSet());
+        if (roleSet.contains(AuthConst.SYS_ROLE) && !AuthConst.JARBOOT_USER.equals(username)) {
+            throw new JarbootException("Can not assign SYSTEM role to normal user!");
+        }
+        for (String role : roleSet) {
+            if (!roleDao.existsByRole(role)) {
+                throw new JarbootException("Role is not exist!");
+            }
+        }
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     @PostConstruct
     public void init() {
@@ -160,7 +210,7 @@ public class UserServiceImpl implements UserService {
         }
         user = new User();
         user.setUsername(AuthConst.JARBOOT_USER);
-        user.setRoles(AuthConst.ADMIN_ROLE);
+        user.setRoles(AuthConst.SYS_ROLE + "," + AuthConst.ADMIN_ROLE);
         user.setUserDir("default");
         user.setPassword(PasswordEncoderUtil.encode(AuthConst.JARBOOT_USER));
         userDao.save(user);

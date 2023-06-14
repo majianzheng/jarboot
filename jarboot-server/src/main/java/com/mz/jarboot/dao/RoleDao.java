@@ -31,6 +31,13 @@ public interface RoleDao extends JpaRepository<RoleInfo, Long> {
     void deleteByRole(String role);
 
     /**
+     * 角色是否存在
+     * @param role 角色
+     * @return 是否存在
+     */
+    boolean existsByRole(String role);
+
+    /**
      * 根据角色关键字寻找角色
      * @param role 关键字
      * @return 角色列表

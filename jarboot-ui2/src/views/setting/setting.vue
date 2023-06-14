@@ -3,7 +3,7 @@
     <div class="menu-side">
       <el-menu :default-active="data.routeName" class="menu-vertical" :collapse="data.collapse" :collapse-transition="true" @select="doSelect">
         <el-menu-item :index="conf.name" v-for="(conf, i) in settingRoutes" :key="i">
-          <i v-if="(conf.meta.icon as string).startsWith('icon-')" class="__menu-icon iconfont" :class="conf.meta.icon"></i>
+          <i v-if="conf.meta.icon.startsWith('icon-')" class="__menu-icon iconfont" :class="conf.meta.icon"></i>
           <el-icon v-else><Component :is="conf.meta.icon" /></el-icon>
           <template #title>{{ $t(conf.meta.code) }}</template>
         </el-menu-item>
@@ -82,7 +82,7 @@ onMounted(init);
   }
 }
 .menu-vertical {
-  height: calc(100vh - 70px);
+  height: calc(100vh - 60px);
 }
 .__menu-icon {
   font-size: 18px;
