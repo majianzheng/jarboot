@@ -15,6 +15,13 @@ onMounted(() => {
   window.onresize = () => {
     basic.update();
   };
+  document.onkeydown = event => {
+    if (event.ctrlKey || event.metaKey) {
+      if ('KeyF' === event.code || 'KeyS' === event.code) {
+        return false;
+      }
+    }
+  };
   CommonUtils.init();
 });
 onUnmounted(() => {

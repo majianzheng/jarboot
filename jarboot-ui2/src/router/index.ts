@@ -47,8 +47,11 @@ router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
   userStore.setCurrentUser(user);
   let permission: any = userStore.permission;
-  if (!permission) {
+  if (null === permission) {
     permission = await userStore.fetchPrivilege();
+  }
+  if (null === userStore.avatar) {
+    await userStore.fetchAvatar();
   }
   if ('jarboot' === userStore.username) {
     // jarboot用户无需校验

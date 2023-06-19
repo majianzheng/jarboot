@@ -11,6 +11,7 @@ import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;
+import com.mz.jarboot.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,7 +40,7 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private UserDao userDao;
+    private UserService userService;
 
     @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
@@ -63,7 +64,7 @@ public class AuthController {
         }
 
         Authentication authentication = jwtTokenManager.getAuthentication(token);
-        User user = userDao.findFirstByUsername(authentication.getName());
+        User user = userService.findUserByUsername(authentication.getName());
         user.setPassword(null);
         return HttpResponseUtils.success(user);
     }
@@ -92,12 +93,14 @@ public class AuthController {
                 return HttpResponseUtils.error(e.getMessage(), e);
             }
         }
-        JarbootUser user = new JarbootUser();
-        user.setUsername(username);
-        user.setAccessToken(token);
-        user.setTokenTtl(expireSeconds);
-        user.setRoles(userDao.getUserRoles(username));
-        return HttpResponseUtils.success(user);
+        User user = userService.findUserByUsername(username);
+        JarbootUser jarbootUser = new JarbootUser();
+        jarbootUser.setUsername(username);
+        jarbootUser.setAccessToken(token);
+        jarbootUser.setTokenTtl(expireSeconds);
+        jarbootUser.setRoles(user.getRoles());
+        jarbootUser.setAvatar(userService.getAvatar(username));
+        return HttpResponseUtils.success(jarbootUser);
     }
 
     /**
@@ -116,8 +119,7 @@ public class AuthController {
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
-        String roles = userDao.getUserRoles(username);
-        String token = jwtTokenManager.createOpenApiToken(username, roles);
+        String token = jwtTokenManager.createOpenApiToken(username);
         return HttpResponseUtils.success(token);
     }
 

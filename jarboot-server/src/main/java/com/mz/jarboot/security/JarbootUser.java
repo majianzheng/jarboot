@@ -6,6 +6,8 @@ package com.mz.jarboot.security;
 public class JarbootUser {
     private String username;
     private String accessToken;
+
+    private String avatar;
     private long tokenTtl;
     private String roles;
 
@@ -39,5 +41,13 @@ public class JarbootUser {
 
     public void setRoles(String roles) {
         this.roles = roles;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

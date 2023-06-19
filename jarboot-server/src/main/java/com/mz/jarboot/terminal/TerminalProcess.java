@@ -132,6 +132,9 @@ public class TerminalProcess {
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            operator.newMessage("Terminal process exit.");
+            operator.close();
         }
     }
 

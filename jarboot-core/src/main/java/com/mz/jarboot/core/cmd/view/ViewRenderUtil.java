@@ -22,18 +22,6 @@ import static java.lang.String.format;
  */
 @SuppressWarnings({"squid:S1319", "squid:S2386", "PMD.UndefineMagicConstantRule"})
 public class ViewRenderUtil {
-
-    /** Thread State Colors */
-    public static final EnumMap<Thread.State, String> COLORS = new EnumMap<>(Thread.State.class);
-    static {
-        COLORS.put(Thread.State.NEW, "cyan");
-        COLORS.put(Thread.State.RUNNABLE, "green");
-        COLORS.put(Thread.State.BLOCKED, "red");
-        COLORS.put(Thread.State.WAITING, "yellow");
-        COLORS.put(Thread.State.TIMED_WAITING, "magenta");
-        COLORS.put(Thread.State.TERMINATED, "blue");
-    }
-
     /**
      * Render key-value table
      * @param map map
@@ -118,7 +106,6 @@ public class ViewRenderUtil {
         List<List<String>> rows = new ArrayList<>();
         for (ThreadVO thread : threads) {
             List<String> row = new ArrayList<>();
-            String color = COLORS.get(thread.getState());
             String time = formatTimeMills(thread.getTime());
             String deltaTime = formatTimeMillsToSeconds(thread.getDeltaTime());
             double cpu = thread.getCpu();
@@ -129,7 +116,28 @@ public class ViewRenderUtil {
             }
             String stateElement = "-";
             if (thread.getState() != null) {
-                stateElement = HtmlNodeUtils.span(thread.getState().toString(), color);
+                switch (thread.getState()) {
+                    case NEW:
+                        stateElement = AnsiLog.cyan(thread.getState().toString());
+                        break;
+                    case RUNNABLE:
+                        stateElement = AnsiLog.green(thread.getState().toString());
+                        break;
+                    case BLOCKED:
+                        stateElement = AnsiLog.red(thread.getState().toString());
+                        break;
+                    case WAITING:
+                        stateElement = AnsiLog.yellow(thread.getState().toString());
+                        break;
+                    case TIMED_WAITING:
+                        stateElement = AnsiLog.magenta(thread.getState().toString());
+                        break;
+                    case TERMINATED:
+                        stateElement = AnsiLog.blue(thread.getState().toString());
+                        break;
+                    default:
+                        break;
+                }
             }
             row.add(String.valueOf(thread.getId()));
             row.add(thread.getName());
@@ -170,7 +178,7 @@ public class ViewRenderUtil {
         return renderTable(headers, rows, title, 1);
     }
 
-    public static String renderTable(List<String> headers, List<List<String>> rows, String title, int border) {
+    public static String renderTableHtml(List<String> headers, List<List<String>> rows, String title, int border) {
         if (null == headers) {
             headers = new ArrayList<>();
         }
@@ -217,6 +225,153 @@ public class ViewRenderUtil {
         tableBuilder.append("</tbody>");
         tableBuilder.append("</table>");
         return tableBuilder.toString();
+    }
+
+    public static String renderTable(List<String> headers, List<List<String>> rows, String title, int border) {
+        if (null == headers) {
+            headers = new ArrayList<>();
+        }
+        if (null == rows) {
+            rows = new ArrayList<>();
+        }
+        if (null == title) {
+            title = StringUtils.EMPTY;
+        }
+        if (border < 0) {
+            border = 0;
+        }
+        List<Integer> colWidth = new ArrayList<>();
+        for (int i = 0; i < headers.size(); ++i) {
+            colWidth.add(i, headers.get(i).length());
+        }
+        for (List<String> row : rows) {
+            for (int j = 0; j < row.size(); ++j) {
+                String c = row.get(j);
+                int len = c.length();
+                if (colWidth.size() < (j + 1)) {
+                    colWidth.add(len);
+                } else {
+                    len = Math.max(len, colWidth.get(j));
+                    colWidth.set(j, len);
+                }
+            }
+        }
+        int width = 2;
+        for (Integer len : colWidth) {
+            width += len + 1;
+        }
+        StringBuilder sb = new StringBuilder();
+
+        if (StringUtils.isEmpty(title)) {
+            sb.append("\n┌");
+            for (int i = 0; i < colWidth.size(); ++i) {
+                int w = colWidth.get(i);
+                for (int j = 0; j < w; ++j) {
+                    sb.append("─");
+                }
+                if ((i + 1) != colWidth.size()) {
+                    sb.append('┬');
+                }
+            }
+            sb.append("┐\n");
+        } else {
+            sb.append("\n┌");
+            for (int i = 1; i < width - 2; ++i) {
+                sb.append("─");
+            }
+            sb.append("┐\n");
+            sb.append("│");
+            whitePrint(sb, width - colWidth.size(), title).append("│\n");
+            if (headers.isEmpty() && rows.isEmpty()) {
+                sb.append('└');
+                for (int i = 1; i < width - 2; ++i) {
+                    sb.append("─");
+                }
+                sb.append("┘\n");
+            } else {
+                sb.append('├');
+                for (int i = 0; i < colWidth.size(); ++i) {
+                    int w = colWidth.get(i);
+                    for (int j = 0; j < w; ++j) {
+                        sb.append("─");
+                    }
+                    if ((i + 1) != colWidth.size()) {
+                        sb.append('┬');
+                    }
+                }
+                sb.append("┤\n");
+            }
+        }
+        if (!headers.isEmpty()) {
+            sb.append('│');
+            for (int i = 0; i < colWidth.size(); ++i) {
+                String c = headers.get(i);
+                int w = colWidth.get(i);
+                whitePrint(sb, w, c);
+                sb.append('│');
+            }
+            sb.append("\n");
+            if (rows.isEmpty()) {
+                sb.append('└');
+                for (int i = 1; i < width - 1; ++i) {
+                    sb.append("─");
+                }
+                sb.append("┘\n");
+            }
+        }
+        if (rows.isEmpty()) {
+            return sb.toString();
+        }
+        for (int n = 0; n < rows.size(); ++n) {
+            List<String> row = rows.get(n);
+            if (!headers.isEmpty()) {
+                sb.append('├');
+                for (int i = 0; i < colWidth.size(); ++i) {
+                    int w = colWidth.get(i);
+                    for (int j = 0; j < w; ++j) {
+                        sb.append("─");
+                    }
+                    if ((i + 1) != colWidth.size()) {
+                        sb.append('┼');
+                    }
+                }
+                sb.append("┤\n");
+            }
+            sb.append("│");
+            for (int i = 0; i < colWidth.size(); ++i) {
+                String c = row.get(i);
+                int w = colWidth.get(i);
+                whitePrint(sb, w, c);
+                sb.append('│');
+            }
+            sb.append("\n");
+        }
+        sb.append('└');
+        for (int i = 0; i < colWidth.size(); ++i) {
+            int w = colWidth.get(i);
+            for (int j = 0; j < w; ++j) {
+                sb.append("─");
+            }
+            if ((i + 1) != colWidth.size()) {
+                sb.append("┴");
+            }
+        }
+        sb.append("┘\n");
+
+        return sb.toString();
+    }
+
+    private static StringBuilder whitePrint(StringBuilder sb, int width, String text) {
+        int margin = (width - text.length()) / 2;
+        for (int i = 0; i < margin; ++i) {
+            sb.append(' ');
+        }
+        sb.append(text);
+        int right = margin < 0 ? 0 : (width - margin - text.length());
+        for (int i = 0; i < right; ++i) {
+            sb.append(' ');
+        }
+        return sb;
     }
 
     private static String formatTimeMillsToSeconds(long timeMills) {

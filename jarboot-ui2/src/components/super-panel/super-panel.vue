@@ -37,6 +37,7 @@
       </div>
     </div>
     <div class="terminal-view" :style="{ width: width + 'px' }" v-show="!state.view">
+      <!--
       <console :id="props.sid" :height="height + 'px'" :pubsub="pubsub" :auto-scroll-end="state.autoScrollEnd" :wrap="state.textWrap">
         <template #content>
           <banner></banner>
@@ -63,6 +64,15 @@
           </span>
         </template>
       </el-input>
+      -->
+      <j-console
+        :height="height"
+        :id="sid"
+        :width="width"
+        @ready="onReady"
+        @command="onCommand"
+        :prefix="TERM_PREFIX"
+        :pubsub="pubsub"></j-console>
     </div>
     <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'jad'">
       <file-editor v-model="state.data.source" :readonly="true" :name="'xxx.java'" :height="height + 28"></file-editor>
@@ -83,6 +93,7 @@ import type { ElInput } from 'element-plus';
 import { useBasicStore } from '@/stores';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
+import type { Terminal } from 'xterm';
 
 /**
  * 执行记录，上下键
@@ -143,6 +154,18 @@ const middleTitle = computed(() => {
 const historyProp = { cur: 0, history: [] } as HistoryProp;
 let lastFocusTime = Date.now();
 
+let term: Terminal;
+const TERM_PREFIX = 'jarboot$ ';
+
+function onReady(t: Terminal) {
+  term = t;
+}
+
+function onCommand(cmd: string) {
+  state.command = cmd;
+  doExecCommand();
+}
+
 const focusInput = () => {
   if (Date.now() - lastFocusTime > 1000) {
     inputRef?.value?.focus();
@@ -157,6 +180,7 @@ const onFocusCommandInput = () => {
 
 const onCmdEnd = (msg?: string) => {
   state.executing = null;
+  term.options.disableStdin = false;
   pubsub.publish(props.sid, CONSOLE_TOPIC.FINISH_LOADING, msg);
   onFocusCommandInput();
 };
@@ -167,13 +191,14 @@ const clearDisplay = () => {
 
 const doExecCommand = () => {
   const cmd = state.command;
+  term.options.disableStdin = !!cmd;
   if (StringUtil.isEmpty(cmd)) {
     return;
   }
   state.executing = cmd;
   state.view = '';
 
-  pubsub.publish(props.sid, CONSOLE_TOPIC.APPEND_LINE, `<span class="command-prefix">$</span>${cmd}`);
+  //pubsub.publish(props.sid, CONSOLE_TOPIC.APPEND_LINE, `<span class="command-prefix">$</span>${cmd}`);
   emit('execute', cmd);
   state.command = '';
   const history = historyProp.history;
@@ -218,6 +243,7 @@ const renderView = (resultData: any) => {
   state.data = resultData;
   state.view = cmd;
   state.executing = cmd;
+  term.options.disableStdin = !!cmd;
 };
 
 const onExecQuickCmd = (cmd: string) => {

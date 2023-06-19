@@ -1,9 +1,11 @@
 package com.mz.jarboot.ws;
 
+import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.event.AbstractMessageEvent;
 
 import javax.websocket.Session;
+import java.io.IOException;
 
 /**
  * WebSocket消息推送
@@ -47,6 +49,17 @@ public class SessionOperator {
      */
     public boolean isOpen() {
         return this.session.isOpen();
+    }
+
+    /**
+     * 关闭
+     */
+    public void close() {
+        try {
+            this.session.close();
+        } catch (Exception e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
     }
 
     private void publish(MessageSenderEvent event) {

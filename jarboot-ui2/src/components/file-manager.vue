@@ -39,6 +39,8 @@ const emit = defineEmits<{
   (e: 'edit', path: string, content: string): void;
   (e: 'select', file: FileNode): void;
   (e: 'node-click', file: FileNode, path: string): void;
+  (e: 'before-load'): void;
+  (e: 'after-load', data: FileNode[]): void;
 }>();
 
 const state = reactive({
@@ -59,7 +61,9 @@ function genId(btn: string, data: any) {
 async function reload() {
   state.loading = true;
   try {
+    emit('before-load');
     state.data = await FileService.getFiles(props.baseDir, props.withRoot);
+    emit('after-load', { ...state.data });
   } finally {
     state.loading = false;
   }

@@ -17,8 +17,8 @@ const route = useRoute();
 const router = useRouter();
 
 const filterMenu = (config: any): boolean => {
-  if ('jarboot' !== user.username && config?.meta?.code) {
-    if (!user?.permission[config.meta.code]) {
+  if ('jarboot' !== user.username && config?.meta?.code && user?.permission) {
+    if (!user.permission[config.meta.code]) {
       return false;
     }
   }
@@ -87,7 +87,8 @@ onMounted(() => {
           <el-dropdown>
             <div style="display: flex">
               <el-avatar>
-                <SvgIcon icon="panda" style="width: 26px; height: 26px" />
+                <img v-if="user.avatar" :src="user.avatar" height="40" width="40" />
+                <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
               </el-avatar>
               <div style="line-height: 40px; margin-left: 5px">
                 <span>{{ user.fullName || user.username }}</span>
@@ -123,7 +124,7 @@ header {
   border-bottom: 1px solid var(--el-border-color);
   .logo {
     height: 38px;
-    margin: 6px;
+    margin: 6px 15px;
   }
   nav {
     font-size: 16px;

@@ -1,5 +1,10 @@
 <template>
   <div v-loading="state.loading" class="term-main" ref="termRef" :style="{ width: width + 'px', height: height + 'px' }"></div>
+  <el-dialog v-model="state.dialog" :draggable="true" :modal="false" :title="$t('SEARCH_BTN')" :close-on-click-modal="false">
+    <div>
+      <el-input v-model="state.search" placeholder="" prefix-icon="Search" size="small" @keydown.enter="search" clearable />
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -28,6 +33,7 @@ const props = defineProps<{
 interface TermOption {
   term: null | Terminal;
   fitAddon: null | FitAddon;
+  searchAddon: null | SearchAddon;
   websocket: null | WebSocket;
 }
 const emit = defineEmits<{
@@ -42,6 +48,8 @@ const CHAR_HEIGHT = 16;
 const state = reactive({
   loading: true,
   connected: false,
+  search: '',
+  dialog: false,
 });
 
 const termRef = ref<HTMLDivElement>();
@@ -49,10 +57,15 @@ const termRef = ref<HTMLDivElement>();
 const termOption: TermOption = {
   term: null,
   websocket: null,
+  searchAddon: null,
   fitAddon: null,
 };
 
 watch(() => [props.height, props.width], debounce(updateSize, 1000, { maxWait: 3000 }));
+
+function search() {
+  termOption.searchAddon?.findNext(state.search);
+}
 
 function updateSize() {
   termOption.fitAddon?.fit();
@@ -134,10 +147,26 @@ function init() {
   const serializeAddon = new SerializeAddon();
   termOption.term.loadAddon(serializeAddon);
   const searchAddon = new SearchAddon();
+  termOption.searchAddon = searchAddon;
   termOption.term.loadAddon(searchAddon);
   termOption.term.open(termRef.value as HTMLDivElement);
   termOption.fitAddon.fit();
   termOption.term.focus();
+  termOption.term.attachCustomKeyEventHandler(event => {
+    if (event.type === 'keydown') {
+      let ctl = false;
+      if (window.navigator.userAgent.includes('Mac OS')) {
+        ctl = event.metaKey;
+      } else {
+        ctl = event.ctrlKey;
+      }
+      if (ctl && 'KeyF' === event.code) {
+        state.dialog = true;
+        return false;
+      }
+    }
+    return true;
+  });
 }
 
 function fit() {
@@ -156,8 +185,12 @@ defineExpose({
 onMounted(init);
 onUnmounted(() => {
   console.info('onUnmounted terminal.');
-  termOption.term?.dispose();
-  termOption.websocket?.close();
+  try {
+    termOption.term?.dispose();
+    termOption.websocket?.close();
+  } catch (error) {
+    console.error(error);
+  }
 });
 </script>
 

@@ -43,12 +43,13 @@ public class UserController {
      * @param password 密码
      * @param roles 角色
      * @param userDir 用户目录
+     * @param avatar 头像
      * @return 执行结果
      */
     @PostMapping
     @ResponseBody
-    public ResponseSimple createUser(String username, String fullName, String password, String roles, String userDir) {
-        userService.createUser(username, fullName, password, roles, userDir);
+    public ResponseSimple createUser(String username, String fullName, String password, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
+        userService.createUser(username, fullName, password, roles, userDir, avatar);
         return new ResponseSimple();
     }
 
@@ -58,12 +59,13 @@ public class UserController {
      * @param fullName 姓名
      * @param roles 角色
      * @param userDir 用户目录
+     * @param avatar 头像
      * @return 执行结果
      */
     @PostMapping("/update")
     @ResponseBody
-    public ResponseSimple updateUser(String username, String fullName, String roles, String userDir) {
-        userService.updateUser(username, fullName, roles, userDir);
+    public ResponseSimple updateUser(String username, String fullName, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
+        userService.updateUser(username, fullName, roles, userDir, avatar);
         return new ResponseSimple();
     }
 
@@ -151,5 +153,10 @@ public class UserController {
         authentication = jwtTokenManager.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return authentication.getName();
+    }
+
+    @GetMapping(value="/avatar")
+    public ResponseVo<String> getAvatar(String username) {
+        return HttpResponseUtils.success(userService.getAvatar(username));
     }
 }

@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    AvatarCutter: typeof import('./components/avatar-cutter/avatar-cutter.vue')['default']
     Banner: typeof import('./components/super-panel/banner.vue')['default']
     CodeMirror: typeof import('./components/editor/code-mirror.vue')['default']
     Console: typeof import('./components/console/console.vue')['default']
@@ -51,6 +52,7 @@ declare module '@vue/runtime-core' {
     FileIcon: typeof import('./components/file-icon.vue')['default']
     FileManager: typeof import('./components/file-manager.vue')['default']
     JarbootVersion: typeof import('./components/jarboot-version.vue')['default']
+    JConsole: typeof import('./components/super-panel/j-console.vue')['default']
     LanguageSwitch: typeof import('./components/language-switch.vue')['default']
     ModifyUserDialog: typeof import('./components/modify-user-dialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

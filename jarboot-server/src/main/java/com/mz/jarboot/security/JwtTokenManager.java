@@ -69,12 +69,12 @@ public class JwtTokenManager {
      * Create openapi token.
      *
      * @param username auth info
-     * @param roleName role
      * @return token
      */
-    public String createOpenApiToken(String username, String roleName) {
+    public String createOpenApiToken(String username) {
+        String roles = userDao.getUserRoles(username);
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put(AUTHORITIES_KEY, roleName);
+        claims.put(AUTHORITIES_KEY, roles);
         return Jwts.builder().setClaims(claims)
                 .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
     }

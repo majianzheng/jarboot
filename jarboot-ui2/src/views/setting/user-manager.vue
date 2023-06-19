@@ -17,6 +17,18 @@
     </table-pro>
     <el-drawer :title="state.isNew ? $t('CREATE_USER') : $t('MODIFY') + $t('USER_NAME')" v-model="state.drawer" destroy-on-close @closed="reset">
       <el-form :model="state.form" label-width="auto" :rules="rules" ref="configRef">
+        <el-form-item prop="avatar" label="头像">
+          <template #label>
+            <span style="line-height: 45px">头像</span>
+          </template>
+          <el-button plain link @click="state.showCutter = true">
+            <el-avatar>
+              <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" />
+              <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
+            </el-avatar>
+            <span style="margin-left: 10px">点击修改</span>
+          </el-button>
+        </el-form-item>
         <el-form-item prop="username" :label="$t('USER_NAME')">
           <el-input v-model="state.form.username" :disabled="!state.isNew" :placeholder="$t('INPUT_USERNAME')"></el-input>
         </el-form-item>
@@ -53,6 +65,7 @@
       </template>
     </el-drawer>
     <modify-user-dialog v-model:visible="state.dialog" :username="state.modifyUsername"></modify-user-dialog>
+    <avatar-cutter v-model:visible="state.showCutter" @cancel="state.showCutter = false" return-type="url" @enter="uploadAvatar"></avatar-cutter>
   </div>
 </template>
 
@@ -88,6 +101,7 @@ const basicStore = useBasicStore();
 const userStore = useUserStore();
 
 const resetForm = {
+  avatar: '',
   username: '',
   fullName: '',
   roles: [] as string[],
@@ -105,7 +119,9 @@ const state = reactive({
   roleList: [] as RoleInfo[],
   roleMap: {} as any,
   form: { ...resetForm },
+  showCutter: false,
 });
+
 const validRePassword = (_rule: any, value: any, callback: any) => {
   if (value !== state.form.password) {
     callback(new Error(CommonUtils.translate('PWD_NOT_MATCH')));
@@ -132,6 +148,11 @@ const tableRef = ref();
 
 function reset() {
   state.form = { ...resetForm };
+}
+
+function uploadAvatar(avatar: string) {
+  state.form.avatar = avatar;
+  state.showCutter = false;
 }
 
 function formatRoles(_row: any, _col: string, cellValue: string) {
@@ -163,6 +184,7 @@ async function updateUser(row: SysUser) {
   state.isNew = false;
   await getRoleList();
   state.form = { ...row, rePassword: '', password: '', roles: row.roles.split(',') };
+  state.form.avatar = await UserService.getAvatar(row.username);
   state.drawer = true;
 }
 
@@ -181,9 +203,19 @@ async function save() {
   try {
     const fullName = state.form.fullName || '';
     if (state.isNew) {
-      await UserService.createUser(state.form.username, fullName, state.form.password, state.form.roles.join(','), state.form.userDir);
+      await UserService.createUser(
+        state.form.username,
+        fullName,
+        state.form.password,
+        state.form.roles.join(','),
+        state.form.userDir,
+        state.form.avatar
+      );
     } else {
-      await UserService.updateUser(state.form.username, fullName, state.form.roles.join(','), state.form.userDir);
+      await UserService.updateUser(state.form.username, fullName, state.form.roles.join(','), state.form.userDir, state.form.avatar);
+      if (userStore.username === state.form.username && state.form.avatar) {
+        userStore.avatar = state.form.avatar;
+      }
     }
     state.drawer = false;
     tableRef.value.refresh();

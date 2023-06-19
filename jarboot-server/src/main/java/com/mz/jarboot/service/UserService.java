@@ -14,8 +14,9 @@ public interface UserService {
      * @param password 密码
      * @param roles 角色
      * @param userDir 用户关联目录
+     * @param avatar 头像
      */
-    void createUser(String username, String fullName, String password, String roles, String userDir);
+    void createUser(String username, String fullName, String password, String roles, String userDir, String avatar);
 
     /**
      * 删除用户
@@ -38,8 +39,9 @@ public interface UserService {
      * @param fullName 姓名
      * @param roles 角色
      * @param userDir 用户目录
+     * @param avatar 头像
      */
-    void updateUser(String username, String fullName, String roles, String userDir);
+    void updateUser(String username, String fullName, String roles, String userDir, String avatar);
 
     /**
      * 根据用户名获取用户信息
@@ -57,4 +59,11 @@ public interface UserService {
      * @return 用户列表
      */
     PagedList<User> getUsers(String username, String role, int pageNo, int pageSize);
+
+    /**
+     * 获取头像
+     * @param username 用户名
+     * @return 头像
+     */
+    String getAvatar(String username);
 }

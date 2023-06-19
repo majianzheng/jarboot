@@ -34,6 +34,7 @@ export type SysUser = {
   roles: string;
   userDir: string;
   password?: string;
+  avatar: string;
 };
 
 export type RoleInfo = {

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="$t('RESET_PASSWORD')" v-model="props.visible">
+  <el-dialog :title="$t('RESET_PASSWORD')" :model-value="props.visible" @close="emit('update:visible', false)" destroy-on-close>
     <el-form :model="modifyUserForm" :rules="rules" label-width="0">
       <el-form-item prop="username">
         <el-input prefix-icon="User" :model-value="fullName || username" :placeholder="$t('USER_NAME')" readonly></el-input>

@@ -7,7 +7,8 @@ import FileService from '@/services/FileService';
 
 interface FileContent extends FileNode {
   content: string;
-  loading?: false;
+  loading?: boolean;
+  modified: boolean;
 }
 
 const basicStore = useBasicStore();
@@ -19,6 +20,7 @@ const state = reactive({
   collapsed: false,
   active: '',
   loading: false,
+  reloading: true,
 });
 
 function editTab(key: string, action: 'remove' | 'add') {
@@ -41,7 +43,7 @@ async function handleSelect(file: FileNode, path: string) {
     state.loading = true;
     try {
       const content = await FileService.getContent(path);
-      state.files.push({ ...file, content });
+      state.files.push({ ...file, content, modified: false });
     } finally {
       state.loading = false;
     }
@@ -58,14 +60,19 @@ function getTabWidth() {
 </script>
 
 <template>
-  <div>
+  <div v-loading="state.reloading">
     <two-sides-pro
       :show-header="false"
       v-model:collapsed="state.collapsed"
       :body-height="basicStore.innerHeight - 56 + 'px'"
       :left-width="state.sideWidth + 'px'">
       <template #left-content>
-        <file-manager :with-root="true" :base-dir="userStore.userDir" @node-click="handleSelect"></file-manager>
+        <file-manager
+          :with-root="true"
+          :base-dir="userStore.userDir"
+          @node-click="handleSelect"
+          @before-load="state.reloading = true"
+          @after-load="state.reloading = false"></file-manager>
       </template>
       <template #right-content>
         <el-tabs

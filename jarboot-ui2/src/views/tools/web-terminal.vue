@@ -47,8 +47,11 @@ watch(() => [basicStore.innerHeight, basicStore.innerWidth], debounce(resize, 15
 watch(
   () => state.active,
   newValue => {
+    if (newValue < 0) {
+      return;
+    }
     const term = state.terms[newValue];
-    if (!term.termOpt?.term) {
+    if (!term?.termOpt?.term) {
       return;
     }
     nextTick(() => term.termOpt.term?.focus());

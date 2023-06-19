@@ -9,7 +9,9 @@
       <el-table-column :label="$t('OPERATOR')" width="220px">
         <template #default="{ row }">
           <el-button link type="primary" @click="updateRole(row)">{{ $t('MODIFY') }}</el-button>
-          <el-button link type="danger" :disabled="'ROLE_ADMIN' === row.role" @click="deleteRole(row)">{{ $t('DELETE') }}</el-button>
+          <el-button link type="danger" :disabled="ADMIN_ROLE === row.role || SYS_ROLE === row.role" @click="deleteRole(row)">{{
+            $t('DELETE')
+          }}</el-button>
         </template>
       </el-table-column>
     </table-pro>
@@ -38,6 +40,7 @@ import { ElForm, ElMessageBox, FormRules } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { useBasicStore } from '@/stores';
+import { ADMIN_ROLE, SYS_ROLE } from '@/common/CommonConst';
 
 const searchConfig: SearchConfig[] = [
   {

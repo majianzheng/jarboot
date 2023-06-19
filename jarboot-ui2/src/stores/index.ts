@@ -7,6 +7,7 @@ import type { ServiceInstance, JvmProcess } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
 import { DEFAULT_PRIVILEGE } from '@/common/CommonConst';
+import UserService from '@/services/UserService';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -32,7 +33,8 @@ export const useUserStore = defineStore({
     fullName: '',
     roles: '',
     userDir: '',
-    permission: null as any,
+    avatar: null as string | null,
+    permission: null as string | null,
   }),
 
   actions: {
@@ -62,6 +64,11 @@ export const useUserStore = defineStore({
       privilegeList.forEach(privilege => (permission[privilege.authCode] = permission[privilege.authCode] || privilege.permission));
       this.$patch({ permission });
       return permission;
+    },
+    async fetchAvatar() {
+      const avatar = await UserService.getAvatar(this.username);
+      this.$patch({ avatar });
+      return avatar;
     },
   },
 });

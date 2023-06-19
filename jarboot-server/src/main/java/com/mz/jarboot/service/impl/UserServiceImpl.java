@@ -9,6 +9,8 @@ import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.service.UserService;
 import com.mz.jarboot.utils.PasswordEncoderUtil;
+import com.mz.jarboot.utils.SettingUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public void createUser(String username, String fullName, String password, String roles, String userDir) {
+    public void createUser(String username, String fullName, String password, String roles, String userDir, String avatar) {
         checkPassword(password);
         if (AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
             throw new JarbootException("Create user:" + username + " is internal user!");
@@ -63,6 +68,9 @@ public class UserServiceImpl implements UserService {
             user.setUserDir(userDir);
         }
         user.setPassword(PasswordEncoderUtil.encode(password));
+        if (StringUtils.isNotEmpty(avatar)) {
+            writeAvatar(username, avatar);
+        }
         userDao.save(user);
     }
 
@@ -108,7 +116,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(String username, String fullName, String roles, String userDir) {
+    public void updateUser(String username, String fullName, String roles, String userDir, String avatar) {
         if (StringUtils.isEmpty(username)) {
             throw new JarbootException("User is empty!");
         }
@@ -125,6 +133,9 @@ public class UserServiceImpl implements UserService {
             user.setUserDir(userDir);
         }
         user.setFullName(fullName);
+        if (StringUtils.isNotEmpty(avatar)) {
+            writeAvatar(username, avatar);
+        }
         userDao.save(user);
     }
 
@@ -179,6 +190,39 @@ public class UserServiceImpl implements UserService {
         }
         List<User> result = all.getContent();
         return new PagedList<>(result, all.getTotalElements());
+    }
+
+    private void writeAvatar(String username, String avatar) {
+        try {
+            FileUtils.writeStringToFile(getUserAvatarFile(username), avatar, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getAvatar(String username) {
+        File avatarFile = getUserAvatarFile(username);
+        if (!avatarFile.exists()) {
+            return StringUtils.EMPTY;
+        }
+        try {
+            return FileUtils.readFileToString(avatarFile, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
+    }
+
+    private File getUserAvatarFile(String username) {
+        File avatarDir = FileUtils.getFile(SettingUtils.getHomePath(), "data", "avatar");
+        if (!avatarDir.exists()) {
+            try {
+                FileUtils.forceMkdir(avatarDir);
+            } catch (IOException e) {
+                throw new JarbootException(e.getMessage(), e);
+            }
+        }
+        return FileUtils.getFile(avatarDir, username);
     }
 
     private void checkUsernameAndRoles(String username, String roles) {
