@@ -29,7 +29,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UserServiceImpl implements UserService {
-    private static String PATTEN = "^[A-Za-z_0-9]{3,18}$";
+    private static String PATTEN = "^[A-Za-z_0-9\u4E00-\u9FA5]{3,18}$";
+    private static int FULL_NAME_MAX = 26;
+    private static int PASSWORD_MAX = 17;
+    private static int PASSWORD_MIN = 5;
     @Autowired
     private UserDao userDao;
     @Autowired
@@ -38,9 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public void createUser(String username, String fullName, String password, String roles, String userDir) {
-        if (StringUtils.isEmpty(password)) {
-            throw new JarbootException("Password is empty!");
-        }
+        checkPassword(password);
         if (AuthConst.JARBOOT_USER.equalsIgnoreCase(username)) {
             throw new JarbootException("Create user:" + username + " is internal user!");
         }
@@ -84,7 +85,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public void updateUserPassword(String currentLoginUser, String username, String oldPassword, String password) {
-        if (StringUtils.isEmpty(currentLoginUser) || StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+        checkPassword(password);
+        if (StringUtils.isEmpty(currentLoginUser) || StringUtils.isEmpty(username)) {
             throw new JarbootException("User or password is empty!");
         }
         User user = userDao.findFirstByUsername(username);
@@ -127,8 +129,14 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkFullName(String fullName) {
-        if (StringUtils.isNotEmpty(fullName) && fullName.length() > 26) {
+        if (StringUtils.isEmpty(fullName)) {
+            return;
+        }
+        if (StringUtils.isNotEmpty(fullName) && fullName.length() > FULL_NAME_MAX) {
             throw new JarbootException("Full name length is big than 26!");
+        }
+        if (fullName.contains(StringUtils.LF) || fullName.contains(StringUtils.CR)) {
+            throw new JarbootException("Full name can't contains LF or CR!");
         }
     }
 
@@ -197,6 +205,15 @@ public class UserServiceImpl implements UserService {
             if (!roleDao.existsByRole(role)) {
                 throw new JarbootException("Role is not exist!");
             }
+        }
+    }
+
+    private void checkPassword(String password) {
+        if (StringUtils.isEmpty(password)) {
+            throw new JarbootException("Password is empty!");
+        }
+        if (password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
+            throw new JarbootException("Password length range 5-17!");
         }
     }
 
