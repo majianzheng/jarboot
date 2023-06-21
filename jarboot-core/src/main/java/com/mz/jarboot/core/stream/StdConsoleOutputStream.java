@@ -28,8 +28,6 @@ public class StdConsoleOutputStream extends OutputStream {
     private final AtomicInteger backspaceNum = new AtomicInteger(0);
     /** 文本处理接口 */
     private StdPrintHandler printHandler;
-    /** 退格处理接口 */
-    private StdBackspaceHandler backspaceHandler;
     /** IO 唤醒接口 */
     private final Runnable wakeup;
 
@@ -50,25 +48,12 @@ public class StdConsoleOutputStream extends OutputStream {
     }
 
     /**
-     * 设置退格处理接口
-     * @param handler 退格处理接口
-     */
-    public void setBackspaceHandler(StdBackspaceHandler handler) {
-        this.backspaceHandler = handler;
-    }
-
-    /**
      * 重写write
      * @param b byte字节
      */
     @Override
     public void write(int b) {
         byte c = (byte) b;
-        if (BACKSPACE == c) {
-            this.backspaceNum.incrementAndGet();
-            wakeup.run();
-            return;
-        }
         //int的高24位是无效的，实际只用到8位
         buffer[++offset] = c;
         if (offset > FLUSH_THRESHOLD) {
@@ -87,16 +72,12 @@ public class StdConsoleOutputStream extends OutputStream {
                 ((off + len) > b.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         }
-        for (int i = 0 ; i < len ; i++) {
+        for (int i = 0; i < len; i++) {
             byte c = b[off + i];
-            if (BACKSPACE == c) {
-                this.backspaceNum.incrementAndGet();
-            } else {
-                //int的高24位是无效的，实际只用到8位
-                buffer[++offset] = c;
-                if (offset > FLUSH_THRESHOLD) {
-                    this.flush();
-                }
+            //int的高24位是无效的，实际只用到8位
+            buffer[++offset] = c;
+            if (offset > FLUSH_THRESHOLD) {
+                this.flush();
             }
         }
         wakeup.run();
@@ -107,7 +88,6 @@ public class StdConsoleOutputStream extends OutputStream {
      */
     @Override
     public void flush() {
-        this.backspaceHandler.handle(this.backspaceNum.getAndSet(0));
         //打印
         this.print();
     }

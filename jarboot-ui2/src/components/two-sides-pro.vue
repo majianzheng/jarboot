@@ -1,15 +1,15 @@
 <template>
-  <div class="flex two-sides-container">
-    <div :style="{ width: props.leftWidth, display: state.collapsed ? 'none' : 'block' }">
+  <div class="flex two-sides-container" ref="containerRef">
+    <div :style="{ width: leftWidth, display: state.collapsed ? 'none' : 'block' }">
       <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
-            <slot name="left-title">{{ props.leftTitle }}</slot>
+            <slot name="left-title">{{ leftTitle }}</slot>
             <div style="flex: auto"></div>
             <slot name="left-tools"></slot>
           </div>
         </template>
-        <div :style="{ height: props.bodyHeight }" style="overflow: auto">
+        <div :style="{ height: bodyHeight }" style="overflow: auto">
           <slot name="left-content"></slot>
         </div>
       </el-card>
@@ -20,16 +20,16 @@
         <el-icon v-else><CaretLeft /></el-icon>
       </div>
     </div>
-    <div style="flex: auto">
+    <div style="flex: auto" :style="{ width: `calc(${state.totalWidth}px - ${leftWidth})` }">
       <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
-            <slot name="right-title">{{ props.rightTitle }}</slot>
+            <slot name="right-title">{{ rightTitle }}</slot>
             <div style="flex: auto"></div>
             <slot name="right-tools"></slot>
           </div>
         </template>
-        <div :style="{ height: props.bodyHeight }" style="overflow: auto">
+        <div :style="{ height: bodyHeight }" style="overflow: auto">
           <slot name="right-content"></slot>
         </div>
       </el-card>
@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, watch } from 'vue';
+import { onMounted, reactive, watch, ref } from 'vue';
 
 const props = defineProps({
   bodyHeight: { type: String, default: '100px' },
@@ -53,7 +53,9 @@ const emit = defineEmits<{
 }>();
 const state = reactive({
   collapsed: false,
+  totalWidth: 0 as any,
 });
+const containerRef = ref<HTMLDivElement>();
 
 watch(
   () => props.collapsed,
@@ -74,6 +76,7 @@ function collapse() {
 
 onMounted(() => {
   state.collapsed = props.collapsed;
+  state.totalWidth = containerRef.value?.getBoundingClientRect().width;
 });
 </script>
 
@@ -107,6 +110,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  z-index: 2;
+  z-index: 1001;
 }
 </style>

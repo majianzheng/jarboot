@@ -46,9 +46,9 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
             session.console("\033[32;1mAll spring bean definition names:\033[0m");
             for (int i = 0; i < beans.length; ++i) {
                 String bean = beans[i];
-                session.console("<ln>" + i + "</ln>" + bean);
+                session.console("[" + i + "]" + bean);
             }
-            session.console("<br>spring bean total count: " + beans.length);
+            session.console("\nspring bean total count: " + beans.length);
             return "";
         }
         Object bean = context.getBean(beanName);
@@ -70,12 +70,12 @@ public class SpringBeanCommandProcessor implements CommandProcessor {
         if (showDetail) {
             //打印成员详细信息
             Field[] fields = beanClass.getDeclaredFields();
-            session.console("<br>Bean fields:");
+            session.console("\nBean fields:");
             for (Field field : fields) {
                 String text = "    " + field.getName() + " : " + field.getType();
                 session.console(text);
             }
-            session.console("<br>public method:");
+            session.console("\npublic method:");
             Method[] methods = beanClass.getMethods();
             for (Method method : methods) {
                 session.console("    " + method.getName());

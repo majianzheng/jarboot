@@ -396,9 +396,6 @@ public class AgentManager {
             case HEARTBEAT:
                 doHeartbeat(serviceName, sid, session);
                 break;
-            case BACKSPACE:
-                MessageUtils.backspace(sid, resp.getBody());
-                break;
             case STD_PRINT:
                 //启动中的控制台消息
                 MessageUtils.stdPrint(sid, resp.getBody());

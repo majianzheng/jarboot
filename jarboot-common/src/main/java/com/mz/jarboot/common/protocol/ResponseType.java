@@ -14,11 +14,6 @@ public enum ResponseType {
      * 程序中的标准输出流
      */
     STD_PRINT,
-    
-    /**
-     * 控制台退格
-     */
-    BACKSPACE,
 
     /**
      * 日志记录

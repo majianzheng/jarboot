@@ -155,6 +155,11 @@ public class UserController {
         return authentication.getName();
     }
 
+    /**
+     * 获取头像
+     * @param username 用户名
+     * @return 头像
+     */
     @GetMapping(value="/avatar")
     public ResponseVo<String> getAvatar(String username) {
         return HttpResponseUtils.success(userService.getAvatar(username));

@@ -54,16 +54,6 @@ public class ResultStreamDistributor {
     }
 
     /**
-     * 标准输出，退格
-     * @param num 次数
-     */
-    void stdBackspace(int num) {
-        if (num > 0) {
-            response(true, ResponseType.BACKSPACE, String.valueOf(num), StringUtils.EMPTY);
-        }
-    }
-
-    /**
      * 分布式日志记录
      * @param text 日志
      */

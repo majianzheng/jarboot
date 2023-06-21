@@ -44,10 +44,8 @@ public class LsCommandProcessor implements CommandProcessor {
         File[] files = dir.listFiles();
         if (null != files && files.length > 0) {
             for (File file : files) {
-                String color = file.isDirectory() ? "#3293ed" : "#52c41a";
                 String s = sdf.format(new Date(file.lastModified()));
-                String text = String.format("%s<span style=\"color:%s;margin-left:26px\">%s</span>",
-                        s, color, file.getName());
+                String text = file.isDirectory() ? String.format("%s    \033[34m%s\033[0m", s, file.getName()) : String.format("%s    %s", s, file.getName());
                 session.console(text);
             }
             return "total: " + files.length;

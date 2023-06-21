@@ -182,7 +182,9 @@ const onCmdEnd = (msg?: string) => {
   state.executing = null;
   term.options.disableStdin = false;
   pubsub.publish(props.sid, CONSOLE_TOPIC.FINISH_LOADING, msg);
+  msg && term.writeln(msg);
   onFocusCommandInput();
+  term.prompt();
 };
 const clearDisplay = () => {
   pubsub.publish(props.sid, CONSOLE_TOPIC.CLEAR_CONSOLE);

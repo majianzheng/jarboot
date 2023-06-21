@@ -202,8 +202,6 @@ public class StdOutStreamReactor {
 
         // 输出不满一行的字符串
         consoleOutputStream.setPrintHandler(this::stdPrint);
-        //退格
-        consoleOutputStream.setBackspaceHandler(ResultStreamDistributor.getInstance()::stdBackspace);
         //默认开启
         this.enabled(true);
     }
