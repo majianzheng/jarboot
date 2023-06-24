@@ -83,8 +83,6 @@ $ sh startup.sh
 ### 浏览器访问<http://127.0.0.1:9899>
 进入登录界面，初始的用户名：<code>jarboot</code>，默认密码：<code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
-
 ## SPI扩展，支持JDK和Spring的SPI
 使用扩展可以自己实现命令，自己定义一个命令如何执行。并且，可以时应用启动完成快速的通知Jarboot服务，不需要等待没有控制台输出的时间。
 ### SpringBoot应用
@@ -177,6 +175,13 @@ public class DemoApplication {
     }
 }
 ```
+
+## 工具
+### 文件浏览器
+![file_browse](https://gitee.com/majz0908/jarboot/raw/develop/doc/file-browse.png)
+
+### 终端
+![terminal](https://gitee.com/majz0908/jarboot/raw/develop/doc/terminal.png)
 
 ## 命令列表
 ### bytes

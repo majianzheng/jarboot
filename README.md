@@ -84,8 +84,6 @@ $ sh startup.sh
 ### Browser access <http://127.0.0.1:9899>
 Enter the login page. Initial username: <code>jarboot</code>, default password: <code>jarboot</code>
 
-![login](https://gitee.com/majz0908/jarboot/raw/develop/doc/login.png)
-
 ## SPI Extension, support both JDK and Spring SPI
 Use SPI extension can implement your own command, define a command how to execute. And，also can notify stated event to Jarboot server
 , don't need to wait no console time.
@@ -180,6 +178,14 @@ public class DemoApplication {
     }
 }
 ```
+
+## Tools
+### File browse
+![file_browse](https://gitee.com/majz0908/jarboot/raw/develop/doc/file-browse.png)
+
+### Terminal
+![terminal](https://gitee.com/majz0908/jarboot/raw/develop/doc/terminal.png)
+
 
 ## Command list
 ### bytes

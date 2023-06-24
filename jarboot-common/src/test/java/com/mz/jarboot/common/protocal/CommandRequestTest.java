@@ -17,7 +17,7 @@ public class CommandRequestTest {
     public void testFromRaw() throws IOException {
         //用户命令协议测试
         CommandRequest request = new CommandRequest();
-        byte[] raw = toByte(CommandType.USER_PUBLIC.value(), "123\rtrace com.demo.Test add");
+        byte[] raw = toByte(CommandType.USER_PUBLIC.value(), "123\r80,90\rtrace com.demo.Test add");
         request.fromRaw(raw);
         assertEquals(CommandType.USER_PUBLIC, request.getCommandType());
         assertEquals("123", request.getSessionId());
@@ -25,7 +25,7 @@ public class CommandRequestTest {
 
         //内部命令协议测试
         request = new CommandRequest();
-        raw = toByte(CommandType.INTERNAL.value(), "1234\rcancel watch");
+        raw = toByte(CommandType.INTERNAL.value(), "1234\r80,80\rcancel watch");
         request.fromRaw(raw);
         assertEquals(CommandType.INTERNAL, request.getCommandType());
         assertEquals("1234", request.getSessionId());
@@ -33,7 +33,7 @@ public class CommandRequestTest {
 
         //异常命令协议测试
         request = new CommandRequest();
-        raw = toByte(null, "x1234\rcancel watch");
+        raw = toByte(null, "x1234\r80,80\rcancel watch");
         request.fromRaw(raw);
         assertEquals(CommandType.UNKNOWN, request.getCommandType());
         assertEquals("1234", request.getSessionId());
@@ -55,23 +55,29 @@ public class CommandRequestTest {
         CommandRequest request = new CommandRequest();
         request.setCommandType(CommandType.USER_PUBLIC);
         request.setSessionId("123");
+        request.setCol(80);
+        request.setRow(80);
         request.setCommandLine("trace com.demo.Test add");
 
-        assertArrayEquals(toByte(CommandType.USER_PUBLIC.value(), "123\rtrace com.demo.Test add"), request.toRaw());
+        assertArrayEquals(toByte(CommandType.USER_PUBLIC.value(), "123\r80,80\rtrace com.demo.Test add"), request.toRaw());
 
         //内部命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.INTERNAL);
         request.setSessionId("1234");
+        request.setCol(80);
+        request.setRow(80);
         request.setCommandLine("cancel watch");
-        assertArrayEquals(toByte(CommandType.INTERNAL.value(), "1234\rcancel watch"), request.toRaw());
+        assertArrayEquals(toByte(CommandType.INTERNAL.value(), "1234\r80,80\rcancel watch"), request.toRaw());
 
         //异常命令协议测试
         request = new CommandRequest();
         request.setCommandType(CommandType.UNKNOWN);
         request.setSessionId("1234");
+        request.setCol(80);
+        request.setRow(80);
         request.setCommandLine("cancel watch");
-        assertArrayEquals(toByte(CommandType.UNKNOWN.value(), "1234\rcancel watch"), request.toRaw());
+        assertArrayEquals(toByte(CommandType.UNKNOWN.value(), "1234\r80,80\rcancel watch"), request.toRaw());
     }
 
     private byte[] toByte(Byte type, String cmd) throws IOException {

@@ -2,6 +2,7 @@ package com.mz.jarboot.ws;
 
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.terminal.TerminalProcess;
+import com.mz.jarboot.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,9 @@ public class TerminalServer {
     @OnError
     public void onError(Session session, Throwable error) {
         logger.debug(error.getMessage(), error);
+        if (error instanceof java.lang.UnsupportedClassVersionError) {
+            MessageUtils.warn("终端功能需要JDK 11或以上版本！");
+        }
         this.onClose(session);
     }
 
