@@ -104,10 +104,10 @@ async function onSave(file: FileContent) {
           <el-tab-pane v-for="item in state.files" :key="item.key" :label="item.name" :name="item.key">
             <template #label>
               <span class="custom-tabs-label">
-                <el-tooltip :content="$t('SAVE')">
+                <el-tooltip :content="$t('SAVE')" v-if="item.modified">
                   <el-button link @click.stop="() => onSave(item)">
                     <template #icon>
-                      <el-icon v-if="item.modified"><EditPen /></el-icon>
+                      <el-icon><EditPen /></el-icon>
                     </template>
                   </el-button>
                 </el-tooltip>
