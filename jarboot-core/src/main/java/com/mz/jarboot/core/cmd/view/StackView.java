@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.StackModel;
 import com.mz.jarboot.core.utils.DateUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -12,7 +13,7 @@ import com.mz.jarboot.core.utils.ThreadUtil;
 public class StackView implements ResultView<StackModel> {
 
     @Override
-    public String render(StackModel result) {
+    public String render(CommandSession session, StackModel result) {
         StringBuilder sb = new StringBuilder();
         sb
                 .append("ts=")

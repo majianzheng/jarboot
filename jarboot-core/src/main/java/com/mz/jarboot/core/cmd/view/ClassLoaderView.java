@@ -1,16 +1,18 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.impl.ClassLoaderCommand;
 import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderModel;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
 import com.mz.jarboot.core.cmd.model.ClassSetVO;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.cmd.view.element.TreeElement;
 import com.mz.jarboot.core.utils.ClassUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
+import com.mz.jarboot.text.ui.TreeElement;
+import com.mz.jarboot.text.util.RenderUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,13 +22,14 @@ import java.util.Map;
  * @author majianzheng
  */
 public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model.ClassLoaderModel> {
-
+    private CommandSession session;
     @Override
-    public String render(ClassLoaderModel result) {
+    public String render(CommandSession session, ClassLoaderModel result) {
+        this.session = session;
         StringBuilder sb = new StringBuilder();
         if (result.getMatchedClassLoaders() != null) {
             sb.append("Matched classloaders: \n");
-            drawClassLoaders(sb, result.getMatchedClassLoaders(), false);
+            drawClassLoaders(sb, result.getMatchedClassLoaders(), false, session.getCol());
             sb.append("\n");
             return sb.toString();
         }
@@ -43,7 +46,7 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
             drawClassLoaderUrls(sb, result.getUrls());
         }
         if (result.getClassLoaders() != null){
-            drawClassLoaders(sb, result.getClassLoaders(), result.getTree());
+            drawClassLoaders(sb, result.getClassLoaders(), result.getTree(), session.getCol());
         }
         if (result.getClassLoaderStats() != null){
             drawClassLoaderStats(sb, result.getClassLoaderStats());
@@ -53,11 +56,11 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
 
     private void drawClassLoaderStats(StringBuilder process, Map<String, ClassLoaderCommand.ClassLoaderStat> classLoaderStats) {
         TableElement element = renderStat(classLoaderStats);
-        process.append(element.toHtml());
+        process.append(RenderUtil.render(element, session.getCol()));
     }
 
-    private static TableElement renderStat(Map<String, ClassLoaderCommand.ClassLoaderStat> classLoaderStats) {
-        TableElement table = new TableElement();
+    private TableElement renderStat(Map<String, ClassLoaderCommand.ClassLoaderStat> classLoaderStats) {
+        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
         table.row(true, "name", "numberOfInstances", "loadedCountTotal");
         for (Map.Entry<String, ClassLoaderCommand.ClassLoaderStat> entry : classLoaderStats.entrySet()) {
             table.row(entry.getKey(), "" + entry.getValue().getNumberOfInstance(), "" + entry.getValue().getLoadedCount());
@@ -65,9 +68,9 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
         return table;
     }
 
-    public static void drawClassLoaders(StringBuilder process, Collection<ClassLoaderVO> classLoaders, boolean isTree) {
+    public static void drawClassLoaders(StringBuilder process, Collection<ClassLoaderVO> classLoaders, boolean isTree, int col) {
         Element element = isTree ? renderTree(classLoaders) : renderTable(classLoaders);
-        process.append(element.toHtml());
+        process.append(RenderUtil.render(element, col));
     }
 
     private void drawClassLoaderUrls(StringBuilder process, List<String> urls) {
@@ -76,24 +79,24 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
     }
 
     private void drawLoadClass(StringBuilder process, ClassDetailVO loadClass) {
-        process.append(ClassUtils.renderClassInfo(loadClass).toHtml()).append("\n");
+        process.append(RenderUtil.render(ClassUtils.renderClassInfo(loadClass), session.getCol())).append(StringUtils.LF);
     }
 
     private void drawAllClasses(StringBuilder process, ClassSetVO classSetVO) {
-        process.append(renderClasses(classSetVO).toHtml());
+        process.append(RenderUtil.render(renderClasses(classSetVO), session.getCol()));
         process.append("\n");
     }
 
     private void drawResources(StringBuilder process, List<String> resources) {
-        TableElement table = new TableElement();
+        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
         for (String resource : resources) {
             table.row(resource);
         }
-        process.append(table.toHtml() + "\n");
+        process.append(RenderUtil.render(table, session.getCol()) + StringUtils.LF);
     }
 
     private TableElement renderClasses(ClassSetVO classSetVO) {
-        TableElement table = new TableElement();
+        TableElement table = new TableElement().leftCellPadding(1).rightCellPadding(1);
         if (classSetVO.getSegment() == 0) {
             table.row("hash:" + classSetVO.getClassloader().getHash() + ", " + classSetVO.getClassloader().getName());
         }
@@ -117,7 +120,7 @@ public class ClassLoaderView implements ResultView<com.mz.jarboot.core.cmd.model
      * @return 表
      */
     private static TableElement renderTable(Collection<ClassLoaderVO> classLoaderInfos) {
-        TableElement table = new TableElement();
+        TableElement table = new TableElement().rightCellPadding(1).leftCellPadding(1);
         table.row(
                 AnsiLog.bold("name"),
                 AnsiLog.bold("loadedCount"),

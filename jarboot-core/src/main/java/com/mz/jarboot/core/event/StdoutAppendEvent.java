@@ -6,7 +6,7 @@ import com.mz.jarboot.api.event.JarbootEvent;
  * @author majianzheng
  */
 public class StdoutAppendEvent implements JarbootEvent {
-    private String text;
+    private final String text;
     public StdoutAppendEvent(String text) {
         this.text = text;
     }

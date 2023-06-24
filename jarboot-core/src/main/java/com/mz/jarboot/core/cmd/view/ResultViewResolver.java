@@ -89,10 +89,10 @@ public class ResultViewResolver {
             Method method = methods[i];
             if ("render".equals(method.getName())) {
                 Class<?>[] parameterTypes = method.getParameterTypes();
-                if (parameterTypes.length == 1
-                        && parameterTypes[0] != ResultModel.class
-                        && ResultModel.class.isAssignableFrom(parameterTypes[0])) {
-                    return parameterTypes[0];
+                if (parameterTypes.length == 2
+                        && parameterTypes[1] != ResultModel.class
+                        && ResultModel.class.isAssignableFrom(parameterTypes[1])) {
+                    return parameterTypes[1];
                 }
             }
         }

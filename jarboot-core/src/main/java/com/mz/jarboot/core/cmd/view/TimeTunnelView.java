@@ -1,11 +1,13 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.impl.TimeTunnelTable;
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.model.TimeTunnelModel;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
+import com.mz.jarboot.text.util.RenderUtil;
 
 /**
  * Term view for TimeTunnelCommand
@@ -14,7 +16,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 public class TimeTunnelView implements ResultView<TimeTunnelModel> {
 
     @Override
-    public String render(TimeTunnelModel timeTunnelModel) {
+    public String render(CommandSession session, TimeTunnelModel timeTunnelModel) {
         Integer expand = timeTunnelModel.getExpand();
         boolean isNeedExpand = isNeedExpand(expand);
         Integer sizeLimit = timeTunnelModel.getSizeLimit();
@@ -24,7 +26,7 @@ public class TimeTunnelView implements ResultView<TimeTunnelModel> {
             //show list table: tt -l / tt -t
             Element table = TimeTunnelTable
                     .drawTimeTunnelTable(timeTunnelModel.getTimeFragmentList(), timeTunnelModel.getFirst());
-            sb.append(table.toHtml());
+            sb.append(RenderUtil.render(table, session.getCol()));
 
         } else if (timeTunnelModel.getTimeFragment() != null) {
             //show detail of single TimeFragment: tt -i 1000
@@ -34,7 +36,7 @@ public class TimeTunnelView implements ResultView<TimeTunnelModel> {
             TimeTunnelTable.drawParameters(table, tf.getParams(), isNeedExpand, expand);
             TimeTunnelTable.drawReturnObj(table, tf, isNeedExpand, expand, sizeLimit);
             TimeTunnelTable.drawThrowException(table, tf, isNeedExpand, expand);
-            sb.append(table.toHtml());
+            sb.append(RenderUtil.render(table, session.getCol()));
 
         } else if (timeTunnelModel.getWatchValue() != null) {
             //watch single TimeFragment: tt -i 1000 -w 'params'
@@ -50,7 +52,7 @@ public class TimeTunnelView implements ResultView<TimeTunnelModel> {
             TableElement table = TimeTunnelTable.createDefaultTable();
             TimeTunnelTable.drawWatchTableHeader(table);
             TimeTunnelTable.drawWatchResults(table, timeTunnelModel.getWatchResults(), isNeedExpand, expand, sizeLimit);
-            sb.append(table.toHtml());
+            sb.append(RenderUtil.render(table, session.getCol()));
 
         } else if (timeTunnelModel.getReplayResult() != null) {
             //replay: tt -i 1000 -p
@@ -67,7 +69,7 @@ public class TimeTunnelView implements ResultView<TimeTunnelModel> {
                 TimeTunnelTable.drawPlayException(table, replayResult.getThrowExp(), isNeedExpand, expand);
             }
             sb
-                    .append(table.toHtml())
+                    .append(RenderUtil.render(table, session.getCol()))
                     .append(String.format("Time fragment[%d] successfully replayed %d times.",
                             replayResult.getIndex(), replayNo))
                     .append("\n\n");

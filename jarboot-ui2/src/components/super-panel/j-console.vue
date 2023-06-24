@@ -10,7 +10,7 @@ import { SerializeAddon } from 'xterm-addon-serialize';
 import { SearchAddon } from 'xterm-addon-search';
 import { debounce, floor } from 'lodash';
 import { CONSOLE_TOPIC } from '@/types';
-import PublishSubmit from '@/common/PublishSubmit';
+import type PublishSubmit from '@/common/PublishSubmit';
 
 const props = defineProps<{
   width: number;
@@ -53,6 +53,7 @@ function getRow() {
 }
 
 function updateSize() {
+  termOption.term.resize(getCol(), getRow());
   termOption.fitAddon?.fit();
 }
 
@@ -89,6 +90,9 @@ function init() {
     pubsub.submit(id, CONSOLE_TOPIC.APPEND_LINE, onConsole);
     pubsub.submit(id, CONSOLE_TOPIC.STD_PRINT, onStdPrint);
     pubsub.submit(id, CONSOLE_TOPIC.BACKSPACE, onStdPrint);
+    pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
+    pubsub.submit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);
+    pubsub.submit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);
   }
   termOption.term.prompt = prompt;
   runTerminal();
@@ -105,8 +109,9 @@ function focus() {
 
 function runTerminal() {
   const term = termOption.term;
-
-  term.writeln('try running `help`.');
+  term.writeln(banner());
+  term.writeln('  Jarboot console, docs: [36mhttps://www.yuque.com/jarboot/usage/quick-start[0m');
+  term.writeln('  Diagnose command, try running `help`.');
 
   term.onData(e => {
     switch (e) {
@@ -171,6 +176,28 @@ function onBackspace(str: string) {
   }
 }
 
+function banner() {
+  return (
+    '[31m     ,--.[0m[32m        [0m[33m       [0m[34m,--.   [0m[35m       [0m[36m       [0m[31m  ,--.   [0m\n' +
+    "[31m     |  |[0m[32m ,--,--.[0m[33m,--.--.[0m[34m|  |-. [0m[35m ,---. [0m[36m ,---. [0m[31m,-'  '-. [0m\n" +
+    "[31m,--. |  |[0m[32m' ,-.  |[0m[33m|  .--'[0m[34m| .-. '[0m[35m| .-. |[0m[36m| .-. |[0m[31m'-.  .-' [0m\n" +
+    "[31m|  '-'  /[0m[32m\\ '-'  |[0m[33m|  |  [0m[34m | `-' |[0m[35m' '-' '[0m[36m' '-' '[0m[31m  |  |   [0m\n" +
+    "[31m `-----' [0m[32m `--`--'[0m[33m`--'   [0m[34m `---' [0m[35m `---' [0m[36m `---' [0m[31m  `--'   [0m\n"
+  );
+}
+
+function scrollToEnd() {
+  termOption.term.scrollToBottom();
+}
+
+function scrollToTop() {
+  termOption.term.scrollToTop();
+}
+
+function onClear() {
+  termOption.term.clear();
+}
+
 defineExpose({
   fit,
   focus,
@@ -186,9 +213,9 @@ onUnmounted(() => {
     pubsub.unSubmit(id, CONSOLE_TOPIC.BACKSPACE, onBackspace);
     // pubsub.unSubmit(id, CONSOLE_TOPIC.START_LOADING, onStartLoading);
     // pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, onFinishLoading);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);
+    pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);
+    pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
+    pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);
   }
   termOption.term?.dispose();
 });

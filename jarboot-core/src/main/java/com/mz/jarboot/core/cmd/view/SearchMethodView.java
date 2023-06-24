@@ -1,9 +1,11 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.MethodVO;
 import com.mz.jarboot.core.cmd.model.SearchMethodModel;
 import com.mz.jarboot.core.utils.ClassUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.text.util.RenderUtil;
 
 /**
  * render for SearchMethodCommand
@@ -11,11 +13,11 @@ import com.mz.jarboot.common.utils.StringUtils;
  */
 public class SearchMethodView implements ResultView<SearchMethodModel> {
     @Override
-    public String render(SearchMethodModel result) {
+    public String render(CommandSession session, SearchMethodModel result) {
         StringBuilder sb = new StringBuilder();
         if (result.getMatchedClassLoaders() != null) {
             sb.append("Matched classloaders: \n");
-            ClassLoaderView.drawClassLoaders(sb, result.getMatchedClassLoaders(), false);
+            ClassLoaderView.drawClassLoaders(sb, result.getMatchedClassLoaders(), false, session.getCol());
             sb.append(StringUtils.LF);
             return sb.toString();
         }
@@ -26,10 +28,10 @@ public class SearchMethodView implements ResultView<SearchMethodModel> {
         if (detail) {
             if (methodInfo.isConstructor()) {
                 //render constructor
-                sb.append(ClassUtils.renderConstructor(methodInfo).toHtml());
+                sb.append(RenderUtil.render(ClassUtils.renderConstructor(methodInfo), session.getCol()));
             } else {
                 //render method
-                sb.append(ClassUtils.renderMethod(methodInfo).toHtml());
+                sb.append(RenderUtil.render(ClassUtils.renderMethod(methodInfo), session.getCol()));
             }
             sb.append(StringUtils.LF);
         } else {

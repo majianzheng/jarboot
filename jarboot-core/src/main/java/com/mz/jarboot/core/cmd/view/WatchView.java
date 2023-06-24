@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.utils.DateUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 
@@ -12,7 +13,7 @@ import com.mz.jarboot.common.utils.StringUtils;
 public class WatchView implements ResultView<com.mz.jarboot.core.cmd.model.WatchModel> {
 
     @Override
-    public String render(com.mz.jarboot.core.cmd.model.WatchModel model) {
+    public String render(CommandSession session, com.mz.jarboot.core.cmd.model.WatchModel model) {
         Object value = model.getValue();
         String result = StringUtils.objectToString(
                 isNeedExpand(model) ? new ObjectView(value, model.getExpand(), model.getSizeLimit()).draw() : value);

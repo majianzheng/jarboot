@@ -5,6 +5,7 @@
     :options="options"
     @focus="emit('focus')"
     @contentChanged="onChange"
+    @keydown.stop="onKey"
     :height="editorHeight"
     @ready="emit('ready')"></code-mirror>
 </template>
@@ -68,6 +69,9 @@ const options = reactive({
 
 const emit = defineEmits<{
   (e: 'change', content: string): void;
+  (e: 'save'): void;
+  (e: 'search'): void;
+  (e: 'change', content: string): void;
   (e: 'focus'): void;
   (e: 'ready'): void;
   (e: 'update:modelValue', value: string): void;
@@ -76,6 +80,29 @@ const onChange = (value: string) => {
   emit('change', value);
   emit('update:modelValue', value);
 };
+
+function onKey(event: KeyboardEvent) {
+  let ctl = false;
+  if (window.navigator.userAgent.includes('Mac OS')) {
+    ctl = event.metaKey;
+  } else {
+    ctl = event.ctrlKey;
+  }
+  if (ctl) {
+    if ('KeyF' === event.code) {
+      // 搜索
+      emit('search');
+      event.preventDefault();
+      return;
+    }
+    if ('KeyS' === event.code) {
+      // 保存
+      emit('save');
+      event.preventDefault();
+      return;
+    }
+  }
+}
 
 function init() {
   content.visible = false;

@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :width="680"
-    title="选择头像"
+    :title="$t('SELECT_AVATAR')"
     :model-value="visible"
     destroy-on-close
     class="c-avatar-cutter"
@@ -57,10 +57,10 @@
         </div>
         <div class="c-right">
           <div class="preview">
-            <p>预览</p>
+            <p>{{ $t('PREVIEW') }}</p>
             <canvas ref="$canvas" width="190" height="190" :class="{ 'canvas--doing': state.imgURL }">></canvas>
           </div>
-          <el-button type="primary" class="btn-upload">{{ !state.imgURL ? '上传图片' : '重新上传' }}</el-button>
+          <el-button type="primary" class="btn-upload">{{ !state.imgURL ? $t('UPLOAD_IMG') : $t('RE_UPLOAD_IMG') }}</el-button>
           <input @change="fileChange" type="file" accept="image/*" />
         </div>
       </div>
@@ -75,6 +75,7 @@
 <script lang="ts" setup>
 import CommonNotice from '@/common/CommonNotice';
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import CommonUtils from '@/common/CommonUtils';
 
 const props = defineProps({
   returnType: {
@@ -393,7 +394,7 @@ function onEnter() {
     }
     emit('update:visible', false);
   } else {
-    CommonNotice.error('请上传图片');
+    CommonNotice.error(CommonUtils.translate('TIP_UPLOAD_IMG'));
   }
 }
 

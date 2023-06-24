@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.OgnlModel;
 import com.mz.jarboot.common.utils.StringUtils;
 
@@ -9,11 +10,11 @@ import com.mz.jarboot.common.utils.StringUtils;
  */
 public class OgnlView implements ResultView<OgnlModel> {
     @Override
-    public String render(OgnlModel model) {
+    public String render(CommandSession session, OgnlModel model) {
         StringBuilder sb = new StringBuilder();
         if (model.getMatchedClassLoaders() != null) {
             sb.append("Matched classloaders: \n");
-            ClassLoaderView.drawClassLoaders(sb, model.getMatchedClassLoaders(), false);
+            ClassLoaderView.drawClassLoaders(sb, model.getMatchedClassLoaders(), false, session.getCol());
             sb.append(StringUtils.LF);
             return sb.toString();
         }

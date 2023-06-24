@@ -29,7 +29,7 @@ public class CommandBuilderTest {
     public void testBuild() throws IOException {
         //测试trace命令构建
         byte[] line = toByte(CommandType.USER_PUBLIC.value(),
-                "123\rtrace demo.Test run 'params.length>=0' -n 5");
+                "123\r80,100\rtrace demo.Test run 'params.length>=0' -n 5");
         CommandRequest request = new CommandRequest();
         AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
@@ -43,7 +43,7 @@ public class CommandBuilderTest {
         assertEquals("params.length>=0", trace.getConditionExpress());
 
         line = toByte(CommandType.USER_PUBLIC.value(),
-                "123\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3");
+                "123\r40,80\rtrace demo.Test run 'params.length>=0' -n 3 -p path1 path2 path3");
         request = new CommandRequest();
         session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
@@ -59,7 +59,7 @@ public class CommandBuilderTest {
         assertEquals(3, patterns.size());
 
         //测试thread命令构建
-        line = toByte(CommandType.USER_PUBLIC.value(), "123\rthread 1");
+        line = toByte(CommandType.USER_PUBLIC.value(), "123\r10,10\rthread 1");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -75,7 +75,7 @@ public class CommandBuilderTest {
         }
 
         //测试thread命令构建
-        line = toByte(CommandType.USER_PUBLIC.value(), "123\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient");
+        line = toByte(CommandType.USER_PUBLIC.value(), "123\r80,100\rsc -d -f com.mz.jarboot.core.ws.WebSocketClient");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);
@@ -102,7 +102,7 @@ public class CommandBuilderTest {
     @Test
     public void testInternalBuild() throws IOException {
         //测试trace命令构建
-        byte[] line = toByte(CommandType.USER_PUBLIC.value(), "123\rexit");
+        byte[] line = toByte(CommandType.USER_PUBLIC.value(), "123\r2,7\rexit");
         CommandRequest request = new CommandRequest();
         AbstractCommandSession session = Mockito.mock(AbstractCommandSession.class);
         request.fromRaw(line);
@@ -110,7 +110,7 @@ public class CommandBuilderTest {
         assertThat(cmd instanceof ExitCommand).isTrue();
         assertEquals("exit", cmd.getName());
 
-        line = toByte(CommandType.INTERNAL.value(), "123\rcancel ");
+        line = toByte(CommandType.INTERNAL.value(), "123\r10,60\rcancel ");
         request = new CommandRequest();
         request.fromRaw(line);
         cmd = CommandBuilder.build(request, session);

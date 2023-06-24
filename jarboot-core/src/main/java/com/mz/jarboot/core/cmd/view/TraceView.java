@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.model.MethodNode;
 import com.mz.jarboot.core.cmd.model.ThreadNode;
@@ -27,7 +28,7 @@ public class TraceView implements ResultView<com.mz.jarboot.core.cmd.model.Trace
     private MethodNode maxCostNode;
 
     @Override
-    public String render(com.mz.jarboot.core.cmd.model.TraceModel result) {
+    public String render(CommandSession session, com.mz.jarboot.core.cmd.model.TraceModel result) {
         return drawTree(result.getRoot());
     }
 

@@ -312,9 +312,9 @@ onMounted(reload);
                 </span>
                 <template #content>
                   <div>{{ data.name }}</div>
-                  <div v-if="data.directory">file count: {{ data.children.length || 0 }}</div>
-                  <div v-else>size: {{ data.size || 0 }}</div>
-                  <div>modifyTime: {{ StringUtil.timeFormat(data.modifyTime || 0) }}</div>
+                  <div v-if="data.directory">{{ $t('COUNT') }}: {{ data.children.length || 0 }}</div>
+                  <div v-else>{{ $t('SIZE') }}: {{ data.size || 0 }}</div>
+                  <div>{{ $t('MODIFY_TIME') }}: {{ StringUtil.timeFormat(data.modifyTime || 0) }}</div>
                 </template>
               </el-tooltip>
             </div>

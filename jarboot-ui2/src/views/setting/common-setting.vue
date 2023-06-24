@@ -1,9 +1,6 @@
 <template>
   <div>
     <el-form ref="configRef" :role="rules" :model="state.form" label-width="auto" status-icon>
-      <el-form-item :label="$t('SERVERS_PATH')" prop="workspace">
-        <el-input v-model="state.form.workspace" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
-      </el-form-item>
       <el-form-item :label="$t('DEFAULT_VM_OPT')" prop="defaultVmOptions">
         <el-input v-model="state.form.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
       </el-form-item>

@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.BusyThreadInfo;
 import com.mz.jarboot.core.cmd.model.ThreadModel;
 import com.mz.jarboot.core.cmd.model.ThreadVO;
@@ -19,7 +20,7 @@ public class ThreadView implements ResultView<ThreadModel> {
 
     @SuppressWarnings("java:S3776")
     @Override
-    public String render(ThreadModel result) {
+    public String render(CommandSession session, ThreadModel result) {
         if (result.getThreadInfo() != null) {
             // no cpu usage info
             return ThreadUtil.getFullStacktrace(result.getThreadInfo());
@@ -61,8 +62,8 @@ public class ThreadView implements ResultView<ThreadModel> {
             if (internalThreadCount > 0) {
                 threadStat.append(", Internal threads: ").append(internalThreadCount);
             }
-            String stat = threadStat.toString();
-
+            String stat = threadStat.append(StringUtils.LF).toString();
+            session.console(stat);
             //thread stats
             int height;
             if (result.isAll()) {
@@ -71,8 +72,7 @@ public class ThreadView implements ResultView<ThreadModel> {
                 //remove blank lines
                 height = Math.min(32, threadStats.size() + 2);
             }
-            String content = ViewRenderUtil.drawThreadInfo(threadStats, height);
-            return stat + content;
+            return ViewRenderUtil.drawThreadInfo(threadStats, session.getCol(), height);
         }
         return StringUtils.EMPTY;
     }

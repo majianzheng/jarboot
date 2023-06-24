@@ -2,9 +2,9 @@ package com.mz.jarboot.core.cmd.impl;
 
 import com.mz.jarboot.core.cmd.model.TimeFragmentVO;
 import com.mz.jarboot.core.cmd.view.ObjectView;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -37,7 +37,7 @@ public class TimeTunnelTable {
     }
 
     public static TableElement createDefaultTable() {
-        return new TableElement();
+        return new TableElement().rightCellPadding(1).leftCellPadding(1);
     }
 
     static TableElement fillTableHeader(TableElement table) {

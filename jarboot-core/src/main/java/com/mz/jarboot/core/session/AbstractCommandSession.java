@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractCommandSession implements CommandSession {
     protected boolean running = false;
     protected volatile String jobId = StringUtils.EMPTY;
+    protected int row;
+    protected int col;
 
     /**
      * 每执行一次命令生成一个唯一id
@@ -55,4 +57,22 @@ public abstract class AbstractCommandSession implements CommandSession {
      * @return 次数
      */
     public abstract AtomicInteger times();
+
+    @Override
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    @Override
+    public int getCol() {
+        return col;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
 }

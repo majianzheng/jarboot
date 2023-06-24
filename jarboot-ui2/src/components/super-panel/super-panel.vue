@@ -28,12 +28,12 @@
         <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
           <i class="iconfont icon-to-top"></i>
         </div>
-        <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd" :class="{ active: state.autoScrollEnd }">
+        <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd">
           <i class="iconfont icon-to-bottom"></i>
         </div>
-        <div class="tool-button" :title="$t('TEXT_WRAP')" :class="{ active: state.textWrap }" @click="state.textWrap = !state.textWrap">
-          <i class="iconfont icon-text-wrap"></i>
-        </div>
+        <!--        <div class="tool-button" :title="$t('TEXT_WRAP')" :class="{ active: state.textWrap }" @click="state.textWrap = !state.textWrap">-->
+        <!--          <i class="iconfont icon-text-wrap"></i>-->
+        <!--        </div>-->
       </div>
     </div>
     <div class="terminal-view" :style="{ width: width + 'px' }" v-show="!state.view">
@@ -66,7 +66,7 @@
       </el-input>
       -->
       <j-console
-        :height="height"
+        :height="height + 22"
         :id="sid"
         :width="width"
         @ready="onReady"
@@ -80,7 +80,9 @@
     <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'dashboard'">
       <dashboard-view :data="state.data" :height="height" :width="width"></dashboard-view>
     </div>
-    <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'heapdump'">堆转储</div>
+    <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'heapdump'">
+      <heapdump-view :data="state.data" :remote="remote"></heapdump-view>
+    </div>
   </div>
 </template>
 
@@ -133,7 +135,7 @@ const panelRef = ref<InstanceType<typeof HTMLDivElement>>();
 const basic = useBasicStore();
 const emit = defineEmits<{
   (e: 'close', sid: string): void;
-  (e: 'execute', value: string): void;
+  (e: 'execute', value: string, cols: number, rows: number): void;
   (e: 'cancel'): void;
 }>();
 const height = computed(() => basic.innerHeight - 110);
@@ -201,7 +203,7 @@ const doExecCommand = () => {
   state.view = '';
 
   //pubsub.publish(props.sid, CONSOLE_TOPIC.APPEND_LINE, `<span class="command-prefix">$</span>${cmd}`);
-  emit('execute', cmd);
+  emit('execute', cmd, term.cols, term.rows);
   state.command = '';
   const history = historyProp.history;
   if (history.length > 0 && history[history.length - 1] === cmd) {
@@ -234,9 +236,7 @@ const historyDown = () => {
 };
 const setScrollToEnd = () => {
   const autoScrollEnd = !state.autoScrollEnd;
-  if (autoScrollEnd) {
-    pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_END);
-  }
+  pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_END);
   state.autoScrollEnd = autoScrollEnd;
 };
 

@@ -95,6 +95,17 @@ export default {
   FAILED: 'Failed',
   CREATE_TERM: 'Create terminal',
   USER_DIR: 'User dir',
+  MODIFY_USER: 'Modify user',
+  AVATAR: 'Avatar',
+  CLICK_MODIFY: 'Click to modify',
+  PREVIEW: 'Preview',
+  SELECT_AVATAR: 'Select avatar',
+  UPLOAD_IMG: 'Upload image',
+  RE_UPLOAD_IMG: 'Re-upload image',
+  SIZE: 'Size',
+  MODIFY_TIME: 'Modify time',
+  COUNT: 'Count',
+  TIP_UPLOAD_IMG: 'Please upload image!',
 
   //服务配置
   SERVER_LIST_TITLE: 'Services',
@@ -183,4 +194,6 @@ export default {
   SUBMITTED: 'submitted',
   MAX: 'max',
   RUNTIME_INFO: 'Runtime info',
+  MEMORY: 'Memory',
+  MEMORY_INFO: 'Current memory info',
 };

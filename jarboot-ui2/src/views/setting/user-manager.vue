@@ -15,18 +15,18 @@
         </template>
       </el-table-column>
     </table-pro>
-    <el-drawer :title="state.isNew ? $t('CREATE_USER') : $t('MODIFY') + $t('USER_NAME')" v-model="state.drawer" destroy-on-close @closed="reset">
+    <el-drawer :title="state.isNew ? $t('CREATE_USER') : $t('MODIFY_USER')" v-model="state.drawer" destroy-on-close @closed="reset">
       <el-form :model="state.form" label-width="auto" :rules="rules" ref="configRef">
         <el-form-item prop="avatar" label="头像">
           <template #label>
-            <span style="line-height: 45px">头像</span>
+            <span style="line-height: 45px">{{ $t('AVATAR') }}</span>
           </template>
           <el-button plain link @click="state.showCutter = true">
             <el-avatar>
               <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" />
               <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
             </el-avatar>
-            <span style="margin-left: 10px">点击修改</span>
+            <span style="margin-left: 10px">{{ $t('CLICK_MODIFY') }}</span>
           </el-button>
         </el-form-item>
         <el-form-item prop="username" :label="$t('USER_NAME')">
@@ -213,8 +213,13 @@ async function save() {
       );
     } else {
       await UserService.updateUser(state.form.username, fullName, state.form.roles.join(','), state.form.userDir, state.form.avatar);
-      if (userStore.username === state.form.username && state.form.avatar) {
-        userStore.avatar = state.form.avatar;
+      if (userStore.username === state.form.username) {
+        if (state.form.avatar) {
+          userStore.avatar = state.form.avatar;
+        }
+        if (state.form.fullName) {
+          userStore.fullName = state.form.fullName;
+        }
       }
     }
     state.drawer = false;

@@ -33,13 +33,19 @@
         </el-col>
         <el-col :span="12">
           <div class="board-panel">
-            <div :style="{ width: '100%', height: chartHeight }"></div>
+            <div class="mem-switch-tool">
+              <el-radio-group size="small" v-model="state.memoryType" @change="updateMemChart">
+                <el-radio label="heap" size="small">{{ $t('HEAP') }}</el-radio>
+                <el-radio label="nonheap" size="small">{{ $t('NON_HEAP') }}</el-radio>
+              </el-radio-group>
+            </div>
+            <div ref="memChartRef" :style="{ width: '100%', height: chartHeight }"></div>
           </div>
         </el-col>
       </el-row>
     </el-tab-pane>
     <el-tab-pane :label="$t('THREAD')" name="threads">
-      <el-table :data="props.data.threads" style="width: 100%" :height="viewHeight" size="small" stripe>
+      <el-table :data="props.data.threads" style="width: 100%" :height="viewHeight - 15" size="small" stripe>
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="name" label="NAME" :show-overflow-tooltip="true" />
         <el-table-column prop="group" label="GROUP" width="80" :show-overflow-tooltip="true" />
@@ -61,15 +67,24 @@
       </el-table>
     </el-tab-pane>
     <el-tab-pane :label="$t('RUNTIME_INFO')" name="system">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="OS">{{ data.runtimeInfo?.osName }}</el-descriptions-item>
-        <el-descriptions-item label="OS Version">{{ data.runtimeInfo?.osVersion }}</el-descriptions-item>
-        <el-descriptions-item label="Java Version">{{ data.runtimeInfo?.javaVersion }}</el-descriptions-item>
-        <el-descriptions-item label="Java Home">{{ data.runtimeInfo?.javaHome }}</el-descriptions-item>
-        <el-descriptions-item label="System LoadAverage">{{ data.runtimeInfo?.systemLoadAverage }}</el-descriptions-item>
-        <el-descriptions-item label="Processors">{{ data.runtimeInfo?.processors }}</el-descriptions-item>
-        <el-descriptions-item label="Uptime">{{ data.runtimeInfo?.uptime }}</el-descriptions-item>
-      </el-descriptions>
+      <el-card :header="$t('RUNTIME_INFO')">
+        <el-descriptions :column="2" border size="small">
+          <el-descriptions-item label="OS">{{ data.runtimeInfo?.osName }}</el-descriptions-item>
+          <el-descriptions-item label="OS Version">{{ data.runtimeInfo?.osVersion }}</el-descriptions-item>
+          <el-descriptions-item label="Java Version">{{ data.runtimeInfo?.javaVersion }}</el-descriptions-item>
+          <el-descriptions-item label="Java Home">{{ data.runtimeInfo?.javaHome }}</el-descriptions-item>
+          <el-descriptions-item label="System LoadAverage">{{ data.runtimeInfo?.systemLoadAverage }}</el-descriptions-item>
+          <el-descriptions-item label="Processors">{{ data.runtimeInfo?.processors }}</el-descriptions-item>
+          <el-descriptions-item label="Uptime">{{ data.runtimeInfo?.uptime }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+      <el-card header="GC" style="margin-top: 5px">
+        <el-table size="small" :data="props.data.gcInfos" style="width: 100%" stripe :height="viewHeight - 350">
+          <el-table-column prop="name" label="NAME"></el-table-column>
+          <el-table-column prop="collectionCount" label="COUNT"></el-table-column>
+          <el-table-column prop="collectionTime" label="TIME"></el-table-column>
+        </el-table>
+      </el-card>
     </el-tab-pane>
   </el-tabs>
 </template>
@@ -94,6 +109,7 @@ const chartHeight = computed(() => (props.height - 30) / 2 + 'px');
 const state = reactive({
   tab: 'overview',
   memType: 'heap',
+  memoryType: 'heap',
   heapOption: '',
   noHeapOption: '',
   heapOptions: [],
@@ -102,16 +118,24 @@ const state = reactive({
   cpu: 0,
   history: [] as any[],
 });
-const threadChartRef = ref();
-const heapChartRef = ref();
-const cpuChartRef = ref();
+const threadChartRef = ref<HTMLElement>();
+const heapChartRef = ref<HTMLElement>();
+const cpuChartRef = ref<HTMLElement>();
+const memChartRef = ref<HTMLElement>();
+
 const MAX_RECORD = 500;
 const PRECISION = 2;
+const COLOR = ['#65B581', '#FFCE34', '#FD665F', '#ea7ccc', '#9a60b4', '#fc8452', '#73c0de', '#ee6666'];
+
 let threadChart = null as unknown as EChartsType;
 let heapChart = null as unknown as EChartsType;
 let cpuChart = null as unknown as EChartsType;
+let memChart = null as unknown as EChartsType;
 const resizeChart = () => {
   threadChart?.resize();
+  heapChart?.resize();
+  cpuChart?.resize();
+  memChart?.resize();
 };
 const darkIconEle = (): HTMLElement => document.getElementById('dark-icon-id') as unknown as HTMLElement;
 const checkIsDark = (): boolean => {
@@ -142,14 +166,26 @@ watch(
 watch(() => [props.height, props.width], debounce(resizeChart, 1000, { maxWait: 3000 }));
 
 const initThreadChart = () => {
-  threadChart = echarts.init(threadChartRef.value);
+  if (threadChartRef.value) {
+    threadChart = echarts.init(threadChartRef.value);
+  }
 };
 const initHeapChart = () => {
-  heapChart = echarts.init(heapChartRef.value);
+  if (heapChartRef.value) {
+    heapChart = echarts.init(heapChartRef.value);
+  }
 };
 const initCpuChart = () => {
-  cpuChart = echarts.init(cpuChartRef.value);
+  if (cpuChartRef.value) {
+    cpuChart = echarts.init(cpuChartRef.value);
+  }
 };
+const initMemChart = () => {
+  if (memChartRef.value) {
+    memChart = echarts.init(memChartRef.value);
+  }
+};
+
 const getAfterFixData = (his: any[]): any[] => {
   let last = MAX_RECORD - his.length;
   if (last > (MAX_RECORD * 3) / 4) {
@@ -206,6 +242,7 @@ const createOption = (title: string, series: any[], subtext: string = '', unit: 
         color: isDark ? '#d4d4d4' : '#373737',
       },
     },
+    color: COLOR,
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -342,6 +379,101 @@ const updateCpuChart = (history: any[]) => {
   cpuChart.setOption(option, false, true);
 };
 
+function updateMemChart() {
+  let isDark = checkIsDark();
+  const heap = (props.data.memoryInfo[state.memoryType] || []) as any[];
+  const total = round(heap[0].used / MB_NUM, PRECISION);
+  let index = 0;
+  const placeHoldData = heap.map((r, i) => {
+    const used = round(r.used / MB_NUM, PRECISION);
+    const value = total - used - index;
+    if (i > 0) {
+      index = index + used;
+    }
+    return value;
+  });
+  const option = {
+    title: {
+      text: CommonUtils.translate('MEMORY'),
+      subtext: CommonUtils.translate('MEMORY_INFO'),
+      textStyle: {
+        color: isDark ? '#eeeeee' : '#313131',
+      },
+      subtextStyle: {
+        color: isDark ? '#d4d4d4' : '#373737',
+      },
+    },
+
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#6a7985',
+        },
+      },
+      formatter: function (params: any[]) {
+        const tar = params[1];
+        const max = round(heap[tar.dataIndex].max / MB_NUM, PRECISION);
+        const totalValue = round(heap[tar.dataIndex].total / MB_NUM, PRECISION);
+        return `${tar.name}<br/>${tar.seriesName} : ${tar.value} Mb<br/>${CommonUtils.translate(
+          'SUBMITTED'
+        )} : ${totalValue} Mb<br/>${CommonUtils.translate('MAX')} : ${max} Mb`;
+      },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      axisLabel: { interval: 0, rotate: 30, color: isDark ? '#dedede' : '#313131' },
+      splitLine: { show: false },
+      data: heap.map(r => r.name),
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { interval: 0, color: isDark ? '#dedede' : '#313131', formatter: '{value} Mb' },
+    },
+    series: [
+      {
+        name: 'Placeholder',
+        type: 'bar',
+        stack: 'Total',
+        itemStyle: {
+          borderColor: 'transparent',
+          color: 'transparent',
+        },
+        emphasis: {
+          itemStyle: {
+            borderColor: 'transparent',
+            color: 'transparent',
+          },
+        },
+        data: placeHoldData,
+      },
+      {
+        name: CommonUtils.translate('USED'),
+        type: 'bar',
+        stack: 'Total',
+        label: {
+          show: true,
+          position: 'inside',
+          formatter: function (params) {
+            const total = round(heap[params.dataIndex].total / MB_NUM, PRECISION);
+            return `${total} Mb\n${params.value} Mb`;
+          },
+        },
+        color: COLOR,
+        data: heap.map((r, i) => ({ value: round(r.used / MB_NUM, PRECISION), itemStyle: { color: COLOR[i % COLOR.length] } })),
+      },
+    ],
+  } as EChartsOption;
+  memChart.setOption(option, false, true);
+}
+
 const observer = new MutationObserver(mutations => {
   mutations.forEach(function (mutation) {
     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
@@ -357,6 +489,7 @@ const updateChart = () => {
   updateThreadChart(his);
   updateHeapChart(his);
   updateCpuChart(his);
+  updateMemChart();
 };
 
 onMounted(() => {
@@ -367,6 +500,7 @@ onMounted(() => {
   initThreadChart();
   initHeapChart();
   initCpuChart();
+  initMemChart();
 
   state.history.push(props.data);
   state.heapOptions = (props.data.memoryInfo?.heap || []).map((item: any) => item.name);
@@ -427,8 +561,15 @@ const cpuColorFormat = (cpu: number) => {
 .mem-board-tool {
   position: absolute;
   bottom: 0;
+  padding-left: 5px;
   .el-select {
     margin: 0 0 2px 5px;
   }
+}
+.mem-switch-tool {
+  position: absolute;
+  right: 16px;
+  padding-top: 10px;
+  z-index: 2;
 }
 </style>

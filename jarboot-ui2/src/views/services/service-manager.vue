@@ -92,7 +92,7 @@
             v-show="serviceState.activated.sid === s.sid"
             :sid="s.sid"
             @close="closeServiceTerminal(s)"
-            @execute="cmd => doCommand(s, cmd)"
+            @execute="(cmd, cols, rows) => doCommand(s, cmd, cols, rows)"
             @cancel="doCancel(s)"
             :width="getWidth()"
             :name="s.name"></super-panel>
@@ -349,11 +349,11 @@ const checkChanged = () => {
 
 const doDashboardCmd = () => {
   const service = serviceState.activated;
-  service?.sid && doCommand(service, 'dashboard');
+  service?.sid && doCommand(service, 'dashboard', 1, 1);
 };
 
-const doCommand = (service: ServiceInstance, cmd: string) => {
-  WsManager.sendMessage({ service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC });
+const doCommand = (service: ServiceInstance, cmd: string, cols: number, rows: number) => {
+  WsManager.sendMessage({ service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC, cols, rows });
 };
 
 const doCancel = (service: ServiceInstance) => {
@@ -469,7 +469,6 @@ function setStatus(sid: string, status: string) {
     if (STATUS_STARTING === status) {
       serviceState.activated = service;
     }
-    console.info('status change,', status, service);
     const name = service.name;
     switch (status) {
       case STATUS_STARTING:

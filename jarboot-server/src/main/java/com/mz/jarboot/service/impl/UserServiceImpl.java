@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UserServiceImpl implements UserService {
-    private static String PATTEN = "^[A-Za-z_0-9\u4E00-\u9FA5]{3,18}$";
-    private static int FULL_NAME_MAX = 26;
-    private static int PASSWORD_MAX = 17;
-    private static int PASSWORD_MIN = 5;
+    private static final String PATTEN = "^[A-Za-z_0-9\u4E00-\u9FA5]{3,18}$";
+    private static final int FULL_NAME_MAX = 26;
+    private static final int PASSWORD_MAX = 17;
+    private static final int PASSWORD_MIN = 5;
     @Autowired
     private UserDao userDao;
     @Autowired

@@ -48,7 +48,7 @@ public class CoreCommandSession extends AbstractCommandSession {
 
     @Override
     public void appendResult(ResultModel resultModel) {
-        ResultStreamDistributor.getInstance().appendResult(resultModel, this.sessionId);
+        ResultStreamDistributor.getInstance().appendResult(this, resultModel);
     }
 
     @Override

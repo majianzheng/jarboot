@@ -9,6 +9,7 @@ import StringUtil from '@/common/StringUtil';
 
 const state = reactive({
   dialog: false,
+  resetPassword: false,
 });
 
 const openDoc = () => window.open(DOCS_URL);
@@ -46,6 +47,14 @@ const goTo = (name: string, module: string) => {
     router.push({ name });
   }
 };
+function modifyUser() {
+  state.resetPassword = false;
+  state.dialog = true;
+}
+function resetPassword() {
+  state.resetPassword = true;
+  state.dialog = true;
+}
 
 onMounted(() => {
   welcome();
@@ -97,8 +106,8 @@ onMounted(() => {
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item icon="UserFilled">{{ user.fullName || user.username }}</el-dropdown-item>
-                <el-dropdown-item icon="Edit" @click="state.dialog = true">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
+                <el-dropdown-item icon="UserFilled" @click="modifyUser">{{ user.fullName || user.username }}</el-dropdown-item>
+                <el-dropdown-item icon="Edit" @click="resetPassword">{{ $t('MODIFY_PWD') }}</el-dropdown-item>
                 <el-dropdown-item icon="Right" @click="user.logout()">{{ $t('SIGN_OUT') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -114,7 +123,7 @@ onMounted(() => {
       </transition>
       <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
-    <modify-user-dialog v-model:visible="state.dialog" :username="user.username"></modify-user-dialog>
+    <modify-user-dialog v-model:visible="state.dialog" :reset-password="state.resetPassword" :username="user.username"></modify-user-dialog>
   </main>
 </template>
 <style lang="less" scoped>

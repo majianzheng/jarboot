@@ -24,6 +24,8 @@ public class CommandRequestSubscriber implements Subscriber<CommandRequest> {
         AbstractCommandSession session = null;
         try {
             session = EnvironmentContext.registerSession(request.getSessionId());
+            session.setRow(request.getRow());
+            session.setCol(request.getCol());
             CommandType type = request.getCommandType();
             if (CommandType.HEARTBEAT.equals(type)) {
                 NotifyReactor.getInstance().publishEvent(new HeartbeatEvent(request));

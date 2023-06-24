@@ -68,7 +68,7 @@ public class BytesCommand extends AbstractCommand {
         }
         //打印classloader
         session.console("ClassLoader: " + cls.getClassLoader().toString());
-        session.console("<hr>");
+        session.console("\n");
         showBytesCode(cls);
     }
 

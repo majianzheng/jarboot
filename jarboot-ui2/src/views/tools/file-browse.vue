@@ -9,6 +9,7 @@ interface FileContent extends FileNode {
   content: string;
   loading?: boolean;
   modified: boolean;
+  path: string;
 }
 
 const basicStore = useBasicStore();
@@ -29,6 +30,11 @@ function editTab(key: string, action: 'remove' | 'add') {
     if (index < 0) {
       return;
     }
+    if (1 === state?.files?.length) {
+      state.files = [];
+      state.active = '';
+      return;
+    }
     const active = index + 1 >= state.files.length ? state.files[index - 1].key : state.files[index].key;
     state.files.splice(index, 1);
     state.active = active;
@@ -43,7 +49,7 @@ async function handleSelect(file: FileNode, path: string) {
     state.loading = true;
     try {
       const content = await FileService.getContent(path);
-      state.files.push({ ...file, content, modified: false });
+      state.files.push({ ...file, content, path, modified: false });
     } finally {
       state.loading = false;
     }
@@ -56,6 +62,16 @@ function getTabWidth() {
     return basicStore.innerWidth - 85;
   }
   return basicStore.innerWidth - state.sideWidth - 85;
+}
+function onChange(file: FileContent) {
+  file.modified = true;
+}
+async function onSave(file: FileContent) {
+  if (file.modified) {
+    // 保存文件
+    await FileService.writeFile(file.path, file.content);
+    file.modified = false;
+  }
 }
 </script>
 
@@ -78,6 +94,7 @@ function getTabWidth() {
         <el-tabs
           v-loading="state.loading"
           v-if="state.files.length"
+          class="file-browse-tabs"
           v-model="state.active"
           type="card"
           editable
@@ -85,7 +102,24 @@ function getTabWidth() {
           @tab-change="name => (state.active = name)"
           @edit="editTab">
           <el-tab-pane v-for="item in state.files" :key="item.key" :label="item.name" :name="item.key">
-            <file-editor v-model="item.content" :name="item.name" :height="basicStore.innerHeight - 103"></file-editor>
+            <template #label>
+              <span class="custom-tabs-label">
+                <el-tooltip :content="$t('SAVE')">
+                  <el-button link @click.stop="() => onSave(item)">
+                    <template #icon>
+                      <el-icon v-if="item.modified"><EditPen /></el-icon>
+                    </template>
+                  </el-button>
+                </el-tooltip>
+                <span>{{ item.name }}</span>
+              </span>
+            </template>
+            <file-editor
+              v-model="item.content"
+              :name="item.name"
+              :height="basicStore.innerHeight - 90"
+              @save="() => onSave(item)"
+              @change="() => onChange(item)"></file-editor>
           </el-tab-pane>
         </el-tabs>
         <div v-else>
@@ -96,4 +130,12 @@ function getTabWidth() {
   </div>
 </template>
 
-<style scoped lang="less"></style>
+<style lang="less">
+.file-browse-tabs .custom-tabs-label .el-icon {
+  vertical-align: middle;
+}
+.file-browse-tabs .custom-tabs-label span {
+  vertical-align: middle;
+  margin-left: 4px;
+}
+</style>

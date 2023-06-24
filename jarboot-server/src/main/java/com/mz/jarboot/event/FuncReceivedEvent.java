@@ -9,6 +9,8 @@ import com.mz.jarboot.common.pojo.FuncRequest;
  */
 public class FuncReceivedEvent extends FuncRequest implements JarbootEvent {
     private String sessionId;
+    private int cols;
+    private int rows;
 
     public FuncReceivedEvent() {
 
@@ -50,6 +52,22 @@ public class FuncReceivedEvent extends FuncRequest implements JarbootEvent {
             return FuncCode.FUNC_MAX;
         }
         return values[func];
+    }
+
+    public int getCols() {
+        return cols;
+    }
+
+    public void setCols(int cols) {
+        this.cols = cols;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
     }
 
     @Override

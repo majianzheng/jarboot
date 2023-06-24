@@ -6,8 +6,9 @@ import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassLoaderVO;
 import com.mz.jarboot.core.cmd.model.ClassVO;
 import com.mz.jarboot.core.cmd.model.MethodVO;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
+import com.mz.jarboot.text.util.RenderUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -60,12 +61,12 @@ public class ClassUtils {
                 .row("modifier", (clazz.getModifier()))
                 .row("annotation", (StringUtils.join(clazz.getAnnotations(), ",")))
                 .row("interfaces", (StringUtils.join(clazz.getInterfaces(), ",")))
-                .row("super-class", TypeRenderUtils.drawSuperClass(clazz).toHtml())
-                .row("class-loader", TypeRenderUtils.drawClassLoader(clazz).toHtml())
+                .row("super-class", RenderUtil.render(TypeRenderUtils.drawSuperClass(clazz)))
+                .row("class-loader", RenderUtil.render(TypeRenderUtils.drawClassLoader(clazz)))
                 .row("classLoaderHash", (clazz.getClassLoaderHash()));
 
         if (isPrintField) {
-            table.row("fields", TypeRenderUtils.drawField(clazz, expand).toHtml());
+            table.row("fields", RenderUtil.render(TypeRenderUtils.drawField(clazz, expand)));
         }
         return table;
     }
@@ -221,7 +222,7 @@ public class ClassUtils {
         table.row("NAME", "HASHCODE", "CLASSLOADER");
 
         for (ClassVO c : matchedClasses) {
-            table.row(c.getName(), c.getClassLoaderHash(), TypeRenderUtils.drawClassLoader(c).toHtml());
+            table.row(c.getName(), c.getClassLoaderHash(), RenderUtil.render(TypeRenderUtils.drawClassLoader(c)));
         }
         return table;
     }

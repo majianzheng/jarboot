@@ -310,8 +310,10 @@ public class AgentManager {
      * @param sid 唯一id
      * @param command 命令
      * @param sessionId 会话id
+     * @param col 宽
+     * @param row 高
      */
-    private void sendCommand(String sid, String command, String sessionId) {
+    private void sendCommand(String sid, String command, String sessionId, int col, int row) {
         if (StringUtils.isEmpty(sid) || StringUtils.isEmpty(command)) {
             return;
         }
@@ -334,7 +336,7 @@ public class AgentManager {
         }
         if (null != client) {
             if (client.isTrusted()) {
-                client.sendCommand(command, sessionId);
+                client.sendCommand(command, sessionId, row, col);
             } else {
                 String msg = formatErrorMsg(StringUtils.EMPTY, "not trusted!");
                 MessageUtils.commandFailed(sid, sessionId, msg);
@@ -528,7 +530,7 @@ public class AgentManager {
         final String sid = event.getSid();
         switch (event.funcCode()) {
             case CMD_FUNC:
-                sendCommand(sid, event.getBody(), event.getSessionId());
+                sendCommand(sid, event.getBody(), event.getSessionId(), event.getCols(), event.getRows());
                 break;
             case CANCEL_FUNC:
                 sendInternalCommand(sid, CommandConst.CANCEL_CMD, event.getSessionId());

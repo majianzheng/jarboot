@@ -1,6 +1,7 @@
 package com.mz.jarboot.core.cmd.view;
 
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.common.utils.JsonUtils;
 
 /**
@@ -11,7 +12,7 @@ import com.mz.jarboot.common.utils.JsonUtils;
 public class DashboardView implements ResultView<com.mz.jarboot.core.cmd.model.DashboardModel> {
 
     @Override
-    public String render(com.mz.jarboot.core.cmd.model.DashboardModel result) {
+    public String render(CommandSession session, com.mz.jarboot.core.cmd.model.DashboardModel result) {
         return JsonUtils.toJsonString(result);
     }
 

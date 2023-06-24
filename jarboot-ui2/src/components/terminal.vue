@@ -68,6 +68,7 @@ function search() {
 }
 
 function updateSize() {
+  termOption.term?.resize(getCol(), getRow());
   termOption.fitAddon?.fit();
   if (state.connected) {
     const winSize = { col: getCol(), row: getRow() };

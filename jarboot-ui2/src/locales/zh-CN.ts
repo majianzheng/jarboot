@@ -95,6 +95,17 @@ export default {
   FAILED: '失败',
   CREATE_TERM: '新建终端',
   USER_DIR: '用户目录',
+  MODIFY_USER: '修改用户',
+  AVATAR: '头像',
+  CLICK_MODIFY: '点击修改',
+  PREVIEW: '预览',
+  SELECT_AVATAR: '选择头像',
+  UPLOAD_IMG: '上传图片',
+  RE_UPLOAD_IMG: '重新上传',
+  SIZE: '大小',
+  MODIFY_TIME: '修改时间',
+  COUNT: '数量',
+  TIP_UPLOAD_IMG: '请上传图片',
 
   //服务配置
   SERVER_LIST_TITLE: '服务列表',
@@ -182,4 +193,6 @@ export default {
   SUBMITTED: '已提交',
   MAX: '最大',
   RUNTIME_INFO: '运行时信息',
+  MEMORY: '内存',
+  MEMORY_INFO: '当前内存分代信息展示',
 };

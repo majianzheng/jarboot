@@ -5,9 +5,9 @@ import com.mz.jarboot.core.cmd.model.ClassDetailVO;
 import com.mz.jarboot.core.cmd.model.ClassVO;
 import com.mz.jarboot.core.cmd.model.FieldVO;
 import com.mz.jarboot.core.cmd.view.ObjectView;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
-import com.mz.jarboot.core.cmd.view.element.TreeElement;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
+import com.mz.jarboot.text.ui.TreeElement;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;

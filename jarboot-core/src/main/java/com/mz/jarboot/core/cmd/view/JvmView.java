@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.core.cmd.model.JvmItem;
 import com.mz.jarboot.core.cmd.model.JvmModel;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -12,8 +13,10 @@ import java.util.List;
  * @author majianzheng
  */
 public class JvmView implements ResultView<JvmModel> {
+    private CommandSession session;
     @Override
-    public String render(JvmModel model) {
+    public String render(CommandSession session, JvmModel model) {
+        this.session = session;
         StringBuilder sb = new StringBuilder();
         //RuntimeInfo
         renderJvmItemList(sb, model.getRuntimeInfo(), "RUNTIME");
@@ -52,7 +55,7 @@ public class JvmView implements ResultView<JvmModel> {
             row.add(item.getValue().toString());
             rows.add(row);
         });
-        sb.append(ViewRenderUtil.renderTable(null , rows, title, 1));
+        sb.append(ViewRenderUtil.renderTable(null , rows, session.getCol(), 1));
     }
 
     private void renderGarbageCollectors(StringBuilder sb, List<JvmModel.GarbageCollectorItem> list) {
@@ -68,7 +71,8 @@ public class JvmView implements ResultView<JvmModel> {
             row.add(String.valueOf(item.getCollectionTime()));
             rows.add(row);
         });
-        sb.append(ViewRenderUtil.renderTable(headers , rows, "GARBAGE-COLLECTORS", 1));
+        sb.append("GARBAGE-COLLECTORS\n");
+        sb.append(ViewRenderUtil.renderTable(headers , rows, session.getCol(), 1));
     }
 
     private void renderMemory(StringBuilder sb, JvmModel model) {
@@ -78,7 +82,7 @@ public class JvmView implements ResultView<JvmModel> {
             List<String> row = new ArrayList<>();
             row.add(item.getName());
             MemoryUsage usage = (MemoryUsage)item.getValue();
-            row.add(String.format("init : %d<br>used : %d<br>committed : %d<br>max : %d",
+            row.add(String.format("init : %d\nused : %d\ncommitted : %d\nmax : %d",
                     usage.getInit(), usage.getUsed(), usage.getCommitted(), usage.getMax()));
             rows.add(row);
         });
@@ -89,6 +93,6 @@ public class JvmView implements ResultView<JvmModel> {
             tail.add(String.valueOf(model.getPendingFinalizationCount()));
             rows.add(tail);
         }
-        sb.append(ViewRenderUtil.renderTable(null , rows, "MEMORY", 1));
+        sb.append("MEMORY\n").append(ViewRenderUtil.renderTable(null , rows, session.getCol(), 1));
     }
 }

@@ -48,7 +48,7 @@ export default [
       {
         path: 'file-manager',
         name: FILE_MGR,
-        component: () => import('@/views/tools/file-cloud.vue'),
+        component: () => import('@/views/tools/file-browse.vue'),
         meta: {
           keepAlive: true,
           module: 'TOOLS',

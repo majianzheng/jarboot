@@ -47,4 +47,16 @@ public interface CommandSession {
      * @param message 消息
      */
     void end(boolean success, String message);
+
+    /**
+     * 终端高度
+     * @return 高度
+     */
+    int getRow();
+
+    /**
+     * 终端宽度
+     * @return 宽度
+     */
+    int getCol();
 }

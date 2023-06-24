@@ -65,7 +65,7 @@ public final class AgentOperator extends SessionOperator {
      * @param sessionId 会话id
      */
     public void sendInternalCommand(String command, String sessionId) {
-        sendCommand(command, sessionId, CommandType.INTERNAL);
+        sendCommand(command, sessionId, CommandType.INTERNAL, 1, 1);
     }
 
     /**
@@ -73,12 +73,12 @@ public final class AgentOperator extends SessionOperator {
      * @param command 命令
      * @param sessionId 会话id
      */
-    public void sendCommand(String command, String sessionId) {
-        sendCommand(command, sessionId, CommandType.USER_PUBLIC);
+    public void sendCommand(String command, String sessionId, int row, int col) {
+        sendCommand(command, sessionId, CommandType.USER_PUBLIC, row, col);
     }
 
     public void heartbeat() {
-        sendCommand(CommandConst.HEARTBEAT, StringUtils.EMPTY, CommandType.HEARTBEAT);
+        sendCommand(CommandConst.HEARTBEAT, StringUtils.EMPTY, CommandType.HEARTBEAT, 1, 1);
     }
 
     public boolean isTrusted() {
@@ -89,11 +89,13 @@ public final class AgentOperator extends SessionOperator {
         this.trusted = trusted;
     }
 
-    private void sendCommand(String command, String sessionId, CommandType type) {
+    private void sendCommand(String command, String sessionId, CommandType type, int row, int col) {
         CommandRequest request = new CommandRequest();
         request.setCommandType(type);
         request.setCommandLine(command);
         request.setSessionId(sessionId);
+        request.setRow(row);
+        request.setCol(col);
         newMessage(request.toRaw());
     }
 }

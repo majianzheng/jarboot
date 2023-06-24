@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.stream;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.common.notify.NotifyReactor;
@@ -38,19 +39,19 @@ public class ResultStreamDistributor {
 
     /**
      * 输出执行结果
-     * @param model   数据
      * @param session 会话
+     * @param model   数据
      */
     @SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
-    public void appendResult(ResultModel model, String session) {
+    public void appendResult(CommandSession session, ResultModel model) {
         ResultView resultView = ResultStreamDistributorHolder.INST.resultViewResolver.getResultView(model);
         if (resultView == null) {
             logger.info("获取视图解析失败！{}, {}", model.getName(), model.getClass());
             return;
         }
-        String text = resultView.render(model);
+        String text = resultView.render(session, model);
         NotifyType type = resultView.isJson() ? NotifyType.JSON_RESULT : NotifyType.CONSOLE;
-        response(true, ResponseType.NOTIFY, type.body(text), session);
+        response(true, ResponseType.NOTIFY, type.body(text), session.getSessionId());
     }
 
     /**

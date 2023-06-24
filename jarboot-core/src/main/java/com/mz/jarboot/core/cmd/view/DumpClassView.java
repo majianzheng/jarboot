@@ -1,12 +1,14 @@
 package com.mz.jarboot.core.cmd.view;
 
+import com.mz.jarboot.api.cmd.session.CommandSession;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.core.cmd.model.DumpClassVO;
-import com.mz.jarboot.core.cmd.view.element.Element;
-import com.mz.jarboot.core.cmd.view.element.TableElement;
 import com.mz.jarboot.core.utils.ClassUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.core.utils.TypeRenderUtils;
+import com.mz.jarboot.text.ui.Element;
+import com.mz.jarboot.text.ui.TableElement;
+import com.mz.jarboot.text.util.RenderUtil;
 
 import java.util.List;
 
@@ -14,13 +16,14 @@ import java.util.List;
  * @author majianzheng
  */
 public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.DumpClassModel> {
-
+    private CommandSession session;
     @Override
-    public String render(com.mz.jarboot.core.cmd.model.DumpClassModel result) {
+    public String render(CommandSession session, com.mz.jarboot.core.cmd.model.DumpClassModel result) {
+        this.session = session;
         StringBuilder sb = new StringBuilder();
         if (result.getMatchedClassLoaders() != null) {
             sb.append("Matched classloaders: \n");
-            ClassLoaderView.drawClassLoaders(sb, result.getMatchedClassLoaders(), false);
+            ClassLoaderView.drawClassLoaders(sb, result.getMatchedClassLoaders(), false, session.getCol());
             sb.append(StringUtils.LF);
             return sb.toString();
         }
@@ -28,7 +31,7 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
             drawDumpedClasses(sb, result.getDumpedClasses());
         } else if (result.getMatchedClasses() != null) {
             Element table = ClassUtils.renderMatchedClasses(result.getMatchedClasses());
-            sb.append(table.toHtml()).append(StringUtils.LF);
+            sb.append(RenderUtil.render(table)).append(StringUtils.LF);
         }
         return sb.toString();
     }
@@ -39,12 +42,12 @@ public class DumpClassView implements ResultView<com.mz.jarboot.core.cmd.model.D
 
         for (DumpClassVO clazz : list) {
             table.row(AnsiLog.red(clazz.getClassLoaderHash()),
-                    TypeRenderUtils.drawClassLoader(clazz).toHtml(),
+                    RenderUtil.render(TypeRenderUtils.drawClassLoader(clazz)),
                     AnsiLog.red(clazz.getLocation()));
         }
 
         process
-                .append(table.toHtml())
+                .append(RenderUtil.render(table, session.getCol()))
                 .append(StringUtils.EMPTY);
     }
 }

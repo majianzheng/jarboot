@@ -36,6 +36,7 @@
 	<modules>
 		<module>jarboot-api</module>
 		<module>jarboot-common</module>
+		<module>text-ui</module>
 		<module>jarboot-spy</module>
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
@@ -45,9 +46,9 @@
 		<module>demo-server</module>
 		<module>packaging</module>
 		<module>jarboot-client</module>
-	</modules>
+    </modules>
 	<properties>
-		<revision>2.3.1</revision>
+		<revision>3.0.0-beta</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
@@ -64,6 +65,8 @@
 		<cfr.version>0.151</cfr.version>
 		<olgn.version>3.1.19</olgn.version>
 		<pty4j.version>0.12.5</pty4j.version>
+		<groovy.version>2.4.21</groovy.version>
+		<rsyntaxtextarea.version>3.3.1</rsyntaxtextarea.version>
 
 		<!-- plugin version -->
 		<maven-resources-version>2.6</maven-resources-version>
@@ -146,6 +149,11 @@
 				<artifactId>spring-boot-starter-jarboot</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>text-ui</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- Apache commons -->
 			<dependency>
@@ -191,6 +199,16 @@
 				<groupId>org.jetbrains.pty4j</groupId>
 				<artifactId>pty4j</artifactId>
 				<version>${pty4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.groovy</groupId>
+				<artifactId>groovy-all</artifactId>
+				<version>${groovy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fifesoft</groupId>
+				<artifactId>rsyntaxtextarea</artifactId>
+				<version>${rsyntaxtextarea.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -400,6 +418,7 @@
 						<exclude>**/core/cmd/**/*.java</exclude>
 						<exclude>**/jarboot/agent/*.java</exclude>
 						<exclude>**/java/jarboot/*.java</exclude>
+						<exclude>**/jarboot/text/**/*.java</exclude>
 					</excludes>
 				</configuration>
 				<executions>

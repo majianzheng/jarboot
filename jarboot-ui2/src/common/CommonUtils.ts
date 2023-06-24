@@ -64,7 +64,7 @@ export default class CommonUtils {
     a.click();
   }
 
-  public static download(url: string, filename: string, method = 'GET', body: any, callback?: (result: boolean, msg?: string) => void) {
+  public static download(url: string, filename: string, method = 'GET', body: any = '', callback?: (result: boolean, msg?: string) => void) {
     const xhr = new XMLHttpRequest();
     //GET请求,请求路径url,async(是否异步)
     xhr.open(method, url, true);

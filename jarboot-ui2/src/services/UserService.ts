@@ -18,11 +18,17 @@ export default class UserService {
     return Request.post<ResponseVo>(urlBase, form);
   }
 
-  public static updateUser(username: string, fullName: string, roles: string, userDir: string, avatar: string | null = null) {
+  public static updateUser(
+    username: string,
+    fullName: string | null,
+    roles: string | null,
+    userDir: string | null,
+    avatar: string | null = null
+  ) {
     const form: FormData = new FormData();
     form.append('username', username);
-    form.append('fullName', fullName);
-    form.append('roles', roles);
+    form.append('fullName', fullName || '');
+    form.append('roles', roles || '');
     form.append('userDir', userDir || '');
     avatar && form.append('avatar', avatar);
     return Request.post<ResponseVo>(urlBase + '/update', form);

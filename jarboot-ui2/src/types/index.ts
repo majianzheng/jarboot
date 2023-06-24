@@ -96,6 +96,8 @@ export type MsgReq = {
   sid?: string;
   body: string;
   func: FuncCode;
+  cols: number;
+  rows: number;
 };
 export enum CONSOLE_TOPIC {
   APPEND_LINE,
