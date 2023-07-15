@@ -64,6 +64,6 @@ export default class SettingService {
    * 添加信任的远程主机
    */
   public static getTrustedHosts() {
-    return Request.get(`${settingUrl}/trustedHost`, {});
+    return Request.get<string[]>(`${settingUrl}/trustedHost`, {});
   }
 }

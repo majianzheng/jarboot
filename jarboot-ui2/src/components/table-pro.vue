@@ -290,6 +290,8 @@ watch(
   }
 );
 
+watch(() => props.dataSource, refresh);
+
 function getSelectRow() {
   return tableRef.value?.getSelectionRows();
 }

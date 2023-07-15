@@ -26,3 +26,6 @@ export const PAGE_USER = 'user';
 export const PAGE_ROLE = 'role';
 
 export const PAGE_PRIVILEGE = 'privilege';
+
+/** 信任主机 */
+export const PAGE_TRUST_HOSTS = 'trust-hosts';
