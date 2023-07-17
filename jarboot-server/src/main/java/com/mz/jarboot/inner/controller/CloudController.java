@@ -69,11 +69,7 @@ public class CloudController {
      * @throws IOException IO 异常
      */
     @GetMapping(value="/pull/server")
-    public void pullServerDirectory(HttpServletRequest request,
-                                    @RequestParam String name,
-                                    HttpServletResponse response) throws IOException {
-        validateToken(request);
-
+    public void pullServerDirectory(@RequestParam String name, HttpServletResponse response) throws IOException {
         if (StringUtils.isEmpty(name)) {
             throw new JarbootException(ResultCodeConst.EMPTY_PARAM, "导出失败，服务名为空！");
         }
@@ -187,10 +183,7 @@ public class CloudController {
      * @param response Servlet response
      */
     @GetMapping(value="/download/{file}")
-    public void download(HttpServletRequest request,
-                         @PathVariable("file") String file,
-                         HttpServletResponse response) throws IOException {
-        validateToken(request);
+    public void download(@PathVariable("file") String file, HttpServletResponse response) throws IOException {
         //待下载文件名
         String fileName = new String(Base64.getDecoder().decode(file));
         File target = FileUtils.getFile(fileName);
@@ -202,17 +195,6 @@ public class CloudController {
         try (FileInputStream fis = new FileInputStream(target);
              OutputStream outputStream = response.getOutputStream()){
             IOUtils.copy(fis, outputStream);
-        }
-    }
-
-    private void validateToken(HttpServletRequest request) {
-        if (jwtTokenManager.getEnabled()) {
-            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-            //token校验
-            if (StringUtils.isEmpty(token)) {
-                token = request.getParameter(AuthConst.ACCESS_TOKEN);
-            }
-            jwtTokenManager.validateToken(token);
         }
     }
 

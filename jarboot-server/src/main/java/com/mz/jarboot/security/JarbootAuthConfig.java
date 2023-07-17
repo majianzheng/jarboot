@@ -59,8 +59,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
         }
         web.ignoring().antMatchers(
                 TOKEN_BASED_AUTH_ENTRY_POINT,
-                "/**/public/**",
-                "/api/jarboot/cloud/**");
+                "/**/public/**");
     }
     
     @Override

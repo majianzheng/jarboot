@@ -553,6 +553,7 @@ function onImport() {
     }
   };
   input.click();
+  input.remove();
 }
 
 onMounted(() => {

@@ -24,7 +24,7 @@ if (isRemote) {
   subTitle = `Dump file is stored in remote server ${props.remote}, can't download directly.`;
 }
 function download() {
-  const url = `/api/jarboot/cloud/download/${props.data?.encodedName}?${CommonUtils.ACCESS_TOKEN}=${token}`;
+  const url = `/api/jarboot/cloud/download/${props.data?.encodedName}`;
   CommonUtils.download(url, 'heapdump.hprof');
 }
 </script>

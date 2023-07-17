@@ -7,7 +7,6 @@ import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
-import com.mz.jarboot.dao.UserDao;
 import com.mz.jarboot.entity.User;
 import com.mz.jarboot.security.JarbootUser;
 import com.mz.jarboot.security.JwtTokenManager;

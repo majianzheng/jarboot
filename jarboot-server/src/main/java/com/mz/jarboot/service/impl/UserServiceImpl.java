@@ -117,9 +117,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUser(String username, String fullName, String roles, String userDir, String avatar) {
-        if (StringUtils.isEmpty(username)) {
-            throw new JarbootException("User is empty!");
-        }
+        checkUsername(username);
         checkFullName(fullName);
         User user = userDao.findFirstByUsername(username);
         if (null == user) {
@@ -225,21 +223,25 @@ public class UserServiceImpl implements UserService {
         return FileUtils.getFile(avatarDir, username);
     }
 
-    private void checkUsernameAndRoles(String username, String roles) {
+    private void checkUsername(String username) {
         if (StringUtils.isEmpty(username)) {
             throw new JarbootException("Username is empty!");
         }
         if (StringUtils.containsWhitespace(username)) {
             throw new JarbootException("User:" + username + " contains whitespace!");
         }
+        if (!Pattern.matches(PATTEN, username)) {
+            throw new JarbootException("Username must be A-Z a-z _ 0-9 length 3 to 18");
+        }
+    }
+
+    private void checkUsernameAndRoles(String username, String roles) {
+        checkUsername(username);
         if (StringUtils.isEmpty(roles)) {
             throw new JarbootException("Role is empty!");
         }
         if (StringUtils.containsWhitespace(roles)) {
             throw new JarbootException("Role contains whitespace!");
-        }
-        if (!Pattern.matches(PATTEN, username)) {
-            throw new JarbootException("Username must be A-Z a-z _ 0-9 length 3 to 18");
         }
         Set<String> roleSet = Arrays.stream(roles.split(",")).map(String::trim).collect(Collectors.toSet());
         if (roleSet.contains(AuthConst.SYS_ROLE) && !AuthConst.JARBOOT_USER.equals(username)) {

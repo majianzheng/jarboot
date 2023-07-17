@@ -62,6 +62,7 @@ export default class CommonUtils {
     const token = CommonUtils.getRawToken();
     a.href = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
     a.click();
+    a.remove();
   }
 
   public static download(url: string, filename: string, method = 'GET', body: any = '', callback?: (result: boolean, msg?: string) => void) {
