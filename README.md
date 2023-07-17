@@ -63,7 +63,7 @@ Ignore this when using zip package or <code>docker</code>.
 Build the jarboot code.
 ```bash
 #At first build ui
-$ cd jarboot-ui
+$ cd jarboot-ui2
 #First time, execute yarn or npm install
 $ yarn
 

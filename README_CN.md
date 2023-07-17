@@ -62,7 +62,7 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 编译Jarboot源代码
 ```bash
 #首先编译前端
-$ cd jarboot-ui
+$ cd jarboot-ui2
 #首次时需要先安装依赖，执行yarn或npm install
 $ yarn
 
