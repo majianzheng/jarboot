@@ -71,7 +71,7 @@ $ yarn build
 
 #切换到代码根目录，编译Java代码
 $ cd ../
-$ mvn clean install
+$ mvn clean install -P prod
 ```
 ### 启动<code>Jarboot</code>服务
 如果是使用的<code>Docker</code>忽略此步骤。

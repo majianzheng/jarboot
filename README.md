@@ -72,7 +72,7 @@ $ yarn build
 
 #Switch to the code root directory and compile the Java code
 $ cd ../
-$ mvn clean install
+$ mvn clean install -P prod
 ```
 ### Start <code>jarboot</code> server
 Ignore this when using <code>docker</code>.
