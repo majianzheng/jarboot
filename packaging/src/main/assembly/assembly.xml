@@ -22,6 +22,10 @@
       <directory>../jarboot-server/target/smart-doc</directory>
       <outputDirectory>fe/api-doc</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>../jarboot-server/target/lib</directory>
+      <outputDirectory>components/lib</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>

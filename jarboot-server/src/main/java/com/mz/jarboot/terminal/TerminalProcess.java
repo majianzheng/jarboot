@@ -83,12 +83,15 @@ public class TerminalProcess {
             outputStream.flush();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new JarbootException(e.getMessage(), e);
         }
     }
 
     public void setWinSize(int columns, int rows) {
-        process.setWinSize(new WinSize(columns, rows));
+        try {
+            process.setWinSize(new WinSize(columns, rows));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     public synchronized void destroy() {

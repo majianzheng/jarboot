@@ -1,5 +1,6 @@
 import { TOKEN_KEY } from './CommonConst';
 import { getCurrentInstance } from 'vue';
+import type { I18n, Locale } from 'vue-i18n';
 
 /**
  * @author majianzheng
@@ -9,7 +10,9 @@ export default class CommonUtils {
   private static readonly TOKEN_PREFIX = 'Bearer ';
   public static readonly ACCESS_TOKEN = 'accessToken';
   private static t: any;
-  public static init() {
+  private static i18n: I18n;
+  public static init(i18n: I18n) {
+    CommonUtils.i18n = i18n;
     CommonUtils.t = getCurrentInstance()?.appContext.config.globalProperties.$t;
   }
 
@@ -27,6 +30,11 @@ export default class CommonUtils {
     });
     return msg;
   }
+
+  public static mergeLocaleMessage(locale: Locale, message: any) {
+    CommonUtils.i18n.global.mergeLocaleMessage(locale, message);
+  }
+
   public static getToken(): string {
     let token = localStorage.getItem(TOKEN_KEY);
     if (!token) {

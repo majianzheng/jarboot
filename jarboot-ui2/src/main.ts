@@ -28,7 +28,7 @@ const i18n = createI18n({
   },
 });
 
-const app = createApp(App);
+const app = createApp(App, { i18n });
 
 app.use(createPinia());
 app.use(router);

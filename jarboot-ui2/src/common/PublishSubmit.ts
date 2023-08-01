@@ -4,6 +4,11 @@
  */
 export default interface PublishSubmit {
   /**
+   * 初始化
+   */
+  init: () => void;
+
+  /**
    * 订阅事件
    * @param namespace 命名空间
    * @param event 事件名

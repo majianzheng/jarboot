@@ -385,7 +385,7 @@ const onStatusChange = (data: MsgData) => {
 const reload = () => (isService ? serviceStore.reload() : serviceStore.reloadJvmList());
 
 function detach(server: ServiceInstance) {
-  console.info('>>>>>>>>detach', { ...server });
+  console.info('detach', { ...server });
   if (!server.sid) {
     return;
   }

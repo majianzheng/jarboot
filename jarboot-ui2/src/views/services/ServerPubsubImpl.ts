@@ -29,11 +29,14 @@ class ServerPubsubImpl implements PublishSubmit {
   constructor() {
     WsManager.addMessageHandler(MSG_EVENT.STD_PRINT, this.stdPrint);
     WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this.backspace);
-    WsManager.addMessageHandler(MSG_EVENT.NOTICE, this.notify);
-    WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this.workspaceChange);
-    WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this.onReconnected);
     WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this.statusChange);
     WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this.onJvmProcessChange);
+  }
+
+  public init() {
+    WsManager.addMessageHandler(MSG_EVENT.NOTICE, this.notify);
+    WsManager.addMessageHandler(WsManager.RECONNECTED_EVENT, this.onReconnected);
+    WsManager.addMessageHandler(MSG_EVENT.WORKSPACE_CHANGE, this.workspaceChange);
   }
 
   private static genTopicKey(namespace: string, event: string | number) {

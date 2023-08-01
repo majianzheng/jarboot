@@ -24,21 +24,26 @@ public class TerminalServer {
         terminal.init(session);
     }
     @OnClose
-    public void onClose( Session session) {
-        terminal.destroy();
+    public void onClose(Session session) {
+        try {
+            terminal.destroy();
+        } catch (Throwable e) {
+            logger.debug(e.getMessage(), e);
+        }
         logger.info("销毁终端session:{}", session.getId());
     }
     @OnError
-    public void onError(Session session, Throwable error) {
+    public void onError(Throwable error) {
         logger.debug(error.getMessage(), error);
         if (error instanceof java.lang.UnsupportedClassVersionError) {
             MessageUtils.warn("终端功能需要JDK 11或以上版本！");
+        } else {
+            MessageUtils.warn("终端启动失败：" + error.getMessage());
         }
-        this.onClose(session);
     }
 
     @OnMessage
-    public void onTextMessage(String message, Session session) {
+    public void onTextMessage(String message) {
         terminal.exec(message);
     }
 

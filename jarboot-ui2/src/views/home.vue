@@ -6,6 +6,7 @@ import { onMounted, reactive } from 'vue';
 import { WsManager } from '@/common/WsManager';
 import routesConfig from '@/router/routes-config';
 import StringUtil from '@/common/StringUtil';
+import { pubsub } from '@/views/services/ServerPubsubImpl';
 
 const state = reactive({
   dialog: false,
@@ -33,6 +34,7 @@ const welcome = () => {
   console.log(`%c(灬°ω°灬) `, 'color:magenta');
   console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
   WsManager.initWebsocket();
+  pubsub.init();
 };
 
 const isActive = (name: string, module: string): boolean => {

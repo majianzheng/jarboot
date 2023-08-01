@@ -46,7 +46,7 @@
 		<module>demo-server</module>
 		<module>packaging</module>
 		<module>jarboot-client</module>
-    </modules>
+	</modules>
 	<properties>
 		<revision>3.0.0-beta</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -87,6 +87,7 @@
 		<findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<smart-doc-maven-plugin.version>2.6.7</smart-doc-maven-plugin.version>
+		<maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
 		<!-- dependency version related to plugin -->
 		<extra-enforcer-rules.version>1.0-beta-4</extra-enforcer-rules.version>
 		<p3c-pmd.version>1.3.0</p3c-pmd.version>
@@ -172,13 +173,11 @@
 				<groupId>io.jsonwebtoken</groupId>
 				<artifactId>jjwt-impl</artifactId>
 				<version>${jjwt.version}</version>
-				<scope>runtime</scope>
 			</dependency>
 			<dependency>
 				<groupId>io.jsonwebtoken</groupId>
 				<artifactId>jjwt-jackson</artifactId>
 				<version>${jjwt.version}</version>
-				<scope>runtime</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.alibaba</groupId>
@@ -362,6 +361,11 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>${maven-dependency-plugin.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
