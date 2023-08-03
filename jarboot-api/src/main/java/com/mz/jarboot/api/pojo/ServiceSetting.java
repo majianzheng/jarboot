@@ -2,6 +2,7 @@ package com.mz.jarboot.api.pojo;
 
 import com.mz.jarboot.api.constant.SettingPropConst;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 服务的运行配置
@@ -89,6 +90,9 @@ public class ServiceSetting implements Serializable {
     private String applicationType;
 
     private String scheduleType;
+
+    /** 周期执行计划，cron表达式 */
+    private String cron;
 
     public ServiceSetting() {
         //默认设定
@@ -246,6 +250,14 @@ public class ServiceSetting implements Serializable {
         this.userDir = userDir;
     }
 
+    public String getCron() {
+        return cron;
+    }
+
+    public void setCron(String cron) {
+        this.cron = cron;
+    }
+
     @Override
     public String toString() {
         return "ServiceSetting{" +
@@ -263,5 +275,18 @@ public class ServiceSetting implements Serializable {
                 ", daemon=" + daemon +
                 ", jarUpdateWatch=" + jarUpdateWatch +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ServiceSetting setting = (ServiceSetting) o;
+        return lastModified == setting.lastModified && name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(env, setting.env) && Objects.equals(daemon, setting.daemon) && Objects.equals(jarUpdateWatch, setting.jarUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, userDir, sid);
     }
 }

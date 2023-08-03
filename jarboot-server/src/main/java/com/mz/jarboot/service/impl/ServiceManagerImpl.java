@@ -399,7 +399,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
     }
 
-    private void stopSingleService(ServiceSetting setting) {
+    @Override
+    public void stopSingleService(ServiceSetting setting) {
         String server = setting.getName();
         String sid = setting.getSid();
         if (!this.taskRunCache.addStopping(sid)) {

@@ -7,6 +7,7 @@ import com.mz.jarboot.event.AgentResponseEvent;
 import com.mz.jarboot.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -15,7 +16,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/jarboot/public/agent/ws/{service}/{sid}")
+@ServerEndpoint("/jarboot/public/agent/ws/{service}/{sid}/{userDir}")
 @RestController
 public class WebSocketAgentServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketAgentServer.class);
@@ -26,9 +27,10 @@ public class WebSocketAgentServer {
     @OnOpen
     public void onOpen(Session session,
                        @PathParam("service") String serviceName,
+                       @PathParam("userDir") String userDir,
                        @PathParam("sid") String sid) {
         logger.debug("{} @ {} Agent连接成功!", serviceName, sid);
-        AgentManager.getInstance().online(serviceName, session, sid);
+        AgentManager.getInstance().online(userDir, serviceName, session, sid);
         String msg = String.format("\033[1;96m%s\033[0m connected!", serviceName);
         MessageUtils.console(sid, msg);
     }
@@ -52,11 +54,12 @@ public class WebSocketAgentServer {
     public void onBinaryMessage(byte[] message,
                                 Session session,
                                 @PathParam("service") String serviceName,
+                                @PathParam("userDir") String userDir,
                                 @PathParam("sid") String sid) {
         CommandResponse resp = CommandResponse.createFromRaw(message);
         NotifyReactor
                 .getInstance()
-                .publishEvent(new AgentResponseEvent(serviceName, sid, resp, session));
+                .publishEvent(new AgentResponseEvent(userDir, serviceName, sid, resp, session));
     }
 
     /**

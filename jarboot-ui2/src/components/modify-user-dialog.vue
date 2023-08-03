@@ -59,7 +59,7 @@
         <el-input v-model="state.form.username" :disabled="true" :placeholder="$t('INPUT_USERNAME')"></el-input>
       </el-form-item>
       <el-form-item prop="fullName" :label="$t('FULL_NAME')">
-        <el-input v-model="state.form.fullName" :placeholder="$t('INPUT_USERNAME')"></el-input>
+        <el-input v-model="state.form.fullName" :placeholder="$t('INPUT_FULL_NAME')"></el-input>
       </el-form-item>
       <el-form-item prop="roles" :label="$t('ROLE')">
         <el-select v-model="state.form.roles" style="width: 100%" :disabled="true" multiple :placeholder="$t('PLEASE_INPUT') + $t('ROLE')">

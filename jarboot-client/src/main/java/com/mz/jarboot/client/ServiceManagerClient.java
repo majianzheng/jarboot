@@ -121,7 +121,16 @@ public class ServiceManagerClient implements ServiceManager {
 
     @Override
     public void startSingleService(ServiceSetting setting) {
-        final String api = "/api/jarboot/plugin/debug/startBySetting";
+        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/startSingleService";
+        String json = JsonUtils.toJsonString(setting);
+        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
+        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
+        ResponseUtils.checkResponse(api, jsonNode);
+    }
+
+    @Override
+    public void stopSingleService(ServiceSetting setting) {
+        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/stopSingleService";
         String json = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);

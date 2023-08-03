@@ -3,7 +3,6 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceInstance;
@@ -105,16 +104,6 @@ public class JarbootTemplate implements JarbootOperator {
     @Override
     public void deregisterTaskLifecycleSubscriber(String serviceName, TaskLifecycle lifecycle, Subscriber<TaskLifecycleEvent> subscriber) {
         serviceManager.deregisterSubscriber(serviceName, lifecycle, subscriber);
-    }
-
-    @Override
-    public void registerWorkspaceChangeSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        settingService.registerSubscriber(subscriber);
-    }
-
-    @Override
-    public void deregisterWorkspaceChangeSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        settingService.deregisterSubscriber(subscriber);
     }
 
     public CommandExecutorService executorInstance() {

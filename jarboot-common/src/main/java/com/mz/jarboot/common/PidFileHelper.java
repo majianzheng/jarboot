@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author majianzheng
@@ -32,6 +34,22 @@ public class PidFileHelper {
         } catch (IOException e) {
             //ignore
         }
+    }
+
+    public static List<String> getAllSid() {
+        File dir = CacheDirHelper.getPidDir();
+        String[] pidFileNames = dir.list();
+        List<String> sidList = new ArrayList<>();
+        if (null == pidFileNames) {
+            return sidList;
+        }
+        for (String name : pidFileNames) {
+            if (name.endsWith(PID_EXT)) {
+                String sid = name.replace(PID_EXT, StringUtils.EMPTY);
+                sidList.add(sid);
+            }
+        }
+        return sidList;
     }
 
     public static String getServerPidString(String sid) {

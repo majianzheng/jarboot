@@ -66,6 +66,7 @@ export type ServerSetting = {
   command: string;
 
   scheduleType: string;
+  cron: string;
   daemon: boolean;
   env: string;
   group: string;

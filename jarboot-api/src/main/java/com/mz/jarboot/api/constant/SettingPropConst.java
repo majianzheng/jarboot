@@ -30,5 +30,7 @@ public class SettingPropConst {
 
     public static final String SCHEDULE_LONE = "long-times";
 
+    public static final String SCHEDULE_CRON = "cron";
+
     private SettingPropConst() {}
 }

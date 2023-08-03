@@ -7,6 +7,7 @@ package com.mz.jarboot.common.pojo;
 public class AgentClient extends ResponseSimple {
     private String clientAddr;
     private Boolean local;
+    private String userDir;
     private String serviceName;
     private String sid;
     private String host;
@@ -60,17 +61,24 @@ public class AgentClient extends ResponseSimple {
         this.diagnose = diagnose;
     }
 
+    public String getUserDir() {
+        return userDir;
+    }
+
+    public void setUserDir(String userDir) {
+        this.userDir = userDir;
+    }
+
     @Override
     public String toString() {
         return "AgentClient{" +
                 "clientAddr='" + clientAddr + '\'' +
                 ", local=" + local +
+                ", userDir='" + userDir + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", sid='" + sid + '\'' +
                 ", host='" + host + '\'' +
                 ", diagnose=" + diagnose +
-                ", resultCode=" + code +
-                ", resultMsg='" + msg + '\'' +
                 '}';
     }
 }

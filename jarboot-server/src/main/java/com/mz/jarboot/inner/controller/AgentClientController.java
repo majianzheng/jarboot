@@ -35,11 +35,15 @@ public class AgentClientController {
      */
     @PostMapping(value="/response")
     @ResponseBody
-    public ResponseSimple onResponse(@RequestParam String serviceName, @RequestParam String sid, @RequestBody byte[] raw) {
+    public ResponseSimple onResponse(
+            @RequestParam String userDir,
+            @RequestParam String serviceName,
+            @RequestParam String sid,
+            @RequestBody byte[] raw) {
         CommandResponse resp = CommandResponse.createFromRaw(raw);
         NotifyReactor
                 .getInstance()
-                .publishEvent(new AgentResponseEvent(serviceName, sid, resp, null));
+                .publishEvent(new AgentResponseEvent(userDir, serviceName, sid, resp, null));
         return new ResponseSimple();
     }
 
@@ -51,10 +55,10 @@ public class AgentClientController {
      */
     @GetMapping(value="/setStarted")
     @ResponseBody
-    public ResponseSimple setStarted(@RequestParam String serviceName, @RequestParam String sid) {
+    public ResponseSimple setStarted(@RequestParam String userDir, @RequestParam String serviceName, @RequestParam String sid) {
         NotifyReactor
                 .getInstance()
-                .publishEvent(new ServiceStartedEvent(serviceName, sid));
+                .publishEvent(new ServiceStartedEvent(userDir, serviceName, sid));
         return new ResponseSimple();
     }
 

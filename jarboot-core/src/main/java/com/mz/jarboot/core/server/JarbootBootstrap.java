@@ -166,6 +166,7 @@ public class JarbootBootstrap {
 
     private AgentClient initClientData(String args, boolean isPremain) {
         AgentClient clientData = new AgentClient();
+        clientData.setUserDir(StringUtils.EMPTY);
         if (isPremain && initPremainArgs(args, clientData)) {
             //由jarboot本地启动时，解析传入参数
             return clientData;
@@ -213,7 +214,7 @@ public class JarbootBootstrap {
         }
         String s = new String(Base64.getDecoder().decode(args));
         String[] agentArgs = s.split(StringUtils.CR);
-        if (agentArgs.length != 3) {
+        if (agentArgs.length != 4) {
             throw new JarbootException("解析传入传入参数错误！args:" + s);
         }
         clientData.setHost("127.0.0.1:" + agentArgs[0]);
@@ -221,6 +222,7 @@ public class JarbootBootstrap {
         clientData.setServiceName(agentArgs[1]);
         String sid = agentArgs[2];
         clientData.setSid(sid);
+        clientData.setUserDir(agentArgs[3]);
         PidFileHelper.writePidFile(sid);
         return true;
     }

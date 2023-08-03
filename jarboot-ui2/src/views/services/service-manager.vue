@@ -177,6 +177,7 @@
           <el-radio-group v-model="serviceState.configForm.scheduleType">
             <el-radio label="once">单次执行</el-radio>
             <el-radio label="long-times">长期运行</el-radio>
+            <el-radio label="cron">定时任务</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="'long-times' === serviceState.configForm.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
@@ -184,6 +185,9 @@
         </el-form-item>
         <el-form-item v-show="'long-times' === serviceState.configForm.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="jarUpdateWatch">
           <el-switch v-model="serviceState.configForm.jarUpdateWatch"></el-switch>
+        </el-form-item>
+        <el-form-item v-show="'cron' === serviceState.configForm.scheduleType" :label="'cron'" prop="cron">
+          <cron-input v-model="serviceState.configForm.cron"></cron-input>
         </el-form-item>
         <el-form-item :label="$t('FILE')">
           <el-empty v-if="serviceState.isNew" style="width: 100%" :description="$t('SAVE_CONFIG_AND_ENABLE_FILE')">
@@ -224,6 +228,7 @@ import { useRoute } from 'vue-router';
 import Logger from '@/common/Logger';
 import { CONSOLE_TOPIC } from '@/types';
 import ServiceManager from '@/services/ServiceManager';
+import CronEditor from '@/components/cron-editor/index.vue';
 
 const defaultProps = {
   children: 'children',
@@ -236,6 +241,7 @@ const defaultSetting: ServerSetting = {
   applicationType: 'java',
   args: '',
   scheduleType: 'once',
+  cron: '',
   command: '',
   daemon: false,
   env: '',

@@ -127,6 +127,8 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 .append(EnvironmentContext.getAgentClient().getServiceName())
                 .append(StringUtils.SLASH)
                 .append(EnvironmentContext.getAgentClient().getSid())
+                .append(StringUtils.SLASH)
+                .append(EnvironmentContext.getAgentClient().getUserDir())
                 .toString();
         AnsiLog.info("connecting to jarboot {}", url);
         latch = new CountDownLatch(1);

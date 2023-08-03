@@ -7,7 +7,6 @@ import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.api.service.SettingService;
@@ -117,18 +116,6 @@ public class JarbootClientCli {
 
         SettingService setting = new SettingClient(this.host, null, null);
         AnsiLog.info("system setting: {}", setting.getGlobalSetting());
-        //测试工作空间变化订阅
-        setting.registerSubscriber(new Subscriber<WorkspaceChangeEvent>() {
-            @Override
-            public void onEvent(WorkspaceChangeEvent event) {
-                AnsiLog.info("workspace change: {}", event);
-            }
-
-            @Override
-            public Class<? extends JarbootEvent> subscribeType() {
-                return WorkspaceChangeEvent.class;
-            }
-        });
 
 
         //测试命令执行

@@ -2,19 +2,15 @@ package com.mz.jarboot.service.impl;
 
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.JarbootThreadFactory;
-import com.mz.jarboot.common.notify.AbstractEventRegistry;
-import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
-import com.mz.jarboot.task.TaskRunCache;
-import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.MessageUtils;
@@ -40,18 +36,15 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @Component
-@Deprecated
 public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final int MIN_MODIFY_WAIT_TIME = 3;
     private static final int MAX_MODIFY_WAIT_TIME = 600;
-
-    @Autowired
-    private TaskRunCache taskRunCache;
     @Autowired
     private ServiceManager serverMgrService;
-    @Autowired
-    private AbstractEventRegistry eventRegistry;
+
+    private WatchService watchService;
+    private final Map<WatchKey, ServiceSetting> watchKeyServiceMap = new ConcurrentHashMap<>(16);
 
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
 
@@ -59,34 +52,36 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
     private String afterStartExec;
-
-    private String curWorkspace;
-    private boolean starting = false;
+    private boolean started = false;
     private final ThreadFactory threadFactory = JarbootThreadFactory
             .createThreadFactory("jarboot-tws", true);
-    private Thread monitorThread = threadFactory.newThread(this::initPathMonitor);
+    private final Thread monitorThread = threadFactory.newThread(this::initPathMonitor);
 
     /** 阻塞队列，监控到目录变化则放入队列 */
-    private final LinkedBlockingQueue<String> modifiedServiceQueue = new LinkedBlockingQueue<>(1024);
+    private final LinkedBlockingQueue<ServiceSetting> modifiedServiceQueue = new LinkedBlockingQueue<>(1024);
 
     @Override
     public void init() {
-        if (starting) {
+        if (started) {
             return;
         }
         if (modifyWaitTime < MIN_MODIFY_WAIT_TIME || modifyWaitTime > MAX_MODIFY_WAIT_TIME) {
             modifyWaitTime = 5;
         }
-        starting = true;
-        curWorkspace = SettingUtils.getWorkspace();
-        //路径监控生产者
+        started = true;
+        // 路径监控生产者
         this.monitorThread.start();
 
-        //路径监控消费者
+        // 路径监控消费者
         NotifyReactor.getInstance().registerSubscriber(this);
 
-        //attach已经处于启动的进程
+        // attach已经处于启动的进程
         this.attachRunningServer();
+
+        // 注册事件处理
+        registerEventHandler();
+        // 清理无效的记录文件
+        cleanRecordFiles();
 
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
@@ -94,65 +89,71 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                     .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome))
                     .start();
         }
-        //注册工作空间改变事件订阅
-        NotifyReactor.getInstance().registerSubscriber(new Subscriber<WorkspaceChangeEvent>() {
-            @Override
-            public void onEvent(WorkspaceChangeEvent event) {
-                eventRegistry.receiveEvent(eventRegistry.createTopic(WorkspaceChangeEvent.class), event);
-                changeWorkspace(event.getWorkspace());
-            }
-
-            @Override
-            public Class<? extends JarbootEvent> subscribeType() {
-                return WorkspaceChangeEvent.class;
-            }
-        });
     }
 
-    /**
-     * 工作空间改变
-     *
-     * @param workspace 工作空间
-     */
-    private void changeWorkspace(String workspace) {
-        MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
-        //中断原监控线程
-        monitorThread.interrupt();
-        try {
-            //等待原监控线程中断结束
-            monitorThread.join(10000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        if (monitorThread.isAlive()) {
-            logger.error("工作空间监控线程退出失败！");
-            MessageUtils.error("工作空间监控线程中断失败，请重启Jarboot重试！");
+    @Override
+    public void registerServiceChangeMonitor(ServiceSetting setting) {
+        if (!Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
             return;
         }
-        this.curWorkspace = workspace;
-        this.monitorThread = threadFactory.newThread(this::initPathMonitor);
-        this.monitorThread.start();
+        final Path servicePath = Paths.get(SettingUtils.getWorkspace(), setting.getUserDir(), setting.getName());
+        //先遍历所有jar文件，将文件的最后修改时间记录下来
+        storeCurFileModifyTime(setting);
+        //给path路径加上文件观察服务
+        try {
+            WatchKey watchKey = servicePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_MODIFY,
+                    StandardWatchEventKinds.ENTRY_DELETE);
+            watchKeyServiceMap.put(watchKey, setting);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            MessageUtils.error(String.format("注册服务（%s）文件变动监控失败！", setting.getName()));
+        }
+    }
+
+    @Override
+    public void unregisterServiceChangeMonitor(String sid) {
+        WatchKey watchKey = null;
+        for (Map.Entry<WatchKey, ServiceSetting> entry : watchKeyServiceMap.entrySet()) {
+            if (Objects.equals(sid, entry.getValue().getSid())) {
+                watchKey = entry.getKey();
+                break;
+            }
+        }
+        if (null != watchKey) {
+            try {
+                watchKey.cancel();
+                File recordFile = getRecordFile(sid);
+                FileUtils.deleteQuietly(recordFile);
+                watchKeyServiceMap.remove(watchKey);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 
     @Override
     public void onEvent(ServiceFileChangeEvent event) {
         //取出后
-        HashSet<String> services = new HashSet<>();
+        HashSet<ServiceSetting> services = new HashSet<>();
         try {
-            String serviceName;
+            ServiceSetting serviceSetting;
             //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
-            while (null != (serviceName = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
-                services.add(serviceName);
+            while (null != (serviceSetting = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
+                services.add(serviceSetting);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
-        List<String> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
+        List<ServiceSetting> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(list)) {
             final String msg = "监控到工作空间文件更新，开始重启相关服务...";
             MessageUtils.info(msg);
-            serverMgrService.restartService(list);
+            TaskUtils.getTaskExecutor().execute(() -> list.forEach(setting -> {
+                serverMgrService.stopSingleService(setting);
+                serverMgrService.startSingleService(setting);
+            }));
         }
     }
 
@@ -167,80 +168,54 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     }
 
     private void attachRunningServer() {
-        List<ServiceInstance> runningServers = taskRunCache.getServiceList("");
-        if (CollectionUtils.isEmpty(runningServers)) {
+        List<String> sidList = PidFileHelper.getAllSid();
+        if (CollectionUtils.isEmpty(sidList)) {
             return;
         }
-        runningServers.forEach(this::doAttachRunningServer);
+        sidList.forEach(this::doAttachRunningServer);
     }
 
     /**
      * 启动目录变动监控
      */
     private void initPathMonitor() {
-        //先遍历所有jar文件，将文件的最后修改时间记录下来
-        storeCurFileModifyTime();
         //启动路径监控
-        try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
-            //初始化路径监控
-            final Path monitorPath = Paths.get(curWorkspace);
-            //给path路径加上文件观察服务
-            monitorPath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_MODIFY,
-                    StandardWatchEventKinds.ENTRY_DELETE);
-            //开始监控
-            pathWatchMonitor(watchService);
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+            //初始化路径监控 开始监控
+            pathWatchMonitor();
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
             MessageUtils.error("工作空间监控异常：" + ex.getMessage());
-        } catch (InterruptedException ex) {
-            //线程退出
-            Thread.currentThread().interrupt();
+        } finally {
+            try {
+                watchService.close();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         }
     }
 
     /**
      * 缓存文件的时间戳
      */
-    private void storeCurFileModifyTime() {
-        File[] serverDirs = taskRunCache.getServiceDirs("");
-        if (null == serverDirs) {
-            return;
-        }
-        File recordDir = CacheDirHelper.getMonitorRecordDir();
-        if (!recordDir.exists() && !recordDir.mkdirs()) {
-            logger.error("创建record目录（{}）失败！", recordDir.getPath());
-            return;
-        }
-        //清理失效的record文件
-        File[] recordFiles = recordDir.listFiles();
-        HashMap<String, File> recordFileMap = new HashMap<>(16);
-        if (null != recordFiles) {
-            for (File recordFile : recordFiles) {
-                recordFileMap.put(recordFile.getName(), recordFile);
+    private void storeCurFileModifyTime(ServiceSetting setting) {
+        String servicePath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
+        Collection<File> files = FileUtils
+                .listFiles(FileUtils.getFile(servicePath), new String[]{CommonConst.JAR_FILE_EXT}, true);
+        if (!CollectionUtils.isEmpty(files)) {
+            File recordFile = getRecordFile(setting.getSid());
+            if (null != recordFile) {
+                Properties properties = new Properties();
+                files.forEach(jarFile -> properties.put(genFileHashKey(jarFile),
+                        String.valueOf(jarFile.lastModified())));
+                PropertyFileUtils.storeProperties(recordFile, properties);
             }
-        }
-        for (File serverDir : serverDirs) {
-            Collection<File> files = FileUtils
-                    .listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
-            if (!CollectionUtils.isEmpty(files)) {
-                File recordFile = getRecordFile(serverDir.getPath());
-                if (null != recordFile) {
-                    recordFileMap.remove(recordFile.getName());
-                    Properties properties = new Properties();
-                    files.forEach(jarFile -> properties.put(genFileHashKey(jarFile),
-                            String.valueOf(jarFile.lastModified())));
-                    PropertyFileUtils.storeProperties(recordFile, properties);
-                }
-            }
-        }
-        if (!recordFileMap.isEmpty()) {
-            recordFileMap.forEach((k, v) -> FileUtils.deleteQuietly(v));
         }
     }
 
-    private File getRecordFile(String serverPath) {
-        File recordFile = CacheDirHelper.getMonitorRecordFile(SettingUtils.createSid(serverPath));
+    private File getRecordFile(String sid) {
+        File recordFile = CacheDirHelper.getMonitorRecordFile(sid);
         if (!recordFile.exists()) {
             try {
                 if (!recordFile.createNewFile()) {
@@ -255,46 +230,49 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         return recordFile;
     }
 
-    private void pathWatchMonitor(WatchService watchService) throws InterruptedException {
+    private void pathWatchMonitor() {
         for (;;) {
-            final WatchKey key = watchService.take();
-            for (WatchEvent<?> watchEvent : key.pollEvents()) {
-                handlePathEvent(watchEvent);
+            try {
+                final WatchKey key = watchService.take();
+                for (WatchEvent<?> watchEvent : key.pollEvents()) {
+                    handlePathEvent(key, watchEvent);
+                }
+                if (!key.reset()) {
+                    logger.error("处理失败，重置错误");
+                    MessageUtils.error("文件变更监控异常，请重启Jarboot解决！");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-            if (!key.reset()) {
-                logger.error("处理失败，重置错误");
-                MessageUtils.error("工作空间监控异常，请重启Jarboot解决！");
+            if (!started) {
                 break;
             }
         }
     }
 
-    private void handlePathEvent(WatchEvent<?> watchEvent) throws InterruptedException {
+    private void handlePathEvent(WatchKey watchKey, WatchEvent<?> watchEvent) throws InterruptedException {
+        ServiceSetting setting = watchKeyServiceMap.get(watchKey);
         final WatchEvent.Kind<?> kind = watchEvent.kind();
-        if (kind == StandardWatchEventKinds.OVERFLOW) {
+        if (kind == StandardWatchEventKinds.OVERFLOW || null == setting) {
             return;
         }
-        String service = watchEvent.context().toString();
         //创建事件或修改事件
         if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
                 kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-            final String path = curWorkspace + File.separator + service;
-            String sid= SettingUtils.createSid(path);
             //创建或修改文件
-            if (!AgentManager.getInstance().isOnline(sid)) {
+            if (!AgentManager.getInstance().isOnline(setting.getSid())) {
                 //当前不处于正在运行的状态
                 return;
             }
-            ServiceSetting setting = PropertyFileUtils.getServiceSettingBySid(sid);
-            if (Boolean.TRUE.equals(setting.getJarUpdateWatch()) && Objects.equals(sid, setting.getSid())) {
+            if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
                 //启用了路径监控配置
-                modifiedServiceQueue.put(service);
+                modifiedServiceQueue.put(setting);
                 NotifyReactor.getInstance().publishEvent(new ServiceFileChangeEvent());
             }
         }
         //删除事件
         if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-            logger.info("触发了删除事件，忽略执行，文件：{}", watchEvent.context());
+            logger.info("触发了删除事件，忽略执行，服务：{}", setting.getName());
         }
     }
 
@@ -303,13 +281,13 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         return String.format("hash.%d", path.hashCode());
     }
 
-    private boolean checkJarUpdate(String path) {
-        File serverDir = new File(path);
-        Collection<File> files = FileUtils.listFiles(serverDir, new String[]{CommonConst.JAR_FILE_EXT}, true);
+    private boolean checkJarUpdate(ServiceSetting setting) {
+        String serverDir = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
+        Collection<File> files = FileUtils.listFiles(FileUtils.getFile(serverDir), new String[]{CommonConst.JAR_FILE_EXT}, true);
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }
-        File recordFile = getRecordFile(path);
+        File recordFile = getRecordFile(setting.getSid());
         if (null == recordFile) {
             return false;
         }
@@ -331,11 +309,55 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         return updateFlag;
     }
 
-    private void doAttachRunningServer(ServiceInstance server) {
-        if (AgentManager.getInstance().isOnline(server.getSid())) {
+    private void doAttachRunningServer(String sid) {
+        if (AgentManager.getInstance().isOnline(sid)) {
             //已经是在线状态
             return;
         }
-        TaskUtils.attach(server.getSid());
+        TaskUtils.attach(sid);
+    }
+
+    private void registerEventHandler() {
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceOnlineEvent>() {
+            @Override
+            public void onEvent(ServiceOnlineEvent event) {
+                registerServiceChangeMonitor(event.getSetting());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return ServiceOnlineEvent.class;
+            }
+        });
+
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceOfflineEvent>() {
+            @Override
+            public void onEvent(ServiceOfflineEvent event) {
+                unregisterServiceChangeMonitor(event.getSetting().getSid());
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return ServiceOfflineEvent.class;
+            }
+        });
+    }
+
+    private void cleanRecordFiles() {
+        File recordDir = CacheDirHelper.getMonitorRecordDir();
+        if (!recordDir.exists() && !recordDir.mkdirs()) {
+            logger.error("创建record目录（{}）失败！", recordDir.getPath());
+            return;
+        }
+        //清理失效的record文件
+        File[] recordFiles = recordDir.listFiles();
+        if (null != recordFiles) {
+            for (File recordFile : recordFiles) {
+                String sid = recordFile.getName().replace(".snapshot", StringUtils.EMPTY);
+                if (!AgentManager.getInstance().isOnline(sid)) {
+                    FileUtils.deleteQuietly(recordFile);
+                }
+            }
+        }
     }
 }

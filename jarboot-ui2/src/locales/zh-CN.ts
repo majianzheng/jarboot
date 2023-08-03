@@ -148,6 +148,7 @@ export default {
   REPEAT_PASSWORD: '请输入确认密码',
   INPUT_PASSWORD: '请输入密码',
   INPUT_USERNAME: '请输入用户名',
+  INPUT_FULL_NAME: '请输入姓名',
   INPUT_ROLE: '请输入角色',
   PWD_NOT_MATCH: '两次输入密码不一致!',
   USER_LIST: '用户列表',

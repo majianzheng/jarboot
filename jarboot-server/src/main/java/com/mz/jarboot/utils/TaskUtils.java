@@ -35,7 +35,9 @@ public class TaskUtils {
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
-        USE_NOHUP = (!Boolean.getBoolean("docker") && (OSUtils.isLinux() || OSUtils.isMac()));
+        USE_NOHUP = (!Boolean.getBoolean("docker") &&
+                (OSUtils.isLinux() || OSUtils.isMac()) &&
+                FileUtils.getFile("/usr/bin/nohup").exists());
     }
 
     /**
@@ -115,7 +117,7 @@ public class TaskUtils {
                 .append("-noverify -Dspring.output.ansi.enabled=always")
                 .append(StringUtils.SPACE)
                 // Java agent
-                .append(SettingUtils.getAgentStartOption(setting.getName(), sid))
+                .append(SettingUtils.getAgentStartOption(setting.getUserDir(), setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
             cmdBuilder

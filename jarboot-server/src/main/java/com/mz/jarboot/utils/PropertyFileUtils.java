@@ -94,9 +94,14 @@ public class PropertyFileUtils {
      * @return 服务配置
      */
     public static ServiceSetting getServiceSetting(String userDir, String serviceName) {
-        ServiceSetting setting = getServiceSettingByPath(SettingUtils.getServicePath(userDir, serviceName));
-        setting.setUserDir(userDir);
-        return setting;
+        String path = SettingUtils.getServicePath(userDir, serviceName);
+        File dir = FileUtils.getFile(path);
+        if (dir.exists() && dir.isDirectory()) {
+            ServiceSetting setting = getServiceSettingByPath(path);
+            setting.setUserDir(userDir);
+            return setting;
+        }
+        return new ServiceSetting();
     }
 
     /**
@@ -131,7 +136,7 @@ public class PropertyFileUtils {
         checkAndGetHome(setting, properties);
 
         setting.setScheduleType(properties.getProperty(SettingPropConst.SCHEDULE_TYPE, SettingPropConst.SCHEDULE_ONCE));
-
+        setting.setCron(properties.getProperty(SettingPropConst.SCHEDULE_CRON, StringUtils.EMPTY));
         //环境变量
         String env = properties.getProperty(SettingPropConst.ENV, StringUtils.EMPTY);
         if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {

@@ -6,9 +6,11 @@ import com.mz.jarboot.api.event.JarbootEvent;
  * @author jianzhengma
  */
 public class ServiceStartedEvent implements JarbootEvent {
+    private final String userDir;
     private final String serviceName;
     private final String sid;
-    public ServiceStartedEvent(String serviceName, String sid) {
+    public ServiceStartedEvent(String userDir, String serviceName, String sid) {
+        this.userDir = userDir;
         this.serviceName = serviceName;
         this.sid = sid;
     }
@@ -19,5 +21,9 @@ public class ServiceStartedEvent implements JarbootEvent {
 
     public String getSid() {
         return sid;
+    }
+
+    public String getUserDir() {
+        return userDir;
     }
 }

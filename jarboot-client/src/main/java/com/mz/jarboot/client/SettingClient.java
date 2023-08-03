@@ -2,8 +2,6 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.event.Subscriber;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.SettingService;
@@ -136,17 +134,5 @@ public class SettingClient implements SettingService {
         String response = this.clientProxy.reqApi(api, HttpMethod.POST, builder.build());
         JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
         ResponseUtils.checkResponse(api, jsonNode);
-    }
-
-    @Override
-    public void registerSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        final String topic = this.clientProxy.createTopic(subscriber.subscribeType());
-        this.clientProxy.registerSubscriber(topic, subscriber);
-    }
-
-    @Override
-    public void deregisterSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        final String topic = this.clientProxy.createTopic(subscriber.subscribeType());
-        this.clientProxy.deregisterSubscriber(topic, subscriber);
     }
 }

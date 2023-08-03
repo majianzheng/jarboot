@@ -8,12 +8,14 @@ import javax.websocket.Session;
  * @author majianzheng
  */
 public class AgentResponseEvent implements JarbootEvent {
+    private String userDir;
     private final String serviceName;
     private final String sid;
     private final CommandResponse response;
     private final Session session;
 
-    public AgentResponseEvent(String serviceName, String sid, CommandResponse response, Session session) {
+    public AgentResponseEvent(String userDir, String serviceName, String sid, CommandResponse response, Session session) {
+        this.userDir = userDir;
         this.serviceName = serviceName;
         this.sid = sid;
         this.response = response;
@@ -34,5 +36,13 @@ public class AgentResponseEvent implements JarbootEvent {
 
     public Session getSession() {
         return this.session;
+    }
+
+    public String getUserDir() {
+        return userDir;
+    }
+
+    public void setUserDir(String userDir) {
+        this.userDir = userDir;
     }
 }

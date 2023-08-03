@@ -60,10 +60,16 @@ public interface ServiceManager {
     void restartService(List<String> serviceNames);
 
     /**
-     * 通过服务配置启动服务
+     * 启动单个服务
      * @param setting 服务配置
      */
     void startSingleService(ServiceSetting setting);
+
+    /**
+     * 停止单个服务
+     * @param setting
+     */
+    void stopSingleService(ServiceSetting setting);
 
     /**
      * 获取未被服务管理的JVM进程信息

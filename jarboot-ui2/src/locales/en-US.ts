@@ -148,6 +148,7 @@ export default {
   REPEAT_PASSWORD: 'Please input repeat password!',
   INPUT_PASSWORD: 'Please input password!',
   INPUT_USERNAME: 'Please input your user name!',
+  INPUT_FULL_NAME: 'Please input your full name!',
   INPUT_ROLE: 'Please input role!',
   PWD_NOT_MATCH: 'The two passwords that you entered do not match!',
   USER_LIST: 'User List',

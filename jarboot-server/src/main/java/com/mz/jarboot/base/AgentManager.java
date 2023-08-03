@@ -12,13 +12,16 @@ import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.event.*;
 import com.mz.jarboot.task.AttachStatus;
 import com.mz.jarboot.utils.MessageUtils;
+import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -54,11 +57,12 @@ public class AgentManager {
 
     /**
      * 进程上线
+     * @param userDir 用户目录
      * @param serviceName 服务名
      * @param session 会话
      * @param sid sid服务唯一id
      */
-    public void online(String serviceName, Session session, String sid) {
+    public void online(String userDir, String serviceName, Session session, String sid) {
         //目标进程上线
         AgentOperator client = new AgentOperator(serviceName, sid, session);
         clientMap.put(sid, client);
@@ -84,6 +88,12 @@ public class AgentManager {
             localServices.put(pid, sid);
             client.setPid(pid);
             client.setTrusted(true);
+        }
+        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
+        if (Objects.equals(sid, setting.getSid())) {
+            client.setSetting(setting);
+            ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
+            NotifyReactor.getInstance().publishEvent(event);
         }
     }
 
@@ -387,26 +397,24 @@ public class AgentManager {
 
     /**
      * Agent客户端的响应内容处理
-     * @param serviceName 服务名
-     * @param sid 唯一id
-     * @param resp 响应消息体
-     * @param session 会话
+     * @param event
      */
-    private void onResponse(String serviceName, String sid, CommandResponse resp, Session session) {
+    private void onResponse(AgentResponseEvent event) {
+        CommandResponse resp = event.getResponse();
         ResponseType type = resp.getResponseType();
         switch (type) {
             case HEARTBEAT:
-                doHeartbeat(serviceName, sid, session);
+                doHeartbeat(event.getUserDir(), event.getServiceName(), event.getSid(), event.getSession());
                 break;
             case STD_PRINT:
                 //启动中的控制台消息
-                MessageUtils.stdPrint(sid, resp.getBody());
+                MessageUtils.stdPrint(event.getSid(), resp.getBody());
                 break;
             case LOG_APPENDER:
-                onAgentLog(sid, resp.getBody());
+                onAgentLog(event.getSid(), resp.getBody());
                 break;
             case NOTIFY:
-                this.onNotify(resp, sid);
+                this.onNotify(resp, event.getSid());
                 break;
             default:
                 //ignore
@@ -459,13 +467,13 @@ public class AgentManager {
         }
     }
 
-    private void doHeartbeat(String serviceName, String sid, Session session) {
+    private void doHeartbeat(String userDir, String serviceName, String sid, Session session) {
         if (null == session) {
             return;
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client || !ClientState.ONLINE.equals(client.getState())) {
-            this.online(serviceName, session, sid);
+            this.online(userDir, serviceName, session, sid);
             this.onServiceStarted(sid);
             MessageUtils.console(sid, "reconnected by heartbeat!");
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
@@ -560,7 +568,7 @@ public class AgentManager {
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<AgentResponseEvent>() {
             @Override
             public void onEvent(AgentResponseEvent event) {
-                onResponse(event.getServiceName(), event.getSid(), event.getResponse(), event.getSession());
+                onResponse(event);
             }
 
             @Override

@@ -4,6 +4,7 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
+import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.ServiceManager;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.pojo.ResponseSimple;
@@ -94,6 +95,30 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple restartServer(@RequestBody List<String> services) {
         serviceManager.restartService(services);
+        return new ResponseSimple();
+    }
+
+    /**
+     * 启动单个服务
+     * @param setting 服务配置
+     * @return
+     */
+    @PostMapping(value="/startSingleService")
+    @ResponseBody
+    public ResponseSimple startSingleService(@RequestBody ServiceSetting setting) {
+        serviceManager.startSingleService(setting);
+        return new ResponseSimple();
+    }
+
+    /**
+     * 停止单个服务
+     * @param setting 服务配置
+     * @return
+     */
+    @PostMapping(value="/stopSingleService")
+    @ResponseBody
+    public ResponseSimple stopSingleService(@RequestBody ServiceSetting setting) {
+        serviceManager.stopSingleService(setting);
         return new ResponseSimple();
     }
 

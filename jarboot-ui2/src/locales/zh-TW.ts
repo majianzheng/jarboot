@@ -149,6 +149,7 @@ export default {
   INPUT_PASSWORD: '請輸入密碼',
   INPUT_USERNAME: '請輸入用戶名',
   INPUT_ROLE: '請輸入角色',
+  INPUT_FULL_NAME: '請輸入姓名',
   PWD_NOT_MATCH: '两次輸入密碼不一致!',
   USER_LIST: '用戶列錶',
   ROLE_MGR: '角色管理',

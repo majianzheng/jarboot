@@ -1,11 +1,8 @@
 package com.mz.jarboot.service.impl;
 
-import com.mz.jarboot.api.event.Subscriber;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.base.AgentManager;
-import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -25,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -69,8 +67,14 @@ public class SettingServiceImpl implements SettingService {
         if (CommonConst.SHELL_TYPE.equals(type) && StringUtils.isEmpty(setting.getCommand())) {
             throw new JarbootRunException("启动命令不可为空！");
         }
-        if (!SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) && !SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+        if (!SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) &&
+                !SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) &&
+                !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
             throw new JarbootRunException("执行计划类型错误！");
+        }
+        if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+            // 周期执行
+            throw new JarbootRunException("定时任务功能暂未实现！");
         }
         final String path = SettingUtils.getServicePath(setting.getName());
         String sid = SettingUtils.createSid(path);
@@ -263,16 +267,6 @@ public class SettingServiceImpl implements SettingService {
         } catch (IOException e) {
             throw new JarbootException("Write file error.", e);
         }
-    }
-
-    @Override
-    public void registerSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        NotifyReactor.getInstance().registerSubscriber(subscriber);
-    }
-
-    @Override
-    public void deregisterSubscriber(Subscriber<WorkspaceChangeEvent> subscriber) {
-        NotifyReactor.getInstance().deregisterSubscriber(subscriber);
     }
 
     private File getConfAndCheck(String p) {

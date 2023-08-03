@@ -1,11 +1,9 @@
 package com.mz.jarboot.utils;
 
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.pojo.GlobalSetting;
-import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -182,12 +180,6 @@ public class SettingUtils {
             } else {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
-            if (!java.util.Objects.equals(GLOBAL_SETTING.getWorkspace(), workspace)) {
-                //工作空间修改，改变工作空间路径监控的目录
-                NotifyReactor
-                        .getInstance()
-                        .publishEvent(new WorkspaceChangeEvent(workspace, GLOBAL_SETTING.getWorkspace()));
-            }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
         } catch (Exception e) {
@@ -218,12 +210,13 @@ public class SettingUtils {
 
     /**
      * 获取agent的Attach参数
+     * @param userDir 用户目录
      * @param serviceName 服务名
      * @param sid 服务唯一id
      * @return 参数
      */
-    public static String getAgentStartOption(String serviceName, String sid) {
-        return "-javaagent:" + agentJar + "=" + getAgentArgs(serviceName, sid);
+    public static String getAgentStartOption(String userDir, String serviceName, String sid) {
+        return "-javaagent:" + agentJar + "=" + getAgentArgs(userDir, serviceName, sid);
     }
 
     public static String getAgentJar() {
@@ -234,13 +227,15 @@ public class SettingUtils {
         return coreJar;
     }
 
-    private static String getAgentArgs(String serviceName, String sid) {
+    private static String getAgentArgs(String userDir, String serviceName, String sid) {
         final String args = new StringBuilder(64)
                 .append(port)
                 .append(StringUtils.CR)
                 .append(serviceName)
                 .append(StringUtils.CR)
                 .append(sid)
+                .append(StringUtils.CR)
+                .append(userDir)
                 .toString();
         byte[] bytes = Base64
                 .getEncoder()

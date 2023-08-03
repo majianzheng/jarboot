@@ -3,7 +3,6 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
-import com.mz.jarboot.api.event.WorkspaceChangeEvent;
 import com.mz.jarboot.api.pojo.GlobalSetting;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceInstance;
@@ -85,16 +84,4 @@ public interface JarbootOperator {
     void deregisterTaskLifecycleSubscriber(String serviceName,
                               TaskLifecycle lifecycle,
                               Subscriber<TaskLifecycleEvent> subscriber);
-
-    /**
-     * 注册工作空间修改事件处理
-     * @param subscriber 任务处理 {@link Subscriber}
-     */
-    void registerWorkspaceChangeSubscriber(Subscriber<WorkspaceChangeEvent> subscriber);
-
-    /**
-     * 反注册工作空间修改事件处理
-     * @param subscriber 任务处理 {@link Subscriber}
-     */
-    void deregisterWorkspaceChangeSubscriber(Subscriber<WorkspaceChangeEvent> subscriber);
 }

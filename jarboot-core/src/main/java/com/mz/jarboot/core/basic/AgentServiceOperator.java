@@ -35,6 +35,7 @@ public class AgentServiceOperator {
             final String url = new ApiStringBuilder(SET_STARTED_API)
                     .add(CommonConst.SERVICE_NAME_PARAM, clientData.getServiceName())
                     .add(CommonConst.SID_PARAM, clientData.getSid())
+                    .add("userDir", clientData.getUserDir())
                     .build();
             HttpUtils.getSimple(url);
         }
