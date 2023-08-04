@@ -321,6 +321,9 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceOnlineEvent>() {
             @Override
             public void onEvent(ServiceOnlineEvent event) {
+                if (null == event.getSetting()) {
+                    return;
+                }
                 registerServiceChangeMonitor(event.getSetting());
             }
 
@@ -333,6 +336,9 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceOfflineEvent>() {
             @Override
             public void onEvent(ServiceOfflineEvent event) {
+                if (null == event.getSetting()) {
+                    return;
+                }
                 unregisterServiceChangeMonitor(event.getSetting().getSid());
             }
 

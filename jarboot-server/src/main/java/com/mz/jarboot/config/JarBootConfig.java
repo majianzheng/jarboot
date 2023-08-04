@@ -1,7 +1,9 @@
 package com.mz.jarboot.config;
 
+import com.mz.jarboot.common.notify.DefaultPublisher;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.ws.MessageSenderSubscriber;
+import com.mz.jarboot.ws.SendCommandSubscriber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +39,15 @@ public class JarBootConfig {
     @PostConstruct
     public void init() {
         //注册消息发送订阅
-        NotifyReactor.getInstance().registerSubscriber(new MessageSenderSubscriber());
+        NotifyReactor
+                .getInstance()
+                .registerSubscriber(
+                        new MessageSenderSubscriber(),
+                        new DefaultPublisher(32768, "fe.sender.publisher"));
+        NotifyReactor
+                .getInstance()
+                .registerSubscriber(
+                        new SendCommandSubscriber(),
+                        new DefaultPublisher(16384, "send.command.publisher"));
     }
 }

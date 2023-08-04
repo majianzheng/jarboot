@@ -3,6 +3,7 @@ package com.mz.jarboot.ws;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
+import com.mz.jarboot.common.notify.DefaultPublisher;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -25,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
     private static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
+    /** 推送前端消息 */
+    private static final DefaultPublisher PUBLISHER = new DefaultPublisher(32768, "fe.push.publisher");
 
     static {
         register();
@@ -100,7 +103,7 @@ public class WebSocketMainServer {
             public Class<? extends JarbootEvent> subscribeType() {
                 return MessageEvent.class;
             }
-        });
+        }, PUBLISHER);
         //广播推送
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<BroadcastMessageEvent>() {
             @Override
@@ -112,6 +115,6 @@ public class WebSocketMainServer {
             public Class<? extends JarbootEvent> subscribeType() {
                 return BroadcastMessageEvent.class;
             }
-        });
+        }, PUBLISHER);
     }
 }

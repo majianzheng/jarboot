@@ -13,11 +13,11 @@ import java.nio.ByteBuffer;
  * @author jianzhengma
  */
 public class MessageSenderEvent implements JarbootEvent {
-    private static final Logger logger = LoggerFactory.getLogger(MessageSenderEvent.class);
+    protected static final Logger logger = LoggerFactory.getLogger(MessageSenderEvent.class);
     protected final Session session;
-    private final String message;
-    private final byte[] buf;
-    private final boolean binary;
+    protected final String message;
+    protected final byte[] buf;
+    protected final boolean binary;
 
     public MessageSenderEvent(Session session, String message) {
         this.session = session;

@@ -5,6 +5,8 @@ import com.mz.jarboot.api.event.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +19,7 @@ public class NotifyReactor {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Map<String, EventPublisher> publisherMap = new ConcurrentHashMap<>(16);
     private EventPublisher defaultEventPublisher;
+    private final List<Runnable> shutdownCallbacks = new ArrayList<>();
 
     public static NotifyReactor getInstance() {
         return EventNotifyHolder.INSTANCE;
@@ -81,6 +84,17 @@ public class NotifyReactor {
         defaultEventPublisher = null;
         publisherMap.forEach((k, v) -> v.shutdown());
         publisherMap.clear();
+        if (shutdownCallbacks.isEmpty()) {
+            return;
+        }
+        shutdownCallbacks.forEach(Runnable::run);
+    }
+
+    public void addShutdownCallback(Runnable callback) {
+        if (null == callback) {
+            return;
+        }
+        shutdownCallbacks.add(callback);
     }
 
     private static class EventNotifyHolder {

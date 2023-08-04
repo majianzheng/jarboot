@@ -64,15 +64,12 @@ public class WebSocketAgentServer {
 
     /**
      * 连接异常
-     * @param session 会话
      * @param error 错误
      */
     @OnError
-    public void onError(Session session,
-                        Throwable error,
+    public void onError(Throwable error,
                         @PathParam("service") String server,
                         @PathParam("sid") String sid) {
-        logger.debug( "{} socket connection error!{}", server, error.getMessage());
-        onClose(session, server, sid);
+        logger.debug( "sid: {}, server:{} socket connection error!{}", sid, server, error.getMessage());
     }
 }

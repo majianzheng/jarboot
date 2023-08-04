@@ -1,5 +1,6 @@
 package com.mz.jarboot.terminal;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.JarbootThreadFactory;
 import com.mz.jarboot.common.utils.BannerUtils;
@@ -108,7 +109,7 @@ public class TerminalProcess {
     }
 
     private String getWorkDirectory(Session session) {
-        String userDir = getRequestParam(session, "userDir");
+        String userDir = getRequestParam(session, CommonConst.USER_DIR);
         File dir = StringUtils.isEmpty(userDir) ? FileUtils.getFile(SettingUtils.getWorkspace()) : FileUtils.getFile(SettingUtils.getWorkspace(), userDir);
         if (dir.isDirectory() && dir.exists()) {
             return dir.getAbsolutePath();

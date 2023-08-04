@@ -11,13 +11,14 @@ import com.mz.jarboot.core.utils.HttpUtils;
  * @author majianzheng
  */
 public class HttpResponseStreamImpl implements ResponseStream {
-    private static final String API = CommonConst.AGENT_CLIENT_CONTEXT + "/response?userDir=";
+    private static final String API = CommonConst.AGENT_CLIENT_CONTEXT + "/response";
 
     @Override
     public void write(byte[] data) {
-        final String url = new ApiStringBuilder(API + EnvironmentContext.getAgentClient().getUserDir())
+        final String url = new ApiStringBuilder(API)
                 .add(CommonConst.SERVICE_NAME_PARAM, EnvironmentContext.getAgentClient().getServiceName())
                 .add(CommonConst.SID_PARAM, EnvironmentContext.getAgentClient().getSid())
+                .add(CommonConst.USER_DIR, EnvironmentContext.getAgentClient().getUserDir())
                 .build();
         HttpUtils.postSimple(url, data);
     }

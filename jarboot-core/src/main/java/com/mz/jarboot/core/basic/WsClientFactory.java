@@ -67,15 +67,18 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         NotifyReactor.getInstance().registerSubscriber(new CommandSubscriber());
         NotifyReactor.getInstance().registerSubscriber(new InternalCommandSubscriber());
         NotifyReactor.getInstance().registerSubscriber(this);
+        NotifyReactor.getInstance().addShutdownCallback(this::destroyClient);
     }
 
 
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
-        online = true;
         if (null != latch) {
             latch.countDown();
+        } else {
+            logger.warn("latch is null!");
         }
+        online = true;
     }
 
     @Override
@@ -92,6 +95,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+        logger.error("连接异常：{}", t.getMessage(), t);
         onClose();
     }
 
@@ -109,6 +113,22 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      */
     public okhttp3.WebSocket getSingletonClient() {
         return this.client;
+    }
+
+    /**
+     * 发送数据
+     * @param data 数据
+     */
+    public void send(byte[] data) {
+        WebSocket socket = this.client;
+        if (null == socket) {
+            return;
+        }
+        try {
+            socket.send(ByteString.of(data, 0, data.length));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -140,7 +160,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                             .get()
                             .url(url)
                             .build(), this);
-            if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS)) {
+            if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS) || online) {
                 scheduleHeartbeat();
             } else {
                 logger.warn("wait connect timeout.");
@@ -165,7 +185,6 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             return;
         }
         //启动监控，断开时每隔一段时间尝试重连
-        AnsiLog.info("init client success! reconnect enabled, start heartbeat.");
         reconnectEnabled = true;
         //每隔一段时间进行一次心跳探测
         heartbeatFuture = EnvironmentContext
@@ -328,6 +347,11 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
             return;
         }
         try {
+            client.cancel();
+        } catch (Exception e) {
+            // ignore
+        }
+        try {
             client.close(1000, "Connect close.");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -340,8 +364,9 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      */
     @Override
     public void onEvent(HeartbeatEvent event) {
-        if (null != this.heartbeatLatch) {
-            this.heartbeatLatch.countDown();
+        CountDownLatch heartLatch = this.heartbeatLatch;
+        if (null != heartLatch) {
+            heartLatch.countDown();
         }
     }
 

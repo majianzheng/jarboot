@@ -302,7 +302,7 @@ public class SettingUtils {
     }
 
     public static String getServicePath(String userDir, String serviceName) {
-        return getWorkspace() + File.separator + userDir + File.separator + serviceName;
+        return Paths.get(getWorkspace(), userDir, serviceName).toFile().getAbsolutePath();
     }
 
     public static String getCurrentUserDir() {

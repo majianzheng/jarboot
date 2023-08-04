@@ -36,7 +36,7 @@ public class AgentClientController {
     @PostMapping(value="/response")
     @ResponseBody
     public ResponseSimple onResponse(
-            @RequestParam String userDir,
+            @RequestParam(required = false) String userDir,
             @RequestParam String serviceName,
             @RequestParam String sid,
             @RequestBody byte[] raw) {

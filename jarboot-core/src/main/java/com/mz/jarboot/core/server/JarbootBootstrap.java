@@ -166,7 +166,7 @@ public class JarbootBootstrap {
 
     private AgentClient initClientData(String args, boolean isPremain) {
         AgentClient clientData = new AgentClient();
-        clientData.setUserDir(StringUtils.EMPTY);
+        clientData.setUserDir("default");
         if (isPremain && initPremainArgs(args, clientData)) {
             //由jarboot本地启动时，解析传入参数
             return clientData;

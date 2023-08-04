@@ -62,7 +62,7 @@ public class SessionOperator {
         }
     }
 
-    private void publish(MessageSenderEvent event) {
+    protected void publish(MessageSenderEvent event) {
         NotifyReactor.getInstance().publishEvent(event);
     }
 }

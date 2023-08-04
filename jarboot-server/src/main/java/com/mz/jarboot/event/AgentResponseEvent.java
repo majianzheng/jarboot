@@ -2,6 +2,8 @@ package com.mz.jarboot.event;
 
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.common.protocol.CommandResponse;
+import com.mz.jarboot.common.utils.StringUtils;
+
 import javax.websocket.Session;
 
 /**
@@ -15,7 +17,7 @@ public class AgentResponseEvent implements JarbootEvent {
     private final Session session;
 
     public AgentResponseEvent(String userDir, String serviceName, String sid, CommandResponse response, Session session) {
-        this.userDir = userDir;
+        this.userDir = StringUtils.isEmpty(userDir) ? "default" : userDir;
         this.serviceName = serviceName;
         this.sid = sid;
         this.response = response;

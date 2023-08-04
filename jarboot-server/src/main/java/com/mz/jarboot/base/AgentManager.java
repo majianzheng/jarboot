@@ -5,6 +5,7 @@ import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.AnsiLog;
+import com.mz.jarboot.common.notify.DefaultPublisher;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.api.constant.CommonConst;
@@ -575,7 +576,7 @@ public class AgentManager {
             public Class<? extends JarbootEvent> subscribeType() {
                 return AgentResponseEvent.class;
             }
-        });
+        }, new DefaultPublisher(32768, "agent.resp.publisher"));
 
         //服务启动完成事件
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<ServiceStartedEvent>() {

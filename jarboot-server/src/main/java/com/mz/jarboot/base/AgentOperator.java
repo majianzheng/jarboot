@@ -1,8 +1,11 @@
 package com.mz.jarboot.base;
 
 import com.mz.jarboot.api.pojo.ServiceSetting;
+import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.protocol.*;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.event.SendCommandEvent;
+import com.mz.jarboot.ws.MessageSenderEvent;
 import com.mz.jarboot.ws.SessionOperator;
 
 import javax.websocket.Session;
@@ -97,5 +100,10 @@ public final class AgentOperator extends SessionOperator {
         request.setRow(row);
         request.setCol(col);
         newMessage(request.toRaw());
+    }
+
+    @Override
+    protected void publish(MessageSenderEvent event) {
+        NotifyReactor.getInstance().publishEvent(new SendCommandEvent(event));
     }
 }

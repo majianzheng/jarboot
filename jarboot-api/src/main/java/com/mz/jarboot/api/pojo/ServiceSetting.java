@@ -279,8 +279,12 @@ public class ServiceSetting implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ServiceSetting setting = (ServiceSetting) o;
         return lastModified == setting.lastModified && name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(env, setting.env) && Objects.equals(daemon, setting.daemon) && Objects.equals(jarUpdateWatch, setting.jarUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
     }

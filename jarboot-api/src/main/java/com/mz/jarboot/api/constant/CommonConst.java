@@ -52,6 +52,8 @@ public class CommonConst {
     public static final String SERVICE_NAME_PARAM = "serviceName";
     public static final String SID_PARAM = "sid";
 
+    public static final String USER_DIR = "userDir";
+
     /** Task status */
     public static final String STARTING = "STARTING";
     public static final String RUNNING = "RUNNING";
