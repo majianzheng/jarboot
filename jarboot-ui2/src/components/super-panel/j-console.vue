@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
 import 'xterm/css/xterm.css';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -160,21 +160,13 @@ function runCommand(term: Terminal, text: string) {
 
 function onConsole(line: string | undefined) {
   if (line) {
-    termOption.term.writeln(line);
+    nextTick(() => termOption.term.writeln(line));
   }
 }
 function onStdPrint(str: string) {
-  termOption.term.write(str);
+  nextTick(() =>termOption.term.write(str));
 }
-function onBackspace(str: string) {
-  let backspaceNum = parseInt(str);
-  // if (!Number.isInteger(backspaceNum)) {
-  //   return;
-  // }
-  for (let i = 0; i < backspaceNum; ++i) {
-    termOption.term.write('\b \b');
-  }
-}
+
 
 function banner() {
   return (
@@ -210,7 +202,7 @@ onUnmounted(() => {
   if (pubsub) {
     pubsub.unSubmit(id, CONSOLE_TOPIC.APPEND_LINE, onConsole);
     pubsub.unSubmit(id, CONSOLE_TOPIC.STD_PRINT, onStdPrint);
-    pubsub.unSubmit(id, CONSOLE_TOPIC.BACKSPACE, onBackspace);
+    // pubsub.unSubmit(id, CONSOLE_TOPIC.BACKSPACE, onBackspace);
     // pubsub.unSubmit(id, CONSOLE_TOPIC.START_LOADING, onStartLoading);
     // pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, onFinishLoading);
     pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);

@@ -140,7 +140,7 @@
 									<outputDirectory>${project.build.directory}/lib</outputDirectory>
 									<excludeTransitive>false</excludeTransitive>
 									<stripVersion>false</stripVersion>
-									<includeScope>compile</includeScope>
+									<includeScope>runtime</includeScope>
 								</configuration>
 							</execution>
 						</executions>
@@ -152,7 +152,7 @@
 							<!--指定项目名称-->
 							<projectName>Jarboot API文档</projectName>
 							<!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
-							<configFile>./src/main/resources/smart-doc.json</configFile>
+							<configFile>src/main/resources/smart-doc.json</configFile>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -169,7 +169,7 @@
 							<!--指定项目名称-->
 							<projectName>Jarboot API文档(调试)</projectName>
 							<!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
-							<configFile>./src/main/resources/smart-doc-dev.json</configFile>
+							<configFile>src/main/resources/smart-doc-dev.json</configFile>
 						</configuration>
 					</plugin>
 				</plugins>

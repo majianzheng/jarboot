@@ -3,11 +3,13 @@ import OAuthService from '@/services/OAuthService';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ServiceManager from '@/services/ServiceManager';
-import type { ServiceInstance, JvmProcess } from '@/types';
+import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
-import { DEFAULT_PRIVILEGE } from '@/common/CommonConst';
+import { ATTACHED, ATTACHING, DEFAULT_PRIVILEGE, EXITED, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 import UserService from '@/services/UserService';
+import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
+import Logger from '@/common/Logger';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -99,6 +101,81 @@ export const useServiceStore = defineStore({
     attach(pid: number) {
       ServiceManager.attach(pid).then(r => console.log(r));
     },
+    findInstance(groups: ServiceInstance[], sid: string): ServiceInstance | null {
+      for (const g of groups) {
+        if (g.sid === sid) {
+          return g;
+        }
+        if (g.children?.length) {
+          const s = this.findInstance(g.children, sid);
+          if (s) {
+            return s;
+          }
+        }
+      }
+      return null;
+    },
+    setStatus(sid: string, status: string, isService: boolean): ServiceInstance | null  {
+      const groups = isService ? this.groups : this.jvmGroups;
+      const service = this.findInstance(groups, sid);
+    
+      if (service && service.status !== status) {
+        const name = service.name;
+        switch (status) {
+          case STATUS_STARTING:
+            // 激活终端显示
+            //activeConsole(key);
+            service.status = status;
+            Logger.log(`${name} 启动中...`);
+            pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
+            break;
+          case STATUS_STOPPING:
+            service.status = status;
+            Logger.log(`${name} 停止中...`);
+            pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
+            break;
+          case STATUS_STOPPED:
+            service.status = status;
+            Logger.log(`${name} 已停止`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case STATUS_STARTED:
+            if (!service.pid) {
+              service.status = status;
+            }
+            Logger.log(`${name} 已启动`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            pubsub.publish(sid, PUB_TOPIC.FOCUS_CMD_INPUT);
+            break;
+          case ATTACHING:
+            service.attaching = true;
+            service.attached = false;
+            Logger.log(`${name} ATTACHING`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case ATTACHED:
+            service.attached = true;
+            service.attaching = false;
+            Logger.log(`${name} ATTACHED`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case EXITED:
+            service.attached = false;
+            service.attaching = false;
+            Logger.log(`${name} DEATTACHED`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          default:
+            break;
+        }
+        if (isService) {
+          this.$patch({ groups: [...groups] });
+        } else {
+          this.$patch({ jvmGroups: [...groups] });
+        }
+      }
+      return service;
+    }
   },
 });
 

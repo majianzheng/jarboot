@@ -211,9 +211,9 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
 import { ElForm, ElMessageBox, ElTree, type FormRules } from 'element-plus';
-import { ATTACHED, ATTACHING, EXITED, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
+import { STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import { WsManager } from '@/common/WsManager';
 import { FuncCode } from '@/common/EventConst';
@@ -228,7 +228,6 @@ import { useRoute } from 'vue-router';
 import Logger from '@/common/Logger';
 import { CONSOLE_TOPIC } from '@/types';
 import ServiceManager from '@/services/ServiceManager';
-import CronEditor from '@/components/cron-editor/index.vue';
 
 const defaultProps = {
   children: 'children',
@@ -386,7 +385,7 @@ async function saveAndInit() {
 }
 
 const onStatusChange = (data: MsgData) => {
-  setStatus(data.sid, data.body);
+  nextTick(() => setStatus(data.sid, data.body));
 };
 const reload = () => (isService ? serviceStore.reload() : serviceStore.reloadJvmList());
 
@@ -452,79 +451,11 @@ function stopServices() {
   ServiceManager.stopService(getSelected());
 }
 
-function findInstance(groups: ServiceInstance[], sid: string): ServiceInstance | null {
-  for (const g of groups) {
-    if (g.sid === sid) {
-      return g;
-    }
-    if (g.children?.length) {
-      const s = findInstance(g.children, sid);
-      if (s) {
-        return s;
-      }
-    }
-  }
-  return null;
-}
-
 function setStatus(sid: string, status: string) {
-  const groups = isService ? serviceStore.groups : serviceStore.jvmGroups;
-  const service = findInstance(groups, sid);
-
-  if (service && service.status !== status) {
-    if (STATUS_STARTING === status) {
+  const service = serviceStore.setStatus(sid, status, isService);
+  if (service && STATUS_STARTING === status) {
       serviceState.activated = service;
     }
-    const name = service.name;
-    switch (status) {
-      case STATUS_STARTING:
-        // 激活终端显示
-        //activeConsole(key);
-        service.status = status;
-        Logger.log(`${name} 启动中...`);
-        pubsub.publish(sid, CONSOLE_TOPIC.CLEAR_CONSOLE);
-        pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
-        break;
-      case STATUS_STOPPING:
-        service.status = status;
-        Logger.log(`${name} 停止中...`);
-        pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
-        break;
-      case STATUS_STOPPED:
-        service.status = status;
-        Logger.log(`${name} 已停止`);
-        pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-        break;
-      case STATUS_STARTED:
-        if (!service.pid) {
-          service.status = status;
-        }
-        Logger.log(`${name} 已启动`);
-        pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-        pubsub.publish(sid, PUB_TOPIC.FOCUS_CMD_INPUT);
-        break;
-      case ATTACHING:
-        service.attaching = true;
-        service.attached = false;
-        Logger.log(`${name} 已停止`);
-        pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-        break;
-      case ATTACHED:
-        service.attached = true;
-        service.attaching = false;
-        Logger.log(`${name} 已停止`);
-        pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-        break;
-      case EXITED:
-        service.attached = false;
-        service.attaching = false;
-        Logger.log(`${name} 已停止`);
-        pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
-        break;
-      default:
-        return {};
-    }
-  }
 }
 
 function checkChange(checked: ServiceInstance[]) {

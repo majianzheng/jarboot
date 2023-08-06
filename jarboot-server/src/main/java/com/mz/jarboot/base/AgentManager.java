@@ -92,6 +92,7 @@ public class AgentManager {
         }
         ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
         if (Objects.equals(sid, setting.getSid())) {
+            client.setTrusted(true);
             client.setSetting(setting);
             ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
             NotifyReactor.getInstance().publishEvent(event);
@@ -130,6 +131,7 @@ public class AgentManager {
                 ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting());
                 NotifyReactor.getInstance().publishEvent(event);
                 client.setState(ClientState.OFFLINE);
+                MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
             }
         }
     }
@@ -602,7 +604,7 @@ public class AgentManager {
             public Class<? extends JarbootEvent> subscribeType() {
                 return FuncReceivedEvent.class;
             }
-        });
+        }, new DefaultPublisher(16384, "func.req.publisher"));
     }
 
     @SuppressWarnings("java:S3011")

@@ -459,7 +459,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void onEvent(ServiceOfflineEvent event) {
         ServiceSetting setting = event.getSetting();
         if (null == setting) {
-            logger.error("service offline event, service setting is null!");
+            logger.debug("service offline event, service setting is null!");
             return;
         }
         String serviceName = setting.getName();
@@ -473,7 +473,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 return;
             }
             //尝试重新初始化代理客户端
-            TaskUtils.attach(sid);
+            TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(sid), 5, TimeUnit.SECONDS);
             return;
         }
 
@@ -497,6 +497,14 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
             }
         }
+    }
+
+    private void tryReAttach(String sid) {
+        if (taskRunCache.isStartingOrStopping(sid) || AgentManager.getInstance().isOnline(sid)) {
+            return;
+        }
+        logger.info("尝试重连服务，attach sid: {}", sid);
+        TaskUtils.attach(sid);
     }
 
     @PostConstruct

@@ -295,7 +295,7 @@ public class AnsiLog {
         System.out.write(c);
     }
 
-    private static String format(String from, Object... arguments) {
+    public static String format(String from, Object... arguments) {
         if (from != null) {
             String computed = from;
             if (arguments != null && arguments.length != 0) {

@@ -4,8 +4,6 @@ import com.mz.jarboot.common.notify.DefaultPublisher;
 import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.ws.MessageSenderSubscriber;
 import com.mz.jarboot.ws.SendCommandSubscriber;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
@@ -20,8 +18,6 @@ import javax.annotation.PostConstruct;
 @Configuration
 public class JarBootConfig {
     private static final int MAX_BUFFER_SIZE = 4096;
-    @Autowired
-    private ApplicationContext ctx;
 
     @Bean
     public ServerEndpointExporter serverEndpointExporter() {

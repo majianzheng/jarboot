@@ -5,9 +5,7 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
-import org.apache.commons.io.FileUtils;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 
@@ -16,10 +14,6 @@ import java.nio.charset.StandardCharsets;
  * @author majianzheng
  */
 public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
-    /** 未在线时记录本地日志文件 */
-    private static final String LOCAL_FILE_NAME = "jarboot-core.log";
-    /** 日志文件最大的大小 10M，超过时清空重写 */
-    private static final long MAX_FILE_SIZE = (1024 * 1024 * 10);
     protected Encoder<E> encoder;
 
     public Encoder<E> getEncoder() {
@@ -27,7 +21,7 @@ public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
     }
 
     public StreamCrossLogAppender() {
-        this.setName(LOCAL_FILE_NAME);
+        this.setName(LogUtils.LOCAL_FILE_NAME);
     }
 
     public void setEncoder(Encoder<E> encoder) {
@@ -47,31 +41,7 @@ public class StreamCrossLogAppender<E> extends UnsynchronizedAppenderBase<E> {
             String msg = new String(byteArray, StandardCharsets.UTF_8);
             ResultStreamDistributor.getInstance().log(msg);
         } else {
-            writeLocalLog(byteArray);
+            LogUtils.writeLocalLog(byteArray);
         }
-    }
-
-    private void writeLocalLog(byte[] byteArray) {
-        final java.io.File logFile = getLocalLogFile();
-        try {
-            if (!logFile.exists() && !createLogFile(logFile)) {
-                return;
-            }
-            FileUtils.writeByteArrayToFile(logFile, byteArray, logFile.length() < MAX_FILE_SIZE);
-        } catch (Exception e) {
-            //ignore
-        }
-    }
-
-    private boolean createLogFile(java.io.File logFile) throws IOException {
-        java.io.File logDir = logFile.getParentFile();
-        if (!logDir.exists() && !logDir.mkdirs()) {
-            return false;
-        }
-        return logFile.createNewFile();
-    }
-
-    private java.io.File getLocalLogFile() {
-        return FileUtils.getFile(LogUtils.getLogDir(), LOCAL_FILE_NAME);
     }
 }

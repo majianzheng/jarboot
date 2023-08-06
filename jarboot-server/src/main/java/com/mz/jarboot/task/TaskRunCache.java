@@ -12,6 +12,7 @@ import com.mz.jarboot.common.notify.NotifyReactor;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.utils.PropertyFileUtils;
 import com.mz.jarboot.utils.SettingUtils;
+import com.mz.jarboot.ws.WebSocketMainServer;
 import com.mz.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class TaskRunCache {
     public ServiceInstance getService(String userDir, File serverDir) {
         ServiceInstance process = new ServiceInstance();
         process.setName(serverDir.getName());
-        String path = serverDir.getPath();
+        String path = serverDir.getAbsolutePath();
         String sid = SettingUtils.createSid(path);
         process.setSid(sid);
         process.setGroup(this.getGroup(userDir, process.getName(), path));
@@ -219,6 +220,6 @@ public class TaskRunCache {
             }
         }
         //订阅任务状态变化事件
-        NotifyReactor.getInstance().registerSubscriber(new TaskStatusChangeSubscriber(this.eventRegistry));
+        NotifyReactor.getInstance().registerSubscriber(new TaskStatusChangeSubscriber(this.eventRegistry), WebSocketMainServer.PUBLISHER);
     }
 }

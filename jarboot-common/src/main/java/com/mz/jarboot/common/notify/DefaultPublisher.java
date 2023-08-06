@@ -29,16 +29,9 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
     }
 
     @Override
-    protected void loop() {
-        try {
-            final JarbootEvent event = queue.take();
-            receiveEvent(event);
-        } catch (InterruptedException e) {
-            logger.error("loop thread interrupted. shutdown: {}", this.shutdown);
-            Thread.currentThread().interrupt();
-        } catch (Throwable ex) {
-            logger.error("Event listener exception : ", ex);
-        }
+    protected void loop() throws InterruptedException {
+        final JarbootEvent event = queue.take();
+        receiveEvent(event);
     }
 
     /**
@@ -49,11 +42,7 @@ public class DefaultPublisher extends AbstractEventLoop implements EventPublishe
      */
     @Override
     public boolean publishEvent(JarbootEvent event) {
-        boolean success = this.queue.offer(event);
-        if (!success) {
-            logger.warn("Unable to plug in due to interruption, event : {}", event);
-        }
-        return success;
+        return this.queue.offer(event);
     }
 
     /**

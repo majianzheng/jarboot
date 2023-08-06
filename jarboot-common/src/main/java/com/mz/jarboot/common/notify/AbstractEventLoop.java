@@ -28,20 +28,20 @@ public abstract class AbstractEventLoop extends Thread {
 
     @Override
     public final void run() {
-        try {
-            for (; ; ) {
+        for (; ; ) {
+            try {
                 loop();
-                if (shutdown) {
-                    break;
-                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } catch (Throwable ex) {
+                //ignore
             }
-        } catch (Throwable ex) {
-            //ignore
         }
     }
 
     /**
      * 事件循环
+     * @throws InterruptedException
      */
-    protected abstract void loop();
+    protected abstract void loop() throws InterruptedException;
 }

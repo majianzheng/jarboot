@@ -5,7 +5,7 @@
   "packageFilters": "com.mz.jarboot.controller.*",
   "packageExcludeFilters": "",
   "allInOneDocFileName":"index.html",
-  "outPath": "./target/smart-doc",
+  "outPath": "target/smart-doc",
   "requestExample": true,
   "style":"xt256",
   "createDebugPage": true,

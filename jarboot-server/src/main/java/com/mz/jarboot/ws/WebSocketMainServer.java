@@ -27,7 +27,7 @@ public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
     private static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
     /** 推送前端消息 */
-    private static final DefaultPublisher PUBLISHER = new DefaultPublisher(32768, "fe.push.publisher");
+    public static final DefaultPublisher PUBLISHER = new DefaultPublisher(32768, "fe.push.publisher");
 
     static {
         register();

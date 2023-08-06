@@ -144,7 +144,7 @@ public class CloudController {
             File dest = FileUtils.getFile(SettingUtils.getWorkspace(), name);
             boolean isExist = dest.exists();
             if (isExist) {
-                String sid = SettingUtils.createSid(dest.getPath());
+                String sid = SettingUtils.createSid(dest.getAbsolutePath());
                 if (AgentManager.getInstance().isOnline(sid)) {
                     MessageUtils.info(name + " 正在运行，请先停止再导入！");
                     return;

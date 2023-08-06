@@ -12,6 +12,7 @@ import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
+import com.mz.jarboot.core.stream.ResultStreamDistributor;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.LogUtils;
@@ -39,6 +40,8 @@ public class JarbootBootstrap {
 
     private JarbootBootstrap(Instrumentation inst, String args, boolean isPremain) {
         this.instrumentation = inst;
+        // 初始化事件触发器
+        ResultStreamDistributor.getInstance();
         //1.解析args，获取目标服务端口
         AgentClient clientData = this.initClientData(args, isPremain);
         String serverName = clientData.getServiceName();
@@ -81,6 +84,7 @@ public class JarbootBootstrap {
             // 第二次进入，检查是否需要变更Jarboot服务地址
             AgentClient clientData = EnvironmentContext.getAgentClient();
             if (!Objects.equals(host, clientData.getHost())) {
+                LogUtils.getLogger().warn("Jarboot host changed: {}, old: {}", host, clientData.getHost());
                 if (Boolean.TRUE.equals(clientData.getDiagnose())) {
                     AgentClient client = this.initClientData(host, false);
                     clientData.setSid(client.getSid());

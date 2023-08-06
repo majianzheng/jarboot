@@ -23,10 +23,10 @@ import okhttp3.WebSocketListener;
 import okio.ByteString;
 import org.slf4j.Logger;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * WebSocket client factory for create socket client.
@@ -58,8 +58,11 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     private boolean connecting = false;
     /** 重连未开始标志 */
     private boolean reconnectNotStarted = true;
+    private AtomicBoolean shutdown  = new AtomicBoolean(false);
+    private AtomicBoolean destroyingClient  = new AtomicBoolean(false);
     /** 心跳Future */
     private ScheduledFuture<?> heartbeatFuture = null;
+    private Thread reconnectThread = null;
 
     private WsClientFactory() {
         //注册事件订阅
@@ -67,16 +70,17 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         NotifyReactor.getInstance().registerSubscriber(new CommandSubscriber());
         NotifyReactor.getInstance().registerSubscriber(new InternalCommandSubscriber());
         NotifyReactor.getInstance().registerSubscriber(this);
-        NotifyReactor.getInstance().addShutdownCallback(this::destroyClient);
+        NotifyReactor.getInstance().addShutdownCallback(this::shutdown);
     }
 
 
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
+        LogUtils.offlineDevLog("websocket open!");
         if (null != latch) {
             latch.countDown();
         } else {
-            logger.warn("latch is null!");
+            LogUtils.offlineDevLog("latch is null!");
         }
         online = true;
     }
@@ -90,12 +94,16 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
+        LogUtils.offlineDevLog("onClosed code:{}, reason: {}", code, reason);
         onClose();
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        logger.error("连接异常：{}", t.getMessage(), t);
+        LogUtils.offlineDevLog("连接异常");
+        if (!destroyingClient.get()) {
+            logger.error("连接异常：{}", t.getMessage(), t);
+        }
         onClose();
     }
 
@@ -135,10 +143,13 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      * 创建客户端
      */
     public synchronized void createSingletonClient() {
-        if (online || connecting) {
+        LogUtils.offlineDevLog(">> online: {}, connection:{}, shutdown:{}", online, connecting, shutdown.get());
+        if (online || connecting || shutdown.get()) {
             return;
         }
-        this.destroyClient();
+        if (null != client) {
+            this.destroyClient();
+        }
         final String url = new StringBuilder()
                 .append(CommonConst.WS)
                 .append(EnvironmentContext.getAgentClient().getHost())
@@ -150,7 +161,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 .append(StringUtils.SLASH)
                 .append(EnvironmentContext.getAgentClient().getUserDir())
                 .toString();
-        AnsiLog.info("connecting to jarboot {}", url);
+        LogUtils.offlineDevLog("connecting to jarboot {}", url);
         latch = new CountDownLatch(1);
         try {
             connecting = true;
@@ -161,9 +172,10 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                             .url(url)
                             .build(), this);
             if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS) || online) {
+                LogUtils.offlineDevLog("start scheduleHeartbeat");
                 scheduleHeartbeat();
             } else {
-                logger.warn("wait connect timeout.");
+                LogUtils.offlineDevLog("wait connect timeout.");
                 this.destroyClient();
             }
         } catch (InterruptedException e) {
@@ -181,15 +193,20 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      */
     public void scheduleHeartbeat() {
         if (!online) {
-            AnsiLog.error("Client is not online can't start schedule heartbeat.");
+            LogUtils.offlineDevLog("Client is not online can't start schedule heartbeat.");
             return;
         }
-        //启动监控，断开时每隔一段时间尝试重连
-        reconnectEnabled = true;
-        //每隔一段时间进行一次心跳探测
-        heartbeatFuture = EnvironmentContext
+        if (null == heartbeatFuture) {
+            //启动监控，断开时每隔一段时间尝试重连
+            reconnectEnabled = true;
+            LogUtils.offlineDevLog("心跳任务启动...");
+            //每隔一段时间进行一次心跳探测
+             heartbeatFuture = EnvironmentContext
                 .getScheduledExecutor()
                 .scheduleWithFixedDelay(this::sendHeartbeat, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
+        } else {
+            LogUtils.offlineDevLog("心跳已经启动！");
+        }
     }
 
     /**
@@ -198,6 +215,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      */
     public boolean checkOnline() {
         if (online) {
+            LogUtils.offlineDevLog("check on line");
             sendHeartbeat();
         }
         return online;
@@ -212,6 +230,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      * @param host jarboot服务地址，eg: 192.168.1.88:9899
      */
     public void changeHost(String host) {
+        LogUtils.offlineDevLog("change host: {}", host);
         //修改host
         System.setProperty(CommonConst.REMOTE_PROP, host);
         EnvironmentContext.getAgentClient().setHost(host);
@@ -224,8 +243,10 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
      * 主动关闭会话
      */
     public void closeSession() {
-        if (null != heartbeatFuture) {
-            heartbeatFuture.cancel(true);
+        LogUtils.offlineDevLog("主动关闭");
+        ScheduledFuture<?> future = this.heartbeatFuture;
+        if (null != future) {
+            future.cancel(true);
             heartbeatFuture = null;
         }
         if (online) {
@@ -245,7 +266,8 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
     private void sendHeartbeat() {
-        if (null == this.client || connecting || !reconnectNotStarted) {
+        WebSocket socket = this.client;
+        if (null == socket || connecting || !reconnectNotStarted || shutdown.get()) {
             return;
         }
         CommandResponse resp = new CommandResponse();
@@ -256,64 +278,59 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         try {
             // 进行一次心跳检测
             byte[] raw = resp.toRaw();
-            online = this.client.send(ByteString.of(raw, 0, raw.length));
+            online = socket.send(ByteString.of(raw, 0, raw.length));
             if (!online) {
                 // 发送心跳失败！
-                logger.warn("Check online send heartbeat failed.");
+                LogUtils.offlineDevLog("Check online send heartbeat failed.");
                 return;
             }
             // 等待jarboot-server的心跳命令触发
             online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
             if (!online) {
-                logger.error("wait heartbeat callback timeout!");
+                LogUtils.offlineDevLog("wait heartbeat callback timeout!");
             }
         } catch (InterruptedException e) {
+            LogUtils.offlineDevLog("sendHeartbeat interrupted!");
             Thread.currentThread().interrupt();
         } finally {
             this.heartbeatLatch = null;
             if (!online) {
+                LogUtils.offlineDevLog("sendHeartbeat failed destroy client!");
                 this.destroyClient();
             }
         }
         // 检测线程，若只剩下最后一个非守护线程则退出
-        List<Thread> threads = ThreadUtil.getThreadList();
-        boolean exist = false;
-        int count = 0;
-        boolean alive = false;
-        final String name = "DestroyJavaVM";
-        for (Thread thread : threads) {
-            if (!thread.isDaemon()) {
-                if (thread.getName().equals(name)) {
-                    exist = true;
-                } else {
-                    ++count;
-                }
-                if (thread.getName().startsWith("OkHttp WebSocket")) {
-                    alive = true;
-                }
-            }
-        }
-        if (exist && alive && count == 1) {
-            this.destroyClient();
-        }
+        ThreadUtil.checkAliveAndAutoExit();
     }
 
     private synchronized void onClose() {
         online = false;
-        this.destroyClient();
+        if (destroyingClient.compareAndSet(true, false)) {
+            LogUtils.offlineDevLog("正在销毁websocket客户端");
+        } else {
+            okhttp3.WebSocket temp = this.client;
+            if (null != temp) {
+                try {
+                    temp.close(1000, "closed");
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            this.client = null;
+        }
         EnvironmentContext.cleanSession();
         if (null == shutdownLatch) {
-            //非主动关闭的异常断开
-            if (reconnectEnabled && reconnectNotStarted) {
-                //防止重复创建线程
+            // 非主动关闭的异常断开
+            if (reconnectEnabled && reconnectNotStarted && null == reconnectThread) {
+                // 防止重复创建线程
                 reconnectNotStarted = false;
-                JarbootThreadFactory
+                reconnectThread = JarbootThreadFactory
                         .createThreadFactory("reconnect-task", true)
-                        .newThread(this::reconnect)
-                        .start();
+                        .newThread(this::reconnect);
+                reconnectThread.start();
             }
         } else {
-            //主动关闭连接
+            // 主动关闭连接
             shutdownLatch.countDown();
         }
     }
@@ -331,32 +348,62 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 }
                 TimeUnit.SECONDS.sleep(RECONNECT_INTERVAL);
                 if (!connecting && !online) {
+                    LogUtils.offlineDevLog("reconnect to jarboot...");
                     createSingletonClient();
                 }
             }
         } catch (InterruptedException e) {
             //允许外部中断
+            LogUtils.offlineDevLog("reconnect thread is interrupted");
             Thread.currentThread().interrupt();
         } finally {
             reconnectNotStarted = true;
+            reconnectThread = null;
         }
     }
 
     private void destroyClient() {
-        if (null == this.client) {
-            return;
+        LogUtils.offlineDevLog(">>>distroy client");
+        if (destroyingClient.compareAndSet(false, true)) {
+            if (null == this.client) {
+                return;
+            }
+            try {
+                Thread thread = this.reconnectThread;
+                if (null != thread) {
+                    thread.interrupt();
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+            try {
+                client.cancel();
+            } catch (Exception e) {
+                // ignore
+            }
+            try {
+                client.close(1000, "Connect close.");
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            client = null;
         }
-        try {
-            client.cancel();
-        } catch (Exception e) {
-            // ignore
+    }
+
+    private void shutdown() {
+        LogUtils.offlineDevLog(">>>>shutdown triggered.");
+        if (shutdown.compareAndSet(false, true)) {
+            ScheduledFuture<?> future = this.heartbeatFuture;
+            if (null != future) {
+                future.cancel(true);
+                heartbeatFuture = null;
+            }
+            Thread thread = this.reconnectThread;
+            if (null != thread) {
+                thread.interrupt();
+            }
+            this.destroyClient();
         }
-        try {
-            client.close(1000, "Connect close.");
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-        client = null;
     }
 
     /**

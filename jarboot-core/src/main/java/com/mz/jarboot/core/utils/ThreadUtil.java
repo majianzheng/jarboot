@@ -450,6 +450,35 @@ public class ThreadUtil {
         return sb.toString();
     }
 
+    public static void checkAliveAndAutoExit() {
+        // 检测线程，若只剩下最后一个非守护线程则退出
+        List<Thread> threads = ThreadUtil.getThreadList();
+        int count = 0;
+        boolean alive = false;
+        boolean waitDistroy = false;
+        final String name = "DestroyJavaVM";
+        final String okHttpPrefix = "OkHttp";
+        final int nonDaemonCount = 1;
+        for (Thread thread : threads) {
+            if (!thread.isDaemon()) {
+                if (thread.getName().equals(name)) {
+                    waitDistroy = true;
+                } else {
+                    if (thread.getName().startsWith(okHttpPrefix) ) {
+                        alive = true;
+                    } else {
+                        ++count;
+                    }
+                }
+
+            }
+        }
+        if (waitDistroy && alive && count <= nonDaemonCount) {
+            LogUtils.offlineDevLog("进程即将退出...");
+            System.exit(0);
+        }
+    }
+
     private static String getTCCL(Thread currentThread) {
         if (null == currentThread.getContextClassLoader()) {
             return "null";

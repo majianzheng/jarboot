@@ -2,8 +2,6 @@ package com.mz.jarboot.common.notify;
 
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings({"unchecked", "java:S3740", "rawtypes"})
 public class NotifyReactor {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Map<String, EventPublisher> publisherMap = new ConcurrentHashMap<>(16);
     private EventPublisher defaultEventPublisher;
     private final List<Runnable> shutdownCallbacks = new ArrayList<>();
@@ -32,13 +29,11 @@ public class NotifyReactor {
      */
     public boolean publishEvent(final JarbootEvent event) {
         if (null == event) {
-            logger.error("event is null point.");
             return false;
         }
         final String topic = event.getClass().getCanonicalName();
         EventPublisher publisher = publisherMap.getOrDefault(topic, null);
         if (null == publisher) {
-            logger.debug("Current has no publisher. topic: {}", topic);
             return false;
         }
         return publisher.publishEvent(event);
