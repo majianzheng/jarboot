@@ -23,8 +23,6 @@ import java.util.concurrent.*;
 public class TaskUtils {
     private static final Logger logger = LoggerFactory.getLogger(TaskUtils.class);
 
-    /** 服务启动超时时间 */
-    private static int maxStartTime = 12000;
     /** 任务调度线程池 */
     private static final ScheduledExecutorService TASK_EXECUTOR;
     /** 是否使用nohup启动服务 */
@@ -46,13 +44,6 @@ public class TaskUtils {
      */
     public static ScheduledExecutorService getTaskExecutor() {
         return TASK_EXECUTOR;
-    }
-
-    /**
-     * 服务最大启动时间
-     */
-    public static void setMaxStartTime(int v) {
-        maxStartTime = v;
     }
 
     /**
@@ -175,7 +166,7 @@ public class TaskUtils {
         // 启动
         startTask(cmd, setting.getEnv(), workHome);
         //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServiceStarted(setting, maxStartTime);
+        AgentManager.getInstance().waitServiceStarted(setting, SettingUtils.getSystemSetting().getMaxStartTime());
     }
 
     /**

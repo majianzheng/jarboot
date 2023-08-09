@@ -10,15 +10,12 @@ import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.common.utils.ZipUtils;
-import com.mz.jarboot.constant.AuthConst;
 import com.mz.jarboot.common.notify.FrontEndNotifyEventType;
-import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.utils.MessageUtils;
 import com.mz.jarboot.utils.SettingUtils;
 import com.mz.jarboot.utils.TaskUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +36,6 @@ import java.util.Base64;
 public class CloudController {
     @Value("${docker:false}")
     private boolean isInDocker;
-    @Autowired
-    private JwtTokenManager jwtTokenManager;
 
     /**
      * 获取版本
@@ -94,11 +89,6 @@ public class CloudController {
     @PostMapping("/push/server")
     @ResponseBody
     public ResponseVo<String> pushServerDirectory(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
-        if (jwtTokenManager.getEnabled()) {
-            //token校验
-            String token = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-            jwtTokenManager.validateToken(token);
-        }
         //临时目录，用于操作ZIP文件
         String filename = file.getOriginalFilename();
         String name = StringUtils.stripEnd(filename, ".zip");

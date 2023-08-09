@@ -117,6 +117,10 @@ export default {
   PRIORITY_LABEL: 'Priority',
   DAEMON_LABEL: 'Daemon',
   JAR_UPDATE_WATCH_LABEL: 'File path Watch',
+  SCHEDULE_TYPE: 'Schedule type',
+  SCHEDULE_ONCE: 'once',
+  SCHEDULE_LONE_TIME: 'long times',
+  SCHEDULE_CRON: 'cron',
   COMMAND_EXAMPLE: 'Example:  1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
 
   //插件
@@ -132,6 +136,10 @@ export default {
   TRUSTED_HOSTS: 'Trusted hosts',
   EMPTY_INPUT_MSG: 'The entered content is empty!',
   DELETE_HOST_MSG: 'Delete trusted host or not?',
+  MAX_START_TIME: 'Wait service started max time (ms)',
+  MAX_EXIT_TIME: 'Wait service graceful exit max time (ms)',
+  AFTER_OFFLINE_EXEC: 'Shell to execute after service offline',
+  FILE_SHAKE_TIME: 'File change shake time (s)',
 
   //用户登录
   USER_NAME: 'User',

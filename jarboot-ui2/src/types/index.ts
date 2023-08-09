@@ -85,6 +85,10 @@ export type ServerSetting = {
 export type GlobalSetting = {
   workspace: string;
   defaultVmOptions: string;
+  maxStartTime: number;
+  maxExitTime: number;
+  afterServerOfflineExec: string;
+  fileChangeShakeTime: number;
 };
 
 export type MsgData = {

@@ -72,7 +72,7 @@
                       <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
                     </el-tooltip>
                   </div>
-                  <div v-else>
+                  <div v-else @click="currentChange(data, node)">
                     <el-icon v-if="data.host" class="group-icon"><HomeFilled /></el-icon>
                     <el-icon v-else class="group-icon"><Folder /></el-icon>
                     <span v-if="data.host" class="__tree-title">{{ data.host }}</span>
@@ -173,11 +173,14 @@
             auto-capitalize="off"
             v-model="serviceState.configForm.env"></el-input>
         </el-form-item>
-        <el-form-item :label="'运行计划'" prop="daemon">
+        <el-form-item :label="$t('PRIORITY_LABEL')" prop="priority">
+          <el-input-number :min="0" :max="9999" v-model="serviceState.configForm.priority"></el-input-number>
+        </el-form-item>
+        <el-form-item :label="$t('SCHEDULE_TYPE')" prop="daemon">
           <el-radio-group v-model="serviceState.configForm.scheduleType">
-            <el-radio label="once">单次执行</el-radio>
-            <el-radio label="long-times">长期运行</el-radio>
-            <el-radio label="cron">定时任务</el-radio>
+            <el-radio label="once">{{ $t('SCHEDULE_ONCE') }}</el-radio>
+            <el-radio label="long-times">{{ $t('SCHEDULE_LONE_TIME') }}</el-radio>
+            <el-radio label="cron">{{ $t('SCHEDULE_CRON') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-show="'long-times' === serviceState.configForm.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
@@ -225,8 +228,6 @@ import CloudService from '@/services/CloudService';
 import type { FileNode, MsgData, ServerSetting, ServiceInstance } from '@/types';
 import { PAGE_SERVICE } from '@/common/route-name-constants';
 import { useRoute } from 'vue-router';
-import Logger from '@/common/Logger';
-import { CONSOLE_TOPIC } from '@/types';
 import ServiceManager from '@/services/ServiceManager';
 
 const defaultProps = {
@@ -433,9 +434,13 @@ function closeServiceTerminal(instance: ServiceInstance) {
 
 function getSelected() {
   const services = [] as ServiceInstance[];
-  serviceState.currentNode.forEach((node: ServiceInstance) => {
+  return getSelectLoop(serviceState.currentNode, services);
+}
+
+function getSelectLoop(nodes: ServiceInstance[], services: ServiceInstance[]) {
+  nodes.forEach((node: ServiceInstance) => {
     if (node?.children && node.children.length > 0) {
-      services.push(...node.children);
+      getSelectLoop(node.children, services);
     } else {
       services.push(node);
     }
@@ -454,8 +459,8 @@ function stopServices() {
 function setStatus(sid: string, status: string) {
   const service = serviceStore.setStatus(sid, status, isService);
   if (service && STATUS_STARTING === status) {
-      serviceState.activated = service;
-    }
+    serviceState.activated = service;
+  }
 }
 
 function checkChange(checked: ServiceInstance[]) {

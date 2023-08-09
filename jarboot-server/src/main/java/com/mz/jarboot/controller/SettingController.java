@@ -1,7 +1,7 @@
 package com.mz.jarboot.controller;
 
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.pojo.ResponseVo;
@@ -54,8 +54,8 @@ public class SettingController {
      */
     @GetMapping(value="/globalSetting")
     @ResponseBody
-    public ResponseVo<GlobalSetting> getGlobalSetting() {
-        GlobalSetting results = settingService.getGlobalSetting();
+    public ResponseVo<SystemSetting> getGlobalSetting() {
+        SystemSetting results = settingService.getSystemSetting();
         return new ResponseVo<>(results);
     }
 
@@ -66,8 +66,8 @@ public class SettingController {
      */
     @PostMapping(value="/globalSetting")
     @ResponseBody
-    public ResponseSimple submitGlobalSetting(@RequestBody GlobalSetting setting) {
-        settingService.submitGlobalSetting(setting);
+    public ResponseSimple submitGlobalSetting(@RequestBody SystemSetting setting) {
+        settingService.saveSetting(setting);
         return new ResponseSimple();
     }
 

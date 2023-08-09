@@ -1,9 +1,10 @@
-import en from './en'
-import cn from './cn'
-import pt from './pt_br'
+import en from './en';
+import cn from './cn';
+import pt from './pt_br';
 
 export default {
-    en,
-    cn,
-    pt
-}
+  'en-US': en,
+  'zh-CN': cn,
+  'zh-TW': cn,
+  pt: pt,
+};

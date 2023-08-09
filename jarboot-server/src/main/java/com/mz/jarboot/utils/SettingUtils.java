@@ -3,7 +3,7 @@ package com.mz.jarboot.utils;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -31,13 +31,17 @@ public class SettingUtils {
     private static final Logger logger = LoggerFactory.getLogger(SettingUtils.class);
 
     /** 系统配置缓存 */
-    private static final GlobalSetting GLOBAL_SETTING = new GlobalSetting();
+    private static final SystemSetting GLOBAL_SETTING = new SystemSetting();
     /** Jarboot配置文件名字 */
     private static final String BOOT_PROPERTIES = "boot.properties";
     /** 工作空间属性key */
     private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
     /** 默认VM参数属性key */
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
+    private static final String MAX_START_TIME = "jarboot.services.max-start-time";
+    private static final String MAX_EXIT_TIME = "jarboot.services.max-graceful-exit-time";
+    private static final String AFTER_OFFLINE_EXEC = "jarboot.after-server-error-offline";
+    private static final String FILE_SHAKE_TIME = "jarboot.file-shake-time";
     /** 默认的工作空间路径 */
     private static String defaultWorkspace;
     /** Jarboot配置文件路径 */
@@ -119,6 +123,39 @@ public class SettingUtils {
                 PropertyFileUtils.getProperties(conf) : new Properties();
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
+        int maxStartTime = 120000;
+        try {
+            int temp = Integer.parseInt(properties.getProperty(MAX_START_TIME, "120000").trim());
+            if (temp > 0) {
+                maxStartTime = temp;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        GLOBAL_SETTING.setMaxStartTime(maxStartTime);
+        int maxExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
+        try {
+            int temp = Integer.parseInt(properties.getProperty(MAX_EXIT_TIME, "30000").trim());
+            if (temp > 0) {
+                maxExitTime = temp;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        GLOBAL_SETTING.setMaxExitTime(maxExitTime);
+        GLOBAL_SETTING.setAfterServerOfflineExec(properties.getProperty(AFTER_OFFLINE_EXEC, StringUtils.EMPTY).trim());
+        int shakeTime = 5;
+        final int minShakeTime = 3;
+        final int maxShakeTime = 600;
+        try {
+            int temp = Integer.parseInt(properties.getProperty(FILE_SHAKE_TIME, StringUtils.EMPTY).trim());
+            if (temp >= minShakeTime && temp <= maxShakeTime) {
+                shakeTime = temp;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        GLOBAL_SETTING.setFileChangeShakeTime(shakeTime);
     }
 
     private static void initTrustedHosts() {
@@ -142,7 +179,7 @@ public class SettingUtils {
      * 获取系统配置
      * @return 系统配置
      */
-    public static GlobalSetting getGlobalSetting() {
+    public static SystemSetting getSystemSetting() {
         return GLOBAL_SETTING;
     }
 
@@ -150,7 +187,7 @@ public class SettingUtils {
      * 更新系统配置
      * @param setting 配置
      */
-    public static synchronized void updateGlobalSetting(GlobalSetting setting) {
+    public static synchronized void updateSystemSetting(SystemSetting setting) {
         String workspace = setting.getWorkspace();
         if (StringUtils.isNotEmpty(workspace)) {
             File dir = new File(workspace);
@@ -172,6 +209,25 @@ public class SettingUtils {
             } else {
                 props.put(ROOT_DIR_KEY, workspace);
             }
+            final int minWait = 1000;
+            if (null != setting.getMaxStartTime() && setting.getMaxStartTime() > minWait) {
+                props.put(MAX_START_TIME, String.valueOf(setting.getMaxStartTime()));
+            } else {
+                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务启动最长等待时间需大于" + minWait);
+            }
+            if (null != setting.getMaxExitTime() && setting.getMaxExitTime() > minWait) {
+                props.put(MAX_EXIT_TIME, String.valueOf(setting.getMaxExitTime()));
+            } else {
+                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务优雅退出最长等待时间需大于" + minWait);
+            }
+            final int minShakeTime = 3;
+            final int maxShakeTime = 600;
+            if (null != setting.getFileChangeShakeTime() && setting.getFileChangeShakeTime() >= minShakeTime && setting.getFileChangeShakeTime() <= maxShakeTime) {
+                props.put(FILE_SHAKE_TIME, String.valueOf(setting.getFileChangeShakeTime()));
+            } else {
+                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务文件变更监控抖动时间需在3～600之间！");
+            }
+            props.put(AFTER_OFFLINE_EXEC, setting.getAfterServerOfflineExec());
 
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
@@ -182,6 +238,10 @@ public class SettingUtils {
             }
             GLOBAL_SETTING.setWorkspace(workspace);
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
+            GLOBAL_SETTING.setFileChangeShakeTime(setting.getFileChangeShakeTime());
+            GLOBAL_SETTING.setAfterServerOfflineExec(setting.getAfterServerOfflineExec());
+            GLOBAL_SETTING.setMaxExitTime(setting.getMaxExitTime());
+            GLOBAL_SETTING.setMaxStartTime(setting.getMaxStartTime());
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }

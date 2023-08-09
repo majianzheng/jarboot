@@ -2,7 +2,6 @@ package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
-import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -10,7 +9,6 @@ import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
 import com.mz.jarboot.service.TaskWatchService;
 import com.mz.jarboot.utils.SettingUtils;
-import com.mz.jarboot.utils.TaskUtils;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
@@ -71,18 +69,6 @@ public class AppEnvironment implements SpringApplicationRunListener {
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
         //初始化配置
         SettingUtils.init(context, homePath);
-
-        //最大启动超时时间配置
-        int maxStartTime = context
-                .getEnvironment()
-                .getProperty("jarboot.services.max-start-time", int.class, 120000);
-        TaskUtils.setMaxStartTime(maxStartTime);
-
-        //最大优雅退出等待时间配置
-        int maxExitTime = context
-                .getEnvironment()
-                .getProperty("jarboot.services.max-graceful-exit-time", int.class, CommonConst.MAX_WAIT_EXIT_TIME);
-        AgentManager.getInstance().setMaxGracefulExitTime(maxExitTime);
         TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
         taskWatchService.init();
     }

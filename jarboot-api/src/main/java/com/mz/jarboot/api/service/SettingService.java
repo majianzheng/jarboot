@@ -1,6 +1,6 @@
 package com.mz.jarboot.api.service;
 
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 
 /**
@@ -26,13 +26,13 @@ public interface SettingService {
      * 获取全局配置
      * @return 配置
      */
-    GlobalSetting getGlobalSetting();
+    SystemSetting getSystemSetting();
 
     /**
      * 提交全局配置
      * @param setting 配置
      */
-    void submitGlobalSetting(GlobalSetting setting);
+    void saveSetting(SystemSetting setting);
 
     /**
      * 获取vm options

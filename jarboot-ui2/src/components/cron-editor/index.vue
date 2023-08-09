@@ -73,8 +73,8 @@
 </style>
 <template>
   <div class="vue3-cron-div">
-    <el-button v-if="languageSwitchShow" class="language" type="text" @click="state.language = state.language === 'en' ? 'cn' : 'en'">{{
-      state.language === 'en' ? 'cn' : 'en'
+    <el-button v-if="languageSwitchShow" class="language" type="text" @click="state.language = state.language === 'en-US' ? 'zh-CN' : 'en-US'">{{
+      state.language === 'en-US' ? 'zh-CN' : 'en-US'
     }}</el-button>
     <el-tabs type="border-card">
       <el-tab-pane>
@@ -344,7 +344,7 @@
     </el-tabs>
     <div class="bottom">
       <div class="value">
-        <span> cron预览: </span>
+        <span> cron {{ $t('PREVIEW') }}: </span>
         <el-tag>{{ state.cron }}</el-tag>
       </div>
       <div class="buttonDiv">
@@ -437,7 +437,7 @@ export default defineComponent({
         Week: '',
         year: '',
       },
-      text: computed(() => Language[state.language || 'cn']),
+      text: computed(() => Language[state.language || 'zh-CN']),
       secondsText: computed(() => {
         let seconds = '';
         let cronEvery = state.second.cronEvery;

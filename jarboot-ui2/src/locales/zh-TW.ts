@@ -117,6 +117,10 @@ export default {
   PRIORITY_LABEL: '啟動優先級',
   DAEMON_LABEL: '進程守護',
   JAR_UPDATE_WATCH_LABEL: '文件路徑監控',
+  SCHEDULE_TYPE: '运行计划',
+  SCHEDULE_ONCE: '单次执行',
+  SCHEDULE_LONE_TIME: '长期运行',
+  SCHEDULE_CRON: '定时任务',
   COMMAND_EXAMPLE: '示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
 
   //挿件
@@ -132,6 +136,10 @@ export default {
   TRUSTED_HOSTS: '信任的服務器',
   EMPTY_INPUT_MSG: '輸入的內容为空！',
   DELETE_HOST_MSG: '是否要删除信任的服務器？',
+  MAX_START_TIME: '服務啟動最长等待时间（毫秒）',
+  MAX_EXIT_TIME: '服務优雅退出最长等待时间（毫秒）',
+  AFTER_OFFLINE_EXEC: '服務异常退出后执行的脚本',
+  FILE_SHAKE_TIME: '服務文件变更监控抖动时间（秒）',
 
   //用戶登錄
   USER_NAME: '用戶',

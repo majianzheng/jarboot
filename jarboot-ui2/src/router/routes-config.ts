@@ -132,7 +132,7 @@ export default [
         meta: {
           keepAlive: true,
           module: 'SETTING',
-          icon: 'icon-privilege',
+          icon: 'Memo',
           code: 'TRUSTED_HOSTS',
         },
       },

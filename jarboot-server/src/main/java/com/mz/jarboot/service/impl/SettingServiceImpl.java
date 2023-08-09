@@ -7,7 +7,7 @@ import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.constant.SettingPropConst;
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.api.service.SettingService;
@@ -22,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -216,13 +215,13 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public GlobalSetting getGlobalSetting() {
-        return SettingUtils.getGlobalSetting();
+    public SystemSetting getSystemSetting() {
+        return SettingUtils.getSystemSetting();
     }
 
     @Override
-    public void submitGlobalSetting(GlobalSetting setting) {
-        SettingUtils.updateGlobalSetting(setting);
+    public void saveSetting(SystemSetting setting) {
+        SettingUtils.updateSystemSetting(setting);
     }
 
     @Override

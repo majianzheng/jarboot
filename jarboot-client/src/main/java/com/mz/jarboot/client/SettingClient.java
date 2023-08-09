@@ -2,7 +2,7 @@ package com.mz.jarboot.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.SettingService;
 import com.mz.jarboot.client.utlis.HttpMethod;
@@ -77,11 +77,11 @@ public class SettingClient implements SettingService {
      * @return 配置
      */
     @Override
-    public GlobalSetting getGlobalSetting() {
+    public SystemSetting getSystemSetting() {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
         String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
         JsonNode result = ResponseUtils.parseResult(response, api);
-        return JsonUtils.treeToValue(result, GlobalSetting.class);
+        return JsonUtils.treeToValue(result, SystemSetting.class);
     }
 
     /**
@@ -90,7 +90,7 @@ public class SettingClient implements SettingService {
      * @param setting 配置
      */
     @Override
-    public void submitGlobalSetting(GlobalSetting setting) {
+    public void saveSetting(SystemSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
         String body = JsonUtils.toJsonString(setting);
         String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);

@@ -27,7 +27,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * 服务管理
@@ -47,9 +47,6 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     private static final String STARTED_MSG = "\033[96;1m%s\033[0m started cost \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m";
     private static final String STOPPED_MSG = "\033[96;1m%s\033[0m stopped cost \033[91;1m%.3f\033[0m second.";
-
-    @Value("${jarboot.after-server-error-offline:}")
-    private String afterServerErrorOffline;
 
     @Autowired
     private TaskRunCache taskRunCache;
@@ -228,13 +225,16 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STARTED));
             } else {
                 //启动失败
-                NotifyReactor
-                        .getInstance()
-                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
                 MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
                 if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
+                    NotifyReactor
+                            .getInstance()
+                            .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
                     MessageUtils.error("启动服务" + server + "失败！");
                 } else {
+                    NotifyReactor
+                            .getInstance()
+                            .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.FINISHED));
                     MessageUtils.info("启动服务" + server + "完成！");
                 }
             }
@@ -462,7 +462,6 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             logger.debug("service offline event, service setting is null!");
             return;
         }
-        String serviceName = setting.getName();
         String sid = setting.getSid();
         //检查进程是否存活
         String pid = TaskUtils.getPid(sid);
@@ -473,17 +472,35 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 return;
             }
             //尝试重新初始化代理客户端
-            TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(sid), 5, TimeUnit.SECONDS);
+            TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(setting), 5, TimeUnit.SECONDS);
             return;
         }
+        postHandleOfflineEvent(setting);
+    }
 
+    private void postHandleOfflineEvent(ServiceSetting setting) {
+        String serviceName = setting.getName();
         TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);
-
-        if (StringUtils.isNotEmpty(afterServerErrorOffline)) {
-            String cmd = afterServerErrorOffline + StringUtils.SPACE + serviceName;
-            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startTask(cmd, null, null));
+        String shell = SettingUtils.getSystemSetting().getAfterServerOfflineExec();
+        if (StringUtils.isNotEmpty(shell)) {
+            ServiceSetting postExecSetting = new ServiceSetting(serviceName + "后置脚本启动" );
+            postExecSetting.setApplicationType(CommonConst.SHELL_TYPE);
+            postExecSetting.setUserDir(setting.getUserDir());
+            postExecSetting.setWorkDirectory(setting.getWorkDirectory());
+            postExecSetting.setCommand(shell);
+            postExecSetting.setSid(setting.getSid());
+            Map<String, String> env = new HashMap<>(System.getenv());
+            env.put("SERVICE_NAME", serviceName);
+            env.put(CommonConst.JARBOOT_HOME, SettingUtils.getHomePath());
+            env.put("SID", setting.getSid());
+            String envStr = env.entrySet()
+                    .stream()
+                    .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+                    .collect(Collectors.joining(","));
+            postExecSetting.setEnv(envStr);
+            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startService(postExecSetting));
         }
 
         if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
@@ -499,8 +516,14 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
     }
 
-    private void tryReAttach(String sid) {
+    private void tryReAttach(ServiceSetting setting) {
+        final String sid = setting.getSid();
         if (taskRunCache.isStartingOrStopping(sid) || AgentManager.getInstance().isOnline(sid)) {
+            return;
+        }
+        String pid = TaskUtils.getPid(sid);
+        if (pid.isEmpty()) {
+            postHandleOfflineEvent(setting);
             return;
         }
         logger.info("尝试重连服务，attach sid: {}", sid);

@@ -19,7 +19,6 @@ import com.mz.jarboot.utils.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
-import javax.websocket.server.PathParam;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +40,7 @@ public class AgentManager {
     private final ConcurrentHashMap<String, String> localServices = new ConcurrentHashMap<>(16);
     /** 远程进程列表 */
     private final ConcurrentHashMap<String, JvmProcess> remoteProcesses = new ConcurrentHashMap<>(16);
-    /** 优雅退出最大等待时间 */
-    private int maxGracefulExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
+
     /** 写日志方法 */
     private java.lang.reflect.Method writeBytes = null;
     /** 当前默认的日志Appender */
@@ -128,8 +126,10 @@ public class AgentManager {
             } else {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting());
-                NotifyReactor.getInstance().publishEvent(event);
+                if (null != client.getSetting()) {
+                    ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting());
+                    NotifyReactor.getInstance().publishEvent(event);
+                }
                 client.setState(ClientState.OFFLINE);
                 MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
             }
@@ -182,7 +182,7 @@ public class AgentManager {
             sendInternalCommand(sid, CommandConst.EXIT_CMD, StringUtils.EMPTY);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(maxGracefulExitTime);
+                client.wait(SettingUtils.getSystemSetting().getMaxExitTime());
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
@@ -198,22 +198,6 @@ public class AgentManager {
             }
         }
         return true;
-    }
-
-    /**
-     * 设置优雅退出最大等待时间
-     * @param d 时间
-     */
-    public void setMaxGracefulExitTime(int d) {
-        this.maxGracefulExitTime = d;
-    }
-
-    /**
-     * 获取优雅退出最大等待时间
-     * @return 时间
-     */
-    public int getMaxGracefulExitTime() {
-        return this.maxGracefulExitTime;
     }
 
     /**
@@ -253,7 +237,6 @@ public class AgentManager {
         }
 
         synchronized (client) {
-            client.setSetting(setting);
             if (!ClientState.STARTING.equals(client.getState())) {
                 logger.info("Current service({}) is not starting now, wait service started error. statue:{}",
                         client.getName(), client.getState());

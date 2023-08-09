@@ -57,7 +57,7 @@ export default class SettingService {
   public static removeTrustedHost(host: string) {
     const form = new FormData();
     form.append('host', host);
-    return Request.delete<ResponseVo>(`${settingUrl}/trustedHost`, form);
+    return Request.delete<ResponseVo>(`${settingUrl}/trustedHost?host=${host}`, form);
   }
 
   /**

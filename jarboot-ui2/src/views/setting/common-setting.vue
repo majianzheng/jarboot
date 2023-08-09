@@ -1,11 +1,34 @@
 <template>
-  <div>
-    <el-form ref="configRef" :role="rules" :model="state.form" label-width="auto" status-icon>
+  <div class="sys-setting-main">
+    <el-form ref="configRef" :role="rules" :model="state.form" label-position="top" status-icon>
       <el-form-item :label="$t('DEFAULT_VM_OPT')" prop="defaultVmOptions">
-        <el-input v-model="state.form.defaultVmOptions" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
+        <el-input
+          v-model="state.form.defaultVmOptions"
+          placeholder="Example: -Xms512m -Xmx512m"
+          auto-complete="off"
+          auto-correct="off"
+          auto-capitalize="off"></el-input>
+      </el-form-item>
+      <el-form-item :label="$t('MAX_START_TIME')" prop="maxStartTime">
+        <el-input-number v-model="state.form.maxStartTime" :min="1000"></el-input-number>
+      </el-form-item>
+      <el-form-item :label="$t('MAX_EXIT_TIME')" prop="maxExitTime">
+        <el-input-number v-model="state.form.maxExitTime" :min="1000"></el-input-number>
+      </el-form-item>
+      <el-form-item :label="$t('AFTER_OFFLINE_EXEC')" prop="afterServerOfflineExec">
+        <el-input
+          v-model="state.form.afterServerOfflineExec"
+          placeholder="xxx.sh"
+          auto-complete="off"
+          auto-correct="off"
+          auto-capitalize="off"></el-input>
+      </el-form-item>
+      <el-form-item :label="$t('FILE_SHAKE_TIME')" prop="fileChangeShakeTime">
+        <el-input-number v-model="state.form.fileChangeShakeTime" :min="3" :max="600"></el-input-number>
       </el-form-item>
     </el-form>
     <div class="__setting_footer">
+      <el-button :loading="state.loading" @click="fetchSetting">{{ $t('REFRESH_BTN') }}</el-button>
       <el-button :loading="state.loading" type="primary" @click="save">{{ $t('SUBMIT_BTN') }}</el-button>
     </div>
   </div>
@@ -23,24 +46,36 @@ let state = reactive({
   form: {
     workspace: '',
     defaultVmOptions: '',
+    maxStartTime: 120000,
+    maxExitTime: 30000,
+    afterServerOfflineExec: '',
+    fileChangeShakeTime: 5,
   },
 });
 
 async function save() {
   state.loading = true;
-  await SettingService.submitGlobalSetting({ ...state.form });
-  CommonNotice.success(CommonUtils.translate('SUCCESS'));
-  state.loading = false;
+  try {
+    await SettingService.submitGlobalSetting({ ...state.form });
+    CommonNotice.success(CommonUtils.translate('SUCCESS'));
+  } finally {
+    state.loading = false;
+  }
 }
 
-onMounted(async () => {
+async function fetchSetting() {
   state.form = await SettingService.getGlobalSetting();
-});
+}
+
+onMounted(fetchSetting);
 </script>
 
-<style scoped>
-.__setting_footer {
-  display: flex;
-  justify-content: center;
+<style lang="less" scoped>
+.sys-setting-main {
+  padding: 0 15px;
+  .__setting_footer {
+    display: flex;
+    justify-content: center;
+  }
 }
 </style>

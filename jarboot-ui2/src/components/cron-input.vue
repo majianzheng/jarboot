@@ -1,11 +1,6 @@
 <template>
   <el-popover :visible="state.cronPopover" width="700px">
-    <cron-editor
-      :cron-value="state.cron"
-      @change="changeCron"
-      @close="togglePopover(false)"
-      max-height="400px"
-      :i18n="locale === 'en-US' ? 'en' : 'cn'"></cron-editor>
+    <cron-editor :cron-value="state.cron" @change="changeCron" @close="togglePopover(false)" max-height="400px" :i18n="locale"></cron-editor>
     <template #reference>
       <el-input @focus="togglePopover(true)" v-model="state.cron" placeholder="* * * * * ? *"></el-input>
     </template>

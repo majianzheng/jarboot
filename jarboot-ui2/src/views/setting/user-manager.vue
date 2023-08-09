@@ -189,7 +189,7 @@ async function updateUser(row: SysUser) {
 }
 
 async function deleteUser(row: any) {
-  await ElMessageBox.confirm(CommonUtils.translate('DELETE') + row.username + '?', CommonUtils.translate('WARN'), {});
+  await ElMessageBox.confirm(CommonUtils.translate('DELETE') + ' ' + row.username + '?', CommonUtils.translate('WARN'), {});
   await UserService.deleteUser(row.id);
   tableRef.value.refresh();
   CommonNotice.success();

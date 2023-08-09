@@ -18,5 +18,7 @@ public enum TaskLifecycle {
     /** 停止失败 */
     STOP_FAILED,
     /** 异常离线 */
-    EXCEPTION_OFFLINE
+    EXCEPTION_OFFLINE,
+    /** 完成 */
+    FINISHED
 }

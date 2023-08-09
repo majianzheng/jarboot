@@ -3,7 +3,7 @@ package com.mz.jarboot;
 import com.mz.jarboot.api.constant.TaskLifecycle;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.event.TaskLifecycleEvent;
-import com.mz.jarboot.api.pojo.GlobalSetting;
+import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.JvmProcess;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
@@ -63,7 +63,7 @@ public interface JarbootOperator {
      * 获取全局配置
      * @return 配置
      */
-    GlobalSetting getGlobalSetting();
+    SystemSetting getGlobalSetting();
 
     /**
      * 注册事件处理

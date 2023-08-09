@@ -8,7 +8,7 @@ public abstract class BaseResponse {
 	/**默认成功*/
 	protected int code = ResultCodeConst.SUCCESS;
 	protected String msg;
-	protected boolean success;
+	protected boolean success = true;
 
 	protected BaseResponse() {
 		

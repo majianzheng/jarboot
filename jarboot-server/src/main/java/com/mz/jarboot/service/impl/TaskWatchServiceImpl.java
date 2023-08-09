@@ -1,5 +1,6 @@
 package com.mz.jarboot.service.impl;
 
+import com.mz.jarboot.api.constant.SettingPropConst;
 import com.mz.jarboot.api.event.JarbootEvent;
 import com.mz.jarboot.api.event.Subscriber;
 import com.mz.jarboot.api.service.ServiceManager;
@@ -38,8 +39,6 @@ import java.util.stream.Collectors;
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final int MIN_MODIFY_WAIT_TIME = 3;
-    private static final int MAX_MODIFY_WAIT_TIME = 600;
     @Autowired
     private ServiceManager serverMgrService;
 
@@ -47,9 +46,6 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     private final Map<WatchKey, ServiceSetting> watchKeyServiceMap = new ConcurrentHashMap<>(16);
 
     private final String jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-
-    @Value("${jarboot.file-shake-time:5}")
-    private long modifyWaitTime;
     @Value("${jarboot.after-start-exec:}")
     private String afterStartExec;
     private boolean started = false;
@@ -64,9 +60,6 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     public void init() {
         if (started) {
             return;
-        }
-        if (modifyWaitTime < MIN_MODIFY_WAIT_TIME || modifyWaitTime > MAX_MODIFY_WAIT_TIME) {
-            modifyWaitTime = 5;
         }
         started = true;
         // 路径监控生产者
@@ -93,7 +86,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
 
     @Override
     public void registerServiceChangeMonitor(ServiceSetting setting) {
-        if (!Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
+        if (!SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) || !Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
             return;
         }
         final Path servicePath = Paths.get(SettingUtils.getWorkspace(), setting.getUserDir(), setting.getName());
@@ -139,7 +132,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         try {
             ServiceSetting serviceSetting;
             //防抖去重，总是延迟一段时间（抖动时间配置），变化多次计一次
-            while (null != (serviceSetting = modifiedServiceQueue.poll(modifyWaitTime, TimeUnit.SECONDS))) {
+            while (null != (serviceSetting = modifiedServiceQueue.poll(SettingUtils.getSystemSetting().getFileChangeShakeTime(), TimeUnit.SECONDS))) {
                 services.add(serviceSetting);
             }
         } catch (InterruptedException e) {

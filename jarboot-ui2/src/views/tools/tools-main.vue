@@ -37,7 +37,7 @@ const state = reactive({
 
 const settingRoutes = (routesConfig.find(config => TOOLS === config.name)?.children || ([] as any[])).filter(config => {
   if ('jarboot' !== user.username && config?.meta?.code) {
-    if (!user?.permission[config.meta.code]) {
+    if (user?.permission && !user.permission[config.meta.code]) {
       return false;
     }
   }

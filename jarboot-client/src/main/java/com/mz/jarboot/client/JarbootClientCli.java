@@ -115,7 +115,7 @@ public class JarbootClientCli {
         });
 
         SettingService setting = new SettingClient(this.host, null, null);
-        AnsiLog.info("system setting: {}", setting.getGlobalSetting());
+        AnsiLog.info("system setting: {}", setting.getSystemSetting());
 
 
         //测试命令执行
