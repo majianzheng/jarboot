@@ -14,7 +14,6 @@ import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.event.ResponseEventBuilder;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.ThreadUtil;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
@@ -40,8 +39,6 @@ public class AgentServiceOperator {
                     .build();
             HttpUtils.getSimple(url);
         }
-        LogUtils.offlineDevLog("started check alive");
-        ThreadUtil.checkAliveAndAutoExit();
     }
 
     public static String getServiceName() {

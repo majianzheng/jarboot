@@ -19,6 +19,10 @@ public class JarbootException extends RuntimeException {
 		super(message);
 		errorCode = ResultCodeConst.INTERNAL_ERROR;
 	}
+	public JarbootException(Throwable message) {
+		super(message.getMessage());
+		errorCode = -1;
+	}
 
 	public JarbootException() {
 		errorCode = ResultCodeConst.INTERNAL_ERROR;

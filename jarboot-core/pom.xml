@@ -63,6 +63,10 @@
             <artifactId>text-ui</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.github.majianzheng</groupId>
             <artifactId>jarboot-api</artifactId>
             <scope>provided</scope>

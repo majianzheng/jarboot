@@ -174,7 +174,7 @@
             v-model="serviceState.configForm.env"></el-input>
         </el-form-item>
         <el-form-item :label="$t('PRIORITY_LABEL')" prop="priority">
-          <el-input-number :min="0" :max="9999" v-model="serviceState.configForm.priority"></el-input-number>
+          <el-input-number :min="1" :max="9999" v-model="serviceState.configForm.priority"></el-input-number>
         </el-form-item>
         <el-form-item :label="$t('SCHEDULE_TYPE')" prop="daemon">
           <el-radio-group v-model="serviceState.configForm.scheduleType">
@@ -248,7 +248,7 @@ const defaultSetting: ServerSetting = {
   jarUpdateWatch: false,
   jdkPath: '',
   lastModified: 0,
-  priority: 0,
+  priority: 1,
   sid: '',
   vm: '',
   vmContent: '',
@@ -454,6 +454,14 @@ function startServices() {
 
 function stopServices() {
   ServiceManager.stopService(getSelected());
+}
+
+function refresh() {
+  if (isService) {
+    serviceStore.reload();
+  } else {
+    serviceStore.reloadJvmList();
+  }
 }
 
 function setStatus(sid: string, status: string) {

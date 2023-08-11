@@ -1,9 +1,9 @@
 package com.mz.jarboot.security;
 
-import com.mz.jarboot.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -27,15 +27,8 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     private static final String SECURITY_IGNORE_URLS_SPILT_CHAR = ",";
 
     private static final String LOGIN_ENTRY_POINT = "/api/jarboot/auth/login";
-
     private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/jarboot/auth/**";
-    
-    private static final String DEFAULT_ALL_PATH_PATTERN = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico,/actuator/**";
-    
-    private static final String PROPERTY_IGNORE_URLS = "jarboot.security.ignore.urls";
-
-    @Autowired
-    private Environment env;
+    private static final String IGNORE_PATH_PATTERN = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico";
     
     @Autowired
     private JwtTokenManager tokenProvider;
@@ -51,12 +44,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     
     @Override
     public void configure(WebSecurity web) {
-        String ignoreUrls = env.getProperty(PROPERTY_IGNORE_URLS, DEFAULT_ALL_PATH_PATTERN);
-        if (!StringUtils.isBlank(ignoreUrls)) {
-            for (String each : ignoreUrls.trim().split(SECURITY_IGNORE_URLS_SPILT_CHAR)) {
-                web.ignoring().antMatchers(each.trim());
-            }
-        }
+        web.ignoring().antMatchers(HttpMethod.GET, IGNORE_PATH_PATTERN.split(SECURITY_IGNORE_URLS_SPILT_CHAR));
         web.ignoring().antMatchers(
                 TOKEN_BASED_AUTH_ENTRY_POINT,
                 "/**/public/**");

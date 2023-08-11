@@ -3,13 +3,16 @@
 </template>
 
 <script setup lang="ts">
-import CloudService from '@/services/CloudService';
+import Request from '@/common/Request';
 import { onMounted } from 'vue';
 import { useBasicStore } from '@/stores';
+import type { ServerRuntimeInfo } from '@/types';
 
 const versionStore = useBasicStore();
-onMounted(() => {
-  CloudService.getVersion().then(resp => versionStore.setVersion(resp));
+
+onMounted(async () => {
+  const runtimeInfo = await Request.get<ServerRuntimeInfo>(`/api/jarboot/public/serverRuntime`, {});
+  versionStore.setVersion(runtimeInfo.version);
 });
 </script>
 

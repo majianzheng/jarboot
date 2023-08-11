@@ -48,7 +48,8 @@ public class VMUtils {
         try {
             return attach.invoke(null, pid);
         } catch (Exception e) {
-            throw new JarbootException("Attach failed! " + e.getMessage(), e);
+            String msg = String.format("Attach %s failed! %s", pid, e.getMessage());
+            throw new JarbootException(msg, e);
         }
     }
 
@@ -62,7 +63,8 @@ public class VMUtils {
         try {
             loadAgent.invoke(vm, path, args);
         } catch (Exception e) {
-            throw new JarbootException("loadAgent failed! " + e.getMessage(), e);
+            String msg = String.format("loadAgent failed, vm is null: %b, path: %s, args:%s %s", null == vm, path, args, e.getMessage());
+            throw new JarbootException(msg, e);
         }
     }
 

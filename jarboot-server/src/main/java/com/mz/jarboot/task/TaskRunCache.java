@@ -1,5 +1,6 @@
 package com.mz.jarboot.task;
 
+import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.base.AgentManager;
 import com.mz.jarboot.common.CacheDirHelper;
@@ -102,6 +103,7 @@ public class TaskRunCache {
 
     /**
      * 获取服务列表
+     * @param userDir 用户目录
      * @return 服务列表
      */
     public List<ServiceInstance> getServiceList(String userDir) {
@@ -115,6 +117,41 @@ public class TaskRunCache {
             serverList.add(process);
         }
         return serverList;
+    }
+
+    /**
+     * 获取服务组
+     * @param userDir 用户目录
+     * @return 服务组
+     */
+    public ServiceGroup getServiceGroup(String userDir) {
+        List<ServiceInstance> serviceList = this.getServiceList(userDir);
+        ServiceGroup localGroup = new ServiceGroup();
+        localGroup.setHost("localhost");
+        localGroup.setChildren(new ArrayList<>());
+        if (CollectionUtils.isEmpty(serviceList)) {
+            return localGroup;
+        }
+        HashMap<String, ServiceGroup> map = new HashMap<>(16);
+        List<ServiceGroup> list = new ArrayList<>();
+        serviceList.forEach(service -> {
+            if (StringUtils.isEmpty(service.getGroup())) {
+                localGroup.getChildren().add(service);
+            } else {
+                map.compute(service.getGroup(), (k, v) -> {
+                    if (null == v) {
+                        v = new ServiceGroup();
+                        v.setName(service.getGroup());
+                        v.setChildren(new ArrayList<>());
+                        list.add(v);
+                    }
+                    v.getChildren().add(service);
+                    return v;
+                });
+            }
+        });
+        localGroup.getChildren().addAll(list);
+        return localGroup;
     }
 
     public boolean hasStartingOrStopping() {

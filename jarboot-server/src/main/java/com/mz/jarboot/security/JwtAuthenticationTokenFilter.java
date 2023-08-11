@@ -1,6 +1,7 @@
 package com.mz.jarboot.security;
 
 import com.mz.jarboot.common.pojo.ResponseSimple;
+import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.constant.AuthConst;
@@ -27,10 +28,6 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        if (!tokenManager.getEnabled()) {
-            chain.doFilter(request, response);
-            return;
-        }
         String jwt = resolveToken(request);
         
         if (!StringUtils.isBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -50,9 +47,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     }
 
     private void handleError(HttpServletResponse response, int status, int code, String msg) throws IOException {
-        ResponseSimple responseVo = new ResponseSimple();
-        responseVo.setCode(code);
-        responseVo.setMsg(msg);
+        ResponseSimple responseVo = HttpResponseUtils.error(code, msg);
         response.setStatus(status);
         response.setContentType("application/json");
         response.getOutputStream().write(JsonUtils.toJsonBytes(responseVo));

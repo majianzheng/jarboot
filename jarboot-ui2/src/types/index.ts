@@ -149,3 +149,9 @@ export interface JvmProcess extends TreeNode {
   trusted: boolean;
   children?: JvmProcess[];
 }
+
+export type ServerRuntimeInfo = {
+  version: string;
+  uuid: string;
+  inDocker: boolean;
+};

@@ -15,8 +15,8 @@ async function getList() {
 }
 async function add() {
   const ip = await ElMessageBox.prompt('IP', CommonUtils.translate('CREATE'));
-  if (ip) {
-    await SettingService.addTrustedHost(ip);
+  if (ip?.value) {
+    await SettingService.addTrustedHost(ip.value);
     CommonNotice.success();
     await getList();
   }

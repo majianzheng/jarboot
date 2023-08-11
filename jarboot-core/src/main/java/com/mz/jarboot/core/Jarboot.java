@@ -1,6 +1,7 @@
 package com.mz.jarboot.core;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerRuntimeInfo;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.utils.BannerUtils;
 import com.mz.jarboot.common.utils.OSUtils;
@@ -189,11 +190,11 @@ public class Jarboot {
         if (!Boolean.TRUE.equals(this.shell)) {
             AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
         }
-        String url = CommonConst.HTTP + host + CommonConst.CLOUD_CONTEXT + "/version";
+        String url = CommonConst.HTTP + host + CommonConst.SERVER_RUNTIME_CONTEXT;
         try {
-            String version = HttpUtils.getString(url);
+            ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class);
             if (!Boolean.TRUE.equals(this.shell)) {
-                AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(version));
+                AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(runtimeInfo.getVersion()));
             }
         } catch (Exception e) {
             AnsiLog.error(e);

@@ -16,13 +16,12 @@ import com.mz.jarboot.core.event.HeartbeatEvent;
 import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.core.utils.ThreadUtil;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
-import okio.ByteString;
+import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
 
+import javax.websocket.*;
+import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author majianzheng
  */
 @SuppressWarnings("squid:S3077")
-public class WsClientFactory extends WebSocketListener implements Subscriber<HeartbeatEvent> {
+@ClientEndpoint
+public class WsClientFactory implements Subscriber<HeartbeatEvent> {
     private static final Logger logger = LogUtils.getLogger();
 
     /** 最大连接等待时间默认10秒 */
@@ -43,7 +43,8 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     /** 重连的间隔时间，加上连接等待时间10秒，一共每隔15秒执行一次尝试连接 */
     private static final int RECONNECT_INTERVAL = 5;
     /** WebSocket 客户端 */
-    private okhttp3.WebSocket client = null;
+    private final WsWebSocketContainer container = new WsWebSocketContainer();
+    private Session session;
     /** 是否在线标志 */
     private volatile boolean online = false;
     /** 连接等待latch */
@@ -58,8 +59,8 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     private boolean connecting = false;
     /** 重连未开始标志 */
     private boolean reconnectNotStarted = true;
-    private AtomicBoolean shutdown  = new AtomicBoolean(false);
-    private AtomicBoolean destroyingClient  = new AtomicBoolean(false);
+    private final AtomicBoolean shutdown  = new AtomicBoolean(false);
+    private final AtomicBoolean destroyingClient  = new AtomicBoolean(false);
     /** 心跳Future */
     private ScheduledFuture<?> heartbeatFuture = null;
     private Thread reconnectThread = null;
@@ -74,8 +75,8 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
 
-    @Override
-    public void onOpen(WebSocket webSocket, Response response) {
+    @OnOpen
+    public void onOpen() {
         LogUtils.offlineDevLog("websocket open!");
         if (null != latch) {
             latch.countDown();
@@ -85,21 +86,21 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         online = true;
     }
 
-    @Override
-    public void onMessage(WebSocket webSocket, ByteString bytes) {
+    @OnMessage
+    public void onMessage(byte[] message) {
         CommandRequest request = new CommandRequest();
-        request.fromRaw(bytes.toByteArray());
+        request.fromRaw(message);
         NotifyReactor.getInstance().publishEvent(request);
     }
 
-    @Override
-    public void onClosed(WebSocket webSocket, int code, String reason) {
-        LogUtils.offlineDevLog("onClosed code:{}, reason: {}", code, reason);
+    @OnClose
+    public void onClosed(Session session) {
+        LogUtils.offlineDevLog("onClosed {}", session.getId());
         onClose();
     }
 
-    @Override
-    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+    @OnError
+    public void onFailure(Throwable t) {
         LogUtils.offlineDevLog("连接异常");
         if (!destroyingClient.get()) {
             logger.error("连接异常：{}", t.getMessage(), t);
@@ -116,24 +117,16 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
     /**
-     * 获取客户端
-     * @return 客户端
-     */
-    public okhttp3.WebSocket getSingletonClient() {
-        return this.client;
-    }
-
-    /**
      * 发送数据
      * @param data 数据
      */
     public void send(byte[] data) {
-        WebSocket socket = this.client;
-        if (null == socket) {
+        Session temp = this.session;
+        if (null == temp) {
             return;
         }
         try {
-            socket.send(ByteString.of(data, 0, data.length));
+            temp.getBasicRemote().sendBinary(ByteBuffer.wrap(data));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -147,7 +140,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         if (online || connecting || shutdown.get()) {
             return;
         }
-        if (null != client) {
+        if (null != session) {
             this.destroyClient();
         }
         final String url = new StringBuilder()
@@ -165,12 +158,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         latch = new CountDownLatch(1);
         try {
             connecting = true;
-            client = HttpUtils.HTTP_CLIENT
-                    .newWebSocket(new Request
-                            .Builder()
-                            .get()
-                            .url(url)
-                            .build(), this);
+            session = container.connectToServer(this, URI.create(url));
             if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS) || online) {
                 LogUtils.offlineDevLog("start scheduleHeartbeat");
                 scheduleHeartbeat();
@@ -266,8 +254,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     }
 
     private void sendHeartbeat() {
-        WebSocket socket = this.client;
-        if (null == socket || connecting || !reconnectNotStarted || shutdown.get()) {
+        if (null == this.session || connecting || !reconnectNotStarted || shutdown.get()) {
             return;
         }
         CommandResponse resp = new CommandResponse();
@@ -278,12 +265,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         try {
             // 进行一次心跳检测
             byte[] raw = resp.toRaw();
-            online = socket.send(ByteString.of(raw, 0, raw.length));
-            if (!online) {
-                // 发送心跳失败！
-                LogUtils.offlineDevLog("Check online send heartbeat failed.");
-                return;
-            }
+            send(raw);
             // 等待jarboot-server的心跳命令触发
             online = heartbeatLatch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS);
             if (!online) {
@@ -292,6 +274,9 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         } catch (InterruptedException e) {
             LogUtils.offlineDevLog("sendHeartbeat interrupted!");
             Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            LogUtils.offlineDevLog("Check online send heartbeat failed. {}", e.getMessage());
+            online = false;
         } finally {
             this.heartbeatLatch = null;
             if (!online) {
@@ -299,8 +284,6 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 this.destroyClient();
             }
         }
-        // 检测线程，若只剩下最后一个非守护线程则退出
-        ThreadUtil.checkAliveAndAutoExit();
     }
 
     private synchronized void onClose() {
@@ -308,15 +291,15 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
         if (destroyingClient.compareAndSet(true, false)) {
             LogUtils.offlineDevLog("正在销毁websocket客户端");
         } else {
-            okhttp3.WebSocket temp = this.client;
+            Session temp = this.session;
             if (null != temp) {
                 try {
-                    temp.close(1000, "closed");
+                    temp.close();
                 } catch (Exception e) {
                     // ignore
                 }
             }
-            this.client = null;
+            this.session = null;
         }
         EnvironmentContext.cleanSession();
         if (null == shutdownLatch) {
@@ -365,7 +348,7 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
     private void destroyClient() {
         LogUtils.offlineDevLog(">>>distroy client");
         if (destroyingClient.compareAndSet(false, true)) {
-            if (null == this.client) {
+            if (null == this.session) {
                 return;
             }
             try {
@@ -377,16 +360,11 @@ public class WsClientFactory extends WebSocketListener implements Subscriber<Hea
                 // ignore
             }
             try {
-                client.cancel();
-            } catch (Exception e) {
-                // ignore
-            }
-            try {
-                client.close(1000, "Connect close.");
+                session.close();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            client = null;
+            session = null;
         }
     }
 

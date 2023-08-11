@@ -33,8 +33,6 @@ public class JwtTokenManager {
 
     @Value("${jarboot.token.secret.key:SecretKey012345678901234567899876543210012345678901234567890123456789}")
     private String secretKey;
-    @Value("${jarboot.security.enabled:true}")
-    private boolean enabled;
     @Autowired
     private UserDao userDao;
     private byte[] secretKeyBytes;
@@ -106,9 +104,5 @@ public class JwtTokenManager {
             token = token.substring(AuthConst.TOKEN_PREFIX.length());
         }
         Jwts.parserBuilder().setSigningKey(getSecretKeyBytes()).build().parseClaimsJws(token);
-    }
-
-    public boolean getEnabled() {
-        return this.enabled;
     }
 }
