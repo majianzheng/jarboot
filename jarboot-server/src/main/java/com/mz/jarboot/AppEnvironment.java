@@ -80,6 +80,17 @@ public class AppEnvironment implements SpringApplicationRunListener {
         taskWatchService.init();
     }
 
+    @Override
+    public void failed(ConfigurableApplicationContext context, Throwable exception) {
+        if (null != this.lock) {
+            try {
+                this.lock.release();
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+        }
+    }
+
     private void checkEnvironment() {
         String binDir = homePath + File.separator + CommonConst.COMPONENTS_NAME;
         //先检查jarboot-agent.jar文件
