@@ -74,8 +74,7 @@ class WsManager {
    * @param sid sid
    */
   public static callFunc(func: FuncCode, sid: string) {
-    const msg = { service: '', sid, body: '', func } as MsgReq;
-    WsManager.sendMessage(msg);
+    WsManager.sendMessage({ service: '', sid, body: '', func } as MsgReq);
   }
 
   /**

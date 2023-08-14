@@ -11,7 +11,7 @@
           <span style="margin: 0 6px">{{ middleTitle }}</span>
           <el-button v-if="!!state.executing" link class="tool-button" @click="$emit('cancel')" :title="$t('CANCEL')">
             <template #icon>
-              <i class="iconfont icon-stopped tool-button-red-icon"></i>
+              <em class="iconfont icon-stopped tool-button-red-icon"></em>
             </template>
           </el-button>
           <el-button v-else link class="tool-button" @click="state.view = ''" :title="$t('CLOSE')">
@@ -23,17 +23,14 @@
       </div>
       <div class="panel-header-tools">
         <div class="tool-button" @click="clearDisplay" :title="$t('CLEAR')">
-          <i class="iconfont icon-clear tool-button-red-icon"></i>
+          <em class="iconfont icon-clear tool-button-red-icon"></em>
         </div>
         <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
-          <i class="iconfont icon-to-top"></i>
+          <em class="iconfont icon-to-top"></em>
         </div>
         <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd">
-          <i class="iconfont icon-to-bottom"></i>
+          <em class="iconfont icon-to-bottom"></em>
         </div>
-        <!--        <div class="tool-button" :title="$t('TEXT_WRAP')" :class="{ active: state.textWrap }" @click="state.textWrap = !state.textWrap">-->
-        <!--          <i class="iconfont icon-text-wrap"></i>-->
-        <!--        </div>-->
       </div>
     </div>
     <div class="terminal-view" :style="{ width: width + 'px' }" v-show="!state.view">
@@ -202,7 +199,6 @@ const doExecCommand = () => {
   state.executing = cmd;
   state.view = '';
 
-  //pubsub.publish(props.sid, CONSOLE_TOPIC.APPEND_LINE, `<span class="command-prefix">$</span>${cmd}`);
   emit('execute', cmd, term.cols, term.rows);
   state.command = '';
   const history = historyProp.history;

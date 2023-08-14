@@ -3,7 +3,7 @@
     <div class="menu-side">
       <el-menu :default-active="state.routeName" class="menu-vertical" :collapse="true" :collapse-transition="true" @select="doSelect">
         <el-menu-item :index="conf.name" v-for="(conf, i) in settingRoutes" :key="i" :route="conf">
-          <i class="iconfont __menu-icon" :class="conf.meta.icon"></i>
+          <em class="iconfont __menu-icon" :class="conf.meta.icon"></em>
           <template #title>{{ $t(conf.meta.code) }}</template>
         </el-menu-item>
       </el-menu>

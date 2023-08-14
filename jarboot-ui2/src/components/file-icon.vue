@@ -52,10 +52,10 @@ function isImage() {
 <template>
   <span>
     <el-icon v-if="directory"><Folder /></el-icon>
-    <i v-else-if="getFileIcon()" class="iconfont" :class="'icon-' + getFileIcon()"></i>
+    <em v-else-if="getFileIcon()" class="iconfont" :class="'icon-' + getFileIcon()"></em>
     <el-icon v-else-if="isImage()"><PictureFilled /></el-icon>
     <el-icon v-else-if="canEdit(filename)"><Document /></el-icon>
-    <i v-else class="iconfont icon-binary"></i>
+    <em v-else class="iconfont icon-binary"></em>
   </span>
 </template>
 

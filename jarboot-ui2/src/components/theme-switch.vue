@@ -7,11 +7,11 @@
         $emit('changed', isDark);
       ">
       <div class="theme-icon light" :style="{ opacity: isDark ? 0 : 1 }">
-        <i class="iconfont icon-light"></i>
+        <em class="iconfont icon-light"></em>
       </div>
       <div style="flex: auto"></div>
       <div id="dark-icon-id" class="theme-icon" :style="{ opacity: isDark ? 1 : 0 }">
-        <i class="iconfont icon-dark"></i>
+        <em class="iconfont icon-dark"></em>
       </div>
     </div>
   </div>

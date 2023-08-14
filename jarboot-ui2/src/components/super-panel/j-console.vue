@@ -149,8 +149,8 @@ function prompt() {
 let command = '';
 
 function runCommand(term: Terminal, text: string) {
-  const command = text.trim().split(' ')[0];
-  if (command.length > 0) {
+  const cmd = text.trim().split(' ')[0];
+  if (cmd.length > 0) {
     term.writeln('');
     emit('command', text);
     return;
@@ -164,9 +164,8 @@ function onConsole(line: string | undefined) {
   }
 }
 function onStdPrint(str: string) {
-  nextTick(() =>termOption.term.write(str));
+  nextTick(() => termOption.term.write(str));
 }
-
 
 function banner() {
   return (
@@ -202,9 +201,6 @@ onUnmounted(() => {
   if (pubsub) {
     pubsub.unSubmit(id, CONSOLE_TOPIC.APPEND_LINE, onConsole);
     pubsub.unSubmit(id, CONSOLE_TOPIC.STD_PRINT, onStdPrint);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.BACKSPACE, onBackspace);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.START_LOADING, onStartLoading);
-    // pubsub.unSubmit(id, CONSOLE_TOPIC.FINISH_LOADING, onFinishLoading);
     pubsub.unSubmit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);
     pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
     pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);

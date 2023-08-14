@@ -1,6 +1,3 @@
-import StringUtil from './StringUtil';
-import Logger from './Logger';
-
 /**
  * http错误处理公用类
  * @author majianzheng

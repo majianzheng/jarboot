@@ -25,6 +25,18 @@ public class ServerDaemon {
             AnsiLog.error("JARBOOT_HOME is not set!");
             return;
         }
+        try (FileLock daemonLock = CacheDirHelper.singleDaemonTryLock()) {
+            if (null == daemonLock) {
+                AnsiLog.error("守护进程已在运行中!");
+                return;
+            }
+            daemon(home);
+        } catch (Exception e) {
+            AnsiLog.error(e);
+        }
+    }
+
+    private static void daemon(String home) {
         if (OSUtils.isWindows()) {
             // 初始化托盘
             AnsiLog.info("Windows 托盘应用初始化...");
@@ -41,7 +53,6 @@ public class ServerDaemon {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                break;
             }
         }
         if (!prepared) {
@@ -54,12 +65,14 @@ public class ServerDaemon {
                 lock.release();
             }
         } catch (Exception e) {
-            AnsiLog.error(e.getMessage());
+            AnsiLog.error(e);
         }
         // 启动startup.sh
         String [] cmd = OSUtils.isWindows() ? new String[]{"bin/windows/startup.cmd"} : new String[]{"sh", "bin/startup.sh"};
         try {
-            Runtime.getRuntime().exec(cmd, null, FileUtils.getFile(home));
+            Runtime.getRuntime().exec(cmd, null, FileUtils.getFile(home)).waitFor();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             AnsiLog.error(e);
         }

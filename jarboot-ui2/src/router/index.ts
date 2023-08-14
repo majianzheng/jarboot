@@ -30,7 +30,7 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   if (PAGE_LOGIN === to.name) {
     next();
     return;

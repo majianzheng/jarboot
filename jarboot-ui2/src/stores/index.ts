@@ -6,7 +6,16 @@ import ServiceManager from '@/services/ServiceManager';
 import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
-import { ATTACHED, ATTACHING, DEFAULT_PRIVILEGE, EXITED, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
+import {
+  ATTACHED,
+  ATTACHING,
+  DEFAULT_PRIVILEGE,
+  EXITED,
+  STATUS_STARTED,
+  STATUS_STARTING,
+  STATUS_STOPPED,
+  STATUS_STOPPING,
+} from '@/common/CommonConst';
 import UserService from '@/services/UserService';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import Logger from '@/common/Logger';
@@ -48,7 +57,7 @@ export const useUserStore = defineStore({
         userDir: '',
       });
       CommonUtils.deleteToken();
-      router.push({ name: PAGE_LOGIN }).then(r => {});
+      return router.push({ name: PAGE_LOGIN });
     },
     async login(username: string, password: string) {
       const user: any = await OAuthService.login(username, password);
@@ -115,16 +124,15 @@ export const useServiceStore = defineStore({
       }
       return null;
     },
-    setStatus(sid: string, status: string, isService: boolean): ServiceInstance | null  {
+    setStatus(sid: string, status: string, isService: boolean): ServiceInstance | null {
       const groups = isService ? this.groups : this.jvmGroups;
       const service = this.findInstance(groups, sid);
-    
+
       if (service && service.status !== status) {
         const name = service.name;
         switch (status) {
           case STATUS_STARTING:
             // 激活终端显示
-            //activeConsole(key);
             service.status = status;
             Logger.log(`${name} 启动中...`);
             pubsub.publish(sid, CONSOLE_TOPIC.START_LOADING);
@@ -175,7 +183,7 @@ export const useServiceStore = defineStore({
         }
       }
       return service;
-    }
+    },
   },
 });
 

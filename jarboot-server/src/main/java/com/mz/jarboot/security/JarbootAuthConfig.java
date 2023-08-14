@@ -2,7 +2,6 @@ package com.mz.jarboot.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
@@ -28,8 +27,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
 
     private static final String LOGIN_ENTRY_POINT = "/api/jarboot/auth/login";
     private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/jarboot/auth/**";
-    private static final String IGNORE_PATH_PATTERN = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico";
-    
+
     @Autowired
     private JwtTokenManager tokenProvider;
     
@@ -44,6 +42,7 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     
     @Override
     public void configure(WebSecurity web) {
+        final String IGNORE_PATH_PATTERN = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico";
         web.ignoring().antMatchers(HttpMethod.GET, IGNORE_PATH_PATTERN.split(SECURITY_IGNORE_URLS_SPILT_CHAR));
         web.ignoring().antMatchers(
                 TOKEN_BASED_AUTH_ENTRY_POINT,

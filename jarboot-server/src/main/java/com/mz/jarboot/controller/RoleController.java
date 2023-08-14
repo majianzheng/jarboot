@@ -4,7 +4,6 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.pojo.PagedList;
 import com.mz.jarboot.common.pojo.ResponseVo;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
-import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.RoleInfo;
 import com.mz.jarboot.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;

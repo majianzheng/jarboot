@@ -17,18 +17,18 @@
               <el-icon><Plus /></el-icon>
             </div>
             <div @click="doDashboardCmd" class="tool-button tool-button-red-icon" :class="{ disabled: !serviceState.activated?.sid }">
-              <i class="iconfont icon-dashboard"></i>
+              <em class="iconfont icon-dashboard"></em>
             </div>
             <div v-if="isService" class="tool-button tool-button-icon" :class="{ disabled: serviceState.importing }" @click="onImport">
               <Loading v-if="serviceState.importing" class="ui-spin" />
-              <i v-else class="iconfont icon-import"></i>
+              <em v-else class="iconfont icon-import"></em>
             </div>
             <div
               v-if="isService"
               class="tool-button tool-button-icon"
               :class="{ disabled: !serviceState.activated?.sid || serviceState.activated?.pid }"
               @click="exportServer">
-              <i class="iconfont icon-export"></i>
+              <em class="iconfont icon-export"></em>
             </div>
           </div>
           <div style="flex: auto; padding: 3px 1px">
@@ -55,10 +55,10 @@
                       <CaretRight />
                     </el-icon>
                     <el-icon v-else-if="data.attached" class="status-running icon-size">
-                      <i class="iconfont icon-debug"></i>
+                      <em class="iconfont icon-debug"></em>
                     </el-icon>
                     <el-icon v-else-if="data.pid" class="status-stopped icon-size">
-                      <i class="iconfont icon-debug"></i>
+                      <em class="iconfont icon-debug"></em>
                     </el-icon>
                     <span class="__tree-title" v-if="isService">{{ data.name }}</span>
                     <span class="__tree-title" v-else @dblclick="serviceStore.attach(data.pid)">{{ data.name }}</span>
@@ -397,11 +397,9 @@ function detach(server: ServiceInstance) {
   }
   const sid = server.sid || '';
   if (server.remote) {
-    ElMessageBox.confirm(CommonUtils.translate('DETACH_MSG'), CommonUtils.translate('WARN'), { type: 'warning' })
-      .then(() => {
-        WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
-      })
-      .catch(() => {});
+    ElMessageBox.confirm(CommonUtils.translate('DETACH_MSG'), CommonUtils.translate('WARN'), { type: 'warning' }).then(() => {
+      WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
+    });
   } else {
     WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
   }

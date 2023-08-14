@@ -98,7 +98,7 @@ onMounted(() => {
           <el-dropdown>
             <div style="display: flex">
               <el-avatar>
-                <img v-if="user.avatar" :src="user.avatar" height="40" width="40" />
+                <img v-if="user.avatar" :src="user.avatar" height="40" width="40" alt="avatar" />
                 <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
               </el-avatar>
               <div style="line-height: 40px; margin-left: 5px">

@@ -82,7 +82,7 @@ public class JvmView implements ResultView<JvmModel> {
             List<String> row = new ArrayList<>();
             row.add(item.getName());
             MemoryUsage usage = (MemoryUsage)item.getValue();
-            row.add(String.format("init : %d\nused : %d\ncommitted : %d\nmax : %d",
+            row.add(String.format("init : %d%nused : %d%ncommitted : %d%nmax : %d",
                     usage.getInit(), usage.getUsed(), usage.getCommitted(), usage.getMax()));
             rows.add(row);
         });

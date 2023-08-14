@@ -79,7 +79,7 @@
     <el-tabs type="border-card">
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Seconds.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Seconds.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>
@@ -115,7 +115,7 @@
       </el-tab-pane>
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Minutes.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Minutes.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>
@@ -151,7 +151,7 @@
       </el-tab-pane>
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Hours.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Hours.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>
@@ -187,7 +187,7 @@
       </el-tab-pane>
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Day.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Day.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>
@@ -275,7 +275,7 @@
       </el-tab-pane>
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Month.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Month.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>
@@ -309,7 +309,7 @@
       </el-tab-pane>
       <el-tab-pane>
         <template #label>
-          <span><i class="el-icon-date"></i> {{ state.text.Year.name }}</span>
+          <span><em class="el-icon-date"></em> {{ state.text.Year.name }}</span>
         </template>
         <div class="tabBody myScroller" :style="{ 'max-height': maxHeight }">
           <el-row>

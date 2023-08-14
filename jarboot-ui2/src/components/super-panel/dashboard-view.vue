@@ -295,15 +295,15 @@ const updateThreadChart = (his: any[]) => {
   his.forEach((item: any) => {
     let timestamp = item.runtimeInfo.timestamp;
     let date = new Date(timestamp);
-    states.forEach(state => {
-      const count = (item.threads || []).filter((thread: any) => state === thread.state).length;
-      map[state].data.push(creatData(date, count));
+    states.forEach(s => {
+      const count = (item.threads || []).filter((thread: any) => s === thread.state).length;
+      map[s].data.push(creatData(date, count));
     });
     total.data.push(creatData(date, (item.threads as any[]).length));
   });
-  states.forEach(state => {
+  states.forEach(s => {
     if (afterFixData.length > 0) {
-      map[state].data.push(...afterFixData);
+      map[s].data.push(...afterFixData);
     }
   });
   if (afterFixData.length > 0) {
@@ -330,10 +330,10 @@ const updateHeapChart = (history: any[]) => {
   history.forEach((item: any) => {
     let timestamp = item.runtimeInfo.timestamp;
     let date = new Date(timestamp);
-    const heap = ((item?.memoryInfo as any)[state.memType] || []).find((i: any) => type === i.name);
-    if (heap) {
-      submitted.data.push(creatData(date, round(heap.total / MB_NUM, PRECISION)));
-      used.data.push(creatData(date, round(heap.used / MB_NUM, PRECISION)));
+    const h = ((item?.memoryInfo as any)[state.memType] || []).find((i: any) => type === i.name);
+    if (h) {
+      submitted.data.push(creatData(date, round(h.total / MB_NUM, PRECISION)));
+      used.data.push(creatData(date, round(h.used / MB_NUM, PRECISION)));
     }
   });
   if (afterFixData.length > 0) {
@@ -360,11 +360,11 @@ const updateCpuChart = (history: any[]) => {
   history.forEach((item: any) => {
     let timestamp = item.runtimeInfo.timestamp;
     let date = new Date(timestamp);
-    let cpu = 0;
+    let c = 0;
     (item.threads || []).forEach((thread: any) => {
-      cpu += thread.cpu;
+      c += thread.cpu;
     });
-    submitted.data.push(creatData(date, round(cpu, PRECISION)));
+    submitted.data.push(creatData(date, round(c, PRECISION)));
   });
   if (afterFixData.length > 0) {
     submitted.data.push(...afterFixData);
@@ -462,8 +462,8 @@ function updateMemChart() {
           show: true,
           position: 'inside',
           formatter: function (params) {
-            const total = round(heap[params.dataIndex].total / MB_NUM, PRECISION);
-            return `${total} Mb\n${params.value} Mb`;
+            const totalSize = round(heap[params.dataIndex].total / MB_NUM, PRECISION);
+            return `${totalSize} Mb\n${params.value} Mb`;
           },
         },
         color: COLOR,
@@ -512,9 +512,9 @@ onMounted(() => {
 onUnmounted(() => {
   observer.disconnect();
 });
-const stateColor = (state: any) => {
+const stateColor = (s: any) => {
   let color;
-  switch (state) {
+  switch (s) {
     case 'NEW':
       color = 'cyan';
       break;

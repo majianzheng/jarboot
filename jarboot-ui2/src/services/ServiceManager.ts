@@ -104,12 +104,12 @@ export default class ServiceManager {
   private static parseParam(services: ServiceInstance[]): string[] {
     const set = new Set<string>();
     services.forEach(value => {
-      if (!value.children?.length) {
-        set.add(value.name as string);
+      if (!value.children?.length && value.name) {
+        set.add(value.name);
         return;
       }
       const children = value.children as ServiceInstance[];
-      children?.length && children.forEach(child => set.add(child.name as string));
+      children?.length && children.forEach(child => set.add(child.name));
     });
     return Array.from(set);
   }

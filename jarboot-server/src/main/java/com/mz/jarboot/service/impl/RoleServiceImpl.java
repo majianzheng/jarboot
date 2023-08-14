@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RoleServiceImpl implements RoleService {
-    private static String PATTEN = "^ROLE_[A-Z0-9]{1,10}$";
+    private static final String PATTEN = "^ROLE_[A-Z0-9]{1,10}$";
     @Autowired
     private RoleDao roleDao;
     @Autowired

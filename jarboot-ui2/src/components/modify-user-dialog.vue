@@ -49,7 +49,7 @@
         </template>
         <el-button plain link @click="state.showCutter = true">
           <el-avatar>
-            <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" />
+            <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" alt="avatar" />
             <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
           </el-avatar>
           <span style="margin-left: 10px">{{ $t('CLICK_MODIFY') }}</span>
@@ -126,7 +126,7 @@ const modifyUserForm = reactive({
   rePassword: '',
 });
 
-const validRePassword = (rule: any, value: any, callback: any) => {
+const validRePassword = (_rule: any, value: any, callback: any) => {
   if (value !== modifyUserForm.password) {
     callback(new Error(CommonUtils.translate('PWD_NOT_MATCH')));
   } else {

@@ -23,7 +23,7 @@
           </template>
           <el-button plain link @click="state.showCutter = true">
             <el-avatar>
-              <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" />
+              <img v-if="state.form.avatar" :src="state.form.avatar" height="40" width="40" alt="avatar" />
               <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
             </el-avatar>
             <span style="margin-left: 10px">{{ $t('CLICK_MODIFY') }}</span>
