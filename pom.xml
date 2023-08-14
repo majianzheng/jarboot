@@ -44,9 +44,10 @@
 		<module>spring-boot-starter-jarboot</module>
 		<module>plugins/shell-plugin</module>
 		<module>demo-server</module>
+		<module>tools</module>
 		<module>packaging</module>
 		<module>jarboot-client</module>
-	</modules>
+    </modules>
 	<properties>
 		<revision>3.0.0-beta</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -67,6 +68,7 @@
 		<pty4j.version>0.12.5</pty4j.version>
 		<groovy.version>2.4.21</groovy.version>
 		<rsyntaxtextarea.version>3.3.1</rsyntaxtextarea.version>
+		<commons-logging.version>1.2</commons-logging.version>
 
 		<!-- plugin version -->
 		<maven-resources-version>2.6</maven-resources-version>
@@ -161,6 +163,11 @@
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>${commons-logging.version}</version>
 			</dependency>
 
 			<!-- Third-party libs -->

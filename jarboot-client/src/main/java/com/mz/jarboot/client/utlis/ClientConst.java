@@ -7,8 +7,6 @@ public class ClientConst {
     public static final String RESULT_CODE_KEY = "code";
     public static final String RESULT_MSG_KEY = "msg";
     public static final String RESULT_KEY = "data";
-    public static final String ACCESS_TOKEN_KEY = "accessToken";
-    public static final String ACCESS_TTL_KEY = "tokenTtl";
 
     public static final String FILE_PARAM = "file";
     public static final String CONTENT_PARAM = "content";

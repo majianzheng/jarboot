@@ -1,5 +1,6 @@
 package com.mz.jarboot.core.basic;
 
+import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.pojo.AgentClient;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -109,6 +110,10 @@ public class EnvironmentContext {
 
     public static AgentClient getAgentClient() {
         return agentClient;
+    }
+
+    public static String getBaseUrl() {
+        return CommonConst.HTTP + agentClient.getHost();
     }
 
     public static ScheduledExecutorService getScheduledExecutor() {

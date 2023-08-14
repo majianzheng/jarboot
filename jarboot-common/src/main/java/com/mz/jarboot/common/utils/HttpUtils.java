@@ -19,7 +19,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -41,16 +40,7 @@ public class HttpUtils {
 
     public static JsonNode get(String url, Map<String, String> header) {
         HttpGet httpGet = new HttpGet(url);
-        fillHeader(httpGet, header);
-        try {
-            CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet);
-            checkStatus(response);
-            return JsonUtils.readAsJsonNode(response.getEntity().getContent());
-        } catch (IOException e) {
-            throw new JarbootException(e);
-        } finally {
-            httpGet.releaseConnection();
-        }
+        return doRequest(httpGet, CONTENT_TYPE_FORM, header);
     }
 
     /**
@@ -64,9 +54,21 @@ public class HttpUtils {
         return JsonUtils.treeToValue(get(url, null), type);
     }
 
-    public static JsonNode postJson(String url, JsonNode json, Map<String, String> header) {
+    public static JsonNode postJson(String url, Object json, Map<String, String> header) {
         String content = null == json ? StringUtils.EMPTY : JsonUtils.toJsonString(json);
         return doPost(url, new StringEntity(content, StandardCharsets.UTF_8), CONTENT_TYPE_JSON, header);
+    }
+
+    /**
+     * post请求
+     * @param url api接口
+     * @param data 请求参数
+     * @param type 范型类
+     * @return 期望的结果类型
+     * @param <T>
+     */
+    public static <T> T  postObjByString(String url, String data, Class<T> type) {
+        return JsonUtils.treeToValue(doPost(url, new StringEntity(data, StandardCharsets.UTF_8), CONTENT_TYPE_JSON, null), type);
     }
 
     /**
@@ -77,11 +79,11 @@ public class HttpUtils {
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T postObj(String url, JsonNode object, Class<T> type) {
+    public static <T> T postObj(String url, Object object, Class<T> type) {
         return JsonUtils.treeToValue(postJson(url, object, null), type);
     }
 
-    public static JsonNode post(String url, Map<String, String> formData, Map<String, String> header) throws UnsupportedEncodingException {
+    public static JsonNode post(String url, Map<String, String> formData, Map<String, String> header) {
         HttpEntity request;
         if (null == formData || formData.isEmpty()) {
             request = new StringEntity(StringUtils.EMPTY, StandardCharsets.UTF_8);
@@ -91,24 +93,37 @@ public class HttpUtils {
                     .stream()
                     .map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue()))
                     .collect(Collectors.toList());
-            request = new UrlEncodedFormEntity(nameValuePairList, "utf-8");
+            try {
+                request = new UrlEncodedFormEntity(nameValuePairList, "utf-8");
+            } catch (Exception e) {
+                request = new StringEntity(StringUtils.EMPTY, StandardCharsets.UTF_8);
+            }
         }
         return doPost(url, request, CONTENT_TYPE_FORM, header);
     }
 
+    public static JsonNode delete(String url, Map<String, String> header) {
+        HttpDelete httpGet = new HttpDelete(url);
+        return doRequest(httpGet, CONTENT_TYPE_FORM, header);
+    }
+
     public static JsonNode doPost(String url, HttpEntity request, String contentType, Map<String, String> header) {
         HttpPost httpPost = new HttpPost(url);
-        fillHeader(httpPost, header);
         httpPost.setEntity(request);
-        httpPost.setHeader(CONTENT_TYPE, contentType);
+        return doRequest(httpPost, contentType, header);
+    }
+
+    private static JsonNode doRequest(HttpRequestBase httpUriRequest, String contentType, Map<String, String> header) {
+        fillHeader(httpUriRequest, header);
+        httpUriRequest.setHeader(CONTENT_TYPE, contentType);
         try {
-            CloseableHttpResponse response = HTTP_CLIENT.execute(httpPost);
+            CloseableHttpResponse response = HTTP_CLIENT.execute(httpUriRequest);
             checkStatus(response);
             return JsonUtils.readAsJsonNode(response.getEntity().getContent());
         } catch (IOException e) {
             throw new JarbootException(e);
         } finally {
-            httpPost.releaseConnection();
+            httpUriRequest.releaseConnection();
         }
     }
 

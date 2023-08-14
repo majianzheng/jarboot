@@ -3,7 +3,8 @@ package com.mz.jarboot.core.stream;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.core.basic.EnvironmentContext;
-import com.mz.jarboot.core.utils.HttpUtils;
+import com.mz.jarboot.common.utils.HttpUtils;
+import org.apache.http.entity.ByteArrayEntity;
 
 /**
  * 大数据量传输通过http协议，使用WebSocket会增加额外的拆包、组包实现增加业务复杂性
@@ -15,11 +16,11 @@ public class HttpResponseStreamImpl implements ResponseStream {
 
     @Override
     public void write(byte[] data) {
-        final String url = new ApiStringBuilder(API)
+        final String url = EnvironmentContext.getBaseUrl() + new ApiStringBuilder(API)
                 .add(CommonConst.SERVICE_NAME_PARAM, EnvironmentContext.getAgentClient().getServiceName())
                 .add(CommonConst.SID_PARAM, EnvironmentContext.getAgentClient().getSid())
                 .add(CommonConst.USER_DIR, EnvironmentContext.getAgentClient().getUserDir())
                 .build();
-        HttpUtils.postSimple(url, data);
+        HttpUtils.doPost(url, new ByteArrayEntity(data), HttpUtils.CONTENT_TYPE_JSON, null);
     }
 }

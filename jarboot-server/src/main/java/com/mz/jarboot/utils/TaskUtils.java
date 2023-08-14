@@ -111,14 +111,15 @@ public class TaskUtils {
                 .append(SettingUtils.getAgentStartOption(setting.getUserDir(), setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
+            final String xmx = "-Xmx";
+            final String xms = "-Xms";
+            if (StringUtils.isNotEmpty(jvm) && !jvm.contains(xmx) && !jvm.contains(xms)) {
+                cmdBuilder.append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ");
+            }
             cmdBuilder
-                    .append("-classpath")
+                    .append("-jar")
                     .append(StringUtils.SPACE)
-                    .append(SettingUtils.getCoreJar())
-                    .append(":")
-                    .append(SettingUtils.getAgentJar())
-                    .append(StringUtils.SPACE)
-                    .append("com.mz.jarboot.core.Jarboot")
+                    .append(SettingUtils.getToolsJar())
                     .append(StringUtils.SPACE)
                     .append("-c")
                     .append(StringUtils.SPACE)

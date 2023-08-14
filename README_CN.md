@@ -361,6 +361,11 @@ jarboot$ sysprop user.home
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) 部分命令在<code>Arthas</code>源码的基础上二次开发。
 
+## 致谢
+我们使用Jetbrains tools开发和构建项目.
+
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
+
 ## 联系
 - 邮箱: 282295811@qq.com
 - QQ群: 663881845

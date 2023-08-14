@@ -5,13 +5,14 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.SystemSetting;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.SettingService;
-import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.ResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import okhttp3.FormBody;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author majianzheng
@@ -52,7 +53,7 @@ public class SettingClient implements SettingService {
     public ServiceSetting getServiceSetting(String serviceName) {
         ApiStringBuilder asb = new ApiStringBuilder(CommonConst.SETTING_CONTEXT, "/serviceSetting");
         final String api = asb.add(CommonConst.SERVICE_NAME_PARAM, serviceName).build();
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, ServiceSetting.class);
     }
@@ -65,9 +66,7 @@ public class SettingClient implements SettingService {
     @Override
     public void submitServiceSetting(ServiceSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/serviceSetting";
-        String body = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
+        JsonNode jsonNode = this.clientProxy.postJson(api, setting);
         ResponseUtils.checkResponse(api, jsonNode);
     }
 
@@ -79,7 +78,7 @@ public class SettingClient implements SettingService {
     @Override
     public SystemSetting getSystemSetting() {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, SystemSetting.class);
     }
@@ -92,10 +91,8 @@ public class SettingClient implements SettingService {
     @Override
     public void saveSetting(SystemSetting setting) {
         final String api = CommonConst.SETTING_CONTEXT + "/globalSetting";
-        String body = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, body, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, setting);
+        ResponseUtils.checkResponse(api, response);
     }
 
     /**
@@ -111,7 +108,7 @@ public class SettingClient implements SettingService {
                 .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
                 .add(ClientConst.FILE_PARAM, file)
                 .build();
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return result.asText(StringUtils.EMPTY);
     }
@@ -126,13 +123,12 @@ public class SettingClient implements SettingService {
     @Override
     public void saveVmOptions(String serviceName, String file, String content) {
         final String api = CommonConst.SETTING_CONTEXT + "/vmoptions";
-        FormBody.Builder builder = new FormBody.Builder();
-        builder
-                .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
-                .add(ClientConst.FILE_PARAM, file)
-                .add(ClientConst.CONTENT_PARAM, content);
-        String response = this.clientProxy.reqApi(api, HttpMethod.POST, builder.build());
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        Map<String, String> formData = new HashMap<>(8);
+        formData.put(CommonConst.SERVICE_NAME_PARAM, serviceName);
+        formData.put(ClientConst.FILE_PARAM, file);
+        formData.put(ClientConst.CONTENT_PARAM, content);
+
+        JsonNode response = this.clientProxy.postForm(api, formData);
+        ResponseUtils.checkResponse(api, response);
     }
 }

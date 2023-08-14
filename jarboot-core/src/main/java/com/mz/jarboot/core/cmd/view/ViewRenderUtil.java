@@ -8,7 +8,6 @@ import com.mz.jarboot.text.Color;
 import com.mz.jarboot.text.Style;
 import com.mz.jarboot.text.ui.*;
 import com.mz.jarboot.text.util.RenderUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -256,7 +255,6 @@ public class ViewRenderUtil {
         return RenderUtil.render(tableElement, width);
     }
 
-    @NotNull
     private static TableElement createTableElement(List<String> headers) {
         // 设置两列的比例是1:1，如果不设置的话，列宽是自动按元素最长的处理。
         // 设置table的外部边框，默认是没有外边框

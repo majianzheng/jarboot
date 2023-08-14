@@ -4,6 +4,7 @@ import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.CacheDirHelper;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.common.utils.VMUtils;
 import com.mz.jarboot.common.utils.VersionUtils;
@@ -16,6 +17,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
+import java.nio.channels.FileLock;
 import java.time.Duration;
 
 /**
@@ -24,6 +26,7 @@ import java.time.Duration;
  */
 public class AppEnvironment implements SpringApplicationRunListener {
     private String homePath;
+    private FileLock lock;
 
     public AppEnvironment(SpringApplication app, String[] args) {
         // ignore
@@ -54,11 +57,15 @@ public class AppEnvironment implements SpringApplicationRunListener {
         final String derbyLog = homePath + File.separator + "logs" + File.separator + "derby.log";
         System.setProperty("derby.stream.error.file", derbyLog);
 
-        //环境检查
+        //环境初始化
         try {
+            // 环境检查
             checkEnvironment();
             //初始化cache目录
             CacheDirHelper.init();
+            // 进程单实例加锁
+            this.lock = CacheDirHelper.singleInstanceTryLock();
+            PidFileHelper.writeServerPid();
         } catch (Exception e) {
             AnsiLog.error(e);
             System.exit(-1);

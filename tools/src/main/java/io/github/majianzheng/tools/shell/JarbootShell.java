@@ -1,14 +1,15 @@
-package com.mz.jarboot.core;
+package io.github.majianzheng.tools.shell;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRuntimeInfo;
-import com.mz.jarboot.common.*;
+import com.mz.jarboot.common.AnsiLog;
+import com.mz.jarboot.common.JarbootException;
+import com.mz.jarboot.common.PidFileHelper;
 import com.mz.jarboot.common.utils.BannerUtils;
-import com.mz.jarboot.common.utils.OSUtils;
-import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.core.constant.CoreConstant;
-import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.common.utils.StringUtils;
+import com.mz.jarboot.common.utils.HttpUtils;
+import com.mz.jarboot.common.utils.VMUtils;
+import com.mz.jarboot.common.utils.OSUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -16,13 +17,12 @@ import java.io.InputStream;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 /**
  * @author majianzheng
  */
-public class Jarboot {
+public class JarbootShell {
     private static final String PID_ARG = "pid";
     private static final String HOST_ARG = "host";
     private static final String CMD_ARG = "command";
@@ -49,7 +49,7 @@ public class Jarboot {
     /** 是否未初始化成功 */
     private boolean notInitialized = true;
 
-    private Jarboot(String [] args) {
+    private JarbootShell(String [] args) {
         this.args = args;
         initJarbootHome();
         String hostEnv = System.getenv(CommonConst.JARBOOT_HOST_ENV);
@@ -152,7 +152,7 @@ public class Jarboot {
             jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
         }
         if (StringUtils.isEmpty(jarbootHome)) {
-            CodeSource codeSource = Jarboot.class.getProtectionDomain().getCodeSource();
+            CodeSource codeSource = JarbootShell.class.getProtectionDomain().getCodeSource();
             try {
                 File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
                 jarbootHome = agentJarFile.getParentFile().getParentFile().getPath();
@@ -167,7 +167,7 @@ public class Jarboot {
 
     public static void main(String[] args) {
         try {
-            Jarboot jarboot = new Jarboot(args);
+            JarbootShell jarboot = new JarbootShell(args);
             jarboot.run();
         } catch (Exception e) {
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
@@ -265,7 +265,7 @@ public class Jarboot {
                     AnsiLog.write(b);
                 }
                 int code = process.waitFor();
-                System.exit(code);
+                AnsiLog.info("exit code: {}", code);
             } else {
                 Thread.sleep(3000);
             }
@@ -350,7 +350,7 @@ public class Jarboot {
                 .append("`, if none will use `127.0.0.1:9899`.\nAnd you can also use `-h` or `--host` pass it.\n")
                 .append("Attach process:\nUsage: ")
                 .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -pid [eg: 6868]"))
-                .append(CoreConstant.EXAMPLE)
+                .append("\nEXAMPLES:\n")
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899 -pid 6868"))
                 .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt + " -pid 6868"))
@@ -361,7 +361,7 @@ public class Jarboot {
                 .append(StringUtils.LF)
                 .append("Start process sync or async:\nUsage: ")
                 .append(AnsiLog.green(jt + " -h[-host] [eg: 127.0.0.1:9899] -async[sync] [eg: -jar demo.jar]"))
-                .append(CoreConstant.EXAMPLE)
+                .append("\nEXAMPLES:\n")
                 .append(AnsiLog.blue(jt + " -h 192.168.1.88:9899 -sync -jar demo-app.jar"))
                 .append(StringUtils.LF)
                 .append(AnsiLog.blue(jt + " -async -jar demo-app.jar"))

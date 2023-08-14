@@ -7,23 +7,18 @@ import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.client.ClientProxy;
 import com.mz.jarboot.client.ServiceManagerClient;
 import com.mz.jarboot.client.event.MessageRecvEvent;
-import com.mz.jarboot.client.utlis.HttpRequestOperator;
 import com.mz.jarboot.common.pojo.FuncRequest;
 import com.mz.jarboot.common.protocol.NotifyType;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -35,12 +30,14 @@ import java.util.stream.Collectors;
  * @author majianzheng
  */
 @SuppressWarnings({"PMD.ServiceOrDaoClassShouldEndWithImplRule", "java:S2274"})
+@ClientEndpoint
 public class CommandExecutor implements CommandExecutorService, MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
     private static final int EXEC_CMD = 0;
     private static final int CANCEL = 1;
+    private static final int WAIT_TIME = 15;
 
-    okhttp3.WebSocket client;
+    Session client;
     private final ClientProxy proxy;
     private volatile boolean online;
     private String sid;
@@ -149,8 +146,8 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     public boolean checkOnline() {
         lock.lock();
         try {
-            this.client.send(CommonConst.PING);
-            if (!pingCondition.await(HttpRequestOperator.CONNECT_TIMEOUT, TimeUnit.SECONDS)) {
+            this.send(CommonConst.PING);
+            if (!pingCondition.await(WAIT_TIME, TimeUnit.SECONDS)) {
                 this.online = false;
             }
         } catch (InterruptedException e) {
@@ -185,11 +182,16 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     }
 
     @Override
+    @OnOpen
     public void onOpen() {
         this.online = true;
+        synchronized (this) {
+            this.notify();
+        }
     }
 
     @Override
+    @OnMessage
     public void onMessage(String text) {
         if (CommonConst.PING.equals(text)) {
             //ping
@@ -205,8 +207,12 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
     }
 
     @Override
+    @OnClose
     public void onClose() {
         this.online = false;
+        synchronized (this) {
+            this.notify();
+        }
     }
 
     private boolean sendRequest(int func, String id, String cmd) {
@@ -215,7 +221,7 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
             request.setBody(cmd);
             request.setFunc(func);
             request.setSid(id);
-            return client.send(Objects.requireNonNull(JsonUtils.toJsonString(request)));
+            return this.send(Objects.requireNonNull(JsonUtils.toJsonString(request)));
         } catch (Exception e) {
             logger.error("send failed. " + e.getMessage(), e);
         }
@@ -242,10 +248,24 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
         }
     }
 
+    private boolean send(String data) {
+        Session temp = this.client;
+        if (null == temp) {
+            return false;
+        }
+        try {
+            temp.getBasicRemote().sendText(data);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
+
     private void destroyClient() {
         try {
             if (null != client) {
-                client.close(1000, "shutdown executor");
+                client.close();
             }
         } catch (Exception e) {
             //ignore
@@ -271,7 +291,7 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
         }
     }
 
-    static WebSocket connect(String host, String token, MessageListener listener) {
+    static Session connect(String host, String token, final MessageListener listener) {
         int index = token.indexOf(' ');
         if (-1 != index) {
             token = token.substring(index + 1);
@@ -279,39 +299,12 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
         final String url = new ApiStringBuilder(CommonConst.WS + host, CommonConst.MAIN_WS_CONTEXT)
                 .add("accessToken", token)
                 .build();
-        final Request request = new Request
-                .Builder()
-                .get()
-                .url(url)
-                .build();
-        CountDownLatch latch = new CountDownLatch(1);
-        WebSocket client = HttpRequestOperator
-                .HTTP_CLIENT
-                .newWebSocket(request, new WebSocketListener() {
-                    @Override
-                    public void onOpen(WebSocket webSocket, Response response) {
-                        latch.countDown();
-                        listener.onOpen();
-                    }
-
-                    @Override
-                    public void onMessage(WebSocket webSocket, String text) {
-                        listener.onMessage(text);
-                    }
-
-                    @Override
-                    public void onClosed(WebSocket webSocket, int code, String reason) {
-                        listener.onClose();
-                    }
-
-                    @Override
-                    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                        logger.warn(t.getMessage(), t);
-                        listener.onClose();
-                    }
-                });
+        Session client = ClientProxy.connectToServer(listener, url);
         try {
-            if (!latch.await(HttpRequestOperator.CONNECT_TIMEOUT, TimeUnit.SECONDS)) {
+            synchronized (listener) {
+                listener.wait(WAIT_TIME * 1000);
+            }
+            if (!client.isOpen()) {
                 logger.warn("Connect to jarboot server timeout! url: {}", url);
                 throw new JarbootRunException("Connect to " + url + " timeout!");
             }

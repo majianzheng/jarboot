@@ -76,13 +76,12 @@ public class NotifyReactor {
      * 关闭
      */
     public void shutdown() {
+        if (!shutdownCallbacks.isEmpty()) {
+            shutdownCallbacks.forEach(Runnable::run);
+        }
         defaultEventPublisher = null;
         publisherMap.forEach((k, v) -> v.shutdown());
         publisherMap.clear();
-        if (shutdownCallbacks.isEmpty()) {
-            return;
-        }
-        shutdownCallbacks.forEach(Runnable::run);
     }
 
     public void addShutdownCallback(Runnable callback) {

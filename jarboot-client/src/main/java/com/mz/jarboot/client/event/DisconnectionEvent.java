@@ -10,19 +10,15 @@ import com.mz.jarboot.api.event.JarbootEvent;
  */
 public class DisconnectionEvent implements JarbootEvent {
     private String user;
-    private String password;
     private String host;
-    private String version;
 
     public DisconnectionEvent() {
 
     }
 
-    public DisconnectionEvent(String host, String user, String password, String version) {
+    public DisconnectionEvent(String host, String user) {
         this.host = host;
         this.user = user;
-        this.password = password;
-        this.version = version;
     }
 
     public String getUser() {
@@ -33,13 +29,6 @@ public class DisconnectionEvent implements JarbootEvent {
         this.user = user;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public String getHost() {
         return host;
@@ -49,21 +38,12 @@ public class DisconnectionEvent implements JarbootEvent {
         this.host = host;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
 
     @Override
     public String toString() {
         return "DisconnectionEvent{" +
                 "user='" + user + '\'' +
-                ", password='" + password + '\'' +
                 ", host='" + host + '\'' +
-                ", version='" + version + '\'' +
                 '}';
     }
 }

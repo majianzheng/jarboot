@@ -12,7 +12,7 @@ import com.mz.jarboot.common.protocol.ResponseType;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.core.cmd.CommandBuilder;
 import com.mz.jarboot.core.event.ResponseEventBuilder;
-import com.mz.jarboot.core.utils.HttpUtils;
+import com.mz.jarboot.common.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
@@ -32,12 +32,12 @@ public class AgentServiceOperator {
     public static void setStarted() {
         if (STARTED.compareAndSet(false, true)) {
             AgentClient clientData = EnvironmentContext.getAgentClient();
-            final String url = new ApiStringBuilder(SET_STARTED_API)
+            final String url = EnvironmentContext.getBaseUrl() + new ApiStringBuilder(SET_STARTED_API)
                     .add(CommonConst.SERVICE_NAME_PARAM, clientData.getServiceName())
                     .add(CommonConst.SID_PARAM, clientData.getSid())
                     .add(CommonConst.USER_DIR, clientData.getUserDir())
                     .build();
-            HttpUtils.getSimple(url);
+            HttpUtils.get(url, null);
         }
     }
 

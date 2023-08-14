@@ -86,9 +86,7 @@ public class SettingServiceImpl implements SettingService {
         Properties properties = fillSettingProperties(setting, path, settingFile);
         saveSettingProperties(settingFile, properties);
         // 保存vmContent
-        if (CommonConst.JAVA_CMD.equals(type)) {
-            saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
-        }
+        saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
         //更新缓存配置，根据文件时间戳判定是否更新了
         PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
     }

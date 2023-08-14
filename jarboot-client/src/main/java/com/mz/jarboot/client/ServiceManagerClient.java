@@ -10,14 +10,10 @@ import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.pojo.ServiceInstance;
 import com.mz.jarboot.api.pojo.ServiceSetting;
 import com.mz.jarboot.api.service.ServiceManager;
-import com.mz.jarboot.client.utlis.HttpMethod;
 import com.mz.jarboot.common.utils.ApiStringBuilder;
 import com.mz.jarboot.client.utlis.ClientConst;
 import com.mz.jarboot.client.utlis.ResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
-import com.mz.jarboot.common.utils.StringUtils;
-import okhttp3.FormBody;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +50,7 @@ public class ServiceManagerClient implements ServiceManager {
 
     @Override
     public List<ServiceInstance> getServiceList() {
-        String response = this.clientProxy.reqApi(CommonConst.SERVICE_MGR_CONTEXT, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(CommonConst.SERVICE_MGR_CONTEXT);
         JsonNode result = ResponseUtils.parseResult(response, CommonConst.SERVICE_MGR_CONTEXT);
         List<ServiceInstance> list = new ArrayList<>();
         final int size = result.size();
@@ -78,9 +74,8 @@ public class ServiceManagerClient implements ServiceManager {
         return doGetGroups(api);
     }
 
-    @NotNull
     private List<ServiceGroup> doGetGroups(String api) {
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         List<ServiceGroup> list = new ArrayList<>();
         final int size = result.size();
@@ -95,52 +90,42 @@ public class ServiceManagerClient implements ServiceManager {
     @Override
     public void startService(List<String> serviceNames) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/startService";
-        String json = JsonUtils.toJsonString(serviceNames);
-        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, serviceNames);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public void stopService(List<String> serviceNames) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/stopService";
-        String json = JsonUtils.toJsonString(serviceNames);
-        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, serviceNames);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public void restartService(List<String> serviceNames) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/restartService";
-        String json = JsonUtils.toJsonString(serviceNames);
-        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, serviceNames);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public void startSingleService(ServiceSetting setting) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/startSingleService";
-        String json = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, setting);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public void stopSingleService(ServiceSetting setting) {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/stopSingleService";
-        String json = JsonUtils.toJsonString(setting);
-        String response = this.clientProxy.reqApi(api, json, HttpMethod.POST);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.postJson(api, setting);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public List<JvmProcess> getJvmProcesses() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/jvmProcesses";
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         List<JvmProcess> list = new ArrayList<>();
         final int size = result.size();
@@ -157,19 +142,17 @@ public class ServiceManagerClient implements ServiceManager {
         final String api = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/attach")
                 .add(ClientConst.PID_PARAM, pid)
                 .build();
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        JsonNode response = this.clientProxy.get(api);
+        ResponseUtils.checkResponse(api, response);
     }
 
     @Override
     public void deleteService(String serviceName) {
-        final String api = CommonConst.SERVICE_MGR_CONTEXT + "/service";
-        FormBody.Builder builder = new FormBody.Builder()
-                .add(CommonConst.SERVICE_NAME_PARAM, serviceName);
-        String response = this.clientProxy.reqApi(api, HttpMethod.DELETE, builder.build());
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
-        ResponseUtils.checkResponse(api, jsonNode);
+        final String api = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT + "/service")
+                .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
+                .build();
+        JsonNode response = this.clientProxy.delete(api);
+        ResponseUtils.checkResponse(api, response);
     }
 
     /**
@@ -213,7 +196,7 @@ public class ServiceManagerClient implements ServiceManager {
         final String api = new ApiStringBuilder(CommonConst.SERVICE_MGR_CONTEXT, "/service")
                 .add(CommonConst.SERVICE_NAME_PARAM, serviceName)
                 .build();
-        String response = this.clientProxy.reqApi(api, StringUtils.EMPTY, HttpMethod.GET);
+        JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
         return JsonUtils.treeToValue(result, ServiceInstance.class);
     }

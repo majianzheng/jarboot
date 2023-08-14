@@ -13,9 +13,7 @@ import com.mz.jarboot.core.cmd.CommandRequestSubscriber;
 import com.mz.jarboot.core.cmd.CommandSubscriber;
 import com.mz.jarboot.core.cmd.InternalCommandSubscriber;
 import com.mz.jarboot.core.event.HeartbeatEvent;
-import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.LogUtils;
-import com.mz.jarboot.core.utils.ThreadUtil;
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
 
@@ -222,7 +220,6 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         //修改host
         System.setProperty(CommonConst.REMOTE_PROP, host);
         EnvironmentContext.getAgentClient().setHost(host);
-        HttpUtils.setBaseUrl(CommonConst.HTTP + host);
         closeSession();
         createSingletonClient();
     }
@@ -379,6 +376,11 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
             Thread thread = this.reconnectThread;
             if (null != thread) {
                 thread.interrupt();
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
             this.destroyClient();
         }

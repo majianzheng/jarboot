@@ -137,7 +137,7 @@
 									<goal>copy-dependencies</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>${project.build.directory}/lib</outputDirectory>
+									<outputDirectory>${project.basedir}/../target/lib</outputDirectory>
 									<excludeTransitive>false</excludeTransitive>
 									<stripVersion>false</stripVersion>
 									<includeScope>runtime</includeScope>

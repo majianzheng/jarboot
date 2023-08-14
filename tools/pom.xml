@@ -2,20 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>jarboot-all</artifactId>
         <groupId>io.github.majianzheng</groupId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jarboot-client</artifactId>
+    <artifactId>jarboot-tools</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-websocket</artifactId>
+            <groupId>io.github.majianzheng</groupId>
+            <artifactId>jarboot-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.majianzheng</groupId>
+            <artifactId>jarboot-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -32,14 +36,24 @@
             <artifactId>logback-core</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>io.github.majianzheng</groupId>
-            <artifactId>jarboot-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.majianzheng</groupId>
-            <artifactId>jarboot-api</artifactId>
-        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <finalName>jarboot-tools</finalName>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>io.github.majianzheng.tools.shell.JarbootShell</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

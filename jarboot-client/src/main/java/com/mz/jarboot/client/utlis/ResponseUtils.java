@@ -3,19 +3,17 @@ package com.mz.jarboot.client.utlis;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.pojo.ResultCodeConst;
-import com.mz.jarboot.common.utils.JsonUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 
 /**
  * @author majianzheng
  */
 public class ResponseUtils {
-    public static JsonNode parseResult(String response, String api) {
-        JsonNode jsonNode = JsonUtils.readAsJsonNode(response);
+    public static JsonNode parseResult(JsonNode jsonNode, String api) {
         checkResponse(api, jsonNode);
         JsonNode result = jsonNode.get(ClientConst.RESULT_KEY);
         if (null == result) {
-            String msg = String.format("Request %s empty. response:%s", api, response);
+            String msg = String.format("Request %s empty. response:%s", api, jsonNode);
             throw new JarbootRunException(msg);
         }
         return result;

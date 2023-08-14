@@ -23,7 +23,7 @@
       <outputDirectory>fe/api-doc</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>../jarboot-server/target/lib</directory>
+      <directory>../target/lib</directory>
       <outputDirectory>components/lib</outputDirectory>
     </fileSet>
   </fileSets>
@@ -43,6 +43,10 @@
     <file>
       <source>../jarboot-server/target/jarboot-server.jar</source>
       <destName>components/jarboot-server.jar</destName>
+    </file>
+    <file>
+      <source>../tools/target/jarboot-tools.jar</source>
+      <destName>components/jarboot-tools.jar</destName>
     </file>
     <file>
       <source>../jarboot-server/src/main/resources/jarboot.properties</source>

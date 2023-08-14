@@ -9,11 +9,11 @@ import com.alibaba.bytekit.utils.IOUtils;
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.*;
 import com.mz.jarboot.common.pojo.AgentClient;
+import com.mz.jarboot.common.utils.HttpUtils;
 import com.mz.jarboot.core.basic.EnvironmentContext;
 import com.mz.jarboot.core.basic.WsClientFactory;
 import com.mz.jarboot.core.stream.StdOutStreamReactor;
 import com.mz.jarboot.core.stream.ResultStreamDistributor;
-import com.mz.jarboot.core.utils.HttpUtils;
 import com.mz.jarboot.core.utils.InstrumentationUtils;
 import com.mz.jarboot.core.utils.LogUtils;
 import com.mz.jarboot.common.utils.StringUtils;
@@ -200,8 +200,8 @@ public class JarbootBootstrap {
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
 
-        String url = CommonConst.HTTP + host + "/api/jarboot/public/agent/agentClient";
-        clientData = HttpUtils.postObj(url, sb.toString(), AgentClient.class);
+        String url = EnvironmentContext.getBaseUrl() + "/api/jarboot/public/agent/agentClient";
+        clientData = HttpUtils.postObjByString(url, sb.toString(), AgentClient.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }

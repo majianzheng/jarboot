@@ -1,5 +1,6 @@
 package com.mz.jarboot.common;
 
+import com.mz.jarboot.api.exception.JarbootRunException;
 import com.mz.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 
@@ -84,6 +85,22 @@ public class PidFileHelper {
             FileUtils.forceDelete(pid);
         } catch (Exception exception) {
             //ignore
+        }
+    }
+
+    public static void writeServerPid() {
+        try {
+            FileUtils.writeStringToFile(CacheDirHelper.getServerPidFile(), PID, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootRunException(e);
+        }
+    }
+
+    public static String getServerPid() {
+        try {
+            return FileUtils.readFileToString(CacheDirHelper.getServerPidFile(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootRunException(e);
         }
     }
 

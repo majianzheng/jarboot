@@ -25,10 +25,10 @@ public class TaskStatusChangeSubscriber implements Subscriber<TaskLifecycleEvent
      */
     @Override
     public void onEvent(TaskLifecycleEvent event) {
-        MessageUtils.upgradeStatus(event.getSid(), event.getStatus());
+        MessageUtils.upgradeStatus(event.getSetting().getSid(), event.getStatus());
         TaskUtils.getTaskExecutor().execute(() -> {
             final String topic = eventRegistry
-                    .createTopic(TaskLifecycleEvent.class, event.getName(), event.getLifecycle().name());
+                    .createTopic(TaskLifecycleEvent.class, event.getSetting().getName(), event.getLifecycle().name());
             eventRegistry.receiveEvent(topic, event);
         });
     }
