@@ -42,8 +42,8 @@ public class JarbootAuthConfig extends WebSecurityConfigurerAdapter {
     
     @Override
     public void configure(WebSecurity web) {
-        final String IGNORE_PATH_PATTERN = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico";
-        web.ignoring().antMatchers(HttpMethod.GET, IGNORE_PATH_PATTERN.split(SECURITY_IGNORE_URLS_SPILT_CHAR));
+        final String ignorePath = "/,/error,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.woff2,/**/*.ico";
+        web.ignoring().antMatchers(HttpMethod.GET, ignorePath.split(SECURITY_IGNORE_URLS_SPILT_CHAR));
         web.ignoring().antMatchers(
                 TOKEN_BASED_AUTH_ENTRY_POINT,
                 "/**/public/**");

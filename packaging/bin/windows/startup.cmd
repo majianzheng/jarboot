@@ -20,3 +20,7 @@ set COMMAND="%JAVA%" %JARBOOT_JVM_OPTS% %JARBOOT_OPTS% -jar "%SERVER%" jarboot.j
 
 rem start jarboot command
 %COMMAND%
+echo "Starting jarboot server daemon..."
+set TOOL_JAR="%JARBOOT_HOME%/components/jarboot-tools.jar io.github.majianzheng.tools.daemon.ServerDaemon"
+set DAEMON_VM="-Xms10m -Xmx10m -XX:+UseG1GC -XX:MaxGCPauseMillis=500"
+%JAVA% $DAEMON_VM -cp %TOOL_JAR% jarboot.daemon

@@ -24,7 +24,7 @@ import java.util.concurrent.Executor;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/jarboot/public/event/ws")
+@ServerEndpoint("/jarboot/event/ws")
 @Component
 public class JarbootEventServer implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(JarbootEventServer.class);

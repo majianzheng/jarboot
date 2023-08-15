@@ -1,5 +1,8 @@
 package com.mz.jarboot.cloud;
 
+import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerRuntimeInfo;
+import com.mz.jarboot.common.utils.HttpUtils;
 import com.mz.jarboot.service.ServerRuntimeService;
 import com.mz.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
@@ -7,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +40,17 @@ public class ClusterConfig {
     private File getClusterConfigFile() {
         return FileUtils.getFile(SettingUtils.getHomePath(), "conf", "cluster.conf");
     }
-    @PostConstruct
+
+    private ServerRuntimeInfo getServerInfo(String host) {
+        String url;
+        if (host.startsWith("http")) {
+            url = host + CommonConst.SERVER_RUNTIME_CONTEXT;
+        } else {
+            url = String.format("http://%s%s", host, CommonConst.SERVER_RUNTIME_CONTEXT);
+        }
+        return HttpUtils.getObj(url, ServerRuntimeInfo.class);
+    }
+
     public void init() {
         final String notePrefix = "#";
         try {

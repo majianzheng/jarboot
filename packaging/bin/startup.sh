@@ -81,4 +81,10 @@ fi
 echo "$JAVA ${JAVA_OPT}" > logs/start.out 2>&1 &
 nohup $JAVA ${JAVA_OPT} jarboot.jarboot >> logs/start.out 2>&1 &
 echo "jarboot is starting，you can check the ${JARBOOT_HOME}/logs/start.out"
+echo "Starting jarboot server daemon..."
+TOOL_JAR="${JARBOOT_HOME}/components/jarboot-tools.jar io.github.majianzheng.tools.daemon.ServerDaemon"
+DAEMON_VM="-Xms10m -Xmx10m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -DJARBOOT_HOME=$JARBOOT_HOME"
+echo "start daemon" > logs/daemon.out 2>&1
+nohup $JAVA $DAEMON_VM -cp ${TOOL_JAR} jarboot.daemon >> logs/daemon.out 2>&1 &
+
 popd

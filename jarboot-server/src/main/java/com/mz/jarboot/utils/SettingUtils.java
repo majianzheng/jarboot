@@ -198,7 +198,7 @@ public class SettingUtils {
 
         File file = FileUtils.getFile(jarbootConf);
         try {
-            HashMap<String, String> props = new HashMap<>(4);
+            HashMap<String, String> props = new HashMap<>(8);
             if (null == setting.getDefaultVmOptions()) {
                 props.put(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY);
             } else {
@@ -245,6 +245,13 @@ public class SettingUtils {
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
+    }
+
+    public static void saveSecretKey(String secretKey) {
+        HashMap<String, String> props = new HashMap<>(4);
+        props.put("jarboot.token.secret.key", secretKey);
+        File file = FileUtils.getFile(jarbootConf);
+        PropertyFileUtils.writeProperty(file, props);
     }
 
 

@@ -6,6 +6,8 @@ setlocal
 
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
+for /f "tokens=1" %%i in ('jps -m ^| find "jarboot.daemon"') do ( taskkill /F /PID %%i )
+
 echo killing jarboot server
 
 for /f "tokens=1" %%i in ('jps -m ^| find "jarboot.jarboot"') do ( taskkill /F /PID %%i )
