@@ -5,15 +5,12 @@ import com.mz.jarboot.api.pojo.ServerRuntimeInfo;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.JarbootException;
 import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.common.utils.BannerUtils;
-import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.common.utils.HttpUtils;
-import com.mz.jarboot.common.utils.VMUtils;
-import com.mz.jarboot.common.utils.OSUtils;
+import com.mz.jarboot.common.utils.*;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -251,9 +248,13 @@ public class JarbootShell {
             list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
         }
         list.addAll(command);
-        String[] cmd = list.toArray(new String[0]);
+        String cmdFileName = OSUtils.isWindows() ? "command.cmd" : ".command.sh";
+        File cmdFile = FileUtils.getFile(cmdFileName);
+        cmdFile.setExecutable(true);
         try {
-            Process process = Runtime.getRuntime().exec(cmd);
+            FileUtils.writeStringToFile(FileUtils.getFile(cmdFileName), String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFileName) : Arrays.asList("sh", cmdFileName);
+            Process process = new ProcessBuilder().command(cmd).start();
             if (Boolean.TRUE.equals(this.sync)) {
                 if (!Boolean.TRUE.equals(this.shell)) {
                     AnsiLog.info("Sync execute command waiting command exit.");
@@ -275,6 +276,7 @@ public class JarbootShell {
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
             AnsiLog.error(e);
         } finally {
+            FileUtils.deleteQuietly(cmdFile);
             AnsiLog.info("Start process finished.");
         }
     }

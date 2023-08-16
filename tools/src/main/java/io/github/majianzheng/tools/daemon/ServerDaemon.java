@@ -30,13 +30,15 @@ public class ServerDaemon {
                 AnsiLog.error("守护进程已在运行中!");
                 return;
             }
-            daemon(home);
+            daemon();
         } catch (Exception e) {
             AnsiLog.error(e);
+            return;
         }
+        startup(home);
     }
 
-    private static void daemon(String home) {
+    private static void daemon() {
         if (OSUtils.isWindows()) {
             // 初始化托盘
             AnsiLog.info("Windows 托盘应用初始化...");
@@ -67,6 +69,9 @@ public class ServerDaemon {
         } catch (Exception e) {
             AnsiLog.error(e);
         }
+    }
+
+    private static void startup(String home) {
         // 启动startup.sh
         String [] cmd = OSUtils.isWindows() ? new String[]{"bin/windows/startup.cmd"} : new String[]{"sh", "bin/startup.sh"};
         try {

@@ -75,6 +75,9 @@ public class SettingServiceImpl implements SettingService {
             // 周期执行
             throw new JarbootRunException("定时任务功能暂未实现！");
         }
+        if (StringUtils.isEmpty(setting.getVm())) {
+            setting.setVm(SettingPropConst.DEFAULT_VM_FILE);
+        }
         final String path = SettingUtils.getServicePath(setting.getName());
         String sid = SettingUtils.createSid(path);
         if (StringUtils.isNotEmpty(setting.getSid()) && !setting.getSid().equals(sid)) {
@@ -242,6 +245,9 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void saveVmOptions(String serviceName, String file, String content) {
+        if (StringUtils.isEmpty(serviceName) || StringUtils.isEmpty(file)) {
+            throw new JarbootException("参数为空.");
+        }
         Path path = SettingUtils.getPath(file);
         if (!path.isAbsolute()) {
             path = SettingUtils.getPath(SettingUtils.getServicePath(serviceName), file);
