@@ -8,7 +8,9 @@ import com.mz.jarboot.common.pojo.ResultCodeConst;
 import com.mz.jarboot.common.utils.OSUtils;
 import com.mz.jarboot.common.utils.StringUtils;
 import com.mz.jarboot.entity.User;
+import com.mz.jarboot.security.JwtTokenManager;
 import com.mz.jarboot.service.UserService;
+import io.jsonwebtoken.io.Encoders;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +66,12 @@ public class SettingUtils {
 
     private static String homePath = System.getProperty(CommonConst.JARBOOT_HOME);
 
+    private static ApplicationContext context;
     private static UserService userService;
+    private static String uuid = StringUtils.EMPTY;
 
     public static void init(ApplicationContext context, String homePath) {
+        SettingUtils.context = context;
         SettingUtils.homePath = homePath;
         int port = context.getEnvironment().getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
         SettingUtils.localHost = "127.0.0.1:" + port;
@@ -86,10 +91,50 @@ public class SettingUtils {
         //初始化默认目录及配置路径
         defaultWorkspace = homePath + File.separator + CommonConst.WORKSPACE;
         userService = context.getBean(UserService.class);
+        File uuidFile = FileUtils.getFile(homePath, "data", ".uuid");
+        boolean isFirst = false;
+        if (uuidFile.exists()) {
+            try {
+                uuid = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (StringUtils.isEmpty(uuid)) {
+            isFirst = true;
+            uuid = UUID.randomUUID().toString();
+            try {
+                FileUtils.writeStringToFile(uuidFile, uuid, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (isFirst && isProd()) {
+            // 生产模式下，随机生成盐：jarboot.token.secret.key
+            initSecretKey();
+        }
+    }
+
+    private static void initSecretKey() {
+        String key = Encoders.BASE64.encode(StringUtils.randomString(60).getBytes(StandardCharsets.UTF_8));
+        File file = FileUtils.getFile(jarbootConf);
+        HashMap<String, String> props = new HashMap<>(4);
+        props.put("jarboot.token.secret.key", key);
+        PropertyFileUtils.writeProperty(file, props);
+        JwtTokenManager jwtTokenManager = context.getBean(JwtTokenManager.class);
+        jwtTokenManager.init(key);
+    }
+
+    public static boolean isProd() {
+        return Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("prod");
     }
 
     public static String getHomePath() {
         return homePath;
+    }
+
+    public static String getUuid() {
+        return uuid;
     }
 
     /**
@@ -198,37 +243,7 @@ public class SettingUtils {
 
         File file = FileUtils.getFile(jarbootConf);
         try {
-            HashMap<String, String> props = new HashMap<>(8);
-            if (null == setting.getDefaultVmOptions()) {
-                props.put(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY);
-            } else {
-                props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
-            }
-            if (OSUtils.isWindows()) {
-                props.put(ROOT_DIR_KEY, workspace.replace('\\', '/'));
-            } else {
-                props.put(ROOT_DIR_KEY, workspace);
-            }
-            final int minWait = 1000;
-            if (null != setting.getMaxStartTime() && setting.getMaxStartTime() > minWait) {
-                props.put(MAX_START_TIME, String.valueOf(setting.getMaxStartTime()));
-            } else {
-                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务启动最长等待时间需大于" + minWait);
-            }
-            if (null != setting.getMaxExitTime() && setting.getMaxExitTime() > minWait) {
-                props.put(MAX_EXIT_TIME, String.valueOf(setting.getMaxExitTime()));
-            } else {
-                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务优雅退出最长等待时间需大于" + minWait);
-            }
-            final int minShakeTime = 3;
-            final int maxShakeTime = 600;
-            if (null != setting.getFileChangeShakeTime() && setting.getFileChangeShakeTime() >= minShakeTime && setting.getFileChangeShakeTime() <= maxShakeTime) {
-                props.put(FILE_SHAKE_TIME, String.valueOf(setting.getFileChangeShakeTime()));
-            } else {
-                throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务文件变更监控抖动时间需在3～600之间！");
-            }
-            props.put(AFTER_OFFLINE_EXEC, setting.getAfterServerOfflineExec());
-
+            HashMap<String, String> props = getSettingPropMap(setting, workspace);
             PropertyFileUtils.writeProperty(file, props);
             //再更新到内存
             if (null == setting.getDefaultVmOptions()) {
@@ -245,6 +260,40 @@ public class SettingUtils {
         } catch (Exception e) {
             throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, "更新全局配置文件失败！", e);
         }
+    }
+
+    private static HashMap<String, String> getSettingPropMap(SystemSetting setting, String workspace) {
+        HashMap<String, String> props = new HashMap<>(8);
+        if (null == setting.getDefaultVmOptions()) {
+            props.put(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY);
+        } else {
+            props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
+        }
+        if (OSUtils.isWindows()) {
+            props.put(ROOT_DIR_KEY, workspace.replace('\\', '/'));
+        } else {
+            props.put(ROOT_DIR_KEY, workspace);
+        }
+        final int minWait = 1000;
+        if (null != setting.getMaxStartTime() && setting.getMaxStartTime() > minWait) {
+            props.put(MAX_START_TIME, String.valueOf(setting.getMaxStartTime()));
+        } else {
+            throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务启动最长等待时间需大于" + minWait);
+        }
+        if (null != setting.getMaxExitTime() && setting.getMaxExitTime() > minWait) {
+            props.put(MAX_EXIT_TIME, String.valueOf(setting.getMaxExitTime()));
+        } else {
+            throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务优雅退出最长等待时间需大于" + minWait);
+        }
+        final int minShakeTime = 3;
+        final int maxShakeTime = 600;
+        if (null != setting.getFileChangeShakeTime() && setting.getFileChangeShakeTime() >= minShakeTime && setting.getFileChangeShakeTime() <= maxShakeTime) {
+            props.put(FILE_SHAKE_TIME, String.valueOf(setting.getFileChangeShakeTime()));
+        } else {
+            throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务文件变更监控抖动时间需在3～600之间！");
+        }
+        props.put(AFTER_OFFLINE_EXEC, setting.getAfterServerOfflineExec());
+        return props;
     }
 
     public static void saveSecretKey(String secretKey) {
@@ -450,7 +499,7 @@ public class SettingUtils {
      * @return sid
      */
     public static String createSid(String servicePath) {
-        return String.format("x%x", servicePath.hashCode());
+        return String.format("x%x%x", uuid.hashCode(), servicePath.hashCode());
     }
 
     public static boolean isTrustedHost(String host) {

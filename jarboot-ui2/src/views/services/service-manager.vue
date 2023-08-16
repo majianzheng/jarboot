@@ -559,7 +559,7 @@ onUnmounted(() => {
       .el-icon {
         padding-left: 3px;
       }
-      i.iconfont,
+      em.iconfont,
       .el-icon {
         font-size: 26px;
       }

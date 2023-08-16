@@ -37,6 +37,11 @@ public class JwtTokenManager {
     private UserDao userDao;
     private byte[] secretKeyBytes;
 
+    public void init(String secretKey) {
+        this.secretKey = secretKey;
+        this.secretKeyBytes = null;
+    }
+
     public byte[] getSecretKeyBytes() {
         if (secretKeyBytes == null) {
             secretKeyBytes = Decoders.BASE64.decode(secretKey);

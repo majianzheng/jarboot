@@ -43,7 +43,8 @@ public class ClusterConfig {
 
     private ServerRuntimeInfo getServerInfo(String host) {
         String url;
-        if (host.startsWith("http")) {
+        final String http = "http";
+        if (host.startsWith(http)) {
             url = host + CommonConst.SERVER_RUNTIME_CONTEXT;
         } else {
             url = String.format("http://%s%s", host, CommonConst.SERVER_RUNTIME_CONTEXT);

@@ -5,11 +5,21 @@ import java.util.List;
 /**
  * @author mazheng
  */
-public class AbstractInstance {
+public class SimpleInstance {
+    /** 集群模式下要指定，非集群忽略 */
+    private String host;
     private String sid;
     private String name;
 
-    private List<AbstractInstance> children;
+    private List<SimpleInstance> children;
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 
     public String getSid() {
         return sid;
@@ -27,11 +37,11 @@ public class AbstractInstance {
         this.name = name;
     }
 
-    public List<AbstractInstance> getChildren() {
+    public List<SimpleInstance> getChildren() {
         return children;
     }
 
-    public void setChildren(List<AbstractInstance> children) {
+    public void setChildren(List<SimpleInstance> children) {
         this.children = children;
     }
 }

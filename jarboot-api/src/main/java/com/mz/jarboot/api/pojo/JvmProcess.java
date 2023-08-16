@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * @author majianzheng
  */
-public class JvmProcess extends AbstractInstance {
+public class JvmProcess extends SimpleInstance {
     private String pid;
     private String fullName;
     private Boolean attached;

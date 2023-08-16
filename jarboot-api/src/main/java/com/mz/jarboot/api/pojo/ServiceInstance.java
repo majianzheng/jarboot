@@ -3,7 +3,7 @@ package com.mz.jarboot.api.pojo;
 /**
  * @author majianzheng
  */
-public class ServiceInstance extends AbstractInstance {
+public class ServiceInstance extends SimpleInstance {
     private String status;
     private String group;
 

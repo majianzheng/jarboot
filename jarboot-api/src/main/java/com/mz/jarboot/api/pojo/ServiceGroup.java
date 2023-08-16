@@ -5,27 +5,17 @@ import java.util.List;
 /**
  * @author mazheng
  */
-public class ServiceGroup extends AbstractInstance {
-    private String host;
-
+public class ServiceGroup extends SimpleInstance {
     private Boolean onlineDebug;
-    private List<AbstractInstance> children;
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
+    private List<SimpleInstance> children;
 
     @Override
-    public List<AbstractInstance> getChildren() {
+    public List<SimpleInstance> getChildren() {
         return children;
     }
 
     @Override
-    public void setChildren(List<AbstractInstance> children) {
+    public void setChildren(List<SimpleInstance> children) {
         this.children = children;
     }
 
@@ -40,7 +30,6 @@ public class ServiceGroup extends AbstractInstance {
     @Override
     public String toString() {
         return "ServiceGroup{" +
-                "host='" + host + '\'' +
                 ", name='" + getName() + '\'' +
                 ", children=" + children +
                 '}';
