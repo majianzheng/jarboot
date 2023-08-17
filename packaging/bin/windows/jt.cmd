@@ -5,7 +5,7 @@ if not exist "%JAVA_HOME%\bin\java.exe" echo Please set the JAVA_HOME variable i
 setlocal enabledelayedexpansion
 
 set JARBOOT_HOME=%~dp0
-set JARBOOT_HOME=%JARBOOT_HOME:~0,-1%
+set JARBOOT_HOME=%JARBOOT_HOME:~0,-13%
 set "JAVA=%JAVA_HOME%\bin\java.exe"
 
 :init

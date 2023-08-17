@@ -207,7 +207,6 @@ public class JarbootShell {
             }
             //将执行命令
             this.doCommand();
-            printHomePage();
             return;
         }
         if (null != pid && !pid.isEmpty()) {
@@ -248,11 +247,14 @@ public class JarbootShell {
             list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
         }
         list.addAll(command);
-        String cmdFileName = OSUtils.isWindows() ? "command.cmd" : ".command.sh";
+        final String a = OSUtils.isWindows() ? "cmd" : "sh";
+        final String cmdFileName = String.format(".shell%s%x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
         File cmdFile = FileUtils.getFile(cmdFileName);
-        cmdFile.setExecutable(true);
         try {
             FileUtils.writeStringToFile(FileUtils.getFile(cmdFileName), String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
+            if (!cmdFile.setExecutable(true)) {
+                AnsiLog.error("set executable failed.");
+            }
             List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFileName) : Arrays.asList("sh", cmdFileName);
             Process process = new ProcessBuilder().command(cmd).start();
             if (Boolean.TRUE.equals(this.sync)) {
@@ -269,6 +271,7 @@ public class JarbootShell {
                 AnsiLog.info("exit code: {}", code);
             } else {
                 Thread.sleep(3000);
+                printHomePage();
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
