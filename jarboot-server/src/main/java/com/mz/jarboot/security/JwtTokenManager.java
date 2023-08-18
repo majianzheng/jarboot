@@ -25,9 +25,6 @@ import java.util.List;
  */
 @Component
 public class JwtTokenManager {
-    
-    private static final String AUTHORITIES_KEY = "auth";
-
     @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
 
@@ -63,7 +60,7 @@ public class JwtTokenManager {
         validity = new Date(now + expireSeconds * 1000L);
         
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put(AUTHORITIES_KEY, roles);
+        claims.put(AuthConst.AUTHORITIES_KEY, roles);
         return Jwts.builder().setClaims(claims).setExpiration(validity)
                 .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
     }
@@ -77,7 +74,7 @@ public class JwtTokenManager {
     public String createOpenApiToken(String username) {
         String roles = userDao.getUserRoles(username);
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put(AUTHORITIES_KEY, roles);
+        claims.put(AuthConst.AUTHORITIES_KEY, roles);
         return Jwts.builder().setClaims(claims)
                 .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
     }
@@ -93,7 +90,7 @@ public class JwtTokenManager {
                 .parseClaimsJws(token).getBody();
         
         List<GrantedAuthority> authorities = AuthorityUtils
-                .commaSeparatedStringToAuthorityList((String) claims.get(AUTHORITIES_KEY));
+                .commaSeparatedStringToAuthorityList((String) claims.get(AuthConst.AUTHORITIES_KEY));
         
         User principal = new User(claims.getSubject(), StringUtils.EMPTY, authorities);
         return new UsernamePasswordAuthenticationToken(principal, StringUtils.EMPTY, authorities);

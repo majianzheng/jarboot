@@ -1,5 +1,6 @@
 package com.mz.jarboot.security;
 
+import com.mz.jarboot.cluster.ClusterConfig;
 import com.mz.jarboot.common.pojo.ResponseSimple;
 import com.mz.jarboot.common.utils.HttpResponseUtils;
 import com.mz.jarboot.common.utils.JsonUtils;
@@ -42,6 +43,10 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } else {
+            if (ClusterConfig.getInstance().authClusterToken(request)) {
+                chain.doFilter(request, response);
+                return;
+            }
             handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "未登录");
         }
     }

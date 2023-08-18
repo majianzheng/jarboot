@@ -66,10 +66,13 @@ public class RoleServiceImpl implements RoleService {
     public void addRole(String role, String name) {
         checkParam(role, name);
         if (AuthConst.ADMIN_ROLE.equalsIgnoreCase(role)) {
-            throw new JarbootException("Role Admin is not permit to create or modify！");
+            throw new JarbootException("Role ADMIN is not permit to create!");
         }
         if (AuthConst.SYS_ROLE.equalsIgnoreCase(role)) {
-            throw new JarbootException("Role SYSTEM is not permit to create or modify！");
+            throw new JarbootException("Role SYSTEM is not permit to create!");
+        }
+        if (AuthConst.CLUSTER_ROLE.equalsIgnoreCase(role)) {
+            throw new JarbootException("Role CLUSTER is not permit to create!");
         }
         if (null == roleDao.findFirstByRole(role) && roleDao.countRoles() > AuthConst.MAX_ROLE) {
             throw new JarbootException("Role number exceed " + AuthConst.MAX_ROLE + "!");

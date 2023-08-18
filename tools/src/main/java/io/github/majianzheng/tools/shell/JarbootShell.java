@@ -189,7 +189,7 @@ public class JarbootShell {
         }
         String url = CommonConst.HTTP + host + CommonConst.SERVER_RUNTIME_CONTEXT;
         try {
-            ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class);
+            ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class, null);
             if (!Boolean.TRUE.equals(this.shell)) {
                 AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(runtimeInfo.getVersion()));
             }

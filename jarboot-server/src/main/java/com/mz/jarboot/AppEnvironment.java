@@ -2,6 +2,7 @@ package com.mz.jarboot;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.exception.JarbootRunException;
+import com.mz.jarboot.cluster.ClusterConfig;
 import com.mz.jarboot.common.AnsiLog;
 import com.mz.jarboot.common.CacheDirHelper;
 import com.mz.jarboot.common.PidFileHelper;
@@ -74,10 +75,12 @@ public class AppEnvironment implements SpringApplicationRunListener {
 
     @Override
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
-        //初始化配置
+        // 初始化配置
         SettingUtils.init(context, homePath);
         TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
         taskWatchService.init();
+        // 集群配置初始化
+        ClusterConfig.getInstance().init();
     }
 
     @Override
