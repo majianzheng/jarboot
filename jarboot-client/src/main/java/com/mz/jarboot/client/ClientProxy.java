@@ -445,7 +445,7 @@ public class ClientProxy implements AbstractEventRegistry {
          */
         private static String getVersion(String baseUrl) {
             final String api = baseUrl + CommonConst.SERVER_RUNTIME_CONTEXT;
-            return HttpUtils.getObj(api, ServerRuntimeInfo.class).getVersion();
+            return HttpUtils.getObj(api, ServerRuntimeInfo.class, null).getVersion();
         }
 
         static String createKey(String host, String username) {

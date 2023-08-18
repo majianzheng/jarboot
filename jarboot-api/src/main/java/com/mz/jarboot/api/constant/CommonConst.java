@@ -46,6 +46,8 @@ public class CommonConst {
     public static final String ROLE_CONTEXT = "/api/jarboot/role";
     public static final String SETTING_CONTEXT = "/api/jarboot/setting";
     public static final String USER_CONTEXT = "/api/jarboot/user";
+    public static final String CLUSTER_CONTEXT = "/api/jarboot/cluster";
+    public static final String CLUSTER_WS_CONTEXT = "/api/jarboot/cluster/ws";
     public static final String AGENT_WS_CONTEXT = "/jarboot/public/agent/ws";
     public static final String EVENT_WS_CONTEXT = "/jarboot/event/ws";
     public static final String MAIN_WS_CONTEXT = "/jarboot/main/service/ws";

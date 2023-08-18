@@ -48,10 +48,11 @@ public class HttpUtils {
      * @param url api接口
      * @param type 期望的结果类型
      * @param <T> 范型类
+     * @param header 头
      * @return 期望的结构
      */
-    public static <T> T getObj(String url, Class<T> type) {
-        return JsonUtils.treeToValue(get(url, null), type);
+    public static <T> T getObj(String url, Class<T> type, Map<String, String> header) {
+        return JsonUtils.treeToValue(get(url, header), type);
     }
 
     public static JsonNode postJson(String url, Object json, Map<String, String> header) {
@@ -76,11 +77,12 @@ public class HttpUtils {
      * @param url api接口
      * @param object 传入的参数
      * @param type 期望的结果类型
+     * @param header 头
      * @param <T> 范型类
      * @return 期望的结构
      */
-    public static <T> T postObj(String url, Object object, Class<T> type) {
-        return JsonUtils.treeToValue(postJson(url, object, null), type);
+    public static <T> T postObj(String url, Object object, Class<T> type, Map<String, String> header) {
+        return JsonUtils.treeToValue(postJson(url, object, header), type);
     }
 
     public static JsonNode post(String url, Map<String, String> formData, Map<String, String> header) {

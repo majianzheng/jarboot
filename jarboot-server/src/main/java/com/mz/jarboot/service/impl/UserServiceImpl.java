@@ -244,6 +244,9 @@ public class UserServiceImpl implements UserService {
             throw new JarbootException("Role contains whitespace!");
         }
         Set<String> roleSet = Arrays.stream(roles.split(",")).map(String::trim).collect(Collectors.toSet());
+        if (roleSet.contains(AuthConst.CLUSTER_ROLE)) {
+            throw new JarbootException("Can not assign CLUSTER role to any user!");
+        }
         if (roleSet.contains(AuthConst.SYS_ROLE) && !AuthConst.JARBOOT_USER.equals(username)) {
             throw new JarbootException("Can not assign SYSTEM role to normal user!");
         }
