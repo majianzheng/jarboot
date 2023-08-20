@@ -46,8 +46,8 @@ export JARBOOT_HOME=$(cd `dirname $0`/../; pwd)
 source $JARBOOT_HOME/bin/common.sh || exit
 cd "${JARBOOT_HOME}"
 
-TOOL_JAR="${JARBOOT_HOME}/components/jarboot-tools.jar io.github.majianzheng.jarboot.tools.shell.Shutdown"
+TOOL_JAR="${JARBOOT_HOME}/components/jarboot-tools.jar io.github.majianzheng.jarboot.tools.shell.CheckStatus"
 DAEMON_VM="-Xms10m -Xmx10m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -DJARBOOT_HOME=$JARBOOT_HOME"
 
-$JAVA $DAEMON_VM -cp ${TOOL_JAR} jarboot.shutdown
+$JAVA $DAEMON_VM -cp ${TOOL_JAR} jarboot.status
 echo "Done."

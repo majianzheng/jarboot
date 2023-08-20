@@ -1,4 +1,4 @@
-package io.github.majianzheng.tools.daemon;
+package io.github.majianzheng.jarboot.tools.daemon;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.common.AnsiLog;
@@ -11,7 +11,6 @@ import org.apache.commons.io.FileUtils;
 
 import java.nio.channels.FileLock;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,9 +24,10 @@ public class ServerDaemon {
             AnsiLog.error("JARBOOT_HOME is not set!");
             return;
         }
+        AnsiLog.info("启动Jarboot守护进程...");
         try (FileLock daemonLock = CacheDirHelper.singleDaemonTryLock()) {
             if (null == daemonLock) {
-                AnsiLog.error("守护进程已在运行中!");
+                AnsiLog.error("守护进程(PID: {})已在运行中!", PidFileHelper.getDaemonPid());
                 return;
             }
             daemon();
@@ -61,6 +61,7 @@ public class ServerDaemon {
             AnsiLog.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec);
             return;
         }
+        PidFileHelper.writeDaemonPid();
         // 开始监听
         try (FileLock lock = CacheDirHelper.singleInstanceLock()) {
             if (lock != null) {
@@ -86,13 +87,11 @@ public class ServerDaemon {
     private static boolean isPrepared() {
         boolean prepared = false;
         Map<String, String> vms = VMUtils.getInstance().listVM();
-        for (Map.Entry<String, String> entry : vms.entrySet()) {
-            if (Objects.equals(PidFileHelper.getServerPid(), entry.getKey())) {
-                // 已经加锁并运行
-                prepared = true;
-                AnsiLog.info("检测到Jarboot服务(PID: {})启动中...", entry.getKey());
-                break;
-            }
+        String pid = PidFileHelper.getServerPid();
+        if (vms.containsKey(pid)) {
+            // 已经加锁并运行
+            prepared = true;
+            AnsiLog.info("检测到Jarboot服务(PID: {})启动中...", pid);
         }
         return prepared;
     }

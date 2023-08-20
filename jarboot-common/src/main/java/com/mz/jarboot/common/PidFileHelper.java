@@ -96,12 +96,30 @@ public class PidFileHelper {
         }
     }
 
+    public static void writeDaemonPid() {
+        try {
+            FileUtils.writeStringToFile(CacheDirHelper.getDaemonPidFile(), PID, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootRunException(e);
+        }
+    }
+
     public static String getServerPid() {
         try {
             return FileUtils.readFileToString(CacheDirHelper.getServerPidFile(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new JarbootRunException(e);
+            // ignore
         }
+        return StringUtils.EMPTY;
+    }
+
+    public static String getDaemonPid() {
+        try {
+            return FileUtils.readFileToString(CacheDirHelper.getDaemonPidFile(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            // ignore
+        }
+        return StringUtils.EMPTY;
     }
 
     private PidFileHelper() {}

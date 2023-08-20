@@ -1,8 +1,10 @@
 package com.mz.jarboot.cluster;
 
 import com.mz.jarboot.api.constant.CommonConst;
+import com.mz.jarboot.api.pojo.ServerRuntimeInfo;
 import com.mz.jarboot.api.pojo.ServiceGroup;
 import com.mz.jarboot.api.service.ServiceManager;
+import com.mz.jarboot.service.ServerRuntimeService;
 import com.mz.jarboot.task.TaskRunCache;
 import com.mz.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 集群API服务
@@ -29,6 +30,14 @@ public class ClusterApiServer {
     private TaskRunCache taskRunCache;
     @Autowired
     private ServiceManager serviceManager;
+    @Autowired
+    private ServerRuntimeService serverRuntimeService;
+
+    @GetMapping("/check")
+    @ResponseBody
+    public ServerRuntimeInfo check() {
+        return serverRuntimeService.getServerRuntimeInfo();
+    }
 
     @GetMapping("/group")
     @ResponseBody

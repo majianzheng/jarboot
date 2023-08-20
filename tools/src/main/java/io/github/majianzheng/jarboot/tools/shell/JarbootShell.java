@@ -1,4 +1,4 @@
-package io.github.majianzheng.tools.shell;
+package io.github.majianzheng.jarboot.tools.shell;
 
 import com.mz.jarboot.api.constant.CommonConst;
 import com.mz.jarboot.api.pojo.ServerRuntimeInfo;

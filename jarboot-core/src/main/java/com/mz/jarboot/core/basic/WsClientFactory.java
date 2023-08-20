@@ -156,6 +156,8 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         latch = new CountDownLatch(1);
         try {
             connecting = true;
+            // 使用Jarboot类加载器
+            Thread.currentThread().setContextClassLoader(WsClientFactory.class.getClassLoader());
             session = container.connectToServer(this, URI.create(url));
             if (latch.await(MAX_CONNECT_WAIT_SECOND, TimeUnit.SECONDS) || online) {
                 LogUtils.offlineDevLog("start scheduleHeartbeat");
@@ -166,8 +168,11 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        } catch (Exception e) {
+            LogUtils.offlineDevLog("wait connect interrupted.");
+            this.destroyClient();
+        } catch (Throwable e) {
             logger.error(e.getMessage(), e);
+            this.destroyClient();
         } finally {
             latch = null;
             connecting = false;

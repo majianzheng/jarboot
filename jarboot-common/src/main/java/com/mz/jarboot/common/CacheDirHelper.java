@@ -123,6 +123,10 @@ public class CacheDirHelper {
         return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "jarboot.pid");
     }
 
+    static File getDaemonPidFile() {
+        return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "daemon.pid");
+    }
+
     private static FileChannel getSingleInstanceLockFileChannel(String file) {
         File lockFile = FileUtils.getFile(getJarbootHome(), CACHE_DIR, file);
         if (!lockFile.exists()) {

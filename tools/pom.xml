@@ -48,7 +48,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>io.github.majianzheng.tools.shell.JarbootShell</mainClass>
+                            <mainClass>io.github.majianzheng.jarboot.tools.shell.JarbootShell</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

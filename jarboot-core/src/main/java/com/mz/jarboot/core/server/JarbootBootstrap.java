@@ -170,7 +170,8 @@ public class JarbootBootstrap {
 
     private AgentClient initClientData(String args, boolean isPremain) {
         AgentClient clientData = new AgentClient();
-        clientData.setUserDir("default");
+        final String defaultUserDir = "default";
+        clientData.setUserDir(defaultUserDir);
         if (isPremain && initPremainArgs(args, clientData)) {
             //由jarboot本地启动时，解析传入参数
             return clientData;
@@ -199,14 +200,17 @@ public class JarbootBootstrap {
                 .append(PidFileHelper.INSTANCE_NAME)
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
-
-        String url = EnvironmentContext.getBaseUrl() + "/api/jarboot/public/agent/agentClient";
+        String baseUrl = CommonConst.HTTP + host;
+        String url = baseUrl + "/api/jarboot/public/agent/agentClient";
         clientData = HttpUtils.postObjByString(url, sb.toString(), AgentClient.class);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }
         if (0 != clientData.getCode()) {
             throw new JarbootException(clientData.getCode(), clientData.getMsg());
+        }
+        if (StringUtils.isEmpty(clientData.getUserDir())) {
+            clientData.setUserDir(defaultUserDir);
         }
         clientData.setHost(host);
         return clientData;
