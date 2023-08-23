@@ -1,5 +1,0 @@
-com.mz.jarboot.shell.plugin.CatCommandProcessor
-com.mz.jarboot.shell.plugin.PwdCommandProcessor
-com.mz.jarboot.shell.plugin.LsCommandProcessor
-com.mz.jarboot.shell.plugin.ShCommandProcessor
-com.mz.jarboot.shell.plugin.CdCommandProcessor

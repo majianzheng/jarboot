@@ -53,8 +53,8 @@
                             </descriptorRefs>
                             <archive>
                                 <manifestEntries>
-                                    <Premain-Class>com.mz.jarboot.agent.JarbootAgent</Premain-Class>
-                                    <Agent-Class>com.mz.jarboot.agent.JarbootAgent</Agent-Class>
+                                    <Premain-Class>io.github.majianzheng.jarboot.agent.JarbootAgent</Premain-Class>
+                                    <Agent-Class>io.github.majianzheng.jarboot.agent.JarbootAgent</Agent-Class>
                                     <Can-Redefine-Classes>true</Can-Redefine-Classes>
                                     <Can-Retransform-Classes>true</Can-Retransform-Classes>
                                     <Specification-Title>${project.name}</Specification-Title>

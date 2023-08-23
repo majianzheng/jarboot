@@ -1,11 +1,11 @@
 package io.github.majianzheng.jarboot.tools.shell;
 
-import com.mz.jarboot.api.constant.CommonConst;
-import com.mz.jarboot.common.AnsiLog;
-import com.mz.jarboot.common.PidFileHelper;
-import com.mz.jarboot.common.utils.OSUtils;
-import com.mz.jarboot.common.utils.StringUtils;
-import com.mz.jarboot.common.utils.VMUtils;
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.common.AnsiLog;
+import io.github.majianzheng.jarboot.common.PidFileHelper;
+import io.github.majianzheng.jarboot.common.utils.OSUtils;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import io.github.majianzheng.jarboot.common.utils.VMUtils;
 
 import java.util.Map;
 

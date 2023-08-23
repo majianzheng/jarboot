@@ -14,6 +14,6 @@
 Example: [36mhttps://github.com/majianzheng/jarboot-with-spring-cloud-alibaba-example[0m
 [1mDebug command usage example:[0m
 [32mhelp[0m [35mcommand[0m
-[35mjad[0m [33mcom.mz.jarboot.demo.cmd.PowCommandProcessor[0m
-[35mwatch[0m [33mcom.mz.jarboot.demo.DemoServerApplication[0m [94mfib[0m
-[35mtrace[0m [33mcom.mz.jarboot.demo.DemoServerApplication[0m [94mpow[0m
+[35mjad[0m [33mio.github.majianzheng.jarboot.demo.cmd.PowCommandProcessor[0m
+[35mwatch[0m [33mio.github.majianzheng.jarboot.demo.DemoServerApplication[0m [94mfib[0m
+[35mtrace[0m [33mio.github.majianzheng.jarboot.demo.DemoServerApplication[0m [94mpow[0m

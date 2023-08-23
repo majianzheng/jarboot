@@ -2,7 +2,7 @@
   "projectName": "Jarboot API文档",
   "isStrict": true,
   "allInOne": true,
-  "packageFilters": "com.mz.jarboot.controller.*",
+  "packageFilters": "io.github.majianzheng.jarboot.controller.*",
   "packageExcludeFilters": "",
   "allInOneDocFileName":"index.html",
   "outPath": "target/smart-doc",

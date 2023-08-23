@@ -30,7 +30,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>META-INF/services/com.mz.jarboot.api.cmd.spi.CommandProcessor</include>
+                    <include>META-INF/services/io.github.majianzheng.jarboot.api.cmd.spi.CommandProcessor</include>
                     <include>page/index.html</include>
                     <include>page/index.js</include>
                 </includes>

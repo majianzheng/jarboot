@@ -114,7 +114,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>com.mz.jarboot.JarBootServerApplication</mainClass>
+							<mainClass>io.github.majianzheng.jarboot.JarBootServerApplication</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

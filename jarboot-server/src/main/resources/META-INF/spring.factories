@@ -1,2 +1,2 @@
 org.springframework.boot.SpringApplicationRunListener=\
-  com.mz.jarboot.AppEnvironment
+  io.github.majianzheng.jarboot.AppEnvironment

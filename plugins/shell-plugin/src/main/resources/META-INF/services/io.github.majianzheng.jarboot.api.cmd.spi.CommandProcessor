@@ -1,0 +1,5 @@
+io.github.majianzheng.jarboot.shell.plugin.CatCommandProcessor
+io.github.majianzheng.jarboot.shell.plugin.PwdCommandProcessor
+io.github.majianzheng.jarboot.shell.plugin.LsCommandProcessor
+io.github.majianzheng.jarboot.shell.plugin.ShCommandProcessor
+io.github.majianzheng.jarboot.shell.plugin.CdCommandProcessor

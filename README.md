@@ -162,7 +162,7 @@ public class DemoCommandProcessor implements CommandProcessor {
 3. Create spi define file
 
 Then create a file in <code>resources</code>/<code>META-INF</code>/<code>services</code> named 
- <code>com.mz.jarboot.api.cmd.spi.CommandProcessor</code> the content is class full name.
+ <code>spi.cmd.io.github.majianzheng.jarboot.api.CommandProcessor</code> the content is class full name.
 
 #### Proactive notification of startup completion
 ```java
@@ -192,7 +192,7 @@ public class DemoApplication {
 View the class bytes，Usage：
 
 ```bash
-jarboot$ bytes com.mz.jarboot.demo.DemoServerApplication
+jarboot$ bytes io.github.majianzheng.jarboot.demo.DemoServerApplication
 ClassLoader: org.springframework.boot.loader.LaunchedURLClassLoader@31221be2
 ------
 getUser
@@ -286,19 +286,19 @@ $ sc -d org.springframework.web.context.support.XmlWebApplicationContext
 method calling path, and output the time cost for each node in the path.
 
 ```bash
-jarboot$ trace com.mz.jarboot.demo.DemoServerApplication add 
+jarboot$ trace io.github.majianzheng.jarboot.demo.DemoServerApplication add 
 Affect(class count: 2 , method count: 1) cost in 63 ms, listenerId: 2
 `---ts=2021-06-15 23:34:20;thread_name=http-nio-9900-exec-3;id=13;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@4690b489
-    `---[0.053485ms] com.mz.jarboot.demo.DemoServerApplication:add()
+    `---[0.053485ms] io.github.majianzheng.jarboot.demo.DemoServerApplication:add()
 ```
   
 ### watch
 methods in data aspect including return values, exceptions and parameters
     
-Watch the first parameter and thrown exception of `com.mz.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
+Watch the first parameter and thrown exception of `io.github.majianzheng.jarboot.demo.DemoServerApplicatio#add` only if it throws exception.
 
 ```bash
-jarboot$ watch com.mz.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
+jarboot$ watch io.github.majianzheng.jarboot.demo.DemoServerApplicatio add {params[0], throwExp} -e
 Press x to abort.
 Affect(class-cnt:1 , method-cnt:1) cost in 65 ms.
 ts=2018-09-18 10:26:28;result=@ArrayList[
@@ -315,12 +315,12 @@ jarboot$ thread -n 3
 "nioEventLoopGroup-2-1" Id=31 cpuUsage=0.37% deltaTime=0ms time=880ms RUNNABLE
     at sun.management.ThreadImpl.dumpThreads0(Native Method)
     at sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:448)
-    at com.mz.jarboot.core.cmd.impl.ThreadCommand.processTopBusyThreads(ThreadCommand.java:209)
-    at com.mz.jarboot.core.cmd.impl.ThreadCommand.run(ThreadCommand.java:120)
-    at com.mz.jarboot.core.basic.EnvironmentContext.runCommand(EnvironmentContext.java:162)
-    at com.mz.jarboot.core.cmd.CommandRequestSubscriber.execute(CommandDispatcher.java:35)
-    at com.mz.jarboot.core.server.JarbootBootstrap$1.onText(JarbootBootstrap.java:94)
-    at com.mz.jarboot.core.ws.WebSocketClientHandler.channelRead0(WebSocketClientHandler.java:83)
+    at impl.cmd.io.github.majianzheng.jarboot.core.ThreadCommand.processTopBusyThreads(ThreadCommand.java:209)
+    at impl.cmd.io.github.majianzheng.jarboot.core.ThreadCommand.run(ThreadCommand.java:120)
+    at basic.io.github.majianzheng.jarboot.core.EnvironmentContext.runCommand(EnvironmentContext.java:162)
+    at cmd.io.github.majianzheng.jarboot.core.CommandRequestSubscriber.execute(CommandDispatcher.java:35)
+    at server.io.github.majianzheng.jarboot.core.JarbootBootstrap$1.onText(JarbootBootstrap.java:94)
+    at io.github.majianzheng.jarboot.core.ws.WebSocketClientHandler.channelRead0(WebSocketClientHandler.java:83)
     at io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:99)
 
 "C2 CompilerThread1" [Internal] cpuUsage=3.14% deltaTime=6ms time=4599ms
@@ -338,7 +338,7 @@ jarboot$ classloader
 name	                                                numberOfInstances	loadedCountTotal
 org.springframework.boot.loader.LaunchedURLClassLoader	1	                3929
 BootstrapClassLoader	                                1                	2623
-com.mz.jarboot.agent.JarbootClassLoader             	1               	1780
+io.github.majianzheng.jarboot.agent.JarbootClassLoader             	1               	1780
 sun.misc.Launcher$AppClassLoader                    	1               	59
 sun.reflect.DelegatingClassLoader                 	58                	58
 sun.misc.Launcher$ExtClassLoader                     	1	                18

@@ -33,7 +33,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.mz.jarboot.demo.DemoServerApplication</mainClass>
+                            <mainClass>io.github.majianzheng.jarboot.demo.DemoServerApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -45,7 +45,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>banner.txt</include>
-                    <include>META-INF/services/com.mz.jarboot.api.cmd.spi.CommandProcessor</include>
+                    <include>META-INF/services/io.github.majianzheng.jarboot.api.cmd.spi.CommandProcessor</include>
                 </includes>
             </resource>
         </resources>
