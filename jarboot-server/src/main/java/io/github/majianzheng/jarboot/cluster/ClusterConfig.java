@@ -212,29 +212,37 @@ public class ClusterConfig {
 
     private void waitHostStarted(String lineHost) {
         final int tryCount = 60;
-        for (int i = 0; i < tryCount; ++i) {
-            try {
-                ServerRuntimeInfo info = getServerInfo(lineHost);
-                if (Objects.equals(info.getUuid(), SettingUtils.getUuid())) {
-                    // 自己
-                    this.selfHost = lineHost;
-                }
-                hosts.put(lineHost, ClusterServerState.ONLINE);
-                break;
-            } catch (JarbootException e) {
-                if (401 == e.getErrorCode()) {
-                    logger.warn("认证失败，{}与当前服务的cluster-secret-key不一致或正在启动中.", lineHost);
-                    hosts.put(lineHost, ClusterServerState.AUTH_FAILED);
-                } else {
-                    hosts.put(lineHost, ClusterServerState.OFFLINE);
-                }
-                try {
-                    TimeUnit.SECONDS.sleep(5);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
+        try {
+            for (int i = 0; i < tryCount; ++i) {
+                if (checkHost(lineHost)) {
+                    break;
                 }
             }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
         }
+    }
+
+    private boolean checkHost(String lineHost) throws InterruptedException {
+        try {
+            ServerRuntimeInfo info = getServerInfo(lineHost);
+            if (Objects.equals(info.getUuid(), SettingUtils.getUuid())) {
+                // 自己
+                this.selfHost = lineHost;
+            }
+            hosts.put(lineHost, ClusterServerState.ONLINE);
+            return true;
+        } catch (JarbootException e) {
+            if (401 == e.getErrorCode()) {
+                logger.warn("认证失败，{}与当前服务的cluster-secret-key不一致或正在启动中.", lineHost);
+                hosts.put(lineHost, ClusterServerState.AUTH_FAILED);
+            } else {
+                hosts.put(lineHost, ClusterServerState.OFFLINE);
+            }
+
+            TimeUnit.SECONDS.sleep(5);
+        }
+        return false;
     }
 
     private static class ClusterConfigHolder {
