@@ -212,13 +212,13 @@ public class StdOutStreamReactor {
 
     private void closeStdFileStreamQuietly() {
         if (null != stdoutFileStream) {
+            NotifyReactor.getInstance().deregisterSubscriber(this.subscriber);
             try {
                 stdoutFileStream.close();
             } catch (Exception e) {
                 //ignore
             } finally {
                 stdoutFileStream = null;
-                NotifyReactor.getInstance().deregisterSubscriber(this.subscriber);
             }
         }
     }

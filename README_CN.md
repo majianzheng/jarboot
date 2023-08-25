@@ -43,8 +43,7 @@ English version goes [here](README.md).
 ### 架构简介 
 详细架构设计[查看](jarboot-server/README.md)
 
-前端界面采用<code>React</code>技术，脚手架使用<code>UmiJs</code>，组件库使用UmiJs内置等<code>antd</code>。
-后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
+前端界面采用<code>Vue3</code>技术。 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
@@ -61,16 +60,7 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 
 编译Jarboot源代码
 ```bash
-#首先编译前端
-$ cd jarboot-ui2
-#首次时需要先安装依赖，执行yarn或npm install
-$ yarn
-
-#执行编译，yarn build或npm run build，开发模式可执行yarn start或npm run start
-$ yarn build
-
-#切换到代码根目录，编译Java代码
-$ cd ../
+#首先需要准备JDK17+和nodeJS16+的开发环境，然后执行：
 $ mvn clean install -P prod
 ```
 ### 启动<code>Jarboot</code>服务

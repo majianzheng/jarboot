@@ -44,8 +44,7 @@ as acquiring JVM information, monitoring thread status, acquiring thread stack i
 ### Architecture brief introduction
 Detailed architecture design [view](jarboot-server/README.md)
 
-Front-end interface adopts <code>React</code> technology, scaffold uses <code>UmiJs</code>, component library uses
-<code>UmiJs</code> built-in <code>antd</code>. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
+Front-end interface adopts <code>Vue3</code> technology. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
 ## Install or build
 ### Download the zip package to install or using docker.
@@ -62,16 +61,7 @@ Ignore this when using zip package or <code>docker</code>.
 
 Build the jarboot code.
 ```bash
-#At first build ui
-$ cd jarboot-ui2
-#First time, execute yarn or npm install
-$ yarn
-
-#execute compile, yarn build or npm run build, execute yarn start or npm run start at development mode.
-$ yarn build
-
-#Switch to the code root directory and compile the Java code
-$ cd ../
+#At first prepare JDK17+ and nodeJs16+, then
 $ mvn clean install -P prod
 ```
 ### Start <code>jarboot</code> server
