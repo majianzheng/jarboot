@@ -7,6 +7,7 @@ import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.protocol.CommandResponse;
+import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.event.AgentResponseEvent;
@@ -45,7 +46,7 @@ public class AgentClientController {
         NotifyReactor
                 .getInstance()
                 .publishEvent(new AgentResponseEvent(userDir, serviceName, sid, resp, null));
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -60,7 +61,7 @@ public class AgentClientController {
         NotifyReactor
                 .getInstance()
                 .publishEvent(new ServiceStartedEvent(userDir, serviceName, sid));
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**

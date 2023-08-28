@@ -20,9 +20,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 用户管理
@@ -50,7 +51,7 @@ public class UserController {
     @ResponseBody
     public ResponseSimple createUser(String username, String fullName, String password, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
         userService.createUser(username, fullName, password, roles, userDir, avatar);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -66,7 +67,7 @@ public class UserController {
     @ResponseBody
     public ResponseSimple updateUser(String username, String fullName, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
         userService.updateUser(username, fullName, roles, userDir, avatar);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -78,7 +79,7 @@ public class UserController {
     @ResponseBody
     public ResponseSimple deleteUser(Long id) {
         userService.deleteUser(id);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -93,15 +94,13 @@ public class UserController {
     @ResponseBody
     public ResponseSimple updateUserPassword(String username, String oldPassword, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
-        ResponseSimple result = new ResponseSimple();
         //只有ADMIN和自己可修改
         if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || java.util.Objects.equals(username, currentLoginUser)) {
             userService.updateUserPassword(currentLoginUser, username, oldPassword, password);
         } else {
-            result.setCode(ResultCodeConst.VALIDATE_FAILED);
-            result.setMsg("Only ROLE_ADMIN or self can modify the password!");
+            return HttpResponseUtils.error(ResultCodeConst.VALIDATE_FAILED, "Only ROLE_ADMIN or self can modify the password!");
         }
-        return result;
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -113,7 +112,7 @@ public class UserController {
     @ResponseBody
     public ResponseVo<User> findUserByUsername(String username) {
         User user = userService.findUserByUsername(username);
-        return new ResponseVo<>(user);
+        return HttpResponseUtils.success(user);
     }
 
     /**
@@ -138,7 +137,11 @@ public class UserController {
     @ResponseBody
     public ResponseVo<List<String>> getUserDirs() {
         File workspace = FileUtils.getFile(SettingUtils.getWorkspace());
-        return HttpResponseUtils.success(Arrays.asList(Objects.requireNonNull(workspace.list(), "工作目录为空！")));
+        List<String> userDirs = Stream.of(Objects.requireNonNull(workspace.listFiles()))
+                .filter(file -> file.isDirectory() && !file.getName().startsWith(".") && !file.isHidden())
+                .map(File::getName)
+                .collect(Collectors.toList());
+        return HttpResponseUtils.success(userDirs);
     }
 
     private String getCurrentLoginName(HttpServletRequest request) {

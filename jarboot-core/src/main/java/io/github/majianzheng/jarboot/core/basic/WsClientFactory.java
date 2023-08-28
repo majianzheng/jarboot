@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 
 import javax.websocket.*;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -141,16 +143,27 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         if (null != session) {
             this.destroyClient();
         }
+        String serviceName = null;
+        String sid = null;
+        String userDir = null;
+        try {
+            serviceName = URLEncoder.encode(EnvironmentContext.getAgentClient().getServiceName(), StandardCharsets.UTF_8.name());
+            sid = URLEncoder.encode(EnvironmentContext.getAgentClient().getSid(), StandardCharsets.UTF_8.name());
+            userDir = URLEncoder.encode(EnvironmentContext.getAgentClient().getUserDir(), StandardCharsets.UTF_8.name());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return;
+        }
         final String url = new StringBuilder()
                 .append(CommonConst.WS)
                 .append(EnvironmentContext.getAgentClient().getHost())
                 .append(CommonConst.AGENT_WS_CONTEXT)
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getAgentClient().getServiceName())
+                .append(serviceName)
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getAgentClient().getSid())
+                .append(sid)
                 .append(StringUtils.SLASH)
-                .append(EnvironmentContext.getAgentClient().getUserDir())
+                .append(userDir)
                 .toString();
         LogUtils.offlineDevLog("connecting to jarboot {}", url);
         latch = new CountDownLatch(1);

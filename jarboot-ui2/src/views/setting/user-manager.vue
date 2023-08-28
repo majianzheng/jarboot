@@ -64,7 +64,7 @@
         <el-button type="primary" :loading="state.loading" @click="save">{{ $t('SAVE') }}</el-button>
       </template>
     </el-drawer>
-    <modify-user-dialog v-model:visible="state.dialog" :username="state.modifyUsername"></modify-user-dialog>
+    <modify-user-dialog v-model:visible="state.dialog" :username="state.modifyUsername" :reset-password="true"></modify-user-dialog>
     <avatar-cutter v-model:visible="state.showCutter" @cancel="state.showCutter = false" return-type="url" @enter="uploadAvatar"></avatar-cutter>
   </div>
 </template>
@@ -236,10 +236,9 @@ async function save() {
 async function getRoleList() {
   let roleList = await RoleService.getRoleList();
   const roleMap = {} as any;
-  roleList.map(r => (roleMap[r.role] = r.name));
+  roleList.forEach(r => (roleMap[r.role] = r.name));
   state.roleList = roleList.filter(r => SYS_ROLE !== r.role);
   state.roleMap = roleMap;
 }
 onMounted(getRoleList);
 </script>
-<style scoped></style>

@@ -71,7 +71,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple startServer(@RequestBody List<String> services) {
         serviceManager.startService(services);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -83,7 +83,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple stopServer(@RequestBody List<String> services) {
         serviceManager.stopService(services);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -95,7 +95,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple restartServer(@RequestBody List<String> services) {
         serviceManager.restartService(services);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -107,7 +107,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple startSingleService(@RequestBody ServiceSetting setting) {
         serviceManager.startSingleService(setting);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -119,7 +119,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple stopSingleService(@RequestBody ServiceSetting setting) {
         serviceManager.stopSingleService(setting);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -134,7 +134,7 @@ public class ServiceMgrController {
             return new ResponseVo<>(ResultCodeConst.EMPTY_PARAM, "参数为空");
         }
         data = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
-        return new ResponseVo<>(data);
+        return HttpResponseUtils.success(data);
     }
 
     /**
@@ -157,7 +157,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple attach(String pid) {
         serviceManager.attach(pid);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -169,7 +169,7 @@ public class ServiceMgrController {
     @ResponseBody
     public ResponseSimple deleteServer(String serviceName) {
         serviceManager.deleteService(serviceName);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**

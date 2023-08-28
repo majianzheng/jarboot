@@ -34,7 +34,7 @@ public class SettingController {
     @ResponseBody
     public ResponseVo<ServiceSetting> getServerSetting(String serviceName) {
         ServiceSetting results = settingService.getServiceSetting(serviceName);
-        return new ResponseVo<>(results);
+        return HttpResponseUtils.success(results);
     }
 
     /**
@@ -45,7 +45,7 @@ public class SettingController {
     @ResponseBody
     public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
         settingService.submitServiceSetting(setting);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -56,7 +56,7 @@ public class SettingController {
     @ResponseBody
     public ResponseVo<SystemSetting> getGlobalSetting() {
         SystemSetting results = settingService.getSystemSetting();
-        return new ResponseVo<>(results);
+        return HttpResponseUtils.success(results);
     }
 
     /**
@@ -68,7 +68,7 @@ public class SettingController {
     @ResponseBody
     public ResponseSimple submitGlobalSetting(@RequestBody SystemSetting setting) {
         settingService.saveSetting(setting);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -81,7 +81,7 @@ public class SettingController {
     @ResponseBody
     public ResponseVo<String> getVmOptions(String serviceName, String file) {
         String results = settingService.getVmOptions(serviceName, file);
-        return new ResponseVo<>(results);
+        return HttpResponseUtils.success(results);
     }
 
     /**
@@ -95,7 +95,7 @@ public class SettingController {
     @ResponseBody
     public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
         settingService.saveVmOptions(serviceName, file, content);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -109,7 +109,7 @@ public class SettingController {
     public ResponseSimple addTrustedHost(String host) throws IOException {
         SettingUtils.addTrustedHost(host);
         AgentManager.getInstance().addTrustedHost(host);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -122,7 +122,7 @@ public class SettingController {
     @ResponseBody
     public ResponseSimple removeTrustedHost(String host) throws IOException {
         SettingUtils.removeTrustedHost(host);
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**

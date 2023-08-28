@@ -65,8 +65,7 @@ public class AgentManager {
      */
     public void online(String userDir, String serviceName, Session session, String sid) {
         //目标进程上线
-        AgentOperator client = new AgentOperator(serviceName, sid, session);
-        clientMap.put(sid, client);
+        AgentOperator client = clientMap.compute(sid, (k,v) -> new AgentOperator(serviceName, sid, session));
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null == latch) {
             client.setState(ClientState.ONLINE);
@@ -121,11 +120,12 @@ public class AgentManager {
         String msg = String.format("\033[1;96m%s\033[0m 下线！", client.getName());
         MessageUtils.console(sid, msg);
         synchronized (client) {
-            //同时判定STARTING，因为启动可能会失败，需要唤醒等待启动完成的线程
-            if (ClientState.EXITING.equals(client.getState()) || ClientState.STARTING.equals(client.getState())) {
-                //发送了退出执行，唤醒killClient或waitServerStarted线程
+            //发送了退出执行，唤醒killClient或waitServerStarted线程
+            try {
                 client.notifyAll();
-            } else {
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+            } finally {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
                 if (null != client.getSetting()) {
@@ -485,11 +485,14 @@ public class AgentManager {
             return;
         }
         synchronized (client) {
-            if (ClientState.STARTING.equals(client.getState())) {
-                //发送启动成功，唤醒waitServerStarted线程
+            //发送启动成功，唤醒waitServerStarted线程
+            try {
                 client.notifyAll();
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+            } finally {
+                client.setState(ClientState.ONLINE);
             }
-            client.setState(ClientState.ONLINE);
         }
     }
 

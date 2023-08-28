@@ -39,7 +39,7 @@ public class FileController {
         try (InputStream is = file.getInputStream()) {
             fileService.uploadFile(path + File.separator + file.getOriginalFilename(), is);
         }
-        return new ResponseSimple();
+        return HttpResponseUtils.success();
     }
 
     /**
