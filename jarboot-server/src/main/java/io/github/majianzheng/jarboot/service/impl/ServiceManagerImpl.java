@@ -109,7 +109,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         TaskUtils.getTaskExecutor().execute(() -> this.startService0(userDir, serviceNames));
     }
 
-    private void startService0(String userDir, List<String> services) {
+    void startService0(String userDir, List<String> services) {
         //获取服务的优先级启动顺序
         final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStartPriority(userDir, services);
         ArrayList<ServiceSetting> taskList = new ArrayList<>();

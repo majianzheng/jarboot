@@ -3,7 +3,8 @@ package io.github.majianzheng.jarboot.service.impl;
 import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
-import io.github.majianzheng.jarboot.api.service.ServiceManager;
+import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
+import io.github.majianzheng.jarboot.api.pojo.SimpleInstance;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
@@ -12,7 +13,9 @@ import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
+import io.github.majianzheng.jarboot.dao.UserDao;
 import io.github.majianzheng.jarboot.service.TaskWatchService;
+import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
@@ -42,7 +45,11 @@ import java.util.stream.Collectors;
 public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
-    private ServiceManager serverMgrService;
+    private TaskRunCache taskRunCache;
+    @Autowired
+    private ServiceManagerImpl serverMgrService;
+    @Autowired
+    private UserDao userDao;
 
     private WatchService watchService;
     private final Map<WatchKey, ServiceSetting> watchKeyServiceMap = new ConcurrentHashMap<>(16);
@@ -78,6 +85,12 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         // 清理无效的记录文件
         cleanRecordFiles();
 
+        // 是否自动启动服务
+        if (Boolean.TRUE.equals(SettingUtils.getSystemSetting().getServicesAutoStart())) {
+            threadFactory
+                    .newThread(this::autoStartServices)
+                    .start();
+        }
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
             threadFactory
@@ -342,6 +355,26 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                 return ServiceOfflineEvent.class;
             }
         });
+    }
+
+    private void autoStartServices() {
+        File workspaceDir = FileUtils.getFile(SettingUtils.getWorkspace());
+        File[] files = workspaceDir.listFiles();
+        if (null == files) {
+            return;
+        }
+        for (File userDir : files) {
+            String name = userDir.getName();
+            if (userDao.existsByUserDir(name)) {
+                List<ServiceInstance> serviceList = taskRunCache.getServiceList(name);
+                List<String> services = serviceList.stream().map(SimpleInstance::getName).collect(Collectors.toList());
+                logger.info("开始自动启动服务目录{}, 服务数量：{}", name, services.size());
+                serverMgrService.startService0(name, services);
+                logger.info("自动启动服务目录{}完成！", name);
+            } else {
+                logger.warn("工作空间下，该目录（{}）没有任何用户关联", name);
+            }
+        }
     }
 
     private void cleanRecordFiles() {

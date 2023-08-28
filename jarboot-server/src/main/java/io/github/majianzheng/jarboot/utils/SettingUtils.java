@@ -44,6 +44,7 @@ public class SettingUtils {
     private static final String MAX_EXIT_TIME = "jarboot.services.max-graceful-exit-time";
     private static final String AFTER_OFFLINE_EXEC = "jarboot.after-server-error-offline";
     private static final String FILE_SHAKE_TIME = "jarboot.file-shake-time";
+    private static final String SERVICES_AUTO_START = "jarboot.services.enable-auto-start-after-start";
     /** 默认的工作空间路径 */
     private static String defaultWorkspace;
     /** Jarboot配置文件路径 */
@@ -201,6 +202,16 @@ public class SettingUtils {
             // ignore
         }
         GLOBAL_SETTING.setFileChangeShakeTime(shakeTime);
+        GLOBAL_SETTING.setServicesAutoStart(false);
+        String autoStartValue = properties.getProperty(SERVICES_AUTO_START, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(autoStartValue)) {
+            try {
+                boolean autoStart = Boolean.parseBoolean(autoStartValue);
+                GLOBAL_SETTING.setServicesAutoStart(autoStart);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
     }
 
     private static void initTrustedHosts() {
@@ -292,17 +303,10 @@ public class SettingUtils {
         } else {
             throw new JarbootException(ResultCodeConst.INVALID_PARAM, "服务文件变更监控抖动时间需在3～600之间！");
         }
+        props.put(SERVICES_AUTO_START, String.valueOf(Boolean.TRUE.equals(setting.getServicesAutoStart())));
         props.put(AFTER_OFFLINE_EXEC, setting.getAfterServerOfflineExec());
         return props;
     }
-
-    public static void saveSecretKey(String secretKey) {
-        HashMap<String, String> props = new HashMap<>(4);
-        props.put("jarboot.token.secret.key", secretKey);
-        File file = FileUtils.getFile(jarbootConf);
-        PropertyFileUtils.writeProperty(file, props);
-    }
-
 
     /**
      * 获取工作空间

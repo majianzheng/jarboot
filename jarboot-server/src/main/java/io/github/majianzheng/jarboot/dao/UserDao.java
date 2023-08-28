@@ -35,4 +35,11 @@ public interface UserDao extends JpaRepository<User, Long> {
      */
     @Query("select u.roles from User u where u.username=:username")
     String getUserRoles(@Param("username") String username);
+
+    /**
+     * 是否存在该用户目录配置
+     * @param userDir 用户目录
+     * @return 是否存在
+     */
+    boolean existsByUserDir(String userDir);
 }
