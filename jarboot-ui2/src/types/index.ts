@@ -85,6 +85,7 @@ export type ServerSetting = {
 export type GlobalSetting = {
   workspace: string;
   defaultVmOptions: string;
+  servicesAutoStart: boolean;
   maxStartTime: number;
   maxExitTime: number;
   afterServerOfflineExec: string;
@@ -97,6 +98,7 @@ export type MsgData = {
   body: any;
 };
 export type MsgReq = {
+  host: string;
   service?: string;
   sid?: string;
   body: string;
@@ -123,6 +125,7 @@ export interface TreeNode {
 }
 
 export interface ServiceInstance extends TreeNode {
+  host: string;
   name: string;
   status?: string;
   group?: string;

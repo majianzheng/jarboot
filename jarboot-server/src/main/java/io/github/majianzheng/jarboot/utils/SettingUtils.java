@@ -138,6 +138,9 @@ public class SettingUtils {
         return uuid;
     }
 
+    public static ApplicationContext getContext() {
+        return context;
+    }
     /**
      * 初始化Agent路径
      */

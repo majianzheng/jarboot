@@ -1,0 +1,16 @@
+package io.github.majianzheng.jarboot.cluster;
+
+/**
+ * @author mazheng
+ */
+
+public enum ClusterEventName {
+    /** 推送前端 */
+    NOTIFY_TO_FRONT,
+    /** 方法执行 */
+    EXEC_FUNC,
+    /** 启动服务 */
+    START_SERVICE,
+    /** 停止服务 */
+    STOP_SERVICE,
+}

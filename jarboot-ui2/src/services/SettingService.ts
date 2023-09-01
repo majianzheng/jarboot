@@ -10,9 +10,9 @@ export default class SettingService {
   /**
    * 获取服务配置
    * @param serviceName 服务名
-   * @returns {Promise<any>}
+   * @returns {Promise<ServerSetting>}
    */
-  public static getServerSetting(serviceName: string) {
+  public static getServerSetting(serviceName: string): Promise<ServerSetting> {
     return Request.get<ServerSetting>(`${settingUrl}/serviceSetting`, { serviceName });
   }
 
@@ -26,9 +26,9 @@ export default class SettingService {
 
   /**
    * 获取服务配置
-   * @returns {Promise<any>}
+   * @returns {Promise<GlobalSetting>}
    */
-  public static getGlobalSetting() {
+  public static getGlobalSetting(): Promise<GlobalSetting> {
     return Request.get<GlobalSetting>(`${settingUrl}/globalSetting`, {});
   }
 

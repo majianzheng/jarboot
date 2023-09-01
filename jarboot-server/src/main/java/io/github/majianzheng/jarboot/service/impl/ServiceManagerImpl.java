@@ -12,6 +12,7 @@ import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.AbstractEventRegistry;
 import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
@@ -62,24 +63,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     }
 
     @Override
-    public List<ServiceGroup> getServiceGroup() {
-        List<ServiceGroup> groups = new ArrayList<>();
-        ServiceGroup localGroup = taskRunCache.getServiceGroup(SettingUtils.getCurrentUserDir());
-        groups.add(localGroup);
-        // 获取集群其它服务器的组信息
-        return groups;
+    public ServiceGroup getServiceGroup() {
+        return taskRunCache.getServiceGroup(SettingUtils.getCurrentUserDir());
     }
 
     @Override
-    public List<ServiceGroup> getJvmGroup() {
-        List<ServiceGroup> groups = new ArrayList<>();
-        // 获取集群其它服务器的组信息
+    public ServiceGroup getJvmGroup() {
         ServiceGroup localGroup = new ServiceGroup();
-        groups.add(localGroup);
-        localGroup.setHost("localhost");
+        localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
         localGroup.setChildren(new ArrayList<>());
         localGroup.getChildren().addAll(this.getJvmProcesses());
-        return groups;
+        return localGroup;
     }
 
     /**
@@ -243,6 +237,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 return;
             }
             JvmProcess process = new JvmProcess();
+            process.setHost(ClusterClientManager.getInstance().getSelfHost());
             process.setSid(pid);
             process.setPid(pid);
             process.setAttached(AgentManager.getInstance().isOnline(pid));

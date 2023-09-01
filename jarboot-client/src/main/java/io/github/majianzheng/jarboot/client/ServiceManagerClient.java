@@ -63,28 +63,21 @@ public class ServiceManagerClient implements ServiceManager {
     }
 
     @Override
-    public List<ServiceGroup> getServiceGroup() {
+    public ServiceGroup getServiceGroup() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/groups";
         return doGetGroups(api);
     }
 
     @Override
-    public List<ServiceGroup> getJvmGroup() {
+    public ServiceGroup getJvmGroup() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/jvmGroups";
         return doGetGroups(api);
     }
 
-    private List<ServiceGroup> doGetGroups(String api) {
+    private ServiceGroup doGetGroups(String api) {
         JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
-        List<ServiceGroup> list = new ArrayList<>();
-        final int size = result.size();
-        for (int i = 0; i < size; ++i) {
-            JsonNode node = result.get(i);
-            ServiceGroup group = JsonUtils.treeToValue(node, ServiceGroup.class);
-            list.add(group);
-        }
-        return list;
+        return JsonUtils.treeToValue(result, ServiceGroup.class);
     }
 
     @Override

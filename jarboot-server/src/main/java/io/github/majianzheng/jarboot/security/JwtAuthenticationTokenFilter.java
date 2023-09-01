@@ -1,6 +1,6 @@
 package io.github.majianzheng.jarboot.security;
 
-import io.github.majianzheng.jarboot.cluster.ClusterConfig;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
@@ -36,18 +36,18 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 this.tokenManager.validateToken(jwt);
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-                handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "token校验失败，请重新登录");
+                handleError(response, HttpServletResponse.SC_UNAUTHORIZED, HttpServletResponse.SC_UNAUTHORIZED, "token校验失败，请重新登录");
                 return;
             }
             Authentication authentication = this.tokenManager.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } else {
-            if (ClusterConfig.getInstance().authClusterToken(request)) {
+            if (ClusterClientManager.getInstance().authClusterToken(request)) {
                 chain.doFilter(request, response);
                 return;
             }
-            handleError(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "未登录");
+            handleError(response, HttpServletResponse.SC_UNAUTHORIZED, HttpServletResponse.SC_UNAUTHORIZED, "未登录");
         }
     }
 

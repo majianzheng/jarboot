@@ -12,7 +12,7 @@ import javax.websocket.Session;
  */
 public class SessionOperator {
     /** websocket会话 */
-    private final Session session;
+    protected Session session;
     
     public SessionOperator(Session session) {
         this.session = session;

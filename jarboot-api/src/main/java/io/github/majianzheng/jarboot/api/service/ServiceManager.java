@@ -26,13 +26,13 @@ public interface ServiceManager {
      * 获取服务组列表
      * @return 服务分组
      */
-    List<ServiceGroup> getServiceGroup();
+    ServiceGroup getServiceGroup();
 
     /**
      * 获取Vm组列表
      * @return 服务分组
      */
-    List<ServiceGroup> getJvmGroup();
+    ServiceGroup getJvmGroup();
 
     /**
      * 获取服务信息

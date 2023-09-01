@@ -9,6 +9,9 @@
           auto-correct="off"
           auto-capitalize="off"></el-input>
       </el-form-item>
+      <el-form-item :label="$t('AUTO_START_AFTER_INIT')" prop="servicesAutoStart">
+        <el-switch v-model="state.form.servicesAutoStart"></el-switch>
+      </el-form-item>
       <el-form-item :label="$t('MAX_START_TIME')" prop="maxStartTime">
         <el-input-number v-model="state.form.maxStartTime" :min="1000"></el-input-number>
       </el-form-item>
@@ -46,6 +49,7 @@ let state = reactive({
   form: {
     workspace: '',
     defaultVmOptions: '',
+    servicesAutoStart: false,
     maxStartTime: 120000,
     maxExitTime: 30000,
     afterServerOfflineExec: '',

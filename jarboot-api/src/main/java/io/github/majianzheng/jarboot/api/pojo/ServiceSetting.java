@@ -9,6 +9,8 @@ import java.util.Objects;
  * @author majianzheng
  */
 public class ServiceSetting implements Serializable {
+    /** 所属集群实例 */
+    private String host;
     /**
      * 服务名，即jar文件的上级目录的名称
      */
@@ -256,6 +258,14 @@ public class ServiceSetting implements Serializable {
 
     public void setCron(String cron) {
         this.cron = cron;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     @Override

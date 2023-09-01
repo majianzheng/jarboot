@@ -3,6 +3,8 @@ package io.github.majianzheng.jarboot.ws;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -73,8 +76,13 @@ public class WebSocketMainServer {
             logger.error("解析json失败！{}", message);
             return;
         }
-        event.setSessionId(session.getId());
-        NotifyReactor.getInstance().publishEvent(event);
+        String self = ClusterClientManager.getInstance().getSelfHost();
+        if (StringUtils.isEmpty(self) || Objects.equals(self, event.getHost())) {
+            event.setSessionId(session.getId());
+            NotifyReactor.getInstance().publishEvent(event);
+        } else {
+            ClusterClientManager.getInstance().execClusterFunc(event);
+        }
     }
 
     /**
@@ -93,9 +101,17 @@ public class WebSocketMainServer {
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<MessageEvent>() {
             @Override
             public void onEvent(MessageEvent event) {
-                SessionOperator operator = SESSIONS.getOrDefault(event.getSessionId(), null);
-                if (null != operator) {
-                    operator.newMessage(event);
+                String sessionId = event.getSessionId();
+                int index = sessionId.indexOf(StringUtils.SPACE);
+                if (index > 0) {
+                    String host = sessionId.substring(0, index);
+                    sessionId = sessionId.substring(index + 1);
+                    ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+                } else {
+                    SessionOperator operator = SESSIONS.getOrDefault(event.getSessionId(), null);
+                    if (null != operator) {
+                        operator.newMessage(event);
+                    }
                 }
             }
 
@@ -114,6 +130,26 @@ public class WebSocketMainServer {
             @Override
             public Class<? extends JarbootEvent> subscribeType() {
                 return BroadcastMessageEvent.class;
+            }
+        }, PUBLISHER);
+
+        // 来自其他集群的推送
+        NotifyReactor.getInstance().registerSubscriber(new Subscriber<FromOtherClusterServerMessageEvent>() {
+            @Override
+            public void onEvent(FromOtherClusterServerMessageEvent event) {
+                if (StringUtils.isEmpty(event.getSessionId())) {
+                    SESSIONS.values().forEach(operator -> operator.newMessage(event.getMessage()));
+                } else {
+                    SessionOperator operator = SESSIONS.getOrDefault(event.getSessionId(), null);
+                    if (null != operator) {
+                        operator.newMessage(event.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public Class<? extends JarbootEvent> subscribeType() {
+                return FromOtherClusterServerMessageEvent.class;
             }
         }, PUBLISHER);
     }

@@ -4,10 +4,19 @@ package io.github.majianzheng.jarboot.common.pojo;
  * @author majianzheng
  */
 public class FuncRequest {
+    protected String host;
     protected String service;
     protected int func;
     protected String sid;
     protected String body;
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 
     public String getService() {
         return service;

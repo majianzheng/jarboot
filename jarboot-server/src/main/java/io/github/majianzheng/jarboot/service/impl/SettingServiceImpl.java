@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.service.impl;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
@@ -13,7 +14,6 @@ import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
-import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
@@ -39,15 +39,12 @@ public class SettingServiceImpl implements SettingService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private TaskRunCache taskRunCache;
-    @Autowired
-    private FileService fileService;
 
     @Override
     public ServiceSetting getServiceSetting(String serviceName) {
         ServiceSetting setting =  PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), serviceName);
         setting.setVmContent(this.getVmOptions(serviceName, setting.getVm()));
-        String path = SettingUtils.getWorkspace() + File.separator + serviceName;
-        fileService.getFiles(path, true);
+        setting.setHost(ClusterClientManager.getInstance().getSelfHost());
         return setting;
     }
 

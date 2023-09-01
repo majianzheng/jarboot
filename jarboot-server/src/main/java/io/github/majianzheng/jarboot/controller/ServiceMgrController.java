@@ -46,9 +46,8 @@ public class ServiceMgrController {
      */
     @GetMapping("/groups")
     @ResponseBody
-    public ResponseVo<List<ServiceGroup>> getServiceGroup() {
-        List<ServiceGroup> results = serviceManager.getServiceGroup();
-        return HttpResponseUtils.success(results);
+    public ResponseVo<ServiceGroup> getServiceGroup() {
+        return HttpResponseUtils.success(serviceManager.getServiceGroup());
     }
 
     /**
@@ -57,9 +56,8 @@ public class ServiceMgrController {
      */
     @GetMapping("/jvmGroups")
     @ResponseBody
-    public ResponseVo<List<ServiceGroup>> getJvmGroup() {
-        List<ServiceGroup> results = serviceManager.getJvmGroup();
-        return HttpResponseUtils.success(results);
+    public ResponseVo<ServiceGroup> getJvmGroup() {
+        return HttpResponseUtils.success(serviceManager.getJvmGroup());
     }
 
     /**

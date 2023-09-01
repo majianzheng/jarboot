@@ -39,11 +39,10 @@
               :props="defaultProps"
               default-expand-all
               highlight-current
-              @check-change="checkChanged"
               :filter-node-method="filterService">
               <template #default="{ node, data }">
                 <div style="width: 100%">
-                  <div v-if="node.isLeaf && !data.host" style="width: 100%" @click="currentChange(data, node)">
+                  <div v-if="node.isLeaf" style="width: 100%" @click="event => currentChange(data, node, event)">
                     <el-icon v-if="isService && STATUS_STOPPED === data.status" class="status-stopped icon-position"><SuccessFilled /></el-icon>
                     <el-icon v-else-if="STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin icon-position">
                       <Loading />
@@ -61,9 +60,9 @@
                       <em class="iconfont icon-debug"></em>
                     </el-icon>
                     <span class="__tree-title" v-if="isService">{{ data.name }}</span>
-                    <span class="__tree-title" v-else @dblclick="serviceStore.attach(data.pid)">{{ data.name }}</span>
+                    <span class="__tree-title" v-else @dblclick="serviceStore.attach(data.host, data.pid)">{{ data.name }}</span>
                     <el-tooltip content="Attach" v-if="!isService && !data.attached">
-                      <el-icon @click="serviceStore.attach(data.pid)" class="edit-btn"><Connection /></el-icon>
+                      <el-icon @click="serviceStore.attach(data.host, data.pid)" class="edit-btn"><Connection /></el-icon>
                     </el-tooltip>
                     <el-tooltip content="Detach" v-if="!isService && data.attached">
                       <el-icon @click="detach(data)" class="edit-btn"><CircleCloseFilled /></el-icon>
@@ -72,11 +71,13 @@
                       <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
                     </el-tooltip>
                   </div>
-                  <div v-else @click="currentChange(data, node)">
-                    <el-icon v-if="data.host" class="group-icon"><HomeFilled /></el-icon>
+                  <div v-else @click="event => currentChange(data, node, event)">
+                    <el-icon v-if="!node.parentNode" class="group-icon"><HomeFilled /></el-icon>
                     <el-icon v-else class="group-icon"><Folder /></el-icon>
-                    <span v-if="data.host" class="__tree-title">{{ data.host }}</span>
-                    <span v-else class="__tree-title">{{ data.onlineDebug ? $t(data.name) : data.name || $t('DEFAULT_GROUP') }}</span>
+                    <span v-if="node.parentNode" class="__tree-title">{{
+                      data.onlineDebug ? $t(data.name) : data.name || $t('DEFAULT_GROUP')
+                    }}</span>
+                    <span v-else class="__tree-title">{{ data.host || 'localhost' }}</span>
                   </div>
                 </div>
               </template>
@@ -90,7 +91,7 @@
             v-for="(s, i) in serviceState.activatedList"
             :key="i"
             v-show="serviceState.activated.sid === s.sid"
-            :sid="s.sid"
+            :sid="(s.sid as string)"
             @close="closeServiceTerminal(s)"
             @execute="(cmd, cols, rows) => doCommand(s, cmd, cols, rows)"
             @cancel="doCancel(s)"
@@ -228,7 +229,7 @@ import CloudService from '@/services/CloudService';
 import type { FileNode, MsgData, ServerSetting, ServiceInstance } from '@/types';
 import { PAGE_SERVICE } from '@/common/route-name-constants';
 import { useRoute } from 'vue-router';
-import ServiceManager from '@/services/ServiceManager';
+import ClusterManager from '@/services/ClusterManager';
 
 const defaultProps = {
   children: 'children',
@@ -332,7 +333,7 @@ function filterService(value: string, data: ServiceInstance) {
 
 async function editService(row: ServiceInstance) {
   serviceState.isNew = false;
-  serviceState.configForm = await SettingService.getServerSetting(row.name);
+  serviceState.configForm = await ClusterManager.getServerSetting(row);
   serviceState.showEdit = true;
 }
 
@@ -347,23 +348,17 @@ const onCloseEdit = () => {
   serviceState.showVmEdit = false;
 };
 
-const checkChanged = () => {
-  const nodes = treeRef.value?.getCheckedNodes();
-  const checked = nodes?.map(node => ({ ...node })) || ([] as any[]);
-  checkChange(checked);
-};
-
 const doDashboardCmd = () => {
   const service = serviceState.activated;
   service?.sid && doCommand(service, 'dashboard', 1, 1);
 };
 
 const doCommand = (service: ServiceInstance, cmd: string, cols: number, rows: number) => {
-  WsManager.sendMessage({ service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC, cols, rows });
+  WsManager.sendMessage({ host: service.host, service: service.name, sid: service.sid, body: cmd, func: FuncCode.CMD_FUNC, cols, rows });
 };
 
 const doCancel = (service: ServiceInstance) => {
-  WsManager.callFunc(FuncCode.CANCEL_FUNC, service.sid || '');
+  WsManager.callFunc(FuncCode.CANCEL_FUNC, service.sid || '', service.host);
 };
 
 async function saveConfig() {
@@ -398,14 +393,14 @@ function detach(server: ServiceInstance) {
   const sid = server.sid || '';
   if (server.remote) {
     ElMessageBox.confirm(CommonUtils.translate('DETACH_MSG'), CommonUtils.translate('WARN'), { type: 'warning' }).then(() => {
-      WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
+      WsManager.callFunc(FuncCode.DETACH_FUNC, sid, server.host);
     });
   } else {
-    WsManager.callFunc(FuncCode.DETACH_FUNC, sid);
+    WsManager.callFunc(FuncCode.DETACH_FUNC, sid, server.host);
   }
 }
 
-function currentChange(data: ServiceInstance, node: any) {
+function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   if (node.isLeaf) {
     const index = serviceState.activatedList.findIndex(item => item.sid === data.sid);
     if (-1 === index) {
@@ -413,7 +408,14 @@ function currentChange(data: ServiceInstance, node: any) {
     }
     serviceState.activated = data;
   }
-  serviceState.currentNode = [data];
+  if (event.ctrlKey || event.metaKey) {
+    // 多选
+    const currentNodes = serviceState.currentNode || [];
+    currentNodes.push(data);
+    serviceState.currentNode = currentNodes;
+  } else {
+    serviceState.currentNode = [data];
+  }
 }
 
 function closeServiceTerminal(instance: ServiceInstance) {
@@ -447,11 +449,11 @@ function getSelectLoop(nodes: ServiceInstance[], services: ServiceInstance[]) {
 }
 
 function startServices() {
-  ServiceManager.startService(getSelected());
+  ClusterManager.startService(getSelected());
 }
 
 function stopServices() {
-  ServiceManager.stopService(getSelected());
+  ClusterManager.stopService(getSelected());
 }
 
 function refresh() {
@@ -467,10 +469,6 @@ function setStatus(sid: string, status: string) {
   if (service && STATUS_STARTING === status) {
     serviceState.activated = service;
   }
-}
-
-function checkChange(checked: ServiceInstance[]) {
-  serviceState.checked = checked;
 }
 
 function exportServer() {

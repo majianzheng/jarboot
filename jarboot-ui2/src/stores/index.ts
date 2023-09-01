@@ -2,7 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import OAuthService from '@/services/OAuthService';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
-import ServiceManager from '@/services/ServiceManager';
+import ClusterManager from '@/services/ClusterManager';
 import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
@@ -96,19 +96,19 @@ export const useServiceStore = defineStore({
   actions: {
     async reload() {
       this.$patch({ loading: true });
-      const result = (await ServiceManager.getServiceGroup()) as any;
+      const result = (await ClusterManager.getServiceGroup()) as any;
       const groups = (result || []) as ServiceInstance[];
       this.$patch({ groups, loading: false });
     },
     async reloadJvmList() {
       this.$patch({ loading: true });
-      const result = (await ServiceManager.getJvmProcesses()) as any;
+      const result = (await ClusterManager.getJvmProcesses()) as any;
       const jvmGroups = (result || []) as ServiceInstance[];
       this.$patch({ jvmGroups, loading: false });
     },
 
-    attach(pid: number) {
-      ServiceManager.attach(pid).then(r => console.log(r));
+    attach(host: string, pid: number) {
+      ClusterManager.attach(host, pid).then(r => console.log(r));
     },
     findInstance(groups: ServiceInstance[], sid: string): ServiceInstance | null {
       for (const g of groups) {

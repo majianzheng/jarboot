@@ -17,7 +17,6 @@ export default class ServiceManager {
   /**
    * 启动服务
    * @param services
-   * @param callback
    */
   public static startService(services: ServiceInstance[]) {
     const param = ServiceManager.parseParam(services);

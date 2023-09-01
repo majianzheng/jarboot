@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.task;
 import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.notify.AbstractEventRegistry;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
@@ -52,7 +53,7 @@ public class TaskRunCache {
     public List<String> getServiceNameList(String username) {
         File[] serviceDirs = this.getServiceDirs(username);
         List<String> paths = new ArrayList<>();
-        if (null != serviceDirs && serviceDirs.length > 0) {
+        if (null != serviceDirs) {
             for (File f : serviceDirs) {
                 paths.add(f.getName());
             }
@@ -82,23 +83,24 @@ public class TaskRunCache {
     }
 
     public ServiceInstance getService(String userDir, File serverDir) {
-        ServiceInstance process = new ServiceInstance();
-        process.setName(serverDir.getName());
+        ServiceInstance instance = new ServiceInstance();
+        instance.setName(serverDir.getName());
+        instance.setHost(ClusterClientManager.getInstance().getSelfHost());
         String path = serverDir.getAbsolutePath();
         String sid = SettingUtils.createSid(path);
-        process.setSid(sid);
-        process.setGroup(this.getGroup(userDir, process.getName(), path));
+        instance.setSid(sid);
+        instance.setGroup(this.getGroup(userDir, instance.getName(), path));
 
         if (this.isStarting(sid)) {
-            process.setStatus(CommonConst.STARTING);
+            instance.setStatus(CommonConst.STARTING);
         } else if (this.isStopping(sid)) {
-            process.setStatus(CommonConst.STOPPING);
+            instance.setStatus(CommonConst.STOPPING);
         } else if (AgentManager.getInstance().isOnline(sid)) {
-            process.setStatus(CommonConst.RUNNING);
+            instance.setStatus(CommonConst.RUNNING);
         } else {
-            process.setStatus(CommonConst.STOPPED);
+            instance.setStatus(CommonConst.STOPPED);
         }
-        return process;
+        return instance;
     }
 
     /**
@@ -127,7 +129,7 @@ public class TaskRunCache {
     public ServiceGroup getServiceGroup(String userDir) {
         List<ServiceInstance> serviceList = this.getServiceList(userDir);
         ServiceGroup localGroup = new ServiceGroup();
-        localGroup.setHost("localhost");
+        localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
         localGroup.setChildren(new ArrayList<>());
         if (CollectionUtils.isEmpty(serviceList)) {
             return localGroup;
@@ -192,9 +194,6 @@ public class TaskRunCache {
             return setting.getGroup();
         }
         setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
-        if (null == setting) {
-            return StringUtils.EMPTY;
-        }
         return setting.getGroup();
     }
 

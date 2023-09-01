@@ -2,7 +2,7 @@ package io.github.majianzheng.jarboot;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
-import io.github.majianzheng.jarboot.cluster.ClusterConfig;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
@@ -80,7 +80,7 @@ public class AppEnvironment implements SpringApplicationRunListener {
         TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
         taskWatchService.init();
         // 集群配置初始化
-        ClusterConfig.getInstance().init();
+        ClusterClientManager.getInstance().init();
     }
 
     @Override
