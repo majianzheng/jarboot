@@ -239,7 +239,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             }
             JvmProcess process = new JvmProcess();
             process.setHost(ClusterClientManager.getInstance().getSelfHost());
-            process.setSid(pid);
+            process.setSid(String.format("%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode()));
             process.setPid(pid);
             process.setAttached(AgentManager.getInstance().isOnline(pid));
             process.setFullName(v);
