@@ -22,6 +22,7 @@ import { SearchAddon } from 'xterm-addon-search';
 import CommonUtils from '@/common/CommonUtils';
 import { debounce, floor } from 'lodash';
 import { useUserStore } from '@/stores';
+import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 
 //单个字符宽高： width: 8 height: 16
 const props = defineProps<{
@@ -85,15 +86,21 @@ function getRow() {
   return floor(props.height / CHAR_HEIGHT) - 1;
 }
 
+function getDefaultHost() {
+  return import.meta.env.DEV ? `${window.location.hostname}:9899` : `${window.location.host}`;
+}
+
 function createSocket() {
   if (termOption.websocket) {
     return termOption.websocket;
   }
   const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-  const query = `col=${getCol()}&row=${getRow()}&userDir=${userStore.userDir}`;
-  const url = import.meta.env.DEV
-    ? `ws://${window.location.hostname}:9899/jarboot/main/terminal/ws?${token}&${query}`
-    : `ws://${window.location.host}/jarboot/main/terminal/ws?${token}&${query}`;
+  let query = `col=${getCol()}&row=${getRow()}&userDir=${userStore.userDir}`;
+  const clusterHost = CommonUtils.getCurrentHost();
+  if (clusterHost) {
+    query += `&${ACCESS_CLUSTER_HOST}=${clusterHost}`;
+  }
+  const url = `ws://${props.host || getDefaultHost()}/jarboot/main/terminal/ws?${token}&${query}`;
   console.info('terminal connect to ' + url);
   termOption.websocket = new WebSocket(url);
   termOption.websocket.onopen = () => {

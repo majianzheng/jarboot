@@ -2,7 +2,6 @@ package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -46,7 +45,7 @@ public class ServiceMgrController {
      */
     @GetMapping("/groups")
     @ResponseBody
-    public ResponseVo<ServiceGroup> getServiceGroup() {
+    public ResponseVo<ServiceInstance> getServiceGroup() {
         return HttpResponseUtils.success(serviceManager.getServiceGroup());
     }
 
@@ -56,7 +55,7 @@ public class ServiceMgrController {
      */
     @GetMapping("/jvmGroups")
     @ResponseBody
-    public ResponseVo<ServiceGroup> getJvmGroup() {
+    public ResponseVo<JvmProcess> getJvmGroup() {
         return HttpResponseUtils.success(serviceManager.getJvmGroup());
     }
 

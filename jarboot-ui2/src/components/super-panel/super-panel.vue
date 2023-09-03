@@ -2,7 +2,7 @@
   <div class="super-panel" ref="panelRef">
     <div class="super-panel-header" :style="{ width: width + 'px' }">
       <div>
-        <el-button @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
+        <el-button circle @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
         <span class="panel-title">{{ props.name }}</span>
       </div>
       <div class="panel-middle-title">
@@ -289,6 +289,12 @@ onUnmounted(() => {
     border: var(--el-border);
     border-bottom: none;
     background: var(--panel-header-bg-color);
+    .close-btn {
+      background: #fc605b;
+      color: #98050c;
+      height: 16px;
+      width: 16px;
+    }
     .panel-title {
       margin-left: 6px;
       font-size: 12px;

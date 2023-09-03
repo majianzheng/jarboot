@@ -7,6 +7,13 @@ const urlBase = '/api/jarboot/cluster/manager';
  */
 export default class ClusterManager {
   /**
+   * 获取存活的集群实例
+   */
+  public static getOnlineClusterHosts() {
+    return Request.get<string[]>(urlBase + '/onlineClusterHosts', {});
+  }
+
+  /**
    * 获取服务组
    */
   public static getServiceGroup() {
@@ -25,7 +32,6 @@ export default class ClusterManager {
   /**
    * 终止服务
    * @param services
-   * @param callback
    */
   public static stopService(services: ServiceInstance[]) {
     const param = ClusterManager.parseParam(services);
@@ -35,11 +41,10 @@ export default class ClusterManager {
   /**
    * 重启服务
    * @param services
-   * @param callback
    */
-  public static restartService(services: ServiceInstance[], callback: any) {
+  public static restartService(services: ServiceInstance[]) {
     const param = ClusterManager.parseParam(services);
-    Request.post(`${urlBase}/restartServices`, param).then(callback);
+    return Request.post(`${urlBase}/restartServices`, param);
   }
 
   /**
@@ -54,8 +59,11 @@ export default class ClusterManager {
    * @param host host
    * @param pid pid
    */
-  public static attach(host: string, pid: number) {
-    return Request.post(`${urlBase}/attach`, { host, pid });
+  public static attach(host: string, pid: string) {
+    const form = new FormData();
+    form.append('host', host);
+    form.append('pid', pid);
+    return Request.post(`${urlBase}/attach`, form);
   }
 
   /**
@@ -73,6 +81,15 @@ export default class ClusterManager {
    */
   public static getServerSetting(instance: ServiceInstance): Promise<ServerSetting> {
     return Request.post<ServerSetting>(`${urlBase}/serviceSetting`, instance);
+  }
+
+  /**
+   * 保存服务配置
+   * @param setting 服务
+   * @returns {Promise<string>}
+   */
+  public static saveServerSetting(setting: ServerSetting): Promise<string> {
+    return Request.post<string>(`${urlBase}/saveServiceSetting`, setting);
   }
 
   private static parseParam(services: ServiceInstance[]): ServiceInstance[] {

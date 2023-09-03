@@ -53,6 +53,10 @@ export default {
   STOPPED: '已停止',
   STARTING: '启动中',
   STOPPING: '停止中',
+  // 主机状态
+  ONLINE: '在线',
+  OFFLINE: '离线',
+  AUTH_FAILED: '鉴权失败',
 
   //通用
   TYPE: '类型',
@@ -106,6 +110,7 @@ export default {
   MODIFY_TIME: '修改时间',
   COUNT: '数量',
   TIP_UPLOAD_IMG: '请上传图片',
+  CONNECT: '连接',
 
   //服务配置
   SERVER_LIST_TITLE: '服务列表',

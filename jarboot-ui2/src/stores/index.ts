@@ -3,7 +3,7 @@ import OAuthService from '@/services/OAuthService';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ClusterManager from '@/services/ClusterManager';
-import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC } from '@/types';
+import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC, type ServerRuntimeInfo } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
 import {
@@ -19,17 +19,26 @@ import {
 import UserService from '@/services/UserService';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import Logger from '@/common/Logger';
+import Request from '@/common/Request';
 
 export const useBasicStore = defineStore({
   id: 'basic',
   state: () => ({
     version: '',
+    uuid: '',
+    host: '',
+    inDocker: false,
+    masterHost: '',
     innerHeight: window.innerHeight,
     innerWidth: window.innerWidth,
   }),
   actions: {
-    update() {
+    async update() {
       this.$patch({ innerHeight: window.innerHeight, innerWidth: window.innerWidth });
+    },
+    async init() {
+      const info = await Request.get<ServerRuntimeInfo>(`/api/jarboot/public/serverRuntime`, {});
+      this.$patch({ ...info });
     },
     setVersion(version: string) {
       this.$patch({ version });
@@ -62,6 +71,7 @@ export const useUserStore = defineStore({
     async login(username: string, password: string) {
       const user: any = await OAuthService.login(username, password);
       CommonUtils.storeToken(user.accessToken);
+      CommonUtils.storeCurrentHost(user.host);
       this.$patch({ ...user });
       await router.push('/');
     },
@@ -107,7 +117,7 @@ export const useServiceStore = defineStore({
       this.$patch({ jvmGroups, loading: false });
     },
 
-    attach(host: string, pid: number) {
+    attach(host: string, pid: string) {
       ClusterManager.attach(host, pid).then(r => console.log(r));
     },
     findInstance(groups: ServiceInstance[], sid: string): ServiceInstance | null {

@@ -1,7 +1,7 @@
 import Logger from '@/common/Logger';
 import StringUtil from '@/common/StringUtil';
 import { MSG_EVENT } from '@/common/EventConst';
-import { PROTOCOL_SPLIT } from '@/common/CommonConst';
+import { ACCESS_CLUSTER_HOST, PROTOCOL_SPLIT } from '@/common/CommonConst';
 import CommonUtils from '@/common/CommonUtils';
 import { ElMessage } from 'element-plus';
 import type { FuncCode } from '@/common/EventConst';
@@ -107,9 +107,13 @@ class WsManager {
       }
     }
     const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-    const url = import.meta.env.DEV
+    let url = import.meta.env.DEV
       ? `ws://${window.location.hostname}:9899/jarboot/main/service/ws?${token}`
       : `ws://${window.location.host}/jarboot/main/service/ws?${token}`;
+    const host = CommonUtils.getCurrentHost();
+    if (host) {
+      url += `&${ACCESS_CLUSTER_HOST}=${host}`;
+    }
     WsManager.websocket = new WebSocket(url);
     WsManager.websocket.onmessage = WsManager.onMessage;
     WsManager.websocket.onopen = WsManager.onOpen;

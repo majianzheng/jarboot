@@ -22,6 +22,8 @@ public class FileNode {
 
     private Long size;
 
+    private Boolean leaf;
+
     /** 子文件 */
     private List<FileNode> children;
 
@@ -71,6 +73,14 @@ public class FileNode {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Boolean getLeaf() {
+        return leaf;
+    }
+
+    public void setLeaf(Boolean leaf) {
+        this.leaf = leaf;
     }
 
     public List<FileNode> getChildren() {

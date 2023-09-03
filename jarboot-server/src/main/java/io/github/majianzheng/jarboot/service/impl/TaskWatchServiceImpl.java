@@ -4,7 +4,6 @@ import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
-import io.github.majianzheng.jarboot.api.pojo.SimpleInstance;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
@@ -367,7 +366,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             String name = userDir.getName();
             if (userDao.existsByUserDir(name)) {
                 List<ServiceInstance> serviceList = taskRunCache.getServiceList(name);
-                List<String> services = serviceList.stream().map(SimpleInstance::getName).collect(Collectors.toList());
+                List<String> services = serviceList.stream().map(ServiceInstance::getName).collect(Collectors.toList());
                 logger.info("开始自动启动服务目录{}, 服务数量：{}", name, services.size());
                 serverMgrService.startService0(name, services);
                 logger.info("自动启动服务目录{}完成！", name);

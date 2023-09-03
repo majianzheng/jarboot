@@ -1,5 +1,7 @@
 package io.github.majianzheng.jarboot.common.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,6 +15,10 @@ import java.util.List;
  */
 public class JsonUtils {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    static {
+        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     /**
      * 解析字符串为 {@link JsonNode}

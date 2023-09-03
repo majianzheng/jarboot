@@ -26,6 +26,6 @@ export default class OAuthService {
     if (password && password.length > 0) {
       form.append('password', password);
     }
-    return Request.post(`${urlBase}/login`, form);
+    return Request.post<any>(`${urlBase}/login`, form);
   }
 }

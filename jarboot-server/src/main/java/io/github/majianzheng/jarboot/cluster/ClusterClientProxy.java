@@ -1,12 +1,12 @@
 package io.github.majianzheng.jarboot.cluster;
 
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
-import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
-import io.github.majianzheng.jarboot.api.pojo.SimpleInstance;
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
+import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
@@ -37,31 +37,72 @@ public class ClusterClientProxy {
             new ArrayBlockingQueue<>(8),
             JarbootThreadFactory.createThreadFactory("task.s-", true));
 
-    public List<ServiceGroup> getServiceGroup() {
-        List<ServiceGroup> groups = new ArrayList<>();
-        ServiceGroup localGroup = serviceManager.getServiceGroup();
-        groups.add(localGroup);
+    public List<ServiceInstance> getServiceGroup() {
+        List<ServiceInstance> groups = new ArrayList<>();
         // 获取集群其它服务器的组信息
         if (!ClusterClientManager.getInstance().isEnabled()) {
+            ServiceInstance localGroup = serviceManager.getServiceGroup();
+            groups.add(localGroup);
             return groups;
         }
-        forEachOnlineClient(client -> groups.add(client.getServiceGroup()));
+        forEachOnlineClient((proxy, client) -> groups.add(getServiceGroup(proxy, client)));
+        return groups;
+    }
+    private ServiceInstance getServiceGroup (boolean proxy, ClusterClient client) {
+        if (proxy) {
+            if (client.isOnline()) {
+                try {
+                    return client.getServiceGroup();
+                } catch (Exception e) {
+                    client.setState(ClusterServerState.OFFLINE);
+                    logger.error(e.getMessage(), e);
+                }
+            }
+            ServiceInstance group = new ServiceInstance();
+            group.setNodeType(CommonConst.NODE_ROOT);
+            group.setHost(client.getHost());
+            group.setName(client.getHost());
+            group.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
+            group.setStatus(client.getState().name());
+            return group;
+        }
+        return serviceManager.getServiceGroup();
+    }
+
+    public List<JvmProcess> getJvmGroup() {
+        List<JvmProcess> groups = new ArrayList<>();
+        // 获取集群其它服务器的组信息
+        if (!ClusterClientManager.getInstance().isEnabled()) {
+            JvmProcess localGroup = serviceManager.getJvmGroup();
+            groups.add(localGroup);
+            return groups;
+        }
+        forEachOnlineClient((proxy, client) -> groups.add(getJvmGroup(proxy, client)));
         return groups;
     }
 
-    public List<ServiceGroup> getJvmGroup() {
-        List<ServiceGroup> groups = new ArrayList<>();
-        ServiceGroup localGroup = serviceManager.getJvmGroup();
-        groups.add(localGroup);
-        // 获取集群其它服务器的组信息
-        if (!ClusterClientManager.getInstance().isEnabled()) {
-            return groups;
+    private JvmProcess getJvmGroup (boolean proxy, ClusterClient client) {
+        if (proxy) {
+            if (client.isOnline()) {
+                try {
+                    return client.getJvmGroup();
+                } catch (Exception e) {
+                    client.setState(ClusterServerState.OFFLINE);
+                    logger.error(e.getMessage(), e);
+                }
+            }
+            JvmProcess group = new JvmProcess();
+            group.setNodeType(CommonConst.NODE_ROOT);
+            group.setHost(client.getHost());
+            group.setName(client.getHost());
+            group.setSid(String.format("%x", client.getHost().hashCode()));
+            group.setStatus(client.getState().name());
+            return group;
         }
-        forEachOnlineClient(client -> groups.add(client.getJvmGroup()));
-        return groups;
+        return serviceManager.getJvmGroup();
     }
 
-    public void startService(List<SimpleInstance> services) {
+    public void startService(List<ServiceInstance> services) {
         List<ServiceSetting> settingList = services
                 .stream()
                 .map(this::getServiceSetting)
@@ -69,7 +110,7 @@ public class ClusterClientProxy {
         TaskUtils.getTaskExecutor().execute(() -> startServiceSync(settingList));
     }
 
-    public void stopService(List<SimpleInstance> services) {
+    public void stopService(List<ServiceInstance> services) {
         List<ServiceSetting> settingList = services
                 .stream()
                 .map(this::getServiceSetting)
@@ -77,7 +118,7 @@ public class ClusterClientProxy {
         TaskUtils.getTaskExecutor().execute(() -> stopServiceSync(settingList));
     }
 
-    public void restartService(List<SimpleInstance> services) {
+    public void restartService(List<ServiceInstance> services) {
         List<ServiceSetting> settingList = services
                 .stream()
                 .map(this::getServiceSetting)
@@ -99,7 +140,7 @@ public class ClusterClientProxy {
         }
     }
 
-    public void deleteService(SimpleInstance instance) {
+    public void deleteService(ServiceInstance instance) {
         if (needProxy(instance.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(instance.getHost());
             client.deleteService(instance.getName());
@@ -117,7 +158,8 @@ public class ClusterClientProxy {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             final int maxWait = SettingUtils.getSystemSetting().getMaxStartTime() + 5000;
             String resp = client.requestSync(ClusterEventName.START_SERVICE, JsonUtils.toJsonString(setting), maxWait);
-            if (StringUtils.isNotEmpty(resp)) {
+            ResponseSimple response = JsonUtils.readValue(resp, ResponseSimple.class);
+            if (null == response || !response.getSuccess()) {
                 logger.error(resp);
             }
         } else {
@@ -134,7 +176,8 @@ public class ClusterClientProxy {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             final int maxWait = SettingUtils.getSystemSetting().getMaxExitTime() + 5000;
             String resp = client.requestSync(ClusterEventName.STOP_SERVICE, JsonUtils.toJsonString(setting), maxWait);
-            if (StringUtils.isNotEmpty(resp)) {
+            ResponseSimple response = JsonUtils.readValue(resp, ResponseSimple.class);
+            if (null == response || !response.getSuccess()) {
                 logger.error(resp);
             }
         } else {
@@ -142,7 +185,7 @@ public class ClusterClientProxy {
         }
     }
 
-    public ServiceSetting getServiceSetting(SimpleInstance instance) {
+    public ServiceSetting getServiceSetting(ServiceInstance instance) {
         if (needProxy(instance.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(instance.getHost());
             if (null == client) {
@@ -151,6 +194,18 @@ public class ClusterClientProxy {
             return client.getServiceSetting(instance.getName());
         } else {
             return settingService.getServiceSetting(instance.getName());
+        }
+    }
+
+    public void saveServiceSetting(ServiceSetting setting) {
+        if (needProxy(setting.getHost())) {
+            ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
+            if (null == client) {
+                throw new JarbootException("集群实例不存在，host:"  + setting.getHost());
+            }
+            client.saveServiceSetting(setting);
+        } else {
+            settingService.submitServiceSetting(setting);
         }
     }
 
@@ -238,8 +293,11 @@ public class ClusterClientProxy {
     }
 
     private boolean needProxy(String host) {
+        if (StringUtils.isEmpty(host)) {
+            return false;
+        }
         String self = ClusterClientManager.getInstance().getSelfHost();
-        if (StringUtils.isNotEmpty(host) && StringUtils.isEmpty(self)) {
+        if (StringUtils.isEmpty(self)) {
             // 非集群
             throw new JarbootException("当前为单机运行，调用集群接口失败！");
         }
@@ -248,18 +306,14 @@ public class ClusterClientProxy {
 
     private void forEachOnlineClient(ClientCallback callback) {
         ClusterClientManager.getInstance().getHosts().forEach((k, v) -> {
-            if (!ClusterServerState.ONLINE.equals(v)) {
-                logger.warn("集群{}不在线！", k);
-                return;
-            }
-            if (needProxy(k)) {
-                ClusterClient client = ClusterClientManager.getInstance().getClient(k);
-                if (null == client) {
-                    logger.error("集群{}未初始化！", k);
-                    return;
+            if (!v.isOnline()) {
+                try {
+                    v.health();
+                } catch (Exception e) {
+                    logger.warn("集群{}不在线！", k, e);
                 }
-                callback.invoke(client);
             }
+            callback.invoke(needProxy(k), v);
         });
     }
 
@@ -268,6 +322,6 @@ public class ClusterClientProxy {
          * 实现方法
          * @param client 客户端
          */
-        void invoke(ClusterClient client);
+        void invoke(boolean proxy, ClusterClient client);
     }
 }

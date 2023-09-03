@@ -15,6 +15,7 @@ const props = defineProps<{
   i18n: I18n;
 }>();
 onMounted(() => {
+  basic.init();
   window.onresize = () => {
     basic.update();
   };

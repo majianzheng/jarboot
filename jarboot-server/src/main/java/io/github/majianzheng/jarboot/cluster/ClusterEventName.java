@@ -13,4 +13,6 @@ public enum ClusterEventName {
     START_SERVICE,
     /** 停止服务 */
     STOP_SERVICE,
+    /** 集群间鉴权 */
+    CLUSTER_AUTH,
 }

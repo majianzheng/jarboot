@@ -203,7 +203,7 @@ public class JarbootBootstrap {
                 .append(serverName);
         String baseUrl = CommonConst.HTTP + host;
         String url = baseUrl + "/api/jarboot/public/agent/agentClient";
-        clientData = HttpUtils.postObjByString(url, sb.toString(), AgentClient.class);
+        clientData = HttpUtils.postObjByString(url, sb.toString(), AgentClient.class, null);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
         }

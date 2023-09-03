@@ -10,6 +10,7 @@ public class JarbootUser {
     private String avatar;
     private long tokenTtl;
     private String roles;
+    private String host;
 
     public String getUsername() {
         return username;
@@ -49,5 +50,13 @@ public class JarbootUser {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 }

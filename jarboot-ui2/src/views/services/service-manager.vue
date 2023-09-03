@@ -1,34 +1,37 @@
 <template>
   <div v-loading="serviceStore.loading" class="__container-wrapper server-mgr">
-    <two-sides-pro :show-header="false" :body-height="basic.innerHeight - 50 + 'px'" v-model:collapsed="serviceState.collapsed">
+    <two-sides-pro
+      :show-header="false"
+      :left-width="LEFT_SIDE_WIDTH + 'px'"
+      :body-height="basic.innerHeight - 50 + 'px'"
+      v-model:collapsed="serviceState.collapsed">
       <template #left-content>
         <div class="server-side">
           <div class="common-bar __tool-bar">
             <div v-if="isService" @click="startServices" class="tool-button tool-button-icon">
-              <el-icon class="status-running"><CaretRight /></el-icon>
+              <icon-pro icon="CaretRight"></icon-pro>
             </div>
             <div v-if="isService" @click="stopServices" class="tool-button tool-button-icon">
-              <el-icon class="tool-button-red-icon"><SwitchButton /></el-icon>
+              <icon-pro icon="SwitchButton" class="tool-button-red-icon"></icon-pro>
             </div>
             <div @click="serviceStore.reload()" class="tool-button tool-button-icon">
-              <el-icon><Refresh /></el-icon>
+              <icon-pro icon="Refresh"></icon-pro>
             </div>
             <div v-if="isService" @click="newService" class="tool-button tool-button-icon">
-              <el-icon><Plus /></el-icon>
+              <icon-pro icon="Plus"></icon-pro>
             </div>
             <div @click="doDashboardCmd" class="tool-button tool-button-red-icon" :class="{ disabled: !serviceState.activated?.sid }">
-              <em class="iconfont icon-dashboard"></em>
+              <icon-pro icon="icon-dashboard"></icon-pro>
             </div>
             <div v-if="isService" class="tool-button tool-button-icon" :class="{ disabled: serviceState.importing }" @click="onImport">
-              <Loading v-if="serviceState.importing" class="ui-spin" />
-              <em v-else class="iconfont icon-import"></em>
+              <icon-pro :icon="serviceState.importing ? 'Loading' : 'icon-import'" :class="{ 'ui-spin': serviceState.importing }"></icon-pro>
             </div>
             <div
               v-if="isService"
               class="tool-button tool-button-icon"
               :class="{ disabled: !serviceState.activated?.sid || serviceState.activated?.pid }"
               @click="exportServer">
-              <em class="iconfont icon-export"></em>
+              <icon-pro icon="icon-export"></icon-pro>
             </div>
           </div>
           <div style="flex: auto; padding: 3px 1px">
@@ -41,45 +44,14 @@
               highlight-current
               :filter-node-method="filterService">
               <template #default="{ node, data }">
-                <div style="width: 100%">
-                  <div v-if="node.isLeaf" style="width: 100%" @click="event => currentChange(data, node, event)">
-                    <el-icon v-if="isService && STATUS_STOPPED === data.status" class="status-stopped icon-position"><SuccessFilled /></el-icon>
-                    <el-icon v-else-if="STATUS_STARTING === data.status || data.attaching" class="status-starting ui-spin icon-position">
-                      <Loading />
-                    </el-icon>
-                    <el-icon v-else-if="STATUS_STOPPING === data.status" class="status-stopping ui-spin icon-position">
-                      <Loading />
-                    </el-icon>
-                    <el-icon v-else-if="isService && STATUS_STARTED === data.status" class="status-running icon-position">
-                      <CaretRight />
-                    </el-icon>
-                    <el-icon v-else-if="data.attached" class="status-running icon-size">
-                      <em class="iconfont icon-debug"></em>
-                    </el-icon>
-                    <el-icon v-else-if="data.pid" class="status-stopped icon-size">
-                      <em class="iconfont icon-debug"></em>
-                    </el-icon>
-                    <span class="__tree-title" v-if="isService">{{ data.name }}</span>
-                    <span class="__tree-title" v-else @dblclick="serviceStore.attach(data.host, data.pid)">{{ data.name }}</span>
-                    <el-tooltip content="Attach" v-if="!isService && !data.attached">
-                      <el-icon @click="serviceStore.attach(data.host, data.pid)" class="edit-btn"><Connection /></el-icon>
-                    </el-tooltip>
-                    <el-tooltip content="Detach" v-if="!isService && data.attached">
-                      <el-icon @click="detach(data)" class="edit-btn"><CircleCloseFilled /></el-icon>
-                    </el-tooltip>
-                    <el-tooltip :content="$t('MODIFY')" v-if="isService">
-                      <el-icon class="edit-btn" @click.stop="editService(data)"><Edit /></el-icon>
-                    </el-tooltip>
-                  </div>
-                  <div v-else @click="event => currentChange(data, node, event)">
-                    <el-icon v-if="!node.parentNode" class="group-icon"><HomeFilled /></el-icon>
-                    <el-icon v-else class="group-icon"><Folder /></el-icon>
-                    <span v-if="node.parentNode" class="__tree-title">{{
-                      data.onlineDebug ? $t(data.name) : data.name || $t('DEFAULT_GROUP')
-                    }}</span>
-                    <span v-else class="__tree-title">{{ data.host || 'localhost' }}</span>
-                  </div>
-                </div>
+                <instance-tree-item
+                  :node="node"
+                  :data="data"
+                  @row-click="currentChange"
+                  @edit="editService"
+                  @select="onSelectClick"
+                  :current-node="serviceState.currentNode"
+                  :is-service="isService"></instance-tree-item>
               </template>
             </el-tree>
           </div>
@@ -215,14 +187,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { ElForm, ElMessageBox, ElTree, type FormRules } from 'element-plus';
-import { STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
+import { STATUS_STARTING } from '@/common/CommonConst';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import { WsManager } from '@/common/WsManager';
 import { FuncCode } from '@/common/EventConst';
 import { useBasicStore, useServiceStore, useUserStore } from '@/stores';
-import SettingService from '@/services/SettingService';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import CloudService from '@/services/CloudService';
@@ -230,6 +201,7 @@ import type { FileNode, MsgData, ServerSetting, ServiceInstance } from '@/types'
 import { PAGE_SERVICE } from '@/common/route-name-constants';
 import { useRoute } from 'vue-router';
 import ClusterManager from '@/services/ClusterManager';
+import InstanceTreeItem from '@/views/services/components/instance-tree-item.vue';
 
 const defaultProps = {
   children: 'children',
@@ -237,6 +209,7 @@ const defaultProps = {
 };
 
 const defaultSetting: ServerSetting = {
+  host: '',
   name: '',
   group: '',
   applicationType: 'java',
@@ -265,6 +238,8 @@ const route = useRoute();
 const basic = useBasicStore();
 const serviceStore = useServiceStore();
 const userStore = useUserStore();
+
+const LEFT_SIDE_WIDTH = 380;
 
 const serviceState = reactive({
   isNew: false,
@@ -309,7 +284,7 @@ function getWidth() {
   if (serviceState.collapsed) {
     return basic.innerWidth - 18;
   }
-  return basic.innerWidth - 318;
+  return basic.innerWidth - LEFT_SIDE_WIDTH - 10;
 }
 
 const isService = PAGE_SERVICE === route.name;
@@ -331,9 +306,9 @@ function filterService(value: string, data: ServiceInstance) {
   return data.name.includes(value);
 }
 
-async function editService(row: ServiceInstance) {
+async function editService(setting: ServerSetting) {
   serviceState.isNew = false;
-  serviceState.configForm = await ClusterManager.getServerSetting(row);
+  serviceState.configForm = setting;
   serviceState.showEdit = true;
 }
 
@@ -365,7 +340,10 @@ async function saveConfig() {
   if (!(await configRef.value?.validate())) {
     return;
   }
-  await SettingService.submitServerSetting({ ...serviceState.configForm });
+  if (!serviceState.configForm.host) {
+    serviceState.configForm.host = (serviceState.activated?.host || basic.host) as string;
+  }
+  await ClusterManager.saveServerSetting({ ...serviceState.configForm });
   serviceState.showEdit = false;
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
 }
@@ -374,9 +352,14 @@ async function saveAndInit() {
   if (!(await configRef.value?.validate())) {
     return;
   }
-  await SettingService.submitServerSetting({ ...serviceState.configForm });
+  if (!serviceState.configForm.host) {
+    serviceState.configForm.host = (serviceState.activated?.host || basic.host) as string;
+  }
+  await ClusterManager.saveServerSetting({ ...serviceState.configForm });
   serviceState.isNew = false;
-  serviceState.configForm = await SettingService.getServerSetting(serviceState.configForm.name);
+  // 获取当前选中的节点host
+  const inst = { host: serviceState.configForm.host, name: serviceState.configForm.name } as ServiceInstance;
+  serviceState.configForm = await ClusterManager.getServerSetting(inst);
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
 }
 
@@ -416,6 +399,23 @@ function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   } else {
     serviceState.currentNode = [data];
   }
+}
+
+function onSelectClick(checked: boolean, data: ServiceInstance) {
+  let currentNodes = serviceState.currentNode?.length ? [...serviceState.currentNode] : [];
+  const index = currentNodes.findIndex(item => item.sid === data.sid);
+  if (checked) {
+    if (index < 0) {
+      currentNodes.push(data);
+    }
+  } else {
+    if (index < 0) {
+      console.info('>>>>');
+    } else {
+      currentNodes = currentNodes.splice(index, 1);
+    }
+  }
+  serviceState.currentNode = currentNodes;
 }
 
 function closeServiceTerminal(instance: ServiceInstance) {
@@ -531,17 +531,6 @@ onUnmounted(() => {
       width: 100%;
       background: var(--side-bg-color);
     }
-    .edit-btn {
-      position: absolute;
-      font-size: 1.268em;
-      right: 10px;
-      color: var(--el-color-primary);
-    }
-  }
-  .__tree-title {
-    margin-left: 6px;
-    position: relative;
-    top: -3px;
   }
   .__tool-bar {
     min-width: 36px;
@@ -569,40 +558,6 @@ onUnmounted(() => {
   }
   .server-content {
     flex: auto;
-  }
-  .status-running {
-    color: var(--el-color-success);
-  }
-  .status-stopped {
-    color: var(--el-color-info);
-  }
-  .status-starting {
-    color: var(--el-color-primary);
-  }
-  .status-stopping {
-    color: var(--el-color-danger);
-  }
-  .attached-status {
-    color: green;
-  }
-  .no-attached-status {
-    color: gray;
-  }
-  .icon-position {
-    font-size: 1.268em;
-    position: relative;
-    top: 2px;
-  }
-  .icon-size {
-    font-size: 1.268em;
-  }
-  .group-icon {
-    color: @primary-color;
-    font-size: 1.268em;
-  }
-  .attachedStatus,
-  .noAttachedStatus {
-    font-size: @tree-icon-size;
   }
   .bottom-tab {
     position: absolute;

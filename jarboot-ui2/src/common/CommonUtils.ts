@@ -1,4 +1,4 @@
-import { TOKEN_KEY } from './CommonConst';
+import { ACCESS_CLUSTER_HOST, TOKEN_KEY } from './CommonConst';
 import { getCurrentInstance } from 'vue';
 import type { I18n, Locale } from 'vue-i18n';
 
@@ -50,6 +50,14 @@ export default class CommonUtils {
     localStorage.setItem(TOKEN_KEY, token);
   }
 
+  public static storeCurrentHost(host: string) {
+    localStorage.setItem(ACCESS_CLUSTER_HOST, host);
+  }
+
+  public static getCurrentHost() {
+    return localStorage.getItem(ACCESS_CLUSTER_HOST) || '';
+  }
+
   public static deleteToken() {
     localStorage.removeItem(TOKEN_KEY);
   }
@@ -68,7 +76,12 @@ export default class CommonUtils {
   public static exportServer(name: string): void {
     const a = document.createElement('a');
     const token = CommonUtils.getRawToken();
-    a.href = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
+    const host = CommonUtils.getCurrentHost();
+    let url = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
+    if (host) {
+      url += `&${ACCESS_CLUSTER_HOST}=${host}`;
+    }
+    a.href = url;
     a.click();
     a.remove();
   }
@@ -79,6 +92,10 @@ export default class CommonUtils {
     xhr.open(method, url, true);
     //设置请求头参数
     xhr.setRequestHeader('Authorization', CommonUtils.getToken());
+    const host = CommonUtils.getCurrentHost();
+    if (host) {
+      xhr.setRequestHeader(ACCESS_CLUSTER_HOST, host);
+    }
     //设置响应类型为 blob
     xhr.responseType = 'blob';
     //关键部分

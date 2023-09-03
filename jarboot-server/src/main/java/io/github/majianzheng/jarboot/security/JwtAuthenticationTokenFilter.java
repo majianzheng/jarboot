@@ -33,14 +33,18 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         
         if (!StringUtils.isBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                this.tokenManager.validateToken(jwt);
+                String accessClusterHost = getAccessClusterHost(request);
+                if (ClusterClientManager.getInstance().clusterAuth(jwt, accessClusterHost)) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+                Authentication authentication = this.tokenManager.getAuthentication(jwt);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
                 handleError(response, HttpServletResponse.SC_UNAUTHORIZED, HttpServletResponse.SC_UNAUTHORIZED, "token校验失败，请重新登录");
                 return;
             }
-            Authentication authentication = this.tokenManager.getAuthentication(jwt);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } else {
             if (ClusterClientManager.getInstance().authClusterToken(request)) {
@@ -75,5 +79,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             return jwt;
         }
         return null;
+    }
+
+    private String getAccessClusterHost(HttpServletRequest request) {
+        final String ACCESS_CLUSTER_HOST = "Access-Cluster-Host";
+        String accessClusterHost = request.getHeader(ACCESS_CLUSTER_HOST);
+        if (StringUtils.isEmpty(accessClusterHost)) {
+            accessClusterHost = request.getParameter(ACCESS_CLUSTER_HOST);
+        }
+        return accessClusterHost;
     }
 }

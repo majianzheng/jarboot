@@ -81,5 +81,8 @@ public class CommonConst {
 
     public static final String SHELL_TYPE = "shell";
 
+    public static final int NODE_ROOT = 1;
+    public static final int NODE_GROUP = 2;
+
     private CommonConst(){}
 }

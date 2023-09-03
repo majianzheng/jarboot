@@ -10,6 +10,8 @@ import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
 import { round } from 'lodash';
 import FileIcon from '@/components/file-icon.vue';
+import type Node from 'element-plus/es/components/tree/src/model/node';
+import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 
 const props = defineProps<{
   baseDir: string;
@@ -31,9 +33,15 @@ const props = defineProps<{
   };
 }>();
 
+interface Tree {
+  name: string;
+  leaf?: boolean;
+}
+
 const defaultProps = {
   children: 'children',
   label: 'name',
+  isLeaf: 'leaf',
 };
 const emit = defineEmits<{
   (e: 'edit', path: string, content: string): void;
@@ -69,6 +77,25 @@ async function reload() {
   }
 }
 
+const loadNode = (node: Node, resolve: (data: Tree[]) => void) => {
+  if (node.level === 0) {
+    return;
+  }
+  if (node.data.leaf) {
+    resolve([]);
+    return;
+  }
+  const path = FileService.parseFilePath(node, props.baseDir);
+  FileService.getFiles(path, false).then(data => {
+    if (data?.length) {
+      resolve(data);
+    } else {
+      node.data.leaf = true;
+      resolve([]);
+    }
+  });
+};
+
 async function handleEdit(node: any) {
   const path = FileService.parseFilePath(node, props.baseDir);
   if (!canEdit(node.data?.name)) {
@@ -93,6 +120,10 @@ async function handleDelete(node: any) {
 function getHeader() {
   const headers = new Headers();
   headers.set('Authorization', CommonUtils.getToken());
+  const host = CommonUtils.getCurrentHost();
+  if (host) {
+    headers.set(ACCESS_CLUSTER_HOST, host);
+  }
   return headers;
 }
 
@@ -280,10 +311,12 @@ onMounted(reload);
     </div>
     <el-tree
       ref="treeRef"
-      :data="state.data"
+      v-model:data="state.data"
       :props="defaultProps"
-      :default-expand-all="true"
+      :default-expand-all="false"
       :expand-on-click-node="false"
+      :load="loadNode"
+      lazy
       :filter-node-method="filterService"
       @current-change="data => emit('select', data)"
       @node-click="nodeClick"

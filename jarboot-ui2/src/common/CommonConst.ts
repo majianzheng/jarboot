@@ -29,6 +29,7 @@ export const ZH_CN = 'zh-CN';
 
 //token
 export const TOKEN_KEY = 'token';
+export const ACCESS_CLUSTER_HOST = 'Access-Cluster-Host';
 export const currentUser: any = { username: '', globalAdmin: false };
 export const ADMIN_ROLE = 'ROLE_ADMIN';
 export const SYS_ROLE = 'ROLE_SYS';

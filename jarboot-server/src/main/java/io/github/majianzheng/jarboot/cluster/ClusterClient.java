@@ -2,9 +2,12 @@ package io.github.majianzheng.jarboot.cluster;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
+import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
+import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
+import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
+import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
@@ -13,17 +16,19 @@ import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.event.FuncReceivedEvent;
+import io.github.majianzheng.jarboot.security.JwtTokenManager;
 import io.github.majianzheng.jarboot.service.impl.ServiceManagerImpl;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
-import io.github.majianzheng.jarboot.ws.SessionOperator;
-import org.apache.tomcat.websocket.WsWebSocketContainer;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Base64Utils;
+import org.springframework.security.core.Authentication;
 
-import javax.websocket.*;
-import java.net.URI;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -31,63 +36,103 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 集群Api客户端
  * @author mazheng
  */
-@ClientEndpoint
-public class ClusterClient extends SessionOperator {
+public class ClusterClient {
     private static final Logger logger = LoggerFactory.getLogger(ClusterClient.class);
-    private static final WsWebSocketContainer CONTAINER = new WsWebSocketContainer();
-    private final String serverHost;
-    private final boolean clientSide;
-    private boolean connecting = false;
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private ConcurrentHashMap<String, RequestCallback> requestCallbackMap = new ConcurrentHashMap<>(16);
+    private final String host;
+    private ClusterServerState state;
+    /** 是否是主节点 */
+    private boolean master;
+    private final ConcurrentHashMap<String, RequestCallback> requestCallbackMap = new ConcurrentHashMap<>(16);
 
-    ClusterClient(Session session, String host) {
-        super(session);
-        this.serverHost = host;
-        clientSide = false;
-    }
     ClusterClient(String host) {
-        super(null);
-        this.serverHost = host;
-        session = connect();
-        clientSide = true;
+        this.host = host;
+        this.state = ClusterServerState.OFFLINE;
     }
 
-    public ServiceGroup getServiceGroup() {
-        ServiceGroup group = HttpUtils.getObj(formatUrl(CommonConst.CLUSTER_API_CONTEXT + "/group"), ServiceGroup.class, wrapToken());
-        group.setHost(serverHost);
+    public ClusterServerState getState() {
+        return state;
+    }
+
+    public void setState(ClusterServerState state) {
+        this.state = state;
+    }
+
+    public boolean isOnline() {
+        return ClusterServerState.ONLINE.equals(state);
+    }
+
+    public boolean isMaster() {
+        return master;
+    }
+
+    public void setMaster(boolean master) {
+        this.master = master;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public ServiceInstance getServiceGroup() {
+        ServiceInstance group = HttpUtils.getObj(formatUrl("/group"), ServiceInstance.class, wrapToken());
+        group.setHost(host);
         return group;
     }
 
-    public ServiceGroup getJvmGroup() {
-        ServiceGroup group = HttpUtils.getObj(formatUrl(CommonConst.CLUSTER_API_CONTEXT + "/jvmGroup"), ServiceGroup.class, wrapToken());
-        group.setHost(serverHost);
+    public JvmProcess getJvmGroup() {
+        JvmProcess group = HttpUtils.getObj(formatUrl("/jvmGroup"), JvmProcess.class, wrapToken());
+        group.setHost(host);
         return group;
     }
 
     public ServiceSetting getServiceSetting(String serviceName) {
-        String url = formatUrl(CommonConst.CLUSTER_API_CONTEXT + "/serviceSetting?serviceName=" + serviceName);
+        String url = formatUrl("/serviceSetting?serviceName=" + serviceName);
         return HttpUtils.getObj(url, ServiceSetting.class, wrapToken());
     }
 
+    public void saveServiceSetting(ServiceSetting setting) {
+        String url = formatUrl("/serviceSetting");
+        ResponseSimple resp = HttpUtils.postObj(url, setting, ResponseSimple.class, wrapToken());
+        if (!resp.getSuccess()) {
+            throw new JarbootException(resp.getCode(), resp.getMsg());
+        }
+    }
+
     public void deleteService(String serviceName) {
-        String url = formatUrl(CommonConst.CLUSTER_API_CONTEXT + "/service?serviceName=" + serviceName);
+        String url = formatUrl("/service?serviceName=" + serviceName);
         checkResponse(HttpUtils.delete(url, wrapToken()));
     }
 
     public void attach(String pid) {
-        String url = formatUrl(CommonConst.CLUSTER_API_CONTEXT + "/attach?pid=" + pid);
+        String url = formatUrl("/attach?pid=" + pid);
         checkResponse(HttpUtils.get(url, wrapToken()));
+    }
+
+    public ServerRuntimeInfo health() {
+        String url = formatUrl("/health");
+        try {
+            ServerRuntimeInfo info = HttpUtils.getObj(url, ServerRuntimeInfo.class, getInnerUserToken());
+            state = ClusterServerState.ONLINE;
+            return info;
+        } catch (JarbootException e) {
+            if (HttpServletResponse.SC_UNAUTHORIZED == e.getErrorCode()) {
+                state = ClusterServerState.AUTH_FAILED;
+                logger.warn("认证失败，{}与当前服务的cluster-secret-key不一致或正在启动中.", host);
+            } else {
+                state = ClusterServerState.OFFLINE;
+            }
+            throw new JarbootException(e);
+        } catch (Exception e) {
+            state = ClusterServerState.OFFLINE;
+            throw new JarbootException(e);
+        }
     }
 
     public String requestSync(ClusterEventName eventName, String body, long millis) {
@@ -99,16 +144,15 @@ public class ClusterClient extends SessionOperator {
         req.setBody(body);
         req.setNeedAck(true);
 
-        lock.lock();
         try {
             RequestCallback requestCallback = new RequestCallback();
-            requestCallback.condition = lock.newCondition();
+            requestCallback.countDownLatch = new CountDownLatch(1);
             requestCallback.id = id;
             requestCallback.reqBody = body;
             requestCallback.name = eventName.name();
             requestCallbackMap.putIfAbsent(id, requestCallback);
             sendMessage(req);
-            if (requestCallback.condition.await(millis, TimeUnit.MILLISECONDS)) {
+            if (requestCallback.countDownLatch.await(millis, TimeUnit.MILLISECONDS)) {
                 return requestCallback.rspBody;
             } else {
                 logger.error("请求{}超时,body:{}", eventName.name(), body);
@@ -117,120 +161,58 @@ public class ClusterClient extends SessionOperator {
             Thread.currentThread().interrupt();
         } finally {
             requestCallbackMap.remove(id);
-            lock.unlock();
         }
         return StringUtils.EMPTY;
     }
 
-    public boolean isAlive() {
-        return null != session && session.isOpen();
-    }
-
-    public Session connect() {
-        String self = ClusterClientManager.getInstance().getSelfHost();
-        if (StringUtils.isEmpty(self)) {
-            throw new JarbootException("cluster is not enabled, self host is empty!");
-        }
-        lock.lock();
-        try {
-            final int maxWait = 15;
-            String hostEncoded = URLEncoder.encode(self, StandardCharsets.UTF_8.name());
-            String url = String.format("%s%s%s/%s/%s?%s=%s",
-                    CommonConst.WS,
-                    serverHost,
-                    CommonConst.CLUSTER_WS_CONTEXT,
-                    SettingUtils.getUuid(),
-                    hostEncoded,
-                    AuthConst.CLUSTER_TOKEN,
-                    ClusterClientManager.getInstance().getClusterToken(AuthConst.JARBOOT_USER));
-            connecting = true;
-            session = CONTAINER.connectToServer(this, URI.create(url));
-            if (!condition.await(maxWait, TimeUnit.SECONDS)) {
-                logger.error("连接集群服务{}超时！", serverHost);
-            }
-            return session;
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            connecting = false;
-            lock.unlock();
-        }
-        return null;
-    }
-
-    @OnOpen
-    public void onOpen(Session session) {
-        lock.lock();
-        try {
-            this.session = session;
-            if (connecting && clientSide) {
-                condition.signalAll();
-            }
-        } finally {
-            lock.unlock();
-        }
-
-    }
-    @OnClose
-    public void onClose() {
-        lock.lock();
-        try {
-            if (connecting && clientSide) {
-                condition.signalAll();
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-    @OnError
-    public void onError(Throwable throwable) {
-        logger.error(throwable.getMessage(), throwable);
-        onClose();
-    }
-    @OnMessage
-    public void onBinaryMessage(byte[] message) {
-        final ClusterEventMessage eventMessage = JsonUtils.readValue(message, ClusterEventMessage.class);
-        if (null == eventMessage) {
-            logger.error("解析消息体失败！");
-            return;
-        }
+    public void handleMessage(ClusterEventMessage eventMessage) {
         TaskUtils.getTaskExecutor().execute(() -> {
-            String rspBody = handleEvent(eventMessage);
-            if (Objects.equals(ClusterEventMessage.REQ_TYPE, eventMessage.getType()) && eventMessage.isNeedAck()) {
-                // 请求内容，并且需要回执
-                ClusterEventMessage resp = new ClusterEventMessage();
-                resp.setId(eventMessage.getId());
-                resp.setName(eventMessage.getName());
-                resp.setType(ClusterEventMessage.RSP_TYPE);
-                resp.setBody(rspBody);
-                sendMessage(resp);
-            }
-            if (Objects.equals(ClusterEventMessage.RSP_TYPE, eventMessage.getType())) {
-                // 响应内容
-                lock.lock();
-                try {
-                    RequestCallback requestCallback = requestCallbackMap.get(eventMessage.getId());
-                    if (null != requestCallback) {
-                        requestCallback.condition.signalAll();
-                        requestCallback.rspBody = rspBody;
-                    }
-                } finally {
-                    lock.unlock();
+            try {
+                if (Objects.equals(ClusterEventMessage.REQ_TYPE, eventMessage.getType())) {
+                    handleEvent(eventMessage);
+                    return;
                 }
+                if (Objects.equals(ClusterEventMessage.RSP_TYPE, eventMessage.getType())) {
+                    // 响应内容
+                    onResponse(eventMessage);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
         });
     }
 
     void sendMessage(ClusterEventMessage message) {
-        if (isAlive()) {
-            newMessage(JsonUtils.toJsonBytes(message));
+        String self = ClusterClientManager.getInstance().getSelfHost();
+        if (StringUtils.isEmpty(self)) {
+            throw new JarbootException("cluster is not enabled, self host is empty!");
+        }
+        String msgUrl = StringUtils.EMPTY;
+        try {
+            msgUrl = formatHandleMsgUrl();
+            ResponseSimple resp = HttpUtils.postObj(msgUrl, message, ResponseSimple.class, getInnerUserToken());
+            if (!resp.getSuccess()) {
+                logger.error(resp.getMsg());
+            }
+        } catch (Exception e) {
+            logger.error("name: {}, body: {}, msgUrl: {}, error:{}", message.getName(), message.getBody(), msgUrl, e.getMessage(), e);
         }
     }
 
-    private String handleEvent(ClusterEventMessage eventMessage) {
+    private static Map<String, String> getInnerUserToken() {
+        String token = ClusterClientManager.getInstance().getClusterToken(AuthConst.JARBOOT_USER);
+        Map<String, String> header = new HashMap<>(2);
+        header.put(AuthConst.CLUSTER_TOKEN, token);
+        return header;
+    }
+
+    private String formatHandleMsgUrl() throws UnsupportedEncodingException {
+        String self = ClusterClientManager.getInstance().getSelfHost();
+        String api = "/handleMessage/" + URLEncoder.encode(self, StandardCharsets.UTF_8.name());
+        return formatUrl(api);
+    }
+
+    private void handleEvent(ClusterEventMessage eventMessage) {
         ClusterEventName eventName = ClusterEventName.valueOf(eventMessage.getName());
         String resp = StringUtils.EMPTY;
         switch (eventName) {
@@ -246,34 +228,70 @@ public class ClusterClient extends SessionOperator {
             case STOP_SERVICE:
                 resp = stopLocalService(eventMessage);
                 break;
+            case CLUSTER_AUTH:
+                resp = clusterAuth(eventMessage);
+                break;
             default:
                 logger.error("未找到处理方法：{}", eventMessage.getName());
                 resp = "unknown message:" + eventMessage.getName();
                 break;
         }
-        return resp;
+        if (eventMessage.isNeedAck()) {
+            // 请求内容，并且需要回执
+            ClusterEventMessage respEvent = new ClusterEventMessage();
+            respEvent.setId(eventMessage.getId());
+            respEvent.setName(eventMessage.getName());
+            respEvent.setType(ClusterEventMessage.RSP_TYPE);
+            respEvent.setBody(resp);
+            sendMessage(respEvent);
+        }
+    }
+
+    private static String clusterAuth(ClusterEventMessage eventMessage) {
+        try {
+            Authentication authentication = SettingUtils.getContext().getBean(JwtTokenManager.class).getAuthentication(eventMessage.getBody());
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bao);
+            oos.writeObject(authentication);
+            bao.toByteArray();
+            byte[] bytes = Base64.encodeBase64(bao.toByteArray());
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private void onResponse(ClusterEventMessage eventMessage) {
+        RequestCallback requestCallback = requestCallbackMap.get(eventMessage.getId());
+        if (null != requestCallback) {
+            if (null != requestCallback.countDownLatch) {
+                requestCallback.countDownLatch.countDown();
+            }
+            requestCallback.rspBody = eventMessage.getBody();
+        }
     }
 
     private String startLocalService(ClusterEventMessage eventMessage) {
         ServiceSetting setting = JsonUtils.readValue(eventMessage.getBody(), ServiceSetting.class);
         ServiceManagerImpl serviceManager = SettingUtils.getContext().getBean(ServiceManagerImpl.class);
         if (setting == null) {
-            serviceManager.startSingleService(setting);
+            return JsonUtils.toJsonString(HttpResponseUtils.error(String.format("启动服务，解析服务配置失败，setting: %s", eventMessage.getBody())));
         } else {
-            return String.format("启动服务，解析服务配置失败，setting: %s", eventMessage.getBody());
+            serviceManager.startSingleService(setting);
         }
-        return StringUtils.EMPTY;
+        return JsonUtils.toJsonString(HttpResponseUtils.success());
     }
 
     private String stopLocalService(ClusterEventMessage eventMessage) {
         ServiceSetting setting = JsonUtils.readValue(eventMessage.getBody(), ServiceSetting.class);
         ServiceManagerImpl serviceManager = SettingUtils.getContext().getBean(ServiceManagerImpl.class);
         if (setting == null) {
-            serviceManager.stopSingleService(setting);
+            return JsonUtils.toJsonString(HttpResponseUtils.error(String.format("停止服务，解析服务配置失败，setting: %s", eventMessage.getBody())));
         } else {
-            return String.format("停止服务，解析服务配置失败，setting: %s", eventMessage.getBody());
+            serviceManager.stopSingleService(setting);
         }
-        return StringUtils.EMPTY;
+        return JsonUtils.toJsonString(HttpResponseUtils.success());
     }
 
     private static void execFunc(ClusterEventMessage eventMessage) {
@@ -286,8 +304,6 @@ public class ClusterClient extends SessionOperator {
             logger.error("host or sessionId is empty! host:{}, sessionId:{}", event.getHost(), event.getSessionId());
             return;
         }
-        String sessionId = String.format("%s %s", event.getHost(), event.getSessionId());
-        event.setSessionId(sessionId);
         NotifyReactor.getInstance().publishEvent(event);
     }
 
@@ -299,11 +315,12 @@ public class ClusterClient extends SessionOperator {
 
     private String formatUrl(String api) {
         String url;
+        api = CommonConst.CLUSTER_API_CONTEXT + api;
         final String http = "http";
-        if (serverHost.startsWith(http)) {
-            url = serverHost + api;
+        if (host.startsWith(http)) {
+            url = host + api;
         } else {
-            url = String.format("%s%s%s", CommonConst.HTTP, serverHost, api);
+            url = String.format("%s%s%s", CommonConst.HTTP, host, api);
         }
         return url;
     }
@@ -315,7 +332,7 @@ public class ClusterClient extends SessionOperator {
     }
 
     private static class RequestCallback {
-        Condition condition;
+        CountDownLatch countDownLatch;
         String id;
         String name;
         String reqBody;
@@ -328,7 +345,7 @@ public class ClusterClient extends SessionOperator {
             throw new JarbootException("请求失败！");
         }
         if (!Boolean.TRUE.equals(resp.getSuccess())) {
-            throw new JarbootException(resp.getMsg());
+            throw new JarbootException(resp.getCode(), resp.getMsg());
         }
     }
 }

@@ -12,6 +12,7 @@
         <terminal
           :width="state.width"
           :height="state.height"
+          :host="term.host"
           @connected="option => onConnected(option, term)"
           @disconnected="() => onDisconnected(term)"></terminal>
       </el-tab-pane>
@@ -19,18 +20,29 @@
     <el-empty v-else>
       <el-button type="primary" @click.stop="editTab(0, 'add')">{{ $t('CREATE_TERM') }}</el-button>
     </el-empty>
+    <el-dialog v-model="state.dialog" :title="$t('CREATE_TERM')" width="300px">
+      <el-select v-model="state.selectHost">
+        <el-option v-for="host in state.clusterHosts" :label="host" :value="host"></el-option>
+      </el-select>
+      <template #footer>
+        <el-button @click="state.dialog = false">{{ $t('CANCEL') }}</el-button>
+        <el-button type="primary" plain @click="connect">{{ $t('CONNECT') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useBasicStore } from '@/stores';
-import { nextTick, reactive, watch } from 'vue';
+import { onMounted, nextTick, reactive, watch } from 'vue';
 import { debounce } from 'lodash';
 import CommonNotice from '@/common/CommonNotice';
+import ClusterManager from '@/services/ClusterManager';
 
 const basicStore = useBasicStore();
 
 interface TermOptions {
+  host: string;
   name: string;
   disconnected: boolean;
   termOpt: any;
@@ -40,7 +52,10 @@ const state = reactive({
   width: basicStore.innerWidth - 80,
   height: basicStore.innerHeight - 90,
   terms: [] as TermOptions[],
+  clusterHosts: [] as string[],
+  selectHost: '',
   active: 0,
+  dialog: false,
 });
 
 watch(() => [basicStore.innerHeight, basicStore.innerWidth], debounce(resize, 1500, { maxWait: 3000 }));
@@ -57,6 +72,23 @@ watch(
     nextTick(() => term.termOpt.term?.focus());
   }
 );
+function connect() {
+  if (state.selectHost) {
+    connectTo(state.selectHost);
+    state.dialog = false;
+  }
+}
+
+function connectTo(host: string) {
+  const term = {
+    name: 'Terminal',
+    disconnected: false,
+    termOpt: {} as any,
+    host,
+  };
+  state.terms.push(term);
+  state.active = state.terms.length - 1;
+}
 
 function editTab(index: number, action: 'remove' | 'add') {
   if ('remove' === action) {
@@ -64,13 +96,11 @@ function editTab(index: number, action: 'remove' | 'add') {
     state.terms.splice(index, 1);
     state.active = active;
   } else {
-    const term = {
-      name: 'Terminal',
-      disconnected: false,
-      termOpt: {} as any,
-    };
-    state.terms.push(term);
-    state.active = state.terms.length - 1;
+    if (state.clusterHosts?.length) {
+      state.dialog = true;
+      return;
+    }
+    connectTo('');
   }
 }
 
@@ -87,6 +117,9 @@ function resize() {
   state.width = basicStore.innerWidth - 80;
   state.height = basicStore.innerHeight - 90;
 }
+onMounted(async () => {
+  state.clusterHosts = await ClusterManager.getOnlineClusterHosts();
+});
 </script>
 
 <style scoped></style>

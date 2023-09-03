@@ -53,6 +53,10 @@ export default {
   STOPPED: 'Stopped',
   STARTING: 'Starting',
   STOPPING: 'Stopping',
+  // 主机状态
+  ONLINE: 'Online',
+  OFFLINE: 'Offline',
+  AUTH_FAILED: 'Auth failed',
 
   //通用
   TYPE: 'Type',
@@ -106,6 +110,7 @@ export default {
   MODIFY_TIME: 'Modify time',
   COUNT: 'Count',
   TIP_UPLOAD_IMG: 'Please upload image!',
+  CONNECT: 'Connect',
 
   //服务配置
   SERVER_LIST_TITLE: 'Services',

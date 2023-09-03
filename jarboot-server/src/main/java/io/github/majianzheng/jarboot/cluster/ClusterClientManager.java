@@ -4,9 +4,7 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.ConcurrentWeakKeyHashMap;
-import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
-import io.github.majianzheng.jarboot.common.utils.HttpUtils;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
@@ -31,9 +29,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.websocket.Session;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
@@ -51,8 +49,7 @@ public class ClusterClientManager {
     private Set<String> allLocalIp;
     private final ConcurrentWeakKeyHashMap<String, String> userTokenCache = new ConcurrentWeakKeyHashMap<>(16);
     /** 集群列表 */
-    private final Map<String, ClusterServerState> hosts = new LinkedHashMap<>(16);
-    private final ConcurrentHashMap<String, ClusterClient> clientMap = new ConcurrentHashMap<>(16);
+    private final Map<String, ClusterClient> hosts = new LinkedHashMap<>(16);
     private final Set<String> allClusterIps = new HashSet<>(16);
     /** 集群配置是否生效 */
     private boolean enabled = false;
@@ -66,7 +63,7 @@ public class ClusterClientManager {
         return ClusterConfigHolder.INST;
     }
 
-    public Map<String, ClusterServerState> getHosts() {
+    public Map<String, ClusterClient> getHosts() {
         return hosts;
     }
 
@@ -83,13 +80,12 @@ public class ClusterClientManager {
     }
 
     public ClusterClient getClient(String host) {
-        return clientMap.get(host);
+        return hosts.get(host);
     }
 
     public void notifyToOtherClusterFront(String clusterHost, AbstractMessageEvent event, String sessionId) {
-        ClusterClient client = clientMap.get(clusterHost);
+        ClusterClient client = getClient(clusterHost);
         if (null == client) {
-            logger.error("客户端不存在：{}", clusterHost);
             return;
         }
         ClusterEventMessage req = new ClusterEventMessage();
@@ -101,32 +97,56 @@ public class ClusterClientManager {
         req.setBody(JsonUtils.toJsonString(messageEvent));
         client.sendMessage(req);
     }
+    public void notifyToOtherClusterFront(AbstractMessageEvent event) {
+        hosts.forEach((k, client) -> {
+            if (Objects.equals(selfHost, client.getHost())) {
+                return;
+            }
+            ClusterEventMessage req = new ClusterEventMessage();
+            req.setName(ClusterEventName.NOTIFY_TO_FRONT.name());
+            req.setType(ClusterEventMessage.REQ_TYPE);
+            FromOtherClusterServerMessageEvent messageEvent = new FromOtherClusterServerMessageEvent();
+            messageEvent.setMessage(event.message());
+            req.setBody(JsonUtils.toJsonString(messageEvent));
+            client.sendMessage(req);
+        });
+    }
 
     public void execClusterFunc(FuncReceivedEvent funcEvent) {
-        ClusterClient client = clientMap.get(funcEvent.getHost());
+        ClusterClient client = getClient(funcEvent.getHost());
         if (null == client) {
-            logger.error("客户端不存在：{}", funcEvent.getHost());
             return;
         }
         final int maxWait = 15000;
+        funcEvent.setSessionId(String.format("%s %s",selfHost, funcEvent.getSessionId()));
         client.requestSync(ClusterEventName.EXEC_FUNC, JsonUtils.toJsonString(funcEvent), maxWait);
     }
 
-    public void addClient(Session session, String host, String uuid) {
-        clientMap.compute(host, (k, v) -> {
-            if (null == v) {
-                v = new ClusterClient(session, host);
-            } else {
-                try {
-                    logger.warn("host {} 已连接", host);
-                    session.close();
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-           return v;
-        });
+    public boolean clusterAuth(String token, String accessClusterHost) {
+        if (!enabled || Objects.equals(selfHost, accessClusterHost)) {
+            return false;
+        }
+        ClusterClient client = getClient(accessClusterHost);
+        if (null == client || !client.isOnline()) {
+            return false;
+        }
+        final int maxWait = 15000;
+        String encoded = client.requestSync(ClusterEventName.CLUSTER_AUTH, token, maxWait);
+        if (StringUtils.isEmpty(encoded)) {
+            return false;
+        }
+        try {
+            byte[] objBytes = Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8));
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(objBytes));
+            Authentication authentication = (Authentication) ois.readObject();
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
+            return false;
+        }
+        return true;
     }
+
 
     public boolean authClusterToken(HttpServletRequest request) {
         if (null == clusterSecretKey) {
@@ -151,15 +171,7 @@ public class ClusterClientManager {
             return false;
         }
         try {
-            Claims claims = Jwts.parserBuilder().setSigningKey(clusterSecretKey).build()
-                    .parseClaimsJws(token).getBody();
-
-            List<GrantedAuthority> authorities = AuthorityUtils
-                    .commaSeparatedStringToAuthorityList((String) claims.get(AuthConst.AUTHORITIES_KEY));
-
-            User principal = new User(claims.getSubject(), StringUtils.EMPTY, authorities);
-            Authentication authentication = new UsernamePasswordAuthenticationToken(principal, StringUtils.EMPTY, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            validAuth(token, clusterSecretKey);
         } catch (Exception e) {
             return false;
         }
@@ -179,19 +191,6 @@ public class ClusterClientManager {
 
     private File getClusterConfigFile() {
         return FileUtils.getFile(SettingUtils.getHomePath(), "conf", "cluster.conf");
-    }
-
-    private ServerRuntimeInfo getServerInfo(String host) {
-        String url;
-        final String http = "http";
-        if (host.startsWith(http)) {
-            url = host + CommonConst.SERVER_RUNTIME_CONTEXT;
-        } else {
-            url = String.format("%s://%s%s", http, host, CommonConst.CLUSTER_API_CONTEXT + "/check");
-        }
-        HashMap<String, String> header = new HashMap<>(2);
-        header.put(AuthConst.CLUSTER_TOKEN, getClusterToken(AuthConst.JARBOOT_USER));
-        return HttpUtils.getObj(url, ServerRuntimeInfo.class, header);
     }
 
     public void init() {
@@ -237,34 +236,18 @@ public class ClusterClientManager {
                 selfHost = null;
                 logger.info("集群模式未配置，单例模式启动");
             } else {
-                if (StringUtils.isEmpty(selfHost)) {
+                final int minSecretKeyLength = 32;
+                if (StringUtils.isEmpty(selfHost) || clusterSecretKey.length <= minSecretKeyLength) {
                     // 未将自己配置在配置文件中
-                    final String msg = "集群配置文件中必须要包含自己，检测到未包含自己！";
-                    logger.info(msg);
+                    final String msg = "[cluster-secret-key]的长度小于等于32或者集群配置文件中必须要包含自己，检测到未包含自己！";
+                    logger.error(msg);
                     System.exit(-1);
                 } else {
-                    initClient();
                     enabled = true;
                     logger.info("集群模式启动");
                 }
             }
         }
-    }
-
-    private void initClient() {
-        hosts.forEach((k, v) -> {
-            if (!ClusterServerState.ONLINE.equals(v)) {
-                return;
-            }
-            clientMap.computeIfAbsent(k, host -> {
-                ClusterClient client = new ClusterClient(host);
-                if (client.isAlive()) {
-                    return client;
-                }
-                logger.warn("连接集群{}失败！可能服务端正在连接该实例！", host);
-                return null;
-            });
-        });
     }
 
     private boolean filterLine(String line) {
@@ -281,17 +264,27 @@ public class ClusterClientManager {
             }
             return false;
         }
+        final String str = "//";
+        int index = line.indexOf(str);
+        if (index >= 0) {
+            line = line.substring(index + str.length());
+        }
         String ip = parseIp(line);
         allClusterIps.add(ip);
-        hosts.put(line, ClusterServerState.OFFLINE);
+        hosts.put(line, new ClusterClient(line));
         return true;
     }
 
     private void waitHostStarted(String lineHost, Map<String, String> hostUuidMap) {
+        ClusterClient client = hosts.get(lineHost);
+        if (null == client) {
+            logger.error("{}在cluster host未找到", lineHost);
+            return;
+        }
         final int tryCount = 60;
         try {
             for (int i = 0; i < tryCount; ++i) {
-                if (checkHost(lineHost, hostUuidMap)) {
+                if (checkHost(client, hostUuidMap)) {
                     break;
                 }
             }
@@ -300,14 +293,14 @@ public class ClusterClientManager {
         }
     }
 
-    private boolean checkHost(String lineHost, Map<String, String> hostUuidMap) throws InterruptedException {
+    private boolean checkHost(ClusterClient client, Map<String, String> hostUuidMap) throws InterruptedException {
         try {
-            ServerRuntimeInfo info = getServerInfo(lineHost);
+            ServerRuntimeInfo info = client.health();
             final StringBuilder sb = new StringBuilder();
             hostUuidMap.compute(info.getUuid(), (k, v) -> {
                 if (null == v) {
                     // 无冲突
-                    return lineHost;
+                    return client.getHost();
                 }
                 sb.append(v);
                 return v;
@@ -316,18 +309,18 @@ public class ClusterClientManager {
             String conflictHost = sb.toString();
             if (StringUtils.isNotEmpty(conflictHost)) {
                 // uuid冲突
-                logger.error("uuid冲突！{}与{}的uuid冲突，请确保集群实例的uuid唯一性！", lineHost, conflictHost);
+                logger.error("uuid冲突！{}与{}的uuid冲突，请确保集群实例的uuid唯一性！", client.getHost(), conflictHost);
                 fatal = true;
             }
             if (Objects.equals(info.getUuid(), SettingUtils.getUuid())) {
                 // 检查
-                String ip = parseIp(lineHost);
+                String ip = parseIp(client.getHost());
                 if (allLocalIp.contains(ip)) {
                     // 自己
-                    this.selfHost = lineHost;
+                    this.selfHost = client.getHost();
                 } else {
                     // uuid 冲突
-                    logger.error("uuid冲突！{}与当前实例的uuid冲突！", lineHost);
+                    logger.error("uuid冲突！{}与当前实例的uuid冲突！", client.getHost());
                     fatal = true;
                 }
             }
@@ -335,16 +328,8 @@ public class ClusterClientManager {
                 // 致命错误，程序退出
                 System.exit(-1);
             }
-            hosts.put(lineHost, ClusterServerState.ONLINE);
             return true;
-        } catch (JarbootException e) {
-            if (HttpServletResponse.SC_UNAUTHORIZED == e.getErrorCode()) {
-                logger.warn("认证失败，{}与当前服务的cluster-secret-key不一致或正在启动中.", lineHost);
-                hosts.put(lineHost, ClusterServerState.AUTH_FAILED);
-            } else {
-                hosts.put(lineHost, ClusterServerState.OFFLINE);
-            }
-
+        } catch (Exception e) {
             TimeUnit.SECONDS.sleep(5);
         }
         return false;
@@ -360,5 +345,17 @@ public class ClusterClientManager {
 
     private static class ClusterConfigHolder {
         static final ClusterClientManager INST = new ClusterClientManager();
+    }
+
+    private void validAuth(String token, byte[] secretKeyBytes) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(secretKeyBytes).build()
+                .parseClaimsJws(token).getBody();
+
+        List<GrantedAuthority> authorities = AuthorityUtils
+                .commaSeparatedStringToAuthorityList((String) claims.get(AuthConst.AUTHORITIES_KEY));
+
+        User principal = new User(claims.getSubject(), StringUtils.EMPTY, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, StringUtils.EMPTY, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

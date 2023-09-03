@@ -16,7 +16,7 @@
     "axios": "^1.2.1",
     "codemirror": "^5.63.3",
     "echarts": "^5.4.1",
-    "element-plus": "^2.2.26",
+    "element-plus": "^2.3.12",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pinia": "^2.0.28",

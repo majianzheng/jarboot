@@ -14,7 +14,7 @@ export default class FileService {
    * @param withRoot
    * @returns {Promise<any>}
    */
-  public static getFiles(baseDir: string, withRoot: boolean) {
+  public static getFiles(baseDir: string, withRoot: boolean): Promise<any> {
     const form = new FormData();
     form.append('baseDir', baseDir);
     form.append('withRoot', withRoot + '');

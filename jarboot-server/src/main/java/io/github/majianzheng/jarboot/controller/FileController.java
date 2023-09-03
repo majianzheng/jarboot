@@ -64,8 +64,8 @@ public class FileController {
      * @return 文件列表
      */
     @PostMapping("list")
-    public ResponseVo<List<FileNode>> getFiles(String baseDir, Boolean withRoot) {
-        return HttpResponseUtils.success(fileService.getFiles(baseDir, withRoot));
+    public ResponseVo<List<FileNode>> getFiles(String baseDir, boolean withRoot) {
+        return HttpResponseUtils.success(fileService.getWorkspaceFiles(baseDir, withRoot));
     }
 
     /**

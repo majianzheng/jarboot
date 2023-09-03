@@ -53,6 +53,10 @@ export default {
   STOPPED: '已停止',
   STARTING: '啟動中',
   STOPPING: '停止中',
+  // 主机状态
+  ONLINE: '線上',
+  OFFLINE: '離線',
+  AUTH_FAILED: '鑒權失敗',
 
   //通用
   TYPE: '類型',
@@ -106,6 +110,7 @@ export default {
   MODIFY_TIME: '修改时间',
   COUNT: '数量',
   TIP_UPLOAD_IMG: '请上传图片',
+  CONNECT: '连接',
 
   //服務配置
   SERVER_LIST_TITLE: '服務列錶',

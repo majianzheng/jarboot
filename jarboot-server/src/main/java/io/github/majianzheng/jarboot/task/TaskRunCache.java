@@ -1,6 +1,5 @@
 package io.github.majianzheng.jarboot.task;
 
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
@@ -126,24 +125,29 @@ public class TaskRunCache {
      * @param userDir 用户目录
      * @return 服务组
      */
-    public ServiceGroup getServiceGroup(String userDir) {
+    public ServiceInstance getServiceGroup(String userDir) {
         List<ServiceInstance> serviceList = this.getServiceList(userDir);
-        ServiceGroup localGroup = new ServiceGroup();
+        ServiceInstance localGroup = new ServiceInstance();
+        localGroup.setNodeType(CommonConst.NODE_ROOT);
+        localGroup.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
         localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
         localGroup.setChildren(new ArrayList<>());
         if (CollectionUtils.isEmpty(serviceList)) {
             return localGroup;
         }
-        HashMap<String, ServiceGroup> map = new HashMap<>(16);
-        List<ServiceGroup> list = new ArrayList<>();
+        HashMap<String, ServiceInstance> map = new HashMap<>(16);
+        List<ServiceInstance> list = new ArrayList<>();
         serviceList.forEach(service -> {
             if (StringUtils.isEmpty(service.getGroup())) {
                 localGroup.getChildren().add(service);
             } else {
                 map.compute(service.getGroup(), (k, v) -> {
                     if (null == v) {
-                        v = new ServiceGroup();
+                        v = new ServiceInstance();
+                        v.setNodeType(CommonConst.NODE_GROUP);
+                        v.setSid(String.format("%x", Objects.hash(SettingUtils.getUuid().hashCode(), k)));
                         v.setName(service.getGroup());
+                        v.setHost(ClusterClientManager.getInstance().getSelfHost());
                         v.setChildren(new ArrayList<>());
                         list.add(v);
                     }

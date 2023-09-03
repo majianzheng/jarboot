@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
@@ -99,6 +100,7 @@ public class AuthController {
         jarbootUser.setTokenTtl(expireSeconds);
         jarbootUser.setRoles(user.getRoles());
         jarbootUser.setAvatar(userService.getAvatar(username));
+        jarbootUser.setHost(ClusterClientManager.getInstance().getSelfHost());
         return HttpResponseUtils.success(jarbootUser);
     }
 

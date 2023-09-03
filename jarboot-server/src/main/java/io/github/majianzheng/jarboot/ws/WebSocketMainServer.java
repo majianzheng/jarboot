@@ -49,11 +49,13 @@ public class WebSocketMainServer {
      */
     @OnClose
     public void onClose( Session session) {
+        FuncReceivedEvent event = new FuncReceivedEvent(
+                FuncReceivedEvent.FuncCode.SESSION_CLOSED_FUNC, session.getId());
         NotifyReactor
                 .getInstance()
-                .publishEvent(new FuncReceivedEvent(
-                        FuncReceivedEvent.FuncCode.SESSION_CLOSED_FUNC, session.getId()));
+                .publishEvent(event);
         SESSIONS.remove(session.getId());
+        ClusterClientManager.getInstance().execClusterFunc(event);
     }
 
     /**
@@ -76,9 +78,9 @@ public class WebSocketMainServer {
             logger.error("解析json失败！{}", message);
             return;
         }
+        event.setSessionId(session.getId());
         String self = ClusterClientManager.getInstance().getSelfHost();
         if (StringUtils.isEmpty(self) || Objects.equals(self, event.getHost())) {
-            event.setSessionId(session.getId());
             NotifyReactor.getInstance().publishEvent(event);
         } else {
             ClusterClientManager.getInstance().execClusterFunc(event);
@@ -125,6 +127,7 @@ public class WebSocketMainServer {
             @Override
             public void onEvent(BroadcastMessageEvent event) {
                 SESSIONS.values().forEach(operator -> operator.newMessage(event));
+                ClusterClientManager.getInstance().notifyToOtherClusterFront(event);
             }
 
             @Override

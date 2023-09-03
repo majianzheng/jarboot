@@ -6,7 +6,6 @@ import io.github.majianzheng.jarboot.api.constant.TaskLifecycle;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -63,21 +62,21 @@ public class ServiceManagerClient implements ServiceManager {
     }
 
     @Override
-    public ServiceGroup getServiceGroup() {
+    public ServiceInstance getServiceGroup() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/groups";
-        return doGetGroups(api);
+        return doGetGroups(api, ServiceInstance.class);
     }
 
     @Override
-    public ServiceGroup getJvmGroup() {
+    public JvmProcess getJvmGroup() {
         final String api = CommonConst.SERVICE_MGR_CONTEXT + "/jvmGroups";
-        return doGetGroups(api);
+        return doGetGroups(api, JvmProcess.class);
     }
 
-    private ServiceGroup doGetGroups(String api) {
+    private <T> T doGetGroups(String api, Class<T> cls) {
         JsonNode response = this.clientProxy.get(api);
         JsonNode result = ResponseUtils.parseResult(response, api);
-        return JsonUtils.treeToValue(result, ServiceGroup.class);
+        return JsonUtils.treeToValue(result, cls);
     }
 
     @Override

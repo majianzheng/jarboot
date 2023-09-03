@@ -2,6 +2,7 @@ import axios from 'axios';
 import CommonUtils from './CommonUtils';
 import router from '../router';
 import CommonNotice from '@/common/CommonNotice';
+import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 
 const http = axios.create({
   baseURL: '',
@@ -100,6 +101,10 @@ export default class Request {
       const token = CommonUtils.getToken();
       if (request.headers && token.length) {
         request.headers['Authorization'] = token;
+      }
+      const host = CommonUtils.getCurrentHost();
+      if (host) {
+        request.headers[ACCESS_CLUSTER_HOST] = host;
       }
       return request;
     });

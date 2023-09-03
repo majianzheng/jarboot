@@ -4,7 +4,6 @@ import io.github.majianzheng.jarboot.api.constant.TaskLifecycle;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 
@@ -26,13 +25,13 @@ public interface ServiceManager {
      * 获取服务组列表
      * @return 服务分组
      */
-    ServiceGroup getServiceGroup();
+    ServiceInstance getServiceGroup();
 
     /**
      * 获取Vm组列表
      * @return 服务分组
      */
-    ServiceGroup getJvmGroup();
+    JvmProcess getJvmGroup();
 
     /**
      * 获取服务信息

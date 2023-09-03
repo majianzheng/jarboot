@@ -8,7 +8,6 @@ import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
@@ -63,13 +62,15 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     }
 
     @Override
-    public ServiceGroup getServiceGroup() {
+    public ServiceInstance getServiceGroup() {
         return taskRunCache.getServiceGroup(SettingUtils.getCurrentUserDir());
     }
 
     @Override
-    public ServiceGroup getJvmGroup() {
-        ServiceGroup localGroup = new ServiceGroup();
+    public JvmProcess getJvmGroup() {
+        JvmProcess localGroup = new JvmProcess();
+        localGroup.setNodeType(CommonConst.NODE_ROOT);
+        localGroup.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
         localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
         localGroup.setChildren(new ArrayList<>());
         localGroup.getChildren().addAll(this.getJvmProcesses());

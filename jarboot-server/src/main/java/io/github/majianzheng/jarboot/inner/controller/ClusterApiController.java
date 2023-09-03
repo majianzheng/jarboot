@@ -1,17 +1,19 @@
 package io.github.majianzheng.jarboot.inner.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
-import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
-import io.github.majianzheng.jarboot.api.pojo.ServiceGroup;
-import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
+import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
+import io.github.majianzheng.jarboot.cluster.ClusterClient;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.cluster.ClusterEventMessage;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RequestMapping(value = CommonConst.CLUSTER_API_CONTEXT)
 @RestController
-//@PreAuthorize("hasRole('CLUSTER')")
+@PreAuthorize("hasRole('CLUSTER')")
 public class ClusterApiController {
     @Autowired
     private TaskRunCache taskRunCache;
@@ -33,21 +35,21 @@ public class ClusterApiController {
     @Autowired
     private SettingService settingService;
 
-    @GetMapping("/check")
+    @GetMapping("/health")
     @ResponseBody
-    public ServerRuntimeInfo check() {
+    public ServerRuntimeInfo health() {
         return serverRuntimeService.getServerRuntimeInfo();
     }
 
     @GetMapping("/group")
     @ResponseBody
-    public ServiceGroup getServiceGroup() {
+    public ServiceInstance getServiceGroup() {
         return taskRunCache.getServiceGroup(SettingUtils.getCurrentUserDir());
     }
 
     @GetMapping("/jvmGroup")
     @ResponseBody
-    public ServiceGroup getJvmGroup() {
+    public JvmProcess getJvmGroup() {
         return serviceManager.getJvmGroup();
     }
 
@@ -55,6 +57,13 @@ public class ClusterApiController {
     @ResponseBody
     public ServiceSetting getServiceSetting(String serviceName) {
         return settingService.getServiceSetting(serviceName);
+    }
+
+    @PostMapping("/serviceSetting")
+    @ResponseBody
+    public ResponseSimple saveServiceSetting(@RequestBody ServiceSetting setting) {
+        settingService.submitServiceSetting(setting);
+        return HttpResponseUtils.success();
     }
 
     @DeleteMapping("/service")
@@ -68,6 +77,17 @@ public class ClusterApiController {
     @ResponseBody
     public ResponseSimple attach(String pid) {
         serviceManager.attach(pid);
+        return HttpResponseUtils.success();
+    }
+
+    @PostMapping("/handleMessage/{host}")
+    @ResponseBody
+    public ResponseSimple handleMessage(@RequestBody ClusterEventMessage eventMessage, @PathVariable("host") String host) {
+        ClusterClient client = ClusterClientManager.getInstance().getClient(host);
+        if (null == client) {
+            return HttpResponseUtils.error("集群客户端不存在" + host);
+        }
+        client.handleMessage(eventMessage);
         return HttpResponseUtils.success();
     }
 }

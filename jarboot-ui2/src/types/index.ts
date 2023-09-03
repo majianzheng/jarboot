@@ -61,6 +61,7 @@ export type FileNode = {
 };
 
 export type ServerSetting = {
+  host: string;
   applicationType: 'java' | 'shell' | 'executable';
   args: string;
   command: string;
@@ -122,20 +123,18 @@ export interface TreeNode {
   title?: string;
   key?: string;
   selectable?: boolean;
+  isLeaf: boolean;
 }
 
 export interface ServiceInstance extends TreeNode {
   host: string;
   name: string;
-  status?: string;
+  status: string;
   group?: string;
   path?: string;
-
-  onlineDebug: boolean;
-
   attaching: boolean;
-
-  pid: number;
+  nodeType: number;
+  pid: string;
 
   remote: boolean;
 
@@ -156,5 +155,11 @@ export interface JvmProcess extends TreeNode {
 export type ServerRuntimeInfo = {
   version: string;
   uuid: string;
+  host: string;
+  masterHost: string;
   inDocker: boolean;
+};
+export type UploadFileInfo = {
+  total: number;
+  uploadedSize: number;
 };

@@ -1,16 +1,23 @@
 package io.github.majianzheng.jarboot.api.pojo;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
  * @author majianzheng
  */
-public class JvmProcess extends SimpleInstance {
+public class JvmProcess {
     private String pid;
     private String fullName;
     private Boolean attached;
     private String remote;
     private Boolean trusted;
+    /** 集群模式下要指定，非集群忽略 */
+    private String host;
+    private String sid;
+    private String name;
+    private List<JvmProcess> children;
+    private int nodeType;
+    private String status;
 
     public String getPid() {
         return pid;
@@ -52,33 +59,67 @@ public class JvmProcess extends SimpleInstance {
         this.trusted = trusted;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        JvmProcess that = (JvmProcess) o;
-        return Objects.equals(getSid(), that.getSid());
+    public String getHost() {
+        return host;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSid());
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<JvmProcess> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<JvmProcess> children) {
+        this.children = children;
+    }
+
+    public int getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(int nodeType) {
+        this.nodeType = nodeType;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override
     public String toString() {
         return "JvmProcess{" +
-                "sid='" + getSid() + '\'' +
-                ", pid='" + pid + '\'' +
-                ", name='" + getSid() + '\'' +
+                "pid='" + pid + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", attached=" + attached +
                 ", remote='" + remote + '\'' +
                 ", trusted=" + trusted +
+                ", host='" + host + '\'' +
+                ", sid='" + sid + '\'' +
+                ", name='" + name + '\'' +
+                ", children=" + children +
+                ", nodeType=" + nodeType +
                 '}';
     }
 }

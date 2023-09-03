@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.service.impl;
 
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
@@ -20,6 +21,7 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
         info.setUuid(SettingUtils.getUuid());
         info.setInDocker(isInDocker);
         info.setVersion(VersionUtils.version);
+        info.setHost(ClusterClientManager.getInstance().getSelfHost());
         return info;
     }
 

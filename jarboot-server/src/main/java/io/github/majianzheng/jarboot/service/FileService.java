@@ -17,7 +17,7 @@ public interface FileService {
      * @param withRoot 是否包含根路径
      * @return 文件节点
      */
-    List<FileNode> getFiles(String baseDir, boolean withRoot);
+    List<FileNode> getWorkspaceFiles(String baseDir, boolean withRoot);
 
     /**
      * 获取文件内容

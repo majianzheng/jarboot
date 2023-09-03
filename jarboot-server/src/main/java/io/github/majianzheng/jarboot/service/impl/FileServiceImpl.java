@@ -21,7 +21,7 @@ import java.util.*;
 @Service
 public class FileServiceImpl implements FileService {
     @Override
-    public List<FileNode> getFiles(String baseDir, boolean withRoot) {
+    public List<FileNode> getWorkspaceFiles(String baseDir, boolean withRoot) {
         check(baseDir);
         File base = FileUtils.getFile(SettingUtils.getWorkspace(), baseDir);
         FileNode fileNode = getFileNode(base);
@@ -110,26 +110,39 @@ public class FileServiceImpl implements FileService {
     }
 
     private static FileNode getFileNode(File file) {
-        FileNode fileNode = new FileNode();
-        fileNode.setName(file.getName());
-        fileNode.setKey(genNodeKey(file));
-        fileNode.setParent(file.getParentFile().getName());
-        fileNode.setDirectory(file.isDirectory());
-        fileNode.setModifyTime(file.lastModified());
+        FileNode fileNode = convertFileToNode(file);
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (null == files || files.length == 0) {
+                fileNode.setLeaf(true);
+                fileNode.setChildren(new ArrayList<>());
                 return fileNode;
             }
+            fileNode.setLeaf(false);
             fileNode.setChildren(new ArrayList<>(files.length));
             for (File child : files) {
                 if (child.getName().startsWith(".")) {
                     continue;
                 }
-                fileNode.getChildren().add(getFileNode(child));
+                fileNode.getChildren().add(convertFileToNode(child));
             }
+        }
+        return fileNode;
+    }
+
+    private static FileNode convertFileToNode(File file) {
+        FileNode fileNode = new FileNode();
+        fileNode.setName(file.getName());
+        fileNode.setKey(genNodeKey(file));
+        fileNode.setParent(file.getParentFile().getName());
+        fileNode.setModifyTime(file.lastModified());
+        if (file.isDirectory()) {
+            fileNode.setDirectory(true);
+            fileNode.setLeaf(false);
         } else {
+            fileNode.setDirectory(false);
             fileNode.setSize(file.length());
+            fileNode.setLeaf(true);
         }
         return fileNode;
     }

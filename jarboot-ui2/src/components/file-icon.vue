@@ -6,57 +6,53 @@ const props = defineProps<{
   directory: boolean;
 }>();
 
-function getFileIcon() {
-  if (!props.filename || props.directory) {
-    return null;
+function getFileIcon(): string {
+  if (props.directory) {
+    return 'Folder';
+  }
+  if (!props.filename) {
+    return 'icon-binary';
   }
   const i = props.filename?.lastIndexOf('.');
   if (i <= 0) {
-    return null;
+    return 'icon-binary';
   }
   const extend = props.filename.substring(i + 1);
   switch (extend) {
     case 'js':
-      return 'javascript';
+      return 'icon-javascript';
     case 'jar':
-      return 'jar';
+      return 'icon-jar';
     case 'exe':
-      return 'exe';
+      return 'icon-exe';
     case 'py':
-      return 'python';
+      return 'icon-python';
     case 'go':
-      return 'golang';
+      return 'icon-golang';
     case 'sh':
     case 'cmd':
     case 'bat':
-      return 'terminal';
+      return 'icon-terminal';
     case 'tar':
     case 'zip':
     case '7z':
     case 'gz':
-      return 'tar';
+      return 'icon-tar';
+    case 'png':
+    case 'jpg':
+    case 'bmp':
+    case 'gif':
+      return 'PictureFilled';
   }
-  return null;
-}
-
-function isImage() {
-  if (!props.filename || props.directory) {
-    return null;
+  if (canEdit(props.filename)) {
+    return 'Document';
   }
-  return (
-    props.filename.endsWith('.png') || props.filename.endsWith('.jpg') || props.filename.endsWith('.bmp') || props.filename.endsWith('.gif')
-  );
+  return 'icon-binary';
 }
 </script>
 
 <template>
   <span>
-    <el-icon v-if="directory"><Folder /></el-icon>
-    <em v-else-if="getFileIcon()" class="iconfont" :class="'icon-' + getFileIcon()"></em>
-    <el-icon v-else-if="isImage()"><PictureFilled /></el-icon>
-    <el-icon v-else-if="canEdit(filename)"><Document /></el-icon>
-    <em v-else class="iconfont icon-binary"></em>
+    <icon-pro :icon="getFileIcon()"></icon-pro>
   </span>
 </template>
-
-<style scoped lang="less"></style>

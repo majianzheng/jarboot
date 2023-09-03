@@ -2,6 +2,7 @@ package io.github.majianzheng.jarboot.common.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.majianzheng.jarboot.common.JarbootException;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -18,7 +19,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,8 @@ public class HttpUtils {
      * @return 期望的结构
      */
     public static <T> T getObj(String url, Class<T> type, Map<String, String> header) {
-        return JsonUtils.treeToValue(get(url, header), type);
+        HttpGet httpGet = new HttpGet(url);
+        return doRequest(httpGet, CONTENT_TYPE_FORM, header, type);
     }
 
     public static JsonNode postJson(String url, Object json, Map<String, String> header) {
@@ -68,8 +69,8 @@ public class HttpUtils {
      * @return 期望的结果类型
      * @param <T>
      */
-    public static <T> T  postObjByString(String url, String data, Class<T> type) {
-        return JsonUtils.treeToValue(doPost(url, new StringEntity(data, StandardCharsets.UTF_8), CONTENT_TYPE_JSON, null), type);
+    public static <T> T  postObjByString(String url, String data, Class<T> type, Map<String, String> header) {
+        return doPost(url, new StringEntity(data, StandardCharsets.UTF_8), CONTENT_TYPE_JSON, header, type);
     }
 
     /**
@@ -82,7 +83,8 @@ public class HttpUtils {
      * @return 期望的结构
      */
     public static <T> T postObj(String url, Object object, Class<T> type, Map<String, String> header) {
-        return JsonUtils.treeToValue(postJson(url, object, header), type);
+        String content = null == object ? StringUtils.EMPTY : JsonUtils.toJsonString(object);
+        return doPost(url, new StringEntity(content, StandardCharsets.UTF_8), CONTENT_TYPE_JSON, header, type);
     }
 
     public static JsonNode post(String url, Map<String, String> formData, Map<String, String> header) {
@@ -115,6 +117,12 @@ public class HttpUtils {
         return doRequest(httpPost, contentType, header);
     }
 
+    public static <T> T  doPost(String url, HttpEntity request, String contentType, Map<String, String> header, Class<T> cls) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(request);
+        return doRequest(httpPost, contentType, header, cls);
+    }
+
     private static JsonNode doRequest(HttpRequestBase httpUriRequest, String contentType, Map<String, String> header) {
         fillHeader(httpUriRequest, header);
         httpUriRequest.setHeader(CONTENT_TYPE, contentType);
@@ -122,7 +130,26 @@ public class HttpUtils {
             CloseableHttpResponse response = HTTP_CLIENT.execute(httpUriRequest);
             checkStatus(response);
             return JsonUtils.readAsJsonNode(response.getEntity().getContent());
-        } catch (IOException e) {
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        } finally {
+            httpUriRequest.releaseConnection();
+        }
+    }
+
+    private static <T> T doRequest(HttpRequestBase httpUriRequest, String contentType, Map<String, String> header, Class<T> cls) {
+        fillHeader(httpUriRequest, header);
+        httpUriRequest.setHeader(CONTENT_TYPE, contentType);
+        try {
+            CloseableHttpResponse response = HTTP_CLIENT.execute(httpUriRequest);
+            checkStatus(response);
+            String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+            T result = JsonUtils.readValue(body, cls);
+            if (null == result) {
+                throw new JarbootException("解析JSON失败，resp:" + body);
+            }
+            return result;
+        } catch (Exception e) {
             throw new JarbootException(e);
         } finally {
             httpUriRequest.releaseConnection();
