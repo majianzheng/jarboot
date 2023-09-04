@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router';
-import { zhCn, zhTw, en } from 'element-plus/lib/locale/index';
+import { zhCn, zhTw, en } from 'element-plus/es/locale/index';
 import { type I18n, useI18n } from 'vue-i18n';
 import { computed, onMounted, onUnmounted } from 'vue';
 import { useBasicStore } from '@/stores';

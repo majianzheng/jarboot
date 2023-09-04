@@ -82,10 +82,10 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     }
 
     private String getAccessClusterHost(HttpServletRequest request) {
-        final String ACCESS_CLUSTER_HOST = "Access-Cluster-Host";
-        String accessClusterHost = request.getHeader(ACCESS_CLUSTER_HOST);
+        final String clusterHostKey = "Access-Cluster-Host";
+        String accessClusterHost = request.getHeader(clusterHostKey);
         if (StringUtils.isEmpty(accessClusterHost)) {
-            accessClusterHost = request.getParameter(ACCESS_CLUSTER_HOST);
+            accessClusterHost = request.getParameter(clusterHostKey);
         }
         return accessClusterHost;
     }

@@ -85,7 +85,7 @@ public class ClusterClientManager {
 
     public void notifyToOtherClusterFront(String clusterHost, AbstractMessageEvent event, String sessionId) {
         ClusterClient client = getClient(clusterHost);
-        if (null == client) {
+        if (!enabled || null == client) {
             return;
         }
         ClusterEventMessage req = new ClusterEventMessage();
@@ -98,18 +98,20 @@ public class ClusterClientManager {
         client.sendMessage(req);
     }
     public void notifyToOtherClusterFront(AbstractMessageEvent event) {
-        hosts.forEach((k, client) -> {
-            if (Objects.equals(selfHost, client.getHost())) {
-                return;
-            }
-            ClusterEventMessage req = new ClusterEventMessage();
-            req.setName(ClusterEventName.NOTIFY_TO_FRONT.name());
-            req.setType(ClusterEventMessage.REQ_TYPE);
-            FromOtherClusterServerMessageEvent messageEvent = new FromOtherClusterServerMessageEvent();
-            messageEvent.setMessage(event.message());
-            req.setBody(JsonUtils.toJsonString(messageEvent));
-            client.sendMessage(req);
-        });
+        if (enabled) {
+            hosts.forEach((k, client) -> {
+                if (Objects.equals(selfHost, client.getHost())) {
+                    return;
+                }
+                ClusterEventMessage req = new ClusterEventMessage();
+                req.setName(ClusterEventName.NOTIFY_TO_FRONT.name());
+                req.setType(ClusterEventMessage.REQ_TYPE);
+                FromOtherClusterServerMessageEvent messageEvent = new FromOtherClusterServerMessageEvent();
+                messageEvent.setMessage(event.message());
+                req.setBody(JsonUtils.toJsonString(messageEvent));
+                client.sendMessage(req);
+            });
+        }
     }
 
     public void execClusterFunc(FuncReceivedEvent funcEvent) {
@@ -133,6 +135,7 @@ public class ClusterClientManager {
         final int maxWait = 15000;
         String encoded = client.requestSync(ClusterEventName.CLUSTER_AUTH, token, maxWait);
         if (StringUtils.isEmpty(encoded)) {
+            logger.error("集群认证失败，host: {}, token: {}", accessClusterHost, token);
             return false;
         }
         try {

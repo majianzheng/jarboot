@@ -320,6 +320,7 @@ public class ClusterClientProxy {
     private interface ClientCallback {
         /**
          * 实现方法
+         * @param proxy 是否需要转发
          * @param client 客户端
          */
         void invoke(boolean proxy, ClusterClient client);
