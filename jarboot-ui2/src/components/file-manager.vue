@@ -16,6 +16,8 @@ import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 const props = defineProps<{
   baseDir: string;
   withRoot: boolean;
+  clusterHost: string;
+  showClusterHostInRoot?: boolean;
   headTools?: {
     refresh?: boolean;
     delete?: boolean;
@@ -44,11 +46,11 @@ const defaultProps = {
   isLeaf: 'leaf',
 };
 const emit = defineEmits<{
-  (e: 'edit', path: string, content: string): void;
-  (e: 'select', file: FileNode): void;
-  (e: 'node-click', file: FileNode, path: string): void;
-  (e: 'before-load'): void;
-  (e: 'after-load', data: FileNode[]): void;
+  (e: 'edit', path: string, content: string, clusterHost: string): void;
+  (e: 'select', file: FileNode, clusterHost: string): void;
+  (e: 'node-click', file: FileNode, path: string, clusterHost: string): void;
+  (e: 'before-load', clusterHost: string): void;
+  (e: 'after-load', data: FileNode[], clusterHost: string): void;
 }>();
 
 const state = reactive({
@@ -69,9 +71,16 @@ function genId(btn: string, data: any) {
 async function reload() {
   state.loading = true;
   try {
-    emit('before-load');
-    state.data = await FileService.getFiles(props.baseDir, props.withRoot);
-    emit('after-load', { ...state.data });
+    emit('before-load', props.clusterHost);
+    state.data = await FileService.getFiles(props.baseDir, props.withRoot, props.clusterHost);
+    if (props.showClusterHostInRoot && props.withRoot && props.clusterHost) {
+      state.data[0].name = props.clusterHost;
+    }
+    emit('after-load', { ...state.data }, props.clusterHost);
+  } catch (e) {
+    if (props.showClusterHostInRoot && props.withRoot && props.clusterHost) {
+      state.data[0].name = `${props.clusterHost} (${CommonUtils.translate('OFFLINE')})`;
+    }
   } finally {
     state.loading = false;
   }
@@ -86,7 +95,7 @@ const loadNode = (node: Node, resolve: (data: Tree[]) => void) => {
     return;
   }
   const path = FileService.parseFilePath(node, props.baseDir);
-  FileService.getFiles(path, false).then(data => {
+  FileService.getFiles(path, false, props.clusterHost).then(data => {
     if (data?.length) {
       resolve(data);
     } else {
@@ -102,8 +111,8 @@ async function handleEdit(node: any) {
     // 非文本文件
     await ElMessageBox.confirm(CommonUtils.translate('NOT_TEXT_FILE'), CommonUtils.translate('WARN'));
   }
-  const content = await FileService.getContent(path);
-  emit('edit', path, content);
+  const content = await FileService.getContent(path, props.clusterHost);
+  emit('edit', path, content, props.clusterHost);
   state.file = { path, content };
   state.isNew = false;
   state.dialog = true;
@@ -112,7 +121,7 @@ async function handleEdit(node: any) {
 async function handleDelete(node: any) {
   const path = FileService.parseFilePath(node, props.baseDir);
   await ElMessageBox.confirm(CommonUtils.translate('DELETE') + path + '?', CommonUtils.translate('WARN'), {});
-  await FileService.deleteFile(path);
+  await FileService.deleteFile(path, props.clusterHost);
   await reload();
   CommonNotice.success(`${CommonUtils.translate('DELETE')}${CommonUtils.translate('SUCCESS')}`);
 }
@@ -182,7 +191,8 @@ async function addFolder(node: any) {
     CommonNotice.warn('Name is empty!');
     return;
   }
-  const key = await FileService.addDirectory(FileService.parseFilePath(node, props.baseDir) + '/' + name.value);
+  const file = FileService.parseFilePath(node, props.baseDir) + '/' + name.value;
+  const key = await FileService.addDirectory(file, props.clusterHost);
   await reload();
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
   treeRef.value?.setCurrentKey(key);
@@ -203,10 +213,10 @@ async function addFile(node: any) {
 async function saveFile() {
   let key = '';
   if (state.isNew) {
-    key = await FileService.newFile(state.file.path, state.file.content);
+    key = await FileService.newFile(state.file.path, state.file.content, props.clusterHost);
     await reload();
   } else {
-    key = await FileService.writeFile(state.file.path, state.file.content);
+    key = await FileService.writeFile(state.file.path, state.file.content, props.clusterHost);
   }
   state.dialog = false;
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
@@ -219,13 +229,18 @@ function resetForm() {
 
 function download(node: any) {
   const path = FileService.parseFilePath(node, props.baseDir);
-  FileService.download(path, node.data.name, (result, msg) => {
-    if (result) {
-      CommonNotice.success(CommonUtils.translate('SUCCESS'));
-    } else {
-      CommonNotice.error(msg);
-    }
-  });
+  FileService.download(
+    path,
+    node.data.name,
+    (result, msg) => {
+      if (result) {
+        CommonNotice.success(CommonUtils.translate('SUCCESS'));
+      } else {
+        CommonNotice.error(msg);
+      }
+    },
+    props.clusterHost
+  );
 }
 
 function clickBtn(btn: string, select?: FileNode) {
@@ -282,7 +297,7 @@ function isRoot(data: FileNode) {
 function nodeClick(data: FileNode) {
   const node = treeRef.value?.getNode(data);
   const path = FileService.parseFilePath(node, props.baseDir);
-  emit('node-click', data, path);
+  emit('node-click', data, path, props.clusterHost);
 }
 
 defineExpose({
@@ -318,7 +333,7 @@ onMounted(reload);
       :load="loadNode"
       lazy
       :filter-node-method="filterService"
-      @current-change="data => emit('select', data)"
+      @current-change="data => emit('select', data, props.clusterHost)"
       @node-click="nodeClick"
       node-key="key"
       highlight-current>
@@ -336,7 +351,7 @@ onMounted(reload);
           <div class="node-row">
             <div style="flex: auto">
               <file-icon class="row-icon-style" :filename="data.name" :directory="data.directory"></file-icon>
-              <el-tooltip placement="right" :title="data.name" :width="350">
+              <el-tooltip placement="right" :title="data?.name || ''" :width="350">
                 <span>
                   {{ data.name }}
                   <span v-if="showProgress(data)">

@@ -8,13 +8,23 @@ import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.cluster.ClusterEventMessage;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
+import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
+import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
  * 集群API服务
@@ -34,6 +44,8 @@ public class ClusterApiController {
     private ServerRuntimeService serverRuntimeService;
     @Autowired
     private SettingService settingService;
+    @Autowired
+    private FileService fileService;
 
     @GetMapping("/health")
     @ResponseBody
@@ -89,5 +101,99 @@ public class ClusterApiController {
         }
         client.handleMessage(eventMessage);
         return HttpResponseUtils.success();
+    }
+
+    @PostMapping("file")
+    @ResponseBody
+    public ResponseSimple upload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("path") String path) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            fileService.uploadFile(path + File.separator + file.getOriginalFilename(), is);
+        }
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 下载文件
+     * @param path 文件
+     * @param response
+     * @throws IOException
+     */
+    @PostMapping("file/download")
+    public void download(
+            @RequestParam("path") String path,
+            HttpServletResponse response) throws IOException {
+        response.setHeader("content-type", "file");
+        response.setContentType("application/octet-stream");
+        try (OutputStream os = response.getOutputStream()) {
+            fileService.download(path, os);
+        }
+    }
+
+    /**
+     * 获取文件列表
+     * @param baseDir 文件目录
+     * @param withRoot 是否包含baseDir
+     * @return 文件列表
+     */
+    @PostMapping("file/list")
+    public List<FileNode> getFiles(String baseDir, boolean withRoot) {
+        return fileService.getWorkspaceFiles(baseDir, withRoot);
+    }
+
+    /**
+     * 获取文件内容
+     * @param file 文件相对于工作目录的路径
+     * @return 文件内容
+     */
+    @PostMapping("file/content")
+    public ResponseVo<String> getContent(@RequestParam("path") String file) {
+        return HttpResponseUtils.success(fileService.getContent(file));
+    }
+
+    /**
+     * 删除文件
+     * @param path 文件相对于工作目录的路径
+     * @return
+     */
+    @PostMapping("file/delete")
+    public ResponseVo<String> deleteFile(@RequestParam("path") String path) {
+        fileService.deleteFile(path);
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 写文件
+     * @param path 文件相对于工作目录的路径
+     * @param content 文件内容
+     * @return
+     */
+    @PostMapping("file/write")
+    public ResponseVo<String> writeFile(
+            @RequestParam("path") String path,
+            @RequestParam("content") String content) {
+        return HttpResponseUtils.success(fileService.writeFile(path, content));
+    }
+
+    /**
+     * 创建文本文件
+     * @param path 文件相对于工作目录的路径
+     * @param content 文件内容
+     * @return
+     */
+    @PostMapping("file/create")
+    public ResponseVo<String> newFile(@RequestParam("path") String path, @RequestParam("content") String content) {
+        return HttpResponseUtils.success(fileService.newFile(path, content));
+    }
+
+    /**
+     * 创建文件夹
+     * @param file 文件相对于工作目录的路径
+     * @return
+     */
+    @PostMapping("directory")
+    public ResponseVo<String> addDirectory(@RequestParam("path") String file) {
+        return HttpResponseUtils.success(fileService.addDirectory(file));
     }
 }

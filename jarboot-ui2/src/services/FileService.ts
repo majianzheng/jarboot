@@ -14,9 +14,12 @@ export default class FileService {
    * @param withRoot
    * @returns {Promise<any>}
    */
-  public static getFiles(baseDir: string, withRoot: boolean): Promise<any> {
+  public static getFiles(baseDir: string, withRoot: boolean, clusterHost: string): Promise<any> {
     const form = new FormData();
     form.append('baseDir', baseDir);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     form.append('withRoot', withRoot + '');
     return Request.post<FileNode[]>(`${urlBase}/list`, form);
   }
@@ -25,9 +28,12 @@ export default class FileService {
    * 获取文件内容
    * @param path
    */
-  public static getContent(path: string) {
+  public static getContent(path: string, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     return Request.post<string>(`${urlBase}/file/text`, form);
   }
 
@@ -56,9 +62,12 @@ export default class FileService {
    * 删除文件
    * @param path
    */
-  public static deleteFile(path: string) {
+  public static deleteFile(path: string, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     return Request.post<string>(`${urlBase}/file/delete`, form);
   }
 
@@ -67,10 +76,13 @@ export default class FileService {
    * @param path
    * @param content
    */
-  public static writeFile(path: string, content: string) {
+  public static writeFile(path: string, content: string, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
     form.append('content', content);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     return Request.post<string>(`${urlBase}/text`, form);
   }
 
@@ -79,10 +91,13 @@ export default class FileService {
    * @param path
    * @param content
    */
-  public static newFile(path: string, content: string) {
+  public static newFile(path: string, content: string, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
     form.append('content', content);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     return Request.post<string>(`${urlBase}/text/create`, form);
   }
 
@@ -90,15 +105,21 @@ export default class FileService {
    * 新增文件夹
    * @param path
    */
-  public static addDirectory(path: string) {
+  public static addDirectory(path: string, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     return Request.post<string>(`${urlBase}/directory`, form);
   }
 
-  public static download(path: string, name: string, callback: (result: boolean, msg?: string) => void) {
+  public static download(path: string, name: string, callback: (result: boolean, msg?: string) => void, clusterHost: string) {
     const form = new FormData();
     form.append('path', path);
+    if (clusterHost) {
+      form.append('clusterHost', clusterHost);
+    }
     CommonUtils.download(`${urlBase}/file/download`, name, 'POST', form, callback);
   }
 }

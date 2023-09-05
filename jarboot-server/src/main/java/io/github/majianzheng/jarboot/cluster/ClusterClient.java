@@ -2,10 +2,7 @@ package io.github.majianzheng.jarboot.cluster;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
-import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
-import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
-import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
+import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
@@ -26,15 +23,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -115,6 +107,71 @@ public class ClusterClient {
         checkResponse(HttpUtils.get(url, wrapToken()));
     }
 
+    public void upload(String filename, String path, InputStream is) {
+        String url = formatUrl("/file");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("path", path);
+        HttpUtils.upload(url, is, filename, params, wrapToken());
+    }
+
+    public void download(String path, OutputStream os) {
+        String url = formatUrl("/file/download");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("path", path);
+        HttpUtils.post(url, os, params, wrapToken());
+    }
+
+    public List<FileNode> fileList(String baseDir, boolean withRoot) {
+        String url = formatUrl("/file/list");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("baseDir", baseDir);
+        params.put("withRoot", String.valueOf(withRoot));
+        JsonNode node = HttpUtils.post(url, params, wrapToken());
+        return JsonUtils.toList(node, FileNode.class);
+    }
+
+    public String getFileContent(String path) {
+        String url = formatUrl("/file/content");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("path", path);
+        JsonNode node = HttpUtils.post(url, params, wrapToken());
+        return node.get("data").asText();
+    }
+
+    public void deleteFile(String path) {
+        try {
+            String encoded = URLEncoder.encode(path, StandardCharsets.UTF_8.name());
+            String url = formatUrl("/file/delete?path=" + encoded);
+            HttpUtils.delete(url, wrapToken());
+        } catch (UnsupportedEncodingException e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public String writeFileContent(String path, String content) {
+        String url = formatUrl("/file/write");
+        return wrapFileParam(path, content, url);
+    }
+
+    public String newFile(String path, String content) {
+        String url = formatUrl("/file/create");
+        return wrapFileParam(path, content, url);
+    }
+
+    public String newDirectory(String path) {
+        String url = formatUrl("/directory");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("path", path);
+        JsonNode node = HttpUtils.post(url, params, wrapToken());
+        return node.get("data").asText();
+    }
+    private String wrapFileParam(String path, String content, String url) {
+        Map<String, String> params = new HashMap<>(2);
+        params.put("path", path);
+        params.put("content", content);
+        JsonNode node = HttpUtils.post(url, params, wrapToken());
+        return node.get("data").asText();
+    }
     public ServerRuntimeInfo health() {
         String url = formatUrl("/health");
         try {

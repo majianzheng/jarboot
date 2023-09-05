@@ -76,7 +76,7 @@ onMounted(fetchSetting);
 
 <style lang="less" scoped>
 .sys-setting-main {
-  padding: 0 15px;
+  padding: 0 30px;
   .__setting_footer {
     display: flex;
     justify-content: center;

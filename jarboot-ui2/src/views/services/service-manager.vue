@@ -173,6 +173,7 @@
             v-else
             :base-dir="userStore.userDir + '/' + serviceState.configForm.name"
             :with-root="true"
+            :cluster-host="serviceState.configForm.host"
             :head-tools="headTools"
             :row-tools="rowTools"></file-manager>
         </el-form-item>
@@ -306,9 +307,9 @@ function filterService(value: string, data: ServiceInstance) {
   return data.name.includes(value);
 }
 
-async function editService(setting: ServerSetting) {
+function editService(setting: ServerSetting) {
   serviceState.isNew = false;
-  serviceState.configForm = setting;
+  serviceState.configForm = { ...defaultSetting, ...setting };
   serviceState.showEdit = true;
 }
 

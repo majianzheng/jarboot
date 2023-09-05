@@ -185,6 +185,7 @@ export default {
   COMMAND_RUNNING: 'Now it\'s executing command: "{command}"，please stop it first.',
   SAVE_OR_CANCEL: 'Do you want to save changes to the file?',
   PLEASE_INPUT: 'Please input ',
+  CHANGE_SAVE_TIP: 'File is modified, save or cancel!',
 
   //帮助
   HELP: 'Help',

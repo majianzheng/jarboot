@@ -21,7 +21,7 @@
       <el-button type="primary" @click.stop="editTab(0, 'add')">{{ $t('CREATE_TERM') }}</el-button>
     </el-empty>
     <el-dialog v-model="state.dialog" :title="$t('CREATE_TERM')" width="300px">
-      <el-select v-model="state.selectHost">
+      <el-select v-model="state.selectHost" style="width: 100%">
         <el-option v-for="host in state.clusterHosts" :label="host" :value="host"></el-option>
       </el-select>
       <template #footer>

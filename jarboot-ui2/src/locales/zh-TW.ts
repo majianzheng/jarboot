@@ -185,6 +185,7 @@ export default {
   COMMAND_RUNNING: '正在執行命令："{command}"，請先停止命令再執行',
   SAVE_OR_CANCEL: '是否要保存對檔案的更改？',
   PLEASE_INPUT: '請輸入',
+  CHANGE_SAVE_TIP: '文件已修改，是否保存！',
 
   //帮助
   HELP: '帮助',

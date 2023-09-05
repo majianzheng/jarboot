@@ -12,13 +12,18 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +44,11 @@ public class HttpUtils {
     private static final CloseableHttpClient HTTP_CLIENT;
 
     public static JsonNode get(String url, Map<String, String> header) {
-        HttpGet httpGet = new HttpGet(url);
-        return doRequest(httpGet, CONTENT_TYPE_FORM, header);
+        try (InputStream is = doRequest(new HttpGet(url), CONTENT_TYPE_FORM, header)) {
+            return JsonUtils.readAsJsonNode(is);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
     }
 
     /**
@@ -52,8 +60,11 @@ public class HttpUtils {
      * @return 期望的结构
      */
     public static <T> T getObj(String url, Class<T> type, Map<String, String> header) {
-        HttpGet httpGet = new HttpGet(url);
-        return doRequest(httpGet, CONTENT_TYPE_FORM, header, type);
+        try (InputStream is = doRequest(new HttpGet(url), CONTENT_TYPE_FORM, header)) {
+            return JsonUtils.readValue(is, type);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
     }
 
     public static JsonNode postJson(String url, Object json, Map<String, String> header) {
@@ -88,6 +99,104 @@ public class HttpUtils {
     }
 
     public static JsonNode post(String url, Map<String, String> formData, Map<String, String> header) {
+        HttpEntity request = convertFormEntity(formData);
+        return doPost(url, request, CONTENT_TYPE_FORM, header);
+    }
+
+    public static JsonNode delete(String url, Map<String, String> header) {
+        try (InputStream is = doRequest(new HttpDelete(url), CONTENT_TYPE_FORM, header)) {
+            return JsonUtils.readAsJsonNode(is);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public static JsonNode doPost(String url, HttpEntity request, String contentType, Map<String, String> header) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(request);
+        try (InputStream is = doRequest(httpPost, contentType, header)) {
+            return JsonUtils.readAsJsonNode(is);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public static <T> T  doPost(String url, HttpEntity request, String contentType, Map<String, String> header, Class<T> cls) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(request);
+        try (InputStream is = doRequest(httpPost, contentType, header)) {
+            return JsonUtils.readValue(is, cls);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public static void get(String url, OutputStream os, Map<String, String> header) {
+        HttpGet httpGet = new HttpGet(url);
+        try (InputStream is = doRequest(httpGet, null, header)) {
+            IOUtils.copy(is, os);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public static void post(String url, OutputStream os, Map<String, String> param, Map<String, String> header) {
+        HttpPost httpPost = new HttpPost(url);
+        HttpEntity request = convertFormEntity(param);
+        httpPost.setEntity(request);
+        try (InputStream is = doRequest(httpPost, null, header)) {
+            IOUtils.copy(is, os);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        } finally {
+            httpPost.releaseConnection();
+        }
+    }
+
+    public static void upload(String url, InputStream is, String filename, Map<String, String> param, Map<String, String> header) {
+        // 把一个普通参数和文件上传给下面这个地址 是一个servlet
+        HttpPost httpPost = new HttpPost(url);
+        fillHeader(httpPost, header);
+        try {
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                    // 相当于<input type="file" name="file"/>
+                    .addPart("file", new InputStreamBody(is, filename));
+            if (null != param) {
+                param.forEach(builder::addTextBody);
+            }
+            httpPost.setEntity(builder.build());
+            // 发起请求 并返回请求的响应
+            CloseableHttpResponse response = HTTP_CLIENT.execute(httpPost);
+            // 获取响应对象
+            HttpEntity resEntity = response.getEntity();
+            if (resEntity != null) {
+                // 销毁
+                EntityUtils.consume(resEntity);
+            }
+        }  catch (Exception e) {
+            throw new JarbootException(e);
+        } finally {
+            httpPost.releaseConnection();
+        }
+    }
+
+    private static InputStream doRequest(HttpRequestBase request, String contentType, Map<String, String> header) {
+        fillHeader(request, header);
+        if (StringUtils.isNotEmpty(contentType)) {
+            request.setHeader(CONTENT_TYPE, contentType);
+        }
+        try {
+            CloseableHttpResponse response = HTTP_CLIENT.execute(request);
+            checkStatus(response);
+            return response.getEntity().getContent();
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        } finally {
+            request.releaseConnection();
+        }
+    }
+
+    private static HttpEntity convertFormEntity(Map<String, String> formData) {
         HttpEntity request;
         if (null == formData || formData.isEmpty()) {
             request = new StringEntity(StringUtils.EMPTY, StandardCharsets.UTF_8);
@@ -103,57 +212,7 @@ public class HttpUtils {
                 request = new StringEntity(StringUtils.EMPTY, StandardCharsets.UTF_8);
             }
         }
-        return doPost(url, request, CONTENT_TYPE_FORM, header);
-    }
-
-    public static JsonNode delete(String url, Map<String, String> header) {
-        HttpDelete httpGet = new HttpDelete(url);
-        return doRequest(httpGet, CONTENT_TYPE_FORM, header);
-    }
-
-    public static JsonNode doPost(String url, HttpEntity request, String contentType, Map<String, String> header) {
-        HttpPost httpPost = new HttpPost(url);
-        httpPost.setEntity(request);
-        return doRequest(httpPost, contentType, header);
-    }
-
-    public static <T> T  doPost(String url, HttpEntity request, String contentType, Map<String, String> header, Class<T> cls) {
-        HttpPost httpPost = new HttpPost(url);
-        httpPost.setEntity(request);
-        return doRequest(httpPost, contentType, header, cls);
-    }
-
-    private static JsonNode doRequest(HttpRequestBase httpUriRequest, String contentType, Map<String, String> header) {
-        fillHeader(httpUriRequest, header);
-        httpUriRequest.setHeader(CONTENT_TYPE, contentType);
-        try {
-            CloseableHttpResponse response = HTTP_CLIENT.execute(httpUriRequest);
-            checkStatus(response);
-            return JsonUtils.readAsJsonNode(response.getEntity().getContent());
-        } catch (Exception e) {
-            throw new JarbootException(e);
-        } finally {
-            httpUriRequest.releaseConnection();
-        }
-    }
-
-    private static <T> T doRequest(HttpRequestBase httpUriRequest, String contentType, Map<String, String> header, Class<T> cls) {
-        fillHeader(httpUriRequest, header);
-        httpUriRequest.setHeader(CONTENT_TYPE, contentType);
-        try {
-            CloseableHttpResponse response = HTTP_CLIENT.execute(httpUriRequest);
-            checkStatus(response);
-            String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            T result = JsonUtils.readValue(body, cls);
-            if (null == result) {
-                throw new JarbootException("解析JSON失败，resp:" + body);
-            }
-            return result;
-        } catch (Exception e) {
-            throw new JarbootException(e);
-        } finally {
-            httpUriRequest.releaseConnection();
-        }
+        return request;
     }
 
     private static void fillHeader(HttpRequestBase httpMessage, Map<String, String> header) {

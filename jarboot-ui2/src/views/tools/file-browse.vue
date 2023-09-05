@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { useBasicStore, useUserStore } from '@/stores';
-import { reactive } from 'vue';
+import { onMounted, reactive } from 'vue';
 import type { FileNode } from '@/types';
 import { canEdit } from '@/components/editor/LangUtils';
 import FileService from '@/services/FileService';
+import ClusterManager from '@/services/ClusterManager';
+import { ElMessageBox } from 'element-plus';
+import CommonUtils from '@/common/CommonUtils';
 
 interface FileContent extends FileNode {
+  clusterHost: string;
   content: string;
   loading?: boolean;
   modified: boolean;
@@ -22,13 +26,24 @@ const state = reactive({
   active: '',
   loading: false,
   reloading: true,
+  clusterHosts: [] as string[],
 });
 
-function editTab(key: string, action: 'remove' | 'add') {
+async function editTab(key: string, action: 'remove' | 'add') {
   if ('remove' === action) {
     const index = state.files.findIndex(item => item.key === key);
     if (index < 0) {
       return;
+    }
+    const file = state.files[index];
+    if (file.modified) {
+      // 文件已修改，是否保存
+      try {
+        await ElMessageBox.confirm(CommonUtils.translate('CHANGE_SAVE_TIP'), CommonUtils.translate('WARN'), { type: 'warning' });
+        await onSave(file);
+      } catch (e) {
+        console.debug(e);
+      }
     }
     if (1 === state?.files?.length) {
       state.files = [];
@@ -41,15 +56,15 @@ function editTab(key: string, action: 'remove' | 'add') {
   }
 }
 
-async function handleSelect(file: FileNode, path: string) {
+async function handleSelect(file: FileNode, path: string, clusterHost: string) {
   if (file.directory || !canEdit(file.name)) {
     return;
   }
   if (state.files.findIndex(item => item.key === file.key) < 0) {
     state.loading = true;
     try {
-      const content = await FileService.getContent(path);
-      state.files.push({ ...file, content, path, modified: false });
+      const content = await FileService.getContent(path, clusterHost);
+      state.files.push({ ...file, content, path, modified: false, clusterHost });
     } finally {
       state.loading = false;
     }
@@ -69,10 +84,13 @@ function onChange(file: FileContent) {
 async function onSave(file: FileContent) {
   if (file.modified) {
     // 保存文件
-    await FileService.writeFile(file.path, file.content);
+    await FileService.writeFile(file.path, file.content, file.clusterHost);
     file.modified = false;
   }
 }
+onMounted(async () => {
+  state.clusterHosts = await ClusterManager.getOnlineClusterHosts();
+});
 </script>
 
 <template>
@@ -85,6 +103,16 @@ async function onSave(file: FileContent) {
       <template #left-content>
         <file-manager
           :with-root="true"
+          v-if="!state.clusterHosts?.length"
+          :base-dir="userStore.userDir"
+          @node-click="handleSelect"
+          @before-load="state.reloading = true"
+          @after-load="state.reloading = false"></file-manager>
+        <file-manager
+          :with-root="true"
+          v-for="host in state.clusterHosts"
+          :show-cluster-host-in-root="true"
+          :cluster-host="host"
           :base-dir="userStore.userDir"
           @node-click="handleSelect"
           @before-load="state.reloading = true"
