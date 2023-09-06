@@ -14,7 +14,7 @@ export default class FileService {
    * @param withRoot
    * @returns {Promise<any>}
    */
-  public static getFiles(baseDir: string, withRoot: boolean, clusterHost: string): Promise<any> {
+  public static getFiles(baseDir: string, withRoot: boolean, clusterHost?: string): Promise<any> {
     const form = new FormData();
     form.append('baseDir', baseDir);
     if (clusterHost) {
@@ -28,7 +28,7 @@ export default class FileService {
    * 获取文件内容
    * @param path
    */
-  public static getContent(path: string, clusterHost: string) {
+  public static getContent(path: string, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     if (clusterHost) {
@@ -62,7 +62,7 @@ export default class FileService {
    * 删除文件
    * @param path
    */
-  public static deleteFile(path: string, clusterHost: string) {
+  public static deleteFile(path: string, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     if (clusterHost) {
@@ -76,7 +76,7 @@ export default class FileService {
    * @param path
    * @param content
    */
-  public static writeFile(path: string, content: string, clusterHost: string) {
+  public static writeFile(path: string, content: string, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     form.append('content', content);
@@ -91,7 +91,7 @@ export default class FileService {
    * @param path
    * @param content
    */
-  public static newFile(path: string, content: string, clusterHost: string) {
+  public static newFile(path: string, content: string, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     form.append('content', content);
@@ -105,7 +105,7 @@ export default class FileService {
    * 新增文件夹
    * @param path
    */
-  public static addDirectory(path: string, clusterHost: string) {
+  public static addDirectory(path: string, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     if (clusterHost) {
@@ -114,7 +114,7 @@ export default class FileService {
     return Request.post<string>(`${urlBase}/directory`, form);
   }
 
-  public static download(path: string, name: string, callback: (result: boolean, msg?: string) => void, clusterHost: string) {
+  public static download(path: string, name: string, callback: (result: boolean, msg?: string) => void, clusterHost?: string) {
     const form = new FormData();
     form.append('path', path);
     if (clusterHost) {

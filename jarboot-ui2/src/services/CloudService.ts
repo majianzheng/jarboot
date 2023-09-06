@@ -15,6 +15,6 @@ export default class CloudService {
       Logger.error('file is null.', file);
       return Promise.reject('file is null');
     }
-    return Request.post(`${urlBase}/push/server`, form);
+    return Request.upload(`${urlBase}/push/server`, file);
   }
 }

@@ -3,6 +3,8 @@ import CommonUtils from './CommonUtils';
 import router from '../router';
 import CommonNotice from '@/common/CommonNotice';
 import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
+import Logger from '@/common/Logger';
+import type { AxiosProgressEvent } from 'axios';
 
 const http = axios.create({
   baseURL: '',
@@ -30,6 +32,27 @@ export default class Request {
    */
   static post<T>(url: string, params: any) {
     return http.post<any, T>(url, params);
+  }
+
+  /**
+   *
+   * @param url 请求地址
+   * @param file 请求参数
+   * @param onUploadProgress
+   * @param params
+   */
+  static upload<T>(url: string, file: File, onUploadProgress?: (progressEvent: AxiosProgressEvent) => void, params?: Map<string, string>) {
+    const form: FormData = new FormData();
+    if (file) {
+      form.append('file', file);
+    } else {
+      Logger.error('file is null.', file);
+      return Promise.reject('file is null');
+    }
+    if (params) {
+      params.forEach((value, key) => form.append(key, value));
+    }
+    return http.post<any, T>(url, form, { onUploadProgress });
   }
 
   /**
@@ -99,12 +122,14 @@ export default class Request {
     // 请求拦截器，塞入token以便鉴权
     http.interceptors.request.use(request => {
       const token = CommonUtils.getToken();
-      if (request.headers && token.length) {
-        request.headers['Authorization'] = token;
-      }
-      const host = CommonUtils.getCurrentHost();
-      if (host) {
-        request.headers[ACCESS_CLUSTER_HOST] = host;
+      if (request.headers) {
+        if (token.length) {
+          request.headers['Authorization'] = token;
+        }
+        const host = CommonUtils.getCurrentHost();
+        if (host) {
+          request.headers[ACCESS_CLUSTER_HOST] = host;
+        }
       }
       return request;
     });

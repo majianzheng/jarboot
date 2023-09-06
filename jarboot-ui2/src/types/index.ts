@@ -57,6 +57,7 @@ export type FileNode = {
   progress: number | null;
   size?: number;
   modifyTime: number;
+  leaf: boolean;
   children?: FileNode[];
 };
 

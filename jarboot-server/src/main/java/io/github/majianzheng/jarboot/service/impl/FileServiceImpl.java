@@ -138,7 +138,8 @@ public class FileServiceImpl implements FileService {
         fileNode.setModifyTime(file.lastModified());
         if (file.isDirectory()) {
             fileNode.setDirectory(true);
-            fileNode.setLeaf(false);
+            String[] files = file.list();
+            fileNode.setLeaf(null == files || files.length == 0);
         } else {
             fileNode.setDirectory(false);
             fileNode.setSize(file.length());

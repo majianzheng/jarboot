@@ -59,11 +59,7 @@ public class ClusterClientProxy {
                 }
             }
             ServiceInstance group = new ServiceInstance();
-            group.setNodeType(CommonConst.NODE_ROOT);
-            group.setHost(client.getHost());
-            group.setName(client.getHost());
-            group.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
-            group.setStatus(client.getState().name());
+            initDefaultNode(group, client);
             return group;
         }
         return serviceManager.getServiceGroup();
@@ -92,11 +88,7 @@ public class ClusterClientProxy {
                 }
             }
             JvmProcess group = new JvmProcess();
-            group.setNodeType(CommonConst.NODE_ROOT);
-            group.setHost(client.getHost());
-            group.setName(client.getHost());
-            group.setSid(String.format("%x", client.getHost().hashCode()));
-            group.setStatus(client.getState().name());
+            initDefaultNode(group, client);
             return group;
         }
         return serviceManager.getJvmGroup();
@@ -207,6 +199,14 @@ public class ClusterClientProxy {
         } else {
             settingService.submitServiceSetting(setting);
         }
+    }
+
+    private void initDefaultNode(BaseInstanceNode node, ClusterClient client) {
+        node.setNodeType(CommonConst.NODE_ROOT);
+        node.setHost(client.getHost());
+        node.setName(client.getHost());
+        node.setSid(String.format("%x", Objects.hash(System.currentTimeMillis(), client.getHost())));
+        node.setStatus(client.getState().name());
     }
 
     private void startServiceSync(List<ServiceSetting> settingList) {
