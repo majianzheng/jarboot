@@ -15,6 +15,7 @@ import StringUtil from '@/common/StringUtil';
 const props = defineProps<{
   data: any;
   remote: string;
+  clusterHost: string;
 }>();
 
 const token = CommonUtils.getRawToken();
@@ -24,7 +25,7 @@ if (isRemote) {
   subTitle = `Dump file is stored in remote server ${props.remote}, can't download directly.`;
 }
 function download() {
-  const url = `/api/jarboot/cloud/download/${props.data?.encodedName}`;
+  const url = `/api/jarboot/cluster/manager/download/${props.data?.encodedName}?clusterHost=${props.clusterHost}`;
   CommonUtils.download(url, 'heapdump.hprof');
 }
 </script>

@@ -1,8 +1,13 @@
 package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -46,6 +51,28 @@ public class CommonUtils {
             return ip.split(CommonConst.COMMA_SPLIT)[0];
         }
         return ip;
+    }
+
+    public static boolean needProxy(String clusterHost) {
+        if (!ClusterClientManager.getInstance().isEnabled() || StringUtils.isEmpty(clusterHost)) {
+            return false;
+        }
+        return !Objects.equals(ClusterClientManager.getInstance().getSelfHost(), clusterHost);
+    }
+
+    public static void setDownloadHeader(HttpServletResponse response, String filename) {
+        if (StringUtils.isNotEmpty(filename)) {
+            try {
+                //支持中文、空格
+                filename = new String(filename.getBytes("gb2312"), StandardCharsets.ISO_8859_1);
+            } catch (Exception e) {
+                //ignore
+            }
+            final String contentDisposition = String.format("attachment; filename=\"%s\"", filename);
+            response.setHeader("Content-Disposition", contentDisposition);
+        }
+        response.setHeader("content-type", "file");
+        response.setContentType("application/octet-stream");
     }
     private CommonUtils() {}
 }

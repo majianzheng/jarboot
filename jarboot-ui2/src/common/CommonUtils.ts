@@ -73,11 +73,11 @@ export default class CommonUtils {
     return token;
   }
 
-  public static exportServer(name: string): void {
+  public static exportServer(name: string, clusterHost: string): void {
     const a = document.createElement('a');
     const token = CommonUtils.getRawToken();
     const host = CommonUtils.getCurrentHost();
-    let url = `/api/jarboot/cloud/pull/server?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}`;
+    let url = `/api/jarboot/cluster/manager/exportService?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}&clusterHost=${clusterHost}`;
     if (host) {
       url += `&${ACCESS_CLUSTER_HOST}=${host}`;
     }

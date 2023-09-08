@@ -1,5 +1,6 @@
 import Request from '@/common/Request';
 import type { ServiceInstance, ServerSetting } from '@/types';
+import Logger from '@/common/Logger';
 
 const urlBase = '/api/jarboot/cluster/manager';
 /**
@@ -90,6 +91,18 @@ export default class ClusterManager {
    */
   public static saveServerSetting(setting: ServerSetting): Promise<string> {
     return Request.post<string>(`${urlBase}/saveServiceSetting`, setting);
+  }
+
+  public static importService(file: File, clusterHost?: string) {
+    const form: Map<string, string> = new Map<string, string>();
+    if (!file) {
+      Logger.error('file is null.', file);
+      return Promise.reject('file is null');
+    }
+    if (clusterHost) {
+      form.set('clusterHost', clusterHost);
+    }
+    return Request.upload(`${urlBase}/importService`, file, undefined, form);
   }
 
   private static parseParam(services: ServiceInstance[]): ServiceInstance[] {

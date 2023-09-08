@@ -50,7 +50,7 @@ function showProgress(data: FileNode) {
               <el-dropdown-item icon="Delete" style="color: var(--el-color-error)" command="delete">{{ $t('DELETE') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
-          <div>
+          <div style="line-height: 24px">
             <file-icon :directory="data.directory" :filename="data.name" class="row-icon-style"></file-icon>
             <el-tooltip :title="data?.name || ''" :width="350" placement="right">
               <span>

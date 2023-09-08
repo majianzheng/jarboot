@@ -7,61 +7,33 @@
       </div>
       <div class="panel-middle-title">
         <span v-if="!!state.executing || !!state.view">
-          <el-icon v-if="state.executing" style="position: relative; top: 3px" class="ui-spin"><Loading /></el-icon>
+          <icon-pro icon="Loading" v-if="state.executing" style="position: relative; top: 3px" class="ui-spin"></icon-pro>
           <span style="margin: 0 6px">{{ middleTitle }}</span>
           <el-button v-if="!!state.executing" link class="tool-button" @click="$emit('cancel')" :title="$t('CANCEL')">
             <template #icon>
-              <em class="iconfont icon-stopped tool-button-red-icon"></em>
+              <icon-pro icon="icon-stopped" class="tool-button-red-icon"></icon-pro>
             </template>
           </el-button>
           <el-button v-else link class="tool-button" @click="state.view = ''" :title="$t('CLOSE')">
             <template #icon>
-              <el-icon><CloseBold /></el-icon>
+              <icon-pro icon="CloseBold"></icon-pro>
             </template>
           </el-button>
         </span>
       </div>
       <div class="panel-header-tools">
         <div class="tool-button" @click="clearDisplay" :title="$t('CLEAR')">
-          <em class="iconfont icon-clear tool-button-red-icon"></em>
+          <icon-pro icon="icon-clear" class="tool-button-red-icon"></icon-pro>
         </div>
         <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
-          <em class="iconfont icon-to-top"></em>
+          <icon-pro icon="icon-to-top"></icon-pro>
         </div>
         <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd">
-          <em class="iconfont icon-to-bottom"></em>
+          <icon-pro icon="icon-to-bottom"></icon-pro>
         </div>
       </div>
     </div>
     <div class="terminal-view" :style="{ width: width + 'px' }" v-show="!state.view">
-      <!--
-      <console :id="props.sid" :height="height + 'px'" :pubsub="pubsub" :auto-scroll-end="state.autoScrollEnd" :wrap="state.textWrap">
-        <template #content>
-          <banner></banner>
-        </template>
-      </console>
-      <el-input
-        :disabled="!!state.executing"
-        @keydown.native.enter="doExecCommand"
-        @keyup.up="historyUp"
-        @keyup.down="historyDown"
-        size="small"
-        :placeholder="$t('COMMAND_PLACEHOLDER')"
-        auto-complete="off"
-        auto-correct="off"
-        auto-capitalize="off"
-        spell-check="false"
-        v-model="state.command"
-        ref="inputRef"
-        class="command-input">
-        <template #prefix>
-          <span>
-            <el-icon v-if="state.executing" class="ui-spin"><Loading /></el-icon>
-            <el-icon v-else><ArrowRight /></el-icon>
-          </span>
-        </template>
-      </el-input>
-      -->
       <j-console
         :height="height + 22"
         :id="sid"
@@ -78,7 +50,7 @@
       <dashboard-view :data="state.data" :height="height" :width="width"></dashboard-view>
     </div>
     <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'heapdump'">
-      <heapdump-view :data="state.data" :remote="remote"></heapdump-view>
+      <heapdump-view :data="state.data" :remote="remote || ''" :cluster-host="clusterHost"></heapdump-view>
     </div>
   </div>
 </template>
@@ -112,6 +84,7 @@ type SuperPanelState = {
   autoScrollEnd: boolean;
 };
 const props = defineProps<{
+  clusterHost: string;
   name: string;
   sid: string;
   remote?: string;

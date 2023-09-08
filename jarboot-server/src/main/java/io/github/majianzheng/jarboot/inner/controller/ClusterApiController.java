@@ -13,6 +13,7 @@ import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -195,5 +196,48 @@ public class ClusterApiController {
     @PostMapping("directory")
     public ResponseVo<String> addDirectory(@RequestParam("path") String file) {
         return HttpResponseUtils.success(fileService.addDirectory(file));
+    }
+
+    /**
+     * 导出服务
+     * @param name 服务名
+     * @param response Servlet response
+     * @throws IOException IO 异常
+     */
+    @GetMapping(value="/exportService")
+    public void exportService(@RequestParam String name, HttpServletResponse response) throws IOException {
+        CommonUtils.setDownloadHeader(response, name + ".zip");
+        try (OutputStream os = response.getOutputStream()) {
+            serverRuntimeService.exportService(name, os);
+        }
+    }
+
+    /**
+     * 导入服务
+     * @param file 文件
+     * @return 执行结果
+     */
+    @PostMapping("/importService")
+    @ResponseBody
+    public ResponseVo<String> importService(@RequestParam("file") MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+            serverRuntimeService.importService(file.getOriginalFilename(), is);
+        } catch (Exception e) {
+            return HttpResponseUtils.error(e.getMessage());
+        }
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 从服务器下载文件
+     * @param file base64编码的文件全路径名
+     * @param response Servlet response
+     */
+    @GetMapping(value="/download/{file}")
+    public void downloadAnyFile(@PathVariable("file") String file, HttpServletResponse response) throws IOException {
+        CommonUtils.setDownloadHeader(response, null);
+        try (OutputStream os = response.getOutputStream()) {
+            serverRuntimeService.downloadAnyFile(file, os);
+        }
     }
 }

@@ -58,12 +58,6 @@ public class JarbootRunListener implements SpringApplicationRunListener {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        boolean v = context.getEnvironment().getProperty(Constants.FAILED_AUTO_EXIT_KEY, boolean.class, true);
-        if (v) {
-            logger.error(exception.getMessage(), exception);
-            //启动失败自动退出
-            System.exit(-1);
-        }
     }
 
     private void setStarted() {

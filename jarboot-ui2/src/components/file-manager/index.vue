@@ -115,7 +115,7 @@ async function handleEdit(node: Node) {
     await ElMessageBox.confirm(CommonUtils.translate('NOT_TEXT_FILE'), CommonUtils.translate('WARN'));
   }
   const content = await FileService.getContent(path, props.clusterHost);
-  emit('edit', path, content, props.clusterHost);
+  emit('edit', path, content, props.clusterHost || '');
   state.file = { path, content };
   state.isNew = false;
   state.dialog = true;
@@ -307,7 +307,11 @@ function getCurrentNode() {
 function nodeClick(data: FileNode) {
   const node = treeRef.value?.getNode(data);
   const path = FileService.parseFilePath(node, props.baseDir);
-  emit('node-click', data, path, props.clusterHost);
+  emit('node-click', data, path, props.clusterHost || '');
+}
+
+function disableContextMenu(event: PointerEvent) {
+  event.preventDefault();
 }
 
 defineExpose({
@@ -320,7 +324,7 @@ onMounted(reload);
 </script>
 
 <template>
-  <div style="width: 100%" v-loading="state.loading" @contextmenu.prevent>
+  <div style="width: 100%" v-loading="state.loading" @contextmenu="disableContextMenu">
     <el-tree
       ref="treeRef"
       v-model:data="state.data"
@@ -330,7 +334,7 @@ onMounted(reload);
       :load="loadNode"
       lazy
       :filter-node-method="filterService"
-      @current-change="data => emit('select', data, props.clusterHost)"
+      @current-change="data => emit('select', data, props.clusterHost || '')"
       @node-click="nodeClick"
       node-key="key"
       highlight-current>

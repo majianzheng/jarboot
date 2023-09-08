@@ -9,7 +9,7 @@
         <div class="server-side">
           <service-toolbar
             :is-service="isService"
-            :activated="serviceState.activated"
+            :activated="serviceState.lastClickedNode"
             @stop="stopServices"
             @new-service="newService"
             @dashboard="doDashboardCmd"
@@ -43,6 +43,7 @@
             v-for="(s, i) in serviceState.activatedList"
             :key="i"
             v-show="serviceState.activated.sid === s.sid"
+            :cluster-host="s.host"
             :sid="(s.sid as string)"
             @close="closeServiceTerminal(s)"
             @execute="(cmd, cols, rows) => doCommand(s, cmd, cols, rows)"
@@ -123,6 +124,7 @@ const serviceState = reactive({
   search: '',
   activatedList: [] as ServiceInstance[],
   activated: {} as ServiceInstance,
+  lastClickedNode: {} as ServiceInstance,
   // 当前选中的节点
   currentNode: [] as ServiceInstance[],
   checked: [] as ServiceInstance[],
@@ -200,6 +202,7 @@ function detach(server: ServiceInstance) {
 }
 
 function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
+  serviceState.lastClickedNode = data;
   if (node.isLeaf) {
     const index = serviceState.activatedList.findIndex(item => item.sid === data.sid);
     if (-1 === index) {

@@ -6,8 +6,8 @@ import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
-import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.service.FileService;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 文件管理
@@ -44,7 +43,7 @@ public class FileController {
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path) throws IOException {
         try (InputStream is = file.getInputStream()) {
-            if (needProxy(clusterHost)) {
+            if (CommonUtils.needProxy(clusterHost)) {
                 ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
                 client.upload(file.getOriginalFilename(), path, is);
             } else {
@@ -69,7 +68,7 @@ public class FileController {
         response.setHeader("content-type", "file");
         response.setContentType("application/octet-stream");
         try (OutputStream os = response.getOutputStream()) {
-            if (needProxy(clusterHost)) {
+            if (CommonUtils.needProxy(clusterHost)) {
                 ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
                 client.download(path, os);
             } else {
@@ -90,7 +89,7 @@ public class FileController {
             String baseDir,
             @RequestParam(required = false) String clusterHost,
             boolean withRoot) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             return HttpResponseUtils.success(client.fileList(baseDir, withRoot));
         } else {
@@ -108,7 +107,7 @@ public class FileController {
     public ResponseVo<String> getContent(
             @RequestParam("path") String file,
             @RequestParam(required = false) String clusterHost) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             return HttpResponseUtils.success(client.getFileContent(file));
         } else {
@@ -126,7 +125,7 @@ public class FileController {
     public ResponseVo<String> deleteFile(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             client.deleteFile(path);
         } else {
@@ -147,7 +146,7 @@ public class FileController {
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path,
             @RequestParam("content") String content) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             return HttpResponseUtils.success(client.writeFileContent(path, content));
         } else {
@@ -167,7 +166,7 @@ public class FileController {
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path,
             @RequestParam("content") String content) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             return HttpResponseUtils.success(client.newFile(path, content));
         } else {
@@ -185,18 +184,11 @@ public class FileController {
     public ResponseVo<String> addDirectory(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String file) {
-        if (needProxy(clusterHost)) {
+        if (CommonUtils.needProxy(clusterHost)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
             return HttpResponseUtils.success(client.newDirectory(file));
         } else {
             return HttpResponseUtils.success(fileService.addDirectory(file));
         }
-    }
-
-    private boolean needProxy(String clusterHost) {
-        if (!ClusterClientManager.getInstance().isEnabled() || StringUtils.isEmpty(clusterHost)) {
-            return false;
-        }
-        return !Objects.equals(ClusterClientManager.getInstance().getSelfHost(), clusterHost);
     }
 }

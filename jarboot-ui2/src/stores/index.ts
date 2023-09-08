@@ -106,15 +106,23 @@ export const useServiceStore = defineStore({
   actions: {
     async reload() {
       this.$patch({ loading: true });
-      const result = (await ClusterManager.getServiceGroup()) as any;
-      const groups = (result || []) as ServiceInstance[];
-      this.$patch({ groups, loading: false });
+      try {
+        const result = (await ClusterManager.getServiceGroup()) as any;
+        const groups = (result || []) as ServiceInstance[];
+        this.$patch({ groups });
+      } finally {
+        this.$patch({ loading: false });
+      }
     },
     async reloadJvmList() {
       this.$patch({ loading: true });
-      const result = (await ClusterManager.getJvmProcesses()) as any;
-      const jvmGroups = (result || []) as ServiceInstance[];
-      this.$patch({ jvmGroups, loading: false });
+      try {
+        const result = (await ClusterManager.getJvmProcesses()) as any;
+        const jvmGroups = (result || []) as ServiceInstance[];
+        this.$patch({ jvmGroups });
+      } finally {
+        this.$patch({ loading: false });
+      }
     },
 
     attach(host: string, pid: string) {

@@ -3,8 +3,8 @@ import { ServiceInstance } from '@/types';
 import { useBasicStore, useServiceStore } from '@/stores';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
-import CloudService from '@/services/CloudService';
 import { reactive } from 'vue';
+import ClusterManager from '@/services/ClusterManager';
 
 const props = defineProps<{
   isService: boolean;
@@ -28,7 +28,7 @@ function exportServer() {
     if (props.activated.pid) {
       return;
     }
-    CommonUtils.exportServer(props.activated.name);
+    CommonUtils.exportServer(props.activated.name, props.activated?.host || '');
   }
 }
 
@@ -53,7 +53,8 @@ function onImport() {
     const message = CommonUtils.translate('START_UPLOAD_INFO', { name: file.name });
     CommonNotice.info(message);
     try {
-      await CloudService.pushServerDirectory(file);
+      console.info('>>>>', props.activated);
+      await ClusterManager.importService(file, props.activated?.host || '');
     } finally {
       state.importing = false;
     }

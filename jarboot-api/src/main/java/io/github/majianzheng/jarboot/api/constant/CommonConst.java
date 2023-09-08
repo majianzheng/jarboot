@@ -39,7 +39,6 @@ public class CommonConst {
     public static final String SERVICE_MGR_CONTEXT = "/api/jarboot/services";
     public static final String AUTH_CONTEXT = "/api/jarboot/auth";
     public static final String AGENT_CLIENT_CONTEXT = "/api/jarboot/public/agent";
-    public static final String CLOUD_CONTEXT = "/api/jarboot/cloud";
     public static final String SERVER_RUNTIME_CONTEXT = "/api/jarboot/public/serverRuntime";
     public static final String PLUGINS_CONTEXT = "/api/jarboot/plugins";
     public static final String PRIVILEGE_CONTEXT = "/api/jarboot/privilege";

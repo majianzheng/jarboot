@@ -248,9 +248,30 @@ public class ClusterClientManager {
                 } else {
                     enabled = true;
                     logger.info("集群模式启动");
+                    monitorCheckHealth();
                 }
             }
         }
+    }
+
+    private void monitorCheckHealth() {
+        JarbootThreadFactory.createThreadFactory("cluster.health-check", true).newThread(() -> {
+            for (;;) {
+                try {
+                    TimeUnit.SECONDS.sleep(10);
+                    hosts.forEach((k, v) -> {
+                        try {
+                            v.health();
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }).start();
     }
 
     private boolean filterLine(String line) {

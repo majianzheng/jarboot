@@ -165,6 +165,27 @@ public class ClusterClient {
         JsonNode node = HttpUtils.post(url, params, wrapToken());
         return node.get("data").asText();
     }
+
+    public void exportService(String name, OutputStream os) {
+        try {
+            String encoded = URLEncoder.encode(name, StandardCharsets.UTF_8.name());
+            String url = formatUrl("/exportService?name=" + encoded);
+            HttpUtils.get(url, os, wrapToken());
+        } catch (UnsupportedEncodingException e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public void importService(String name, InputStream is) {
+        String url = formatUrl("/importService");
+        HttpUtils.upload(url, is, name, null, wrapToken());
+    }
+
+    public void downloadAnyFile(String encode, OutputStream os) {
+        String url = formatUrl("/download/" + encode);
+        HttpUtils.get(url, os, wrapToken());
+    }
+
     private String wrapFileParam(String path, String content, String url) {
         Map<String, String> params = new HashMap<>(2);
         params.put("path", path);

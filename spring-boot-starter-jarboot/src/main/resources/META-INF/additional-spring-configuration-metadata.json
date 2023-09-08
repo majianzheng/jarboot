@@ -1,12 +1,6 @@
 {
   "properties": [
     {
-      "name": "spring.jarboot.failed-auto-exit",
-      "type": "java.lang.Boolean",
-      "defaultValue": "true",
-      "description": "Auto exit when server start failed."
-    },
-    {
       "name": "spring.jarboot.server-addr",
       "type": "java.lang.String",
       "defaultValue": "127.0.0.1:9899",

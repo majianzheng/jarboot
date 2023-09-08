@@ -8,7 +8,7 @@ import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
-import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import org.slf4j.Logger;
@@ -124,7 +124,7 @@ public class ClusterClientProxy {
     }
 
     public void attach(String host, String pid) {
-        if (needProxy(host)) {
+        if (CommonUtils.needProxy(host)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(host);
             client.attach(pid);
         } else {
@@ -133,7 +133,7 @@ public class ClusterClientProxy {
     }
 
     public void deleteService(ServiceInstance instance) {
-        if (needProxy(instance.getHost())) {
+        if (CommonUtils.needProxy(instance.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(instance.getHost());
             client.deleteService(instance.getName());
         } else {
@@ -146,7 +146,7 @@ public class ClusterClientProxy {
      * @param setting 服务配置
      */
     public void startSingleService(ServiceSetting setting) {
-        if (needProxy(setting.getHost())) {
+        if (CommonUtils.needProxy(setting.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             final int maxWait = SettingUtils.getSystemSetting().getMaxStartTime() + 5000;
             String resp = client.requestSync(ClusterEventName.START_SERVICE, JsonUtils.toJsonString(setting), maxWait);
@@ -164,7 +164,7 @@ public class ClusterClientProxy {
      * @param setting
      */
     public void stopSingleService(ServiceSetting setting) {
-        if (needProxy(setting.getHost())) {
+        if (CommonUtils.needProxy(setting.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             final int maxWait = SettingUtils.getSystemSetting().getMaxExitTime() + 5000;
             String resp = client.requestSync(ClusterEventName.STOP_SERVICE, JsonUtils.toJsonString(setting), maxWait);
@@ -178,7 +178,7 @@ public class ClusterClientProxy {
     }
 
     public ServiceSetting getServiceSetting(ServiceInstance instance) {
-        if (needProxy(instance.getHost())) {
+        if (CommonUtils.needProxy(instance.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(instance.getHost());
             if (null == client) {
                 throw new JarbootException("集群实例不存在，host:"  + instance.getHost());
@@ -190,7 +190,7 @@ public class ClusterClientProxy {
     }
 
     public void saveServiceSetting(ServiceSetting setting) {
-        if (needProxy(setting.getHost())) {
+        if (CommonUtils.needProxy(setting.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             if (null == client) {
                 throw new JarbootException("集群实例不存在，host:"  + setting.getHost());
@@ -292,28 +292,12 @@ public class ClusterClientProxy {
         }
     }
 
-    private boolean needProxy(String host) {
-        if (StringUtils.isEmpty(host)) {
-            return false;
-        }
-        String self = ClusterClientManager.getInstance().getSelfHost();
-        if (StringUtils.isEmpty(self)) {
-            // 非集群
-            throw new JarbootException("当前为单机运行，调用集群接口失败！");
-        }
-        return !Objects.equals(self, host);
-    }
-
     private void forEachOnlineClient(ClientCallback callback) {
         ClusterClientManager.getInstance().getHosts().forEach((k, v) -> {
             if (!v.isOnline()) {
-                try {
-                    v.health();
-                } catch (Exception e) {
-                    logger.warn("集群{}不在线！", k, e);
-                }
+                logger.warn("集群{}不在线！", k);
             }
-            callback.invoke(needProxy(k), v);
+            callback.invoke(CommonUtils.needProxy(k), v);
         });
     }
 
