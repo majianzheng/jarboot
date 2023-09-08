@@ -144,7 +144,7 @@ function hostTitle() {
     </div>
     <div style="flex: auto"></div>
     <div class="right-tool">
-      <el-tooltip :content="editTooltipText()" v-if="node.isLeaf">
+      <el-tooltip :content="editTooltipText()" v-if="node.isLeaf && 1 !== data.nodeType">
         <el-button type="primary" link :icon="editIcon()" @click="onEdit" :loading="state.editLoading" class="edit-tool"></el-button>
       </el-tooltip>
       <el-checkbox

@@ -186,6 +186,7 @@ export default {
   SAVE_OR_CANCEL: 'Do you want to save changes to the file?',
   PLEASE_INPUT: 'Please input ',
   CHANGE_SAVE_TIP: 'File is modified, save or cancel!',
+  RUNNING_DELETE_INFO: 'The service {name} is running, can not delete!',
 
   //帮助
   HELP: 'Help',

@@ -8,12 +8,11 @@
       <template #left-content>
         <div class="server-side">
           <service-toolbar
-            :is-service="isService"
-            :activated="serviceState.lastClickedNode"
-            @stop="stopServices"
+            :activated="serviceState.activated"
+            :last-clicked-node="serviceState.lastClickedNode"
+            :current-node="serviceState.currentNode"
             @new-service="newService"
-            @dashboard="doDashboardCmd"
-            @start="startServices"></service-toolbar>
+            @dashboard="doDashboardCmd"></service-toolbar>
           <div style="flex: auto; padding: 3px 1px">
             <el-input v-model="serviceState.search" placeholder="" prefix-icon="Search" size="small" clearable />
             <el-tree
@@ -73,7 +72,6 @@ import CommonUtils from '@/common/CommonUtils';
 import type { FileNode, MsgData, ServerSetting, ServiceInstance } from '@/types';
 import { PAGE_SERVICE } from '@/common/route-name-constants';
 import { useRoute } from 'vue-router';
-import ClusterManager from '@/services/ClusterManager';
 import InstanceTreeItem from '@/views/services/components/instance-tree-item.vue';
 import serviceToolbar from '@/views/services/components/service-toolbar.vue';
 import ServiceConfig from '@/views/services/components/service-config.vue';
@@ -203,7 +201,7 @@ function detach(server: ServiceInstance) {
 
 function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   serviceState.lastClickedNode = data;
-  if (node.isLeaf) {
+  if (node.isLeaf && 1 !== data.nodeType) {
     const index = serviceState.activatedList.findIndex(item => item.sid === data.sid);
     if (-1 === index) {
       serviceState.activatedList = [...serviceState.activatedList, data];
@@ -251,30 +249,6 @@ function closeServiceTerminal(instance: ServiceInstance) {
   serviceState.activatedList = activatedList;
 }
 
-function getSelected() {
-  const services = [] as ServiceInstance[];
-  return getSelectLoop(serviceState.currentNode, services);
-}
-
-function getSelectLoop(nodes: ServiceInstance[], services: ServiceInstance[]) {
-  nodes.forEach((node: ServiceInstance) => {
-    if (node?.children && node.children.length > 0) {
-      getSelectLoop(node.children, services);
-    } else {
-      services.push(node);
-    }
-  });
-  return services;
-}
-
-function startServices() {
-  ClusterManager.startService(getSelected());
-}
-
-function stopServices() {
-  ClusterManager.stopService(getSelected());
-}
-
 function setStatus(sid: string, status: string) {
   const service = serviceStore.setStatus(sid, status, isService);
   if (service && STATUS_STARTING === status) {
@@ -314,16 +288,6 @@ onUnmounted(() => {
   }
   .server-content {
     flex: auto;
-  }
-  .bottom-tab {
-    position: absolute;
-    bottom: 62px;
-    display: flex;
-    height: 28px;
-    width: 282px;
-    background: var(--toolbar-bg-color);
-    border: var(--el-border);
-    overflow: hidden;
   }
 }
 </style>

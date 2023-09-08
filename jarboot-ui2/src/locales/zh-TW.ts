@@ -186,6 +186,7 @@ export default {
   SAVE_OR_CANCEL: '是否要保存對檔案的更改？',
   PLEASE_INPUT: '請輸入',
   CHANGE_SAVE_TIP: '文件已修改，是否保存！',
+  RUNNING_DELETE_INFO: '删除的服務{name}正在运行中，请先终止！',
 
   //帮助
   HELP: '帮助',

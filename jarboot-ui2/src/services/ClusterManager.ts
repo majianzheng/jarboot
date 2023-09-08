@@ -71,7 +71,7 @@ export default class ClusterManager {
    * 删除服务
    * @param instance 服务
    */
-  public static deleteService(instance: ServiceInstance) {
+  public static deleteService(instance: ServiceInstance[]) {
     return Request.post(`${urlBase}/deleteService`, instance);
   }
 

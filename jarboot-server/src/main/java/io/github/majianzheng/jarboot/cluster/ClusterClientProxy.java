@@ -137,7 +137,7 @@ public class ClusterClientProxy {
             ClusterClient client = ClusterClientManager.getInstance().getClient(instance.getHost());
             client.deleteService(instance.getName());
         } else {
-            serviceManager.deleteService(instance.getHost());
+            serviceManager.deleteService(instance.getName());
         }
     }
 

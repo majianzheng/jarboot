@@ -120,13 +120,15 @@ public class ClusterManagerController {
 
     /**
      * 删除服务
-     * @param instance 实例
+     * @param instances 实例
      * @return
      */
     @PostMapping("deleteService")
     @ResponseBody
-    public ResponseSimple deleteService(@RequestBody ServiceInstance instance) {
-        clusterClientProxy.deleteService(instance);
+    public ResponseSimple deleteService(@RequestBody List<ServiceInstance> instances) {
+        if (null != instances) {
+            instances.forEach(instance -> clusterClientProxy.deleteService(instance));
+        }
         return HttpResponseUtils.success();
     }
 
