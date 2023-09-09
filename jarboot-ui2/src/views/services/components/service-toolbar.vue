@@ -54,8 +54,8 @@ function getSelectLoop(nodes: ServiceInstance[], services: ServiceInstance[]) {
   return services;
 }
 function exportServer() {
-  if (isServiceNode) {
-    CommonUtils.exportServer(props.activated.name, props.lastClickedNode?.host || '');
+  if (isServiceNode && props.lastClickedNode?.name) {
+    CommonUtils.exportServer(props.lastClickedNode.name, props.lastClickedNode?.host || '');
   }
 }
 
@@ -154,7 +154,7 @@ function onImport() {
     <div
       v-if="isService"
       @click="deleteService"
-      :class="{ disabled: !isServiceNode || state.deleting }"
+      :class="{ disabled: !getSelected()?.length || state.deleting }"
       class="tool-button tool-button-red-icon">
       <icon-pro :icon="state.deleting ? 'Loading' : 'Delete'" :class="{ 'ui-spin': state.deleting }"></icon-pro>
     </div>
