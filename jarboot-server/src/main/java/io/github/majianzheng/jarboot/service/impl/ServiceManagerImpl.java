@@ -58,6 +58,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private AbstractEventRegistry eventRegistry;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
+    private final Map<String, ScheduledFuture<?>> stoppingFutureMap = new ConcurrentHashMap<>(16);
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -405,9 +406,14 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.error(e.getMessage());
             MessageUtils.printException(sid, e);
         } finally {
-            TaskUtils.getTaskExecutor()
-                    .schedule(() -> this.taskRunCache.removeStopping(sid), SettingUtils.getSystemSetting().getMaxExitTime(), TimeUnit.MILLISECONDS);
+            stoppingFutureMap.computeIfAbsent(sid, k -> TaskUtils.getTaskExecutor()
+                    .schedule(() -> clearStopping(sid), SettingUtils.getSystemSetting().getMaxExitTime(), TimeUnit.MILLISECONDS));
         }
+    }
+
+    private void clearStopping(String sid) {
+        this.taskRunCache.removeStopping(sid);
+        stoppingFutureMap.remove(sid);
     }
 
     /**
@@ -448,7 +454,16 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         if (taskRunCache.isStartingOrStopping(sid)) {
-            this.taskRunCache.removeStopping(sid);
+            try {
+                ScheduledFuture<?> future = stoppingFutureMap.remove(sid);
+                if (null != future) {
+                    future.cancel(true);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            } finally {
+                this.taskRunCache.removeStopping(sid);
+            }
             return;
         }
         postHandleOfflineEvent(setting);

@@ -251,7 +251,7 @@ public class JarbootShell {
         final String cmdFileName = String.format(".shell%s%x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
         File cmdFile = FileUtils.getFile(cmdFileName);
         try {
-            FileUtils.writeStringToFile(FileUtils.getFile(cmdFileName), String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(cmdFile, String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
             if (!cmdFile.setExecutable(true)) {
                 AnsiLog.error("set executable failed.");
             }

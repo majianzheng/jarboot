@@ -146,7 +146,7 @@ public class ClusterClientProxy {
     public void startSingleService(ServiceSetting setting) {
         if (CommonUtils.needProxy(setting.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
-            final int maxWait = SettingUtils.getSystemSetting().getMaxStartTime() + 5000;
+            final int maxWait = SettingUtils.getSystemSetting().getMaxStartTime() + 1500;
             String resp = client.requestSync(ClusterEventName.START_SERVICE, JsonUtils.toJsonString(setting), maxWait);
             ResponseSimple response = JsonUtils.readValue(resp, ResponseSimple.class);
             if (null == response || !response.getSuccess()) {
