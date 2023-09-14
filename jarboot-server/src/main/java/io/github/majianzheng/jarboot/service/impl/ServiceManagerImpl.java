@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -55,6 +56,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private TaskRunCache taskRunCache;
     @Autowired
     private AbstractEventRegistry eventRegistry;
+    @Resource(name = "taskExecutorService")
+    private ExecutorService executorService;
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -133,7 +136,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(setting ->
-                TaskUtils.getTaskExecutor().execute(() -> {
+                executorService.execute(() -> {
                     try {
                         this.startSingleService(setting);
                     } finally {
@@ -282,7 +285,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             throw new JarbootRunException(serviceName + "正在运行，不可删除！");
         }
         MessageUtils.globalLoading(serviceName, serviceName + "删除中...");
-        TaskUtils.getTaskExecutor().execute(() -> {
+        executorService.execute(() -> {
             try {
                 FileUtils.deleteDirectory(FileUtils.getFile(path));
                 MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
@@ -351,7 +354,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         }
         CountDownLatch countDownLatch = new CountDownLatch(s.size());
         s.forEach(server ->
-                TaskUtils.getTaskExecutor().execute(() -> {
+                executorService.execute(() -> {
                     try {
                         this.stopSingleService(server);
                     } finally {
@@ -402,7 +405,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.error(e.getMessage());
             MessageUtils.printException(sid, e);
         } finally {
-            this.taskRunCache.removeStopping(sid);
+            TaskUtils.getTaskExecutor()
+                    .schedule(() -> this.taskRunCache.removeStopping(sid), SettingUtils.getSystemSetting().getMaxExitTime(), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -443,6 +447,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(setting), 5, TimeUnit.SECONDS);
             return;
         }
+        if (taskRunCache.isStartingOrStopping(sid)) {
+            this.taskRunCache.removeStopping(sid);
+            return;
+        }
         postHandleOfflineEvent(setting);
     }
 
@@ -468,7 +476,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                     .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
                     .collect(Collectors.joining(","));
             postExecSetting.setEnv(envStr);
-            TaskUtils.getTaskExecutor().execute(() -> TaskUtils.startService(postExecSetting));
+            executorService.execute(() -> TaskUtils.startService(postExecSetting));
         }
 
         if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
@@ -477,7 +485,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             if (Boolean.TRUE.equals(setting.getDaemon())) {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s));
                 //启动
-                TaskUtils.getTaskExecutor().execute(() -> this.startSingleService(setting));
+                executorService.execute(() -> this.startSingleService(setting));
             } else {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
             }

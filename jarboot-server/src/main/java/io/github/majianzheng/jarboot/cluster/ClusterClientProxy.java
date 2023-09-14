@@ -5,7 +5,6 @@ import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.JarbootException;
-import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -32,10 +32,8 @@ public class ClusterClientProxy {
     private ServiceManager serviceManager;
     @Autowired
     private SettingService settingService;
-    private final ExecutorService executorService = new ThreadPoolExecutor(
-            4, 128, 30, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(8),
-            JarbootThreadFactory.createThreadFactory("task.s-", true));
+    @Resource(name = "taskExecutorService")
+    private ExecutorService executorService;
 
     public List<ServiceInstance> getServiceGroup() {
         List<ServiceInstance> groups = new ArrayList<>();

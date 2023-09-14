@@ -3,10 +3,13 @@ package io.github.majianzheng.jarboot.utils;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import io.jsonwebtoken.lang.Collections;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -58,6 +61,18 @@ public class CommonUtils {
             return false;
         }
         return !Objects.equals(ClusterClientManager.getInstance().getSelfHost(), clusterHost);
+    }
+
+    public static String getSessionClusterHost(Session session) {
+        return getSessionParam("clusterHost", session);
+    }
+
+    public static String getSessionParam(String key, Session session) {
+        List<String> param = session.getRequestParameterMap().get(key);
+        if (Collections.isEmpty(param)) {
+            return StringUtils.EMPTY;
+        }
+        return param.get(0);
     }
 
     public static void setDownloadHeader(HttpServletResponse response, String filename) {

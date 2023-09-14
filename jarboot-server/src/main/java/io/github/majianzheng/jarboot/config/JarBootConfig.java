@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.config;
 
+import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.ws.MessageSenderSubscriber;
@@ -10,6 +11,10 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * jarboot配置类
@@ -30,6 +35,14 @@ public class JarBootConfig {
         container.setMaxBinaryMessageBufferSize(MAX_BUFFER_SIZE);
         container.setMaxTextMessageBufferSize(MAX_BUFFER_SIZE);
         return container;
+    }
+
+    @Bean
+    public ExecutorService taskExecutorService() {
+        return new ThreadPoolExecutor(
+                4, 128, 30, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(8),
+                JarbootThreadFactory.createThreadFactory("task.s-", true));
     }
 
     @PostConstruct

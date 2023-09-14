@@ -98,9 +98,9 @@ function createSocket() {
   let query = `col=${getCol()}&row=${getRow()}&userDir=${userStore.userDir}`;
   const clusterHost = CommonUtils.getCurrentHost();
   if (clusterHost) {
-    query += `&${ACCESS_CLUSTER_HOST}=${clusterHost}`;
+    query += `&${ACCESS_CLUSTER_HOST}=${clusterHost}&clusterHost=${props.host}`;
   }
-  const url = `ws://${props.host || getDefaultHost()}/jarboot/main/terminal/ws?${token}&${query}`;
+  const url = `ws://${getDefaultHost()}/jarboot/main/terminal/ws?${token}&${query}`;
   console.info('terminal connect to ' + url);
   termOption.websocket = new WebSocket(url);
   termOption.websocket.onopen = () => {
