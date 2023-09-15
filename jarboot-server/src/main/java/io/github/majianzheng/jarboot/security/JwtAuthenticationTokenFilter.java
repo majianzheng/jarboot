@@ -2,7 +2,6 @@ package io.github.majianzheng.jarboot.security;
 
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
-import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
@@ -42,7 +41,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
-                handleError(response, HttpServletResponse.SC_UNAUTHORIZED, HttpServletResponse.SC_UNAUTHORIZED, "token校验失败，请重新登录");
+                handleError(response, "token校验失败，请重新登录");
                 return;
             }
             chain.doFilter(request, response);
@@ -51,15 +50,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 chain.doFilter(request, response);
                 return;
             }
-            handleError(response, HttpServletResponse.SC_UNAUTHORIZED, HttpServletResponse.SC_UNAUTHORIZED, "未登录");
+            handleError(response, "未登录");
         }
     }
 
-    private void handleError(HttpServletResponse response, int status, int code, String msg) throws IOException {
-        ResponseSimple responseVo = HttpResponseUtils.error(code, msg);
-        response.setStatus(status);
+    private void handleError(HttpServletResponse response, String msg) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getOutputStream().write(JsonUtils.toJsonBytes(responseVo));
+        response.getOutputStream().write(JsonUtils.toJsonBytes(new ResponseSimple(HttpServletResponse.SC_UNAUTHORIZED, msg)));
         response.getOutputStream().flush();
     }
 

@@ -58,7 +58,6 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private AbstractEventRegistry eventRegistry;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
-    private final Map<String, ScheduledFuture<?>> stoppingFutureMap = new ConcurrentHashMap<>(16);
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -406,14 +405,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.error(e.getMessage());
             MessageUtils.printException(sid, e);
         } finally {
-            stoppingFutureMap.computeIfAbsent(sid, k -> TaskUtils.getTaskExecutor()
-                    .schedule(() -> clearStopping(sid), SettingUtils.getSystemSetting().getMaxExitTime(), TimeUnit.MILLISECONDS));
+            this.taskRunCache.removeStopping(sid);
         }
-    }
-
-    private void clearStopping(String sid) {
-        this.taskRunCache.removeStopping(sid);
-        stoppingFutureMap.remove(sid);
     }
 
     /**
@@ -441,29 +434,16 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         String sid = setting.getSid();
+        //检查是否处于中间状态
+        if (event.isStopping() || taskRunCache.isStopping(sid)) {
+            //处于停止中状态，此时不做干预，守护只针对正在运行的进程
+            return;
+        }
         //检查进程是否存活
         String pid = TaskUtils.getPid(sid);
         if (!pid.isEmpty()) {
-            //检查是否处于中间状态
-            if (taskRunCache.isStopping(sid)) {
-                //处于停止中状态，此时不做干预，守护只针对正在运行的进程
-                return;
-            }
             //尝试重新初始化代理客户端
             TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(setting), 5, TimeUnit.SECONDS);
-            return;
-        }
-        if (taskRunCache.isStartingOrStopping(sid)) {
-            try {
-                ScheduledFuture<?> future = stoppingFutureMap.remove(sid);
-                if (null != future) {
-                    future.cancel(true);
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            } finally {
-                this.taskRunCache.removeStopping(sid);
-            }
             return;
         }
         postHandleOfflineEvent(setting);
@@ -471,6 +451,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     private void postHandleOfflineEvent(ServiceSetting setting) {
         String serviceName = setting.getName();
+        if (taskRunCache.isStarting(setting.getSid())) {
+            MessageUtils.warn(String.format("服务%s启动失败！", serviceName));
+            return;
+        }
         TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);

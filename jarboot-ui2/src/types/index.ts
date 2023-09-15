@@ -161,6 +161,9 @@ export type ServerRuntimeInfo = {
   inDocker: boolean;
 };
 export type UploadFileInfo = {
+  id: string;
+  name: string;
   total: number;
+  pause: boolean;
   uploadedSize: number;
 };

@@ -215,7 +215,7 @@ public class ClusterClientManager {
                     .map(String::trim)
                     .filter(this::filterLine)
                     .collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(lines)) {
+            if (null == clusterSecretKey || CollectionUtils.isEmpty(lines)) {
                 return;
             }
             lines.forEach(line -> executorService.execute(() -> waitHostStarted(line, hostUuidMap)));
@@ -282,7 +282,8 @@ public class ClusterClientManager {
             int index = line.indexOf('=');
             if (index >= CLUSTER_SECRET_KEY.length()) {
                 String temp = line.substring(index + 1).trim();
-                if (StringUtils.isNotEmpty(temp)) {
+                final int minLength = 32;
+                if (StringUtils.isNotEmpty(temp) && temp.length() > minLength) {
                     clusterSecretKey = temp.getBytes(StandardCharsets.UTF_8);
                 }
             }

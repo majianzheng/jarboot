@@ -120,6 +120,7 @@ public class AgentManager {
         String msg = String.format("\033[1;96m%s\033[0m 下线！", client.getName());
         MessageUtils.console(sid, msg);
         synchronized (client) {
+            boolean stopping = ClientState.EXITING.equals(client.getState());
             //发送了退出执行，唤醒killClient或waitServerStarted线程
             try {
                 client.notifyAll();
@@ -129,7 +130,7 @@ public class AgentManager {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
                 if (null != client.getSetting()) {
-                    ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting());
+                    ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting(), stopping);
                     NotifyReactor.getInstance().publishEvent(event);
                 }
                 client.setState(ClientState.OFFLINE);

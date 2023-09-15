@@ -36,7 +36,7 @@ class WsManager {
   /** 全局Loading事件 */
   private static readonly LOADING_MAP = new Map<string, any>();
   /** websocket句柄 */
-  private static websocket: any = null;
+  private static websocket: WebSocket | null = null;
   /** 重连setInterval的句柄 */
   private static fd: any = null;
 
@@ -203,7 +203,7 @@ class WsManager {
     WsManager.reconnect();
   };
 
-  private static onError = (e: Error) => {
+  private static onError = (e: Event) => {
     Logger.log('websocket异常关闭！');
     Logger.error(e);
     WsManager.reconnect();

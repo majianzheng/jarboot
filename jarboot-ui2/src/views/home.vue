@@ -126,6 +126,7 @@ onMounted(() => {
       <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
     <modify-user-dialog v-model:visible="state.dialog" :reset-password="state.resetPassword" :username="user.username"></modify-user-dialog>
+    <file-upload style="position: fixed; bottom: 60px; right: 15px"></file-upload>
   </main>
 </template>
 <style lang="less" scoped>

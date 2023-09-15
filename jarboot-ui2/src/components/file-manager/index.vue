@@ -14,6 +14,7 @@ import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 import Request from '@/common/Request';
 import type { AxiosProgressEvent } from 'axios';
 import FileRow from '@/components/file-manager/file-row.vue';
+import { useUploadStore } from '@/stores';
 
 const props = defineProps<{
   baseDir: string;
@@ -47,6 +48,8 @@ const emit = defineEmits<{
   (e: 'before-load', clusterHost: string): void;
   (e: 'after-load', data: FileNode[], clusterHost: string): void;
 }>();
+
+const uploadStore = useUploadStore();
 
 const state = reactive({
   loading: false,
@@ -174,6 +177,7 @@ function createNode(file: File, data: FileNode): FileNode {
 }
 
 function handleProgress(evt: AxiosProgressEvent, file: File, data: FileNode) {
+  uploadStore.update({ id: data.key, total: evt.total as number, uploadedSize: evt.loaded, name: data.name, pause: false });
   let child = createNode(file, data);
   let progress: number | null = round(evt.progress || 0, 2);
   if (progress >= 1) {

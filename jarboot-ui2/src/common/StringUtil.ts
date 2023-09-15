@@ -10,7 +10,7 @@ class StringUtil {
    * @param {*} object
    * @return {Boolean} isString
    */
-  public static isString(object: any) {
+  public static isString(object: any): boolean {
     return object instanceof String || typeof object === 'string' || (this.isNotNull(object) && object.constructor === String);
   }
 
@@ -41,7 +41,7 @@ class StringUtil {
    * @param positive
    * @return {Boolean} isNumber
    */
-  public static isInt(str: string, positive = true) {
+  public static isInt(str: string, positive = true): boolean {
     let exp = '^[0-9]*$';
     if (positive) {
       exp = '^\\d+$';
@@ -58,7 +58,7 @@ class StringUtil {
    * @param {Boolean} positive 是否为正数,true验证非负浮点,false验证非正浮点
    * @return {Boolean}
    */
-  public static isFloat(str: string, positive = true) {
+  public static isFloat(str: string, positive: boolean = true): boolean {
     let exp = '^(-?\\d+)(\\.\\d+)?$';
     if (positive) {
       exp = '^\\d+(\\.\\d+)?$';
@@ -75,7 +75,7 @@ class StringUtil {
    * @param {Boolean} positive 是否为正数,true验证非负浮点,false验证非正浮点
    * @return {Boolean}
    */
-  public static isNumber(str: string, positive = true) {
+  public static isNumber(str: string, positive: boolean = true): boolean {
     //先验证是否为整数
     let valid = this.isInt(str, positive);
     //若不为整数,再验证是否为浮点数
@@ -90,9 +90,9 @@ class StringUtil {
    * @param {String} str
    * @return {Boolean}
    */
-  public static isNumberUnsigned(str: string) {
+  public static isNumberUnsigned(str: string): boolean {
     let valid = this.isNumber(str, true);
-    if (valid === false) {
+    if (!valid) {
       valid = this.isNumber(str, false);
     }
     return valid;
@@ -109,10 +109,7 @@ class StringUtil {
    * 判断是否不为null和undefined
    */
   public static isNotNull(obj: any) {
-    if (obj != null) {
-      return true;
-    }
-    return false;
+    return obj != null;
   }
 
   /**

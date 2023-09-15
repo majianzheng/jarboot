@@ -3,7 +3,7 @@ import OAuthService from '@/services/OAuthService';
 import CommonUtils from '@/common/CommonUtils';
 import router from '@/router';
 import ClusterManager from '@/services/ClusterManager';
-import { type ServiceInstance, type JvmProcess, CONSOLE_TOPIC, type ServerRuntimeInfo } from '@/types';
+import type { ServiceInstance, JvmProcess, ServerRuntimeInfo, UploadFileInfo } from '@/types';
 import { PAGE_LOGIN } from '@/common/route-name-constants';
 import PrivilegeService from '@/services/PrivilegeService';
 import {
@@ -20,6 +20,7 @@ import UserService from '@/services/UserService';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import Logger from '@/common/Logger';
 import Request from '@/common/Request';
+import { CONSOLE_TOPIC } from '@/types';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -201,6 +202,28 @@ export const useServiceStore = defineStore({
         }
       }
       return service;
+    },
+  },
+});
+
+export const useUploadStore = defineStore({
+  id: 'upload-file',
+  state: () => ({
+    uploadFiles: [] as UploadFileInfo[],
+    visible: false,
+  }),
+  actions: {
+    async update(file: UploadFileInfo) {
+      const uploadFiles = [...this.uploadFiles];
+      let visible = this.visible;
+      let index = uploadFiles.findIndex(row => file.id === row.id);
+      if (index < 0) {
+        uploadFiles.push(file);
+        visible = true;
+      } else {
+        uploadFiles[index] = file;
+      }
+      this.$patch({ uploadFiles, visible });
     },
   },
 });
