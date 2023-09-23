@@ -54,7 +54,6 @@ public class ShCommandProcessor implements CommandProcessor {
                 session.end(false, e.getMessage());
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
-                e.printStackTrace();
                 session.end(false, e.getMessage());
             } finally {
                 this.process = null;

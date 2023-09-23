@@ -70,7 +70,7 @@ body {
     background: var(--tool-button-hover-color);
     cursor: pointer;
   }
-  &:disabled, &.disabled {
+  &:disabled, &.disabled, :disabled, .disabled {
     background-color: inherit;
     cursor: not-allowed;
     opacity: 0.5;
@@ -122,4 +122,30 @@ body {
 {
   from {transform: rotate(0deg);}
   to {transform: rotate(-359deg);}
+}
+.ui-blink {
+  animation: blink 500ms infinite;
+}
+//闪烁
+@keyframes blink {
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes blink {
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
 }

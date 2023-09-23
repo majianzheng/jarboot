@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileNode, ServerSetting, ServiceInstance } from '@/types';
+import type { FileNode, ServerSetting, ServiceInstance } from '@/types';
 import { onMounted, reactive, ref, watch } from 'vue';
 import { ElForm, FormRules } from 'element-plus';
 import ClusterManager from '@/services/ClusterManager';

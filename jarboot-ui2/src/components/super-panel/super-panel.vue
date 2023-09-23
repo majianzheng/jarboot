@@ -1,9 +1,9 @@
 <template>
-  <div class="super-panel" ref="panelRef">
+  <div class="super-panel">
     <div class="super-panel-header" :style="{ width: width + 'px' }">
       <div>
         <el-button circle @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
-        <span class="panel-title">{{ props.name }}</span>
+        <span class="panel-title">{{ panelTitle }}</span>
       </div>
       <div class="panel-middle-title">
         <span v-if="!!state.executing || !!state.view">
@@ -40,7 +40,9 @@
         :width="width"
         @ready="onReady"
         @command="onCommand"
-        :prefix="TERM_PREFIX"
+        @cancel="emit('cancel')"
+        @up="historyUp"
+        @down="historyDown"
         :pubsub="pubsub"></j-console>
     </div>
     <div :style="{ width: width + 'px', position: 'fixed' }" v-if="state.view === 'jad'">
@@ -56,15 +58,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, reactive } from 'vue';
+import {computed, onMounted, onUnmounted, reactive, watch} from 'vue';
 import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
 import { CONSOLE_TOPIC } from '@/types';
 import StringUtil from '@/common/StringUtil';
-import type { ElInput } from 'element-plus';
 import { useBasicStore } from '@/stores';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 import type { Terminal } from 'xterm';
+import {EXITED, STATUS_STOPPED, STATUS_STOPPING} from "@/common/CommonConst";
 
 /**
  * 执行记录，上下键
@@ -82,11 +84,13 @@ type SuperPanelState = {
   data: any;
   textWrap: boolean;
   autoScrollEnd: boolean;
+  historyProp: HistoryProp;
 };
 const props = defineProps<{
-  clusterHost: string;
+  clusterHost: string | null;
   name: string;
   sid: string;
+  status: string;
   remote?: string;
   width: number;
 }>();
@@ -97,11 +101,9 @@ const state = reactive({
   data: {},
   textWrap: false,
   autoScrollEnd: true,
+  historyProp: { cur: 0, history: [] },
 } as SuperPanelState);
 const MAX_HISTORY = 100;
-const historyMap = new Map<string, HistoryProp>();
-const inputRef = ref<InstanceType<typeof ElInput>>();
-const panelRef = ref<InstanceType<typeof HTMLDivElement>>();
 const basic = useBasicStore();
 const emit = defineEmits<{
   (e: 'close', sid: string): void;
@@ -123,11 +125,20 @@ const middleTitle = computed(() => {
   }
   return state.executing || '';
 });
-const historyProp = { cur: 0, history: [] } as HistoryProp;
-let lastFocusTime = Date.now();
+const panelTitle = computed(() => {
+  if (props.clusterHost) {
+    return `${props.clusterHost}/${props.name}`;
+  }
+  return props.name;
+});
 
-let term: Terminal;
-const TERM_PREFIX = 'jarboot$ ';
+let term: Terminal | any;
+
+watch(() => props.status, newValue => {
+  if (state.executing && [STATUS_STOPPED, STATUS_STOPPING, EXITED].includes(newValue)) {
+    onCmdEnd();
+  }
+})
 
 function onReady(t: Terminal) {
   term = t;
@@ -138,29 +149,15 @@ function onCommand(cmd: string) {
   doExecCommand();
 }
 
-const focusInput = () => {
-  if (Date.now() - lastFocusTime > 1000) {
-    inputRef?.value?.focus();
-    lastFocusTime = Date.now();
-  }
-};
-
-const onFocusCommandInput = () => {
-  inputRef?.value?.focus();
-  inputRef?.value?.select();
-};
-
 const onCmdEnd = (msg?: string) => {
   state.executing = null;
   term.options.disableStdin = false;
   pubsub.publish(props.sid, CONSOLE_TOPIC.FINISH_LOADING, msg);
   msg && term.writeln(msg);
-  onFocusCommandInput();
   term.prompt();
 };
 const clearDisplay = () => {
   pubsub.publish(props.sid, CONSOLE_TOPIC.CLEAR_CONSOLE);
-  focusInput();
 };
 
 const doExecCommand = () => {
@@ -174,7 +171,7 @@ const doExecCommand = () => {
 
   emit('execute', cmd, term.cols, term.rows);
   state.command = '';
-  const history = historyProp.history;
+  const history = state.historyProp.history;
   if (history.length > 0 && history[history.length - 1] === cmd) {
     return;
   }
@@ -182,26 +179,27 @@ const doExecCommand = () => {
   if (history.length > MAX_HISTORY) {
     history.shift();
   }
-  historyProp.cur = history.length - 1;
+  state.historyProp.cur = history.length - 1;
 };
 const historyUp = () => {
-  const history = historyProp.history;
-  if (historyProp.cur < 0) {
-    historyProp.cur = 0;
+  const history = state.historyProp.history;
+  if (state.historyProp.cur < 0) {
+    state.historyProp.cur = 0;
     return;
   }
-  state.command = history[historyProp.cur];
-  historyProp.cur--;
+  const command = history[state.historyProp.cur];
+  term.setCurrent(command || '');
+  state.historyProp.cur--;
 };
 const historyDown = () => {
-  const history = historyProp.history;
-  historyProp.cur++;
-  if (historyProp.cur >= history.length) {
-    historyProp.cur = history.length - 1;
-    onFocusCommandInput();
+  const history = state.historyProp.history;
+  state.historyProp.cur++;
+  if (state.historyProp.cur >= history.length) {
+    state.historyProp.cur = history.length - 1;
     return;
   }
-  state.command = history[historyProp.cur];
+  const command = history[state.historyProp.cur];
+  term.setCurrent(command || '');
 };
 const setScrollToEnd = () => {
   const autoScrollEnd = !state.autoScrollEnd;
@@ -234,18 +232,12 @@ onMounted(() => {
   pubsub.submit(key, PUB_TOPIC.CMD_END, onCmdEnd);
   pubsub.submit(key, PUB_TOPIC.RENDER_JSON, renderView);
   pubsub.submit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
-  pubsub.submit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
-  historyMap.set(key, { cur: 0, history: [] } as HistoryProp);
-  if (panelRef?.value) {
-    panelRef.value.onmouseenter = focusInput;
-  }
 });
 onUnmounted(() => {
   const key = props.sid;
   pubsub.unSubmit(key, PUB_TOPIC.CMD_END, onCmdEnd);
   pubsub.unSubmit(key, PUB_TOPIC.RENDER_JSON, renderView);
   pubsub.unSubmit(key, PUB_TOPIC.QUICK_EXEC_CMD, onExecQuickCmd);
-  pubsub.unSubmit(key, PUB_TOPIC.FOCUS_CMD_INPUT, onFocusCommandInput);
 });
 </script>
 

@@ -516,7 +516,7 @@ public class SettingUtils {
         return trustedHosts.contains(host);
     }
 
-    public static void addTrustedHost(String host) throws IOException {
+    public static void addTrustedHost(String host) {
         if (StringUtils.isBlank(host)) {
             throw new JarbootException("Host is empty!");
         }
@@ -527,8 +527,12 @@ public class SettingUtils {
         File file = FileUtils.getFile(trustedHostsFile);
         HashSet<String> lines = new HashSet<>(trustedHosts);
         lines.add(host);
-        FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
-        trustedHosts = lines;
+        try {
+            FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
+            trustedHosts = lines;
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
     }
 
     public static Set<String> getTrustedHosts() {

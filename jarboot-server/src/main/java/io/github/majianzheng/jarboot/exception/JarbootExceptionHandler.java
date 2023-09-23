@@ -27,7 +27,7 @@ public class JarbootExceptionHandler {
         return ResponseEntity.status(HttpStatus.OK).body(HttpResponseUtils.error(HttpStatus.UNAUTHORIZED.value(), "请登录"));
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ResponseSimple> handleAccessDeniedException(Exception e) {
         LOGGER.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.OK).body(HttpResponseUtils.error("当前角色没有权限！"));

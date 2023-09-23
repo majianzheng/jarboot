@@ -11,10 +11,15 @@ import {
   ATTACHING,
   DEFAULT_PRIVILEGE,
   EXITED,
+  NOT_TRUSTED,
+  STATUS_ATTACHED,
+  STATUS_NOT_ATTACHED,
+  STATUS_SCHEDULING,
   STATUS_STARTED,
   STATUS_STARTING,
   STATUS_STOPPED,
   STATUS_STOPPING,
+  TRUSTED,
 } from '@/common/CommonConst';
 import UserService from '@/services/UserService';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
@@ -166,6 +171,11 @@ export const useServiceStore = defineStore({
             Logger.log(`${name} 已停止`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
+          case STATUS_SCHEDULING:
+            service.status = status;
+            Logger.log(`${name} 定时任务计划中`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
           case STATUS_STARTED:
             if (!service.pid) {
               service.status = status;
@@ -183,14 +193,28 @@ export const useServiceStore = defineStore({
           case ATTACHED:
             service.attached = true;
             service.attaching = false;
+            service.status = STATUS_ATTACHED;
             Logger.log(`${name} ATTACHED`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
           case EXITED:
             service.attached = false;
             service.attaching = false;
-            Logger.log(`${name} DEATTACHED`);
+            service.status = STATUS_NOT_ATTACHED;
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            this.reloadJvmList().then(() => Logger.log(`${name} detached reload jvm.`));
+            break;
+          case TRUSTED:
+            Logger.log(`${name} TRUSTED`);
+            service.trusted = true;
+            service.status = STATUS_ATTACHED;
+            pubsub.publish(sid, CONSOLE_TOPIC.APPEND_LINE, CommonUtils.translate('TRUSTED_SUCCESS'));
+            break;
+          case NOT_TRUSTED:
+            Logger.log(`${name} NOT_TRUSTED`);
+            service.trusted = false;
+            service.status = STATUS_ATTACHED;
+            pubsub.publish(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, service);
             break;
           default:
             break;
@@ -199,6 +223,10 @@ export const useServiceStore = defineStore({
           this.$patch({ groups: [...groups] });
         } else {
           this.$patch({ jvmGroups: [...groups] });
+        }
+      } else {
+        if (ATTACHED === status) {
+          this.reloadJvmList().then(() => Logger.log(`${sid} attached reload jvm.`));
         }
       }
       return service;
@@ -216,7 +244,7 @@ export const useUploadStore = defineStore({
     async update(file: UploadFileInfo) {
       const uploadFiles = [...this.uploadFiles];
       let visible = this.visible;
-      let index = uploadFiles.findIndex(row => file.id === row.id);
+      const index = uploadFiles.findIndex(row => file.id === row.id);
       if (index < 0) {
         uploadFiles.push(file);
         visible = true;

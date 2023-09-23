@@ -34,6 +34,9 @@ public class TaskLifecycleEvent implements JarbootEvent {
             case AFTER_STARTED:
                 this.status = CommonConst.RUNNING;
                 break;
+            case SCHEDULING:
+                this.status = CommonConst.SCHEDULING;
+                break;
             default:
                 this.status = CommonConst.STOPPED;
                 break;

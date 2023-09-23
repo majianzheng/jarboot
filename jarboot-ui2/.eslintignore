@@ -2,3 +2,4 @@ src/components.d.ts
 src/assets/*
 public/*
 StringUtil.ts
+j-console.vue

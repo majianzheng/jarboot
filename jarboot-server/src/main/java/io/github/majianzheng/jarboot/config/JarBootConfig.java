@@ -5,12 +5,17 @@ import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.ws.MessageSenderSubscriber;
 import io.github.majianzheng.jarboot.ws.SendCommandSubscriber;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -21,9 +26,10 @@ import java.util.concurrent.TimeUnit;
  * @author majianzheng
  */
 @Configuration
-public class JarBootConfig {
+public class JarBootConfig implements WebMvcConfigurer {
     private static final int MAX_BUFFER_SIZE = 4096;
-
+    @Resource
+    private ApplicationContext context;
     @Bean
     public ServerEndpointExporter serverEndpointExporter() {
         return new ServerEndpointExporter();
@@ -58,5 +64,13 @@ public class JarBootConfig {
                 .registerSubscriber(
                         new SendCommandSubscriber(),
                         new DefaultPublisher(16384, "send.command.publisher"));
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        final String profile = "prod";
+        if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains(profile)) {
+            registry.addRedirectViewController("/", "/jarboot/index.html");
+        }
     }
 }

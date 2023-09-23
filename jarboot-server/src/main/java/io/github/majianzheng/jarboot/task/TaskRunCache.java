@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.task;
 
+import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
@@ -16,12 +17,16 @@ import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.ws.WebSocketMainServer;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
+import org.quartz.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -32,11 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class TaskRunCache {
+    private final Logger logger = LoggerFactory.getLogger(TaskRunCache.class);
     /** 需要排除的工作空间里的目录 */
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
     @Autowired
     private AbstractEventRegistry eventRegistry;
+    @Resource
+    private Scheduler scheduler;
 
     /** 需要排除的工作空间里的目录 */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
@@ -66,12 +74,8 @@ public class TaskRunCache {
      */
     public File[] getServiceDirs(String userDir) {
         String workspace = SettingUtils.getWorkspace();
-        File servicesDir = new File(workspace, userDir);
-        if (!servicesDir.isDirectory() || !servicesDir.exists()) {
-            if (!servicesDir.mkdirs()) {
-                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, workspace + "目录创建失败");
-            }
-        }
+        File servicesDir = FileUtils.getFile(workspace, userDir);
+        checkUserDir(servicesDir);
         File[] serviceDirs = servicesDir.listFiles(this::filterExcludeDir);
         if (null == serviceDirs || serviceDirs.length < 1) {
             return serviceDirs;
@@ -94,12 +98,25 @@ public class TaskRunCache {
             instance.setStatus(CommonConst.STARTING);
         } else if (this.isStopping(sid)) {
             instance.setStatus(CommonConst.STOPPING);
+        } else if (isScheduling(sid)) {
+            instance.setStatus(CommonConst.SCHEDULING);
         } else if (AgentManager.getInstance().isOnline(sid)) {
             instance.setStatus(CommonConst.RUNNING);
         } else {
             instance.setStatus(CommonConst.STOPPED);
         }
         return instance;
+    }
+
+    public boolean isScheduling(String sid) {
+        try {
+            if (scheduler.checkExists(TriggerKey.triggerKey(sid))) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
     }
 
     /**
@@ -128,9 +145,10 @@ public class TaskRunCache {
     public ServiceInstance getServiceGroup(String userDir) {
         List<ServiceInstance> serviceList = this.getServiceList(userDir);
         ServiceInstance localGroup = new ServiceInstance();
+        final String selfHost = ClusterClientManager.getInstance().getSelfHost();
         localGroup.setNodeType(CommonConst.NODE_ROOT);
         localGroup.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
-        localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
+        localGroup.setHost(selfHost);
         localGroup.setChildren(new ArrayList<>());
         if (CollectionUtils.isEmpty(serviceList)) {
             return localGroup;
@@ -145,9 +163,9 @@ public class TaskRunCache {
                     if (null == v) {
                         v = new ServiceInstance();
                         v.setNodeType(CommonConst.NODE_GROUP);
-                        v.setSid(String.format("%x", Objects.hash(SettingUtils.getUuid().hashCode(), k)));
+                        v.setSid(String.format("%x", Objects.hash(SettingUtils.getUuid(), k)));
                         v.setName(service.getGroup());
-                        v.setHost(ClusterClientManager.getInstance().getSelfHost());
+                        v.setHost(selfHost);
                         v.setChildren(new ArrayList<>());
                         list.add(v);
                     }
@@ -190,6 +208,56 @@ public class TaskRunCache {
 
     public void removeStopping(String sid) {
         stoppingCache.remove(sid);
+    }
+
+    public void addScheduleTask(ServiceSetting setting) {
+        if (isScheduling(setting.getSid())) {
+            throw new JarbootException("定时任务" + setting.getName() + "正在计划中");
+        }
+        if (!SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+            throw new JarbootException(setting.getName() + "非定时任务类型");
+        }
+        if (StringUtils.isEmpty(setting.getCron())) {
+            throw new JarbootException("cron配置为空");
+        }
+        JobDetail job = JobBuilder.newJob(TaskJob.class)
+                .usingJobData(CommonConst.USER_DIR, setting.getUserDir())
+                .usingJobData(CommonConst.SERVICE_NAME_PARAM, setting.getName())
+                .usingJobData(CommonConst.SID_PARAM, setting.getSid())
+                .withIdentity(setting.getSid())
+                .withDescription(setting.getName())
+                .storeDurably()
+                .build();
+        CronTrigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(setting.getSid())
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule(setting.getCron()))
+                .build();
+        try {
+            scheduler.scheduleJob(job, trigger);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    public void removeScheduleTask(ServiceSetting setting) {
+        TriggerKey key = TriggerKey.triggerKey(setting.getSid());
+        try {
+            scheduler.pauseTrigger(key);
+            scheduler.unscheduleJob(key);
+            scheduler.deleteJob(JobKey.jobKey(setting.getSid()));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    private static void checkUserDir(File servicesDir) {
+        if (servicesDir.isDirectory() || servicesDir.exists()) {
+            return;
+        }
+        if (!servicesDir.mkdirs()) {
+            throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, servicesDir.getName() + "目录创建失败");
+        }
     }
 
     private String getGroup(String userDir, String serviceName, String sid) {

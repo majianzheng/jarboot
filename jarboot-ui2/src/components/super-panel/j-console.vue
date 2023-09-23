@@ -20,12 +20,14 @@ const props = defineProps<{
   pubsub?: PublishSubmit;
   /** 唯一id */
   id: string;
-  prefix: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'ready', terminal: Terminal): void;
   (e: 'command', value: string): void;
+  (e: 'cancel'): void;
+  (e: 'up'): void;
+  (e: 'down'): void;
 }>();
 
 const CHAR_WIDTH = 8;
@@ -37,7 +39,7 @@ const state = reactive({
 });
 
 const termOption = {
-  term: null as unknown as Terminal,
+  term: null as unknown as Terminal | any,
   fitAddon: null as any,
 };
 
@@ -95,6 +97,7 @@ function init() {
     pubsub.submit(id, CONSOLE_TOPIC.CLEAR_CONSOLE, onClear);
   }
   termOption.term.prompt = prompt;
+  termOption.term.setCurrent = setCurrent;
   runTerminal();
   prompt();
 }
@@ -113,9 +116,10 @@ function runTerminal() {
   term.writeln('  Jarboot console, docs: [36mhttps://www.yuque.com/jarboot/usage/quick-start[0m');
   term.writeln('  Diagnose command, try running `help`.');
 
-  term.onData(e => {
+  term.onData((e: string) => {
     switch (e) {
       case '\u0003': // Ctrl+C
+        emit('cancel');
         term.write('^C');
         prompt();
         break;
@@ -124,13 +128,19 @@ function runTerminal() {
         command = '';
         break;
       case '\u007F': // Backspace (DEL)
-        // Do not delete the prompt
+        // Does not delete the prompt
         if (term._core.buffer.x > 2) {
           term.write('\b \b');
           if (command.length > 0) {
-            command = command.substr(0, command.length - 1);
+            command = command.substring(0, command.length - 1);
           }
         }
+        break;
+      case '[A': // 上
+        emit('up');
+        break;
+      case '[B': // 下
+        emit('down');
         break;
       default: // Print all other characters for demo
         if ((e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7e)) || e >= '\u00a0') {
@@ -139,6 +149,20 @@ function runTerminal() {
         }
     }
   });
+}
+
+function setCurrent(str: string) {
+  const term = termOption.term;
+  let len = term._core.buffer.x;
+  for (; len > 2; --len) {
+    term.write('\b \b');
+  }
+  if (str) {
+    term.write(str);
+    command = str;
+  } else {
+    command = '';
+  }
 }
 
 function prompt() {
@@ -192,6 +216,7 @@ function onClear() {
 defineExpose({
   fit,
   focus,
+  prompt,
 });
 
 onMounted(init);

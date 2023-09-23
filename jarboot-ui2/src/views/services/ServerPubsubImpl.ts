@@ -21,6 +21,7 @@ enum PUB_TOPIC {
   STATUS_CHANGE = 'statusChange',
   FOCUS_CMD_INPUT = 'focusCmdInput',
   ONLINE_DEBUG_EVENT = 'onlineDebugEvent',
+  NOT_TRUSTED = 'notTrusted',
 }
 
 class ServerPubsubImpl implements PublishSubmit {

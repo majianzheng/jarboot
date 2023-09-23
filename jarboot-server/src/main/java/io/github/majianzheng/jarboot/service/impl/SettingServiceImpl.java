@@ -19,8 +19,6 @@ import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +34,6 @@ import java.util.*;
  */
 @Service
 public class SettingServiceImpl implements SettingService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private TaskRunCache taskRunCache;
 
@@ -50,6 +47,27 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void submitServiceSetting(ServiceSetting setting) {
+        checkSetting(setting);
+        if (StringUtils.isEmpty(setting.getVm())) {
+            setting.setVm(SettingPropConst.DEFAULT_VM_FILE);
+        }
+        final String path = SettingUtils.getServicePath(setting.getName());
+        String sid = SettingUtils.createSid(path);
+        if (StringUtils.isNotEmpty(setting.getSid()) && !setting.getSid().equals(sid)) {
+            // 发生了重命名，获取工作空间下所有服务
+            renameService(setting, path);
+            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        }
+        File settingFile = SettingUtils.getServiceSettingFile(path);
+        Properties properties = fillSettingProperties(setting, path, settingFile);
+        saveSettingProperties(settingFile, properties);
+        // 保存vmContent
+        saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
+        //更新缓存配置，根据文件时间戳判定是否更新了
+        PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
+    }
+
+    private void checkSetting(ServiceSetting setting) {
         String type = setting.getApplicationType();
         if (StringUtils.isBlank(type)) {
             throw new JarbootRunException("应用类型不可为空！");
@@ -70,25 +88,18 @@ public class SettingServiceImpl implements SettingService {
         }
         if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
             // 周期执行
-            throw new JarbootRunException("定时任务功能暂未实现！");
+            if (StringUtils.isEmpty(setting.getCron())) {
+                throw new JarbootRunException("cron配置为空！");
+            }
+            if (taskRunCache.isScheduling(setting.getSid())) {
+                MessageUtils.warn("服务" + setting.getName() + "正在计划中，重启后生效当前配置！");
+            }
+        } else {
+            if (taskRunCache.isScheduling(setting.getSid())) {
+                taskRunCache.removeScheduleTask(setting);
+                MessageUtils.info("服务" + setting.getName() + "已移除定时任务计划");
+            }
         }
-        if (StringUtils.isEmpty(setting.getVm())) {
-            setting.setVm(SettingPropConst.DEFAULT_VM_FILE);
-        }
-        final String path = SettingUtils.getServicePath(setting.getName());
-        String sid = SettingUtils.createSid(path);
-        if (StringUtils.isNotEmpty(setting.getSid()) && !setting.getSid().equals(sid)) {
-            // 发生了重命名，获取工作空间下所有服务
-            renameService(setting, path);
-            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
-        }
-        File settingFile = SettingUtils.getServiceSettingFile(path);
-        Properties properties = fillSettingProperties(setting, path, settingFile);
-        saveSettingProperties(settingFile, properties);
-        // 保存vmContent
-        saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
-        //更新缓存配置，根据文件时间戳判定是否更新了
-        PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
     }
 
     private Properties fillSettingProperties(ServiceSetting setting, String path, File settingFile) {
@@ -127,6 +138,7 @@ public class SettingServiceImpl implements SettingService {
         }
         checkAndSet(path, setting, properties);
         properties.setProperty(SettingPropConst.SCHEDULE_TYPE, setting.getScheduleType());
+        properties.setProperty(SettingPropConst.SCHEDULE_CRON, setting.getCron());
         if (null == setting.getDaemon()) {
             properties.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
         } else {
@@ -267,21 +279,6 @@ public class SettingServiceImpl implements SettingService {
         } catch (IOException e) {
             throw new JarbootException("Write file error.", e);
         }
-    }
-
-    private File getConfAndCheck(String p) {
-        File file = SettingUtils.getServiceSettingFile(p);
-        if (!file.exists()) {
-            try {
-                boolean rlt = file.createNewFile();
-                if (!rlt) {
-                    logger.debug("Config file({}) create failed.", file.getPath());
-                }
-            } catch (IOException e) {
-                throw new JarbootException(ResultCodeConst.INTERNAL_ERROR, e);
-            }
-        }
-        return file;
     }
 
     private void checkDirExist(String path) {

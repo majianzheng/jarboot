@@ -63,7 +63,9 @@ public class CommonConst {
     public static final String RUNNING = "RUNNING";
     public static final String STOPPING = "STOPPING";
     public static final String STOPPED = "STOPPED";
-
+    public static final String SCHEDULING = "SCHEDULING";
+    public static final String ATTACHED = "ATTACHED";
+    public static final String NOT_ATTACHED = "NOT_ATTACHED";
     /**
      * 等待目标进程优雅退出的最大时间，毫秒
      */

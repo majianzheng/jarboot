@@ -95,7 +95,7 @@ public class UserController {
     public ResponseSimple updateUserPassword(String username, String oldPassword, String password, HttpServletRequest request) {
         String currentLoginUser = getCurrentLoginName(request);
         //只有ADMIN和自己可修改
-        if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || java.util.Objects.equals(username, currentLoginUser)) {
+        if (AuthConst.JARBOOT_USER.equals(currentLoginUser) || Objects.equals(username, currentLoginUser)) {
             userService.updateUserPassword(currentLoginUser, username, oldPassword, password);
         } else {
             return HttpResponseUtils.error(ResultCodeConst.VALIDATE_FAILED, "Only ROLE_ADMIN or self can modify the password!");

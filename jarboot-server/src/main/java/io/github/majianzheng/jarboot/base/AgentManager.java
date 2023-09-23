@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.base;
 
+import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,14 +69,24 @@ public class AgentManager {
         //目标进程上线
         AgentOperator client = clientMap.compute(sid, (k,v) -> new AgentOperator(serviceName, sid, session));
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
-        if (null == latch) {
-            client.setState(ClientState.ONLINE);
-            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
-        } else {
+        if (null != latch) {
             latch.countDown();
         }
-        String pid = TaskUtils.getPid(sid);
-        if (pid.isEmpty()) {
+        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
+        if (Objects.equals(sid, setting.getSid())) {
+            //属于受管理的服务
+            String pid = TaskUtils.getPid(sid);
+            localServices.put(pid, sid);
+            client.setPid(pid);
+            client.setTrusted(true);
+            client.setSetting(setting);
+            ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
+            NotifyReactor.getInstance().publishEvent(event);
+            boolean needNotifyStatus = (null == latch && ClientState.OFFLINE.equals(client.getState()));
+            if (needNotifyStatus && !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
+            }
+        } else {
             //非受管理的本地进程，通知前端Attach成功
             if (sid.startsWith(CommonConst.REMOTE_SID_PREFIX)) {
                 this.remoteJvm(client);
@@ -83,18 +95,9 @@ public class AgentManager {
                 client.setTrusted(true);
                 MessageUtils.upgradeStatus(sid, AttachStatus.ATTACHED);
             }
-        } else {
-            //属于受管理的服务
-            localServices.put(pid, sid);
-            client.setPid(pid);
-            client.setTrusted(true);
         }
-        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, serviceName);
-        if (Objects.equals(sid, setting.getSid())) {
-            client.setTrusted(true);
-            client.setSetting(setting);
-            ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
-            NotifyReactor.getInstance().publishEvent(event);
+        if (null == latch) {
+            client.setState(ClientState.ONLINE);
         }
     }
 
@@ -129,12 +132,15 @@ public class AgentManager {
             } finally {
                 //先移除，防止再次点击终止时，会去执行已经关闭的会话
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
-                if (null != client.getSetting()) {
-                    ServiceOfflineEvent event = new ServiceOfflineEvent(client.getSetting(), stopping);
+                ServiceSetting setting = client.getSetting();
+                if (null != setting) {
+                    ServiceOfflineEvent event = new ServiceOfflineEvent(setting, stopping);
                     NotifyReactor.getInstance().publishEvent(event);
                 }
                 client.setState(ClientState.OFFLINE);
-                MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
+                if (null == setting || !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                    MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
+                }
             }
         }
     }
@@ -160,13 +166,20 @@ public class AgentManager {
     }
 
     /**
-     * 获取远程服务列表
-     * @param list 远程服务列表
+     * 坚持是否存在
+     * @param sid sid
+     * @return 是否存在
      */
-    public void remoteProcess(List<JvmProcess> list) {
-        if (!remoteProcesses.isEmpty()) {
-            list.addAll(remoteProcesses.values());
-        }
+    public boolean exist(String sid) {
+        return clientMap.containsKey(sid);
+    }
+
+    /**
+     * 获取远程服务列表
+     * @return 远程服务列表
+     */
+    public List<JvmProcess> remoteProcess() {
+        return new ArrayList<>(this.remoteProcesses.values());
     }
 
     /**
@@ -216,13 +229,15 @@ public class AgentManager {
      * 等待服务启动完成
      * @param setting 服务配置
      * @param millis 时间
+     * @param callback 任务
      */
-    public void waitServiceStarted(ServiceSetting setting, int millis) {
+    public void waitServiceStarted(ServiceSetting setting, int millis, Runnable callback) {
         String sid = setting.getSid();
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             CountDownLatch latch = startingLatchMap.computeIfAbsent(sid, k -> new CountDownLatch(1));
             try {
+                callback.run();
                 if (!latch.await(CommonConst.MAX_AGENT_CONNECT_TIME, TimeUnit.SECONDS)) {
                     logger.error("Wait service connect timeout, sid:{}", sid);
                 }
@@ -237,6 +252,9 @@ public class AgentManager {
                 MessageUtils.console(sid, msg);
                 return;
             }
+        } else {
+            // 已经启动
+            return;
         }
 
         synchronized (client) {
@@ -253,6 +271,7 @@ public class AgentManager {
                 //ignore
                 Thread.currentThread().interrupt();
             }
+            logger.debug("{}等待启动完成！", client.getName());
         }
     }
 
@@ -262,7 +281,7 @@ public class AgentManager {
      */
     public void addTrustedHost(String host) {
         remoteProcesses.forEach((k, v) -> {
-            if (java.util.Objects.equals(v.getRemote(), host)) {
+            if (Objects.equals(v.getRemote(), host)) {
                 AgentOperator client = clientMap.getOrDefault(k, null);
                 if (null != client) {
                     client.setTrusted(true);
@@ -293,7 +312,7 @@ public class AgentManager {
         String pid = s[1];
         String remoteIp = s[2];
         String name = s[3];
-        process.setAttached(true);
+        process.setStatus(CommonConst.ATTACHED);
         process.setPid(pid);
         process.setName(name);
         process.setSid(sid);
@@ -461,12 +480,11 @@ public class AgentManager {
             return;
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
-        if (null == client || !ClientState.ONLINE.equals(client.getState())) {
+        if (null == client) {
             this.online(userDir, serviceName, session, sid);
             this.onServiceStarted(sid);
-            MessageUtils.console(sid, "reconnected by heartbeat!");
+            MessageUtils.info(serviceName + "恢复连接!");
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
-            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
             client = clientMap.getOrDefault(sid, null);
             if (null != client) {
                 client.heartbeat();
@@ -536,6 +554,11 @@ public class AgentManager {
                 sendInternalCommand(sid, CommandConst.CANCEL_CMD, event.getSessionId());
                 break;
             case TRUST_ONCE_FUNC:
+                trustOnce(sid);
+                break;
+            case TRUST_ALWAYS_FUNC:
+                SettingUtils.addTrustedHost(event.getBody());
+                addTrustedHost(event.getBody());
                 trustOnce(sid);
                 break;
             case CHECK_TRUSTED_FUNC:

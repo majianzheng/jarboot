@@ -24,16 +24,25 @@ public class FuncReceivedEvent extends FuncRequest implements JarbootEvent {
     public enum FuncCode {
         /** 执行命令func */
         CMD_FUNC,
+
         /** 取消执行命令func */
         CANCEL_FUNC,
+
         /** 信任主机func */
         TRUST_ONCE_FUNC,
+
         /** 检查是否信任主机func */
         CHECK_TRUSTED_FUNC,
+
         /** 断开诊断 */
         DETACH_FUNC,
+
+        /** 信任主机func */
+        TRUST_ALWAYS_FUNC,
+
         /** 连接关闭 */
         SESSION_CLOSED_FUNC,
+
         /** 无效 */
         FUNC_MAX
     }

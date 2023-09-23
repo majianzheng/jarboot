@@ -382,15 +382,15 @@ const updateCpuChart = (history: any[]) => {
 function updateMemChart() {
   let isDark = checkIsDark();
   const heap = (props.data.memoryInfo[state.memoryType] || []) as any[];
-  const total = round(heap[0].used / MB_NUM, PRECISION);
+  const total = round(Math.max(heap[0].used / MB_NUM, 0), PRECISION);
   let index = 0;
   const placeHoldData = heap.map((r, i) => {
-    const used = round(r.used / MB_NUM, PRECISION);
+    const used = round(Math.max(r.used / MB_NUM), PRECISION);
     const value = total - used - index;
     if (i > 0) {
       index = index + used;
     }
-    return value;
+    return Math.max(0, value);
   });
   const option = {
     title: {
@@ -418,7 +418,7 @@ function updateMemChart() {
         const totalValue = round(heap[tar.dataIndex].total / MB_NUM, PRECISION);
         return `${tar.name}<br/>${tar.seriesName} : ${tar.value} Mb<br/>${CommonUtils.translate(
           'SUBMITTED'
-        )} : ${totalValue} Mb<br/>${CommonUtils.translate('MAX')} : ${max} Mb`;
+        )} : ${Math.max(0, totalValue)} Mb<br/>${CommonUtils.translate('MAX')} : ${Math.max(0, max)} Mb`;
       },
     },
     grid: {
@@ -463,11 +463,11 @@ function updateMemChart() {
           position: 'inside',
           formatter: function (params) {
             const totalSize = round(heap[params.dataIndex].total / MB_NUM, PRECISION);
-            return `${totalSize} Mb\n${params.value} Mb`;
+            return `${Math.max(0, totalSize)} Mb\n${params.value} Mb`;
           },
         },
         color: COLOR,
-        data: heap.map((r, i) => ({ value: round(r.used / MB_NUM, PRECISION), itemStyle: { color: COLOR[i % COLOR.length] } })),
+        data: heap.map((r, i) => ({ value: round(Math.max(0, r.used / MB_NUM), PRECISION), itemStyle: { color: COLOR[i % COLOR.length] } })),
       },
     ],
   } as EChartsOption;
@@ -556,7 +556,7 @@ const cpuColorFormat = (cpu: number) => {
   border-radius: 4px;
   opacity: 1;
   background: linear-gradient(180deg, var(--board-panel-body-color) 0%, rgba(229, 240, 252, 0.3) 100%);
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
 }
 .mem-board-tool {
   position: absolute;

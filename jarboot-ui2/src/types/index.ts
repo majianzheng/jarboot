@@ -137,8 +137,8 @@ export interface ServiceInstance extends TreeNode {
   nodeType: number;
   pid: string;
 
-  remote: boolean;
-
+  remote: string;
+  trusted: boolean;
   attached: boolean;
   children?: ServiceInstance[];
 }

@@ -20,5 +20,7 @@ public enum TaskLifecycle {
     /** 异常离线 */
     EXCEPTION_OFFLINE,
     /** 完成 */
-    FINISHED
+    FINISHED,
+    /** 计划中 */
+    SCHEDULING,
 }

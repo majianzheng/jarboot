@@ -73,9 +73,6 @@
 </style>
 <template>
   <div class="vue3-cron-div">
-    <el-button v-if="languageSwitchShow" class="language" type="text" @click="state.language = state.language === 'en-US' ? 'zh-CN' : 'en-US'">{{
-      state.language === 'en-US' ? 'zh-CN' : 'en-US'
-    }}</el-button>
     <el-tabs type="border-card">
       <el-tab-pane>
         <template #label>
@@ -221,7 +218,7 @@
                   v-for="(val, index) in 7"
                   :key="index"
                   :label="state.text.Week[val - 1]"
-                  :value="['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][val - 1]"></el-option>
+                  :value="state.weeks[val - 1]"></el-option>
               </el-select>
             </el-radio>
           </el-row>
@@ -320,23 +317,23 @@
               >{{ state.text.Year.interval[0] }}
               <el-input-number size="small" v-model="state.year.incrementIncrement" :min="1" :max="99"></el-input-number>
               {{ state.text.Year.interval[1] }}
-              <el-input-number size="small" v-model="state.year.incrementStart" :min="2018" :max="2118"></el-input-number>
+              <el-input-number size="small" v-model="state.year.incrementStart" :min="state.curYear" :max="state.curYear + 100"></el-input-number>
             </el-radio>
           </el-row>
           <el-row>
             <el-radio class="long" v-model="state.year.cronEvery" label="3"
               >{{ state.text.Year.specific }}
               <el-select size="small" filterable multiple v-model="state.year.specificSpecific">
-                <el-option v-for="(val, index) in 100" :key="index" :label="2017 + val" :value="2017 + val"></el-option>
+                <el-option v-for="(val, index) in 100" :key="index" :label="state.curYear + val - 1" :value="state.curYear + val - 1"></el-option>
               </el-select>
             </el-radio>
           </el-row>
           <el-row>
-            <el-radio v-model="state.year.cronEvery" label="4"
-              >{{ state.text.Year.cycle[0] }}
-              <el-input-number size="small" v-model="state.year.rangeStart" :min="2018" :max="2118"></el-input-number>
+            <el-radio v-model="state.year.cronEvery" label="4">
+              {{ state.text.Year.cycle[0] }}
+              <el-input-number size="small" v-model="state.year.rangeStart" :min="state.curYear" :max="state.curYear + 100"></el-input-number>
               {{ state.text.Year.cycle[1] }}
-              <el-input-number size="small" v-model="state.year.rangeEnd" :min="2018" :max="2118"></el-input-number>
+              <el-input-number size="small" v-model="state.year.rangeEnd" :min="state.curYear" :max="state.curYear + 100"></el-input-number>
             </el-radio>
           </el-row>
         </div>
@@ -345,7 +342,7 @@
     <div class="bottom">
       <div class="value">
         <span> cron {{ $t('PREVIEW') }}: </span>
-        <el-tag>{{ state.cron }}</el-tag>
+        <el-tag key="cron-tag">{{ state.cron }}</el-tag>
       </div>
       <div class="buttonDiv">
         <el-button type="primary" size="small" @click.stop="handleChange">{{ state.text.Save }}</el-button>
@@ -357,18 +354,20 @@
 <script>
 import Language from './language';
 import { reactive, computed, toRefs, defineComponent } from 'vue';
+import StringUtil from "@/common/StringUtil";
 export default defineComponent({
   name: 'cron-editor',
   props: {
     cronValue: {},
     i18n: {},
     maxHeight: {},
-    languageSwitchShow: false,
   },
   setup(props, { emit }) {
     const { i18n } = toRefs(props);
     const state = reactive({
       language: i18n.value,
+      weeks: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
+      curYear: new Date().getFullYear(),
       second: {
         cronEvery: '1',
         incrementStart: 3,
@@ -623,6 +622,7 @@ export default defineComponent({
         } ${state.weeksText || '?'} ${state.yearsText || '*'}`;
       }),
     });
+
     const getValue = () => {
       return state.cron;
     };
@@ -656,6 +656,109 @@ export default defineComponent({
       handleChange,
       rest,
     };
+  },
+  methods: {
+    parseCron() {
+      const cronValue = this.cronValue;
+      if (!cronValue) {
+        return;
+      }
+      const array = cronValue.split(' ');
+      // 处理日和星期
+      const dayText = array[3];
+      const weekText = array[5];
+      const dayObj = {
+        cronEvery: '1',
+        incrementStart: 1,
+        incrementIncrement: 1,
+        rangeStart: 0,
+        rangeEnd: 0,
+        specificSpecific: [],
+        cronLastSpecificDomDay: 1,
+        cronDaysBeforeEomMinus: 0,
+        cronDaysNearestWeekday: 0,
+      };
+      const weekObj = {
+        cronEvery: '1',
+        incrementStart: 1,
+        incrementIncrement: 1,
+        specificSpecific: [],
+        cronNthDayDay: 1,
+        cronNthDayNth: 1,
+      };
+      if ('L' === dayText) {
+        dayObj.cronEvery = '6';
+      } else if ('LW' === dayText) {
+        dayObj.cronEvery = '7';
+      } else if (dayText.endsWith('L')) {
+        dayObj.cronEvery = '8';
+        dayObj.cronLastSpecificDomDay = parseInt(dayText.replace('L', ''));
+      } else if (dayText.startsWith('L-')) {
+        dayObj.cronEvery = '9';
+        dayObj.cronDaysBeforeEomMinus = parseInt(dayText.replace('L-', ''));
+      } else if (dayText.endsWith('W')) {
+        dayObj.cronEvery = '10';
+        dayObj.cronDaysNearestWeekday = parseInt(dayText.replace('W', ''));
+      } else if (weekText.includes('/')) {
+        dayObj.cronEvery = '2';
+        const temp = weekText.split('/');
+        weekObj.incrementStart = parseInt(temp[0]);
+        weekObj.incrementIncrement = parseInt(temp[1]);
+      } else if (dayText.includes('/')) {
+        dayObj.cronEvery = '3';
+        const temp = dayText.split('/');
+        dayObj.incrementStart = parseInt(temp[0]);
+        dayObj.incrementIncrement = parseInt(temp[1]);
+      } else if ('?' === dayText && (this.state.weeks.includes(weekText) || weekText.includes(','))) {
+        dayObj.cronEvery = '4';
+        weekObj.specificSpecific = weekText.split(',');
+      } else if ('?' === weekText && (StringUtil.isNumber(dayText) || dayText.includes(','))) {
+        dayObj.cronEvery = '5';
+        dayObj.specificSpecific = dayText.split(',').map(row => parseInt(row));
+      } else if (weekText.includes('#')) {
+        dayObj.cronEvery = '11';
+        const temp = weekText.split('#');
+        weekObj.cronNthDayDay = parseInt(temp[0]);
+        weekObj.cronNthDayNth = parseInt(temp[1]);
+      }
+      this.state.day = dayObj;
+      this.state.week = weekObj;
+
+      // 处理秒、分钟、小时、月、年
+      const texts = [array[0], array[1], array[2], array[4], array[6]];
+      const tabData = [this.state.second, this.state.minute, this.state.hour, this.state.month, this.state.year];
+      for (let i = 0; i < texts.length; ++i) {
+        const text = texts[i];
+        if (!text) {
+          continue;
+        }
+        const data = tabData[i];
+        if ('*' === text) {
+          data.cronEvery = '1';
+        } else if (text.includes('/')) {
+          data.cronEvery = '2';
+          const temp = text.split('/');
+          data.incrementStart = parseInt(temp[0]);
+          data.incrementIncrement = parseInt(temp[1]);
+        } else if (text.includes(',') || StringUtil.isNumber(text)) {
+          data.cronEvery = '3';
+          data.specificSpecific = text.split(',').map(row => parseInt(row));
+        } else if (text.includes('-')) {
+          data.cronEvery = '4';
+          const temp = text.split('-');
+          data.rangeStart = parseInt(temp[0]);
+          data.rangeEnd = parseInt(temp[1]);
+        }
+      }
+    },
+  },
+  watch: {
+    cronValue() {
+      this.parseCron();
+    },
+  },
+  mounted() {
+    this.parseCron();
   },
 });
 </script>

@@ -89,5 +89,10 @@ public class CommonUtils {
         response.setHeader("content-type", "file");
         response.setContentType("application/octet-stream");
     }
+
+    public static String createJvmSid(String pid) {
+        return String.format("%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode());
+    }
+
     private CommonUtils() {}
 }

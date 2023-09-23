@@ -64,5 +64,13 @@
       <source>conf/cluster.conf</source>
       <destName>conf/cluster.conf</destName>
     </file>
+    <file>
+      <source>../README.md</source>
+      <destName>README.md</destName>
+    </file>
+    <file>
+      <source>../README_CN.md</source>
+      <destName>README_CN.md</destName>
+    </file>
   </files>
 </assembly>

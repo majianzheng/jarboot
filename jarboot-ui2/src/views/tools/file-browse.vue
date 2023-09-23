@@ -110,7 +110,8 @@ onMounted(async () => {
           @after-load="state.reloading = false"></file-manager>
         <file-manager
           :with-root="true"
-          v-for="host in state.clusterHosts"
+          v-for="(host, i) in state.clusterHosts"
+          :key="i"
           :show-cluster-host-in-root="true"
           :cluster-host="host"
           :base-dir="userStore.userDir"

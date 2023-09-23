@@ -22,10 +22,7 @@ import io.github.majianzheng.jarboot.task.AttachStatus;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.event.ServiceOfflineEvent;
-import io.github.majianzheng.jarboot.utils.MessageUtils;
-import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
-import io.github.majianzheng.jarboot.utils.SettingUtils;
-import io.github.majianzheng.jarboot.utils.TaskUtils;
+import io.github.majianzheng.jarboot.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,7 +180,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //记录开始时间
             long startTime = System.currentTimeMillis();
             //开始启动进程
-            TaskUtils.startService(setting);
+            if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                taskRunCache.addScheduleTask(setting);
+            } else {
+                TaskUtils.startService(setting);
+            }
             //记录启动结束时间，减去判定时间修正
 
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
@@ -195,13 +196,18 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                         .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STARTED));
             } else {
                 //启动失败
-                MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
                 if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
                     NotifyReactor
                             .getInstance()
                             .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
                     MessageUtils.error("启动服务" + server + "失败！");
+                } else if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                    NotifyReactor
+                            .getInstance()
+                            .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.SCHEDULING));
+                    MessageUtils.info("服务" + server + "已加入定时任务计划");
                 } else {
+                    MessageUtils.console(sid, String.format(STARTED_MSG, server, costTime));
                     NotifyReactor
                             .getInstance()
                             .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.FINISHED));
@@ -241,16 +247,21 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                 return;
             }
             JvmProcess process = new JvmProcess();
+            String sid = CommonUtils.createJvmSid(pid);
             process.setHost(ClusterClientManager.getInstance().getSelfHost());
-            process.setSid(String.format("%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode()));
+            process.setSid(sid);
             process.setPid(pid);
-            process.setAttached(AgentManager.getInstance().isOnline(pid));
+            String status = AgentManager.getInstance().isOnline(sid) ? CommonConst.ATTACHED : CommonConst.NOT_ATTACHED;
+            process.setStatus(status);
             process.setFullName(v);
             //解析获取简略名字
             process.setName(TaskUtils.parseCommandSimple(v));
             result.add(process);
         });
-        AgentManager.getInstance().remoteProcess(result);
+        Collection<JvmProcess> remoteGroups = getRemoteJvmGroup();
+        if (!remoteGroups.isEmpty()) {
+            result.addAll(remoteGroups);
+        }
         return result;
     }
 
@@ -259,14 +270,15 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         if (StringUtils.isEmpty(pid)) {
             throw new JarbootException("pid is empty!");
         }
+        String sid = CommonUtils.createJvmSid(pid);
         Object vm = null;
-        MessageUtils.upgradeStatus(pid, AttachStatus.ATTACHING);
+        MessageUtils.upgradeStatus(sid, AttachStatus.ATTACHING);
         try {
             vm = VMUtils.getInstance().attachVM(pid);
             String args = SettingUtils.getLocalhost();
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), args);
         } catch (Exception e) {
-            MessageUtils.printException(pid, e);
+            MessageUtils.printException(sid, e);
         } finally {
             if (null != vm) {
                 VMUtils.getInstance().detachVM(vm);
@@ -386,6 +398,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //记录开始时间
             long startTime = System.currentTimeMillis();
             TaskUtils.killService(sid);
+            if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                taskRunCache.removeScheduleTask(setting);
+                MessageUtils.info("服务" + server + "已移除定时任务计划");
+            }
             //耗时
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
             //停止成功
@@ -493,7 +509,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
 
     private void tryReAttach(ServiceSetting setting) {
         final String sid = setting.getSid();
-        if (taskRunCache.isStartingOrStopping(sid) || AgentManager.getInstance().isOnline(sid)) {
+        if (taskRunCache.isStartingOrStopping(sid) || AgentManager.getInstance().isOnline(sid) || taskRunCache.isScheduling(sid)) {
             return;
         }
         String pid = TaskUtils.getPid(sid);
@@ -513,5 +529,25 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     @Override
     public Class<? extends JarbootEvent> subscribeType() {
         return ServiceOfflineEvent.class;
+    }
+
+    private static Collection<JvmProcess> getRemoteJvmGroup() {
+        List<JvmProcess> remoteJvm = AgentManager.getInstance().remoteProcess();
+        Map<String, JvmProcess> remoteGroupMap = new HashMap<>(16);
+        for (JvmProcess jvm : remoteJvm) {
+            remoteGroupMap.compute(jvm.getRemote(), (k, v) -> {
+                if (null == v) {
+                    v = new JvmProcess();
+                    v.setName(k);
+                    v.setHost(v.getHost());
+                    v.setSid(CommonUtils.createJvmSid("jvm-group" + k));
+                    v.setNodeType(CommonConst.NODE_GROUP);
+                    v.setChildren(new ArrayList<>());
+                }
+                v.getChildren().add(jvm);
+                return v;
+            });
+        }
+        return remoteGroupMap.values();
     }
 }

@@ -8,7 +8,6 @@ import java.util.List;
 public class JvmProcess extends BaseInstanceNode {
     private String pid;
     private String fullName;
-    private Boolean attached;
     private String remote;
     private Boolean trusted;
     private List<JvmProcess> children;
@@ -27,14 +26,6 @@ public class JvmProcess extends BaseInstanceNode {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public Boolean getAttached() {
-        return attached;
-    }
-
-    public void setAttached(Boolean attached) {
-        this.attached = attached;
     }
 
     public String getRemote() {
@@ -66,7 +57,6 @@ public class JvmProcess extends BaseInstanceNode {
         return "JvmProcess{" +
                 "pid='" + pid + '\'' +
                 ", fullName='" + fullName + '\'' +
-                ", attached=" + attached +
                 ", remote='" + remote + '\'' +
                 ", trusted=" + trusted +
                 ", children=" + children +

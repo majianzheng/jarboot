@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ServiceInstance } from '@/types';
-import { useBasicStore, useServiceStore } from '@/stores';
+import type { ServiceInstance } from '@/types';
+import { useServiceStore } from '@/stores';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { computed, reactive } from 'vue';
@@ -25,7 +25,6 @@ const state = reactive({
   deleting: false,
 });
 const route = useRoute();
-const basic = useBasicStore();
 const serviceStore = useServiceStore();
 const isService = PAGE_SERVICE === route.name;
 const isServiceNode = computed(() => {
@@ -54,7 +53,7 @@ function getSelectLoop(nodes: ServiceInstance[], services: ServiceInstance[]) {
   return services;
 }
 function exportServer() {
-  if (isServiceNode && props.lastClickedNode?.name) {
+  if (isServiceNode.value && props.lastClickedNode?.name) {
     CommonUtils.exportServer(props.lastClickedNode.name, props.lastClickedNode?.host || '');
   }
 }
@@ -127,36 +126,53 @@ function onImport() {
 
 <template>
   <div class="common-bar __tool-bar">
-    <div v-if="isService" @click="startServices" class="tool-button tool-button-icon">
-      <icon-pro icon="CaretRight"></icon-pro>
+    <div v-if="isService" @click="startServices" class="tool-button">
+      <el-tooltip :content="$t('START')" placement="right">
+        <icon-pro icon="CaretRight" class="tool-button-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div v-if="isService" @click="stopServices" class="tool-button tool-button-icon">
-      <icon-pro icon="SwitchButton" class="tool-button-red-icon"></icon-pro>
+    <div v-if="isService" @click="stopServices" class="tool-button">
+      <el-tooltip :content="$t('STOP')" placement="right">
+        <icon-pro icon="SwitchButton" class="tool-button-red-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div v-if="isService" @click="restartServices" class="tool-button tool-button-icon">
-      <icon-pro icon="icon-restart"></icon-pro>
+    <div v-if="isService" @click="restartServices" class="tool-button">
+      <el-tooltip :content="$t('RESTART')" placement="right">
+        <icon-pro icon="icon-restart" class="tool-button-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div @click="reload" class="tool-button tool-button-icon">
-      <icon-pro icon="Refresh"></icon-pro>
+    <div @click="reload" class="tool-button">
+      <el-tooltip :content="$t('REFRESH_BTN')" placement="right">
+        <icon-pro icon="Refresh" class="tool-button-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div v-if="isService" @click="emit('new-service')" class="tool-button tool-button-icon">
-      <icon-pro icon="Plus"></icon-pro>
+    <div v-if="isService" @click="emit('new-service')" class="tool-button">
+      <el-tooltip :content="$t('CREATE')" placement="right">
+        <icon-pro icon="Plus" class="tool-button-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div @click="emit('dashboard')" class="tool-button tool-button-red-icon" :class="{ disabled: !activated?.sid }">
-      <icon-pro icon="icon-dashboard"></icon-pro>
+    <div @click="emit('dashboard')" class="tool-button" :class="{ disabled: !activated?.sid }">
+      <el-tooltip :content="$t('DASHBOARD')" placement="right">
+        <icon-pro icon="icon-dashboard" class="tool-button-red-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div v-if="isService" class="tool-button tool-button-icon" :class="{ disabled: state.importing }" @click="onImport">
-      <icon-pro :icon="state.importing ? 'Loading' : 'icon-import'" :class="{ 'ui-spin': state.importing }"></icon-pro>
+    <div v-if="isService" class="tool-button" :class="{ disabled: state.importing }" @click="onImport">
+      <el-tooltip :content="$t('IMPORT')" placement="right">
+        <icon-pro
+          :icon="state.importing ? 'Loading' : 'icon-import'"
+          class="tool-button-icon"
+          :class="{ 'ui-spin': state.importing }"></icon-pro>
+      </el-tooltip>
     </div>
-    <div v-if="isService" class="tool-button tool-button-icon" :class="{ disabled: !isServiceNode }" @click="exportServer">
-      <icon-pro icon="icon-export"></icon-pro>
+    <div v-if="isService" class="tool-button" :class="{ disabled: !isServiceNode }" @click="exportServer">
+      <el-tooltip :content="$t('EXPORT')" placement="right">
+        <icon-pro icon="icon-export" class="tool-button-icon"></icon-pro>
+      </el-tooltip>
     </div>
-    <div
-      v-if="isService"
-      @click="deleteService"
-      :class="{ disabled: !getSelected()?.length || state.deleting }"
-      class="tool-button tool-button-red-icon">
-      <icon-pro :icon="state.deleting ? 'Loading' : 'Delete'" :class="{ 'ui-spin': state.deleting }"></icon-pro>
+    <div v-if="isService" @click="deleteService" :class="{ disabled: !getSelected()?.length || state.deleting }" class="tool-button">
+      <el-tooltip :content="$t('DELETE')" placement="right">
+        <icon-pro :icon="state.deleting ? 'Loading' : 'Delete'" class="tool-button-red-icon" :class="{ 'ui-spin': state.deleting }"></icon-pro>
+      </el-tooltip>
     </div>
   </div>
 </template>

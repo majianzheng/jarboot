@@ -20,15 +20,30 @@ function getFileIcon(): string {
   const extend = props.filename.substring(i + 1);
   switch (extend) {
     case 'js':
+    case 'jsx':
       return 'icon-javascript';
+    case 'json':
+      return 'icon-json';
+    case 'ts':
+    case 'tsx':
+      return 'icon-typescript';
     case 'jar':
       return 'icon-jar';
-    case 'exe':
-      return 'icon-exe';
+    case 'java':
+      return 'icon-java';
+    case 'css':
+    case 'scss':
+      return 'icon-css';
+    case 'less':
+      return 'icon-less';
     case 'py':
       return 'icon-python';
     case 'go':
       return 'icon-golang';
+    case 'vue':
+      return 'icon-vue';
+    case 'exe':
+      return 'icon-exe';
     case 'sh':
     case 'cmd':
     case 'bat':
@@ -53,6 +68,6 @@ function getFileIcon(): string {
 
 <template>
   <span>
-    <icon-pro :icon="getFileIcon()"></icon-pro>
+    <icon-pro :icon="getFileIcon()" :svg="true"></icon-pro>
   </span>
 </template>

@@ -44,6 +44,7 @@
             v-show="serviceState.activated.sid === s.sid"
             :cluster-host="s.host"
             :sid="(s.sid as string)"
+            :status="s.status"
             @close="closeServiceTerminal(s)"
             @execute="(cmd, cols, rows) => doCommand(s, cmd, cols, rows)"
             @cancel="doCancel(s)"
@@ -58,11 +59,21 @@
       :is-new="serviceState.isNew"
       :setting="serviceState.configForm"
       :activated="serviceState.activated"></service-config>
+    <el-dialog v-model="serviceState.trustedDialog" :title="$t('WARN')" width="30%" draggable destroy-on-close @closed="onDestroyed">
+      <p>{{ serviceState.notTrustedMsg }}</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="serviceState.trustedDialog = false">{{ $t('CANCEL') }}</el-button>
+          <el-button type="primary" @click="onTrustOnce">{{ $t('TRUST_ONCE') }}</el-button>
+          <el-button type="primary" @click="onTrustAlways">{{ $t('TRUST_ALWAYS') }}</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import { ElForm, ElMessageBox, ElTree } from 'element-plus';
+import { ElTree } from 'element-plus';
 import { STATUS_STARTING } from '@/common/CommonConst';
 import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import { WsManager } from '@/common/WsManager';
@@ -105,7 +116,6 @@ const defaultSetting: ServerSetting = {
 };
 
 const treeRef = ref<InstanceType<typeof ElTree>>();
-const configRef = ref<InstanceType<typeof ElForm>>();
 
 const route = useRoute();
 const basic = useBasicStore();
@@ -127,6 +137,9 @@ const serviceState = reactive({
   currentNode: [] as ServiceInstance[],
   checked: [] as ServiceInstance[],
   configForm: { ...defaultSetting },
+  trustedDialog: false,
+  notTrustedService: null as ServiceInstance | null,
+  notTrustedMsg: '',
 });
 
 function getWidth() {
@@ -185,20 +198,6 @@ const onStatusChange = (data: MsgData) => {
 };
 const reload = () => (isService ? serviceStore.reload() : serviceStore.reloadJvmList());
 
-function detach(server: ServiceInstance) {
-  if (!server.sid) {
-    return;
-  }
-  const sid = server.sid || '';
-  if (server.remote) {
-    ElMessageBox.confirm(CommonUtils.translate('DETACH_MSG'), CommonUtils.translate('WARN'), { type: 'warning' }).then(() => {
-      WsManager.callFunc(FuncCode.DETACH_FUNC, sid, server.host);
-    });
-  } else {
-    WsManager.callFunc(FuncCode.DETACH_FUNC, sid, server.host);
-  }
-}
-
 function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   serviceState.lastClickedNode = data;
   if (node.isLeaf && 1 !== data.nodeType) {
@@ -256,18 +255,52 @@ function setStatus(sid: string, status: string) {
   }
 }
 
+function onDestroyed() {
+  serviceState.notTrustedService = null;
+  serviceState.notTrustedMsg = '';
+}
+function onTrustOnce() {
+  if (!serviceState.notTrustedService?.remote) {
+    return;
+  }
+  const sid = serviceState.notTrustedService.sid;
+  const host = serviceState.notTrustedService.host;
+  const remote = serviceState.notTrustedService.remote;
+  sid && WsManager.callFunc(FuncCode.TRUST_ONCE_FUNC, sid, host, remote);
+  serviceState.trustedDialog = false;
+}
+
+function onTrustAlways() {
+  if (!serviceState.notTrustedService?.remote) {
+    return;
+  }
+  const sid = serviceState.notTrustedService.sid;
+  const host = serviceState.notTrustedService.host;
+  const remote = serviceState.notTrustedService.remote;
+  sid && WsManager.callFunc(FuncCode.TRUST_ALWAYS_FUNC, sid, host, remote);
+  serviceState.trustedDialog = false;
+}
+
+function onNotTrusted(data: ServiceInstance) {
+  serviceState.notTrustedService = data;
+  serviceState.notTrustedMsg = CommonUtils.translate('UNTRUSTED_MODEL_BODY', { host: data.remote });
+  serviceState.trustedDialog = true;
+}
+
 onMounted(() => {
   reload();
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, reload);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
+  pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
 });
 onUnmounted(() => {
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.WORKSPACE_CHANGE, reload);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
+  pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
 });
 </script>
 

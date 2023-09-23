@@ -99,11 +99,11 @@ onMounted(() => {
             <div style="display: flex">
               <el-avatar>
                 <img v-if="user.avatar" :src="user.avatar" height="40" width="40" alt="avatar" />
-                <SvgIcon v-else icon="panda" style="width: 26px; height: 26px" />
+                <svg-icon v-else icon="icon-panda" style="width: 26px; height: 26px" />
               </el-avatar>
               <div style="line-height: 40px; margin-left: 5px">
                 <span>{{ user.fullName || user.username }}</span>
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                <icon-pro icon="ArrowDown" class="el-icon--right"></icon-pro>
               </div>
             </div>
             <template #dropdown>

@@ -73,9 +73,10 @@ class WsManager {
    * @param func 功能id
    * @param sid sid
    * @param host host
+   * @param body
    */
-  public static callFunc(func: FuncCode, sid: string, host: string) {
-    WsManager.sendMessage({ service: '', sid, body: '', func, host } as MsgReq);
+  public static callFunc(func: FuncCode, sid: string, host: string, body = '') {
+    WsManager.sendMessage({ service: '', sid, body, func, host } as MsgReq);
   }
 
   /**

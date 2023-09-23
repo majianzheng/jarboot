@@ -5,12 +5,10 @@ import { onMounted, reactive, ref } from 'vue';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { canEdit } from '@/components/editor/LangUtils';
-import { useRoute } from 'vue-router';
 import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
 import { round } from 'lodash';
 import type Node from 'element-plus/es/components/tree/src/model/node';
-import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 import Request from '@/common/Request';
 import type { AxiosProgressEvent } from 'axios';
 import FileRow from '@/components/file-manager/file-row.vue';
@@ -58,9 +56,7 @@ const state = reactive({
   file: { path: '', content: '' },
   data: [] as FileNode[],
 });
-const route = useRoute();
 const treeRef = ref<InstanceType<typeof ElTree>>();
-const prefix = `${route.name as string}-${Date.now()}`;
 async function reload() {
   state.loading = true;
   try {
@@ -131,16 +127,6 @@ async function handleDelete(node: any) {
   await FileService.deleteFile(path, props.clusterHost);
   await reload();
   CommonNotice.success(`${CommonUtils.translate('DELETE')}${CommonUtils.translate('SUCCESS')}`);
-}
-
-function getHeader() {
-  const headers = new Headers();
-  headers.set('Authorization', CommonUtils.getToken());
-  const host = CommonUtils.getCurrentHost();
-  if (host) {
-    headers.set(ACCESS_CLUSTER_HOST, host);
-  }
-  return headers;
 }
 
 function handleSuccess(file: File, data: FileNode) {

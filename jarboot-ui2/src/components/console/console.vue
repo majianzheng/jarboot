@@ -832,27 +832,4 @@ onUnmounted(() => {
     -webkit-transform: scale(1);
   }
 }
-//闪烁
-@keyframes blink {
-  from {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@-webkit-keyframes blink {
-  from {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-  to {
-    opacity: 1;
-  }
-}
 </style>

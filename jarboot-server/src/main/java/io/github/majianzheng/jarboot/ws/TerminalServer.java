@@ -52,7 +52,7 @@ public class TerminalServer {
     @OnError
     public void onError(Throwable error, Session session) {
         logger.debug(error.getMessage(), error);
-        if (error instanceof java.lang.UnsupportedClassVersionError) {
+        if (error instanceof UnsupportedClassVersionError) {
             MessageUtils.warn("终端功能需要JDK 11或以上版本！");
         } else {
             MessageUtils.warn("终端启动失败：" + error.getMessage());

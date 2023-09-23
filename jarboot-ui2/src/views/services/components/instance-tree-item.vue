@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
+import { STATUS_ATTACHED, STATUS_SCHEDULING, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 import type { ServiceInstance, TreeNode } from '@/types';
 import { useBasicStore, useServiceStore } from '@/stores';
 import { ElMessageBox } from 'element-plus';
@@ -44,25 +44,34 @@ function detach(server: ServiceInstance) {
   }
 }
 function getStatusIcon() {
-  if (props.isService && STATUS_STOPPED === props.data.status) {
+  if (props.isService) {
+    if (STATUS_STOPPED === props.data.status) {
+      return { icon: 'SuccessFilled', className: 'status-stopped' };
+    }
+    if (STATUS_STARTED === props.data.status) {
+      return { icon: 'CaretRight', className: 'status-running' };
+    }
+    if (STATUS_STOPPING === props.data.status) {
+      return { icon: 'Loading', className: 'status-stopping ui-spin' };
+    }
+    if (STATUS_SCHEDULING === props.data.status) {
+      return { icon: 'Timer', className: 'status-running ui-blink' };
+    }
+    if (STATUS_STARTING === props.data.status) {
+      return { icon: 'Loading', className: 'status-starting ui-spin' };
+    }
     return { icon: 'SuccessFilled', className: 'status-stopped' };
-  }
-  if (STATUS_STARTING === props.data.status || props.data.attaching) {
-    return { icon: 'Loading', className: 'status-starting ui-spin' };
-  }
-  if (STATUS_STOPPING === props.data.status) {
-    return { icon: 'Loading', className: 'status-stopping ui-spin' };
-  }
-  if (props.isService && STATUS_STARTED === props.data.status) {
-    return { icon: 'CaretRight', className: 'status-running' };
-  }
-  if (props.data.attached) {
-    return { icon: 'icon-debug', className: 'status-running' };
-  }
-  if (props.data.pid) {
+  } else {
+    if (props.data.attaching) {
+      // 正在attach
+      return { icon: 'Loading', className: 'status-starting ui-spin' };
+    }
+    if (STATUS_ATTACHED === props.data.status) {
+      const icon = props.data.remote ? 'icon-remote' : 'icon-debug';
+      return { icon, className: 'status-running' };
+    }
     return { icon: 'icon-debug', className: 'status-stopped' };
   }
-  return { icon: 'SuccessFilled', className: 'status-stopped' };
 }
 
 const statusIconStyle = computed(getStatusIcon);
@@ -80,7 +89,7 @@ function editTooltipText() {
   if (props.isService) {
     return CommonUtils.translate('MODIFY');
   }
-  if (props.data.attached) {
+  if (STATUS_ATTACHED === props.data.status || props.data.attached) {
     return 'Detach';
   }
   return 'Attach';
@@ -89,7 +98,7 @@ function editIcon() {
   if (props.isService) {
     return 'Edit';
   }
-  if (props.data.attached) {
+  if (STATUS_ATTACHED === props.data.status || props.data.attached) {
     return 'CircleCloseFilled';
   }
   return 'Connection';
@@ -107,7 +116,7 @@ async function onEdit() {
     }
     return;
   }
-  if (props.data.attached) {
+  if (STATUS_ATTACHED === props.data.status || props.data.attached) {
     detach(props.data);
     return;
   }
@@ -126,23 +135,31 @@ function hostTitle() {
   }
   return host;
 }
+function onDbClick() {
+  if (props.isService) {
+    ClusterManager.startService([props.data]);
+  } else {
+    serviceStore.attach(props.data.host, props.data.pid);
+  }
+}
 </script>
 
 <template>
   <div class="row-instance-wrapper">
     <div class="row-line-text" @click="event => emit('row-click', data, node, event)">
       <span v-if="node.isLeaf && 1 !== data.nodeType" style="width: 100%">
-        <icon-pro :icon="statusIconStyle.icon" class="icon-size" :class="statusIconStyle.className"></icon-pro>
-        <span class="__tree-title" v-if="isService">{{ data.name }}</span>
-        <span class="__tree-title" v-else @dblclick="serviceStore.attach(data.host, data.pid)">{{ data.name }}</span>
+        <el-tooltip :content="$t(props.data.status || '')">
+          <icon-pro :icon="statusIconStyle.icon" class="icon-size" :class="statusIconStyle.className"></icon-pro>
+        </el-tooltip>
+        <span class="__tree-title" :title="data.name" @dblclick="onDbClick">{{ data.name }}</span>
       </span>
       <span v-else>
         <icon-pro v-if="1 === data.nodeType" :icon="groupIcon" class="group-icon" :class="{ dead: notOnline() }"></icon-pro>
         <span v-if="1 === data.nodeType" class="host-node" :class="{ dead: notOnline() }">{{ hostTitle() }}</span>
-        <span v-else class="__tree-title">{{ isService ? data.name : $t(data.name) || $t('DEFAULT_GROUP') }}</span>
+        <span v-else class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
       </span>
     </div>
-    <div style="flex: auto"></div>
+    <div @click="event => emit('row-click', data, node, event)" @dblclick="onDbClick" style="flex: auto"></div>
     <div class="right-tool">
       <el-tooltip :content="editTooltipText()" v-if="node.isLeaf && 1 !== data.nodeType">
         <el-button type="primary" link :icon="editIcon()" @click="onEdit" :loading="state.editLoading" class="edit-tool"></el-button>
@@ -150,7 +167,7 @@ function hostTitle() {
       <el-checkbox
         v-if="isService"
         @change="onSelect"
-        :model-value="currentNode.map(node => node.sid).includes(data.sid)"
+        :model-value="currentNode.map(n => n.sid).includes(data.sid)"
         class="row-checkbox"></el-checkbox>
     </div>
   </div>

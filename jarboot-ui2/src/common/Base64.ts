@@ -32,7 +32,7 @@ export class Base64 {
     let chr1, chr2, chr3;
     let enc1, enc2, enc3, enc4;
     let i = 0;
-    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+    input = input.replace(/[^A-Za-z0-9+/=]/g, '');
     while (i < input.length) {
       enc1 = this._keyStr.indexOf(input.charAt(i++));
       enc2 = this._keyStr.indexOf(input.charAt(i++));
@@ -58,7 +58,7 @@ export class Base64 {
     str = str.replace(/\r\n/g, '\n');
     let utftext = '';
     for (let n = 0; n < str.length; n++) {
-      let c = str.charCodeAt(n);
+      const c = str.charCodeAt(n);
       if (c < 128) {
         utftext += String.fromCharCode(c);
       } else if (c > 127 && c < 2048) {

@@ -8,13 +8,13 @@ package io.github.majianzheng.jarboot.api.cmd.annotation;
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 public @interface Option {
-    java.lang.String NO_NAME = "\u0000";
+    String NO_NAME = "\u0000";
 
-    java.lang.String longName() default NO_NAME;
+    String longName() default NO_NAME;
 
-    java.lang.String shortName() default NO_NAME;
+    String shortName() default NO_NAME;
 
-    java.lang.String argName() default "value";
+    String argName() default "value";
 
     boolean required() default false;
 
@@ -26,5 +26,5 @@ public @interface Option {
 
     boolean help() default false;
 
-    java.lang.String[] choices() default {};
+    String[] choices() default {};
 }

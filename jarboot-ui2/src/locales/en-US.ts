@@ -53,6 +53,9 @@ export default {
   STOPPED: 'Stopped',
   STARTING: 'Starting',
   STOPPING: 'Stopping',
+  SCHEDULING: 'Scheduling',
+  ATTACHED: 'Attached',
+  NOT_ATTACHED: 'Not attached',
   // 主机状态
   ONLINE: 'Online',
   OFFLINE: 'Offline',

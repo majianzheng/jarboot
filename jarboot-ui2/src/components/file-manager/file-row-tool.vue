@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { FileNode } from '@/types';
+import type { FileNode } from '@/types';
 import type Node from 'element-plus/es/components/tree/src/model/node';
 
-const props = defineProps<{
+defineProps<{
   data: FileNode;
   node: Node;
   rowTools?: {

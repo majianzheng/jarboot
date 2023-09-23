@@ -343,10 +343,10 @@ public class ClusterClient {
     private void onResponse(ClusterEventMessage eventMessage) {
         RequestCallback requestCallback = requestCallbackMap.get(eventMessage.getId());
         if (null != requestCallback) {
+            requestCallback.rspBody = eventMessage.getBody();
             if (null != requestCallback.countDownLatch) {
                 requestCallback.countDownLatch.countDown();
             }
-            requestCallback.rspBody = eventMessage.getBody();
         }
     }
 

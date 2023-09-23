@@ -7,7 +7,7 @@ package io.github.majianzheng.jarboot.api.cmd.annotation;
 @java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 public @interface Argument {
-    java.lang.String argName() default "value";
+    String argName() default "value";
 
     int index();
 

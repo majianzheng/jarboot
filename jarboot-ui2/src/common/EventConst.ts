@@ -17,4 +17,5 @@ export enum FuncCode {
   TRUST_ONCE_FUNC,
   CHECK_TRUSTED_FUNC,
   DETACH_FUNC,
+  TRUST_ALWAYS_FUNC,
 }

@@ -14,15 +14,17 @@ export const STATUS_STARTED = 'RUNNING';
 export const STATUS_STOPPED = 'STOPPED';
 export const STATUS_STARTING = 'STARTING';
 export const STATUS_STOPPING = 'STOPPING';
+export const STATUS_SCHEDULING = 'SCHEDULING';
+export const STATUS_ATTACHED = 'ATTACHED';
+export const STATUS_NOT_ATTACHED = 'NOT_ATTACHED';
 
 //Online debug
 export const ATTACHING = 'ATTACHING';
-export const ATTACHED = 'ATTACHED';
+export const ATTACHED = STATUS_ATTACHED;
 export const EXITED = 'EXITED';
 export const NOT_TRUSTED = 'NOT_TRUSTED';
 export const TRUSTED = 'TRUSTED';
 
-export const PANEL_HEIGHT = window.innerHeight - 62;
 export const HIGHLIGHT_STYLE = { backgroundColor: '#ffc069', padding: 0 };
 
 export const ZH_CN = 'zh-CN';

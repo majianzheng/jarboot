@@ -1,11 +1,17 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   icon: string;
-  appendClass?: string;
+  color?: string;
+  size?: number | string;
+  title?: string;
+  svg?: boolean;
 }>();
 </script>
 
 <template>
-  <el-icon v-if="icon.startsWith('icon-')" :class="appendClass || ''"><em class="iconfont" :class="icon"></em></el-icon>
-  <el-icon v-else :class="appendClass || ''"><Component :is="icon" /></el-icon>
+  <el-icon :color="color" :size="size || ''" :title="title">
+    <svg-icon v-if="icon.startsWith('icon-') && svg" :icon="icon"></svg-icon>
+    <em v-else-if="icon.startsWith('icon-')" class="iconfont" :class="icon"></em>
+    <Component v-else :is="icon" />
+  </el-icon>
 </template>

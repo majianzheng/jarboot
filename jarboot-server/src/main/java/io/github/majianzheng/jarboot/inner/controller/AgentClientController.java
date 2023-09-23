@@ -12,6 +12,7 @@ import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.event.AgentResponseEvent;
 import io.github.majianzheng.jarboot.event.ServiceStartedEvent;
+import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import org.springframework.stereotype.Controller;
@@ -95,10 +96,10 @@ public class AgentClientController {
         boolean isLocal = NetworkUtils.hostLocal(clientAddr) && localMachineName.equalsIgnoreCase(machineName);
         agentClient.setLocal(isLocal);
         if (isLocal) {
-            agentClient.setSid(pid);
+            agentClient.setSid(CommonUtils.createJvmSid(pid));
         } else {
             //先产生一个未知的hash然后再和nanoTime组合，减少sid重合的几率
-            int h = Objects.hash(instanceName, System.nanoTime());
+            int h = Objects.hash(instanceName, System.nanoTime(), SettingUtils.getUuid());
             //远程进程，使用pid + ip + name + hash地址作为sid
             StringBuilder sb = new StringBuilder();
             sb

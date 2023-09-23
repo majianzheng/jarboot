@@ -2,7 +2,7 @@
 import type Node from 'element-plus/es/components/tree/src/model/node';
 import StringUtil from '@/common/StringUtil';
 import FileIcon from '@/components/file-icon.vue';
-import { FileNode } from '@/types';
+import type { FileNode } from '@/types';
 import FileRowTool from '@/components/file-manager/file-row-tool.vue';
 
 const props = defineProps<{

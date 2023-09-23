@@ -53,6 +53,9 @@ export default {
   STOPPED: '已停止',
   STARTING: '启动中',
   STOPPING: '停止中',
+  SCHEDULING: '计划中',
+  ATTACHED: 'Attached',
+  NOT_ATTACHED: 'Not attached',
   // 主机状态
   ONLINE: '在线',
   OFFLINE: '离线',

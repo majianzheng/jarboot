@@ -164,10 +164,10 @@ public class TaskUtils {
 
         //打印命令行
         MessageUtils.console(sid, displayCmd);
-        // 启动
-        startTask(cmd, setting.getEnv(), workHome);
-        //等待启动完成，最长2分钟
-        AgentManager.getInstance().waitServiceStarted(setting, SettingUtils.getSystemSetting().getMaxStartTime());
+        // 启动、等待启动完成，最长2分钟
+        int waitTime = SettingUtils.getSystemSetting().getMaxStartTime();
+        final String workDir = workHome;
+        AgentManager.getInstance().waitServiceStarted(setting, waitTime, () -> startTask(cmd, setting.getEnv(), workDir));
     }
 
     /**

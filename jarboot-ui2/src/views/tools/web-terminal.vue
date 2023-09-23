@@ -22,7 +22,7 @@
     </el-empty>
     <el-dialog v-model="state.dialog" :title="$t('CREATE_TERM')" width="300px">
       <el-select v-model="state.selectHost" style="width: 100%">
-        <el-option v-for="host in state.clusterHosts" :label="host" :value="host"></el-option>
+        <el-option v-for="(host, i) in state.clusterHosts" :key="i" :label="host" :value="host"></el-option>
       </el-select>
       <template #footer>
         <el-button @click="state.dialog = false">{{ $t('CANCEL') }}</el-button>
@@ -38,6 +38,7 @@ import { onMounted, nextTick, reactive, watch } from 'vue';
 import { debounce } from 'lodash';
 import CommonNotice from '@/common/CommonNotice';
 import ClusterManager from '@/services/ClusterManager';
+import type { TabPaneName } from 'element-plus';
 
 const basicStore = useBasicStore();
 
@@ -90,8 +91,9 @@ function connectTo(host: string) {
   state.active = state.terms.length - 1;
 }
 
-function editTab(index: number, action: 'remove' | 'add') {
+function editTab(name: TabPaneName | undefined, action: 'remove' | 'add') {
   if ('remove' === action) {
+    let index = name as number;
     const active = index + 1 >= state.terms.length ? index - 1 : index;
     state.terms.splice(index, 1);
     state.active = active;

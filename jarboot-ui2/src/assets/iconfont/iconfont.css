@@ -1,9 +1,9 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3820706 */
-  src: url('iconfont.woff2?t=1686151048699') format('woff2'),
-       url('iconfont.woff?t=1686151048699') format('woff'),
-       url('iconfont.ttf?t=1686151048699') format('truetype'),
-       url('iconfont.svg?t=1686151048699#iconfont') format('svg');
+  src: url('iconfont.woff2?t=1695366869637') format('woff2'),
+       url('iconfont.woff?t=1695366869637') format('woff'),
+       url('iconfont.ttf?t=1695366869637') format('truetype'),
+       url('iconfont.svg?t=1695366869637#iconfont') format('svg');
 }
 
 .iconfont {
@@ -11,6 +11,18 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-json:before {
+  content: "\e7bd";
+}
+
+.icon-less:before {
+  content: "\f1e6";
+}
+
+.icon-debug:before {
+  content: "\e76d";
 }
 
 .icon-css:before {
@@ -21,7 +33,7 @@
   content: "\e619";
 }
 
-.icon-Vue:before {
+.icon-vue:before {
   content: "\e79a";
 }
 
@@ -91,10 +103,6 @@
 
 .icon-github:before {
   content: "\e611";
-}
-
-.icon-debug:before {
-  content: "\e60e";
 }
 
 .icon-dashboard:before {
