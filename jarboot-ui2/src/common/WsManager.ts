@@ -221,7 +221,7 @@ class WsManager {
     if (null !== WsManager.fd) {
       return;
     }
-    msg = ElMessage({ message: 'reconnecting...', duration: 0 });
+    msg = ElMessage({ message: 'reconnecting...', duration: 0, icon: 'Loading' });
     WsManager.fd = setInterval(() => {
       if (null === WsManager.fd) {
         //已经进入连onOpen

@@ -2,7 +2,7 @@
   <div class="super-panel">
     <div class="super-panel-header" :style="{ width: width + 'px' }">
       <div>
-        <el-button circle @click="$emit('close', props.sid)" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
+        <el-button circle @click="onClose" size="small" plain link icon="CloseBold" :title="$t('CLOSE')"></el-button>
         <span class="panel-title">{{ panelTitle }}</span>
       </div>
       <div class="panel-middle-title">
@@ -25,7 +25,7 @@
         <div class="tool-button" @click="clearDisplay" :title="$t('CLEAR')">
           <icon-pro icon="icon-clear" class="tool-button-red-icon"></icon-pro>
         </div>
-        <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(props.sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
+        <div class="tool-button" :title="$t('SCROLL_TO_TOP')" @click="() => pubsub.publish(sid, CONSOLE_TOPIC.SCROLL_TO_TOP)">
           <icon-pro icon="icon-to-top"></icon-pro>
         </div>
         <div class="tool-button" :title="$t('AUTO_SCROLL_END')" @click="setScrollToEnd">
@@ -134,12 +134,17 @@ const panelTitle = computed(() => {
 
 let term: Terminal | any;
 
-watch(() => props.status, newValue => {
-  if (state.executing && [STATUS_STOPPED, STATUS_STOPPING, EXITED].includes(newValue)) {
+watch(() => props.status, cancelCmd);
+function cancelCmd(newStatus: string) {
+  if (state.executing && [STATUS_STOPPED, STATUS_STOPPING, EXITED].includes(newStatus)) {
     onCmdEnd();
   }
-})
+}
 
+function onClose() {
+  state.executing && emit('cancel');
+  emit('close', props.sid);
+}
 function onReady(t: Terminal) {
   term = t;
 }

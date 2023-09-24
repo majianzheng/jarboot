@@ -53,6 +53,10 @@ function getFileIcon(): string {
     case '7z':
     case 'gz':
       return 'icon-tar';
+    case 'mp4':
+    case 'mv':
+    case 'rmvb':
+      return 'Film';
     case 'png':
     case 'jpg':
     case 'bmp':

@@ -230,7 +230,11 @@ onUnmounted(() => {
     pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_END, scrollToEnd);
     pubsub.unSubmit(id, CONSOLE_TOPIC.SCROLL_TO_TOP, scrollToTop);
   }
-  termOption.term?.dispose();
+  try {
+    termOption.term?.dispose();
+  } catch (e) {
+    console.warn(e);
+  }
 });
 </script>
 

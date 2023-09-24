@@ -163,7 +163,7 @@ function createNode(file: File, data: FileNode): FileNode {
 }
 
 function handleProgress(evt: AxiosProgressEvent, file: File, data: FileNode) {
-  uploadStore.update({ id: data.key, total: evt.total as number, uploadedSize: evt.loaded, name: data.name, pause: false });
+  uploadStore.update({ id: data.key, total: evt.total as number, uploadedSize: evt.loaded, name: file.name, pause: false });
   let child = createNode(file, data);
   let progress: number | null = round(evt.progress || 0, 2);
   if (progress >= 1) {
