@@ -41,7 +41,7 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
     /** 心跳间隔，仅远程连接时 */
     private static final int HEARTBEAT_INTERVAL = 15;
     /** 重连的间隔时间，加上连接等待时间10秒，一共每隔15秒执行一次尝试连接 */
-    private static final int RECONNECT_INTERVAL = 5;
+    private static final int RECONNECT_INTERVAL = 8;
     /** WebSocket 客户端 */
     private final WsWebSocketContainer container = new WsWebSocketContainer();
     private Session session;
@@ -184,7 +184,10 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
             LogUtils.offlineDevLog("wait connect interrupted.");
             this.destroyClient();
         } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
+            if (reconnectNotStarted) {
+                // 重连时忽略异常报错
+                logger.error(e.getMessage(), e);
+            }
             this.destroyClient();
         } finally {
             latch = null;
@@ -361,7 +364,7 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
     }
 
     private void destroyClient() {
-        LogUtils.offlineDevLog(">>>distroy client");
+        LogUtils.offlineDevLog(">>>destroy client");
         if (destroyingClient.compareAndSet(false, true)) {
             if (null == this.session) {
                 return;
