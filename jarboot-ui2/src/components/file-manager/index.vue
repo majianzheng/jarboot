@@ -9,10 +9,9 @@ import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
 import { round } from 'lodash';
 import type Node from 'element-plus/es/components/tree/src/model/node';
-import Request from '@/common/Request';
 import type { AxiosProgressEvent } from 'axios';
 import FileRow from '@/components/file-manager/file-row.vue';
-import { useUploadStore } from '@/stores';
+import { useBasicStore, useUploadStore } from '@/stores';
 
 const props = defineProps<{
   baseDir: string;
@@ -48,6 +47,7 @@ const emit = defineEmits<{
 }>();
 
 const uploadStore = useUploadStore();
+const basicStore = useBasicStore();
 
 const state = reactive({
   loading: false,
@@ -120,20 +120,24 @@ async function handleEdit(node: Node) {
   state.dialog = true;
 }
 
-async function handleDelete(node: any) {
+async function handleDelete(node: Node) {
   node = getSelectNode(node);
   const path = FileService.parseFilePath(node, props.baseDir);
   await ElMessageBox.confirm(CommonUtils.translate('DELETE') + path + '?', CommonUtils.translate('WARN'), {});
   await FileService.deleteFile(path, props.clusterHost);
-  await reload();
-  CommonNotice.success(`${CommonUtils.translate('DELETE')}${CommonUtils.translate('SUCCESS')}`);
+  const parent = node.parent;
+  node.remove();
+  if (parent) {
+    treeRef.value?.setCurrentNode(parent);
+  }
+  CommonNotice.success(`${CommonUtils.translate('SUCCESS')}`);
 }
 
 function handleSuccess(file: File, data: FileNode) {
   let child = createNode(file, data);
   child.progress = null;
   treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
-  CommonNotice.success(`${CommonUtils.translate('UPLOAD_TITLE')}${file.name}${CommonUtils.translate('SUCCESS')}`);
+  CommonNotice.success(`${CommonUtils.translate('UPLOAD_TITLE')} ${file.name} ${CommonUtils.translate('SUCCESS')}`);
 }
 
 function createNode(file: File, data: FileNode): FileNode {
@@ -163,7 +167,6 @@ function createNode(file: File, data: FileNode): FileNode {
 }
 
 function handleProgress(evt: AxiosProgressEvent, file: File, data: FileNode) {
-  uploadStore.update({ id: data.key, total: evt.total as number, uploadedSize: evt.loaded, name: file.name, pause: false });
   let child = createNode(file, data);
   let progress: number | null = round(evt.progress || 0, 2);
   if (progress >= 1) {
@@ -254,14 +257,10 @@ function upload(node: Node) {
   const nodeData = node.data as FileNode;
   if (!nodeData.directory) {
     // 选择的为文件时
-    node = node.parent;
+    node = node.parent as Node;
   }
 
-  const url = '/api/jarboot/file-manager/file';
   const path = FileService.parseFilePath(node, props.baseDir);
-  const data = node.data as FileNode;
-  const params = new Map<string, string>();
-  params.set('path', path);
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '*/*';
@@ -270,10 +269,50 @@ function upload(node: Node) {
       return;
     }
     const file = input.files[0];
-    await Request.upload(url, file, progressEvent => handleProgress(progressEvent, file, data), params);
+    const clusterHost = props.clusterHost || '';
+    await uploadStore.upload(file, basicStore.workspace, path, clusterHost, fileInfo => uploadFinished(node, fileInfo.filename));
   };
   input.dispatchEvent(new MouseEvent('click'));
   input.remove();
+}
+
+function uploadFinished(node: Node, filename: string) {
+  const data = node.data as FileNode;
+  const found = data.children?.find(c => c.name === filename);
+  if (!found) {
+    let dirs = [node.data.name];
+    let parent = node.parent;
+    let rootKey = node.data.key;
+    while (parent?.data?.name) {
+      rootKey = parent.data.key;
+      dirs.push(parent.data.name);
+      parent = parent.parent;
+    }
+    dirs.pop();
+    reload().then(() => {
+      let currentNode = treeRef.value?.getNode(rootKey) as Node;
+      expandFind(currentNode, dirs, filename);
+    });
+    CommonNotice.success(`${CommonUtils.translate('UPLOAD_TITLE')} ${filename} ${CommonUtils.translate('SUCCESS')}`);
+  }
+}
+
+function expandFind(node: Node, dirs: string[], filename: string) {
+  if (!node) {
+    return;
+  }
+  const dirName = dirs.pop();
+  if (!dirName) {
+    node.expand(() => {
+      const found = node.childNodes?.find((c: any) => c.data.name === filename) as Node;
+      treeRef.value?.setCurrentNode(found);
+    });
+    return;
+  }
+  node.expand(() => {
+    const found = node.childNodes?.find((c: any) => c.data.name === dirName) as Node;
+    expandFind(found, dirs, filename);
+  });
 }
 
 function filterService(value: any, data: FileNode) {

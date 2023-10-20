@@ -2,6 +2,7 @@ package io.github.majianzheng.jarboot.service;
 
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -34,6 +35,13 @@ public interface ServerRuntimeService {
      * @param file 文件
      */
     void importService(String name, InputStream file);
+
+    /**
+     * 恢复服务
+     * @param username 用户名
+     * @param serviceZip 导出的压缩包
+     */
+    void recoverService(String username, File serviceZip);
 
     /**
      * 下载文件

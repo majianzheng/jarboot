@@ -99,6 +99,10 @@ public class CacheDirHelper {
         }
     }
 
+    public static File getAesKeyFile() {
+        return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "secretKey16");
+    }
+
     public static synchronized void init() {
         File cacheDir = FileUtils.getFile(getJarbootHome(), CACHE_DIR);
         if (!cacheDir.exists()) {

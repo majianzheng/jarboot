@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { round } from 'lodash';
 
 /**
  * 字符串工具类
@@ -181,6 +182,50 @@ class StringUtil {
     } else {
       return '';
     }
+  }
+
+  public static formatBytes(sizeBytes: number) {
+    let memoryUnits = [
+      {
+        unitName: 'bytes',
+        threshold: 1024,
+      },
+      {
+        unitName: 'KB',
+        threshold: 1024,
+      },
+      {
+        unitName: 'MB',
+        threshold: 1024,
+      },
+      {
+        unitName: 'GB',
+        threshold: 1024,
+      },
+      {
+        unitName: 'TB',
+        threshold: 1024,
+      },
+    ];
+
+    let tempFileSize = sizeBytes;
+    let matchIndex = -1;
+
+    for (let i = 0, end = false; i < memoryUnits.length; i++) {
+      let memoryUnit = memoryUnits[i],
+        end = i === memoryUnits.length - 1;
+      if (tempFileSize <= memoryUnit.threshold || end) {
+        matchIndex = i;
+        break;
+      }
+
+      tempFileSize = tempFileSize / memoryUnit.threshold;
+    }
+    return {
+      fileSize: round(tempFileSize, 2) + memoryUnits[matchIndex].unitName,
+      matchUnit: memoryUnits[matchIndex],
+      originalFileSize: sizeBytes,
+    };
   }
 
   public static md5(string: string, bit: number) {

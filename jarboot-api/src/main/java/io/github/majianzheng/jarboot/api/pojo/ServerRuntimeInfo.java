@@ -7,6 +7,7 @@ public class ServerRuntimeInfo {
     private String host;
     private String uuid;
     private String version;
+    private String workspace;
     private Boolean inDocker;
 
     public String getHost() {
@@ -31,6 +32,14 @@ public class ServerRuntimeInfo {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
     public Boolean getInDocker() {

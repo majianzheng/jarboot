@@ -1,7 +1,9 @@
 <template>
   <div class="__language-wrapper">
     <el-dropdown>
-      <el-button class="menu-button" size="small" link><em class="iconfont icon-language"></em></el-button>
+      <el-button size="small" link>
+        <icon-pro icon="icon-language" size="20px" color="#000"></icon-pro>
+      </el-button>
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item v-for="(row, i) in languageList" :key="i" @click="toggle(row.value)">{{ row.name }}</el-dropdown-item>

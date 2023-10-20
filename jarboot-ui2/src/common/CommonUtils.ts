@@ -51,7 +51,9 @@ export default class CommonUtils {
   }
 
   public static storeCurrentHost(host: string) {
-    localStorage.setItem(ACCESS_CLUSTER_HOST, host);
+    if (host) {
+      localStorage.setItem(ACCESS_CLUSTER_HOST, host);
+    }
   }
 
   public static getCurrentHost() {

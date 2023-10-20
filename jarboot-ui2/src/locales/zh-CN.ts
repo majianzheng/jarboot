@@ -114,6 +114,7 @@ export default {
   COUNT: '数量',
   TIP_UPLOAD_IMG: '请上传图片',
   CONNECT: '连接',
+  FILE_NAME: '文件名',
 
   //服务配置
   SERVER_LIST_TITLE: '服务列表',

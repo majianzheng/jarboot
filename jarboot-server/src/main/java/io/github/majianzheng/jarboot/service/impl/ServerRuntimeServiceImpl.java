@@ -8,15 +8,19 @@ import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
+import io.github.majianzheng.jarboot.common.utils.AesUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.common.utils.ZipUtils;
+import io.github.majianzheng.jarboot.entity.User;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
+import io.github.majianzheng.jarboot.service.UserService;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +28,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Base64;
 
 /**
  * @author mazheng
@@ -33,6 +36,13 @@ import java.util.Base64;
 public class ServerRuntimeServiceImpl implements ServerRuntimeService {
     @Value("${docker:false}")
     private boolean isInDocker;
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
     @Override
     public ServerRuntimeInfo getServerRuntimeInfo() {
         ServerRuntimeInfo info = new ServerRuntimeInfo();
@@ -40,6 +50,7 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
         info.setInDocker(isInDocker);
         info.setVersion(VersionUtils.version);
         info.setHost(ClusterClientManager.getInstance().getSelfHost());
+        info.setWorkspace(AesUtils.encrypt(SettingUtils.getWorkspace()));
         return info;
     }
 
@@ -87,9 +98,18 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
     }
 
     @Override
+    public void recoverService(String username, File serviceZip) {
+        String name = StringUtils.stripEnd(serviceZip.getName(), ".zip");
+        final File tempDir = CacheDirHelper.getTempDir(name);
+        User user = userService.findUserByUsername(username);
+        String userDir = user.getUserDir();
+        TaskUtils.getTaskExecutor().execute(() -> doPushServer(userDir, tempDir, serviceZip));
+    }
+
+    @Override
     public void downloadAnyFile(String encodedFilePath, OutputStream os) {
         //待下载文件名
-        String fileName = new String(Base64.getDecoder().decode(encodedFilePath));
+        String fileName = AesUtils.decrypt(encodedFilePath);
         File target = FileUtils.getFile(fileName);
         if (!target.exists() || !target.isFile()) {
             throw new JarbootException(404, "文件不存在！" + fileName);

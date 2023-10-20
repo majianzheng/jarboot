@@ -157,13 +157,17 @@ export type ServerRuntimeInfo = {
   version: string;
   uuid: string;
   host: string;
+  workspace: string;
   masterHost: string;
   inDocker: boolean;
 };
 export type UploadFileInfo = {
   id: string;
-  name: string;
-  total: number;
+  filename: string;
+  md5: string;
+  dstPath: string;
+  totalSize: number;
   pause: boolean;
-  uploadedSize: number;
+  uploadSize: number;
+  errorMsg?: string;
 };

@@ -85,8 +85,7 @@ public class HeapDumpCommand extends AbstractCommand {
                 cleanOldDump(dir);
             }
             run(destFile, live);
-
-            session.appendResult(new HeapDumpModel(file.getAbsolutePath(), live));
+            session.appendResult(new HeapDumpModel(file, live));
             session.end(true, "Heap dump file created");
         } catch (Throwable t) {
             String errorMsg = "heap dump error: " + t.getMessage();

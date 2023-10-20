@@ -2,37 +2,67 @@
 import { useUploadStore } from '@/stores';
 import { round } from 'lodash';
 import type { UploadFileInfo } from '@/types';
+import StringUtil from '@/common/StringUtil';
+import { computed } from 'vue';
 
 const uploadStore = useUploadStore();
 function toggleVisible() {
   uploadStore.visible = !uploadStore.visible;
 }
 function calcPercent(row: UploadFileInfo) {
-  return round((100 * row.uploadedSize) / row.total, 2);
+  if (!row?.totalSize || !row?.uploadSize) {
+    return 0;
+  }
+  return round((100 * row.uploadSize) / row.totalSize, 2) || 0;
 }
+
+function uploadSize(row: UploadFileInfo) {
+  return `${StringUtil.formatBytes(row.uploadSize).fileSize} / ${StringUtil.formatBytes(row.totalSize).fileSize}`;
+}
+
+function pauseOrResume(row: UploadFileInfo) {
+  if (row.pause) {
+    uploadStore.resume(row.dstPath);
+  } else {
+    uploadStore.pause(row.dstPath);
+  }
+}
+const uploadingCount = computed(() => uploadStore.uploadFiles.filter(row => row.uploadSize < row.totalSize).length);
 </script>
 
 <template>
   <div v-show="uploadStore.uploadFiles.length" class="file-upload-container">
-    <el-popover :visible="uploadStore.visible" width="500" title="上传进度" placement="left-start">
+    <el-popover :visible="uploadStore.visible" width="800" title="上传进度" placement="bottom">
       <template #reference>
-        <el-badge :value="uploadStore.uploadFiles.length">
-          <icon-pro title="文件上传" class="upload-icon" icon="UploadFilled" @click="toggleVisible"></icon-pro>
+        <el-badge :value="uploadingCount" :hidden="uploadingCount <= 0">
+          <el-button size="small" link @click="toggleVisible" class="ui-blink">
+            <icon-pro title="文件上传" class="upload-icon" icon="UploadFilled"></icon-pro>
+          </el-button>
         </el-badge>
       </template>
       <div>
-        <el-table :data="uploadStore.uploadFiles" :show-header="false">
-          <el-table-column property="name" width="180" label="文件名" show-overflow-tooltip />
-          <el-table-column width="260" property="uploadedSize" label="进度">
+        <el-table :data="uploadStore.uploadFiles" :show-header="true">
+          <el-table-column property="filename" width="160" :label="$t('FILE_NAME')" show-overflow-tooltip />
+          <el-table-column :label="$t('SIZE')">
             <template #default="{ row }">
-              <el-progress text-inside :percentage="calcPercent(row)" :stroke-width="15" striped :striped-flow="row.uploadedSize < row.total" />
+              <span>{{ uploadSize(row) }}</span>
             </template>
           </el-table-column>
-          <el-table-column width="60" v-if="false">
+          <el-table-column width="260" property="uploadSize" :label="$t('STATUS')">
             <template #default="{ row }">
-              <el-tooltip v-if="row.uploadedSize < row.total" :content="$t('REFRESH_BTN')" placement="top">
+              <el-progress
+                text-inside
+                :percentage="calcPercent(row)"
+                :stroke-width="15"
+                striped
+                :striped-flow="row.uploadSize < row.totalSize" />
+            </template>
+          </el-table-column>
+          <el-table-column width="60" :label="$t('OPERATOR')">
+            <template #default="{ row }">
+              <el-button v-if="row.uploadSize < row.totalSize" link @click="pauseOrResume(row)">
                 <icon-pro :icon="row.pause ? 'CaretRight' : 'VideoPause'" size="18px" class="tool-button tool-button-icon"></icon-pro>
-              </el-tooltip>
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -44,14 +74,10 @@ function calcPercent(row: UploadFileInfo) {
 <style scoped lang="less">
 @import '@/assets/main.less';
 .file-upload-container {
-  z-index: 9999;
   .upload-icon {
-    font-size: 32px;
-    border-radius: 16px;
+    font-size: var(--el-font-size-extra-large);
     color: var(--el-color-primary);
-    box-shadow: 5px 5px 5px #888888;
     &:hover {
-      background: var(--tool-button-hover-color);
       cursor: pointer;
     }
   }

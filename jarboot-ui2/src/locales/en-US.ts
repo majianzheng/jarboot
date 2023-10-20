@@ -114,6 +114,7 @@ export default {
   COUNT: 'Count',
   TIP_UPLOAD_IMG: 'Please upload image!',
   CONNECT: 'Connect',
+  FILE_NAME: 'File name',
 
   //服务配置
   SERVER_LIST_TITLE: 'Services',

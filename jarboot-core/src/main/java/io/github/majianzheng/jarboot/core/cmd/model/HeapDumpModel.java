@@ -1,7 +1,8 @@
 package io.github.majianzheng.jarboot.core.cmd.model;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import io.github.majianzheng.jarboot.common.utils.AesUtils;
+
+import java.io.File;
 
 /**
  * Model of `heapdump` command
@@ -10,7 +11,7 @@ import java.util.Base64;
 public class HeapDumpModel extends ResultModel {
 
     private String dumpFile;
-    private String encodedName;
+    private String encrypted;
 
     private boolean live;
 
@@ -18,9 +19,9 @@ public class HeapDumpModel extends ResultModel {
 
     }
 
-    public HeapDumpModel(String dumpFile, boolean live) {
-        this.dumpFile = dumpFile;
-        this.encodedName = Base64.getEncoder().encodeToString(dumpFile.getBytes(StandardCharsets.UTF_8));
+    public HeapDumpModel(File file, boolean live) {
+        this.dumpFile = file.getName();
+        this.encrypted = AesUtils.encrypt(file.getAbsolutePath());
         this.live = live;
     }
 
@@ -40,12 +41,12 @@ public class HeapDumpModel extends ResultModel {
         this.live = live;
     }
 
-    public String getEncodedName() {
-        return encodedName;
+    public String getEncrypted() {
+        return encrypted;
     }
 
-    public void setEncodedName(String encodedName) {
-        this.encodedName = encodedName;
+    public void setEncrypted(String encrypted) {
+        this.encrypted = encrypted;
     }
 
     @Override

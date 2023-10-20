@@ -82,6 +82,9 @@ onMounted(() => {
       <div class="right-extra">
         <div class="tools-box">
           <div class="menu-button">
+            <file-upload></file-upload>
+          </div>
+          <div class="menu-button">
             <jarboot-version></jarboot-version>
           </div>
           <div class="menu-button">
@@ -126,7 +129,6 @@ onMounted(() => {
       <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
     <modify-user-dialog v-model:visible="state.dialog" :reset-password="state.resetPassword" :username="user.username"></modify-user-dialog>
-    <file-upload style="position: fixed; bottom: 60px; right: 15px"></file-upload>
   </main>
 </template>
 <style lang="less" scoped>

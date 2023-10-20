@@ -26,7 +26,7 @@ public class SettingController {
     private SettingService settingService;
 
     /**
-     * 获取服务配置
+     * 获取服务
      * @param serviceName 服务路径
      * @return 服务配置
      */

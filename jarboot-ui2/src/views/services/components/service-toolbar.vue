@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ServiceInstance } from '@/types';
-import { useServiceStore } from '@/stores';
+import { useServiceStore, useUploadStore } from '@/stores';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { computed, reactive } from 'vue';
@@ -26,6 +26,8 @@ const state = reactive({
 });
 const route = useRoute();
 const serviceStore = useServiceStore();
+const uploadStore = useUploadStore();
+
 const isService = PAGE_SERVICE === route.name;
 const isServiceNode = computed(() => {
   if (!props.lastClickedNode?.sid) {
@@ -114,7 +116,10 @@ function onImport() {
     const message = CommonUtils.translate('START_UPLOAD_INFO', { name: file.name });
     CommonNotice.info(message);
     try {
-      await ClusterManager.importService(file, props.lastClickedNode?.host || '');
+      const clusterHost = props.lastClickedNode?.host || '';
+      //await ClusterManager.importService(file, clusterHost);
+      const path = `.cache/temp/${file.name.replace('.zip', '')}`;
+      await uploadStore.upload(file, '', path, clusterHost, fileInfo => console.info('导入完成', fileInfo), 'true');
     } finally {
       state.importing = false;
     }

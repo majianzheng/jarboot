@@ -26,6 +26,7 @@ import { PUB_TOPIC, pubsub } from '@/views/services/ServerPubsubImpl';
 import Logger from '@/common/Logger';
 import Request from '@/common/Request';
 import { CONSOLE_TOPIC } from '@/types';
+import FileUploadClient from '@/components/file-upload/FileUploadClient';
 
 export const useBasicStore = defineStore({
   id: 'basic',
@@ -33,6 +34,7 @@ export const useBasicStore = defineStore({
     version: '',
     uuid: '',
     host: '',
+    workspace: 'workspace',
     inDocker: false,
     masterHost: '',
     innerHeight: window.innerHeight,
@@ -238,20 +240,55 @@ export const useUploadStore = defineStore({
   id: 'upload-file',
   state: () => ({
     uploadFiles: [] as UploadFileInfo[],
+    clients: new Map<string, FileUploadClient>(),
     visible: false,
   }),
   actions: {
-    async update(file: UploadFileInfo) {
-      const uploadFiles = [...this.uploadFiles];
+    update(file: UploadFileInfo) {
+      let uploadFiles = [...this.uploadFiles];
       let visible = this.visible;
       const index = uploadFiles.findIndex(row => file.id === row.id);
       if (index < 0) {
-        uploadFiles.push(file);
+        uploadFiles = [file, ...this.uploadFiles];
         visible = true;
       } else {
         uploadFiles[index] = file;
       }
       this.$patch({ uploadFiles, visible });
+    },
+    async upload(
+      file: File,
+      baseDir: string,
+      path: string,
+      clusterHost: string,
+      finishCallback?: (info: UploadFileInfo) => void,
+      importServer?: string
+    ) {
+      let client = new FileUploadClient(file, baseDir, path, clusterHost);
+      if (finishCallback) {
+        client.addFinishedEventHandler(finishCallback);
+      }
+      client.setImportService(importServer || '');
+      if (this.clients.has(client.getDstPath())) {
+        client = this.clients.get(client.getDstPath()) as FileUploadClient;
+        await client.upload();
+        return;
+      }
+      client.addUploadEventHandler(info => this.update(info));
+      this.clients.set(client.getDstPath(), client);
+      await client.upload();
+    },
+    pause(dstPath: string) {
+      const client = this.clients.get(dstPath);
+      if (client) {
+        client.pause();
+      }
+    },
+    resume(dstPath: string) {
+      const client = this.clients.get(dstPath);
+      if (client) {
+        client.upload();
+      }
     },
   },
 });
