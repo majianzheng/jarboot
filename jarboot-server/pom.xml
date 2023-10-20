@@ -106,22 +106,24 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${spring.version}</version>
 				<configuration>
+					<mainClass>io.github.majianzheng.jarboot.JarBootServerApplication</mainClass>
+					<jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
 					<executable>true</executable>
 					<layout>ZIP</layout>
+					<includes>
+						<include>
+							<groupId>non-exists</groupId>
+							<artifactId>non-exists</artifactId>
+						</include>
+					</includes>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>io.github.majianzheng.jarboot.JarBootServerApplication</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -14,7 +14,7 @@ rem JVM Configuration
 set "JARBOOT_JVM_OPTS=-Xms512m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:-UseLargePages"
 set JARBOOT_JVM_OPTS=%JARBOOT_JVM_OPTS% -XX:HeapDumpPath="%JARBOOT_HOME%\logs\java_heapdump.hprof"
 
-set JARBOOT_OPTS=-Djdk.attach.allowAttachSelf=true -Dloader.path="%JARBOOT_HOME%\plugins\server" -Dfile.encoding=UTF-8
+set JARBOOT_OPTS=-Djdk.attach.allowAttachSelf=true -Dloader.path="%JARBOOT_HOME%\components\lib,%JARBOOT_HOME%\plugins\server" -Dfile.encoding=UTF-8
 
 set COMMAND="%JAVA%" %JARBOOT_JVM_OPTS% %JARBOOT_OPTS% -jar "%SERVER%" jarboot.jarboot %*
 

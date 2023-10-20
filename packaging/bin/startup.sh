@@ -59,7 +59,7 @@ else
   JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${JAVA_HOME}/lib/ext"
   JAVA_OPT="${JAVA_OPT} -Xloggc:logs/jarboot_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
 fi
-JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=plugins/server -Dfile.encoding=UTF-8"
+JAVA_OPT="${JAVA_OPT} -Djdk.attach.allowAttachSelf=true -Dloader.path=components/lib,plugins/server -Dfile.encoding=UTF-8"
 
 JAR_FILE=components/${SERVER}.jar
 
