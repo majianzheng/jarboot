@@ -4,6 +4,7 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.JarbootException;
+import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.utils.*;
 import org.apache.commons.io.FileUtils;
@@ -257,6 +258,8 @@ public class JarbootShell {
             }
             List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFileName) : Arrays.asList("sh", cmdFileName);
             Process process = new ProcessBuilder().command(cmd).start();
+            final Thread hook = JarbootThreadFactory.createThreadFactory("jarboot-hook").newThread(() -> exitHook(process, cmdFile));
+            Runtime.getRuntime().addShutdownHook(hook);
             if (Boolean.TRUE.equals(this.sync)) {
                 if (!Boolean.TRUE.equals(this.shell)) {
                     AnsiLog.info("Sync execute command waiting command exit.");
@@ -269,6 +272,7 @@ public class JarbootShell {
                 }
                 int code = process.waitFor();
                 AnsiLog.info("exit code: {}", code);
+                Runtime.getRuntime().removeShutdownHook(hook);
             } else {
                 Thread.sleep(3000);
                 printHomePage();
@@ -281,6 +285,19 @@ public class JarbootShell {
         } finally {
             FileUtils.deleteQuietly(cmdFile);
             AnsiLog.info("Start process finished.");
+        }
+    }
+
+    private static void exitHook(Process process, File cmdFile) {
+        if (null != process) {
+            try {
+                process.destroyForcibly();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (null != cmdFile && cmdFile.exists()) {
+            FileUtils.deleteQuietly(cmdFile);
         }
     }
 
