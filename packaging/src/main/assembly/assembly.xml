@@ -15,6 +15,10 @@
       <fileMode>0755</fileMode>
     </fileSet>
     <fileSet>
+      <directory>script</directory>
+      <outputDirectory>script</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>../jarboot-ui2/dist</directory>
       <outputDirectory>fe/jarboot</outputDirectory>
     </fileSet>

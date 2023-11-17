@@ -71,9 +71,10 @@ public class UploadFileServer {
         }
         boolean append = true;
         dstFile = FileUtils.getFile(baseDir, dstPath);
-        fileUploadProgress = fileUploadProgressDao.getFileUploadProgressByDstPath(dstFile.getAbsolutePath());
+        fileUploadProgress = fileUploadProgressDao.getFileUploadProgressByClusterHostAndDstPath(clusterHost, dstFile.getAbsolutePath());
         if (null == fileUploadProgress) {
             FileUploadProgress temp = new FileUploadProgress();
+            temp.setClusterHost(clusterHost);
             temp.setMd5(md5);
             temp.setDstPath(dstFile.getAbsolutePath());
             temp.setFilename(filename);

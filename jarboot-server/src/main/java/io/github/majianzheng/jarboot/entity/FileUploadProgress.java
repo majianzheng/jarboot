@@ -13,7 +13,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 public class FileUploadProgress extends AbstractBaseEntity {
     public static final String TABLE_NAME = "jarboot_file_upload_progress";
-
+    private String clusterHost;
     private String filename;
     private String dstPath;
     private String relativePath;
@@ -22,6 +22,14 @@ public class FileUploadProgress extends AbstractBaseEntity {
     private Long uploadSize;
     @Transient
     private String errorMsg;
+
+    public String getClusterHost() {
+        return clusterHost;
+    }
+
+    public void setClusterHost(String clusterHost) {
+        this.clusterHost = clusterHost;
+    }
 
     public String getFilename() {
         return filename;

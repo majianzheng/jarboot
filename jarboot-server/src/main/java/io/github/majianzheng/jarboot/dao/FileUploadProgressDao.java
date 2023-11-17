@@ -11,8 +11,9 @@ import org.springframework.stereotype.Repository;
 public interface FileUploadProgressDao extends JpaRepository<FileUploadProgress, Long> {
     /**
      * 根据dstPath获取上传进度
+     * @param clusterHost 集群机器
      * @param dstPath 目的路径
      * @return 进度
      */
-    FileUploadProgress getFileUploadProgressByDstPath(String dstPath);
+    FileUploadProgress getFileUploadProgressByClusterHostAndDstPath(String clusterHost, String dstPath);
 }
