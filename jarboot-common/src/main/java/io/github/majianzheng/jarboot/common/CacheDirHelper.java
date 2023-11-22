@@ -41,6 +41,10 @@ public class CacheDirHelper {
         return FileUtils.getFile(getJarbootHome(), CACHE_DIR, TEMP_DIR, name);
     }
 
+    public static File getTempBashDir() {
+        return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "bash_temp");
+    }
+
     public static File getMonitorRecordDir() {
         return FileUtils.getFile(getJarbootHome(), CACHE_DIR, MONITOR_RECORD_DIR);
     }
@@ -108,6 +112,14 @@ public class CacheDirHelper {
         if (!cacheDir.exists()) {
             try {
                 FileUtils.forceMkdir(cacheDir);
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+        File bashTemp = getTempBashDir();
+        if (!bashTemp.exists()) {
+            try {
+                FileUtils.forceMkdir(bashTemp);
             } catch (Exception e) {
                 //ignore
             }

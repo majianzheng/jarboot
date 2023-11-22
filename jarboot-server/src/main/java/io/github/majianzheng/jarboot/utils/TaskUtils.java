@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -167,7 +168,10 @@ public class TaskUtils {
         // 启动、等待启动完成，最长2分钟
         int waitTime = SettingUtils.getSystemSetting().getMaxStartTime();
         final String workDir = workHome;
-        AgentManager.getInstance().waitServiceStarted(setting, waitTime, () -> startTask(cmd, setting.getEnv(), workDir));
+        final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
+        String bashName = String.format("shell_%s.%s", sid, bashFileExt);
+        File bashFile = FileUtils.getFile(serverPath, bashName);
+        AgentManager.getInstance().waitServiceStarted(setting, waitTime, () -> startTask(cmd, setting.getEnv(), workDir, bashFile));
     }
 
     /**
@@ -236,10 +240,29 @@ public class TaskUtils {
      * @param command 命令
      * @param environment 环境变量
      * @param workHome 工作目录
+     * @param bashFile 临时的bash可执行文件
      */
-    public static void startTask(String command, String environment, String workHome) {
+    public static void startTask(String command, String environment, String workHome, File bashFile) {
+        StringBuilder sb = new StringBuilder();
         try {
-            Runtime.getRuntime().exec(command, parseEnv(environment), toCurrentDir(workHome));
+            String[] envs = parseEnv(environment);
+            if (null != envs) {
+                for (String env : envs) {
+                    if (OSUtils.isWindows()) {
+                        sb.append("set ").append(env).append('\n');
+                    } else {
+                        sb.append("export ").append(env).append('\n');
+                    }
+                }
+            }
+            sb.append('\n').append(command).append('\n');
+            FileUtils.writeStringToFile(bashFile, sb.toString(), StandardCharsets.UTF_8);
+            if (!bashFile.setExecutable(true)) {
+                logger.error("set executable failed.");
+            }
+            String bash = bashFile.getAbsolutePath();
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(bash) : Arrays.asList("sh", bash);
+            new ProcessBuilder(cmd).directory(toCurrentDir(workHome)).start();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             MessageUtils.error("Start task error " + e.getMessage());

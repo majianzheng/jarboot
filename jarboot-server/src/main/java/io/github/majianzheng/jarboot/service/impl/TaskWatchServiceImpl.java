@@ -10,6 +10,7 @@ import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
+import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.dao.UserDao;
@@ -23,6 +24,7 @@ import io.github.majianzheng.jarboot.event.ServiceFileChangeEvent;
 import io.github.majianzheng.jarboot.event.ServiceOfflineEvent;
 import io.github.majianzheng.jarboot.event.ServiceOnlineEvent;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +52,12 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     private ServiceManagerImpl serverMgrService;
     @Autowired
     private UserDao userDao;
-
+    @Value("${jarboot.file-update-exclude:^[\\s\\S]*\\.(log[\\s\\S]*|pdf|png|jpeg|jpg|docx|doc|xls|xlsx|ppt|pjpg|md|txt)$}")
+    private String fileUpdateExclude;
+    private Pattern fileUpdatePattern;
+    @Value("${jarboot.dir-update-exclude:(log|cache|static)}")
+    private String dirUpdateExclude;
+    private Pattern dirUpdatePattern;
     private WatchService watchService;
     private final Map<WatchKey, ServiceSetting> watchKeyServiceMap = new ConcurrentHashMap<>(16);
 
@@ -70,6 +78,9 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             return;
         }
         started = true;
+        // 初始化
+        fileUpdatePattern = Pattern.compile(fileUpdateExclude);
+        dirUpdatePattern = Pattern.compile(dirUpdateExclude);
         // 路径监控生产者
         this.monitorThread.start();
 
@@ -92,8 +103,11 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         }
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
+            final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
+            final String bashFileName = String.format("after_start_exec.%s", bashFileExt);
+            final File bashFile = FileUtils.getFile(CacheDirHelper.getTempBashDir(), bashFileName);
             threadFactory
-                    .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome))
+                    .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, bashFile))
                     .start();
         }
     }
@@ -152,8 +166,11 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        if (services.isEmpty()) {
+            return;
+        }
         //过滤掉jar文件未变化掉服务，判定jar文件掉修改时间是否一致
-        List<ServiceSetting> list = services.stream().filter(this::checkJarUpdate).collect(Collectors.toList());
+        List<ServiceSetting> list = services.stream().filter(this::checkFileUpdate).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(list)) {
             final String msg = "监控到工作空间文件更新，开始重启相关服务...";
             MessageUtils.info(msg);
@@ -208,8 +225,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
      */
     private void storeCurFileModifyTime(ServiceSetting setting) {
         String servicePath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
-        Collection<File> files = FileUtils
-                .listFiles(FileUtils.getFile(servicePath), new String[]{CommonConst.JAR_FILE_EXT}, true);
+        Collection<File> files = filterUpdateFile(FileUtils.getFile(servicePath));
         if (!CollectionUtils.isEmpty(files)) {
             File recordFile = getRecordFile(setting.getSid());
             if (null != recordFile) {
@@ -219,6 +235,40 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                 PropertyFileUtils.storeProperties(recordFile, properties);
             }
         }
+    }
+
+    private Collection<File> filterUpdateFile(File dir) {
+        IOFileFilter filter = new IOFileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return doFilterUpdateFile(file);
+            }
+
+            @Override
+            public boolean accept(File dir, String name) {
+                return doFilterUpdateFile(dir);
+            }
+        };
+        return FileUtils.listFiles(dir, filter, filter);
+    }
+
+    private boolean doFilterUpdateFile(File file) {
+        if (file.isDirectory()) {
+            if (dirUpdatePattern.matcher(file.getName()).matches()) {
+                return false;
+            }
+        } else {
+            if (fileUpdatePattern.matcher(file.getName()).matches()) {
+                return false;
+            }
+        }
+        if (file.isHidden()) {
+            return false;
+        }
+        if (!OSUtils.isWindows()) {
+            return !file.getName().startsWith(".");
+        }
+        return true;
     }
 
     private File getRecordFile(String sid) {
@@ -274,7 +324,9 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(setting);
-                NotifyReactor.getInstance().publishEvent(new ServiceFileChangeEvent());
+                ServiceFileChangeEvent event = new ServiceFileChangeEvent();
+                event.setSetting(setting);
+                NotifyReactor.getInstance().publishEvent(event);
             }
         }
         //删除事件
@@ -285,12 +337,12 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
 
     private String genFileHashKey(File jarFile) {
         String path = jarFile.getPath();
-        return String.format("hash.%d", path.hashCode());
+        return String.format("hash.%x", path.hashCode());
     }
 
-    private boolean checkJarUpdate(ServiceSetting setting) {
+    private boolean checkFileUpdate(ServiceSetting setting) {
         String serverDir = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
-        Collection<File> files = FileUtils.listFiles(FileUtils.getFile(serverDir), new String[]{CommonConst.JAR_FILE_EXT}, true);
+        Collection<File> files = filterUpdateFile(FileUtils.getFile(serverDir));
         if (CollectionUtils.isEmpty(files)) {
             return false;
         }

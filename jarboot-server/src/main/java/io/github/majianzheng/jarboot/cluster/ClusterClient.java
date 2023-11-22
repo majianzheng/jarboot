@@ -326,10 +326,9 @@ public class ClusterClient {
     }
 
     private static String clusterAuth(ClusterEventMessage eventMessage) {
-        try {
+        try (ByteArrayOutputStream bao = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bao)) {
             Authentication authentication = SettingUtils.getContext().getBean(JwtTokenManager.class).getAuthentication(eventMessage.getBody());
-            ByteArrayOutputStream bao = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bao);
             oos.writeObject(authentication);
             bao.toByteArray();
             byte[] bytes = Base64.encodeBase64(bao.toByteArray());

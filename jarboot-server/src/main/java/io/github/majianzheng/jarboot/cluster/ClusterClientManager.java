@@ -138,9 +138,8 @@ public class ClusterClientManager {
             logger.error("集群认证失败，host: {}, token: {}", accessClusterHost, token);
             return false;
         }
-        try {
-            byte[] objBytes = Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8));
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(objBytes));
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8))))) {
             Authentication authentication = (Authentication) ois.readObject();
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {

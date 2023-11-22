@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.common.utils;
 
+import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import org.apache.commons.io.FileUtils;
@@ -52,7 +53,7 @@ public class AesUtils {
         try {
             return decrypt(encrypt, KEY);
         } catch (Exception e) {
-            e.printStackTrace();
+            AnsiLog.error(e);
             return "";
         }
     }
@@ -66,7 +67,7 @@ public class AesUtils {
         try {
             return encrypt(content, KEY);
         } catch (Exception e) {
-            e.printStackTrace();
+            AnsiLog.error(e);
             return "";
         }
     }
