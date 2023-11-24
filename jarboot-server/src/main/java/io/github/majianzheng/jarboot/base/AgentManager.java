@@ -67,7 +67,7 @@ public class AgentManager {
      */
     public void online(String userDir, String serviceName, Session session, String sid) {
         //目标进程上线
-        AgentOperator client = clientMap.compute(sid, (k,v) -> new AgentOperator(serviceName, sid, session));
+        AgentOperator client = clientMap.compute(sid, (k,v) -> new AgentOperator(userDir, serviceName, sid, session));
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null != latch) {
             latch.countDown();
@@ -205,8 +205,8 @@ public class AgentManager {
             }
             long costTime = System.currentTimeMillis() - startTime;
             if (clientMap.containsKey(sid)) {
-                logger.warn("未能成功退出！{}, 耗时:{}", sid, costTime);
-                //失败
+                logger.warn("未能成功退出！{}, 耗时:{}，将执行强制杀死命令", sid, costTime);
+                MessageUtils.warn("服务(sid:" + sid + ")未等到退出消息，将执行强制退出命令！");
                 return false;
             } else {
                 client.setState(ClientState.OFFLINE);
@@ -243,6 +243,8 @@ public class AgentManager {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                MessageUtils.error("Start task error " + e.getMessage());
             } finally {
                 startingLatchMap.remove(sid);
             }

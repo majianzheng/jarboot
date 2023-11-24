@@ -416,9 +416,10 @@ function updateMemChart() {
         const tar = params[1];
         const max = round(heap[tar.dataIndex].max / MB_NUM, PRECISION);
         const totalValue = round(heap[tar.dataIndex].total / MB_NUM, PRECISION);
-        return `${tar.name}<br/>${tar.seriesName} : ${tar.value} Mb<br/>${CommonUtils.translate(
-          'SUBMITTED'
-        )} : ${Math.max(0, totalValue)} Mb<br/>${CommonUtils.translate('MAX')} : ${Math.max(0, max)} Mb`;
+        return `${tar.name}<br/>${tar.seriesName} : ${tar.value} Mb<br/>${CommonUtils.translate('SUBMITTED')} : ${Math.max(
+          0,
+          totalValue
+        )} Mb<br/>${CommonUtils.translate('MAX')} : ${Math.max(0, max)} Mb`;
       },
     },
     grid: {

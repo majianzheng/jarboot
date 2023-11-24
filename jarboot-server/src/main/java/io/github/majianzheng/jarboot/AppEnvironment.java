@@ -11,6 +11,8 @@ import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.service.TaskWatchService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
@@ -43,6 +45,8 @@ public class AppEnvironment implements SpringApplicationRunListener {
                 System.exit(-1);
             }
         }
+
+        homePath = FileUtils.getFile(homePath).getAbsolutePath();
         //检查安装路径是否存在空格
         if (StringUtils.containsWhitespace(homePath)) {
             AnsiLog.error("Jarboot所在目录的全路径中存在空格！");
@@ -57,7 +61,7 @@ public class AppEnvironment implements SpringApplicationRunListener {
         //derby数据库驱动的日志文件位置
         final String derbyLog = homePath + File.separator + "logs" + File.separator + "derby.log";
         System.setProperty("derby.stream.error.file", derbyLog);
-
+        System.setProperty("user.dir", homePath);
         //环境初始化
         try {
             // 环境检查

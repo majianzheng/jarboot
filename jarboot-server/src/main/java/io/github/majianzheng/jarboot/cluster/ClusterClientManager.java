@@ -94,6 +94,7 @@ public class ClusterClientManager {
         FromOtherClusterServerMessageEvent messageEvent = new FromOtherClusterServerMessageEvent();
         messageEvent.setMessage(event.message());
         messageEvent.setSessionId(sessionId);
+        messageEvent.setSid(event.getSid());
         req.setBody(JsonUtils.toJsonString(messageEvent));
         client.sendMessage(req);
     }

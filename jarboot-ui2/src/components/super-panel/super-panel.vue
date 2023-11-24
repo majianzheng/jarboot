@@ -58,7 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, onUnmounted, reactive, watch} from 'vue';
+import { computed, onMounted, onUnmounted, reactive, watch } from 'vue';
 import { pubsub, PUB_TOPIC } from '@/views/services/ServerPubsubImpl';
 import { CONSOLE_TOPIC } from '@/types';
 import StringUtil from '@/common/StringUtil';
@@ -66,7 +66,7 @@ import { useBasicStore } from '@/stores';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 import type { Terminal } from 'xterm';
-import {EXITED, STATUS_STOPPED, STATUS_STOPPING} from "@/common/CommonConst";
+import { EXITED, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 
 /**
  * 执行记录，上下键

@@ -6,8 +6,17 @@ import io.github.majianzheng.jarboot.api.event.JarbootEvent;
  * @author mazheng
  */
 public class FromOtherClusterServerMessageEvent implements JarbootEvent {
+    private String sid;
     private String sessionId;
     private String message;
+
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
+    }
 
     public String getSessionId() {
         return sessionId;

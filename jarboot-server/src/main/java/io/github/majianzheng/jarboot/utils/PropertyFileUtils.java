@@ -5,6 +5,7 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.common.JarbootException;
+import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -119,52 +120,53 @@ public class PropertyFileUtils {
         if (null != setting && file.lastModified() == setting.getLastModified()) {
             return setting;
         }
-
-        Properties properties = getProperties(file);
-        setting = new ServiceSetting(name);
-        String group = properties.getProperty(SettingPropConst.GROUP, StringUtils.EMPTY);
-        setting.setGroup(group);
+        if (file.exists()) {
+            try {
+                String json = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                setting = JsonUtils.readValue(json, ServiceSetting.class);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        if (null == setting) {
+            setting = new ServiceSetting(name);
+        }
         setting.setSid(sid);
-        String cmd = properties.getProperty(SettingPropConst.COMMAND, StringUtils.EMPTY);
-        setting.setCommand(cmd);
-        String jvm = properties.getProperty(SettingPropConst.VM, SettingPropConst.DEFAULT_VM_FILE);
-        setting.setVm(jvm);
-        String args = properties.getProperty(SettingPropConst.ARGS, StringUtils.EMPTY);
-        setting.setArgs(args);
-        String appType  = properties.getProperty(SettingPropConst.APP_TYPE, "java");
-        setting.setApplicationType(appType);
-        checkAndGetHome(setting, properties);
-
-        setting.setScheduleType(properties.getProperty(SettingPropConst.SCHEDULE_TYPE, SettingPropConst.SCHEDULE_ONCE));
-        setting.setCron(properties.getProperty(SettingPropConst.SCHEDULE_CRON, StringUtils.EMPTY));
+        setting.setLastModified(file.lastModified());
+        if (StringUtils.isEmpty(setting.getVm())) {
+            setting.setVm(SettingPropConst.DEFAULT_VM_FILE);
+        }
+        if (StringUtils.isEmpty(setting.getApplicationType())) {
+            setting.setApplicationType("java");
+        }
+        checkAndGetHome(setting);
+        if (null == setting.getScheduleType()) {
+            setting.setScheduleType(SettingPropConst.SCHEDULE_ONCE);
+        }
         //环境变量
-        String env = properties.getProperty(SettingPropConst.ENV, StringUtils.EMPTY);
+        String env = setting.getEnv();
         if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {
             setting.setEnv(env);
         }
-
-        int priority = Integer.parseInt(properties.getProperty(SettingPropConst.PRIORITY,
-                SettingPropConst.DEFAULT_PRIORITY));
-        setting.setPriority(priority);
-
-        String s = properties.getProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
-        if (SettingPropConst.VALUE_FALSE.equalsIgnoreCase(s)) {
-            //初始默认true
-            setting.setDaemon(false);
+        if (null == setting.getPriority()) {
+            setting.setPriority(SettingPropConst.DEFAULT_PRIORITY);
         }
 
-        s = properties.getProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
-        if (SettingPropConst.VALUE_FALSE.equalsIgnoreCase(s)) {
+        if (null == setting.getDaemon()) {
             //初始默认true
-            setting.setJarUpdateWatch(false);
+            setting.setDaemon(true);
+        }
+        if (null == setting.getFileUpdateWatch()) {
+            //初始默认true
+            setting.setFileUpdateWatch(true);
         }
         SETTING_CACHE.put(sid, setting);
         return setting;
     }
 
-    private static void checkAndGetHome(ServiceSetting setting, Properties properties) {
+    private static void checkAndGetHome(ServiceSetting setting) {
         //工作目录
-        String workHome = properties.getProperty(SettingPropConst.WORK_DIR, StringUtils.EMPTY);
+        String workHome = setting.getWorkDirectory();
         if (StringUtils.isNotEmpty(workHome)) {
             File dir = new File(workHome);
             if (dir.isDirectory() && dir.exists()) {
@@ -176,7 +178,7 @@ public class PropertyFileUtils {
         }
 
         //Jdk路径
-        String jdkPath = properties.getProperty(SettingPropConst.JDK_PATH, StringUtils.EMPTY);
+        String jdkPath = setting.getJdkPath();
         if (StringUtils.isEmpty(jdkPath)) {
             //默认启动目录在服务目录，不继承父进程的工作目录
             setting.setJdkPath(StringUtils.EMPTY);

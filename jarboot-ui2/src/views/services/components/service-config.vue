@@ -24,7 +24,7 @@ const defaultSetting: ServerSetting = {
   command: '',
   daemon: false,
   env: '',
-  jarUpdateWatch: false,
+  fileUpdateWatch: false,
   jdkPath: '',
   lastModified: 0,
   priority: 1,
@@ -173,8 +173,8 @@ onMounted(() => {
       <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
         <el-switch v-model="state.form.daemon"></el-switch>
       </el-form-item>
-      <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="jarUpdateWatch">
-        <el-switch v-model="state.form.jarUpdateWatch"></el-switch>
+      <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="fileUpdateWatch">
+        <el-switch v-model="state.form.fileUpdateWatch"></el-switch>
       </el-form-item>
       <el-form-item v-show="'cron' === state.form.scheduleType" :label="'cron'" prop="cron">
         <cron-input v-model="state.form.cron"></cron-input>

@@ -30,6 +30,10 @@ public abstract class AbstractMessageEvent implements JarbootEvent {
                 .toString();
     }
 
+    public String getSid() {
+        return sid;
+    }
+
     /**
      * 创建Notice消息体
      * @param text 消息内容

@@ -4,6 +4,7 @@ import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
@@ -57,12 +58,22 @@ public class SettingServiceImpl implements SettingService {
             // 发生了重命名，获取工作空间下所有服务
             renameService(setting, path);
             MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        } else {
+            ServiceSetting oldSetting = PropertyFileUtils.getServiceSettingBySid(sid);
+            if (!Objects.equals(oldSetting.getGroup(), setting.getGroup())) {
+                MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+            }
         }
         File settingFile = SettingUtils.getServiceSettingFile(path);
-        Properties properties = fillSettingProperties(setting, path, settingFile);
-        saveSettingProperties(settingFile, properties);
+        fillSettingProperties(setting, path);
         // 保存vmContent
         saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
+        setting.setVmContent(null);
+        setting.setUserDir(null);
+        setting.setSid(null);
+        setting.setHost(null);
+        setting.setLastModified(null);
+        saveSettingProperties(settingFile, setting);
         //更新缓存配置，根据文件时间戳判定是否更新了
         PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
     }
@@ -102,54 +113,33 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private Properties fillSettingProperties(ServiceSetting setting, String path, File settingFile) {
-        Properties properties = settingFile.exists() ? PropertyFileUtils.getProperties(settingFile) : new Properties();
+    private void fillSettingProperties(ServiceSetting setting, String path) {
         String command = setting.getCommand();
         if (null == command) {
             command = StringUtils.EMPTY;
         } else {
             command = command.replace('\n', ' ');
+            setting.setCommand(command);
         }
-        properties.setProperty(SettingPropConst.COMMAND, command);
+        setting.setCommand(command);
         String vm = setting.getVm();
         if (StringUtils.isEmpty(vm)) {
-            vm = SettingPropConst.DEFAULT_VM_FILE;
+            setting.setVm(SettingPropConst.DEFAULT_VM_FILE);
         } else {
             if (!SettingPropConst.DEFAULT_VM_FILE.equals(vm)) {
                 checkFileExist(vm, path);
             }
         }
-        properties.setProperty(SettingPropConst.APP_TYPE, setting.getApplicationType());
-        properties.setProperty(SettingPropConst.VM, vm);
-        String args = setting.getArgs();
-        if (null == args) {
-            args = StringUtils.EMPTY;
-        }
-        properties.setProperty(SettingPropConst.ARGS, args);
-        String group = setting.getGroup();
-        if (null == group) {
-            group = StringUtils.EMPTY;
-        }
-        properties.setProperty(SettingPropConst.GROUP, group);
-        if (null == setting.getPriority()) {
-            properties.setProperty(SettingPropConst.PRIORITY, StringUtils.EMPTY);
-        } else {
-            properties.setProperty(SettingPropConst.PRIORITY, setting.getPriority().toString());
-        }
-        checkAndSet(path, setting, properties);
-        properties.setProperty(SettingPropConst.SCHEDULE_TYPE, setting.getScheduleType());
-        properties.setProperty(SettingPropConst.SCHEDULE_CRON, setting.getCron());
+        checkAndSet(path, setting);
         if (null == setting.getDaemon()) {
-            properties.setProperty(SettingPropConst.DAEMON, SettingPropConst.VALUE_TRUE);
-        } else {
-            properties.setProperty(SettingPropConst.DAEMON, setting.getDaemon().toString());
+            setting.setDaemon(true);
         }
-        if (null == setting.getJarUpdateWatch()) {
-            properties.setProperty(SettingPropConst.JAR_UPDATE_WATCH, SettingPropConst.VALUE_TRUE);
-        } else {
-            properties.setProperty(SettingPropConst.JAR_UPDATE_WATCH, setting.getJarUpdateWatch().toString());
+        if (null == setting.getFileUpdateWatch()) {
+            setting.setFileUpdateWatch(true);
         }
-        return properties;
+        if (null == setting.getGroup()) {
+            setting.setGroup(StringUtils.EMPTY);
+        }
     }
 
     private void renameService(ServiceSetting setting, String path) {
@@ -173,7 +163,7 @@ public class SettingServiceImpl implements SettingService {
         }
     }
 
-    private void saveSettingProperties(File file, Properties properties) {
+    private void saveSettingProperties(File file, ServiceSetting setting) {
         boolean isNew = false;
         if (Files.notExists(file.getParentFile().toPath())) {
             try {
@@ -183,23 +173,29 @@ public class SettingServiceImpl implements SettingService {
                 throw new JarbootRunException("创建服务目录失败！" + e.getMessage(), e);
             }
         }
-        PropertyFileUtils.storeProperties(file, properties);
+        String json = JsonUtils.toPrettyJsonString(setting);
+        try {
+            FileUtils.writeStringToFile(file, json, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootException("写入配置文件失败！" + e.getMessage(), e);
+        }
         if (isNew) {
             MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         }
     }
 
-    private void checkAndSet(String path, ServiceSetting setting, Properties prop) {
+    private void checkAndSet(String path, ServiceSetting setting) {
         String workDirectory = setting.getWorkDirectory();
-        if (StringUtils.isNotEmpty(workDirectory)) {
-            checkDirExist(workDirectory);
+        if (StringUtils.isEmpty(workDirectory)) {
+            setting.setWorkDirectory(StringUtils.EMPTY);
         } else {
-            workDirectory = StringUtils.EMPTY;
+            checkDirExist(workDirectory);
         }
-        prop.setProperty(SettingPropConst.WORK_DIR, workDirectory);
 
         String jdkPath = setting.getJdkPath();
-        if (StringUtils.isNotEmpty(jdkPath)) {
+        if (StringUtils.isEmpty(jdkPath)) {
+            setting.setJdkPath(StringUtils.EMPTY);
+        } else {
             String javaFile = jdkPath + File.separator + CommonConst.BIN_NAME +
                     File.separator + CommonConst.JAVA_CMD;
             if (OSUtils.isWindows()) {
@@ -207,17 +203,14 @@ public class SettingServiceImpl implements SettingService {
             }
 
             checkFileExist(javaFile, path);
-        } else {
-            jdkPath = StringUtils.EMPTY;
         }
-        prop.setProperty(SettingPropConst.JDK_PATH, jdkPath);
 
         String env = setting.getEnv();
         if (PropertyFileUtils.checkEnvironmentVar(env)) {
             if (null == env) {
                 env = StringUtils.EMPTY;
             }
-            prop.setProperty(SettingPropConst.ENV, env);
+            setting.setEnv(env);
         } else {
             throw new JarbootException(ResultCodeConst.VALIDATE_FAILED,
                     String.format("环境变量配置错误(%s)！", setting.getEnv()));

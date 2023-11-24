@@ -148,8 +148,8 @@ export default class FileUploadClient {
     }
 
     for (let i = 0; i < this.sendCountOnce; ++i) {
-      let chunkEnd = this.lastUploadProgress.uploadSize + UPLOAD_CHUNK_SIZE;
-      let end = chunkEnd >= this.file.size ? this.file.size : chunkEnd;
+      const chunkEnd = this.lastUploadProgress.uploadSize + UPLOAD_CHUNK_SIZE;
+      const end = chunkEnd >= this.file.size ? this.file.size : chunkEnd;
       if (this.lastUploadProgress.uploadSize >= end) {
         this.finished();
         return;

@@ -72,7 +72,7 @@ export type ServerSetting = {
   daemon: boolean;
   env: string;
   group: string;
-  jarUpdateWatch: boolean;
+  fileUpdateWatch: boolean;
   jdkPath: string;
   lastModified: number;
   name: string;

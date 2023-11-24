@@ -2,7 +2,10 @@ package io.github.majianzheng.jarboot.ws;
 
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.event.AbstractMessageEvent;
+import io.github.majianzheng.jarboot.utils.SettingUtils;
+import org.apache.commons.io.FileUtils;
 
 import javax.websocket.Session;
 
@@ -13,9 +16,20 @@ import javax.websocket.Session;
 public class SessionOperator {
     /** websocket会话 */
     protected Session session;
+    protected String userDir;
+    private String serviceSidPrefix;
     
     public SessionOperator(Session session) {
         this.session = session;
+    }
+    public SessionOperator(String userDir, Session session) {
+        this.userDir = userDir;
+        this.session = session;
+        if (StringUtils.isEmpty(userDir)) {
+            return;
+        }
+        String dir = FileUtils.getFile(SettingUtils.getWorkspace(), userDir).getAbsolutePath();
+        serviceSidPrefix = String.format("service-%x%x", SettingUtils.getUuid().hashCode(), dir.hashCode());
     }
 
     /**
@@ -39,6 +53,17 @@ public class SessionOperator {
      * @param msg 消息
      */
     public void newMessage(AbstractMessageEvent msg) {
+        if (StringUtils.isEmpty(msg.getSid()) || StringUtils.isEmpty(serviceSidPrefix)) {
+            newMessage(msg.message());
+            return;
+        }
+        final String servicePrefix = "service-";
+        if (msg.getSid().startsWith(servicePrefix)) {
+            if (msg.getSid().startsWith(serviceSidPrefix)) {
+                newMessage(msg.message());
+            }
+            return;
+        }
         newMessage(msg.message());
     }
 

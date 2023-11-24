@@ -4,6 +4,7 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.dao.UserDao;
 import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
@@ -14,6 +15,7 @@ import io.github.majianzheng.jarboot.event.FuncReceivedEvent;
 import io.github.majianzheng.jarboot.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -31,9 +33,15 @@ public class WebSocketMainServer {
     private static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
     /** 推送前端消息 */
     public static final DefaultPublisher PUBLISHER = new DefaultPublisher(32768, "fe.push.publisher");
+    private static UserDao userDao;
 
     static {
         register();
+    }
+
+    @Autowired
+    public void setUserDao(UserDao dao) {
+        userDao = dao;
     }
 
     /**
@@ -41,7 +49,9 @@ public class WebSocketMainServer {
      * */
     @OnOpen
     public void onOpen(Session session) {
-        SESSIONS.put(session.getId(), new SessionOperator(session));
+        String username = session.getUserPrincipal().getName();
+        String userDir = userDao.getUserDirByName(username);
+        SESSIONS.put(session.getId(), new SessionOperator(userDir, session));
     }
 
     /**

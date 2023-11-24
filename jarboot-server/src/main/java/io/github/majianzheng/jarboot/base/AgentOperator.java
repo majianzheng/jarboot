@@ -16,6 +16,7 @@ import javax.websocket.Session;
  * @author majianzheng
  */
 public final class AgentOperator extends SessionOperator {
+    private String userDir;
     private final String name;
     private final String sid;
     private ServiceSetting setting;
@@ -23,13 +24,18 @@ public final class AgentOperator extends SessionOperator {
     private String pid;
     private boolean trusted;
 
-    public AgentOperator(String name, String sid, final Session session) {
+    public AgentOperator(String userDir, String name, String sid, final Session session) {
         super(session);
+        this.userDir = userDir;
         this.name = name;
         this.sid = sid;
         this.state = ClientState.STARTING;
         this.pid = StringUtils.EMPTY;
         this.trusted = false;
+    }
+
+    public String getUserDir() {
+        return userDir;
     }
 
     public String getName() {

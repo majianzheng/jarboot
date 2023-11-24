@@ -201,6 +201,28 @@ public class JsonUtils {
     }
 
     /**
+     * 对象序列化为格式化的字符串
+     * @param obj 对象
+     * @return json字符串
+     */
+    public static String toPrettyJsonString(Object obj) {
+        if (null == obj) {
+            return StringUtils.NULL_STR;
+        }
+        if (obj instanceof String) {
+            return (String)obj;
+        }
+        if (obj.getClass().isPrimitive()) {
+            return obj.toString();
+        }
+        try {
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (Exception e) {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    /**
      * 对象序列化为字节码
      * @param obj 对象
      * @return json字节码

@@ -34,7 +34,7 @@ public class ServiceSetting implements Serializable {
     /**
      * 最后修改时间
      */
-    private transient long lastModified;
+    private transient Long lastModified;
     
     /**
      * 用户自定义的启动命令
@@ -84,9 +84,9 @@ public class ServiceSetting implements Serializable {
     private Boolean daemon;
     
     /**
-     * jar文件改动监控，启用后，若jar文件更新则自动重启，已经处于关闭状态的不会启动
+     * 文件改动监控，启用后，若文件更新则自动重启，已经处于关闭状态的不会启动
      */
-    private Boolean jarUpdateWatch;
+    private Boolean fileUpdateWatch;
 
     /** 应用类型 java or shell */
     private String applicationType;
@@ -107,12 +107,12 @@ public class ServiceSetting implements Serializable {
         this.name = name;
     }
 
-    private ServiceSetting(String vm, Integer priority, String args, Boolean daemon, Boolean jarUpdateWatch) {
+    private ServiceSetting(String vm, Integer priority, String args, Boolean daemon, Boolean fileUpdateWatch) {
         this.vm = vm;
         this.priority = priority;
         this.args = args;
         this.daemon = daemon;
-        this.jarUpdateWatch = jarUpdateWatch;
+        this.fileUpdateWatch = fileUpdateWatch;
         this.applicationType = "java";
     }
 
@@ -140,11 +140,11 @@ public class ServiceSetting implements Serializable {
         this.sid = sid;
     }
 
-    public long getLastModified() {
+    public Long getLastModified() {
         return lastModified;
     }
 
-    public void setLastModified(long lastModified) {
+    public void setLastModified(Long lastModified) {
         this.lastModified = lastModified;
     }
 
@@ -220,12 +220,12 @@ public class ServiceSetting implements Serializable {
         this.daemon = daemon;
     }
 
-    public Boolean getJarUpdateWatch() {
-        return jarUpdateWatch;
+    public Boolean getFileUpdateWatch() {
+        return fileUpdateWatch;
     }
 
-    public void setJarUpdateWatch(Boolean jarUpdateWatch) {
-        this.jarUpdateWatch = jarUpdateWatch;
+    public void setFileUpdateWatch(Boolean fileUpdateWatch) {
+        this.fileUpdateWatch = fileUpdateWatch;
     }
 
     public String getApplicationType() {
@@ -283,7 +283,7 @@ public class ServiceSetting implements Serializable {
                 ", jdkPath='" + jdkPath + '\'' +
                 ", env='" + env + '\'' +
                 ", daemon=" + daemon +
-                ", jarUpdateWatch=" + jarUpdateWatch +
+                ", fileUpdateWatch=" + fileUpdateWatch +
                 '}';
     }
 
@@ -296,7 +296,7 @@ public class ServiceSetting implements Serializable {
             return false;
         }
         ServiceSetting setting = (ServiceSetting) o;
-        return lastModified == setting.lastModified && name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(env, setting.env) && Objects.equals(daemon, setting.daemon) && Objects.equals(jarUpdateWatch, setting.jarUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
+        return name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(env, setting.env) && Objects.equals(daemon, setting.daemon) && Objects.equals(fileUpdateWatch, setting.fileUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
     }
 
     @Override

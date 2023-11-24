@@ -52,10 +52,10 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     private ServiceManagerImpl serverMgrService;
     @Autowired
     private UserDao userDao;
-    @Value("${jarboot.file-update-exclude:^[\\s\\S]*\\.(log[\\s\\S]*|pdf|png|jpeg|jpg|docx|doc|xls|xlsx|ppt|pjpg|md|txt)$}")
+    @Value("${jarboot.file-update-exclude:^[\\s\\S]*\\.(log[\\s\\S]*|pdf|png|jpeg|jpg|docx|doc|xls|xlsx|ppt|pjpg|md|txt|dat|ctrl|lck|lock)$}")
     private String fileUpdateExclude;
     private Pattern fileUpdatePattern;
-    @Value("${jarboot.dir-update-exclude:(log|cache|static)}")
+    @Value("${jarboot.dir-update-exclude:(log|data|tmp|temp|cache|static)}")
     private String dirUpdateExclude;
     private Pattern dirUpdatePattern;
     private WatchService watchService;
@@ -107,14 +107,14 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             final String bashFileName = String.format("after_start_exec.%s", bashFileExt);
             final File bashFile = FileUtils.getFile(CacheDirHelper.getTempBashDir(), bashFileName);
             threadFactory
-                    .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, bashFile))
+                    .newThread(() -> TaskUtils.startTask(afterStartExec, null, jarbootHome, bashFile, SettingUtils.getJdkPath()))
                     .start();
         }
     }
 
     @Override
     public void registerServiceChangeMonitor(ServiceSetting setting) {
-        if (!SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) || !Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
+        if (!SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) || !Boolean.TRUE.equals(setting.getFileUpdateWatch())) {
             return;
         }
         final Path servicePath = Paths.get(SettingUtils.getWorkspace(), setting.getUserDir(), setting.getName());
@@ -321,7 +321,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                 //当前不处于正在运行的状态
                 return;
             }
-            if (Boolean.TRUE.equals(setting.getJarUpdateWatch())) {
+            if (Boolean.TRUE.equals(setting.getFileUpdateWatch())) {
                 //启用了路径监控配置
                 modifiedServiceQueue.put(setting);
                 ServiceFileChangeEvent event = new ServiceFileChangeEvent();

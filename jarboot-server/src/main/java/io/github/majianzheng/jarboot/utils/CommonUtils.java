@@ -91,7 +91,7 @@ public class CommonUtils {
     }
 
     public static String createJvmSid(String pid) {
-        return String.format("%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode());
+        return String.format("jvm-%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode());
     }
 
     private CommonUtils() {}

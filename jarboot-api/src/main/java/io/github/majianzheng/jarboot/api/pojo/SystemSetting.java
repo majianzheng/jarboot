@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 public class SystemSetting implements Serializable {
     private String workspace;
+    private String jdkPath;
     private String defaultVmOptions;
     private Boolean servicesAutoStart;
     private Integer maxStartTime;
@@ -20,6 +21,14 @@ public class SystemSetting implements Serializable {
 
     public void setWorkspace(String workspace) {
         this.workspace = workspace;
+    }
+
+    public String getJdkPath() {
+        return jdkPath;
+    }
+
+    public void setJdkPath(String jdkPath) {
+        this.jdkPath = jdkPath;
     }
 
     public String getDefaultVmOptions() {

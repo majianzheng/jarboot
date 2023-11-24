@@ -103,7 +103,7 @@ const defaultSetting: ServerSetting = {
   command: '',
   daemon: false,
   env: '',
-  jarUpdateWatch: false,
+  fileUpdateWatch: false,
   jdkPath: '',
   lastModified: 0,
   priority: 1,

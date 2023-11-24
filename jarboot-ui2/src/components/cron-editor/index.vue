@@ -214,11 +214,7 @@
             <el-radio class="long" v-model="state.day.cronEvery" label="4"
               >{{ state.text.Day.specificWeek }}
               <el-select size="small" multiple v-model="state.week.specificSpecific">
-                <el-option
-                  v-for="(val, index) in 7"
-                  :key="index"
-                  :label="state.text.Week[val - 1]"
-                  :value="state.weeks[val - 1]"></el-option>
+                <el-option v-for="(val, index) in 7" :key="index" :label="state.text.Week[val - 1]" :value="state.weeks[val - 1]"></el-option>
               </el-select>
             </el-radio>
           </el-row>
@@ -317,14 +313,22 @@
               >{{ state.text.Year.interval[0] }}
               <el-input-number size="small" v-model="state.year.incrementIncrement" :min="1" :max="99"></el-input-number>
               {{ state.text.Year.interval[1] }}
-              <el-input-number size="small" v-model="state.year.incrementStart" :min="state.curYear" :max="state.curYear + 100"></el-input-number>
+              <el-input-number
+                size="small"
+                v-model="state.year.incrementStart"
+                :min="state.curYear"
+                :max="state.curYear + 100"></el-input-number>
             </el-radio>
           </el-row>
           <el-row>
             <el-radio class="long" v-model="state.year.cronEvery" label="3"
               >{{ state.text.Year.specific }}
               <el-select size="small" filterable multiple v-model="state.year.specificSpecific">
-                <el-option v-for="(val, index) in 100" :key="index" :label="state.curYear + val - 1" :value="state.curYear + val - 1"></el-option>
+                <el-option
+                  v-for="(val, index) in 100"
+                  :key="index"
+                  :label="state.curYear + val - 1"
+                  :value="state.curYear + val - 1"></el-option>
               </el-select>
             </el-radio>
           </el-row>
@@ -354,7 +358,7 @@
 <script>
 import Language from './language';
 import { reactive, computed, toRefs, defineComponent } from 'vue';
-import StringUtil from "@/common/StringUtil";
+import StringUtil from '@/common/StringUtil';
 export default defineComponent({
   name: 'cron-editor',
   props: {

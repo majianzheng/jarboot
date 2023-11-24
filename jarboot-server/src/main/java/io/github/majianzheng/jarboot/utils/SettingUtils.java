@@ -12,6 +12,7 @@ import io.github.majianzheng.jarboot.security.JwtTokenManager;
 import io.github.majianzheng.jarboot.service.UserService;
 import io.jsonwebtoken.io.Encoders;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -35,9 +36,10 @@ public class SettingUtils {
     /** 系统配置缓存 */
     private static final SystemSetting GLOBAL_SETTING = new SystemSetting();
     /** Jarboot配置文件名字 */
-    private static final String BOOT_PROPERTIES = "boot.properties";
+    private static final String BOOT_PROPERTIES = "boot.json";
     /** 工作空间属性key */
     private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
+    private static final String DEFAULT_JDK_PATH = "jarboot.jdk.path";
     /** 默认VM参数属性key */
     private static final String DEFAULT_VM_OPTS_KEY = "jarboot.services.default-vm-options";
     private static final String MAX_START_TIME = "jarboot.services.max-start-time";
@@ -171,6 +173,7 @@ public class SettingUtils {
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
         GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
+        GLOBAL_SETTING.setJdkPath(properties.getProperty(DEFAULT_JDK_PATH, StringUtils.EMPTY));
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
         int maxStartTime = 120000;
         try {
@@ -254,6 +257,12 @@ public class SettingUtils {
                 throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("配置的路径%s不存在！", workspace));
             }
         }
+        if (StringUtils.isNotEmpty(setting.getJdkPath())) {
+            File javaCmd = FileUtils.getFile(setting.getJdkPath(), CommonConst.BIN_NAME, CommonConst.JAVA_CMD);
+            if (!javaCmd.exists()) {
+                throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", javaCmd.getAbsolutePath()));
+            }
+        }
 
         File file = FileUtils.getFile(jarbootConf);
         try {
@@ -266,6 +275,7 @@ public class SettingUtils {
                 GLOBAL_SETTING.setDefaultVmOptions(setting.getDefaultVmOptions().trim());
             }
             GLOBAL_SETTING.setWorkspace(workspace);
+            GLOBAL_SETTING.setJdkPath(setting.getJdkPath());
             GLOBAL_SETTING.setServicesAutoStart(setting.getServicesAutoStart());
             GLOBAL_SETTING.setFileChangeShakeTime(setting.getFileChangeShakeTime());
             GLOBAL_SETTING.setAfterServerOfflineExec(setting.getAfterServerOfflineExec());
@@ -284,9 +294,11 @@ public class SettingUtils {
             props.put(DEFAULT_VM_OPTS_KEY, setting.getDefaultVmOptions());
         }
         if (OSUtils.isWindows()) {
-            props.put(ROOT_DIR_KEY, workspace.replace('\\', '/'));
+            props.put(ROOT_DIR_KEY, FilenameUtils.separatorsToUnix(workspace));
+            props.put(DEFAULT_JDK_PATH, FilenameUtils.separatorsToUnix(setting.getJdkPath()));
         } else {
             props.put(ROOT_DIR_KEY, workspace);
+            props.put(DEFAULT_JDK_PATH, setting.getJdkPath());
         }
         final int minWait = 1000;
         if (null != setting.getMaxStartTime() && setting.getMaxStartTime() > minWait) {
@@ -506,7 +518,10 @@ public class SettingUtils {
      * @return sid
      */
     public static String createSid(String servicePath) {
-        return String.format("x%x%x", uuid.hashCode(), servicePath.hashCode());
+        int p = Math.max(servicePath.lastIndexOf('/'), servicePath.lastIndexOf('\\'));
+        String name = servicePath.substring(p + 1);
+        String userDir = servicePath.substring(0, p);
+        return String.format("service-%x%x%x", uuid.hashCode(), userDir.hashCode(), name.hashCode());
     }
 
     public static boolean isTrustedHost(String host) {
@@ -552,6 +567,14 @@ public class SettingUtils {
         lines.remove(host);
         FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, false);
         trustedHosts = lines;
+    }
+
+    public static String getJdkPath() {
+        String jdkPath = GLOBAL_SETTING.getJdkPath();
+        if (StringUtils.isEmpty(jdkPath)) {
+            jdkPath = System.getProperty("java.home");
+        }
+        return FilenameUtils.separatorsToUnix(jdkPath);
     }
 
     private SettingUtils() {

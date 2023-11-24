@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
@@ -57,10 +58,6 @@ public class TaskUtils {
 
         //检查有没有成功退出，若失败，则执行强制杀死系统命令
         if (!isOk) {
-            if (AgentManager.getInstance().isOnline(sid)) {
-                logger.warn("未能成功退出，将执行强制杀死命令：{}", sid);
-                MessageUtils.warn("服务(sid:" + sid + ")未等到退出消息，将执行强制退出命令！");
-            }
             String pid = getPid(sid);
             if (!pid.isEmpty()) {
                 killByPid(pid);
@@ -80,28 +77,7 @@ public class TaskUtils {
         String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
-        if (USE_NOHUP) {
-            cmdBuilder.append("nohup ");
-        }
-
-        // java命令
-        if (StringUtils.isBlank(setting.getJdkPath())) {
-            cmdBuilder.append(CommonConst.JAVA_CMD);
-        } else {
-            // 使用了指定到jdk
-            String jdkPath = getAbsolutePath(setting.getJdkPath(), serverPath);
-            cmdBuilder
-                    .append(jdkPath)
-                    .append( File.separator)
-                    .append(CommonConst.BIN_NAME)
-                    .append( File.separator)
-                    .append(CommonConst.JAVA_CMD);
-            if (OSUtils.isWindows()) {
-                cmdBuilder.append(CommonConst.EXE_EXT);
-            }
-        }
         cmdBuilder
-                .append(StringUtils.SPACE)
                 // jvm 配置
                 .append(jvm)
                 .append(StringUtils.SPACE)
@@ -145,8 +121,6 @@ public class TaskUtils {
             cmdBuilder.append(StringUtils.SPACE).append(startArg);
         }
 
-        String cmd = cmdBuilder.toString();
-
         // 工作目录
         String workHome = setting.getWorkDirectory();
         if (StringUtils.isBlank(workHome)) {
@@ -155,23 +129,44 @@ public class TaskUtils {
             //解析相对路径或绝对路径，得到真实路径
             workHome = getAbsolutePath(workHome, serverPath);
         }
-        String displayCmd = cmd;
+        String displayCmd;
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
             displayCmd = setting.getCommand();
             if (StringUtils.isNotEmpty(setting.getArgs())) {
                 displayCmd = displayCmd + " " + setting.getArgs();
             }
+        } else {
+            displayCmd = "java " + cmdBuilder.toString();
         }
 
         //打印命令行
-        MessageUtils.console(sid, displayCmd);
+        MessageUtils.console(setting.getUserDir(), sid, displayCmd);
         // 启动、等待启动完成，最长2分钟
         int waitTime = SettingUtils.getSystemSetting().getMaxStartTime();
         final String workDir = workHome;
         final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
         String bashName = String.format("shell_%s.%s", sid, bashFileExt);
         File bashFile = FileUtils.getFile(serverPath, bashName);
-        AgentManager.getInstance().waitServiceStarted(setting, waitTime, () -> startTask(cmd, setting.getEnv(), workDir, bashFile));
+
+        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
+        if (USE_NOHUP) {
+            javaCmd = "nohup " + javaCmd;
+        }
+        cmdBuilder.insert(0, javaCmd);
+        String cmd = cmdBuilder.toString();
+        // java命令
+        String jdkPath;
+        if (StringUtils.isBlank(setting.getJdkPath())) {
+            jdkPath = SettingUtils.getJdkPath();
+        } else {
+            // 使用了指定到jdk
+            jdkPath = getAbsolutePath(setting.getJdkPath(), serverPath);
+        }
+        AgentManager.getInstance()
+                .waitServiceStarted(
+                        setting,
+                        waitTime,
+                        () -> startTask(cmd, setting.getEnv(), workDir, bashFile, jdkPath));
     }
 
     /**
@@ -241,10 +236,12 @@ public class TaskUtils {
      * @param environment 环境变量
      * @param workHome 工作目录
      * @param bashFile 临时的bash可执行文件
+     * @param jdkPath jdk路径
      */
-    public static void startTask(String command, String environment, String workHome, File bashFile) {
+    public static void startTask(String command, String environment, String workHome, File bashFile, String jdkPath) {
         StringBuilder sb = new StringBuilder();
         try {
+            initJdkPath(jdkPath, sb);
             String[] envs = parseEnv(environment);
             if (null != envs) {
                 for (String env : envs) {
@@ -255,7 +252,11 @@ public class TaskUtils {
                     }
                 }
             }
-            sb.append('\n').append(command).append('\n');
+            if (OSUtils.isWindows()) {
+                sb.append("\nstart \"\" ").append(command).append("\ntimeout /t 3 > NUL\necho started!\n");
+            } else {
+                sb.append('\n').append(command).append(" >/dev/null &\nsleep 3\necho started!\n");
+            }
             FileUtils.writeStringToFile(bashFile, sb.toString(), StandardCharsets.UTF_8);
             if (!bashFile.setExecutable(true)) {
                 logger.error("set executable failed.");
@@ -264,8 +265,30 @@ public class TaskUtils {
             List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(bash) : Arrays.asList("sh", bash);
             new ProcessBuilder(cmd).directory(toCurrentDir(workHome)).start();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            MessageUtils.error("Start task error " + e.getMessage());
+            throw new JarbootException(e.getMessage(), e);
+        }
+    }
+
+    private static void initJdkPath(String jdkPath, StringBuilder sb) {
+        if (StringUtils.isEmpty(jdkPath)) {
+            if (OSUtils.isWindows()) {
+                sb.append("set \"JAVA_CMD=javaw\"\n\n");
+            } else {
+                sb.append("export JAVA_CMD=\"java\"\n\n");
+            }
+        } else {
+            if (OSUtils.isWindows()) {
+                sb.append("set \"JAVA_HOME=").append(jdkPath).append("\"\n");
+                sb.append("set \"JAVA_CMD=%JAVA_HOME%/bin/javaw.exe\"\n\n");
+            } else {
+                sb.append("export JAVA_HOME=\"").append(jdkPath).append("\"\n");
+                sb.append("export JAVA_CMD=\"${JAVA_HOME}/bin/java\"\n\n");
+            }
+        }
+        if (OSUtils.isWindows()) {
+            sb.append("set \"JARBOOT_HOME=").append(SettingUtils.getHomePath()).append("\"\n");
+        } else {
+            sb.append("export JARBOOT_HOME=\"").append(SettingUtils.getHomePath()).append("\"\n");
         }
     }
 
@@ -305,8 +328,7 @@ public class TaskUtils {
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
-            MessageUtils.warn(e.getMessage());
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             MessageUtils.warn(e.getMessage());
         } finally {
