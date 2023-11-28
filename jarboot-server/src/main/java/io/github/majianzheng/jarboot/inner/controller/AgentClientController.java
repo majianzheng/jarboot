@@ -111,7 +111,7 @@ public class AgentClientController {
                     .append(CommonConst.COMMA_SPLIT)
                     .append(server)
                     .append(CommonConst.COMMA_SPLIT)
-                    .append(String.format("%x-%x", h, System.nanoTime()));
+                    .append(String.format("%08x-%08x", h, System.nanoTime()));
             agentClient.setSid(sb.toString());
         }
 

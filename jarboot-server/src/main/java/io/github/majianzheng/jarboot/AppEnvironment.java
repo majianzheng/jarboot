@@ -12,7 +12,6 @@ import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.service.TaskWatchService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;

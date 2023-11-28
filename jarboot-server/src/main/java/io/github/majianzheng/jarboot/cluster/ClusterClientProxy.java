@@ -203,7 +203,7 @@ public class ClusterClientProxy {
         node.setNodeType(CommonConst.NODE_ROOT);
         node.setHost(client.getHost());
         node.setName(client.getHost());
-        node.setSid(String.format("%x", Objects.hash(System.currentTimeMillis(), client.getHost())));
+        node.setSid(String.format("%08x", Objects.hash(System.currentTimeMillis(), client.getHost())));
         node.setStatus(client.getState().name());
     }
 

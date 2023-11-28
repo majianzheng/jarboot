@@ -2,10 +2,7 @@ package io.github.majianzheng.jarboot.tools.shell;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
-import io.github.majianzheng.jarboot.common.AnsiLog;
-import io.github.majianzheng.jarboot.common.JarbootException;
-import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
-import io.github.majianzheng.jarboot.common.PidFileHelper;
+import io.github.majianzheng.jarboot.common.*;
 import io.github.majianzheng.jarboot.common.utils.*;
 import org.apache.commons.io.FileUtils;
 
@@ -249,14 +246,14 @@ public class JarbootShell {
         }
         list.addAll(command);
         final String a = OSUtils.isWindows() ? "cmd" : "sh";
-        final String cmdFileName = String.format(".shell%s%x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
-        File cmdFile = FileUtils.getFile(cmdFileName);
+        final String cmdFileName = String.format(".shell%s%08x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
+        File cmdFile = FileUtils.getFile(CacheDirHelper.getTempBashDir(), cmdFileName);
         try {
             FileUtils.writeStringToFile(cmdFile, String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
             if (!cmdFile.setExecutable(true)) {
                 AnsiLog.error("set executable failed.");
             }
-            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFileName) : Arrays.asList("sh", cmdFileName);
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFile.getAbsolutePath()) : Arrays.asList("sh", cmdFile.getAbsolutePath());
             Process process = new ProcessBuilder().command(cmd).start();
             final Thread hook = JarbootThreadFactory.createThreadFactory("jarboot-hook").newThread(() -> exitHook(process, cmdFile));
             Runtime.getRuntime().addShutdownHook(hook);

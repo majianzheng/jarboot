@@ -32,6 +32,7 @@ public class BaseIterator<E> implements Iterator<E> {
     throw new NoSuchElementException("No more elements");
   }
 
+  @Override
   public void remove() {
     throw new UnsupportedOperationException();
   }

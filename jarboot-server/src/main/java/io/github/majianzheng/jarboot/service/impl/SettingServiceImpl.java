@@ -60,7 +60,7 @@ public class SettingServiceImpl implements SettingService {
             MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         } else {
             ServiceSetting oldSetting = PropertyFileUtils.getServiceSettingBySid(sid);
-            if (!Objects.equals(oldSetting.getGroup(), setting.getGroup())) {
+            if (null != oldSetting && !Objects.equals(oldSetting.getGroup(), setting.getGroup())) {
                 MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
             }
         }

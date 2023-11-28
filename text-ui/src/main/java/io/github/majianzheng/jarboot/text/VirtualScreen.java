@@ -344,7 +344,7 @@ public class VirtualScreen implements ScreenContext {
     if (width != nextWidth || height != nextHeight) {
       width = nextWidth;
       height = nextHeight;
-      if (buffer.size() > 0) {
+      if (!buffer.isEmpty()) {
         cursorIndex = index;
         cursorOffset = offset;
         cursorX = 0;

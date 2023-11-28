@@ -68,7 +68,6 @@ public class TerminalProcess {
             readerThread.start();
             logger.info("启动终端session:{}，宽：{}, 高：{}, 工作目录: {}", session.getId(), col, row, directory);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             throw new JarbootException(e.getMessage(), e);
         }
     }

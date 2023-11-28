@@ -147,7 +147,7 @@ public class TaskRunCache {
         ServiceInstance localGroup = new ServiceInstance();
         final String selfHost = ClusterClientManager.getInstance().getSelfHost();
         localGroup.setNodeType(CommonConst.NODE_ROOT);
-        localGroup.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
+        localGroup.setSid(String.format("%08x", SettingUtils.getUuid().hashCode()));
         localGroup.setHost(selfHost);
         localGroup.setChildren(new ArrayList<>());
         if (CollectionUtils.isEmpty(serviceList)) {
@@ -163,7 +163,7 @@ public class TaskRunCache {
                     if (null == v) {
                         v = new ServiceInstance();
                         v.setNodeType(CommonConst.NODE_GROUP);
-                        v.setSid(String.format("%x", Objects.hash(SettingUtils.getUuid(), k)));
+                        v.setSid(String.format("%08x", Objects.hash(SettingUtils.getUuid(), k)));
                         v.setName(service.getGroup());
                         v.setHost(selfHost);
                         v.setChildren(new ArrayList<>());

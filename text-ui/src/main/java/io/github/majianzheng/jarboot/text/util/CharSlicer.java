@@ -108,6 +108,7 @@ public class CharSlicer {
       /** . */
       Pair<Integer, Integer> next = null;
 
+      @Override
       public boolean hasNext() {
         if (next == null && index < value.length()) {
           int pos = value.indexOf('\n', index);
@@ -128,6 +129,7 @@ public class CharSlicer {
         return next != null;
       }
 
+      @Override
       public Pair<Integer, Integer> next() {
         if (!hasNext()) {
           throw new NoSuchElementException();

@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 服务管理
@@ -70,7 +69,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public JvmProcess getJvmGroup() {
         JvmProcess localGroup = new JvmProcess();
         localGroup.setNodeType(CommonConst.NODE_ROOT);
-        localGroup.setSid(String.format("%x", SettingUtils.getUuid().hashCode()));
+        localGroup.setSid(String.format("%08x", SettingUtils.getUuid().hashCode()));
         localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
         localGroup.setChildren(new ArrayList<>());
         localGroup.getChildren().addAll(this.getJvmProcesses());
@@ -220,6 +219,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.printException(sid, e);
         } finally {
             this.taskRunCache.removeStarting(sid);
+            TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
         }
     }
 
@@ -422,6 +422,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.printException(sid, e);
         } finally {
             this.taskRunCache.removeStopping(sid);
+            this.taskRunCache.removeStarting(sid);
+            TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
         }
     }
 
@@ -474,37 +476,30 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);
-        String shell = SettingUtils.getSystemSetting().getAfterServerOfflineExec();
-        if (StringUtils.isNotEmpty(shell)) {
-            ServiceSetting postExecSetting = new ServiceSetting(serviceName + "后置脚本启动" );
-            postExecSetting.setApplicationType(CommonConst.SHELL_TYPE);
-            postExecSetting.setUserDir(setting.getUserDir());
-            postExecSetting.setWorkDirectory(setting.getWorkDirectory());
-            postExecSetting.setCommand(shell);
-            postExecSetting.setSid(setting.getSid());
-            Map<String, String> env = new HashMap<>(System.getenv());
-            env.put("SERVICE_NAME", serviceName);
-            env.put(CommonConst.JARBOOT_HOME, SettingUtils.getHomePath());
-            env.put("SID", setting.getSid());
-            String envStr = env.entrySet()
-                    .stream()
-                    .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
-                    .collect(Collectors.joining(","));
-            postExecSetting.setEnv(envStr);
-            executorService.execute(() -> TaskUtils.startService(postExecSetting));
-        }
-
+        boolean temp = false;
         if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
-            final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
-            String s = sdf.format(new Date());
             if (Boolean.TRUE.equals(setting.getDaemon())) {
-                MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, s));
-                //启动
-                executorService.execute(() -> this.startSingleService(setting));
+                temp = true;
             } else {
-                MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, s));
+                MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, currentTimeFormat()));
             }
         }
+        final boolean daemon = temp;
+        executorService.execute(() -> {
+            if (StringUtils.isNotEmpty(SettingUtils.getSystemSetting().getAfterServerOfflineExec())) {
+                TaskUtils.execServiceOfflineShell(setting);
+            }
+            //启动
+            if (daemon) {
+                MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, currentTimeFormat()));
+                this.startSingleService(setting);
+            }
+        });
+    }
+
+    private static String currentTimeFormat() {
+        final SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
+        return sdf.format(new Date());
     }
 
     private void tryReAttach(ServiceSetting setting) {

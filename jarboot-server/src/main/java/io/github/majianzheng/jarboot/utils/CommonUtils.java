@@ -2,6 +2,8 @@ package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
+import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.jsonwebtoken.lang.Collections;
 
@@ -91,7 +93,22 @@ public class CommonUtils {
     }
 
     public static String createJvmSid(String pid) {
-        return String.format("jvm-%x%x", SettingUtils.getUuid().hashCode(), pid.hashCode());
+        return String.format("jvm-%08x%08x", SettingUtils.getUuid().hashCode(), pid.hashCode());
+    }
+
+    public static String getMachineCode() {
+        List<String> addrList = NetworkUtils.getMacAddrList();
+        if (addrList.isEmpty()) {
+            return StringUtils.EMPTY;
+        }
+        addrList.sort(String::compareTo);
+        String code1 = addrList.get(0);
+        String code2 = addrList.get(addrList.size() - 1);
+        return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
+    }
+
+    public static String getHomeEnv() {
+        return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
     }
 
     private CommonUtils() {}

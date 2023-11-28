@@ -9,6 +9,11 @@
 | 1.1.x   | :white_check_mark: |
 | < 1.1.0 | :x:                |
 
+Chrome >=87
+Firefox >=78
+Safari >=14
+Edge >=88
+
 ## How to Report bugs（如何提交Bugs）
 
 If you encounter bugs or documentation mistakes when using this project, please report by [opening an issue][Jarboot-issue]. I treat bugs and mistakes very seriously and believe no issue is too small, anyOne is implement. Before creating a bug report, please check that an issue reporting the same problem does not already exist.

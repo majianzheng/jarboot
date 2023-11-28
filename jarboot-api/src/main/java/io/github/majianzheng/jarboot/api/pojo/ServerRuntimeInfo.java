@@ -4,11 +4,20 @@ package io.github.majianzheng.jarboot.api.pojo;
  * @author mazheng
  */
 public class ServerRuntimeInfo {
+    private String machineCode;
     private String host;
     private String uuid;
     private String version;
     private String workspace;
     private Boolean inDocker;
+
+    public String getMachineCode() {
+        return machineCode;
+    }
+
+    public void setMachineCode(String machineCode) {
+        this.machineCode = machineCode;
+    }
 
     public String getHost() {
         return host;

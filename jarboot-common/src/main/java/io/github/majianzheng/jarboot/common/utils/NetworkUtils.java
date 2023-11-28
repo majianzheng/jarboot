@@ -333,6 +333,45 @@ public class NetworkUtils {
     }
 
     /**
+     * 获取本机mac地址列表
+     * @return mac地址
+     */
+    public static List<String> getMacAddrList() {
+        List<String> macAddrList = new ArrayList<>();
+        try {
+            // 获取本机所有的网络接口
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                boolean hasInet4 = false;
+                Enumeration<InetAddress> address = networkInterface.getInetAddresses();
+                while (address.hasMoreElements()) {
+                    InetAddress addr = address.nextElement();
+                    if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
+                        hasInet4 = true;
+                    }
+                }
+
+                // 获取当前网络接口的MAC地址
+                byte[] mac = networkInterface.getHardwareAddress();
+                // 检查网络接口是否已启用且不是回环接口
+                if (hasInet4 && null != mac && !networkInterface.isLoopback()) {
+                    // 将MAC地址转换为字符串形式
+                    StringBuilder macAddress = new StringBuilder();
+                    for (int i = 0; i < mac.length; i++) {
+                        macAddress.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+                    }
+                    macAddrList.add(macAddress.toString());
+                }
+            }
+
+        } catch (Exception e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
+        return macAddrList;
+    }
+    /**
      * Find an available port for this {@code SocketType}, randomly selected from
      * the range [{@code minPort}, {@code maxPort}].
      *

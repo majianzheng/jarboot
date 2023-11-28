@@ -15,6 +15,7 @@ import io.github.majianzheng.jarboot.common.utils.ZipUtils;
 import io.github.majianzheng.jarboot.entity.User;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.service.UserService;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
@@ -46,6 +47,7 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
     @Override
     public ServerRuntimeInfo getServerRuntimeInfo() {
         ServerRuntimeInfo info = new ServerRuntimeInfo();
+        info.setMachineCode(CommonUtils.getMachineCode());
         info.setUuid(SettingUtils.getUuid());
         info.setInDocker(isInDocker);
         info.setVersion(VersionUtils.version);

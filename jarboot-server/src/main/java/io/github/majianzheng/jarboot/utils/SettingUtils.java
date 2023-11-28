@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.utils;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.pojo.SystemSetting;
+import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
@@ -94,28 +95,7 @@ public class SettingUtils {
         //初始化默认目录及配置路径
         defaultWorkspace = homePath + File.separator + CommonConst.WORKSPACE;
         userService = context.getBean(UserService.class);
-        File uuidFile = FileUtils.getFile(homePath, "data", ".uuid");
-        boolean isFirst = false;
-        if (uuidFile.exists()) {
-            try {
-                uuid = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-        if (StringUtils.isEmpty(uuid)) {
-            isFirst = true;
-            uuid = UUID.randomUUID().toString();
-            try {
-                FileUtils.writeStringToFile(uuidFile, uuid, StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-        if (isFirst && isProd()) {
-            // 生产模式下，随机生成盐：jarboot.token.secret.key
-            initSecretKey();
-        }
+        initEnv();
     }
 
     private static void initSecretKey() {
@@ -172,41 +152,23 @@ public class SettingUtils {
         File conf = new File(jarbootConf);
         Properties properties = (conf.exists() && conf.isFile() && conf.canRead()) ?
                 PropertyFileUtils.getProperties(conf) : new Properties();
-        GLOBAL_SETTING.setWorkspace(properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY));
-        GLOBAL_SETTING.setJdkPath(properties.getProperty(DEFAULT_JDK_PATH, StringUtils.EMPTY));
+        String workspace = properties.getProperty(ROOT_DIR_KEY, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(workspace) && !FileUtils.getFile(workspace).exists()) {
+            workspace = StringUtils.EMPTY;
+        }
+        String jdkPath = properties.getProperty(DEFAULT_JDK_PATH, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(jdkPath) && !FileUtils.getFile(jdkPath).exists()) {
+            jdkPath = StringUtils.EMPTY;
+        }
+        GLOBAL_SETTING.setWorkspace(workspace);
+        GLOBAL_SETTING.setJdkPath(jdkPath);
         GLOBAL_SETTING.setDefaultVmOptions(properties.getProperty(DEFAULT_VM_OPTS_KEY, StringUtils.EMPTY).trim());
-        int maxStartTime = 120000;
-        try {
-            int temp = Integer.parseInt(properties.getProperty(MAX_START_TIME, "120000").trim());
-            if (temp > 0) {
-                maxStartTime = temp;
-            }
-        } catch (Exception e) {
-            // ignore
-        }
+        int maxStartTime = getDefaultTimeValue(120000, properties, MAX_START_TIME);
         GLOBAL_SETTING.setMaxStartTime(maxStartTime);
-        int maxExitTime = CommonConst.MAX_WAIT_EXIT_TIME;
-        try {
-            int temp = Integer.parseInt(properties.getProperty(MAX_EXIT_TIME, "30000").trim());
-            if (temp > 0) {
-                maxExitTime = temp;
-            }
-        } catch (Exception e) {
-            // ignore
-        }
+        int maxExitTime = getDefaultTimeValue(CommonConst.MAX_WAIT_EXIT_TIME, properties, MAX_EXIT_TIME);
         GLOBAL_SETTING.setMaxExitTime(maxExitTime);
         GLOBAL_SETTING.setAfterServerOfflineExec(properties.getProperty(AFTER_OFFLINE_EXEC, StringUtils.EMPTY).trim());
-        int shakeTime = 5;
-        final int minShakeTime = 3;
-        final int maxShakeTime = 600;
-        try {
-            int temp = Integer.parseInt(properties.getProperty(FILE_SHAKE_TIME, StringUtils.EMPTY).trim());
-            if (temp >= minShakeTime && temp <= maxShakeTime) {
-                shakeTime = temp;
-            }
-        } catch (Exception e) {
-            // ignore
-        }
+        int shakeTime = getShakeTime(properties);
         GLOBAL_SETTING.setFileChangeShakeTime(shakeTime);
         GLOBAL_SETTING.setServicesAutoStart(false);
         String autoStartValue = properties.getProperty(SERVICES_AUTO_START, StringUtils.EMPTY);
@@ -218,6 +180,41 @@ public class SettingUtils {
                 // ignore
             }
         }
+    }
+
+    private static int getDefaultTimeValue(int defaultValue, Properties properties, String key) {
+        try {
+            String value = properties.getProperty(key, StringUtils.EMPTY).trim();
+            if (StringUtils.isEmpty(value)) {
+                return defaultValue;
+            }
+            int temp = Integer.parseInt(value);
+            if (temp > 0) {
+                defaultValue = temp;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return defaultValue;
+    }
+
+    private static int getShakeTime(Properties properties) {
+        int shakeTime = 5;
+        final int minShakeTime = 3;
+        final int maxShakeTime = 600;
+        try {
+            String value = properties.getProperty(FILE_SHAKE_TIME, StringUtils.EMPTY).trim();
+            if (StringUtils.isEmpty(value)) {
+                return shakeTime;
+            }
+            int temp = Integer.parseInt(value);
+            if (temp >= minShakeTime && temp <= maxShakeTime) {
+                shakeTime = temp;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return shakeTime;
     }
 
     private static void initTrustedHosts() {
@@ -351,15 +348,19 @@ public class SettingUtils {
      * @return 参数
      */
     public static String getAgentStartOption(String userDir, String serviceName, String sid) {
-        return "-javaagent:" + agentJar + "=" + getAgentArgs(userDir, serviceName, sid);
+        return new StringBuilder("-javaagent:")
+                .append(CommonUtils.getHomeEnv())
+                .append(File.separator)
+                .append(CommonConst.COMPONENTS_NAME)
+                .append(File.separator)
+                .append(CommonConst.AGENT_JAR_NAME)
+                .append('=')
+                .append(getAgentArgs(userDir, serviceName, sid))
+                .toString();
     }
 
     public static String getAgentJar() {
         return agentJar;
-    }
-
-    public static String getToolsJar() {
-        return toolsJar;
     }
 
     private static String getAgentArgs(String userDir, String serviceName, String sid) {
@@ -416,7 +417,7 @@ public class SettingUtils {
         }
         if (jarList.iterator().hasNext()) {
             File jarFile = jarList.iterator().next();
-            return jarFile.getAbsolutePath();
+            return jarFile.getAbsolutePath().replace(SettingUtils.getHomePath(), CommonUtils.getHomeEnv());
         }
         return StringUtils.EMPTY;
     }
@@ -521,7 +522,7 @@ public class SettingUtils {
         int p = Math.max(servicePath.lastIndexOf('/'), servicePath.lastIndexOf('\\'));
         String name = servicePath.substring(p + 1);
         String userDir = servicePath.substring(0, p);
-        return String.format("service-%x%x%x", uuid.hashCode(), userDir.hashCode(), name.hashCode());
+        return String.format("service-%08x%08x%08x", uuid.hashCode(), userDir.hashCode(), name.hashCode());
     }
 
     public static boolean isTrustedHost(String host) {
@@ -575,6 +576,60 @@ public class SettingUtils {
             jdkPath = System.getProperty("java.home");
         }
         return FilenameUtils.separatorsToUnix(jdkPath);
+    }
+
+    private static void initEnv() {
+        File uuidFile = FileUtils.getFile(homePath, "data", ".uuid");
+        boolean isFirst = false;
+        // 前缀机器码加路径hash
+        final String prefix =  String.format("%s-%08x=", CommonUtils.getMachineCode(), homePath.hashCode());
+        if (uuidFile.exists()) {
+            try {
+                String content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
+                if (content.startsWith(prefix)) {
+                    uuid = content.replace(prefix, StringUtils.EMPTY);
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (StringUtils.isEmpty(uuid)) {
+            isFirst = true;
+            // 清理旧进程
+            cleanOldProcess();
+            uuid = UUID.randomUUID().toString();
+            logger.info("初次启动，创建uuid: {}", uuid);
+            try {
+                FileUtils.writeStringToFile(uuidFile, prefix + uuid, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (isFirst && isProd()) {
+            // 生产模式下，随机生成盐：jarboot.token.secret.key
+            initSecretKey();
+        }
+    }
+
+    private static void cleanOldProcess() {
+        File pidDir = CacheDirHelper.getPidDir();
+        if (!pidDir.exists()) {
+            return;
+        }
+        Collection<File> pidFiles = FileUtils.listFiles(pidDir, new String[]{"pid"}, true);
+        if (CollectionUtils.isEmpty(pidFiles)) {
+            return;
+        }
+        logger.info("机器码发生了改变，清理当前运行的服务进程，{}", pidFiles);
+        pidFiles.forEach(file -> {
+            try {
+                String pid = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                TaskUtils.killByPid(pid);
+            } catch (Exception exception) {
+                //ignore
+            }
+            FileUtils.deleteQuietly(file);
+        });
     }
 
     private SettingUtils() {

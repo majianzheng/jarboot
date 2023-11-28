@@ -6,6 +6,7 @@ import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.common.AnsiLog;
+import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
@@ -94,6 +95,10 @@ public class AgentManager {
                 //本地进程默认受信任
                 client.setTrusted(true);
                 MessageUtils.upgradeStatus(sid, AttachStatus.ATTACHED);
+            }
+            if (serviceName.endsWith(CommonConst.POST_EXCEPTION_TASK_SUFFIX)) {
+                clientMap.remove(sid);
+                return;
             }
         }
         if (null == latch) {
@@ -192,13 +197,20 @@ public class AgentManager {
         if (null == client) {
             return false;
         }
+        String pid = TaskUtils.getPid(sid);
+        if (StringUtils.isEmpty(pid)) {
+            logger.info("进程({})已经退出", sid);
+            return true;
+        }
+        int maxExitTime = SettingUtils.getSystemSetting().getMaxExitTime();
         synchronized (client) {
             long startTime = System.currentTimeMillis();
             client.setState(ClientState.EXITING);
             sendInternalCommand(sid, CommandConst.EXIT_CMD, StringUtils.EMPTY);
             //等目标进程发送offline信息时执行notify唤醒当前线程
             try {
-                client.wait(SettingUtils.getSystemSetting().getMaxExitTime());
+                // 连结断开
+                client.wait(maxExitTime);
             } catch (InterruptedException e) {
                 //ignore
                 Thread.currentThread().interrupt();
@@ -209,8 +221,27 @@ public class AgentManager {
                 MessageUtils.warn("服务(sid:" + sid + ")未等到退出消息，将执行强制退出命令！");
                 return false;
             } else {
+                try {
+                    // 等待进程真正退出
+                    TimeUnit.MILLISECONDS.sleep(500);
+                    while (TaskUtils.checkProcessAlive(pid) && (System.currentTimeMillis() - startTime) <= maxExitTime) {
+                        AnsiLog.info("等待进程退出，pid:{}, sid: {}", pid, sid);
+                        TimeUnit.SECONDS.sleep(1);
+                    }
+                } catch (InterruptedException e) {
+                    //ignore
+                    Thread.currentThread().interrupt();
+                }
+                if (TaskUtils.checkProcessAlive(pid)) {
+                    // 等待超时
+                    MessageUtils.console(sid, "进程优雅退出失败，将强制杀死进程！");
+                    TaskUtils.killByPid(pid);
+                    PidFileHelper.deletePidFile(sid);
+                    clientMap.remove(sid);
+                } else {
+                    MessageUtils.console(sid, "进程优雅退出成功！");
+                }
                 client.setState(ClientState.OFFLINE);
-                MessageUtils.console(sid, "进程优雅退出成功！");
             }
         }
         return true;
@@ -483,6 +514,12 @@ public class AgentManager {
         }
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
+            String path = SettingUtils.getServicePath(userDir, serviceName);
+            if (!Objects.equals(SettingUtils.createSid(path), sid) && serviceName.endsWith(CommonConst.POST_EXCEPTION_TASK_SUFFIX)) {
+                new AgentOperator(userDir, serviceName, sid, session).heartbeat();
+                AnsiLog.debug("异常离线脚本执行，心跳探测");
+                return;
+            }
             this.online(userDir, serviceName, session, sid);
             this.onServiceStarted(sid);
             MessageUtils.info(serviceName + "恢复连接!");

@@ -46,6 +46,11 @@ Detailed architecture design [view](jarboot-server/README.md)
 
 Front-end interface adopts <code>Vue3</code> technology. The back-end service is mainly implemented by <code>SpringBoot</code>, which provides HTTP interface and static resource broker. The process information is pushed through <code>websocket</code> to the front-end interface in real time, and a long connection is maintained with the started java process to monitor its status.
 
+Chrome >=87
+Firefox >=78
+Safari >=14
+Edge >=88
+
 ## Install or build
 ### Download the zip package to install or using docker.
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>

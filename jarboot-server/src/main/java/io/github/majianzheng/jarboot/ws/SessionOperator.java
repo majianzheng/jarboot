@@ -29,7 +29,7 @@ public class SessionOperator {
             return;
         }
         String dir = FileUtils.getFile(SettingUtils.getWorkspace(), userDir).getAbsolutePath();
-        serviceSidPrefix = String.format("service-%x%x", SettingUtils.getUuid().hashCode(), dir.hashCode());
+        serviceSidPrefix = String.format("service-%08x%08x", SettingUtils.getUuid().hashCode(), dir.hashCode());
     }
 
     /**

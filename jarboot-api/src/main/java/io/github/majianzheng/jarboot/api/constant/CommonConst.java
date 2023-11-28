@@ -85,5 +85,7 @@ public class CommonConst {
     public static final int NODE_ROOT = 1;
     public static final int NODE_GROUP = 2;
 
+    public static final String POST_EXCEPTION_TASK_SUFFIX = "后置脚本启动";
+
     private CommonConst(){}
 }

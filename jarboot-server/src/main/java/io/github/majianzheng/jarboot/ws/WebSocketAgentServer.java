@@ -28,7 +28,7 @@ public class WebSocketAgentServer {
                        @PathParam("service") String serviceName,
                        @PathParam("userDir") String userDir,
                        @PathParam("sid") String sid) {
-        logger.debug("{} @ {} Agent连接成功!", serviceName, sid);
+        logger.debug("{} / {} @ {} Agent连接成功!", userDir, serviceName, sid);
         AgentManager.getInstance().online(userDir, serviceName, session, sid);
         String msg = String.format("\033[1;96m%s\033[0m connected!", serviceName);
         MessageUtils.console(sid, msg);

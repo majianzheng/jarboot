@@ -16,7 +16,6 @@ import javax.websocket.Session;
  * @author majianzheng
  */
 public final class AgentOperator extends SessionOperator {
-    private String userDir;
     private final String name;
     private final String sid;
     private ServiceSetting setting;

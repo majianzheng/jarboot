@@ -16,6 +16,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -60,6 +61,7 @@ public class TaskUtils {
         if (!isOk) {
             String pid = getPid(sid);
             if (!pid.isEmpty()) {
+                MessageUtils.console(sid, "进程优雅退出失败，将强制杀死进程！");
                 killByPid(pid);
                 PidFileHelper.deletePidFile(sid);
             }
@@ -73,8 +75,8 @@ public class TaskUtils {
     public static void startService(ServiceSetting setting) {
         //服务目录
         String sid = setting.getSid();
-        String serverPath = SettingUtils.getWorkspace() + File.separator + setting.getUserDir() + File.separator + setting.getName();
-        String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
+        String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
+        String jvm = CommonConst.SHELL_TYPE.equals(setting.getApplicationType()) ? StringUtils.EMPTY : SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
         cmdBuilder
@@ -88,15 +90,11 @@ public class TaskUtils {
                 .append(SettingUtils.getAgentStartOption(setting.getUserDir(), setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
-            final String xmx = "-Xmx";
-            final String xms = "-Xms";
-            if (StringUtils.isNotEmpty(jvm) && !jvm.contains(xmx) && !jvm.contains(xms)) {
-                cmdBuilder.append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ");
-            }
+            cmdBuilder.append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ");
             cmdBuilder
                     .append("-jar")
                     .append(StringUtils.SPACE)
-                    .append(SettingUtils.getToolsJar())
+                    .append(getShellJar())
                     .append(StringUtils.SPACE)
                     .append("-c")
                     .append(StringUtils.SPACE)
@@ -122,13 +120,7 @@ public class TaskUtils {
         }
 
         // 工作目录
-        String workHome = setting.getWorkDirectory();
-        if (StringUtils.isBlank(workHome)) {
-            workHome = serverPath;
-        } else {
-            //解析相对路径或绝对路径，得到真实路径
-            workHome = getAbsolutePath(workHome, serverPath);
-        }
+        String workHome = getServiceWorkHome(setting);
         String displayCmd;
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
             displayCmd = setting.getCommand();
@@ -140,13 +132,10 @@ public class TaskUtils {
         }
 
         //打印命令行
-        MessageUtils.console(setting.getUserDir(), sid, displayCmd);
+        MessageUtils.console(sid, displayCmd);
         // 启动、等待启动完成，最长2分钟
         int waitTime = SettingUtils.getSystemSetting().getMaxStartTime();
-        final String workDir = workHome;
-        final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
-        String bashName = String.format("shell_%s.%s", sid, bashFileExt);
-        File bashFile = FileUtils.getFile(serverPath, bashName);
+        File bashFile = getStartBashFile(sid, serverPath);
 
         String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
         if (USE_NOHUP) {
@@ -166,7 +155,79 @@ public class TaskUtils {
                 .waitServiceStarted(
                         setting,
                         waitTime,
-                        () -> startTask(cmd, setting.getEnv(), workDir, bashFile, jdkPath));
+                        () -> startTask(cmd, setting.getEnv(), workHome, bashFile, jdkPath));
+    }
+
+    private static String getServiceWorkHome(ServiceSetting setting) {
+        String workHome = setting.getWorkDirectory();
+        String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
+        if (StringUtils.isBlank(workHome)) {
+            workHome = serverPath;
+        } else {
+            //解析相对路径或绝对路径，得到真实路径
+            workHome = getAbsolutePath(workHome, serverPath);
+        }
+        return workHome;
+    }
+
+    private static String getShellJar() {
+        return new StringBuilder(CommonUtils.getHomeEnv())
+                .append(File.separator)
+                .append(CommonConst.COMPONENTS_NAME)
+                .append(File.separator)
+                .append("jarboot-tools.jar")
+                .toString();
+    }
+
+    public static void execServiceOfflineShell(ServiceSetting setting) {
+        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
+        if (USE_NOHUP) {
+            javaCmd = "nohup " + javaCmd;
+        }
+        String name = setting.getName() + CommonConst.POST_EXCEPTION_TASK_SUFFIX;
+        StringBuilder cmdBuilder = new StringBuilder(javaCmd)
+                .append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ")
+                // Java agent
+                .append(SettingUtils.getAgentStartOption(setting.getUserDir(), name, setting.getSid()))
+                .append(StringUtils.SPACE)
+                .append("-jar")
+                .append(StringUtils.SPACE)
+                .append(getShellJar())
+                .append(StringUtils.SPACE)
+                .append("-c")
+                .append(StringUtils.SPACE)
+                .append(SettingUtils.getSystemSetting().getAfterServerOfflineExec());
+        String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
+        File bashFile = getStartBashFile(setting.getSid(), serverPath);
+        String jdkPath = SettingUtils.getJdkPath();
+        Map<String, String> env = new HashMap<>(4);
+        env.put("SERVICE_NAME", setting.getName());
+        env.put("USER_DIR", setting.getUserDir());
+        env.put("SID", setting.getSid());
+        String envStr = env.entrySet()
+                .stream()
+                .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+                .collect(Collectors.joining(","));
+        try {
+            startTask(cmdBuilder.toString(), envStr, serverPath, bashFile, jdkPath).waitFor();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            cleanBashFile(serverPath);
+        }
+    }
+
+    public static void cleanBashFile(String serverPath) {
+        File bashFile = getStartBashFile(SettingUtils.createSid(serverPath), serverPath);
+        if (bashFile.exists()) {
+            FileUtils.deleteQuietly(bashFile);
+        }
+    }
+
+    private static File getStartBashFile(String sid, String serverPath) {
+        final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
+        String bashName = String.format("shell_%s.%s", sid, bashFileExt);
+        return FileUtils.getFile(serverPath, bashName);
     }
 
     /**
@@ -200,17 +261,24 @@ public class TaskUtils {
         String pid = StringUtils.EMPTY;
         try {
             pid = PidFileHelper.getServerPidString(sid);
-            if (!pid.isEmpty()) {
-                Map<String, String> vms = VMUtils.getInstance().listVM();
-                if (!vms.containsKey(pid)) {
-                    pid = StringUtils.EMPTY;
-                    PidFileHelper.deletePidFile(sid);
-                }
+            if (!pid.isEmpty() && (!checkProcessAlive(pid))) {
+                pid = StringUtils.EMPTY;
+                PidFileHelper.deletePidFile(sid);
             }
         } catch (Exception exception) {
             //ignore
         }
         return pid;
+    }
+
+    /**
+     * 检查Java进程是否存活
+     * @param pid
+     * @return
+     */
+    public static boolean checkProcessAlive(String pid) {
+        Map<String, String> vms = VMUtils.getInstance().listVM();
+        return vms.containsKey(pid);
     }
 
     /**
@@ -238,7 +306,7 @@ public class TaskUtils {
      * @param bashFile 临时的bash可执行文件
      * @param jdkPath jdk路径
      */
-    public static void startTask(String command, String environment, String workHome, File bashFile, String jdkPath) {
+    public static Process startTask(String command, String environment, String workHome, File bashFile, String jdkPath) {
         StringBuilder sb = new StringBuilder();
         try {
             initJdkPath(jdkPath, sb);
@@ -253,9 +321,9 @@ public class TaskUtils {
                 }
             }
             if (OSUtils.isWindows()) {
-                sb.append("\nstart \"\" ").append(command).append("\ntimeout /t 3 > NUL\necho started!\n");
+                sb.append("\nstart \"\" ").append(command).append("\ntimeout /t 1 > NUL\necho started!\n");
             } else {
-                sb.append('\n').append(command).append(" >/dev/null &\nsleep 3\necho started!\n");
+                sb.append('\n').append(command).append(" >/dev/null &\nsleep 1\necho started!\n");
             }
             FileUtils.writeStringToFile(bashFile, sb.toString(), StandardCharsets.UTF_8);
             if (!bashFile.setExecutable(true)) {
@@ -263,7 +331,7 @@ public class TaskUtils {
             }
             String bash = bashFile.getAbsolutePath();
             List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(bash) : Arrays.asList("sh", bash);
-            new ProcessBuilder(cmd).directory(toCurrentDir(workHome)).start();
+            return new ProcessBuilder(cmd).directory(toCurrentDir(workHome)).start();
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
@@ -316,29 +384,19 @@ public class TaskUtils {
      * 强制杀死进程
      * @param pid 进程PID
      */
-    private static void killByPid(String pid) {
+    public static void killByPid(String pid) {
         if (pid.isEmpty()) {
             return;
         }
-        String cmd = String.format(OSUtils.isWindows() ? "taskkill /F /pid %s" : "kill -9 %s", pid);
-        Process p = null;
+        List<String> command = OSUtils.isWindows() ? Arrays.asList("taskkill", "/F", "/pid", pid) : Arrays.asList("kill", "-9", pid);
         try {
-            p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
+            new ProcessBuilder(command).start().waitFor();
         } catch (InterruptedException e) {
             logger.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             MessageUtils.warn(e.getMessage());
-        } finally {
-            if (null != p) {
-                try {
-                    p.destroy();
-                } catch (Exception e) {
-                    //ignore
-                }
-            }
         }
     }
 

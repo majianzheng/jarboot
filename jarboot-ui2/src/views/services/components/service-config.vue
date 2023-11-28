@@ -130,7 +130,7 @@ onMounted(() => {
             'java' === state.form.applicationType ? $t('COMMAND_EXAMPLE') : 'eg: 1) sh xxx.sh 2) ./app.exe 3) echo Hello!'
           "></el-input>
       </el-form-item>
-      <el-form-item :label="$t('VM_OPT_LABEL')" prop="vm">
+      <el-form-item v-show="'java' === state.form.applicationType" :label="$t('VM_OPT_LABEL')" prop="vm">
         <el-input v-model="state.form.vm" spell-check="false">
           <template #append>
             <span>

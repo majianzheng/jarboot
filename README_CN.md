@@ -45,6 +45,11 @@ English version goes [here](README.md).
 
 前端界面采用<code>Vue3</code>技术。 后端服务主要由<code>SpringBoot</code>实现，提供http接口和静态资源代理。通过<code>WebSocket</code>向前端界面实时推送进程信息，同时与启动的Java进程维持一个长连接，以监控其状态。
 
+Chrome >=87
+Firefox >=78
+Safari >=14
+Edge >=88
+
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>

@@ -329,15 +329,11 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
                 NotifyReactor.getInstance().publishEvent(event);
             }
         }
-        //删除事件
-        if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-            logger.info("触发了删除事件，忽略执行，服务：{}", setting.getName());
-        }
     }
 
     private String genFileHashKey(File jarFile) {
         String path = jarFile.getPath();
-        return String.format("hash.%x", path.hashCode());
+        return String.format("hash.%08x", path.hashCode());
     }
 
     private boolean checkFileUpdate(ServiceSetting setting) {
@@ -439,7 +435,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         if (null != recordFiles) {
             for (File recordFile : recordFiles) {
                 String sid = recordFile.getName().replace(".snapshot", StringUtils.EMPTY);
-                if (!AgentManager.getInstance().isOnline(sid)) {
+                if (StringUtils.isEmpty(TaskUtils.getPid(sid))) {
                     FileUtils.deleteQuietly(recordFile);
                 }
             }
