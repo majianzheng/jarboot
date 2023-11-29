@@ -76,12 +76,9 @@ public class TaskUtils {
         //服务目录
         String sid = setting.getSid();
         String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
-        String jvm = CommonConst.SHELL_TYPE.equals(setting.getApplicationType()) ? StringUtils.EMPTY : SettingUtils.getJvm(serverPath, setting.getVm());
         StringBuilder cmdBuilder = new StringBuilder();
 
         cmdBuilder
-                // jvm 配置
-                .append(jvm)
                 .append(StringUtils.SPACE)
                 //忽略字节码校验，提高启动速度；彩色日志启动
                 .append("-noverify -Dspring.output.ansi.enabled=always")
@@ -100,14 +97,14 @@ public class TaskUtils {
                     .append(StringUtils.SPACE)
                     .append(setting.getCommand());
         } else {
+            // jvm 配置
+            String jvm = SettingUtils.getJvm(serverPath, setting.getVm());
+            if (StringUtils.isNotEmpty(jvm)) {
+                cmdBuilder.append(jvm).append(StringUtils.SPACE);
+            }
             if (StringUtils.isBlank(setting.getCommand())) {
                 //获取启动的jar文件
-                String jar = SettingUtils.getJarPath(serverPath);
-                if (StringUtils.isBlank(jar)) {
-                    return;
-                }
-                // 待执行的jar
-                cmdBuilder.append(CommonConst.ARG_JAR).append(jar);
+                cmdBuilder.append(CommonConst.ARG_JAR).append(SettingUtils.getJarPath(serverPath));
             } else {
                 cmdBuilder.append(setting.getCommand());
             }
@@ -118,9 +115,25 @@ public class TaskUtils {
         if (StringUtils.isNotEmpty(startArg)) {
             cmdBuilder.append(StringUtils.SPACE).append(startArg);
         }
-
+        displayCommand(setting, cmdBuilder, sid);
         // 工作目录
         String workHome = getServiceWorkHome(setting);
+        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
+        if (USE_NOHUP) {
+            javaCmd = "nohup " + javaCmd;
+        }
+        cmdBuilder.insert(0, javaCmd);
+        String cmd = cmdBuilder.toString();
+        String jdkPath = getJdkPath(setting, serverPath);
+        AgentManager.getInstance()
+                .waitServiceStarted(
+                        setting,
+                        // 启动、等待启动完成，最长2分钟（可配置）
+                        SettingUtils.getSystemSetting().getMaxStartTime(),
+                        () -> startTask(cmd, setting.getEnv(), workHome, getStartBashFile(sid, serverPath), jdkPath));
+    }
+
+    private static void displayCommand(ServiceSetting setting, StringBuilder cmdBuilder, String sid) {
         String displayCmd;
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
             displayCmd = setting.getCommand();
@@ -133,17 +146,9 @@ public class TaskUtils {
 
         //打印命令行
         MessageUtils.console(sid, displayCmd);
-        // 启动、等待启动完成，最长2分钟
-        int waitTime = SettingUtils.getSystemSetting().getMaxStartTime();
-        File bashFile = getStartBashFile(sid, serverPath);
+    }
 
-        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
-        if (USE_NOHUP) {
-            javaCmd = "nohup " + javaCmd;
-        }
-        cmdBuilder.insert(0, javaCmd);
-        String cmd = cmdBuilder.toString();
-        // java命令
+    private static String getJdkPath(ServiceSetting setting, String serverPath) {
         String jdkPath;
         if (StringUtils.isBlank(setting.getJdkPath())) {
             jdkPath = SettingUtils.getJdkPath();
@@ -151,11 +156,7 @@ public class TaskUtils {
             // 使用了指定到jdk
             jdkPath = getAbsolutePath(setting.getJdkPath(), serverPath);
         }
-        AgentManager.getInstance()
-                .waitServiceStarted(
-                        setting,
-                        waitTime,
-                        () -> startTask(cmd, setting.getEnv(), workHome, bashFile, jdkPath));
+        return jdkPath;
     }
 
     private static String getServiceWorkHome(ServiceSetting setting) {
@@ -303,13 +304,13 @@ public class TaskUtils {
      * @param command 命令
      * @param environment 环境变量
      * @param workHome 工作目录
-     * @param bashFile 临时的bash可执行文件
+     * @param bashFile 临时生成的bash可执行文件
      * @param jdkPath jdk路径
      */
     public static Process startTask(String command, String environment, String workHome, File bashFile, String jdkPath) {
         StringBuilder sb = new StringBuilder();
         try {
-            initJdkPath(jdkPath, sb);
+            initRunningEnv(jdkPath, sb);
             String[] envs = parseEnv(environment);
             if (null != envs) {
                 for (String env : envs) {
@@ -337,7 +338,7 @@ public class TaskUtils {
         }
     }
 
-    private static void initJdkPath(String jdkPath, StringBuilder sb) {
+    private static void initRunningEnv(String jdkPath, StringBuilder sb) {
         if (StringUtils.isEmpty(jdkPath)) {
             if (OSUtils.isWindows()) {
                 sb.append("set \"JAVA_CMD=javaw\"\n\n");
@@ -355,8 +356,14 @@ public class TaskUtils {
         }
         if (OSUtils.isWindows()) {
             sb.append("set \"JARBOOT_HOME=").append(SettingUtils.getHomePath()).append("\"\n");
+            sb.append("set \"MACHINE_CODE=").append(CommonUtils.getMachineCode()).append("\"\n");
+            sb.append("set \"SERVER_UUID=").append(SettingUtils.getUuid()).append("\"\n");
+            sb.append("set \"JARBOOT_WORKSPACE=").append(SettingUtils.getWorkspace()).append("\"\n");
         } else {
             sb.append("export JARBOOT_HOME=\"").append(SettingUtils.getHomePath()).append("\"\n");
+            sb.append("export MACHINE_CODE=\"").append(CommonUtils.getMachineCode()).append("\"\n");
+            sb.append("export SERVER_UUID=\"").append(SettingUtils.getUuid()).append("\"\n");
+            sb.append("export JARBOOT_WORKSPACE=\"").append(SettingUtils.getWorkspace()).append("\"\n");
         }
     }
 

@@ -66,6 +66,15 @@ public class SettingServiceImpl implements SettingService {
         }
         File settingFile = SettingUtils.getServiceSettingFile(path);
         fillSettingProperties(setting, path);
+        boolean isNew = false;
+        if (Files.notExists(settingFile.getParentFile().toPath())) {
+            try {
+                FileUtils.forceMkdir(settingFile.getParentFile());
+                isNew = true;
+            } catch (IOException e) {
+                throw new JarbootRunException("创建服务目录失败！" + e.getMessage(), e);
+            }
+        }
         // 保存vmContent
         saveVmOptions(setting.getName(), setting.getVm(), setting.getVmContent());
         setting.setVmContent(null);
@@ -74,6 +83,9 @@ public class SettingServiceImpl implements SettingService {
         setting.setHost(null);
         setting.setLastModified(null);
         saveSettingProperties(settingFile, setting);
+        if (isNew) {
+            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
+        }
         //更新缓存配置，根据文件时间戳判定是否更新了
         PropertyFileUtils.getServiceSetting(SettingUtils.getCurrentUserDir(), setting.getName());
     }
@@ -164,23 +176,11 @@ public class SettingServiceImpl implements SettingService {
     }
 
     private void saveSettingProperties(File file, ServiceSetting setting) {
-        boolean isNew = false;
-        if (Files.notExists(file.getParentFile().toPath())) {
-            try {
-                FileUtils.forceMkdir(file.getParentFile());
-                isNew = true;
-            } catch (IOException e) {
-                throw new JarbootRunException("创建服务目录失败！" + e.getMessage(), e);
-            }
-        }
         String json = JsonUtils.toPrettyJsonString(setting);
         try {
             FileUtils.writeStringToFile(file, json, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new JarbootException("写入配置文件失败！" + e.getMessage(), e);
-        }
-        if (isNew) {
-            MessageUtils.globalEvent(FrontEndNotifyEventType.WORKSPACE_CHANGE);
         }
     }
 

@@ -215,8 +215,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            MessageUtils.error(e.getMessage());
             MessageUtils.printException(sid, e);
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
+            MessageUtils.error("启动服务" + server + "失败！");
         } finally {
             this.taskRunCache.removeStarting(sid);
             TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));

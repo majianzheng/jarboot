@@ -400,26 +400,23 @@ public class SettingUtils {
     public static String getJarPath(String servicePath) {
         File dir = FileUtils.getFile(servicePath);
         if (!dir.isDirectory() || !dir.exists()) {
-            logger.error("未找到{}服务的jar包路径", servicePath);
-            MessageUtils.warn("未找到服务" + servicePath + "的可执行jar包路径");
+            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包路径");
         }
-
         Collection<File> jarList = FileUtils.listFiles(dir, new String[]{CommonConst.JAR_FILE_EXT}, false);
         if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
-            MessageUtils.error("未找到服务" + servicePath + "的可执行jar包");
-            return StringUtils.EMPTY;
+            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包");
         }
         if (jarList.size() > 1) {
-            String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", servicePath);
-            MessageUtils.warn(msg);
-            return StringUtils.EMPTY;
+            String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", dir.getName());
+            throw new JarbootException(msg);
         }
         if (jarList.iterator().hasNext()) {
             File jarFile = jarList.iterator().next();
             return jarFile.getAbsolutePath().replace(SettingUtils.getHomePath(), CommonUtils.getHomeEnv());
+        } else {
+            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包");
         }
-        return StringUtils.EMPTY;
     }
 
     public static String getCurrentLoginUsername() {

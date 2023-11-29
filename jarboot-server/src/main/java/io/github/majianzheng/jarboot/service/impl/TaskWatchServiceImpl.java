@@ -332,7 +332,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
     }
 
     private String genFileHashKey(File jarFile) {
-        String path = jarFile.getPath();
+        String path = jarFile.getAbsolutePath();
         return String.format("hash.%08x", path.hashCode());
     }
 

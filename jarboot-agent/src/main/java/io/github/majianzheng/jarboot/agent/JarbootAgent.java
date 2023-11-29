@@ -193,7 +193,7 @@ public class JarbootAgent {
         CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         try {
             File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-            homePath = agentJarFile.getParentFile().getParentFile().getPath();
+            homePath = agentJarFile.getParentFile().getParentFile().getAbsolutePath();
             System.setProperty(CommonConst.JARBOOT_HOME, homePath);
         } catch (Exception e) {
             e.printStackTrace(ps);
