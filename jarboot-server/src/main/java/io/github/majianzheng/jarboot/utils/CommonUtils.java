@@ -6,10 +6,12 @@ import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.jsonwebtoken.lang.Collections;
+import org.apache.commons.io.FileUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.Session;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
@@ -101,9 +103,32 @@ public class CommonUtils {
         if (addrList.isEmpty()) {
             return StringUtils.EMPTY;
         }
+        File uuidFile = FileUtils.getFile(SettingUtils.getHomePath(), "data", ".uuid");
+        if (uuidFile.exists()) {
+            try {
+                String content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
+                int index = content.indexOf('-');
+                if (index > 0) {
+                    String code = content.substring(0, index);
+                    for (String addr : addrList) {
+                        String hash = String.format("%08x", addr.hashCode());
+                        if (code.contains(hash)) {
+                            return code;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
         addrList.sort(String::compareTo);
         String code1 = addrList.get(0);
         String code2 = addrList.get(addrList.size() - 1);
+        final int two = 2;
+        if (addrList.size() > two) {
+            String code3 = addrList.get(addrList.size() / two);
+            return String.format("%08x%08x%08x", code1.hashCode(), code2.hashCode(), code3.hashCode());
+        }
         return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
     }
 
