@@ -4,6 +4,8 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.constant.TaskLifecycle;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 
+import java.util.Objects;
+
 /**
  * @author majianzheng
  */
@@ -23,23 +25,16 @@ public class TaskLifecycleEvent implements JarbootEvent {
 
     private void init(TaskLifecycle lifecycle) {
         this.lifecycle = lifecycle;
-        switch (lifecycle) {
-            case PRE_STOP:
-                this.status = CommonConst.STOPPING;
-                break;
-            case PRE_START:
-                this.status = CommonConst.STARTING;
-                break;
-            case STOP_FAILED:
-            case AFTER_STARTED:
-                this.status = CommonConst.RUNNING;
-                break;
-            case SCHEDULING:
-                this.status = CommonConst.SCHEDULING;
-                break;
-            default:
-                this.status = CommonConst.STOPPED;
-                break;
+        if (Objects.equals(TaskLifecycle.PRE_STOP, lifecycle)) {
+            this.status = CommonConst.STOPPING;
+        } else if (Objects.equals(TaskLifecycle.PRE_START, lifecycle)) {
+            this.status = CommonConst.STARTING;
+        } else if (Objects.equals(TaskLifecycle.STOP_FAILED, lifecycle) || Objects.equals(TaskLifecycle.AFTER_STARTED, lifecycle)) {
+            this.status = CommonConst.RUNNING;
+        } else if (Objects.equals(TaskLifecycle.SCHEDULING, lifecycle)) {
+            this.status = CommonConst.SCHEDULING;
+        } else {
+            this.status = CommonConst.STOPPED;
         }
     }
 

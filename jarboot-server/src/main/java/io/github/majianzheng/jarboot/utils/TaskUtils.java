@@ -36,7 +36,7 @@ public class TaskUtils {
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
-        USE_NOHUP = (!Boolean.getBoolean("docker") &&
+        USE_NOHUP = (!Boolean.getBoolean(CommonConst.DOCKER) &&
                 (OSUtils.isLinux() || OSUtils.isMac()) &&
                 FileUtils.getFile("/usr/bin/nohup").exists());
     }

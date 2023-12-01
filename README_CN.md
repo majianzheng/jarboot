@@ -24,6 +24,8 @@ English version goes [here](README.md).
 
 🐳 可扩展: 同时支持<code>JDK SPI</code>和<code>Spring SPI</code>，支持插件式开发。
 
+📦 安装包下载: [https://gitee.com/majz0908/jarboot/releases](https://gitee.com/majz0908/jarboot/releases)
+
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## 技术背景及目标
@@ -57,6 +59,11 @@ Edge >=88
 
 使用<code>Docker</code>
 ```bash
+# Docker镜像构建
+mvn clean install -P prod
+sh build/docker-push.sh
+
+# 启动容器
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 

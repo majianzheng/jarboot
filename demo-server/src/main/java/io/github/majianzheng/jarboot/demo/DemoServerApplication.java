@@ -43,11 +43,18 @@ public class DemoServerApplication implements Runnable {
             //启动界面
             new DemoServerApplication();
             log("\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
+            finish();
         } else {
             //docker模式下
             log("当前正在使用\033[1;36mDocker\033[0m，\033[4;95m启动进度\033[0m模拟中\033[5m...\033[0m");
+            finish();
+            try {
+                TimeUnit.DAYS.sleep(1);
+            } catch (InterruptedException e) {
+                log(e.getMessage());
+                Thread.currentThread().interrupt();
+            }
         }
-        finish();
     }
 
     public static void notice(String msg, String sessionId) {

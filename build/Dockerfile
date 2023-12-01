@@ -1,4 +1,4 @@
-FROM openjdk:12-jdk
+FROM openjdk:21-jdk
 
 EXPOSE 9899
 
@@ -13,10 +13,10 @@ WORKDIR jarboot
 
 ENV JARBOOT_HOME /jarboot
 
-VOLUME ["/jarboot/conf","/jarboot/services","/jarboot/logs","/jarboot/data"]
+VOLUME ["/jarboot/conf","/jarboot/workspace","/jarboot/logs","/jarboot/data", "/jarboot/plugins"]
 
 CMD ["jarboot.jarboot"]
 
 
-ENTRYPOINT ["java","-Ddocker=true", "-Djdk.attach.allowAttachSelf=true","-Xms256m","-Xmx256m","-XX:+UseG1GC","-XX:-OmitStackTraceInFastThrow","-XX:+HeapDumpOnOutOfMemoryError","-XX:HeapDumpPath=logs/java_heapdump.hprof","-XX:-UseLargePages", "-Dloader.path=plugins/server","-jar","bin/jarboot-server.jar"]
+ENTRYPOINT ["java","-Ddocker=true", "-Djdk.attach.allowAttachSelf=true", "-XX:+EnableDynamicAgentLoading","-Xms256m","-Xmx256m","-XX:+UseG1GC","-XX:-OmitStackTraceInFastThrow","-XX:+HeapDumpOnOutOfMemoryError","-XX:HeapDumpPath=logs/java_heapdump.hprof","-XX:-UseLargePages", "-Dloader.path=components/lib,plugins/server","-jar","components/jarboot-server.jar"]
 LABEL jarboot.image.authors="majianzheng"

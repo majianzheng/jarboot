@@ -99,6 +99,11 @@ public class CommonUtils {
     }
 
     public static String getMachineCode() {
+        String dockerHostName = System.getenv("HOSTNAME");
+        if (Boolean.getBoolean(CommonConst.DOCKER) && StringUtils.isNotEmpty(dockerHostName)) {
+            // 当前处于docker环境，使用docker的容器ID作为机器码
+            return dockerHostName;
+        }
         List<String> addrList = NetworkUtils.getMacAddrList();
         if (addrList.isEmpty()) {
             return StringUtils.EMPTY;
@@ -121,6 +126,14 @@ public class CommonUtils {
                 // ignore
             }
         }
+        return genMachineCodeByMacAddr(addrList);
+    }
+
+    public static String getHomeEnv() {
+        return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
+    }
+
+    private static String genMachineCodeByMacAddr(List<String> addrList) {
         addrList.sort(String::compareTo);
         String code1 = addrList.get(0);
         String code2 = addrList.get(addrList.size() - 1);
@@ -130,10 +143,6 @@ public class CommonUtils {
             return String.format("%08x%08x%08x", code1.hashCode(), code2.hashCode(), code3.hashCode());
         }
         return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
-    }
-
-    public static String getHomeEnv() {
-        return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
     }
 
     private CommonUtils() {}

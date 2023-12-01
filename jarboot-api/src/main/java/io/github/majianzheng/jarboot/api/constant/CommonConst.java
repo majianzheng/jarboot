@@ -87,5 +87,7 @@ public class CommonConst {
 
     public static final String POST_EXCEPTION_TASK_SUFFIX = "后置脚本启动";
 
+    public static final String DOCKER = "docker";
+
     private CommonConst(){}
 }

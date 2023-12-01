@@ -1,11 +1,11 @@
 <template>
-  <div class="version-title" v-show="versionStore.version">v{{ versionStore.version }}</div>
+  <div class="version-title" v-show="store.version">v{{ store.version + (store.inDocker ? '(Docker)' : '') }}</div>
 </template>
 
 <script setup lang="ts">
 import { useBasicStore } from '@/stores';
 
-const versionStore = useBasicStore();
+const store = useBasicStore();
 </script>
 
 <style scoped>

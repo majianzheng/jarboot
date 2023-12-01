@@ -24,6 +24,8 @@ In the test environment and daily built integrated environment, a series of jar 
 
 🐳 Extensible: Support both <code>JDK SPI</code> and <code>Spring SPI</code>, support plugins develop.
 
+📦 Installation package Download: [https://gitee.com/majz0908/jarboot/releases](https://gitee.com/majz0908/jarboot/releases)
+
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
@@ -58,6 +60,11 @@ Edge >=88
 
 Use <code>docker</code>
 ```bash
+# Docker image build
+mvn clean install -P prod
+sh build/docker-push.sh
+
+# Start container
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
