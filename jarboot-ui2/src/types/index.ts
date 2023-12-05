@@ -129,6 +129,7 @@ export interface TreeNode {
 
 export interface ServiceInstance extends TreeNode {
   host: string;
+  hostName: string;
   name: string;
   status: string;
   group?: string;

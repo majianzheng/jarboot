@@ -7,6 +7,7 @@ import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
@@ -202,7 +203,7 @@ public class ClusterClientProxy {
     private void initDefaultNode(BaseInstanceNode node, ClusterClient client) {
         node.setNodeType(CommonConst.NODE_ROOT);
         node.setHost(client.getHost());
-        node.setName(client.getHost());
+        node.setName(client.getName());
         node.setSid(String.format("%08x", Objects.hash(System.currentTimeMillis(), client.getHost())));
         node.setStatus(client.getState().name());
     }

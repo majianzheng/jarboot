@@ -129,7 +129,7 @@ function notOnline() {
   return 'OFFLINE' === props.data.status || 'AUTH_FAILED' === props.data.status;
 }
 function hostTitle() {
-  const host = props.data.host || 'localhost';
+  const host = props.data.hostName || 'localhost';
   if (notOnline() && props.data.status) {
     return `${host} (${CommonUtils.translate(props.data.status)})`;
   }
@@ -155,7 +155,7 @@ function onDbClick() {
       </span>
       <span v-else>
         <icon-pro v-if="1 === data.nodeType" :icon="groupIcon" class="group-icon" :class="{ dead: notOnline() }"></icon-pro>
-        <span v-if="1 === data.nodeType" class="host-node" :class="{ dead: notOnline() }">{{ hostTitle() }}</span>
+        <span v-if="1 === data.nodeType" :title="props.data.host || ''" class="host-node" :class="{ dead: notOnline() }">{{ hostTitle() }}</span>
         <span v-else class="__tree-title">{{ data.name || $t('DEFAULT_GROUP') }}</span>
       </span>
     </div>

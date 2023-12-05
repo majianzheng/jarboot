@@ -38,13 +38,21 @@ import java.util.concurrent.TimeUnit;
 public class ClusterClient {
     private static final Logger logger = LoggerFactory.getLogger(ClusterClient.class);
     private final String host;
+    private final String name;
     private ClusterServerState state;
     /** 是否是主节点 */
     private boolean master;
     private final ConcurrentHashMap<String, RequestCallback> requestCallbackMap = new ConcurrentHashMap<>(16);
 
     ClusterClient(String host) {
-        this.host = host;
+        int index = host.indexOf(' ');
+        if (index > 0) {
+            this.host = host.substring(0, index).trim();
+            this.name = host.substring(index + 1).trim();
+        } else {
+            this.host = host;
+            this.name = host;
+        }
         this.state = ClusterServerState.OFFLINE;
     }
 
@@ -72,15 +80,21 @@ public class ClusterClient {
         return host;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public ServiceInstance getServiceGroup() {
         ServiceInstance group = HttpUtils.getObj(formatUrl("/group"), ServiceInstance.class, wrapToken());
         group.setHost(host);
+        group.setHostName(name);
         return group;
     }
 
     public JvmProcess getJvmGroup() {
         JvmProcess group = HttpUtils.getObj(formatUrl("/jvmGroup"), JvmProcess.class, wrapToken());
         group.setHost(host);
+        group.setHostName(name);
         return group;
     }
 
@@ -194,7 +208,12 @@ public class ClusterClient {
         return node.get("data").asText();
     }
     public ServerRuntimeInfo health() {
-        String url = formatUrl("/health");
+        String url;
+        if (host.startsWith(CommonConst.HTTP) || host.startsWith(CommonConst.HTTPS)) {
+            url = host + CommonConst.SERVER_RUNTIME_CONTEXT;
+        } else {
+            url = String.format("%s%s%s", CommonConst.HTTP, host, CommonConst.SERVER_RUNTIME_CONTEXT);
+        }
         try {
             ServerRuntimeInfo info = HttpUtils.getObj(url, ServerRuntimeInfo.class, getInnerUserToken());
             state = ClusterServerState.ONLINE;
@@ -393,8 +412,7 @@ public class ClusterClient {
     private String formatUrl(String api) {
         String url;
         api = CommonConst.CLUSTER_API_CONTEXT + api;
-        final String http = "http";
-        if (host.startsWith(http)) {
+        if (host.startsWith(CommonConst.HTTP) || host.startsWith(CommonConst.HTTPS)) {
             url = host + api;
         } else {
             url = String.format("%s%s%s", CommonConst.HTTP, host, api);
@@ -405,6 +423,10 @@ public class ClusterClient {
         String token = ClusterClientManager.getInstance().getClusterToken(SettingUtils.getCurrentLoginUsername());
         Map<String, String> header = new HashMap<>(2);
         header.put(AuthConst.CLUSTER_TOKEN, token);
+        if (StringUtils.isNotEmpty(ClusterClientManager.getInstance().getSelfHost())) {
+            String ip = ClusterClientManager.parseIp(ClusterClientManager.getInstance().getSelfHost());
+            header.put("Proxy-Client-IP", ip);
+        }
         return header;
     }
 

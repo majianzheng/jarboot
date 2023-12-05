@@ -71,6 +71,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         localGroup.setNodeType(CommonConst.NODE_ROOT);
         localGroup.setSid(String.format("%08x", SettingUtils.getUuid().hashCode()));
         localGroup.setHost(ClusterClientManager.getInstance().getSelfHost());
+        localGroup.setHostName(ClusterClientManager.getInstance().getSelfHostName());
         localGroup.setChildren(new ArrayList<>());
         localGroup.getChildren().addAll(this.getJvmProcesses());
         return localGroup;
@@ -252,6 +253,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             JvmProcess process = new JvmProcess();
             String sid = CommonUtils.createJvmSid(pid);
             process.setHost(ClusterClientManager.getInstance().getSelfHost());
+            process.setHostName(ClusterClientManager.getInstance().getSelfHostName());
             process.setSid(sid);
             process.setPid(pid);
             String status = AgentManager.getInstance().isOnline(sid) ? CommonConst.ATTACHED : CommonConst.NOT_ATTACHED;

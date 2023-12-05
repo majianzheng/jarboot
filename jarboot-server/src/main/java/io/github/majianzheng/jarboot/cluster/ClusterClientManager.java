@@ -6,7 +6,6 @@ import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.ConcurrentWeakKeyHashMap;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
-import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.event.AbstractMessageEvent;
@@ -26,7 +25,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
@@ -35,7 +33,6 @@ import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 集群配置
@@ -46,7 +43,6 @@ public class ClusterClientManager {
     private static final Logger logger = LoggerFactory.getLogger(ClusterClientManager.class);
     private static final String NOTE_PREFIX = "#";
     private static final String CLUSTER_SECRET_KEY = "cluster-secret-key";
-    private Set<String> allLocalIp;
     private final ConcurrentWeakKeyHashMap<String, String> userTokenCache = new ConcurrentWeakKeyHashMap<>(16);
     /** 集群列表 */
     private final Map<String, ClusterClient> hosts = new LinkedHashMap<>(16);
@@ -57,6 +53,7 @@ public class ClusterClientManager {
     private String masterHost;
     /** 自己 */
     private String selfHost;
+    private String selfHostName;
     private byte[] clusterSecretKey = null;
 
     public static ClusterClientManager getInstance() {
@@ -75,6 +72,10 @@ public class ClusterClientManager {
         return selfHost;
     }
 
+    public String getSelfHostName() {
+        return selfHostName;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -85,7 +86,7 @@ public class ClusterClientManager {
 
     public void notifyToOtherClusterFront(String clusterHost, AbstractMessageEvent event, String sessionId) {
         ClusterClient client = getClient(clusterHost);
-        if (!enabled || null == client) {
+        if (!enabled || null == client || !client.isOnline()) {
             return;
         }
         ClusterEventMessage req = new ClusterEventMessage();
@@ -197,9 +198,6 @@ public class ClusterClientManager {
     }
 
     public void init() {
-        allLocalIp = new HashSet<>(NetworkUtils.getLocalAddr4());
-        allLocalIp.add("localhost");
-        allLocalIp.add("127.0.0.1");
         Map<String, String> hostUuidMap = new ConcurrentHashMap<>(16);
         final ThreadPoolExecutor executorService = new ThreadPoolExecutor(
                 4,
@@ -210,15 +208,12 @@ public class ClusterClientManager {
                 JarbootThreadFactory.createThreadFactory("cluster-conf-init-"));
         try {
             List<String> lines = FileUtils.readLines(getClusterConfigFile(), StandardCharsets.UTF_8);
-            lines = lines
-                    .stream()
-                    .map(String::trim)
-                    .filter(this::filterLine)
-                    .collect(Collectors.toList());
-            if (null == clusterSecretKey || CollectionUtils.isEmpty(lines)) {
+            lines.forEach(this::filterLine);
+            if (null == clusterSecretKey || hosts.isEmpty()) {
                 return;
             }
-            lines.forEach(line -> executorService.execute(() -> waitHostStarted(line, hostUuidMap)));
+            logger.info("开始集群发现......");
+            hosts.forEach((k, v) -> executorService.execute(() -> waitHostStarted(v, hostUuidMap)));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -243,7 +238,7 @@ public class ClusterClientManager {
                 if (StringUtils.isEmpty(selfHost) || clusterSecretKey.length <= minSecretKeyLength) {
                     // 未将自己配置在配置文件中
                     final String msg = "[cluster-secret-key]的长度小于等于32或者集群配置文件中必须要包含自己，检测到未包含自己！";
-                    logger.error(msg);
+                    logger.error("{}, selfHost:{}", msg, selfHost);
                     System.exit(-1);
                 } else {
                     enabled = true;
@@ -275,7 +270,11 @@ public class ClusterClientManager {
     }
 
     private boolean filterLine(String line) {
-        if (line.isEmpty() || line.startsWith(NOTE_PREFIX)) {
+        if (StringUtils.isEmpty(line)) {
+            return false;
+        }
+        line = line.trim();
+        if (line.startsWith(NOTE_PREFIX)) {
             return false;
         }
         if (line.startsWith(CLUSTER_SECRET_KEY)) {
@@ -296,16 +295,12 @@ public class ClusterClientManager {
         }
         String ip = parseIp(line);
         allClusterIps.add(ip);
-        hosts.put(line, new ClusterClient(line));
+        ClusterClient client = new ClusterClient(line);
+        hosts.put(client.getHost(), client);
         return true;
     }
 
-    private void waitHostStarted(String lineHost, Map<String, String> hostUuidMap) {
-        ClusterClient client = hosts.get(lineHost);
-        if (null == client) {
-            logger.error("{}在cluster host未找到", lineHost);
-            return;
-        }
+    private void waitHostStarted(ClusterClient client, Map<String, String> hostUuidMap) {
         final int tryCount = 60;
         try {
             for (int i = 0; i < tryCount; ++i) {
@@ -320,7 +315,9 @@ public class ClusterClientManager {
 
     private boolean checkHost(ClusterClient client, Map<String, String> hostUuidMap) throws InterruptedException {
         try {
+            logger.debug("check host {}", client.getHost());
             ServerRuntimeInfo info = client.health();
+            logger.info("check cluster info host:{}, code:{}, uuid:{}", client.getHost(), info.getMachineCode(), info.getUuid());
             final StringBuilder sb = new StringBuilder();
             hostUuidMap.compute(info.getUuid(), (k, v) -> {
                 if (null == v) {
@@ -337,17 +334,11 @@ public class ClusterClientManager {
                 logger.error("uuid冲突！{}与{}的uuid冲突，请确保集群实例的uuid唯一性！", client.getHost(), conflictHost);
                 fatal = true;
             }
-            if (Objects.equals(info.getUuid(), SettingUtils.getUuid())) {
+            if (Objects.equals(info.getUuid(), SettingUtils.getUuid()) && Objects.equals(info.getMachineCode(), CommonUtils.getMachineCode())) {
                 // 检查
-                String ip = parseIp(client.getHost());
-                if (allLocalIp.contains(ip)) {
-                    // 自己
-                    this.selfHost = client.getHost();
-                } else {
-                    // uuid 冲突
-                    logger.error("uuid冲突！{}与当前实例的uuid冲突！", client.getHost());
-                    fatal = true;
-                }
+                this.selfHost = client.getHost();
+                this.selfHostName = client.getName();
+                logger.info("自身host: {}, name: {}", selfHost, selfHostName);
             }
             if (fatal) {
                 // 致命错误，程序退出
@@ -360,7 +351,7 @@ public class ClusterClientManager {
         return false;
     }
 
-    private static String parseIp(String host) {
+    public static String parseIp(String host) {
         int index = host.indexOf(':');
         String ip = index > 0 ? host.substring(0, index) : host;
         index = ip.lastIndexOf('\\');

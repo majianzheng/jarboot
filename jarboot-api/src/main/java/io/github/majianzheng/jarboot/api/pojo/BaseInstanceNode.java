@@ -7,6 +7,7 @@ package io.github.majianzheng.jarboot.api.pojo;
 public abstract class BaseInstanceNode {
     /** 集群模式下要指定，非集群忽略 */
     protected String host;
+    protected String hostName;
     protected int nodeType;
     protected String name;
     protected String sid;
@@ -18,6 +19,14 @@ public abstract class BaseInstanceNode {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
     public int getNodeType() {
