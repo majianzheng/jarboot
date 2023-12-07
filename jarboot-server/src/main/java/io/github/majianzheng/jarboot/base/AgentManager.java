@@ -110,7 +110,7 @@ public class AgentManager {
     private void syncActiveWindow(String sid) {
         Set<String> activeSession = activeWindow.get(sid);
         if (null == activeSession || activeSession.isEmpty()) {
-            sendInternalCommand(sid, "window -a " + active, StringUtils.EMPTY);
+            sendInternalCommand(sid, "window", StringUtils.EMPTY);
             return;
         }
         activeSession.forEach(sessionId -> windowActive(sid, sessionId, true));
