@@ -50,19 +50,6 @@ public class MessageUtils {
     }
 
     /**
-     * 浏览器控制台退格num个字符
-     * @param sid sid
-     * @param num 退格字符数
-     */
-    public static void backspace(String sid, String num) {
-        NotifyReactor
-                .getInstance()
-                .publishEvent(new BroadcastMessageEvent(sid)
-                        .body(num)
-                        .type(FrontEndNotifyEventType.BACKSPACE));
-    }
-
-    /**
      * 命令执行失败
      * @param sid sid
      * @param body 执行结果

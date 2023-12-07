@@ -43,6 +43,12 @@ public class FuncReceivedEvent extends FuncRequest implements JarbootEvent {
         /** 连接关闭 */
         SESSION_CLOSED_FUNC,
 
+        /** 打开窗口 */
+        ACTIVE_WINDOW,
+
+        /** 关闭窗口 */
+        CLOSE_WINDOW,
+
         /** 无效 */
         FUNC_MAX
     }

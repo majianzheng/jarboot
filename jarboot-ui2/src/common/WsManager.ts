@@ -39,6 +39,7 @@ class WsManager {
   private static websocket: WebSocket | null = null;
   /** 重连setInterval的句柄 */
   private static fd: any = null;
+  private static RECONNECT_SUCCESS_HANDLER: (() => void)[] = [];
 
   /**
    * 添加消息处理
@@ -49,6 +50,14 @@ class WsManager {
     if (handler && !WsManager.HANDLERS.has(key)) {
       WsManager.HANDLERS.set(key, handler);
     }
+  }
+
+  public static addReconnectSuccessHandler(handler: () => void) {
+    WsManager.RECONNECT_SUCCESS_HANDLER.push(handler);
+  }
+
+  public static clearReconnectSuccessHandler() {
+    WsManager.RECONNECT_SUCCESS_HANDLER = [];
   }
 
   /**
@@ -234,6 +243,7 @@ class WsManager {
       if (WebSocket.OPEN === WsManager.websocket?.readyState) {
         //连接成功
         Logger.log('websocket重连成功！');
+        WsManager.RECONNECT_SUCCESS_HANDLER.forEach(handler => handler());
         clearInterval(WsManager.fd);
         WsManager.fd = null;
         return;

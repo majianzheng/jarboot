@@ -29,7 +29,6 @@ class ServerPubsubImpl implements PublishSubmit {
 
   constructor() {
     WsManager.addMessageHandler(MSG_EVENT.STD_PRINT, this.stdPrint);
-    WsManager.addMessageHandler(MSG_EVENT.BACKSPACE, this.backspace);
     WsManager.addMessageHandler(MSG_EVENT.SERVER_STATUS, this.statusChange);
     WsManager.addMessageHandler(MSG_EVENT.JVM_PROCESS_CHANGE, this.onJvmProcessChange);
   }
@@ -77,10 +76,6 @@ class ServerPubsubImpl implements PublishSubmit {
 
   private stdPrint = (data: MsgData) => {
     this.publish(data.sid, CONSOLE_TOPIC.STD_PRINT, data.body);
-  };
-
-  private backspace = (data: MsgData) => {
-    this.publish(data.sid, CONSOLE_TOPIC.BACKSPACE, data.body);
   };
 
   private workspaceChange = (data: MsgData) => {

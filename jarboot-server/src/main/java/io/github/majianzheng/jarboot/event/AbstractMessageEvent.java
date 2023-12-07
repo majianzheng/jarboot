@@ -34,6 +34,10 @@ public abstract class AbstractMessageEvent implements JarbootEvent {
         return sid;
     }
 
+    public FrontEndNotifyEventType getType() {
+        return type;
+    }
+
     /**
      * 创建Notice消息体
      * @param text 消息内容

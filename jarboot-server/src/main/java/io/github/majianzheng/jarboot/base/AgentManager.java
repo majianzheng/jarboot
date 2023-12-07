@@ -24,9 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +48,8 @@ public class AgentManager {
     private java.lang.reflect.Method writeBytes = null;
     /** 当前默认的日志Appender */
     private ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender = null;
+    /** 激活的窗口sid -> sessionId */
+    private final Map<String, Set<String>> activeWindow = new ConcurrentHashMap<>(16);
 
     /**
      * 单例获取
@@ -69,6 +69,7 @@ public class AgentManager {
     public void online(String userDir, String serviceName, Session session, String sid) {
         //目标进程上线
         AgentOperator client = clientMap.compute(sid, (k,v) -> new AgentOperator(userDir, serviceName, sid, session));
+        syncActiveWindow(sid);
         CountDownLatch latch = startingLatchMap.getOrDefault(sid, null);
         if (null != latch) {
             latch.countDown();
@@ -104,6 +105,15 @@ public class AgentManager {
         if (null == latch) {
             client.setState(ClientState.ONLINE);
         }
+    }
+
+    private void syncActiveWindow(String sid) {
+        Set<String> activeSession = activeWindow.get(sid);
+        if (null == activeSession || activeSession.isEmpty()) {
+            sendInternalCommand(sid, "window -a " + active, StringUtils.EMPTY);
+            return;
+        }
+        activeSession.forEach(sessionId -> windowActive(sid, sessionId, true));
     }
 
     /**
@@ -560,7 +570,15 @@ public class AgentManager {
      */
     private void releaseAgentSession(String sessionId) {
         //向所有在线的agent客户端发送会话失效命令
-        clientMap.forEach((k, v) -> sendInternalCommand(v.getSid(), CommandConst.CANCEL_CMD, sessionId));
+        clientMap.forEach((k, v) -> sendInternalCommand(v.getSid(), CommandConst.INVALID_SESSION_CMD, sessionId));
+        Set<String> waitDelete = new HashSet<>(16);
+        activeWindow.forEach((k, v) -> {
+            v.remove(sessionId);
+            if (v.isEmpty()) {
+                waitDelete.add(k);
+            }
+        });
+        waitDelete.forEach(activeWindow::remove);
     }
 
     private void onNotify(CommandResponse resp, String sid) {
@@ -611,9 +629,39 @@ public class AgentManager {
             case SESSION_CLOSED_FUNC:
                 releaseAgentSession(event.getSessionId());
                 break;
+            case ACTIVE_WINDOW:
+                changeWindowState(event.getSid(), event.getSessionId(), true);
+                break;
+            case CLOSE_WINDOW:
+                changeWindowState(event.getSid(), event.getSessionId(), false);
+                break;
             default:
                 logger.debug("Unknown func, func:{}", event.funcCode());
                 break;
+        }
+    }
+
+    private void changeWindowState(String sid, String sessionId, boolean active) {
+        activeWindow.compute(sid, (k, v) -> {
+            if (null == v) {
+                v = new HashSet<>(16);
+            }
+            if (active) {
+                v.add(sessionId);
+            } else {
+                v.remove(sessionId);
+            }
+            if (v.isEmpty()) {
+                return null;
+            }
+            return v;
+        });
+        windowActive(sid, sessionId, active);
+    }
+
+    private void windowActive(String sid, String sessionId, boolean active) {
+        if (clientMap.containsKey(sid)) {
+            sendInternalCommand(sid, "window -a " + active, sessionId);
         }
     }
 

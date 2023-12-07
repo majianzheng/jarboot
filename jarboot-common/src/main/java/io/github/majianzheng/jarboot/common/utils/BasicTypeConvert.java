@@ -38,7 +38,7 @@ public class BasicTypeConvert {
             return val;
         }
         if (boolean.class == cls || Boolean.class == cls) {
-            arg = Boolean.getBoolean(val);
+            arg = Boolean.parseBoolean(val);
         } else if (char.class == cls || Character.class == cls) {
             arg = val.charAt(0);
         } else if (int.class == cls || Integer.class == cls) {

@@ -17,6 +17,11 @@ import io.github.majianzheng.jarboot.core.utils.LogUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
  * care which to use. The server max socket listen buffer is 8k, we must make sure lower it.
@@ -27,6 +32,7 @@ public class ResultStreamDistributor {
 
     private final ResponseStream stream = new ResponseStreamDelegate();
     private final ResultViewResolver resultViewResolver = new ResultViewResolver();
+    private final Set<String> stdoutSessionActiveSet = new HashSet<>(16);
 
     public static ResultStreamDistributor getInstance() {
         return ResultStreamDistributorHolder.INST;
@@ -73,6 +79,24 @@ public class ResultStreamDistributor {
                         .build());
     }
 
+    public void removeActiveSessionByHost(String host) {
+        List<String> waitDelete = new ArrayList<>();
+        stdoutSessionActiveSet.forEach(s -> {
+            if (s.startsWith(host)) {
+                waitDelete.add(s);
+            }
+        });
+        waitDelete.forEach(stdoutSessionActiveSet::remove);
+    }
+
+    public void addActiveSession(String sessionId) {
+        stdoutSessionActiveSet.add(sessionId);
+    }
+
+    public void removeActiveSession(String sessionId) {
+        stdoutSessionActiveSet.remove(sessionId);
+    }
+
     private void sendToServer(CommandResponse resp) {
         if (WsClientFactory.getInstance().isOnline()) {
             //根据数据包的大小选择合适的通讯方式
@@ -98,11 +122,15 @@ public class ResultStreamDistributor {
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<StdoutAppendEvent>() {
             @Override
             public void onEvent(StdoutAppendEvent event) {
+                if (stdoutSessionActiveSet.isEmpty()) {
+                    return;
+                }
+                String session = String.join(",", stdoutSessionActiveSet);
                 sendToServer(new ResponseEventBuilder()
                         .success(true)
                         .type(ResponseType.STD_PRINT)
                         .body(event.getText())
-                        .session(StringUtils.EMPTY)
+                        .session(session)
                         .build());
             }
 

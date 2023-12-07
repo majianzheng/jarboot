@@ -48,12 +48,6 @@ public class ClusterApiController {
     @Autowired
     private FileService fileService;
 
-    @GetMapping("/health")
-    @ResponseBody
-    public ServerRuntimeInfo health() {
-        return serverRuntimeService.getServerRuntimeInfo();
-    }
-
     @GetMapping("/group")
     @ResponseBody
     public ServiceInstance getServiceGroup() {

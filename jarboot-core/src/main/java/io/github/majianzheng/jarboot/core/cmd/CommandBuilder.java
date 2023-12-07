@@ -58,6 +58,7 @@ public class CommandBuilder {
         CMDS.put(CommandConst.INVALID_SESSION_CMD, SessionInvalidCommand.class);
         CMDS.put(CommandConst.SHUTDOWN, ShutdownCommand.class);
         CMDS.put("close", ShutdownCommand.class);
+        CMDS.put("window", WindowActiveCommand.class);
         //初始化jdk的spi
         initJdkSpi();
     }
@@ -155,7 +156,7 @@ public class CommandBuilder {
     }
 
     private static ExtendCommand createFromSpi(String cmd, String args, AbstractCommandSession session) {
-        String errorMsg = "command not found.";
+        String errorMsg = String.format("command(%s %s) not found.", cmd, args);
         CommandProcessor processor = EXTEND_MAP.computeIfAbsent(cmd, CommandBuilder::findJdkCmdSpi);
         if (null == processor) {
             AgentServiceOperator.noticeInfo(errorMsg, session.getSessionId());

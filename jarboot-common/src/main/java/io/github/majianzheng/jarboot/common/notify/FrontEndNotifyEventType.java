@@ -17,11 +17,6 @@ public enum FrontEndNotifyEventType {
     STD_PRINT,
 
     /**
-     * 控制台退格
-     */
-    BACKSPACE,
-
-    /**
      * 服务状态改变
      */
     SERVER_STATUS,

@@ -74,15 +74,17 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         NotifyReactor.getInstance().addShutdownCallback(this::shutdown);
     }
 
-
-    @OnOpen
-    public void onOpen() {
-        LogUtils.offlineDevLog("websocket open!");
+    public void countDown() {
         if (null != latch) {
             latch.countDown();
         } else {
             LogUtils.offlineDevLog("latch is null!");
         }
+    }
+
+    @OnOpen
+    public void onOpen() {
+        LogUtils.offlineDevLog("websocket open!");
         online = true;
     }
 

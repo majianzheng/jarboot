@@ -203,6 +203,7 @@ function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   if (node.isLeaf && 1 !== data.nodeType) {
     const index = serviceState.activatedList.findIndex(item => item.sid === data.sid);
     if (-1 === index) {
+      WsManager.callFunc(FuncCode.ACTIVE_WINDOW, data.sid || '', data.host);
       serviceState.activatedList = [...serviceState.activatedList, data];
     }
     serviceState.activated = data;
@@ -245,6 +246,7 @@ function closeServiceTerminal(instance: ServiceInstance) {
     }
   }
   serviceState.activated = activated;
+  WsManager.callFunc(FuncCode.CLOSE_WINDOW, instance.sid || '', instance.host);
   serviceState.activatedList = activatedList;
 }
 
@@ -287,6 +289,14 @@ function onNotTrusted(data: ServiceInstance) {
   serviceState.trustedDialog = true;
 }
 
+function onReconnect() {
+  if (serviceState.activatedList.length) {
+    serviceState.activatedList.forEach(data => {
+      WsManager.callFunc(FuncCode.ACTIVE_WINDOW, data.sid || '', data.host);
+    });
+  }
+}
+
 onMounted(() => {
   reload();
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
@@ -294,6 +304,7 @@ onMounted(() => {
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
+  WsManager.addReconnectSuccessHandler(onReconnect);
 });
 onUnmounted(() => {
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.RECONNECTED, reload);
@@ -301,6 +312,7 @@ onUnmounted(() => {
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
+  WsManager.clearReconnectSuccessHandler();
 });
 </script>
 
