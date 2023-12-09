@@ -16,11 +16,6 @@ public enum CommandType {
     INTERNAL,
 
     /**
-     * 心跳
-     */
-    HEARTBEAT,
-
-    /**
      * 不支持的未知命令
      */
     UNKNOWN;

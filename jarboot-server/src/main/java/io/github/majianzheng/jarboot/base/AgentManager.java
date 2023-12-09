@@ -113,7 +113,8 @@ public class AgentManager {
             sendInternalCommand(sid, "window", StringUtils.EMPTY);
             return;
         }
-        activeSession.forEach(sessionId -> windowActive(sid, sessionId, true));
+        String sessions = String.join(",", activeSession);
+        windowActive(sid, sessions, true);
     }
 
     /**
@@ -459,7 +460,7 @@ public class AgentManager {
                 break;
             case STD_PRINT:
                 //启动中的控制台消息
-                MessageUtils.stdPrint(event.getSid(), resp.getBody());
+                MessageUtils.stdPrint(event.getResponse().getSessionId(), event.getSid(), resp.getBody());
                 break;
             case LOG_APPENDER:
                 onAgentLog(event.getSid(), resp.getBody());
@@ -522,11 +523,12 @@ public class AgentManager {
         if (null == session) {
             return;
         }
+        Set<String> sessionIds = activeWindow.get(sid);
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             String path = SettingUtils.getServicePath(userDir, serviceName);
             if (!Objects.equals(SettingUtils.createSid(path), sid) && serviceName.endsWith(CommonConst.POST_EXCEPTION_TASK_SUFFIX)) {
-                new AgentOperator(userDir, serviceName, sid, session).heartbeat();
+                new AgentOperator(userDir, serviceName, sid, session).heartbeat(sessionIds);
                 AnsiLog.debug("异常离线脚本执行，心跳探测");
                 return;
             }
@@ -536,10 +538,10 @@ public class AgentManager {
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
             client = clientMap.getOrDefault(sid, null);
             if (null != client) {
-                client.heartbeat();
+                client.heartbeat(sessionIds);
             }
         } else {
-            client.heartbeat();
+            client.heartbeat(sessionIds);
         }
     }
 

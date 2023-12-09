@@ -133,6 +133,7 @@ public class UploadFileServer {
         try {
             if (null != fileUploadProgress && null != fileUploadProgress.getId()) {
                 fileUploadProgressDao.save(fileUploadProgress);
+                fileUploadProgressDao.deleteFinished();
             }
             if (this.importService && null != fileUploadProgress && Objects.equals(fileUploadProgress.getUploadSize(), fileUploadProgress.getTotalSize())) {
                 // 导入服务处理

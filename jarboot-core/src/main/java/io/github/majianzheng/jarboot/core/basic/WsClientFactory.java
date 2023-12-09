@@ -12,6 +12,7 @@ import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.core.cmd.CommandRequestSubscriber;
 import io.github.majianzheng.jarboot.core.cmd.CommandSubscriber;
 import io.github.majianzheng.jarboot.core.cmd.InternalCommandSubscriber;
+import io.github.majianzheng.jarboot.core.event.CommandEventBuilder;
 import io.github.majianzheng.jarboot.core.event.HeartbeatEvent;
 import io.github.majianzheng.jarboot.core.utils.LogUtils;
 import org.apache.tomcat.websocket.WsWebSocketContainer;

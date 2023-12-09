@@ -17,10 +17,7 @@ import io.github.majianzheng.jarboot.core.utils.LogUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Use websocket or http to send response data, we need a strategy so that the needed component did not
@@ -32,7 +29,7 @@ public class ResultStreamDistributor {
 
     private final ResponseStream stream = new ResponseStreamDelegate();
     private final ResultViewResolver resultViewResolver = new ResultViewResolver();
-    private final Set<String> stdoutSessionActiveSet = new HashSet<>(16);
+    private Set<String> stdoutSessionActiveSet = new HashSet<>(16);
 
     public static ResultStreamDistributor getInstance() {
         return ResultStreamDistributorHolder.INST;
@@ -90,11 +87,34 @@ public class ResultStreamDistributor {
     }
 
     public void addActiveSession(String sessionId) {
-        stdoutSessionActiveSet.add(sessionId);
+        if (StringUtils.isEmpty(sessionId)) {
+            return;
+        }
+        Set<String> copy = new HashSet<>(stdoutSessionActiveSet);
+        String[] session = sessionId.split(",");
+        copy.addAll(Arrays.asList(session));
+        stdoutSessionActiveSet = copy;
     }
 
     public void removeActiveSession(String sessionId) {
-        stdoutSessionActiveSet.remove(sessionId);
+        if (StringUtils.isEmpty(sessionId)) {
+            return;
+        }
+        Set<String> copy = new HashSet<>(stdoutSessionActiveSet);
+        String[] session = sessionId.split(",");
+        for (String s : session) {
+            copy.remove(s);
+        }
+        stdoutSessionActiveSet = copy;
+    }
+
+    public void resetActiveSession(String sessionIds) {
+        if (StringUtils.isEmpty(sessionIds)) {
+            stdoutSessionActiveSet = new HashSet<>(16);
+            return;
+        }
+        String[] session = sessionIds.split(",");
+        stdoutSessionActiveSet = new HashSet<>(Arrays.asList(session));
     }
 
     private void sendToServer(CommandResponse resp) {

@@ -62,7 +62,6 @@ router.beforeEach(async (to, _from, next) => {
   if (code) {
     if (!permission[code]) {
       // 无权限
-      console.info('>>>>', code, permission);
       next({ name: PAGE_LOGIN, force: true });
       return;
     }

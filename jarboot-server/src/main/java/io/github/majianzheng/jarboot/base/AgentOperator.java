@@ -11,6 +11,9 @@ import io.github.majianzheng.jarboot.ws.MessageSenderEvent;
 import io.github.majianzheng.jarboot.ws.SessionOperator;
 
 import javax.websocket.Session;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Set;
 
 /**
  * @author majianzheng
@@ -87,8 +90,13 @@ public final class AgentOperator extends SessionOperator {
         sendCommand(command, sessionId, CommandType.USER_PUBLIC, row, col);
     }
 
-    public void heartbeat() {
-        sendCommand(CommandConst.HEARTBEAT, StringUtils.EMPTY, CommandType.HEARTBEAT, 1, 1);
+    public void heartbeat(Set<String> sessionIds) {
+        String cmd = CommandConst.HEARTBEAT;
+        if (null != sessionIds && !sessionIds.isEmpty()) {
+            String arg = Base64.getEncoder().encodeToString(String.join(",", sessionIds).getBytes(StandardCharsets.UTF_8));
+            cmd = String.format("%s %s", CommandConst.HEARTBEAT, arg);
+        }
+        sendCommand(cmd, StringUtils.EMPTY, CommandType.INTERNAL, 1, 1);
     }
 
     public boolean isTrusted() {

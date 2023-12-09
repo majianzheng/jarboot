@@ -141,7 +141,7 @@ public class TaskUtils {
                 displayCmd = displayCmd + " " + setting.getArgs();
             }
         } else {
-            displayCmd = "java " + cmdBuilder.toString();
+            displayCmd = "java" + cmdBuilder.toString();
         }
 
         //打印命令行

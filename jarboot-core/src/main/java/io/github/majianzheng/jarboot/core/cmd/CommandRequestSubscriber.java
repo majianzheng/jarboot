@@ -26,11 +26,6 @@ public class CommandRequestSubscriber implements Subscriber<CommandRequest> {
             session = EnvironmentContext.registerSession(request.getSessionId());
             session.setRow(request.getRow());
             session.setCol(request.getCol());
-            CommandType type = request.getCommandType();
-            if (CommandType.HEARTBEAT.equals(type)) {
-                NotifyReactor.getInstance().publishEvent(new HeartbeatEvent(request));
-                return;
-            }
             JarbootEvent event = new CommandEventBuilder()
                     .request(request)
                     .session(session)

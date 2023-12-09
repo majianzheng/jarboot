@@ -38,13 +38,14 @@ public class MessageUtils {
 
     /**
      * 浏览器控制台打印文本
+     * @param sessionIds session ids
      * @param sid sid
      * @param text 文本
      */
-    public static void stdPrint(String sid, String text) {
+    public static void stdPrint(String sessionIds, String sid, String text) {
         NotifyReactor
                 .getInstance()
-                .publishEvent(new BroadcastMessageEvent(sid)
+                .publishEvent(new BroadcastMessageEvent(sessionIds, sid)
                         .body(text)
                         .type(FrontEndNotifyEventType.STD_PRINT));
     }

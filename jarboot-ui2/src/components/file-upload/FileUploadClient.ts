@@ -49,7 +49,7 @@ export default class FileUploadClient {
     this.totalSize = file.size;
     this.clusterHost = clusterHost || '';
     this.baseDir = baseDir;
-    this.dstPath = path + '/' + (file.webkitRelativePath || file.name);
+    this.dstPath = (path + '/' + (file.webkitRelativePath || file.name));
     if (!speed || speed <= 0) {
       this.speed = 10;
     } else {
@@ -95,7 +95,7 @@ export default class FileUploadClient {
         query += `&clusterHost=${this.clusterHost}`;
       }
       if (this.baseDir) {
-        query += `&baseDir=${this.baseDir}`;
+        query += `&baseDir=${encodeURIComponent(this.baseDir)}`;
       }
       if (clusterHost) {
         query += `&${ACCESS_CLUSTER_HOST}=${clusterHost}`;

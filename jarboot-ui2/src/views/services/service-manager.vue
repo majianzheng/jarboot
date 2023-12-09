@@ -15,24 +15,26 @@
             @dashboard="doDashboardCmd"></service-toolbar>
           <div style="flex: auto; padding: 3px 1px">
             <el-input v-model="serviceState.search" placeholder="" prefix-icon="Search" size="small" clearable />
-            <el-tree
-              ref="treeRef"
-              :data="treeData"
-              :props="defaultProps"
-              default-expand-all
-              highlight-current
-              :filter-node-method="filterService">
-              <template #default="{ node, data }">
-                <instance-tree-item
-                  :node="node"
-                  :data="data"
-                  @row-click="currentChange"
-                  @edit="editService"
-                  @select="onSelectClick"
-                  :current-node="serviceState.currentNode"
-                  :is-service="isService"></instance-tree-item>
-              </template>
-            </el-tree>
+            <div class="tree-container">
+              <el-tree
+                  ref="treeRef"
+                  :data="treeData"
+                  :props="defaultProps"
+                  default-expand-all
+                  highlight-current
+                  :filter-node-method="filterService">
+                <template #default="{ node, data }">
+                  <instance-tree-item
+                      :node="node"
+                      :data="data"
+                      @row-click="currentChange"
+                      @edit="editService"
+                      @select="onSelectClick"
+                      :current-node="serviceState.currentNode"
+                      :is-service="isService"></instance-tree-item>
+                </template>
+              </el-tree>
+            </div>
           </div>
         </div>
       </template>
@@ -329,6 +331,10 @@ onUnmounted(() => {
     .el-tree {
       width: 100%;
       background: var(--side-bg-color);
+    }
+    .tree-container {
+      height: calc(100% - 22px);
+      overflow: auto;
     }
   }
   .server-content {

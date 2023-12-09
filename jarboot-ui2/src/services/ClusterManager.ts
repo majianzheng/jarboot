@@ -11,7 +11,7 @@ export default class ClusterManager {
    * 获取存活的集群实例
    */
   public static getOnlineClusterHosts() {
-    return Request.get<string[]>(urlBase + '/onlineClusterHosts', {});
+    return Request.get<{ host: string, name: string }[]>(urlBase + '/onlineClusterHosts', {});
   }
 
   /**

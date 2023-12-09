@@ -118,7 +118,7 @@ public class WebSocketMainServer {
                 if (index > 0) {
                     String host = sessionId.substring(0, index);
                     sessionId = sessionId.substring(index + 1);
-                    ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+                    handleClusterEvent(event, sessionId, host);
                 } else {
                     SessionOperator operator = SESSIONS.getOrDefault(event.getSessionId(), null);
                     if (null != operator) {
@@ -136,8 +136,13 @@ public class WebSocketMainServer {
         NotifyReactor.getInstance().registerSubscriber(new Subscriber<BroadcastMessageEvent>() {
             @Override
             public void onEvent(BroadcastMessageEvent event) {
-                SESSIONS.values().forEach(operator -> operator.newMessage(event));
-                ClusterClientManager.getInstance().notifyToOtherClusterFront(event);
+                if (event.getSessionIds().isEmpty()) {
+                    SESSIONS.values().forEach(operator -> operator.newMessage(event));
+                    ClusterClientManager.getInstance().notifyToOtherClusterFront(event);
+                    return;
+                }
+                // 定点广播
+                event.getSessionIds().forEach(sessionId -> broadToDirect(event, sessionId));
             }
 
             @Override
@@ -165,5 +170,38 @@ public class WebSocketMainServer {
                 return FromOtherClusterServerMessageEvent.class;
             }
         }, PUBLISHER);
+    }
+
+    private static void handleClusterEvent(MessageEvent event, String sessionId, String host) {
+        if (Objects.equals(ClusterClientManager.getInstance().getSelfHost(), host)) {
+            SessionOperator operator = SESSIONS.getOrDefault(sessionId, null);
+            if (null != operator) {
+                operator.newMessage(event);
+            }
+            return;
+        }
+        ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+    }
+
+    private static void broadToDirect(BroadcastMessageEvent event, String sessionId) {
+        int index = sessionId.indexOf(StringUtils.SPACE);
+        if (index > 0) {
+            String host = sessionId.substring(0, index);
+            sessionId = sessionId.substring(index + 1);
+            if (Objects.equals(ClusterClientManager.getInstance().getSelfHost(), host)) {
+                // 连接的当前节点
+                SessionOperator operator = SESSIONS.getOrDefault(sessionId, null);
+                if (null != operator) {
+                    operator.newMessage(event);
+                }
+                return;
+            }
+            ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+        } else {
+            SessionOperator operator = SESSIONS.getOrDefault(sessionId, null);
+            if (null != operator) {
+                operator.newMessage(event);
+            }
+        }
     }
 }

@@ -38,6 +38,7 @@
         :height="height + 22"
         :id="sid"
         :width="width"
+        :executing="state.executing"
         @ready="onReady"
         @command="onCommand"
         @cancel="emit('cancel')"
@@ -156,7 +157,7 @@ function onCommand(cmd: string) {
 
 const onCmdEnd = (msg?: string) => {
   state.executing = null;
-  term.options.disableStdin = false;
+  // term.options.disableStdin = false;
   pubsub.publish(props.sid, CONSOLE_TOPIC.FINISH_LOADING, msg);
   msg && term.writeln(msg);
   term.prompt();
@@ -167,7 +168,7 @@ const clearDisplay = () => {
 
 const doExecCommand = () => {
   const cmd = state.command;
-  term.options.disableStdin = !!cmd;
+  // term.options.disableStdin = !!cmd;
   if (StringUtil.isEmpty(cmd)) {
     return;
   }
@@ -217,7 +218,7 @@ const renderView = (resultData: any) => {
   state.data = resultData;
   state.view = cmd;
   state.executing = cmd;
-  term.options.disableStdin = !!cmd;
+  //term.options.disableStdin = !!cmd;
 };
 
 const onExecQuickCmd = (cmd: string) => {

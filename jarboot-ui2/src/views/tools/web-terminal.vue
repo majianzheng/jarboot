@@ -22,7 +22,7 @@
     </el-empty>
     <el-dialog v-model="state.dialog" :title="$t('CREATE_TERM')" width="300px">
       <el-select v-model="state.selectHost" style="width: 100%">
-        <el-option v-for="(host, i) in state.clusterHosts" :key="i" :label="host" :value="host"></el-option>
+        <el-option v-for="(host, i) in state.clusterHosts" :key="i" :label="host.name" :value="host.host"></el-option>
       </el-select>
       <template #footer>
         <el-button @click="state.dialog = false">{{ $t('CANCEL') }}</el-button>
@@ -53,7 +53,7 @@ const state = reactive({
   width: basicStore.innerWidth - 80,
   height: basicStore.innerHeight - 90,
   terms: [] as TermOptions[],
-  clusterHosts: [] as string[],
+  clusterHosts: [] as {host: string, name: string}[],
   selectHost: '',
   active: 0,
   dialog: false,

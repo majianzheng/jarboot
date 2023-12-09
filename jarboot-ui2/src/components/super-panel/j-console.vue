@@ -20,6 +20,7 @@ const props = defineProps<{
   pubsub?: PublishSubmit;
   /** 唯一id */
   id: string;
+  executing?: string|null;
 }>();
 
 const emit = defineEmits<{
@@ -124,10 +125,16 @@ function runTerminal() {
         prompt();
         break;
       case '\r': // Enter
+        if (props.executing) {
+          return;
+        }
         runCommand(term, command);
         command = '';
         break;
       case '\u007F': // Backspace (DEL)
+        if (props.executing) {
+          return;
+        }
         // Does not delete the prompt
         if (term._core.buffer.x > 2) {
           term.write('\b \b');
@@ -137,12 +144,21 @@ function runTerminal() {
         }
         break;
       case '[A': // 上
+        if (props.executing) {
+          return;
+        }
         emit('up');
         break;
       case '[B': // 下
+        if (props.executing) {
+          return;
+        }
         emit('down');
         break;
       default: // Print all other characters for demo
+        if (props.executing) {
+          return;
+        }
         if ((e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7e)) || e >= '\u00a0') {
           command += e;
           term.write(e);

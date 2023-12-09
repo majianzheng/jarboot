@@ -5,6 +5,7 @@ import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientProxy;
+import io.github.majianzheng.jarboot.cluster.ClusterServerState;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
@@ -39,11 +40,15 @@ public class ClusterManagerController {
      */
     @GetMapping("onlineClusterHosts")
     @ResponseBody
-    public ResponseVo<List<String>> getOnlineClusterHosts() {
-        List<String> hosts = new ArrayList<>();
+    public ResponseVo<List<HostInfo>> getOnlineClusterHosts() {
+        List<HostInfo> hosts = new ArrayList<>();
         ClusterClientManager.getInstance().getHosts().forEach((k, v) -> {
             if (v.isOnline()) {
-                hosts.add(k);
+                HostInfo info = new HostInfo();
+                info.setHost(v.getHost());
+                info.setName(v.getName());
+                info.setState(v.getState());
+                hosts.add(info);
             }
         });
         return HttpResponseUtils.success(hosts);
@@ -217,6 +222,35 @@ public class ClusterManagerController {
             } else {
                 serverRuntimeService.downloadAnyFile(file, os);
             }
+        }
+    }
+
+    public static class HostInfo {
+        private String host;
+        private String name;
+        private ClusterServerState state;
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public ClusterServerState getState() {
+            return state;
+        }
+
+        public void setState(ClusterServerState state) {
+            this.state = state;
         }
     }
 }

@@ -17,6 +17,7 @@ const props = defineProps<{
   baseDir: string;
   withRoot: boolean;
   clusterHost?: string;
+  clusterHostName?: string;
   showClusterHostInRoot?: boolean;
   rowTools?: {
     download?: boolean;
@@ -63,12 +64,12 @@ async function reload() {
     emit('before-load', props.clusterHost || '');
     state.data = await FileService.getFiles(props.baseDir, props.withRoot, props.clusterHost || '');
     if (props.showClusterHostInRoot && props.withRoot && props.clusterHost) {
-      state.data[0].name = props.clusterHost;
+      state.data[0].name = props.clusterHostName || props.clusterHost;
     }
     emit('after-load', { ...state.data }, props.clusterHost || '');
   } catch (e) {
     if (props.showClusterHostInRoot && props.withRoot && props.clusterHost) {
-      state.data[0].name = `${props.clusterHost} (${CommonUtils.translate('OFFLINE')})`;
+      state.data[0].name = `${props.clusterHostName} (${CommonUtils.translate('OFFLINE')})`;
     }
   } finally {
     state.loading = false;
@@ -166,17 +167,6 @@ function createNode(file: File, data: FileNode): FileNode {
   return child;
 }
 
-function handleProgress(evt: AxiosProgressEvent, file: File, data: FileNode) {
-  let child = createNode(file, data);
-  let progress: number | null = round(evt.progress || 0, 2);
-  if (progress >= 1) {
-    child.progress = null;
-    handleSuccess(file, data);
-    return;
-  }
-  child.progress = progress * 100;
-  treeRef.value?.updateKeyChildren(child.key, { ...child } as any);
-}
 async function addFolder(node: Node) {
   node = getSelectNode(node);
   const nodeData = node.data as FileNode;

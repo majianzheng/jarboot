@@ -24,4 +24,6 @@ public class AuthConst {
     public static final long MAX_ROLE = 10000;
 
     public static final String AUTHORITIES_KEY = "auth";
+
+    public static final String ACCESS_CLUSTER_HOST = "Access-Cluster-Host";
 }

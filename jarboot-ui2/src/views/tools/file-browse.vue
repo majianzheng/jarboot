@@ -26,7 +26,7 @@ const state = reactive({
   active: '',
   loading: false,
   reloading: true,
-  clusterHosts: [] as string[],
+  clusterHosts: [] as {host: string, name: string}[],
 });
 
 async function editTab(key: string, action: 'remove' | 'add') {
@@ -113,7 +113,8 @@ onMounted(async () => {
           v-for="(host, i) in state.clusterHosts"
           :key="i"
           :show-cluster-host-in-root="true"
-          :cluster-host="host"
+          :cluster-host="host.host"
+          :cluster-host-name="host.name"
           :base-dir="userStore.userDir"
           @node-click="handleSelect"
           @before-load="state.reloading = true"

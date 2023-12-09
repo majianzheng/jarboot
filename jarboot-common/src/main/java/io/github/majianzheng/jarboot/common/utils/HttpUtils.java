@@ -162,6 +162,18 @@ public class HttpUtils {
         }
     }
 
+    public static String getString(String url, Map<String, String> header) {
+        HttpGet httpGet = new HttpGet(url);
+        try (CloseableHttpResponse response = doRequest(httpGet, null, header);
+             InputStream is = response.getEntity().getContent()) {
+            return IOUtils.toString(is, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        } finally {
+            httpGet.releaseConnection();
+        }
+    }
+
     public static void post(String url, OutputStream os, Map<String, String> param, Map<String, String> header) {
         HttpPost httpPost = new HttpPost(url);
         HttpEntity request = convertFormEntity(param);

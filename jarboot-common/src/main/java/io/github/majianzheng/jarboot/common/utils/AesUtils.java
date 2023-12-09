@@ -54,7 +54,7 @@ public class AesUtils {
             return decrypt(encrypt, KEY);
         } catch (Exception e) {
             AnsiLog.error(e);
-            return "";
+            throw new JarbootException(e);
         }
     }
 
@@ -68,7 +68,7 @@ public class AesUtils {
             return encrypt(content, KEY);
         } catch (Exception e) {
             AnsiLog.error(e);
-            return "";
+            throw new JarbootException(e);
         }
     }
 

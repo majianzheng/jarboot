@@ -2,12 +2,15 @@ package io.github.majianzheng.jarboot.service.impl;
 
 import io.github.majianzheng.jarboot.api.pojo.FileNode;
 import io.github.majianzheng.jarboot.common.JarbootException;
+import io.github.majianzheng.jarboot.dao.FileUploadProgressDao;
 import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +23,9 @@ import java.util.*;
  */
 @Service
 public class FileServiceImpl implements FileService {
+    @Resource
+    private FileUploadProgressDao fileUploadProgressDao;
+
     @Override
     public List<FileNode> getWorkspaceFiles(String baseDir, boolean withRoot) {
         check(baseDir);
@@ -160,5 +166,10 @@ public class FileServiceImpl implements FileService {
         if (path.contains(rel)) {
             throw new JarbootException("禁用相对目录");
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        fileUploadProgressDao.deleteFinished();
     }
 }

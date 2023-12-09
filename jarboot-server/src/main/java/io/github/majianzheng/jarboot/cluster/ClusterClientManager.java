@@ -102,7 +102,7 @@ public class ClusterClientManager {
     public void notifyToOtherClusterFront(AbstractMessageEvent event) {
         if (enabled) {
             hosts.forEach((k, client) -> {
-                if (Objects.equals(selfHost, client.getHost())) {
+                if (Objects.equals(selfHost, client.getHost()) || !client.isOnline()) {
                     return;
                 }
                 ClusterEventMessage req = new ClusterEventMessage();
