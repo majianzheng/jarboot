@@ -183,7 +183,7 @@ body {
     font-size: 32px;
     margin-top: 58px;
     text-align: center;
-    color: var(--el-text-color-regular);
+    color: #e9e9eb;
   }
   .internal-sys-tip {
     width: 100%;

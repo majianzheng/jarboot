@@ -89,6 +89,7 @@ type SuperPanelState = {
 };
 const props = defineProps<{
   clusterHost: string | null;
+  clusterHostName?: string | null;
   name: string;
   sid: string;
   status: string;
@@ -127,8 +128,8 @@ const middleTitle = computed(() => {
   return state.executing || '';
 });
 const panelTitle = computed(() => {
-  if (props.clusterHost) {
-    return `${props.clusterHost}/${props.name}`;
+  if (props.clusterHostName) {
+    return `${props.clusterHostName} / ${props.name}`;
   }
   return props.name;
 });

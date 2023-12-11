@@ -22,6 +22,7 @@
                   :props="defaultProps"
                   default-expand-all
                   highlight-current
+                  @current-change="data => serviceState.selectClusterHost = data.host"
                   :filter-node-method="filterService">
                 <template #default="{ node, data }">
                   <instance-tree-item
@@ -45,6 +46,7 @@
             :key="i"
             v-show="serviceState.activated.sid === s.sid"
             :cluster-host="s.host"
+            :cluster-host-name="s.hostName"
             :sid="(s.sid as string)"
             :status="s.status"
             @close="closeServiceTerminal(s)"
@@ -60,6 +62,7 @@
       :show-edit="serviceState.showEdit"
       :is-new="serviceState.isNew"
       :setting="serviceState.configForm"
+      :cluster-host="serviceState.selectClusterHost"
       :activated="serviceState.activated"></service-config>
     <el-dialog v-model="serviceState.trustedDialog" :title="$t('WARN')" width="30%" draggable destroy-on-close @closed="onDestroyed">
       <p>{{ serviceState.notTrustedMsg }}</p>
@@ -142,6 +145,7 @@ const serviceState = reactive({
   trustedDialog: false,
   notTrustedService: null as ServiceInstance | null,
   notTrustedMsg: '',
+  selectClusterHost: '',
 });
 
 function getWidth() {

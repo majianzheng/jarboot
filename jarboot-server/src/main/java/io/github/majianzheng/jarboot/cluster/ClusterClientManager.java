@@ -56,12 +56,18 @@ public class ClusterClientManager {
     private String selfHostName;
     private byte[] clusterSecretKey = null;
 
+    private boolean initialized = false;
+
     public static ClusterClientManager getInstance() {
         return ClusterConfigHolder.INST;
     }
 
     public Map<String, ClusterClient> getHosts() {
         return hosts;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     public String getMasterHost() {
@@ -208,7 +214,7 @@ public class ClusterClientManager {
                 JarbootThreadFactory.createThreadFactory("cluster-conf-init-"));
         try {
             List<String> lines = FileUtils.readLines(getClusterConfigFile(), StandardCharsets.UTF_8);
-            lines.forEach(this::filterLine);
+            lines.forEach(this::handleLine);
             if (null == clusterSecretKey || hosts.isEmpty()) {
                 return;
             }
@@ -233,6 +239,7 @@ public class ClusterClientManager {
                 hosts.clear();
                 selfHost = null;
                 logger.info("集群模式未配置，单例模式启动");
+                initialized = true;
             } else {
                 final int minSecretKeyLength = 32;
                 if (StringUtils.isEmpty(selfHost) || clusterSecretKey.length <= minSecretKeyLength) {
@@ -242,6 +249,7 @@ public class ClusterClientManager {
                     System.exit(-1);
                 } else {
                     enabled = true;
+                    initialized = true;
                     logger.info("集群模式启动");
                     monitorCheckHealth();
                 }
@@ -269,13 +277,13 @@ public class ClusterClientManager {
         }).start();
     }
 
-    private boolean filterLine(String line) {
+    private void handleLine(String line) {
         if (StringUtils.isEmpty(line)) {
-            return false;
+            return;
         }
         line = line.trim();
         if (line.startsWith(NOTE_PREFIX)) {
-            return false;
+            return;
         }
         if (line.startsWith(CLUSTER_SECRET_KEY)) {
             int index = line.indexOf('=');
@@ -286,7 +294,7 @@ public class ClusterClientManager {
                     clusterSecretKey = temp.getBytes(StandardCharsets.UTF_8);
                 }
             }
-            return false;
+            return;
         }
         final String str = "//";
         int index = line.indexOf(str);
@@ -297,7 +305,6 @@ public class ClusterClientManager {
         allClusterIps.add(ip);
         ClusterClient client = new ClusterClient(line);
         hosts.put(client.getHost(), client);
-        return true;
     }
 
     private void waitHostStarted(ClusterClient client, Map<String, String> hostUuidMap) {

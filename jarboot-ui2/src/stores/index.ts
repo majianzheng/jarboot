@@ -35,6 +35,7 @@ export const useBasicStore = defineStore({
     uuid: '',
     host: '',
     workspace: 'workspace',
+    clusterInitialized: false,
     inDocker: false,
     masterHost: '',
     innerHeight: window.innerHeight,

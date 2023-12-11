@@ -12,6 +12,7 @@ const props = defineProps<{
   activated: ServiceInstance;
   isNew: boolean;
   showEdit: boolean;
+  clusterHost?: string;
 }>();
 const defaultSetting: ServerSetting = {
   host: '',
@@ -73,7 +74,7 @@ async function saveConfig() {
     return;
   }
   if (!state.form.host) {
-    state.form.host = (props.activated?.host || basic.host) as string;
+    state.form.host = (props.clusterHost || basic.host) as string;
   }
   await ClusterManager.saveServerSetting({ ...state.form });
   state.showEdit = false;
@@ -85,7 +86,7 @@ async function saveAndInit() {
     return;
   }
   if (!state.form.host) {
-    state.form.host = (props.activated?.host || basic.host) as string;
+    state.form.host = (props.clusterHost || basic.host) as string;
   }
   await ClusterManager.saveServerSetting({ ...state.form });
   state.isNew = false;

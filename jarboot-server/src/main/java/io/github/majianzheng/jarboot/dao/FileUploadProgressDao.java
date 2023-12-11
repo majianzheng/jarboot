@@ -20,6 +20,9 @@ public interface FileUploadProgressDao extends JpaRepository<FileUploadProgress,
      */
     FileUploadProgress getFileUploadProgressByClusterHostAndDstPath(String clusterHost, String dstPath);
 
+    /**
+     * 删除已完成的上传项
+     */
     @Query("delete from FileUploadProgress where uploadSize>=totalSize")
     @Modifying
     @Transactional(rollbackFor = Throwable.class)

@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.core.cmd.internal;
 
 import io.github.majianzheng.jarboot.api.cmd.annotation.Argument;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.core.event.HeartbeatEvent;
 import io.github.majianzheng.jarboot.core.stream.ResultStreamDistributor;
 
@@ -16,15 +17,17 @@ import java.util.Base64;
 public class HeartbeatCommand extends AbstractInternalCommand {
     private String sessionIds;
 
-    @Argument(argName = "sessionIds", index = 0)
+    @Argument(argName = "sessionIds", required=false, index = 0)
     public void setSessionIds(String sessionIds) {
         this.sessionIds = sessionIds;
     }
     @Override
     public void run() {
-        byte[] buf = Base64.getDecoder().decode(sessionIds.getBytes(StandardCharsets.UTF_8));
-        String ids = new String(buf, StandardCharsets.UTF_8);
-        ResultStreamDistributor.getInstance().resetActiveSession(ids);
+        if (StringUtils.isNotEmpty(sessionIds)) {
+            byte[] buf = Base64.getDecoder().decode(sessionIds.getBytes(StandardCharsets.UTF_8));
+            String ids = new String(buf, StandardCharsets.UTF_8);
+            ResultStreamDistributor.getInstance().resetActiveSession(ids);
+        }
         NotifyReactor.getInstance().publishEvent(new HeartbeatEvent());
     }
 

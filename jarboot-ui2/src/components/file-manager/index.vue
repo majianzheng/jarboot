@@ -7,9 +7,7 @@ import CommonNotice from '@/common/CommonNotice';
 import { canEdit } from '@/components/editor/LangUtils';
 import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
-import { round } from 'lodash';
 import type Node from 'element-plus/es/components/tree/src/model/node';
-import type { AxiosProgressEvent } from 'axios';
 import FileRow from '@/components/file-manager/file-row.vue';
 import { useBasicStore, useUploadStore } from '@/stores';
 
@@ -205,7 +203,7 @@ async function addFile(node: Node) {
 }
 
 async function saveFile() {
-  let key = '';
+  let key;
   if (state.isNew) {
     key = await FileService.newFile(state.file.path, state.file.content, props.clusterHost);
     await reload();
@@ -376,7 +374,7 @@ onMounted(reload);
       v-model="state.dialog"
       @closed="resetForm"
       destroy-on-close>
-      <file-editor v-model="state.file.content" height="500px" :name="state.file.path"></file-editor>
+      <file-editor v-model="state.file.content" height="300px" :name="state.file.path"></file-editor>
       <template #footer>
         <el-button @click="state.dialog = false">{{ $t('CANCEL') }}</el-button>
         <el-button type="primary" @click="saveFile">{{ $t('SAVE') }}</el-button>
