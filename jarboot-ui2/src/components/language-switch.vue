@@ -1,8 +1,8 @@
 <template>
   <div class="__language-wrapper">
     <el-dropdown>
-      <el-button size="small" link>
-        <icon-pro icon="icon-language" size="20px" color="#000"></icon-pro>
+      <el-button size="small" link class="btn-language">
+        <icon-pro icon="icon-language" size="20px"></icon-pro>
       </el-button>
       <template #dropdown>
         <el-dropdown-menu>
@@ -35,7 +35,7 @@ const languageList = computed(() => list.filter(row => locale.value != row.value
 <style lang="less" scoped>
 .__language-wrapper {
   display: inline-block;
-  .icon-language {
+  .btn-language {
     color: var(--color-hight);
     font-size: var(--el-font-size-extra-large);
   }

@@ -242,6 +242,7 @@ const createOption = (title: string, series: any[], subtext: string = '', unit: 
         color: isDark ? '#d4d4d4' : '#373737',
       },
     },
+    grid: { left: 60 },
     color: COLOR,
     tooltip: {
       trigger: 'axis',
