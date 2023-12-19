@@ -17,6 +17,7 @@ public class AgentServiceImpl implements AgentService {
     private static final String NOTICE_WARN = "noticeWarn";
     private static final String NOTICE_ERROR = "noticeError";
     private static final String SPRING_INIT = "springContextInit";
+    private static final String GET_HOST = "getJarbootHost";
 
     static {
         Class<?> tmp = null;
@@ -75,6 +76,20 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public String getServiceName() {
         return SERVICE_NAME;
+    }
+
+    @Override
+    public String getJarbootHost() {
+        try {
+            //启动完成
+            Object obj = OPERATOR_CLASS.getMethod(GET_HOST).invoke(null);
+            if (obj instanceof String) {
+                return (String)obj;
+            }
+        } catch (Exception e) {
+            e.printStackTrace(JarbootAgent.getPs());
+        }
+        return null;
     }
 
     @Override

@@ -24,7 +24,7 @@ public class JarbootShell {
     private static final String OPTION_PRE = "-";
 
     /** Jarboot 服务地址 */
-    private String host = "127.0.0.1:9899";
+    private String host = "http://127.0.0.1:9899";
     /** 进程PID */
     private String pid;
     /** 启动Java进程命令行 */
@@ -49,7 +49,11 @@ public class JarbootShell {
         initJarbootHome();
         String hostEnv = System.getenv(CommonConst.JARBOOT_HOST_ENV);
         if (!StringUtils.isEmpty(hostEnv)) {
-            this.host = hostEnv;
+            if (hostEnv.startsWith(CommonConst.HTTP) || hostEnv.startsWith(CommonConst.HTTPS)) {
+                this.host = hostEnv;
+            } else {
+                this.host = CommonConst.HTTP + hostEnv;
+            }
         }
         try {
             initArgs();
@@ -119,7 +123,11 @@ public class JarbootShell {
                 field = null;
                 break;
             case HOST_ARG:
-                this.host = arg;
+                if (arg.startsWith(CommonConst.HTTP) || arg.startsWith(CommonConst.HTTPS)) {
+                    this.host = arg;
+                } else {
+                    this.host = CommonConst.HTTP + arg;
+                }
                 field = null;
                 break;
             case CMD_ARG:
@@ -185,7 +193,7 @@ public class JarbootShell {
         if (!Boolean.TRUE.equals(this.shell)) {
             AnsiLog.println("Jarboot host: {}, checking jarboot server...", AnsiLog.cyan(host));
         }
-        String url = CommonConst.HTTP + host + CommonConst.SERVER_RUNTIME_CONTEXT;
+        String url = host + CommonConst.SERVER_RUNTIME_CONTEXT;
         try {
             ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class, null);
             if (!Boolean.TRUE.equals(this.shell)) {
@@ -355,7 +363,7 @@ public class JarbootShell {
     }
 
     private void printHomePage() {
-        String url = CommonConst.HTTP + host + "/jarboot/index.html";
+        String url = host + "/jarboot/index.html";
         AnsiLog.println("Visit online diagnose: {}", AnsiLog.blue(url));
     }
 

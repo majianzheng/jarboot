@@ -81,6 +81,9 @@ public class JarbootBootstrap {
     }
 
     public boolean isOnline(String host) {
+        if (!host.startsWith(CommonConst.HTTP) && !host.startsWith(CommonConst.HTTPS)) {
+            host = CommonConst.HTTP + host;
+        }
         if (EnvironmentContext.isInitialized()) {
             // 第二次进入，检查是否需要变更Jarboot服务地址
             AgentClient clientData = EnvironmentContext.getAgentClient();
@@ -185,8 +188,8 @@ public class JarbootBootstrap {
         } else {
             host = args;
         }
-        if (null == System.getProperty(CommonConst.REMOTE_PROP, null)) {
-            System.setProperty(CommonConst.REMOTE_PROP, host);
+        if (!host.startsWith(CommonConst.HTTP) && !host.startsWith(CommonConst.HTTPS)) {
+            host = CommonConst.HTTP + host;
         }
         String serverName = System.getProperty(CommonConst.SERVER_NAME_PROP, null);
         if (null == serverName) {
@@ -201,8 +204,7 @@ public class JarbootBootstrap {
                 .append(PidFileHelper.INSTANCE_NAME)
                 .append(CommonConst.COMMA_SPLIT)
                 .append(serverName);
-        String baseUrl = CommonConst.HTTP + host;
-        String url = baseUrl + "/api/jarboot/public/agent/agentClient";
+        String url = host + "/api/jarboot/public/agent/agentClient";
         clientData = HttpUtils.postObjByString(url, sb.toString(), AgentClient.class, null);
         if (null == clientData) {
             throw new JarbootException("Request Jarboot server failed! url:" + url);
@@ -214,6 +216,9 @@ public class JarbootBootstrap {
             clientData.setUserDir(defaultUserDir);
         }
         clientData.setHost(host);
+        if (null == System.getProperty(CommonConst.REMOTE_PROP, null)) {
+            System.setProperty(CommonConst.REMOTE_PROP, host);
+        }
         return clientData;
     }
 
@@ -226,7 +231,7 @@ public class JarbootBootstrap {
         if (agentArgs.length != 4) {
             throw new JarbootException("解析传入传入参数错误！args:" + s);
         }
-        clientData.setHost("127.0.0.1:" + agentArgs[0]);
+        clientData.setHost(String.format("%s127.0.0.1:%s", CommonConst.HTTP, agentArgs[0]));
         System.setProperty(CommonConst.REMOTE_PROP, clientData.getHost());
         clientData.setServiceName(agentArgs[1]);
         String sid = agentArgs[2];

@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
@@ -274,8 +275,8 @@ public class TaskUtils {
 
     /**
      * 检查Java进程是否存活
-     * @param pid
-     * @return
+     * @param pid pid
+     * @return 是否成功
      */
     public static boolean checkProcessAlive(String pid) {
         Map<String, String> vms = VMUtils.getInstance().listVM();
@@ -354,16 +355,25 @@ public class TaskUtils {
                 sb.append("export JAVA_CMD=\"${JAVA_HOME}/bin/java\"\n\n");
             }
         }
+        String selfHost = ClusterClientManager.getInstance().getSelfHost();
+        String host;
+        if (StringUtils.isEmpty(selfHost)) {
+            host = SettingUtils.getLocalhost();
+        } else {
+            host = selfHost;
+        }
         if (OSUtils.isWindows()) {
             sb.append("set \"JARBOOT_HOME=").append(SettingUtils.getHomePath()).append("\"\n");
             sb.append("set \"MACHINE_CODE=").append(CommonUtils.getMachineCode()).append("\"\n");
             sb.append("set \"SERVER_UUID=").append(SettingUtils.getUuid()).append("\"\n");
             sb.append("set \"JARBOOT_WORKSPACE=").append(SettingUtils.getWorkspace()).append("\"\n");
+            sb.append("set \"JARBOOT_HOST=").append(host).append("\"\n");
         } else {
             sb.append("export JARBOOT_HOME=\"").append(SettingUtils.getHomePath()).append("\"\n");
             sb.append("export MACHINE_CODE=\"").append(CommonUtils.getMachineCode()).append("\"\n");
             sb.append("export SERVER_UUID=\"").append(SettingUtils.getUuid()).append("\"\n");
             sb.append("export JARBOOT_WORKSPACE=\"").append(SettingUtils.getWorkspace()).append("\"\n");
+            sb.append("export JARBOOT_HOST=\"").append(host).append("\"\n");
         }
     }
 

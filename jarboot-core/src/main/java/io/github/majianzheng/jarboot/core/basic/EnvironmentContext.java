@@ -1,6 +1,5 @@
 package io.github.majianzheng.jarboot.core.basic;
 
-import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.pojo.AgentClient;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
@@ -113,7 +112,7 @@ public class EnvironmentContext {
     }
 
     public static String getBaseUrl() {
-        return CommonConst.HTTP + agentClient.getHost();
+        return agentClient.getHost();
     }
 
     public static ScheduledExecutorService getScheduledExecutor() {

@@ -42,6 +42,12 @@ public interface AgentService {
     String getServiceName();
 
     /**
+     * 获取连接的Jarboot，如http://127.0.0.1:9899
+     * @return Jarboot服务地址
+     */
+    String getJarbootHost();
+
+    /**
      * 获取Jarboot的类加载器
      * @return Jarboot的类加载器
      */

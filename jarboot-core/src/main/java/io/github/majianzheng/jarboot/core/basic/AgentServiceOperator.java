@@ -41,6 +41,10 @@ public class AgentServiceOperator {
         }
     }
 
+    public static String getJarbootHost() {
+        return EnvironmentContext.getBaseUrl();
+    }
+
     public static String getServiceName() {
         return EnvironmentContext.getAgentClient().getServiceName();
     }
