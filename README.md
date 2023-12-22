@@ -26,6 +26,8 @@ In the test environment and daily built integrated environment, a series of jar 
 
 📦 Installation package Download: [https://gitee.com/majz0908/jarboot/releases](https://gitee.com/majz0908/jarboot/releases)
 
+📺 视频演示： [哔哩哔哩视频](https://www.bilibili.com/video/BV1KG411e7ip/?share_source=copy_web&vd_source=b901b6d8d17d4922a1229758fa74e46c)
+
 ![overview](https://gitee.com/majz0908/jarboot/raw/develop/doc/overview.png)
 
 ## Background and objectives
