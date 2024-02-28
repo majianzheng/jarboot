@@ -119,7 +119,7 @@ public class TaskUtils {
         displayCommand(setting, cmdBuilder, sid);
         // 工作目录
         String workHome = getServiceWorkHome(setting);
-        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
+        String javaCmd = OSUtils.isWindows() ? "\"%JAVA_CMD%\"" : "\"${JAVA_CMD}\"";
         if (USE_NOHUP) {
             javaCmd = "nohup " + javaCmd;
         }
@@ -182,7 +182,7 @@ public class TaskUtils {
     }
 
     public static void execServiceOfflineShell(ServiceSetting setting) {
-        String javaCmd = OSUtils.isWindows() ? "%JAVA_CMD% " : "${JAVA_CMD} ";
+        String javaCmd = OSUtils.isWindows() ? "\"%JAVA_CMD%\" " : "\"${JAVA_CMD}\" ";
         if (USE_NOHUP) {
             javaCmd = "nohup " + javaCmd;
         }
