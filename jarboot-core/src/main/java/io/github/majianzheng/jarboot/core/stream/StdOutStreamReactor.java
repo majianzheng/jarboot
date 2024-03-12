@@ -269,7 +269,7 @@ public class StdOutStreamReactor {
         } finally {
             if (null != watchFuture) {
                 //启动完成，取消计划任务
-                watchFuture.cancel(true);
+                watchFuture.cancel(false);
                 watchFuture = null;
             }
             if (!this.isStdoutFileAlways()) {
