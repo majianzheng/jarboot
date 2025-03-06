@@ -167,7 +167,7 @@ export default [
         name: 'audit',
         component: () => import('@/views/setting/audit-log.vue'),
         meta: {
-          module: '系统管理',
+          module: 'SETTING',
           icon: 'Notebook',
           code: '日志记录',
         },

@@ -142,14 +142,16 @@ public class JarbootAgent {
             URL[] urls = getClassLoaderUrls(coreJarFile);
             //构造自定义的类加载器
             ClassLoader classLoader = getClassLoader(urls);
+
             bind(classLoader, inst, args, isPremain);
+
             //初始化成功
             ps.println("jarboot Agent ready.");
         } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
-    
+
     private static URL[] getClassLoaderUrls(File coreFile) {
         URL[] urls = new URL[1];
         try {
@@ -159,8 +161,9 @@ public class JarbootAgent {
         }
         return urls;
     }
-    
+
     private static void initAgentPlugins(Instrumentation inst) {
+        ps.println("init agent plugins");
         File agentPluginsDir = new File(CURRENT_DIR + File.separator + "plugins", "agent");
         File[] jarFiles = agentPluginsDir.listFiles(file -> file.getName().endsWith(".jar"));
         if (null != jarFiles && jarFiles.length > 0) {

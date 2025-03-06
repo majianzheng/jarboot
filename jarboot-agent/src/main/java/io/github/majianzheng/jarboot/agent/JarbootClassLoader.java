@@ -12,7 +12,7 @@ public class JarbootClassLoader extends URLClassLoader {
     private static final String API_PREFIX = "io.github.majianzheng.jarboot.api.";
 
     public JarbootClassLoader(URL[] urls) {
-        super(urls, ClassLoader.getSystemClassLoader().getParent());
+        super(urls, Thread.currentThread().getContextClassLoader());
     }
 
     @Override
