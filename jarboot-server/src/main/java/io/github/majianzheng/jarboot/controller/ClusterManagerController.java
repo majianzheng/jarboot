@@ -166,11 +166,11 @@ public class ClusterManagerController {
      * @param response Servlet response
      * @throws IOException IO 异常
      */
-    @GetMapping(value="/exportService")
+    @GetMapping(value="/exportService/{name}.zip")
     @EnableAuditLog("导出服务")
     public void exportService(
             @RequestParam(required = false) String clusterHost,
-            @RequestParam String name,
+            @PathVariable String name,
             HttpServletResponse response) throws IOException {
         CommonUtils.setDownloadHeader(response, name + ".zip");
         try (OutputStream os = response.getOutputStream()) {

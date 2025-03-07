@@ -169,7 +169,7 @@ export default [
         meta: {
           module: 'SETTING',
           icon: 'Notebook',
-          code: '日志记录',
+          code: 'AUDIT_LOG',
         },
       },
     ],

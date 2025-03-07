@@ -163,6 +163,7 @@ export default {
   CLUSTER_MODE: '集群模式',
   CUR_HOST: '當前主機',
   MACHINE_CODE: '機器碼',
+  AUDIT_LOG: '日志记录',
   YES: '是',
   NO: '否',
 

@@ -163,6 +163,7 @@ export default {
   CLUSTER_MODE: 'Cluster mode',
   CUR_HOST: 'Current host',
   MACHINE_CODE: 'Machine code',
+  AUDIT_LOG: 'Audit log',
   YES: 'Yes',
   NO: 'No',
 

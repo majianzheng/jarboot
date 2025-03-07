@@ -10,12 +10,12 @@ const searchConfig = computed(
     [
       {
         type: 'input',
-        name: '用户',
+        name: 'USER_NAME',
         prop: 'username',
       },
       {
         type: 'input',
-        name: '操作',
+        name: 'OPERATOR',
         prop: 'operation',
       },
     ] as SearchConfig[]
@@ -27,7 +27,6 @@ function getList(params: any) {
 }
 
 function formatTime(row: any) {
-  console.info('>>>>', row, row.createTime);
   return StringUtil.timeFormat(row.createTime);
 }
 </script>

@@ -104,7 +104,6 @@ async function reload() {
     params['clusterNode'] = state.host;
   }
   const server = await Request.get<any>(`/api/jarboot/monitor/server`, params);
-  console.log(server);
   state.server = server;
   setCPU(server);
   setMEM(server);

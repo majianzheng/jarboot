@@ -122,10 +122,8 @@ function resize() {
   const contentEle = document.querySelector('div.menu-side');
   if (contentEle) {
     state.width = basicStore.innerWidth - contentEle.clientWidth - 30;
-    console.info('resize', state.width, state.height, contentEle);
   } else {
     state.width = basicStore.innerWidth - 180;
-    console.info('resize default', state.width, state.height);
   }
   state.height = basicStore.innerHeight - 115;
 }

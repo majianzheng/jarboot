@@ -5,8 +5,6 @@
         <el-upload
           ref="logoUploadRef"
           :action="LOGO_URL"
-          :headers="header"
-          简介
           :show-file-list="false"
           v-model:file-list="formData.logoFile"
           accept="image/png"

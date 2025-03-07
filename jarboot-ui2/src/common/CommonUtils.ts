@@ -16,21 +16,12 @@ export default class CommonUtils {
     CommonUtils.i18n = i18n;
   }
 
-  public static translate(s: string, ...args: any[]) {
+  public static translate(s: string, args?: any) {
     if (!CommonUtils.t) {
       CommonUtils.t = getCurrentInstance()?.appContext.config.globalProperties.$t;
     }
-    let msg = CommonUtils.t(s);
-    if (!args?.length) {
-      return msg;
-    }
-    args.forEach((arg: any) => {
-      for (const key in arg) {
-        const reg = `{${key}}`;
-        msg = msg.replaceAll(reg, arg[key]);
-      }
-    });
-    return msg;
+
+    return CommonUtils.t(s, args);
   }
 
   public static mergeLocaleMessage(locale: Locale, message: any) {
@@ -81,7 +72,12 @@ export default class CommonUtils {
 
   public static exportServer(name: string, clusterHost: string): void {
     const a = document.createElement('a');
-    a.href = `/api/jarboot/cluster/manager/exportService?name=${name}&clusterHost=${clusterHost}`;
+    let url = `/api/jarboot/cluster/manager/exportService/${name}.zip`;
+    if (clusterHost) {
+      url = `${url}?clusterHost=${clusterHost}`;
+    }
+    a.href = url;
+    a.download = `${name}.zip`;
     a.click();
     a.remove();
   }
