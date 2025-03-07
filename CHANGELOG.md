@@ -8,6 +8,8 @@ spring-boot做web服务时会在临时目录产生缓存，长期使用时会产
 ### bug修复
 - /tmp目录中产生大量临时文件问题
 - 集群模式下websocket鉴权bug
+- springboot自定义打包下启动报No auto configuration classes found...的问题
+- chrome下服务导出bug，以及部分国际化问题
 
 ## 3.1.4（11，2024）
 ### 新特性

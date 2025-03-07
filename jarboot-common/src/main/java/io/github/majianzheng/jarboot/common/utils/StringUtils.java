@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("PMD.AbstractClassShouldStartWithAbstractNamingRule")
+@SuppressWarnings("all")
 public abstract class StringUtils {
     public static final String SPACE = " ";
     public static final String EMPTY = "";
@@ -578,7 +578,7 @@ public abstract class StringUtils {
     public static Properties splitArrayElementsIntoProperties(String[] array, String delimiter, String charsToDelete) {
         Properties result = new Properties();
         if(null == array || 0 == array.length) {
-            return result;
+            return null;
         } else {
             String[] var4 = array;
             int var5 = array.length;

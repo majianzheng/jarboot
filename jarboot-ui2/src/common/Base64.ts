@@ -2,7 +2,7 @@
  * Base64
  */
 export class Base64 {
-  private static _keyStr: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  private static readonly _keyStr: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
   public static encode(input: string) {
     let output = '';

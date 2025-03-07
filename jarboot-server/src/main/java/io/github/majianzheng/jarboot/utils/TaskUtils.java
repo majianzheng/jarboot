@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -134,7 +133,9 @@ public class TaskUtils {
         StringBuilder sb = new StringBuilder();
         String catalinaHome = String.join(File.separator, SettingUtils.getHomePath(), ".cache", "catalina_home");
         if (OSUtils.isWindows()) {
-            sb.append("set \"SID=").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
+            sb.append("@echo off").append(StringUtils.LINE_BREAK)
+                    .append("setlocal enabledelayedexpansion").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK)
+                    .append("set \"SID=").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
                     .append("set \"SERVICE_NAME=").append(setting.getName()).append('"').append(StringUtils.LINE_BREAK)
                     .append("set \"USER_DIR=").append(setting.getUserDir()).append('"').append(StringUtils.LINE_BREAK)
                     .append("set \"SERVICE_APP_TYPE=").append(setting.getApplicationType()).append('"').append(StringUtils.LINE_BREAK)
@@ -144,7 +145,8 @@ public class TaskUtils {
                     .append("set \"CATALINA_HOME=").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
                     .append("set \"SERVICE_SCH_TYPE=").append(setting.getScheduleType()).append('"').append(StringUtils.LINE_BREAK);
         } else {
-            sb.append("export SID=\"").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
+            sb.append("#!/bin/bash").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK)
+                    .append("export SID=\"").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
                     .append("export SERVICE_NAME=\"").append(setting.getName()).append('"').append(StringUtils.LINE_BREAK)
                     .append("export USER_DIR=\"").append(setting.getUserDir()).append('"').append(StringUtils.LINE_BREAK)
                     .append("export SERVICE_APP_TYPE=\"").append(setting.getApplicationType()).append('"').append(StringUtils.LINE_BREAK)
@@ -228,17 +230,9 @@ public class TaskUtils {
         String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
         File bashFile = getStartBashFile(setting.getSid(), serverPath);
         String jdkPath = SettingUtils.getJdkPath();
-        Map<String, String> env = new HashMap<>(4);
-        env.put("SERVICE_NAME", setting.getName());
-        env.put("SERVICE_APP_TYPE", setting.getApplicationType());
-        env.put("USER_DIR", setting.getUserDir());
-        env.put("SID", setting.getSid());
-        String envStr = env.entrySet()
-                .stream()
-                .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining(","));
         try {
-            startTask(cmdBuilder.toString(), envStr, serverPath, bashFile, jdkPath).waitFor();
+            initServiceEnv(setting, bashFile);
+            startTask(cmdBuilder.toString(), setting.getEnv(), serverPath, bashFile, jdkPath).waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
