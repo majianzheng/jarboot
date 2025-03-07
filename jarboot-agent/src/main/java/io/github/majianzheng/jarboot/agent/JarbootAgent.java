@@ -17,7 +17,7 @@ import java.util.jar.JarFile;
 /**
  * @author majianzheng
  */
-@SuppressWarnings({"squid:S1118", "squid:S106", "squid:S1181", "squid:3077", "squid:S2093", "squid:S899"})
+@SuppressWarnings({"all"})
 public class JarbootAgent {
     private static final String JARBOOT_CORE_JAR = "jarboot-core.jar";
     private static final String JARBOOT_CLASS = "io.github.majianzheng.jarboot.core.server.JarbootBootstrap";
@@ -50,7 +50,10 @@ public class JarbootAgent {
                 System.out.println("create jarboot agent log failed.");
             }
             ps = new PrintStream(new FileOutputStream(log, false));
-            main(args, inst, isPremain);
+            Thread thread = new Thread(() -> main(args, inst, isPremain));
+            thread.setName("jarboot-agent-main");
+            thread.start();
+            thread.join();
         } catch (Throwable e) {
             e.printStackTrace(null == ps ? System.out : ps);
         } finally {

@@ -27,7 +27,7 @@ public class JarbootClassLoader extends URLClassLoader {
         if (name.startsWith(API_PREFIX)) {
             return ClassLoader.getSystemClassLoader().loadClass(name);
         }
-        if (name.startsWith(SUN_PREFIX) || name.startsWith(JAVA_PREFIX)) {
+        if (name.startsWith(SUN_PREFIX) || name.startsWith(JAVA_PREFIX) || name.startsWith("javax.")) {
             return super.loadClass(name, resolve);
         }
         try {

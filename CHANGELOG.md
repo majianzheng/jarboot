@@ -1,15 +1,17 @@
-## 3.1.5（12，2024）
+## 3.1.5（3，2025）
 spring-boot做web服务时会在临时目录产生缓存，长期使用时会产生大量缓存文件这是springboot做web的通病，本次更新将所有jarboot管理的web服务的缓存垃圾统一管理，并定时清理。
 ### 新特性
 - 服务器资源监控
 - 使用spring-boot做web的服务所产生的缓存垃圾由jarboot统一管理
 - 定时清理垃圾缓存，防止服务产生的垃圾过多导致的问题
 - Cookie过期重新登录默认返回登出前的页面
+- 服务异常退出时增加审计日志
 ### bug修复
 - /tmp目录中产生大量临时文件问题
 - 集群模式下websocket鉴权bug
 - springboot自定义打包下启动报No auto configuration classes found...的问题
 - chrome下服务导出bug，以及部分国际化问题
+- 修复服务配置点取消无响应bug
 
 ## 3.1.4（11，2024）
 ### 新特性
