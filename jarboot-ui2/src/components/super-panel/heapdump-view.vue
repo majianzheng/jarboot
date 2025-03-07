@@ -9,7 +9,6 @@
 </template>
 
 <script setup lang="ts">
-import CommonUtils from '@/common/CommonUtils';
 import StringUtil from '@/common/StringUtil';
 import { computed } from 'vue';
 
@@ -30,6 +29,10 @@ const subTitle = computed(() => {
 function download() {
   const path = encodeURIComponent(props.data?.encrypted);
   const url = `/api/jarboot/cluster/manager/download?file=${path}&clusterHost=${props.clusterHost}`;
-  CommonUtils.download(url, 'heapdump.hprof');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = props.data?.dumpFile || 'heapdump.hprof';
+  a.click();
+  a.remove();
 }
 </script>

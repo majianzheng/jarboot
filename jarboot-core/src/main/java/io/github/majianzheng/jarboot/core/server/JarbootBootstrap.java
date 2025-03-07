@@ -79,6 +79,8 @@ public class JarbootBootstrap {
         System.setProperty("catalina.home", catalineHome);
         System.setProperty("catalina.base", catalineHome);
         System.setProperty("server.tomcat.basedir", catalineHome);
+        //提高启动速度；彩色日志启动
+        System.setProperty("spring.output.ansi.enabled", "always");
         final String tempDirProp = "java.io.tmpdir";
         if (StringUtils.isEmpty(System.getProperty(tempDirProp))) {
             File tmp = FileUtils.getFile(jarbootHome, ".cache");
@@ -87,6 +89,10 @@ public class JarbootBootstrap {
             }
             String tmpDir = tmp.getAbsolutePath();
             System.setProperty(tempDirProp, tmpDir);
+        }
+        final String fileEncoding = "file.encoding";
+        if (StringUtils.isEmpty(System.getProperty(fileEncoding))) {
+            System.setProperty(fileEncoding, "UTF-8");
         }
     }
 

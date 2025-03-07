@@ -48,7 +48,7 @@ const rowTools = {
 const rules = reactive<FormRules>({
   name: [
     { required: true, trigger: 'blur' },
-    { min: 1, max: 16, trigger: 'blur' },
+    { min: 1, max: 32, trigger: 'blur' },
   ],
   applicationType: [{ required: true, message: '不可为空', trigger: 'blur' }],
 });
@@ -199,14 +199,14 @@ onMounted(() => {
       </el-form-item>
       <el-form-item v-if="basic.mobileDevice">
         <div style="display: flex; justify-content: center; width: 100%">
-          <el-button size="small" @click="showEdit = false">{{ $t('CANCEL') }}</el-button>
+          <el-button size="small" @click="state.showEdit = false">{{ $t('CANCEL') }}</el-button>
           <el-button size="small" type="primary" @click="saveConfig">{{ $t('SAVE') }}</el-button>
         </div>
       </el-form-item>
     </el-form>
     <template #footer>
       <div style="flex: auto" v-if="!basic.mobileDevice">
-        <el-button size="small" @click="showEdit = false">{{ $t('CANCEL') }}</el-button>
+        <el-button size="small" @click="state.showEdit = false">{{ $t('CANCEL') }}</el-button>
         <el-button size="small" type="primary" @click="saveConfig">{{ $t('SAVE') }}</el-button>
       </div>
     </template>

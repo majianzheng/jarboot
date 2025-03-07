@@ -18,6 +18,8 @@ import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
+import io.github.majianzheng.jarboot.dao.AuditLogDao;
+import io.github.majianzheng.jarboot.entity.AuditLog;
 import io.github.majianzheng.jarboot.task.AttachStatus;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -53,6 +55,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private AbstractEventRegistry eventRegistry;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
+    @Resource
+    private AuditLogDao auditLogDao;
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -466,6 +470,12 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         String sid = setting.getSid();
+        try {
+            // 休眠片刻
+            TimeUnit.MILLISECONDS.sleep(120);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         //检查是否处于中间状态
         if (event.isStopping() || taskRunCache.isStopping(sid)) {
             //处于停止中状态，此时不做干预，守护只针对正在运行的进程
@@ -482,7 +492,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     }
 
     private void postHandleOfflineEvent(ServiceSetting setting) {
-        String serviceName = setting.getName();
+        String temp = setting.getName();
+        if (StringUtils.isNotEmpty(setting.getHost())) {
+            temp = temp + "@" + setting.getHost();
+        }
+        final String serviceName = temp;
         if (taskRunCache.isStarting(setting.getSid())) {
             MessageUtils.warn(String.format("服务%s启动失败！", serviceName));
             return;
@@ -490,15 +504,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);
-        boolean temp = false;
+        boolean isDeamon = false;
         if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
             if (Boolean.TRUE.equals(setting.getDaemon())) {
-                temp = true;
+                isDeamon = true;
             } else {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, currentTimeFormat()));
             }
+            saveAuditLog("服务异常退出", serviceName);
         }
-        final boolean daemon = temp;
+
+        final boolean daemon = isDeamon;
         executorService.execute(() -> {
             if (StringUtils.isNotEmpty(SettingUtils.getSystemSetting().getAfterServerOfflineExec())) {
                 TaskUtils.execServiceOfflineShell(setting);
@@ -507,8 +523,20 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             if (daemon) {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, currentTimeFormat()));
                 this.startSingleService(setting);
+                saveAuditLog("服务守护启动", serviceName);
             }
         });
+    }
+
+    private void saveAuditLog(String operation, String arg) {
+        AuditLog sysLog = new AuditLog();
+        sysLog.setCreateTime(System.currentTimeMillis());
+        //注解上的描述
+        sysLog.setOperation(operation);
+        sysLog.setMethod("SYS");
+        sysLog.setArgument(arg);
+        sysLog.setUsername("system");
+        auditLogDao.save(sysLog);
     }
 
     private static String currentTimeFormat() {

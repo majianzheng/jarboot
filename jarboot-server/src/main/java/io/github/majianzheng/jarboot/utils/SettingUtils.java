@@ -64,8 +64,7 @@ public class SettingUtils {
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
     private static String toolsJar;
-    /** file encoding选项 */
-    private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
+
     /** 本地地址 */
     private static String localHost = "127.0.0.1:9899";
     private static int port = 9899;
@@ -157,7 +156,7 @@ public class SettingUtils {
         if (userAgentJarFile.exists()) {
             String userAgentVer = getAgentJarVersion(userAgentJarFile);
             String agentVer = getAgentJarVersion(jarFile);
-            if (!Objects.equals(userAgentVer, agentVer)) {
+            if (userAgentJarFile.lastModified() != jarFile.lastModified() || !Objects.equals(userAgentVer, agentVer)) {
                 try {
                     FileUtils.copyFile(jarFile, userAgentJarFile);
                 } catch (Exception e) {
@@ -582,9 +581,6 @@ public class SettingUtils {
         if (StringUtils.isBlank(vm)) {
             vm = SettingUtils.getDefaultJvmArg().trim();
         }
-        if (!vm.contains(FILE_ENCODING_OPTION)) {
-            vm += (StringUtils.SPACE + FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
-        }
         return vm.trim();
     }
 
@@ -663,6 +659,12 @@ public class SettingUtils {
         String jdkPath = GLOBAL_SETTING.getJdkPath();
         if (StringUtils.isEmpty(jdkPath)) {
             jdkPath = System.getProperty("java.home");
+        }
+        if (StringUtils.isEmpty(jdkPath)) {
+            jdkPath = System.getenv("JAVA_HOME");
+        }
+        if (StringUtils.isEmpty(jdkPath)) {
+            return StringUtils.EMPTY;
         }
         return FilenameUtils.separatorsToUnix(jdkPath);
     }
