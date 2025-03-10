@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.audit.UpdateUserFormat;
 import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
 import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.PagedList;
@@ -51,7 +52,7 @@ public class UserController {
      */
     @PostMapping
     @PrivilegeCheck(value = "USER_LIST")
-    @EnableAuditLog("创建用户")
+    @EnableAuditLog(value = "创建用户", argsFormat = UpdateUserFormat.class)
     public ResponseSimple createUser(String username, String fullName, String password, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
         userService.createUser(username, fullName, password, roles, userDir, avatar);
         return HttpResponseUtils.success();
@@ -67,7 +68,7 @@ public class UserController {
      * @return 执行结果
      */
     @PostMapping("/update")
-    @EnableAuditLog("修改用户")
+    @EnableAuditLog(value = "修改用户", argsFormat = UpdateUserFormat.class)
     public ResponseSimple updateUser(String username, String fullName, String roles, @RequestParam(required = false) String userDir, @RequestParam(required = false) String avatar) {
         userService.updateUser(username, fullName, roles, userDir, avatar);
         return HttpResponseUtils.success();

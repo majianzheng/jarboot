@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -45,6 +46,7 @@ public class AuditLog extends AbstractBaseEntity {
         this.method = method;
     }
 
+    @Column(length = 4000)
     public String getArgument() {
         return argument;
     }
