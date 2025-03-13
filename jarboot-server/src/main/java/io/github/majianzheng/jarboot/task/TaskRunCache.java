@@ -236,10 +236,16 @@ public class TaskRunCache {
         if (StringUtils.isEmpty(setting.getCron())) {
             throw new JarbootException("cron配置为空");
         }
+        String host = ClusterClientManager.getInstance().getSelfHost();
+        if (StringUtils.isEmpty(host)) {
+            host = SettingUtils.getLocalhost();
+        }
         JobDetail job = JobBuilder.newJob(TaskJob.class)
                 .usingJobData(CommonConst.USER_DIR, setting.getUserDir())
                 .usingJobData(CommonConst.SERVICE_NAME_PARAM, setting.getName())
                 .usingJobData(CommonConst.SID_PARAM, setting.getSid())
+                .usingJobData(CommonConst.HOST_KEY, host)
+                .usingJobData(CommonConst.UUID_KEY, SettingUtils.getUuid())
                 .withIdentity(setting.getSid())
                 .withDescription(setting.getName())
                 .storeDurably()

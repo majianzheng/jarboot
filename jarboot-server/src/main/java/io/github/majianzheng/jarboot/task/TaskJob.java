@@ -3,13 +3,17 @@ package io.github.majianzheng.jarboot.task;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
+import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import org.quartz.JobExecutionContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,7 +27,15 @@ public class TaskJob extends QuartzJobBean {
         final String sid = context.getMergedJobDataMap().getString(CommonConst.SID_PARAM);
         final String userDir = context.getMergedJobDataMap().getString(CommonConst.USER_DIR);
         final String name = context.getMergedJobDataMap().getString(CommonConst.SERVICE_NAME_PARAM);
-        TaskUtils.getTaskExecutor().execute(() -> startTask(sid, userDir, name));
+        final String host = context.getMergedJobDataMap().getString(CommonConst.HOST_KEY);
+        final String uuid = context.getMergedJobDataMap().getString(CommonConst.UUID_KEY);
+        String curHost = ClusterClientManager.getInstance().getSelfHost();
+        if (StringUtils.isEmpty(curHost)) {
+            curHost = SettingUtils.getLocalhost();
+        }
+        if (Objects.equals(uuid, SettingUtils.getUuid()) && Objects.equals(curHost, host)) {
+            TaskUtils.getTaskExecutor().execute(() -> startTask(sid, userDir, name));
+        }
     }
 
     private void startTask(String sid, String userDir, String name) {
