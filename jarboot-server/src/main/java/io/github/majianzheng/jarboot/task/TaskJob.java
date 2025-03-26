@@ -45,8 +45,8 @@ public class TaskJob extends QuartzJobBean {
             return;
         }
         MessageUtils.console(sid, "定时任务触发，开始执行...");
+        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, name);
         try {
-            ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, name);
             if (null != STARTING_MAP.putIfAbsent(sid, setting)) {
                 MessageUtils.info(name + "正在启动中，定时任务跳过！");
                 MessageUtils.console(sid, "正在启动中，无需再次执行！");
@@ -63,6 +63,7 @@ public class TaskJob extends QuartzJobBean {
             MessageUtils.printException(sid, e);
         } finally {
             STARTING_MAP.remove(sid);
+            TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
         }
     }
 }
