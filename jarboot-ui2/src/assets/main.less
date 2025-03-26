@@ -6,18 +6,7 @@
 body {
   margin: 0;
 }
-@media (hover: hover) {
-  a:hover {
-  }
-}
 
-@media (min-width: 1024px) {
-  body {
-  }
-
-  #app {
-  }
-}
 .el-button:focus-visible {
   outline: none !important;
 }
@@ -122,6 +111,17 @@ body {
 .ui-spin {
   animation: span-frame1 3s infinite linear;
 }
+
+/* 确保终端容器和子元素允许文本选择 */
+.xterm, .xterm-viewport, .xterm-screen {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+/* 禁用鼠标事件的拦截（如存在） */
+.xterm-viewport {
+  pointer-events: auto !important;
+}
+
 
 @keyframes span-frame1
 {

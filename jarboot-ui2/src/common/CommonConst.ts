@@ -40,6 +40,7 @@ export const LOCALHOST = 'localhost';
 
 export const FAVICON_URL = '/jarboot/preferences/image/favicon.ico';
 export const LOGO_URL = '/jarboot/preferences/image/logo.png';
+export const BG_URL = '/jarboot/preferences/image/bg.png';
 
 export const DEFAULT_PRIVILEGE = {
   SERVICES_MGR: true,

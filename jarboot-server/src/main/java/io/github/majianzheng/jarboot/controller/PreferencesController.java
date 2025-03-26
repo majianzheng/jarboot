@@ -47,18 +47,31 @@ public class PreferencesController {
      * 更新资源
      * @param fileName 文件名
      * @param file 文件
+     * @return {@link ResponseVo}  更新成功
      * @throws IOException io异常
      */
     @PostMapping("/image/{fileName}")
     @PrivilegeCheck(value = "PREFERENCES_CONFIG")
     @EnableAuditLog("更新LOGO或图标")
-    public void updateBasicConfigImage(
+    public ResponseVo<String> updateBasicConfigImage(
             @PathVariable("fileName") String fileName,
             @RequestParam("file") MultipartFile file) throws IOException {
         File imageFile = getImageFile(fileName);
         try (InputStream is = file.getInputStream(); OutputStream os = FileUtils.openOutputStream(imageFile)) {
             IOUtils.copy(is, os);
         }
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 删除背景图片
+     * @return {@link ResponseVo}  删除成功
+     */
+    @EnableAuditLog("删除背景图片")
+    @DeleteMapping("/image/bg.png")
+    public ResponseVo<String> deleteBgImage() {
+        FileUtils.deleteQuietly(getImageFile("bg.png"));
+        return HttpResponseUtils.success();
     }
 
     /**
@@ -77,7 +90,7 @@ public class PreferencesController {
      */
     @PutMapping("/productName")
     @PrivilegeCheck(value = "PREFERENCES_CONFIG")
-    @EnableAuditLog("设置产品名称")
+    @EnableAuditLog("设置系统名称")
     public ResponseVo<String> setProductName(String productName) {
         SettingUtils.setProductName(productName);
         return HttpResponseUtils.success();

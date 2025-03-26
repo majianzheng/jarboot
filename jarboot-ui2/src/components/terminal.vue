@@ -1,26 +1,67 @@
 <template>
   <div v-loading="state.loading" class="term-main" ref="termRef" :style="{ width: width + 'px', height: height + 'px' }"></div>
-  <el-dialog v-model="state.dialog" :draggable="true" :modal="false" :title="$t('SEARCH_BTN')" :close-on-click-modal="false">
-    <div>
-      <el-input v-model="state.search" placeholder="" prefix-icon="Search" size="small" @keydown.enter="search" clearable />
+  <div class="search-view" v-if="state.searchView">
+    <div style="display: flex">
+      <div style="flex: auto">
+        <el-input
+          ref="searchInputRef"
+          v-model="state.search"
+          :placeholder="$t('SEARCH_BTN')"
+          @input="findNext"
+          prefix-icon="Search"
+          size="small"
+          @keydown.esc="closeSearch"
+          @keydown.enter.exact="findNext"
+          @keydown.shift.enter="findPrevious"
+          @keydown="toggleOpt"
+          clearable />
+      </div>
+      <div class="search-btn" @click="search">
+        <div
+          class="search-opt-tool"
+          :title="$t('CASE_SENSITIVE')"
+          :class="{ active: state.searchOpt.caseSensitive }"
+          @click="toggleCaseSensitive">
+          Cc
+        </div>
+        <div class="search-opt-tool" :title="$t('WHOLE_WORD')" :class="{ active: state.searchOpt.wholeWord }" @click="toggleWholeWord">W</div>
+        <div class="search-opt-tool" :title="$t('REGEX')" :class="{ active: state.searchOpt.regex }" @click="toggleRegex">.*</div>
+
+        <span class="search-result" v-if="state.searchResult.cnt > 0">{{ $t('SEARCH_RESULT', state.searchResult) }}</span>
+        <span class="search-result" v-else>{{ $t('NO_RESULT') }}</span>
+        <div class="search-opt-tool search-ext" :title="$t('PRE_SEARCH_RLT')" @click="findPrevious">
+          <icon-pro icon="Top"></icon-pro>
+        </div>
+        <div class="search-opt-tool search-ext" :title="$t('NEXT_SEARCH_RLT')" @click="findNext">
+          <icon-pro icon="Bottom"></icon-pro>
+        </div>
+        <div class="search-opt-tool search-ext" :title="$t('CLOSE')" @click="closeSearch">
+          <icon-pro icon="CloseBold"></icon-pro>
+        </div>
+      </div>
     </div>
-  </el-dialog>
+  </div>
+  <div v-else class="search-view-btn">
+    <el-button :title="$t('SEARCH_BTN') + '(Ctrl+F)'" icon="Search" size="small" circle @click="openSearch"></el-button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import 'xterm/css/xterm.css';
-import { Terminal } from 'xterm';
-import { AttachAddon } from 'xterm-addon-attach';
-import { FitAddon } from 'xterm-addon-fit';
-import { CanvasAddon } from 'xterm-addon-canvas';
-import { WebglAddon } from 'xterm-addon-webgl';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { Unicode11Addon } from 'xterm-addon-unicode11';
-import { SerializeAddon } from 'xterm-addon-serialize';
-import { SearchAddon } from 'xterm-addon-search';
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import '@xterm/xterm/css/xterm.css';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { CanvasAddon } from '@xterm/addon-canvas';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
+import { SerializeAddon } from '@xterm/addon-serialize';
+import { SearchAddon, type ISearchOptions } from '@xterm/addon-search';
+import { WebglAddon } from '@xterm/addon-webgl';
+import { AttachAddon } from '@xterm/addon-attach';
 import { debounce, floor } from 'lodash';
 import { useUserStore } from '@/stores';
+import CommonUtils from '@/common/CommonUtils';
+import { ElMessage } from 'element-plus';
 
 //单个字符宽高： width: 8 height: 16
 const props = defineProps<{
@@ -48,7 +89,25 @@ const state = reactive({
   loading: true,
   connected: false,
   search: '',
-  dialog: false,
+  searchView: false,
+  searchOpt: {
+    caseSensitive: false,
+    wholeWord: false,
+    regex: false,
+    decorations: {
+      matchBackground: 'rgb(97,51,21)',
+      matchBorder: '',
+      matchOverviewRuler: '',
+      activeMatchBackground: 'rgb(157,105,3)',
+      activeMatchBorder: '',
+      activeMatchOverviewRuler: '',
+      activeMatchColorOverviewRuler: '',
+    },
+  } as ISearchOptions,
+  searchResult: {
+    cnt: 0,
+    index: -1,
+  },
 });
 
 const termRef = ref<HTMLDivElement>();
@@ -62,8 +121,77 @@ const termOption: TermOption = {
 
 watch(() => [props.height, props.width], debounce(updateSize, 1000, { maxWait: 3000 }));
 
-function search() {
-  termOption.searchAddon?.findNext(state.search);
+const searchInputRef = ref<HTMLInputElement>();
+function clearSearchResult() {
+  if (state.searchResult.cnt > 0) {
+    termOption.searchAddon?.clearDecorations();
+    state.searchResult.cnt = 0;
+    state.searchResult.index = -1;
+  }
+}
+
+const findPrevious = debounce(
+  function findPrevious() {
+    if (state.search) {
+      termOption.searchAddon?.findPrevious(state.search, state.searchOpt);
+    } else {
+      clearSearchResult();
+    }
+  },
+  300,
+  { maxWait: 500 }
+);
+
+const findNext = debounce(
+  function findNext() {
+    if (state.search) {
+      termOption.searchAddon?.findNext(state.search, state.searchOpt);
+    } else {
+      clearSearchResult();
+    }
+  },
+  300,
+  { maxWait: 500 }
+);
+
+function toggleCaseSensitive() {
+  state.searchOpt.caseSensitive = !state.searchOpt.caseSensitive;
+  findNext();
+}
+function toggleRegex() {
+  state.searchOpt.regex = !state.searchOpt.regex;
+  findNext();
+}
+function toggleWholeWord() {
+  state.searchOpt.wholeWord = !state.searchOpt.wholeWord;
+  findNext();
+}
+function toggleOpt(evt: KeyboardEvent) {
+  if (!evt.altKey) {
+    return;
+  }
+  switch (evt.code) {
+    case 'KeyC':
+      toggleCaseSensitive();
+      break;
+    case 'KeyW':
+      toggleWholeWord();
+      break;
+    case 'KeyR':
+      toggleRegex();
+      break;
+    default:
+      break;
+  }
+}
+function openSearch() {
+  state.searchView = true;
+  findNext();
+  nextTick(() => searchInputRef.value?.focus());
+}
+function closeSearch() {
+  state.searchView = false;
+  clearSearchResult();
 }
 
 function updateSize() {
@@ -157,6 +285,10 @@ function init() {
   termOption.term.open(termRef.value as HTMLDivElement);
   termOption.fitAddon.fit();
   termOption.term.focus();
+  searchAddon.onDidChangeResults(evt => {
+    state.searchResult.index = evt.resultIndex + 1;
+    state.searchResult.cnt = evt.resultCount;
+  });
   termOption.term.attachCustomKeyEventHandler(event => {
     if (event.type === 'keydown') {
       let ctl;
@@ -165,19 +297,36 @@ function init() {
       } else {
         ctl = event.ctrlKey;
       }
+      if ('Escape' === event.code && state.searchView) {
+        closeSearch();
+        return false;
+      }
+
       if (ctl) {
         if ('KeyF' === event.code) {
-          state.dialog = true;
+          openSearch();
           return false;
         }
         if ('KeyC' === event.code) {
-          const str = termOption.term?.getSelection();
-          // 复制到剪贴板
-          navigator.clipboard.writeText(str ?? '');
-          return false;
+          copySelection();
+          return true;
         }
         if ('KeyV' === event.code) {
-          // 从剪贴板粘贴
+          return false;
+        }
+        return '' !== event.code;
+      }
+      if (event.altKey && state.searchView) {
+        if ('KeyC' === event.code) {
+          toggleCaseSensitive();
+          return false;
+        }
+        if ('KeyR' === event.code) {
+          toggleRegex();
+          return false;
+        }
+        if ('KeyW' === event.code) {
+          toggleWholeWord();
           return false;
         }
       }
@@ -185,7 +334,18 @@ function init() {
     return true;
   });
 }
-
+function copySelection() {
+  const str = termOption.term?.getSelection();
+  if (!str) {
+    console.info('No selection');
+    return;
+  }
+  CommonUtils.copyString(str);
+  ElMessage({
+    message: CommonUtils.translate('COPIED'),
+    type: 'success',
+  });
+}
 function fit() {
   termOption.fitAddon?.fit();
 }
@@ -220,5 +380,56 @@ onUnmounted(() => {
   width: 100%;
   min-height: 100px;
   background: #263238;
+}
+
+.search-view {
+  position: absolute;
+  right: 5px;
+  top: 2px;
+  width: 630px;
+  z-index: 999;
+  padding: 2px;
+  border-radius: 3px;
+  background: #263238;
+  color: #e9e9eb;
+}
+.search-view-btn {
+  position: absolute;
+  right: 15px;
+  top: 2px;
+  z-index: 999;
+}
+.search-btn {
+  margin-left: 2px;
+  .search-opt-tool {
+    display: inline-block;
+    margin-right: 2px;
+    font-size: 12px;
+    width: 22px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 22px;
+    border: var(--el-border);
+    &:hover {
+      background-color: var(--el-color-primary-light-9);
+      border-color: var(--el-color-primary-light-7);
+      color: var(--el-color-primary);
+    }
+    &.active {
+      color: var(--el-text-color);
+      border-color: var(--el-color-primary);
+      background-color: var(--el-color-primary);
+    }
+  }
+  .search-ext {
+    font-size: 14px;
+    margin-right: 10px;
+    padding: 1px;
+    border-style: dotted;
+  }
+}
+.search-result {
+  margin: 0 15px;
 }
 </style>

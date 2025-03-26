@@ -95,7 +95,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import type { FormInstance } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 import { useBasicStore, useUserStore } from '@/stores';
-import { DOCS_URL } from '@/common/CommonConst';
+import { BG_URL, DOCS_URL, LOGO_URL } from '@/common/CommonConst';
 
 const loginFormRef = ref<FormInstance>();
 const bgRef = ref();
@@ -105,7 +105,7 @@ const loginForm = reactive({
   username: '',
   password: '',
 });
-const logoUrl = '/jarboot/preferences/image/logo.png';
+const logoUrl = LOGO_URL;
 
 const userStore = useUserStore();
 const rules = reactive({
@@ -128,7 +128,22 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 };
 const openDoc = () => window.open(DOCS_URL);
 
-onMounted(() => {
+function drawImage(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(true);
+    };
+    img.onerror = () => {
+      console.log('error load image!');
+      resolve(false);
+    };
+    img.src = BG_URL;
+  });
+}
+
+onMounted(async () => {
   const canvas = bgRef.value;
   const ctx = canvas.getContext('2d');
 
@@ -136,6 +151,11 @@ onMounted(() => {
   canvas.width = window.innerWidth;
   window.document.body.style.overflow = 'hidden';
 
+  const hasImage = await drawImage(ctx, canvas);
+  if (hasImage) {
+    console.log('load image success!');
+    return;
+  }
   const texts = '0123456789ABCDE'.split('');
 
   const fontSize = 14;
@@ -167,7 +187,7 @@ onMounted(() => {
     }
   }
 
-  bgAni = setInterval(draw, 50);
+  bgAni = setInterval(draw, 200);
 });
 onUnmounted(() => bgAni && clearInterval(bgAni));
 </script>

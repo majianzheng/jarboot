@@ -70,6 +70,15 @@ export default class CommonUtils {
     return query;
   }
 
+  public static copyString(str: string) {
+    const input = document.createElement('textarea');
+    input.value = str;
+    document.body.append(input);
+    input.focus();
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+  }
   public static exportServer(name: string, clusterHost: string): void {
     const a = document.createElement('a');
     let url = `/api/jarboot/cluster/manager/exportService/${name}.zip`;

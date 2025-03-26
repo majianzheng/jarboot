@@ -157,6 +157,8 @@ export default {
   SYS_ICON_PREVIEW: '系統ICON预览',
   SYS_LOGO: '系統LOGO',
   SYS_LOGO_PREVIEW: '系統LOGO预览',
+  LOGIN_BG: '登录背景',
+  LOGIN_BG_PREVIEW: '登录背景预览',
   SYS_NAME: '系統名稱',
   SYS_VER: '系統版本',
   CLI_DOWNLOAD: '命令行工具下載',
@@ -208,6 +210,14 @@ export default {
   PLEASE_INPUT: '請輸入',
   CHANGE_SAVE_TIP: '文件已修改，是否保存！',
   RUNNING_DELETE_INFO: '删除的服務{name}正在运行中，请先终止！',
+  COPIED: '已複製',
+  SEARCH_RESULT: '第{index}項，共{cnt}項',
+  NO_RESULT: '無結果',
+  CASE_SENSITIVE: '區分大小寫（Alt+C）',
+  WHOLE_WORD: '全詞匹配（Alt+W）',
+  REGEX: '正則匹配（Alt+R）',
+  PRE_SEARCH_RLT: '上一個匹配項（Shift+Enter）',
+  NEXT_SEARCH_RLT: '下一個匹配項（Enter）',
 
   //帮助
   HELP: '帮助',

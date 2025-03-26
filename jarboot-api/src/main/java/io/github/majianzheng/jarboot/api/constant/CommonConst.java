@@ -58,6 +58,8 @@ public class CommonConst {
     public static final String SID_PARAM = "sid";
 
     public static final String USER_DIR = "userDir";
+    public static final String HOST_KEY = "host";
+    public static final String UUID_KEY = "uuid";
 
     /** Task status */
     public static final String STARTING = "STARTING";

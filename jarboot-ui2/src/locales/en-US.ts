@@ -157,6 +157,8 @@ export default {
   SYS_ICON_PREVIEW: 'System icon preview',
   SYS_LOGO: 'System logo',
   SYS_LOGO_PREVIEW: 'System logo preview',
+  LOGIN_BG: 'Login background',
+  LOGIN_BG_PREVIEW: 'Login background preview',
   SYS_NAME: 'System name',
   SYS_VER: 'System version',
   CLI_DOWNLOAD: 'Client tools download',
@@ -208,6 +210,14 @@ export default {
   PLEASE_INPUT: 'Please input ',
   CHANGE_SAVE_TIP: 'File is modified, save or cancel!',
   RUNNING_DELETE_INFO: 'The service {name} is running, can not delete!',
+  COPIED: 'Copied',
+  SEARCH_RESULT: '{index} of {cnt}',
+  NO_RESULT: 'No result',
+  CASE_SENSITIVE: 'Case sensitive (Alt+C)',
+  WHOLE_WORD: 'Whole word (Alt+W)',
+  REGEX: 'Regex (Alt+R)',
+  PRE_SEARCH_RLT: 'Previous (Shift+Enter)',
+  NEXT_SEARCH_RLT: 'Next (Enter)',
 
   //帮助
   HELP: 'Help',
