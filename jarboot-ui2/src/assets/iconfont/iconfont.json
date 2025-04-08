@@ -6,6 +6,27 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "41799382",
+      "name": "icon_openapi",
+      "font_class": "openapi",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "5657738",
+      "name": "脚本语言",
+      "font_class": "script",
+      "unicode": "e7e3",
+      "unicode_decimal": 59363
+    },
+    {
+      "icon_id": "4579846",
+      "name": "enter",
+      "font_class": "enter",
+      "unicode": "e94f",
+      "unicode_decimal": 59727
+    },
+    {
       "icon_id": "1361523",
       "name": "内存",
       "font_class": "memory",

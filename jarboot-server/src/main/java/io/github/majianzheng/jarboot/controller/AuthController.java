@@ -11,6 +11,7 @@ import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.entity.User;
 import io.github.majianzheng.jarboot.security.JarbootUser;
 import io.github.majianzheng.jarboot.security.JwtTokenManager;
+import io.github.majianzheng.jarboot.service.OpenApiService;
 import io.github.majianzheng.jarboot.service.UserService;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +44,8 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
     @Resource
     private UserService userService;
+    @Resource
+    private OpenApiService openApiService;
 
     @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
@@ -106,14 +109,40 @@ public class AuthController {
     }
 
     /**
+     * 登出系统
+     * @param request http请求
+     * @param response http响应
+     * @return 结果
+     */
+    @PostMapping(value="/logout")
+    @EnableAuditLog("登出系统")
+    public ResponseVo<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        String token = CommonUtils.getToken(request);
+        jwtTokenManager.validateToken(token);
+        SecurityContextHolder.getContext().setAuthentication(null);
+        Cookie cookie = new Cookie(AuthConst.TOKEN_COOKIE_NAME, "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+        if (StringUtils.isNotEmpty(ClusterClientManager.getInstance().getSelfHost())) {
+            cookie = new Cookie(AuthConst.CLUSTER_COOKIE_NAME, "");
+            cookie.setMaxAge(0);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+        }
+        return HttpResponseUtils.success("退出成功");
+    }
+
+    /**
      * 创建Open Api的访问Token
      * @param username 用户
      * @param password 密码
+     * @param expireTimestamp 过期时间戳
      * @return token
      */
     @PostMapping(value="/openApiToken")
     @EnableAuditLog("创建OpenApi访问Token")
-    public ResponseVo<String> createOpenApiToken(String username, String password) {
+    public ResponseVo<String> createOpenApiToken(String username, String password, Long expireTimestamp) {
         try {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
                     password);
@@ -121,7 +150,7 @@ public class AuthController {
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
-        String token = jwtTokenManager.createOpenApiToken(username);
+        String token = openApiService.createOpenApiToken(username, expireTimestamp);
         return HttpResponseUtils.success(token);
     }
 

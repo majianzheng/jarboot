@@ -56,7 +56,6 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import { SearchAddon, type ISearchOptions } from '@xterm/addon-search';
-import { WebglAddon } from '@xterm/addon-webgl';
 import { AttachAddon } from '@xterm/addon-attach';
 import { debounce, floor } from 'lodash';
 import { useUserStore } from '@/stores';
@@ -269,10 +268,6 @@ function init() {
   termOption.fitAddon = new FitAddon();
   termOption.term.loadAddon(termOption.fitAddon);
   termOption.term.loadAddon(new CanvasAddon());
-  if (props.useWebgl) {
-    const addon = new WebglAddon();
-    termOption.term.loadAddon(addon);
-  }
   termOption.term.loadAddon(new WebLinksAddon());
   const unicode11Addon = new Unicode11Addon();
   termOption.term.loadAddon(unicode11Addon);
@@ -397,6 +392,7 @@ onUnmounted(() => {
   position: absolute;
   right: 15px;
   top: 2px;
+  background: #263238;
   z-index: 999;
 }
 .search-btn {

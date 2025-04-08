@@ -11,8 +11,10 @@ import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
+import io.github.majianzheng.jarboot.entity.OpenApiToken;
 import io.github.majianzheng.jarboot.entity.User;
 import io.github.majianzheng.jarboot.security.JwtTokenManager;
+import io.github.majianzheng.jarboot.service.OpenApiService;
 import io.github.majianzheng.jarboot.service.UserService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
@@ -39,7 +41,8 @@ public class UserController {
     private UserService userService;
     @Resource
     private JwtTokenManager jwtTokenManager;
-
+    @Resource
+    private OpenApiService openApiService;
     /**
      * 创建用户
      * @param username 用户名
@@ -168,5 +171,32 @@ public class UserController {
     @GetMapping(value="/avatar")
     public ResponseVo<String> getAvatar(String username) {
         return HttpResponseUtils.success(userService.getAvatar(username));
+    }
+
+    /**
+     * 获取OpenApiToken列表
+     * @param username 用户名
+     * @param pageNo 页码
+     * @param pageSize 页大小
+     * @return OpenApiToken列表
+     */
+    @GetMapping(value="/open-api-token")
+    public ResponseVo<PagedList<OpenApiToken>> queryOpenApiToken(
+            @RequestParam(required = false, name = "username") String username,
+            @RequestParam(required = false, name = "pageNo") Integer pageNo,
+            @RequestParam(required = false, name = "pageSize") Integer pageSize) {
+        PagedList<OpenApiToken> result = openApiService.getTokens(username, pageNo, pageSize);
+        return HttpResponseUtils.success(result);
+    }
+
+    /**
+     * 删除OpenApiToken
+     * @param id OpenApiToken id
+     * @return 执行结果
+     */
+    @DeleteMapping(value="/open-api-token")
+    public ResponseSimple deleteOpenApiToken(@RequestParam(name = "id") Long id) {
+        openApiService.deleteOpenApiToken(id);
+        return HttpResponseUtils.success();
     }
 }

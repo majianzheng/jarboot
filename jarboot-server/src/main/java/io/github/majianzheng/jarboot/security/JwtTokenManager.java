@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.security;
 
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.dao.UserDao;
@@ -72,11 +73,18 @@ public class JwtTokenManager {
      * @param username auth info
      * @return token
      */
-    public String createOpenApiToken(String username) {
+    public String createOpenApiToken(String username, Date expireDate) {
         String roles = userDao.getUserRoles(username);
         Claims claims = Jwts.claims().setSubject(username);
         claims.put(AuthConst.AUTHORITIES_KEY, roles);
-        return Jwts.builder().setClaims(claims)
+        if (null == expireDate) {
+            return Jwts.builder().setClaims(claims)
+                    .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
+        }
+        if (expireDate.before(new Date())) {
+            throw new JarbootException("过期时间必须在当前时间之后！");
+        }
+        return Jwts.builder().setClaims(claims).setExpiration(expireDate)
                 .signWith(Keys.hmacShaKeyFor(getSecretKeyBytes()), SignatureAlgorithm.HS256).compact();
     }
 

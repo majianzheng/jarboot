@@ -87,11 +87,11 @@ export const useUserStore = defineStore({
     roles: '',
     userDir: '',
     avatar: null as string | null,
-    privileges: null as any | null,
+    privileges: null as any,
   }),
 
   actions: {
-    logout() {
+    async logout() {
       this.$patch({
         username: '',
         fullName: '',
@@ -99,6 +99,7 @@ export const useUserStore = defineStore({
         userDir: '',
       });
       CommonUtils.deleteToken();
+      await OAuthService.logout();
       return router.push({ name: PAGE_LOGIN });
     },
     async login(username: string, password: string) {

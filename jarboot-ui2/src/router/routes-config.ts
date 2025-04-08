@@ -3,6 +3,7 @@ import {
   PAGE_COMMON,
   PAGE_JVM,
   PAGE_MONITOR,
+  PAGE_OPEN_API,
   PAGE_PREFERENCES,
   PAGE_PRIVILEGE,
   PAGE_ROLE,
@@ -149,6 +150,17 @@ export default [
           module: 'SETTING',
           icon: 'icon-privilege',
           code: 'PRIVILEGE_MGR',
+        },
+      },
+      {
+        path: 'open-api',
+        name: PAGE_OPEN_API,
+        component: () => import('@/views/setting/open-api.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'SETTING',
+          icon: 'icon-openapi',
+          code: 'OPEN_API',
         },
       },
       {

@@ -191,6 +191,7 @@ export default {
   ROLE_MGR: 'Role',
   PRIVILEGE_MGR: 'Privilege',
   ROLE: 'Role',
+  OPEN_API: 'OpenAPI',
   BIND_ROLE: 'Binding roles',
   DELETE_USER: `Do you want to delete this user({user})?`,
   DELETE_ROLE: `Do you want to delete this role?`,
@@ -282,4 +283,11 @@ export default {
   JVM_START_TIME: 'Start time',
   JVM_UP_TIME: 'Up time',
   JVM_PATH: 'Path',
+
+  // Open API
+  COPY: 'Copy',
+  AUTH_TIME: 'Auth expire time',
+  AUTH_EXPIRED: '{time} expired',
+  TIME_REMAIN: '{time} remain: {remain}',
+  NO_EXPIRE: 'No expired time',
 };

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 
 /**
@@ -75,35 +76,28 @@ public class JarbootShell {
                 continue;
             }
             switch (arg) {
-                case "-pid":
-                case "--pid":
+                case "-pid", "--pid":
                     verifyField(PID_ARG, optionHash);
                     break;
-                case "-h":
-                case "-host":
-                case "--host":
+                case "-h", "-host", "--host":
                     verifyField(HOST_ARG, optionHash);
                     break;
-                case "-sync":
-                case "--sync":
+                case "-sync", "--sync":
                     verifyField(CMD_ARG, optionHash);
                     this.sync = true;
                     command = new ArrayList<>();
                     break;
-                case "-async":
-                case "--async":
+                case "-async", "--async":
                     verifyField(CMD_ARG, optionHash);
                     command = new ArrayList<>();
                     break;
-                case "-c":
-                case "--command":
+                case "-c", "--command":
                     verifyField(CMD_ARG, optionHash);
                     this.shell = true;
                     this.sync = true;
                     command = new ArrayList<>();
                     break;
-                case "-help":
-                case "--help":
+                case "-help", "--help":
                     this.help = true;
                     break;
                 default:
@@ -263,19 +257,11 @@ public class JarbootShell {
     }
 
     private Process createExecProcess() {
-        Process process;
         String workHome = System.getenv("WORK_HOME");
         if (StringUtils.isEmpty(workHome)) {
             workHome = System.getProperty("user.dir");
         }
         try {
-            if (Boolean.TRUE.equals(this.shell)) {
-                process = new ProcessBuilder()
-                        .directory(FileUtils.getFile(workHome))
-                        .command(command)
-                        .start();
-                return process;
-            }
             StringBuilder sb = new StringBuilder();
             if (OSUtils.isWindows()) {
                 sb.append("@echo off").append(StringUtils.LINE_BREAK);
@@ -293,7 +279,7 @@ public class JarbootShell {
             if (!cmdFile.setExecutable(true)) {
                 AnsiLog.error("set executable failed.");
             }
-            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFile.getName()) : Arrays.asList("bash", cmdFile.getName());
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFile.getAbsolutePath()) : Arrays.asList("bash", cmdFile.getAbsolutePath());
             return new ProcessBuilder()
                     .directory(cmdFile.getParentFile())
                     .command(cmd)
@@ -309,7 +295,6 @@ public class JarbootShell {
             list.add(CommonConst.JAVA_CMD);
             list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
             list.add("-noverify");
-            list.add("-Dspring.output.ansi.enabled=always");
             list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
         }
         list.addAll(command);
@@ -325,6 +310,11 @@ public class JarbootShell {
     private static void exitHook(Process process) {
         if (null != process) {
             try {
+                killChildren(process.children());
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+            try {
                 process.destroyForcibly();
             } catch (Exception e) {
                 // ignore
@@ -334,6 +324,23 @@ public class JarbootShell {
         if (null != cmdFile && cmdFile.exists()) {
             FileUtils.deleteQuietly(cmdFile);
         }
+    }
+    private static void killChildren(Stream<ProcessHandle> children) {
+        if (null == children) {
+            return;
+        }
+        children.forEach(child -> {
+            try {
+                killChildren(child.children());
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+            try {
+                child.destroyForcibly();
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+        });
     }
 
     private void selectAttach() {

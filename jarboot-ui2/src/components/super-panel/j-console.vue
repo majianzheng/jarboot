@@ -8,8 +8,8 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import { type ISearchOptions, SearchAddon } from '@xterm/addon-search';
-import { WebglAddon } from '@xterm/addon-webgl';
 import { debounce, floor } from 'lodash';
+import wcwidth from 'wcwidth';
 import { CONSOLE_TOPIC } from '@/types';
 import type PublishSubmit from '@/common/PublishSubmit';
 import { ElMessage } from 'element-plus';
@@ -29,6 +29,7 @@ interface TermOption {
   term: null | Terminal;
   fitAddon: null | FitAddon;
   searchAddon: null | SearchAddon;
+  curseIndex: number;
 }
 const emit = defineEmits<{
   (e: 'ready', terminal: Terminal): void;
@@ -70,6 +71,7 @@ const termOption: TermOption = {
   term: null as unknown as Terminal | any,
   searchAddon: null,
   fitAddon: null as any,
+  curseIndex: 0,
 };
 
 const termRef = ref<HTMLDivElement>();
@@ -177,7 +179,6 @@ function init() {
   termOption.fitAddon = new FitAddon();
   termOption.term.loadAddon(termOption.fitAddon);
   termOption.term.loadAddon(new CanvasAddon());
-  termOption.term.loadAddon(new WebglAddon()); // 启用 WebGL 渲染支持
   termOption.term.loadAddon(new WebLinksAddon());
   const unicode11Addon = new Unicode11Addon();
   termOption.term.loadAddon(unicode11Addon);
@@ -239,28 +240,35 @@ function backspace() {
     return;
   }
   // Does not delete the prompt
-  let index = term._core.buffer.x - 3;
-  if (index >= 0) {
+  let index = termOption.curseIndex;
+  if (index > 0) {
     const rawCmd = command;
-    if (index > 0) {
-      command = rawCmd.substring(0, index);
-      if (index < rawCmd.length - 1) {
-        command += rawCmd.substring(index + 1);
+    let text = '';
+    let isWide = false;
+    if (index > 1) {
+      command = rawCmd.substring(0, index - 1);
+      isWide = isWideChar(rawCmd.charAt(index - 1));
+      if (index <= rawCmd.length - 1) {
+        text = rawCmd.substring(index);
+        command += text;
       }
     } else {
-      command = rawCmd.substring(index + 1);
+      text = rawCmd.substring(index);
+      isWide = isWideChar(rawCmd.charAt(0));
+      command = text;
     }
 
     // 重绘输入内容
     term.write('\x1b[D'); // 左移一位
-    term.write(`\x1b[K`); // 清除右侧内容
-    if (index < rawCmd.length - 1) {
-      const text = rawCmd.substring(index + 1);
-      term.write(text); // 写入剩余字符
+    if (isWide) {
+      term.write('\x1b[D');
     }
-    // 调整光标位置
-    if (command.length > index) {
-      term.write(`\x1b[${command.length - index}D`);
+    term.write(`\x1b[K`); // 清除右侧内容
+    termOption.curseIndex--;
+    if (text.length > 0) {
+      term.write(text); // 写入剩余字符
+      // 调整光标位置
+      term.write(`\x1b[${calcTextWidth(text)}D`);
     }
   }
 }
@@ -269,27 +277,29 @@ function deleteChar() {
   if (!term) {
     return;
   }
-  let index = term._core.buffer.x - 3;
-  if (index < command.length - 1) {
+  let index = termOption.curseIndex;
+  if (index <= command.length - 1) {
     const rawCmd = command;
+    let text = '';
     if (index >= 0) {
       if (index > 0) {
         command = rawCmd.substring(0, index);
       }
       if (index < rawCmd.length - 1) {
-        command += rawCmd.substring(index + 1);
+        text = rawCmd.substring(index + 1);
+        command += text;
       }
     } else {
-      command = rawCmd.substring(index + 1);
+      text = rawCmd.substring(index + 1);
+      command = text;
     }
     term.write(`\x1b[K`); // 清除右侧内容
-    index++;
-    if (index < rawCmd.length - 1) {
-      const text = rawCmd.substring(index + 1);
+    if (text.length > 0) {
       term.write(text); // 写入剩余字符
       // 调整光标位置
-      term.write(`\x1b[${command.length - index}D`);
+      term.write(`\x1b[${calcTextWidth(text)}D`);
     }
+    console.info('>>>', text.length, index, command);
   }
 }
 
@@ -300,8 +310,8 @@ function handleInput(term: Terminal, e: string) {
   let index = term._core.buffer.x - 2;
   if (index < 0) {
     prompt();
-    index = term._core.buffer.x - 2;
   }
+  index = termOption.curseIndex;
   if ((e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7e)) || e >= '\u00a0') {
     // command的index索引处插入字符
     let append = e;
@@ -318,9 +328,76 @@ function handleInput(term: Terminal, e: string) {
     if (moveLeft > 0) {
       term.write(`\x1b[${moveLeft}D`); // 使用 ANSI 序列调整光标
     }
-    command = command.substring(0, index) + append;
-    console.info('command:', command);
+    if (index > 0) {
+      command = command.substring(0, index) + append;
+    } else {
+      command = append;
+    }
+    termOption.curseIndex += e.length;
+    console.info('command:', command, termOption.curseIndex);
   }
+}
+
+function getPrevCursorPos(line: string, currentPos: number) {
+  if (currentPos <= 0) return 0;
+
+  let pos = currentPos - 1;
+  // 处理宽字符的左侧边界
+  while (pos > 0 && isWideChar(line[pos - 1])) {
+    pos--;
+  }
+  return pos;
+}
+
+function getNextCursorPos(line: string, currentPos: number) {
+  if (currentPos >= line.length) return currentPos;
+
+  let steps = 1;
+  // 如果当前字符是宽字符，移动两步
+  if (isWideChar(line[currentPos])) {
+    steps = 2;
+  }
+  return Math.min(currentPos + steps, line.length);
+}
+
+function isWideChar(char: string) {
+  return wcwidth(char) === 2;
+}
+
+function calcCmdWidth(): number {
+  return calcTextWidth(command);
+}
+
+function calcTextWidth(str: string): number {
+  if (str?.length) {
+    let w = 0;
+    for (const element of str) {
+      if (isWideChar(element)) {
+        w += 2;
+      } else {
+        w++;
+      }
+    }
+    return w;
+  } else {
+    return 0;
+  }
+}
+
+function handleCursorMove(direction: string) {
+  const term = termOption.term;
+  if (!term) {
+    return;
+  }
+  // 获取当前光标位置和行内容
+  const cursorX = term.buffer.active.cursorX;
+  const cursorY = term.buffer.active.cursorY;
+  const line = term.buffer.active.getLine(cursorY)?.translateToString() || '';
+
+  // 计算新位置
+  let newPos = direction === 'ArrowLeft' ? getPrevCursorPos(line, cursorX) : getNextCursorPos(line, cursorX);
+
+  term.write(`\x1B[${cursorY + 1};${newPos + 1}H`);
 }
 
 function runTerminal() {
@@ -331,7 +408,17 @@ function runTerminal() {
   term.writeln(banner());
   term.writeln('  Jarboot console, docs: [36mhttps://www.yuque.com/jarboot/usage/quick-start[0m');
   term.writeln('  Diagnose command, try running `help`.');
+  let isComposing = false;
+
+  term.textarea?.addEventListener('compositionstart', () => {
+    isComposing = true;
+  });
+
+  term.textarea?.addEventListener('compositionend', () => {
+    isComposing = false;
+  });
   term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+    if (isComposing) return false;
     if (event.type === 'keydown') {
       if ('Escape' === event.code && state.searchView) {
         closeSearch();
@@ -399,13 +486,24 @@ function runTerminal() {
       if ('ArrowLeft' === event.code) {
         if (term._core.buffer.x > 2) {
           term.write('\x1b[D');
+          termOption.curseIndex--;
+          console.info('isWideChar ', isWideChar(command[termOption.curseIndex]), command[termOption.curseIndex]);
+          if (isWideChar(command[termOption.curseIndex])) {
+            term.write('\x1b[D');
+          }
         }
+        console.info('curse index', term._core.buffer.x - 3, termOption.curseIndex);
         return false;
       }
       if ('ArrowRight' === event.code) {
-        if (term._core.buffer.x < 2 + command.length) {
+        if (term._core.buffer.x < 2 + calcCmdWidth()) {
           term.write('\x1b[C');
+          if (isWideChar(command[termOption.curseIndex])) {
+            term.write('\x1b[C');
+          }
+          termOption.curseIndex++;
         }
+        console.info('curse index', term._core.buffer.x - 3, termOption.curseIndex);
         return false;
       }
     }
@@ -423,6 +521,7 @@ function runTerminal() {
         }
         runCommand(term, command);
         command = '';
+        termOption.curseIndex = 0;
         break;
       case '\u007F': // Backspace (DEL)
       case '[A': // 上
@@ -445,14 +544,17 @@ function setCurrent(str: string) {
   if (str) {
     term?.write(str);
     command = str;
+    termOption.curseIndex = str.length;
   } else {
     command = '';
+    termOption.curseIndex = 0;
   }
 }
 
 function prompt() {
   command = '';
   termOption.term?.write('\r\n$ ');
+  termOption.curseIndex = 0;
 }
 
 let command = '';
@@ -470,10 +572,14 @@ function runCommand(term: Terminal, text: string) {
 function onConsole(line: string | undefined) {
   if (line) {
     nextTick(() => termOption.term?.writeln(line));
+    command = '';
+    termOption.curseIndex = 0;
   }
 }
 function onStdPrint(str: string) {
   nextTick(() => termOption.term?.write(str));
+  command = '';
+  termOption.curseIndex = 0;
 }
 
 function banner() {
@@ -592,6 +698,7 @@ onUnmounted(() => {
 .search-view-btn {
   position: absolute;
   top: 26px;
+  background: #263238;
   z-index: 999;
 }
 .search-btn {

@@ -191,6 +191,7 @@ export default {
   ROLE_MGR: '角色管理',
   PRIVILEGE_MGR: '權限管理',
   ROLE: '角色',
+  OPEN_API: 'OpenAPI',
   BIND_ROLE: '綁定角色',
   DELETE_USER: `是否要删除该用戶({user})？`,
   DELETE_ROLE: `是否要删除该角色？`,
@@ -282,4 +283,11 @@ export default {
   JVM_START_TIME: '啓動時間',
   JVM_UP_TIME: '運行時長',
   JVM_PATH: '安裝路徑',
+
+  // Open API
+  COPY: '複製',
+  AUTH_TIME: '授權到期時間',
+  AUTH_EXPIRED: '{time} 已過期',
+  TIME_REMAIN: '{time} 剩餘： {remain}',
+  NO_EXPIRE: '無限期',
 };

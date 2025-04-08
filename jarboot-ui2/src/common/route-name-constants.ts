@@ -32,5 +32,7 @@ export const PAGE_ROLE = 'role';
 
 export const PAGE_PRIVILEGE = 'privilege';
 
+export const PAGE_OPEN_API = 'open-api';
+
 /** 信任主机 */
 export const PAGE_TRUST_HOSTS = 'trust-hosts';

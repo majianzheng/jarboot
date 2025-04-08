@@ -109,8 +109,8 @@ const logoUrl = LOGO_URL;
 
 const userStore = useUserStore();
 const rules = reactive({
-  password: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
-  username: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
+  username: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
+  password: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
 });
 const loading = ref(false);
 let bgAni = null as any;
@@ -131,14 +131,23 @@ const openDoc = () => window.open(DOCS_URL);
 function drawImage(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): Promise<boolean> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    let flag = true;
     img.onload = () => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(true);
+      flag = false;
     };
     img.onerror = () => {
       console.log('error load image!');
       resolve(false);
+      flag = false;
     };
+    setTimeout(() => {
+      if (flag) {
+        console.info('load image timeout');
+        reject('load image timeout');
+      }
+    }, 15000);
     img.src = BG_URL;
   });
 }
