@@ -300,7 +300,11 @@ public class SettingUtils {
             }
         }
         if (StringUtils.isNotEmpty(setting.getJdkPath())) {
-            File javaCmd = FileUtils.getFile(setting.getJdkPath(), CommonConst.BIN_NAME, CommonConst.JAVA_CMD);
+            String cmd = CommonConst.JAVA_CMD;
+            if (OSUtils.isWindows()) {
+                cmd = cmd + CommonConst.EXE_EXT;
+            }
+            File javaCmd = FileUtils.getFile(setting.getJdkPath(), CommonConst.BIN_NAME, cmd);
             if (!javaCmd.exists()) {
                 throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", javaCmd.getAbsolutePath()));
             }

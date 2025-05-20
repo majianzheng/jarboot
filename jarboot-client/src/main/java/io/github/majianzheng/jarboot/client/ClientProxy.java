@@ -439,7 +439,7 @@ public class ClientProxy implements AbstractEventRegistry {
             formData.put(ClientConst.PASSWORD_PARAM, password);
 
             long current = System.currentTimeMillis();
-            final String api = baseUrl + CommonConst.AUTH_CONTEXT + "/openApiToken";
+            final String api = baseUrl + CommonConst.AUTH_CONTEXT + "/login";
             JsonNode jsonNode = HttpUtils.post(api, formData, null);
             if (null == jsonNode) {
                 throw new JarbootRunException("Request token failed!" + user);
@@ -452,7 +452,7 @@ public class ClientProxy implements AbstractEventRegistry {
                         msg, user, password);
                 throw new JarbootRunException(resultMsg);
             }
-            String token = jsonNode.get(ClientConst.RESULT_KEY).asText();
+            String token = jsonNode.get(ClientConst.RESULT_KEY).get("accessToken").asText();
             if (StringUtils.isEmpty(token)) {
                 throw new JarbootRunException("Request token is empty!");
             }

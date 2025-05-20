@@ -7,6 +7,7 @@
       <el-table-column :label="$t('USER_NAME')" prop="username"></el-table-column>
       <el-table-column :label="$t('AUTH_TIME')" prop="expireTime" :formatter="formatExpire"> </el-table-column>
       <el-table-column :label="'TOKEN'" prop="token" show-overflow-tooltip></el-table-column>
+      <el-table-column :label="$t('CREATE_TIME')" prop="createTime" width="180px" :formatter="StringUtil.formatRowTime"></el-table-column>
       <el-table-column :label="$t('OPERATOR')" width="120px">
         <template #default="{ row }">
           <el-tooltip placement="top" :content="$t('COPY')">

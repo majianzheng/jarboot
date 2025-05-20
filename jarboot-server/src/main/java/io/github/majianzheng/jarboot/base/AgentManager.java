@@ -214,8 +214,11 @@ public class AgentManager {
         }
         String pid = TaskUtils.getPid(sid);
         if (StringUtils.isEmpty(pid)) {
-            logger.info("进程({})已经退出", sid);
-            return true;
+            if (client.getState().equals(ClientState.OFFLINE)) {
+                logger.info("进程({})已经退出", sid);
+                return true;
+            }
+            pid = client.getPid();
         }
         int maxExitTime = SettingUtils.getSystemSetting().getMaxExitTime();
         synchronized (client) {

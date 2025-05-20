@@ -113,6 +113,7 @@ export default {
   RE_UPLOAD_IMG: 'Re-upload image',
   SIZE: 'Size',
   MODIFY_TIME: 'Modify time',
+  CREATE_TIME: 'Create time',
   COUNT: 'Count',
   TIP_UPLOAD_IMG: 'Please upload image!',
   CONNECT: 'Connect',

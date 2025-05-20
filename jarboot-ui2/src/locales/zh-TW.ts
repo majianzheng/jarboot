@@ -113,6 +113,7 @@ export default {
   RE_UPLOAD_IMG: '重新上传',
   SIZE: '大小',
   MODIFY_TIME: '修改时间',
+  CREATE_TIME: '创建时间',
   COUNT: '数量',
   TIP_UPLOAD_IMG: '请上传图片',
   CONNECT: '连接',
