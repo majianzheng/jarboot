@@ -8,7 +8,10 @@ chcp 65001
 set JARBOOT_HOME=%~dp0
 set JARBOOT_HOME=%JARBOOT_HOME:~0,-13%
 
-cd "%JARBOOT_HOME%"
+pushd "%JARBOOT_HOME%"
+if not exist ".cache" (
+  mkdir ".cache"
+)
 
 set "TOOL_JAR=components/jarboot-tools.jar io.github.majianzheng.jarboot.tools.shell.CheckStatus"
 set "DAEMON_VM=-Xms50m -Xmx100m -XX:+UseG1GC -XX:MaxGCPauseMillis=5000 -Dfile.encoding=UTF-8 -Djava.io.tmpdir=.cache"
@@ -17,3 +20,4 @@ set "DAEMON_CMD="%JAVA%" %DAEMON_VM% -cp %TOOL_JAR% jarboot.status %*"
 %DAEMON_CMD%
 echo Done.
 pause
+popd

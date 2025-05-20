@@ -10,3 +10,4 @@ dependency-reduced-pom.xml
 .flattened-pom.xml
 *.lock
 lib
+__unconfig_vite.config.ts

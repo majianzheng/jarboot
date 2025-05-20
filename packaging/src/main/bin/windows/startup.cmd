@@ -8,9 +8,13 @@ chcp 65001
 set JARBOOT_HOME=%~dp0
 set JARBOOT_HOME=%JARBOOT_HOME:~0,-13%
 
-cd "%JARBOOT_HOME%"
+pushd "%JARBOOT_HOME%"
 
 set "SERVER=components\jarboot-server.jar"
+
+if not exist ".cache" (
+  mkdir ".cache"
+)
 
 rem JVM Configuration
 set "JARBOOT_JVM_OPTS=-Xms512m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=5000 -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=logs\java_heapdump.hprof"
