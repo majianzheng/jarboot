@@ -127,10 +127,12 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         if (null == temp) {
             return;
         }
-        try {
-            temp.getBasicRemote().sendBinary(ByteBuffer.wrap(data));
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        synchronized (temp) {
+            try {
+                temp.getBasicRemote().sendBinary(ByteBuffer.wrap(data));
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         }
     }
 
