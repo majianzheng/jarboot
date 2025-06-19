@@ -2,6 +2,7 @@ import type { UploadFileInfo } from '@/types';
 import CommonNotice from '@/common/CommonNotice';
 import { defer } from 'lodash';
 import Logger from '@/common/Logger';
+import { Base64 } from '@/common/Base64';
 
 const UPLOAD_CHUNK_SIZE = 4000;
 
@@ -80,22 +81,18 @@ export default class FileUploadClient {
    */
   public async upload() {
     // 开始上传
+    const params = {
+      filename: this.filename,
+      totalSize: this.totalSize,
+      dstPath: this.dstPath,
+      uploadMode: this.uploadMode,
+      baseDir: this.baseDir,
+      clusterHost: this.clusterHost,
+      sendCountOnce: this.sendCountOnce,
+      relativePath: this.relativePath,
+    } as any;
     if (null == this.websocket) {
-      let query = `filename=${encodeURIComponent(this.filename)}&sendCountOnce=${this.sendCountOnce}`;
-      query += `&totalSize=${this.totalSize}&dstPath=${encodeURIComponent(this.dstPath)}`;
-      if (this.relativePath) {
-        query += `&relativePath=${encodeURIComponent(this.relativePath)}`;
-      }
-      if (this.clusterHost) {
-        query += `&clusterHost=${this.clusterHost}`;
-      }
-      if (this.uploadMode) {
-        query += `&uploadMode=${this.uploadMode}`;
-      }
-      if (this.baseDir) {
-        query += `&baseDir=${encodeURIComponent(this.baseDir)}`;
-      }
-
+      const query = 'params=' + Base64.base64UrlEncode(JSON.stringify(params));
       const protocol = 'https:' === window.location.protocol ? 'wss' : 'ws';
       const url = `${protocol}://${this.getDefaultHost()}/jarboot/upload/ws?${query}`;
 

@@ -36,7 +36,7 @@ public class SessionProxy {
                     clientUri.getFragment());
             targetSession = client.getContainer().connectToServer(this, uri);
         } catch (Exception e) {
-            throw new JarbootException(e);
+            throw new JarbootException(String.format("连接[%s]失败，msg: %s", e.getMessage(), targetClusterHost), e);
         }
     }
 

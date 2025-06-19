@@ -1,3 +1,9 @@
+## 3.3.0（7，2025）
+修复已知的bug，文件上传websocket服务（/jarboot/upload/ws）传入参数格式修改（json字符串base64 url编码）
+### bug修复
+- 打印日志太多时异常掉线问题，The remote endpoint was in state [BINARY_FULL_WRITING] which is an invalid state for called method
+- 集群模式下文件上传到另一节点时，服务名为中文时上传文件失败问题
+
 ## 3.2.0（5，2025）
 鉴于部分功能的需要，运行环境升级，需JDK17或更高版本的JDK
 ### 新特性

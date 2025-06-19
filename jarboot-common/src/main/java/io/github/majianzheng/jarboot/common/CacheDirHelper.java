@@ -164,6 +164,15 @@ public class CacheDirHelper {
             return;
         }
         cleanTempFile(allFiles);
+        File bashTemp = FileUtils.getFile(cacheDir, "bash_temp");
+        if (bashTemp.exists()) {
+            File[] files = bashTemp.listFiles();
+            if (null != files) {
+                for (File file : files) {
+                    FileUtils.deleteQuietly(file);
+                }
+            }
+        }
     }
 
     private static void cleanTempFile(File[] allFiles) {

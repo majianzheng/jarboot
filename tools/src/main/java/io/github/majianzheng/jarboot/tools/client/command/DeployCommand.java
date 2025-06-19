@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.github.majianzheng.jarboot.api.cmd.annotation.*;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
+import io.github.majianzheng.jarboot.common.pojo.UploadFileParam;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.tools.client.InnerConsole;
@@ -20,6 +21,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -166,18 +168,20 @@ public class DeployCommand extends AbstractClientCommand {
         }
         try {
             connLock.lock();
-            String dstPath = String.format("%s/%s/%s", userDir, serviceName, relPath);
-            String encoded = URLEncoder.encode(dstPath, StandardCharsets.UTF_8.name());
-            String filename = URLEncoder.encode(uploadFile.getName(), StandardCharsets.UTF_8.name());
-            String url = loginHost + "/jarboot/upload/ws?uploadMode=workspace&dstPath=" + encoded;
-            url += "&filename=" + filename;
-            url += "&totalSize=" + uploadFile.length();
-            url += "&sendCountOnce=" + SEND_COUNT_ONCE;
+            UploadFileParam param = new UploadFileParam();
+            param.setClusterHost(host);
+            param.setFilename(uploadFile.getName());
+            param.setDstPath(String.format("%s/%s/%s", userDir, serviceName, relPath));
+            param.setRelativePath(relPath);
+            param.setUploadMode("workspace");
+            param.setTotalSize(uploadFile.length());
+            param.setSendCountOnce(SEND_COUNT_ONCE);
+            param.setClusterHost(host);
+
+            String paramStr = Base64.getUrlEncoder().encodeToString(JsonUtils.toJsonBytes(param));
+            String url = loginHost + "/jarboot/upload/ws?params=" + paramStr;
             url += "&accessToken=" + proxy.getToken();
             if (clusterMode) {
-                if (StringUtils.isNotEmpty(host)) {
-                    url += "&clusterHost=" + URLEncoder.encode(host, StandardCharsets.UTF_8.name());
-                }
                 url += "&Access-Cluster-Host=" + URLEncoder.encode(runtimeInfo.getHost(), StandardCharsets.UTF_8.name());
             }
             latch = new CountDownLatch(1);

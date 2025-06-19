@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.ws;
 
+import io.github.majianzheng.jarboot.common.pojo.UploadFileParam;
 import io.github.majianzheng.jarboot.common.utils.AesUtils;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
@@ -20,6 +21,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +44,7 @@ public class UploadFileServer {
     private static final Map<String, SessionProxy> SESSION_PROXY_MAP = new ConcurrentHashMap<>(16);
     private static FileUploadProgressDao fileUploadProgressDao;
     private static ServerRuntimeService serverRuntimeService;
-    private FileUploadProgress fileUploadProgress;
+    private FileUploadProgress fileUploadProgress = new FileUploadProgress();
     private FileOutputStream outputStream;
     private final AtomicBoolean scheduling = new AtomicBoolean(false);
     private boolean pause = false;
@@ -52,6 +54,7 @@ public class UploadFileServer {
     private long lastUpdateTime = 0;
     private long sendCountOnce;
     private boolean intervalUpdate = false;
+    private String clusterHost;
 
     @Autowired
     public void setFileUploadProgressDao(FileUploadProgressDao dao) {
@@ -61,27 +64,40 @@ public class UploadFileServer {
     public void setServerRuntimeService(ServerRuntimeService s) {
         serverRuntimeService = s;
     }
+
+    private UploadFileParam getParams(Session session) {
+        String paramStr = CommonUtils.getSessionParam("params", session);
+        byte[] buf = Base64.getUrlDecoder().decode(paramStr);
+        UploadFileParam param = JsonUtils.readValue(buf, UploadFileParam.class);
+        if (null == param) {
+            logger.error("获取参数失败，原始BASE64：{}", paramStr);
+        }
+        return param;
+    }
+
     @OnOpen
     public void onOpen(Session session) {
-        String clusterHost = CommonUtils.getSessionClusterHost(session);
+        UploadFileParam param = getParams(session);
+        if (null == param) {
+            return;
+        }
+        clusterHost = param.getClusterHost();
         if (CommonUtils.needProxy(clusterHost)) {
             SESSION_PROXY_MAP.put(clusterHost, new SessionProxy(session, clusterHost));
             return;
         }
         if (StringUtils.isEmpty(clusterHost)) {
-            clusterHost = "localhost";
+            clusterHost = SettingUtils.getLocalhost();
         }
-        String filename = CommonUtils.getSessionParam("filename", session);
-        String relativePath = CommonUtils.getSessionParam("relativePath", session);
-        long totalSize = Long.parseLong(CommonUtils.getSessionParam("totalSize", session));
-        String baseDir = CommonUtils.getSessionParam("baseDir", session);
-        String dstPath = CommonUtils.getSessionParam("dstPath", session);
-        String sendCountOnceStr = CommonUtils.getSessionParam("sendCountOnce", session);
-        this.sendCountOnce = Long.parseLong(sendCountOnceStr);
+        String filename = param.getFilename();
+        String relativePath = param.getRelativePath();
+        long totalSize = param.getTotalSize();
+        String baseDir = param.getBaseDir();
+        String dstPath = param.getDstPath();
+        this.sendCountOnce = param.getSendCountOnce();
         this.intervalUpdate = totalSize < INTERVAL_UPDATE_THRESHOLD;
         // home、service、 workspace
-        String uploadMode = CommonUtils.getSessionParam("uploadMode", session);
-        switch (uploadMode) {
+        switch (param.getUploadMode()) {
             case "service":
                 baseDir = SettingUtils.getHomePath();
                 this.importService = true;
@@ -133,8 +149,8 @@ public class UploadFileServer {
             fileUploadProgressDao.save(fileUploadProgress);
         }
         try {
+            logger.info("开始上传文件：{}, 目录：{}，append：{}, total: {}，uploadSize：{}", filename, dstPath, append, totalSize, fileUploadProgress.getUploadSize());
             outputStream = FileUtils.openOutputStream(dstFile, append);
-            logger.info("开始上传文件：{}，append：{}, total: {}，uploadSize：{}", filename, append, totalSize, fileUploadProgress.getUploadSize());
             this.lastUpdateTime = System.currentTimeMillis();
             this.updateProgress(session, EVENT_PROGRESS);
         } catch (Exception e) {
@@ -145,7 +161,6 @@ public class UploadFileServer {
     }
     @OnClose
     public void onClose(Session session) {
-        String clusterHost = CommonUtils.getSessionClusterHost(session);
         if (CommonUtils.needProxy(clusterHost)) {
             SessionProxy sessionProxy = SESSION_PROXY_MAP.remove(clusterHost);
             if (null != sessionProxy) {
@@ -156,11 +171,11 @@ public class UploadFileServer {
         }
         logger.debug("关闭上传文件：{}", session.getId());
         try {
-            if (null != fileUploadProgress && null != fileUploadProgress.getId()) {
+            if (null != fileUploadProgress.getId()) {
                 fileUploadProgressDao.save(fileUploadProgress);
                 fileUploadProgressDao.deleteFinished();
             }
-            if (this.importService && null != fileUploadProgress && Objects.equals(fileUploadProgress.getUploadSize(), fileUploadProgress.getTotalSize())) {
+            if (this.importService && Objects.equals(fileUploadProgress.getUploadSize(), fileUploadProgress.getTotalSize())) {
                 // 导入服务处理
                 serverRuntimeService.recoverService(session.getUserPrincipal().getName(), dstFile);
             }
@@ -177,7 +192,6 @@ public class UploadFileServer {
     @OnError
     public void onError(Throwable error, Session session) {
         logger.debug(error.getMessage(), error);
-        String clusterHost = CommonUtils.getSessionClusterHost(session);
         SessionProxy sessionProxy = SESSION_PROXY_MAP.remove(clusterHost);
         if (null != sessionProxy) {
             logger.warn("代理上传异常，clusterHost: {}", clusterHost, error);
@@ -190,7 +204,6 @@ public class UploadFileServer {
 
     @OnMessage
     public void onBinaryMessage(byte[] message, Session session) {
-        String clusterHost = CommonUtils.getSessionClusterHost(session);
         if (CommonUtils.needProxy(clusterHost)) {
             SESSION_PROXY_MAP.get(clusterHost).proxyBinary(message);
             return;
