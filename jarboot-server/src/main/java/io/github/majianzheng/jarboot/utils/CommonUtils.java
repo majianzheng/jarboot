@@ -72,6 +72,9 @@ public class CommonUtils {
         if (!ClusterClientManager.getInstance().isEnabled() || StringUtils.isEmpty(clusterHost)) {
             return false;
         }
+        if (Objects.equals(SettingUtils.getLocalhost(), clusterHost)) {
+            return false;
+        }
         return !Objects.equals(ClusterClientManager.getInstance().getSelfHost(), clusterHost);
     }
 

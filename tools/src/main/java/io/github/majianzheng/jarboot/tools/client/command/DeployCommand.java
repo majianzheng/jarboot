@@ -169,19 +169,18 @@ public class DeployCommand extends AbstractClientCommand {
         try {
             connLock.lock();
             UploadFileParam param = new UploadFileParam();
-            param.setClusterHost(host);
             param.setFilename(uploadFile.getName());
             param.setDstPath(String.format("%s/%s/%s", userDir, serviceName, relPath));
             param.setRelativePath(relPath);
             param.setUploadMode("workspace");
             param.setTotalSize(uploadFile.length());
             param.setSendCountOnce(SEND_COUNT_ONCE);
-            param.setClusterHost(host);
 
             String paramStr = Base64.getUrlEncoder().encodeToString(JsonUtils.toJsonBytes(param));
             String url = loginHost + "/jarboot/upload/ws?params=" + paramStr;
             url += "&accessToken=" + proxy.getToken();
             if (clusterMode) {
+                param.setClusterHost(host);
                 url += "&Access-Cluster-Host=" + URLEncoder.encode(runtimeInfo.getHost(), StandardCharsets.UTF_8.name());
             }
             latch = new CountDownLatch(1);

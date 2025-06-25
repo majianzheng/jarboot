@@ -86,9 +86,6 @@ public class UploadFileServer {
             SESSION_PROXY_MAP.put(clusterHost, new SessionProxy(session, clusterHost));
             return;
         }
-        if (StringUtils.isEmpty(clusterHost)) {
-            clusterHost = SettingUtils.getLocalhost();
-        }
         String filename = param.getFilename();
         String relativePath = param.getRelativePath();
         long totalSize = param.getTotalSize();
@@ -112,11 +109,15 @@ public class UploadFileServer {
                 baseDir = StringUtils.isEmpty(baseDir) ? SettingUtils.getHomePath() : AesUtils.decrypt(baseDir);
         }
         boolean append = true;
+        String tempClusterHost  = clusterHost;
+        if (StringUtils.isEmpty(tempClusterHost)) {
+            tempClusterHost = SettingUtils.getLocalhost();
+        }
         dstFile = FileUtils.getFile(baseDir, dstPath);
-        fileUploadProgress = fileUploadProgressDao.getByClusterHostAndAbsolutePath(clusterHost, dstFile.getAbsolutePath());
+        fileUploadProgress = fileUploadProgressDao.getByClusterHostAndAbsolutePath(tempClusterHost, dstFile.getAbsolutePath());
         if (null == fileUploadProgress) {
             FileUploadProgress temp = new FileUploadProgress();
-            temp.setClusterHost(clusterHost);
+            temp.setClusterHost(tempClusterHost);
             temp.setDstPath(dstPath);
             temp.setAbsolutePath(dstFile.getAbsolutePath());
             temp.setFilename(filename);
@@ -197,7 +198,7 @@ public class UploadFileServer {
             logger.warn("代理上传异常，clusterHost: {}", clusterHost, error);
             sessionProxy.proxyOnClose();
         } else {
-            logger.warn("上传异常，sessionId: {}", session.getId(), error);
+            logger.warn("上传异常，cluster host: {}，sessionId: {}", clusterHost, session.getId(), error);
         }
         this.onClose(session);
     }
