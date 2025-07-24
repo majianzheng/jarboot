@@ -11,6 +11,8 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -110,34 +112,9 @@ public class CommonUtils {
     }
 
     public static String getMachineCode() {
-        String dockerHostName = System.getenv("HOSTNAME");
-        if (Boolean.getBoolean(CommonConst.DOCKER) && StringUtils.isNotEmpty(dockerHostName)) {
-            // 当前处于docker环境，使用docker的容器ID作为机器码
-            return dockerHostName;
-        }
-        List<String> addrList = NetworkUtils.getMacAddrList();
-        if (addrList.isEmpty()) {
-            return StringUtils.EMPTY;
-        }
-        File uuidFile = FileUtils.getFile(SettingUtils.getHomePath(), "data", ".uuid");
-        if (uuidFile.exists()) {
-            try {
-                String content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
-                int index = content.indexOf('-');
-                if (index > 0) {
-                    String code = content.substring(0, index);
-                    for (String addr : addrList) {
-                        String hash = String.format("%08x", addr.hashCode());
-                        if (code.contains(hash)) {
-                            return code;
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-        return genMachineCodeByMacAddr(addrList);
+        SystemInfo systemInfo = new SystemInfo();
+        HardwareAbstractionLayer hal = systemInfo.getHardware();
+        return hal.getComputerSystem().getSerialNumber();
     }
 
     public static String getToken(HttpServletRequest request) {
@@ -209,18 +186,6 @@ public class CommonUtils {
 
     public static String getHomeEnv() {
         return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
-    }
-
-    private static String genMachineCodeByMacAddr(List<String> addrList) {
-        addrList.sort(String::compareTo);
-        String code1 = addrList.get(0);
-        String code2 = addrList.get(addrList.size() - 1);
-        final int two = 2;
-        if (addrList.size() > two) {
-            String code3 = addrList.get(addrList.size() / two);
-            return String.format("%08x%08x%08x", code1.hashCode(), code2.hashCode(), code3.hashCode());
-        }
-        return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
     }
 
     private CommonUtils() {}

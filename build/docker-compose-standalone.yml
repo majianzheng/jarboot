@@ -1,0 +1,19 @@
+services:
+  jarboot01:
+    image: jarboot:latest
+    container_name: jarboot01
+    volumes:
+      - ./data/jarboot1:/jarboot/data
+      - ./logs/jarboot1:/jarboot/logs
+      - ./workspace1:/jarboot/workspace
+    ports:
+      - "9899:9899"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://localhost:9899 | grep -q 'HTTP/1.1'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
