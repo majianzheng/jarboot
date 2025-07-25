@@ -68,6 +68,22 @@ sh build/docker-push.sh
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
+#### 使用`docker compose`配置：
+```shell
+# 构建jarboot包
+mvn clean install -P prod
+# 构建docker镜像
+sh build/docker-push.sh
+
+pushd build
+# 启动 docker compose
+docker-compose -f docker-compose.yml up -d
+popd 
+```
+- 集群模式：[docker-compose.yml](build/docker-compose.yml)
+- 单机模式：[docker-compose-standalone.yml](build/docker-compose-standalone.yml)
+
+
 ### 编译源码的步骤
 使用压缩包安装或者<code>Docker</code>的时候忽略此步骤
 

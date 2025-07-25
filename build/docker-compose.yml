@@ -2,13 +2,16 @@ services:
   jarboot01:
     image: jarboot:latest
     container_name: jarboot01
+    environment:
+      - JARBOOT_DEFAULT_PWD=${JARBOOT_PASSWORD}
+      - JARBOOT_USER=jarboot
     volumes:
       - ./config/jarboot:/jarboot/conf
       - ./data/jarboot1:/jarboot/data
       - ./logs/jarboot1:/jarboot/logs
       - ./workspace1:/jarboot/workspace
     ports:
-      - "9899:9899"
+      - "${JARBOOT_PORT}:9899"
     healthcheck:
       test:
         [

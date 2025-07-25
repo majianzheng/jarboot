@@ -1,5 +1,7 @@
-## 3.3.0（7，2025）
-修复已知的bug，文件上传websocket服务（/jarboot/upload/ws）传入参数格式修改（json字符串base64 url编码）
+## 3.3.0（8，2025）
+修复已知的bug，修复已知的bug，推出docker compose部署策略，文件上传websocket服务（/jarboot/upload/ws）传入参数格式修改（json字符串base64 url编码）
+### 新特性
+- 支持通过环境变量初始化账号和密码
 ### bug修复
 - 打印日志太多时异常掉线问题，The remote endpoint was in state [BINARY_FULL_WRITING] which is an invalid state for called method
 - 集群模式下文件上传到另一节点时，服务名为中文时上传文件失败问题

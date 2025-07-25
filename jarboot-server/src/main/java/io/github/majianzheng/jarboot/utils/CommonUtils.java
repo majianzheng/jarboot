@@ -7,10 +7,12 @@ import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.jsonwebtoken.lang.Collections;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.CollectionUtils;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
 
@@ -20,10 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.websocket.Session;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
  * 工具类
  * @author mazheng
  */
+@Slf4j
 public class CommonUtils {
     /**
      * 获取用户真实IP地址，不使用request.getRemoteAddr();的原因是有可能用户使用了代理软件方式避免真实IP地址,
@@ -114,7 +114,69 @@ public class CommonUtils {
     public static String getMachineCode() {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hal = systemInfo.getHardware();
-        return hal.getComputerSystem().getSerialNumber();
+        final String unknown = "unknown";
+        String code = hal.getComputerSystem().getSerialNumber();
+        if (unknown.equals(code)) {
+            code = getFromUuidFile();
+        }
+        return code;
+    }
+
+    private static String getFromUuidFile() {
+        List<String> addrList = NetworkUtils.getMacAddrList();
+        boolean useRandomUuid = useRandomUuid(addrList);
+        File uuidFile = FileUtils.getFile(SettingUtils.getHomePath(), "data", ".uuid");
+        String code = StringUtils.EMPTY;
+        String content = StringUtils.EMPTY;
+        if (uuidFile.exists()) {
+            try {
+                content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        int index = content.indexOf('-');
+        if (index > 0) {
+            code = content.substring(0, index);
+            if (useRandomUuid) {
+                return code;
+            }
+            for (String addr : addrList) {
+                String hash = String.format("%08x", addr.hashCode());
+                if (code.contains(hash)) {
+                    break;
+                }
+            }
+        }
+
+        if (StringUtils.isEmpty(code)) {
+            if (useRandomUuid) {
+                code = String.format("%08x", UUID.randomUUID().hashCode());
+            } else {
+                code = genMachineCodeByMacAddr(addrList);
+            }
+        }
+        return code;
+    }
+
+    private static boolean useRandomUuid(List<String> addrList) {
+        boolean isDocker = (Boolean.getBoolean(CommonConst.DOCKER) && StringUtils.isNotEmpty(System.getenv("HOSTNAME")));
+        if (isDocker) {
+            return true;
+        }
+        return CollectionUtils.isEmpty(addrList);
+    }
+
+    private static String genMachineCodeByMacAddr(List<String> addrList) {
+        addrList.sort(String::compareTo);
+        String code1 = addrList.get(0);
+        String code2 = addrList.get(addrList.size() - 1);
+        final int two = 2;
+        if (addrList.size() > two) {
+            String code3 = addrList.get(addrList.size() / two);
+            return String.format("%08x%08x%08x", code1.hashCode(), code2.hashCode(), code3.hashCode());
+        }
+        return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
     }
 
     public static String getToken(HttpServletRequest request) {

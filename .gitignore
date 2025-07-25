@@ -11,3 +11,7 @@ dependency-reduced-pom.xml
 *.lock
 lib
 __unconfig_vite.config.ts
+.uuid
+build/data/jarboot1/derby_data
+build/data/jarboot2/derby_data
+logs

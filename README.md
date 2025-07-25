@@ -68,6 +68,20 @@ sh build/docker-push.sh
 # Start container
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
+#### 使用`docker compose`配置：
+```shell
+# build package
+mvn clean install -P prod
+# build docker image
+sh build/docker-push.sh
+
+pushd build
+# start docker compose
+docker-compose -f docker-compose.yml up -d
+popd 
+```
+- cluster mode：[docker-compose.yml](build/docker-compose.yml)
+- standalone mode：[docker-compose-standalone.yml](build/docker-compose-standalone.yml)
 
 ### Code build method
 Ignore this when using zip package or <code>docker</code>.

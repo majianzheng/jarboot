@@ -301,16 +301,25 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Throwable.class)
     @PostConstruct
     public void init() {
+        String username = System.getenv("JARBOOT_USER");
+        if (StringUtils.isEmpty(username)) {
+            username = AuthConst.JARBOOT_USER;
+        }
         //检查是否存在jarboot用户，否则创建
-        User user = userDao.findFirstByUsername(AuthConst.JARBOOT_USER);
+        User user = userDao.findFirstByUsername(username);
         if (null != user) {
             return;
         }
         user = new User();
-        user.setUsername(AuthConst.JARBOOT_USER);
+
+        user.setUsername(username);
         user.setRoles(AuthConst.SYS_ROLE + "," + AuthConst.ADMIN_ROLE);
         user.setUserDir("default");
-        user.setPassword(PasswordEncoderUtil.encode(AuthConst.JARBOOT_USER));
+        String defaultPwd = System.getenv("JARBOOT_DEFAULT_PWD");
+        if (StringUtils.isEmpty(defaultPwd)) {
+            defaultPwd = AuthConst.JARBOOT_USER;
+        }
+        user.setPassword(PasswordEncoderUtil.encode(defaultPwd));
         userDao.save(user);
     }
 }
