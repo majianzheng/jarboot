@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 /**
  * 以下代码，有一小部分摘自开源项目Arthas
@@ -29,12 +30,23 @@ public class NetworkUtils {
     private static final int CONNECT_TIMEOUT = 10000;
     private static final int READ_TIMEOUT = 3000;
     private static final String ERROR_MSG = "errorMsg";
+    private static final String IPV4_PATTERN =
+            "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+    private static final Pattern ipv4Pattern = Pattern.compile(IPV4_PATTERN);
 
     private static final Random RANDOM = new Random(System.currentTimeMillis());
 
     private NetworkUtils() {
     }
 
+    public static boolean isIPv4(String address) {
+        if (address == null || address.isEmpty()) {
+            return false;
+        }
+
+        // 检查IPv4地址
+        return ipv4Pattern.matcher(address).matches();
+    }
     /**
      * 检查host是否能ping通
      * @param host host地址

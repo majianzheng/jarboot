@@ -125,6 +125,8 @@ public class DeployCommand extends AbstractClientCommand {
                 ServiceCommand serviceCommand = createServiceCommand("start");
                 serviceCommand.run();
             }
+        } catch (Exception e) {
+            AnsiLog.error(e.getMessage(), e);
         } finally {
             container.destroy();
         }
@@ -135,6 +137,8 @@ public class DeployCommand extends AbstractClientCommand {
         cmd.proxy = proxy;
         cmd.client = client;
         cmd.runtimeInfo = runtimeInfo;
+        cmd.clusterMode = clusterMode;
+        cmd.name = "service";
         cmd.setAction(action);
         if (clusterMode && StringUtils.isNotEmpty(host)) {
             cmd.setServiceNames(String.format("%s@%s", serviceName, host));
@@ -175,12 +179,13 @@ public class DeployCommand extends AbstractClientCommand {
             param.setUploadMode("workspace");
             param.setTotalSize(uploadFile.length());
             param.setSendCountOnce(SEND_COUNT_ONCE);
-
+            if (clusterMode) {
+                param.setClusterHost(host);
+            }
             String paramStr = Base64.getUrlEncoder().encodeToString(JsonUtils.toJsonBytes(param));
             String url = loginHost + "/jarboot/upload/ws?params=" + paramStr;
             url += "&accessToken=" + proxy.getToken();
             if (clusterMode) {
-                param.setClusterHost(host);
                 url += "&Access-Cluster-Host=" + URLEncoder.encode(runtimeInfo.getHost(), StandardCharsets.UTF_8.name());
             }
             latch = new CountDownLatch(1);

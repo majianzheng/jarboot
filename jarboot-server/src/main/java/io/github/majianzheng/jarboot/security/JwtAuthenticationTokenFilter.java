@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.security;
 
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
@@ -46,9 +47,13 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             }
             chain.doFilter(request, response);
         } else {
-            if (ClusterClientManager.getInstance().authClusterToken(request)) {
+            if (request.getRequestURI().startsWith(CommonConst.CLUSTER_CONTEXT) && ClusterClientManager.getInstance().authClusterToken(request)) {
                 chain.doFilter(request, response);
                 return;
+            }
+            if (!"/".equals(request.getRequestURI())) {
+                logger.info(String.format("当前未登录，方法：%s，url: %s，query: %s，remoteIp：%s",
+                        request.getMethod(), request.getRequestURL(), request.getQueryString(), request.getRemoteAddr()));
             }
             handleError(response, "未登录");
         }

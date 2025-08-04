@@ -6,6 +6,7 @@ import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.ConcurrentWeakKeyHashMap;
 import io.github.majianzheng.jarboot.common.JarbootThreadFactory;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
+import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.event.FuncReceivedEvent;
@@ -27,6 +28,7 @@ import org.springframework.security.core.userdetails.User;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
@@ -178,11 +180,13 @@ public class ClusterClientManager {
         }
         if (StringUtils.isEmpty(token)) {
             // 无集群专用token
+            logger.info("无集群专用token，请检查！");
             return false;
         }
         String ip = CommonUtils.getActualIpAddr(request);
         if (!allClusterIps.contains(ip)) {
             // 非集群内部IP，禁止访问
+            logger.info("非集群内部IP，禁止访问！ip: {}", ip);
             return false;
         }
         try {
@@ -308,6 +312,18 @@ public class ClusterClientManager {
         }
         String ip = parseIp(line);
         allClusterIps.add(ip);
+        if (!NetworkUtils.isIPv4(ip)) {
+            try {
+                InetAddress address = InetAddress.getByName(ip);
+                String addr = address.getHostAddress();
+                logger.info("解析域名（{}）的IP地址: {}", ip, addr);
+                if (NetworkUtils.isIPv4(addr) && !Objects.equals(ip, addr)) {
+                    allClusterIps.add(addr);
+                }
+            } catch (Exception e) {
+                logger.error("解析域名（{}）失败，{}", ip, e.getMessage(), e);
+            }
+        }
         ClusterClient client = new ClusterClient(line);
         hosts.put(client.getHost(), client);
     }

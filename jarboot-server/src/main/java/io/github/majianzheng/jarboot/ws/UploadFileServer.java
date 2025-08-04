@@ -172,6 +172,10 @@ public class UploadFileServer {
         }
         logger.debug("关闭上传文件：{}", session.getId());
         try {
+            if (null != outputStream) {
+                outputStream.close();
+            }
+            setExecutable();
             if (null != fileUploadProgress.getId()) {
                 fileUploadProgressDao.save(fileUploadProgress);
                 fileUploadProgressDao.deleteFinished();
@@ -180,10 +184,6 @@ public class UploadFileServer {
                 // 导入服务处理
                 serverRuntimeService.recoverService(session.getUserPrincipal().getName(), dstFile);
             }
-            if (null == outputStream) {
-                return;
-            }
-            outputStream.close();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -210,6 +210,13 @@ public class UploadFileServer {
             return;
         }
         if (null == outputStream || message.length == 0) {
+            try {
+                if (session.isOpen()) {
+                    session.close();
+                }
+            } catch (Exception e) {
+                // ignore
+            }
             logger.info("已经传输完成，message size: {}", message.length);
             return;
         }
@@ -278,6 +285,21 @@ public class UploadFileServer {
             } finally {
                 scheduling.set(false);
             }
+        }
+    }
+    private void setExecutable() {
+        if (null == dstFile || !dstFile.isFile() || !dstFile.exists()) {
+            return;
+        }
+        String name = dstFile.getName();
+
+        if (name.endsWith(".txt") || name.endsWith(".yml") || name.endsWith(".yaml") || name.endsWith(".properties") || name.endsWith(".log") || name.endsWith(".xml") || name.endsWith(".jar") || name.endsWith(".conf")) {
+            return;
+        }
+        try {
+            dstFile.setExecutable(true);
+        } catch (Exception e) {
+            // ignore
         }
     }
 }

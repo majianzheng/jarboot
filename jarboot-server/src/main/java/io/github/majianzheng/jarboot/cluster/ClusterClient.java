@@ -297,13 +297,15 @@ public class ClusterClient {
             throw new JarbootException("cluster is not enabled, self host is empty!");
         }
         String msgUrl = StringUtils.EMPTY;
+        Map<String, String> token = getInnerUserToken();
         try {
             msgUrl = formatHandleMsgUrl();
-            ResponseSimple resp = HttpUtils.postObj(msgUrl, message, ResponseSimple.class, getInnerUserToken());
+            ResponseSimple resp = HttpUtils.postObj(msgUrl, message, ResponseSimple.class, token);
             if (!resp.getSuccess()) {
                 logger.error(resp.getMsg());
             }
         } catch (Exception e) {
+            logger.error("发送消息失败，token: {}", token.get(AuthConst.CLUSTER_TOKEN));
             logger.error("name: {}, body: {}, msgUrl: {}, error:{}", message.getName(), message.getBody(), msgUrl, e.getMessage(), e);
         }
     }

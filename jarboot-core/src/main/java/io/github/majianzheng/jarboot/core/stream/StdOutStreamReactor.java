@@ -42,6 +42,8 @@ public class StdOutStreamReactor {
     private volatile long lastStdTime = 0;
     /** 启动完成判定时间 */
     private final long startDetermineTime;
+    /** 启动完成判定时间 */
+    private final long maxWaitStartedTime;
     /** 是否正在唤醒 */
     private final AtomicBoolean wakeup = new AtomicBoolean(false);
     /** 监控终端输出的定时任务，负责判定是否启动完成 */
@@ -51,6 +53,7 @@ public class StdOutStreamReactor {
     /** std事件订阅 */
     private final Subscriber<StdoutAppendEvent> subscriber;
     private boolean started = false;
+    private final long instanceTime;
 
     /**
      * 标准输出流显示是否开启
@@ -141,6 +144,8 @@ public class StdOutStreamReactor {
      */
     private StdOutStreamReactor() {
         startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
+        maxWaitStartedTime = Long.getLong(CoreConstant.MAX_WAIT_STARTED_TIME_KEY, 30000);
+        instanceTime = System.currentTimeMillis();
         consoleOutputStream = new StdConsoleOutputStream(this::onWakeup);
         //备份默认的输出流
         defaultOut = System.out;
@@ -268,7 +273,8 @@ public class StdOutStreamReactor {
             handleStarted();
             return;
         }
-        if ((System.currentTimeMillis() - lastStdTime) < startDetermineTime) {
+        long curTime = System.currentTimeMillis();
+        if ((curTime - lastStdTime) < startDetermineTime && (curTime - instanceTime) < maxWaitStartedTime) {
             return;
         }
         //超过一定时间没有控制台输出，判定启动成功

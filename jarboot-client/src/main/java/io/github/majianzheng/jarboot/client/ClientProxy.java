@@ -369,6 +369,39 @@ public class ClientProxy implements AbstractEventRegistry {
         /**
          * 创建客户端代理
          * @param host jarboot服务地址
+         * @param token jarboot token
+         * @return 客户端代理 {@link ClientProxy}
+         */
+        public static ClientProxy createClientProxy(final String host, final String token) {
+            final String baseUrl = host.startsWith("http") ? host : (CommonConst.HTTP + host);
+            String temp = StringUtils.EMPTY;
+            try {
+                HashMap<String, String> header = new HashMap<>(4);
+                header.put("Authorization", String.format("Bearer %s", token));
+                JsonNode result = HttpUtils.get(baseUrl + CommonConst.AUTH_CONTEXT + "getCurrentUser", header);
+                temp = result.get("data").get("username").asText();
+            } catch (Exception e) {
+                throw new JarbootRunException("Login jarboot server failed.", e);
+            }
+            final String username = temp;
+            Factory.AUTH_TOKENS.put(createKey(host, username), token);
+
+            ServerRuntimeInfo runtimeInfo = getRuntimeInfo(baseUrl);
+            if (null == runtimeInfo || StringUtils.isEmpty(runtimeInfo.getVersion())) {
+                throw new JarbootRunException("Get jarboot server version failed.");
+            }
+            return CLIENTS.compute(host, (k, v) -> {
+                if (null == v) {
+                    v = new HashMap<>(4);
+                }
+                v.computeIfAbsent(username, k1 -> new ClientProxy(host, username, null, runtimeInfo));
+                return v;
+            }).get(username);
+        }
+
+        /**
+         * 创建客户端代理
+         * @param host jarboot服务地址
          * @return 客户端代理 {@link ClientProxy}
          */
         public static ClientProxy createClientProxy(final String host) {

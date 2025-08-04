@@ -255,6 +255,7 @@ public class ClusterClientProxy {
         s.forEach(setting ->
                 executorService.execute(() -> {
                     try {
+                        logger.info("启动服务：{}", JsonUtils.toJsonString(setting));
                         this.startSingleService(setting);
                     } finally {
                         countDownLatch.countDown();
@@ -276,6 +277,7 @@ public class ClusterClientProxy {
         s.forEach(server ->
                 executorService.execute(() -> {
                     try {
+                        logger.info("停止服务：{}", JsonUtils.toJsonString(server));
                         this.stopSingleService(server);
                     } finally {
                         countDownLatch.countDown();

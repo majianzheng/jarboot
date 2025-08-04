@@ -33,9 +33,11 @@ import java.util.List;
  */
 @SuppressWarnings({"java:S106", "java:S135"})
 public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
+    private static final String TOKEN_ENV = "JARBOOT_TOKEN";
     String host;
     String username;
     String password;
+    String token;
     Terminal terminal;
     LineReader lineReader;
     ClientProxy proxy;
@@ -61,6 +63,12 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
         this.password = password;
     }
 
+    @Option(shortName = "token", longName = "token")
+    @Description("The Jarboot access token")
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     @Argument(argName = "bash", index = 0, required = false)
     @Description("bash script.")
     public void setAction(String bash) {
@@ -81,6 +89,9 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
             if (StringUtils.isEmpty(clientCli.host)) {
                 clientCli.host = "127.0.0.1:9899";
             }
+        }
+        if (StringUtils.isEmpty(clientCli.token)) {
+            clientCli.token = System.getenv(TOKEN_ENV);
         }
         //登录
         clientCli.login();
@@ -114,9 +125,20 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
             }
         }
         //登录认证
-        proxy = ClientProxy
-                .Factory
-                .createClientProxy(host, username, password);
+        if (StringUtils.isNotEmpty(token)) {
+            try {
+                proxy = ClientProxy
+                        .Factory
+                        .createClientProxy(host, token);
+            } catch (Exception e) {
+                AnsiLog.error("Login failed, please check your token.");
+                System.exit(1);
+            }
+        } else {
+            proxy = ClientProxy
+                    .Factory
+                    .createClientProxy(host, username, password);
+        }
         runtimeInfo = proxy.getRuntimeInfo();
         AnsiLog.println("Login success, jarboot server version: {}, cluster:{}",
                 runtimeInfo.getVersion(), StringUtils.isNotEmpty(runtimeInfo.getHost()));
@@ -145,7 +167,11 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
             // 打印出用户输入的内容
             AbstractClientCommand command = ClientCommandBuilder.build(inputLine, this);
             if (null != command) {
-                command.run();
+                try {
+                    command.run();
+                } catch (Exception e) {
+                    AnsiLog.error(e.getMessage(), e);
+                }
             }
         }
         client.deregisterSubscriber(this);
@@ -161,7 +187,11 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
                 }
                 AbstractClientCommand cmd = ClientCommandBuilder.build(command, this);
                 if (null != cmd) {
-                    cmd.run();
+                    try {
+                        cmd.run();
+                    } catch (Exception e) {
+                        AnsiLog.error(e.getMessage(), e);
+                    }
                 }
             }
         });

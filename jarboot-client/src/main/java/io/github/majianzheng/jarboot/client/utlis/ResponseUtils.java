@@ -31,7 +31,7 @@ public class ResponseUtils {
         final int resultCode = jsonNode.get(ClientConst.RESULT_CODE_KEY).asInt(ResultCodeConst.INTERNAL_ERROR);
         if (ResultCodeConst.SUCCESS != resultCode) {
             String msg = String.format("Request %s failed. resultMsg:%s",
-                    api, jsonNode.get("").asText(StringUtils.EMPTY));
+                    api, jsonNode.get("msg").asText(StringUtils.EMPTY));
             throw new JarbootRunException(msg);
         }
     }
