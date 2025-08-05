@@ -11,6 +11,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>text-ui</artifactId>
+    <name>text ui</name>
+
     <dependencies>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>

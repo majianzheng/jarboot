@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>jarboot-tools</artifactId>
+    <name>jarboot tools</name>
 
     <dependencies>
         <dependency>
