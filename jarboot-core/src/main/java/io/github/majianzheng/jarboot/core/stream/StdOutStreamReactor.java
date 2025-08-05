@@ -145,6 +145,7 @@ public class StdOutStreamReactor {
     private StdOutStreamReactor() {
         startDetermineTime = Long.getLong(CoreConstant.START_DETERMINE_TIME_KEY, 8000);
         maxWaitStartedTime = Long.getLong(CoreConstant.MAX_WAIT_STARTED_TIME_KEY, 30000);
+
         instanceTime = System.currentTimeMillis();
         consoleOutputStream = new StdConsoleOutputStream(this::onWakeup);
         //备份默认的输出流

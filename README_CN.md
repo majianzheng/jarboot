@@ -62,7 +62,7 @@ Edge >=88
 ```bash
 # Docker镜像构建
 mvn clean install -P prod
-sh build/docker-push.sh
+sh build/docker_image_build.sh
 
 # 启动容器
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
@@ -73,15 +73,15 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 # 构建jarboot包
 mvn clean install -P prod
 # 构建docker镜像
-sh build/docker-push.sh
+sh build/docker_image_build.sh
 
 pushd build
 # 启动 docker compose
 docker-compose -f docker-compose.yml up -d
 popd 
 ```
-- 集群模式：[docker-compose.yml](build/docker-compose.yml)
-- 单机模式：[docker-compose-standalone.yml](build/docker-compose-standalone.yml)
+- 集群模式：[docker-compose.yml](docker/docker-compose.yml)
+- 单机模式：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
 
 
 ### 编译源码的步骤

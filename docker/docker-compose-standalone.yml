@@ -2,9 +2,10 @@ services:
   jarboot01:
     image: jarboot:latest
     container_name: jarboot01
+    restart: unless-stopped
     environment:
       - JARBOOT_DEFAULT_PWD=${JARBOOT_PASSWORD}
-      - JARBOOT_USER=jarboot
+      - JARBOOT_USER=${JARBOOT_USER}
     volumes:
       - ./data/jarboot1:/jarboot/data
       - ./logs/jarboot1:/jarboot/logs

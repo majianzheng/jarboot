@@ -63,7 +63,7 @@ Use <code>docker</code>
 ```bash
 # Docker image build
 mvn clean install -P prod
-sh build/docker-push.sh
+sh docker/docker_image_build.sh
 
 # Start container
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
@@ -73,15 +73,15 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 # build package
 mvn clean install -P prod
 # build docker image
-sh build/docker-push.sh
+sh docker/docker_image_build.sh
 
-pushd build
+pushd docker
 # start docker compose
 docker-compose -f docker-compose.yml up -d
 popd 
 ```
-- cluster mode：[docker-compose.yml](build/docker-compose.yml)
-- standalone mode：[docker-compose-standalone.yml](build/docker-compose-standalone.yml)
+- cluster mode：[docker-compose.yml](docker/docker-compose.yml)
+- standalone mode：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
 
 ### Code build method
 Ignore this when using zip package or <code>docker</code>.
