@@ -5,12 +5,16 @@ sourceDir=$(cd `dirname $0`/../; pwd)
 
 # 初始化变量
 installDir=""
+autoConfirm=false
 
 # 解析命令行参数
-while getopts "d:" opt; do
+while getopts "d:y" opt; do
   case $opt in
     d)
       installDir=$OPTARG
+      ;;
+    y)
+      autoConfirm=true
       ;;
     \?)
       echo "无效选项: -$OPTARG" >&2
@@ -38,11 +42,15 @@ if [ ! -d "$installDir" ]; then
 fi
 
 # 步骤1: 提示是否继续（将关闭系统）
-echo "警告：升级将关闭系统，是否继续？(Y/N)"
-read -r confirm
-if [ "$confirm" != "Y" ] && [ "$confirm" != "y" ]; then
-  echo "升级已取消"
-  exit 0
+if [ "$autoConfirm" = false ]; then
+  echo "警告：升级将关闭系统，是否继续？(Y/N)"
+  read -r confirm
+  if [ "$confirm" != "Y" ] && [ "$confirm" != "y" ]; then
+    echo "升级已取消"
+    exit 0
+  fi
+else
+  echo "自动确认模式：正在关闭系统..."
 fi
 
 # 调用安装目录下的shutdown.sh脚本关闭软件
@@ -102,11 +110,22 @@ if [ -d "$sourceDir/workspace" ] && [ ! -d "$installDir/workspace" ]; then
 fi
 
 # 步骤4: 提示升级完成，询问是否启动系统
-echo "升级完成！是否立即启动系统？(Y/n)"
-read -r startConfirm
+if [ "$autoConfirm" = false ]; then
+  echo "升级完成！是否立即启动系统？(Y/n)"
+  read -r startConfirm
 
-# 默认选是
-if [ -z "$startConfirm" ] || [ "$startConfirm" = "Y" ] || [ "$startConfirm" = "y" ]; then
+  # 默认选是
+  if [ -z "$startConfirm" ] || [ "$startConfirm" = "Y" ] || [ "$startConfirm" = "y" ]; then
+    startSystem=true
+  else
+    startSystem=false
+  fi
+else
+  echo "自动确认模式：正在启动系统..."
+  startSystem=true
+fi
+
+if [ "$startSystem" = true ]; then
   startupScript="$installDir/bin/startup.sh"
   if [ -f "$startupScript" ]; then
     echo "正在启动系统..."
