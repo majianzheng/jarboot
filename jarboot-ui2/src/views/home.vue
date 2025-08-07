@@ -98,6 +98,10 @@ async function reload() {
 }
 
 async function visibilitychange() {
+  if (basic.upgradeLoading) {
+    console.info('系统升级中，忽略检验');
+    return;
+  }
   if (document.visibilityState === 'visible') {
     // 这里可以执行唤醒后的操作
     try {
@@ -108,7 +112,8 @@ async function visibilitychange() {
         return;
       }
       user.setCurrentUser(curUser);
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       location.reload();
       return;
     }

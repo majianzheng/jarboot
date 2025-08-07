@@ -35,4 +35,9 @@ public enum FrontEndNotifyEventType {
      * 全局Loading提示
      */
     GLOBAL_LOADING,
+
+    /**
+     * 升级进度
+     */
+    UPGRADE_PROGRESS,
 }

@@ -38,7 +38,7 @@ class WsManager {
   private static websocket: WebSocket | null = null;
   /** 重连setInterval的句柄 */
   private static fd: any = null;
-  private static RECONNECT_SUCCESS_HANDLER: (() => void)[] = [];
+  private static RECONNECT_SUCCESS_HANDLER = new Map<string, () => void>();
   private static PING_HANDLER: (() => void)[] = [];
 
   /**
@@ -52,12 +52,12 @@ class WsManager {
     }
   }
 
-  public static addReconnectSuccessHandler(handler: () => void) {
-    WsManager.RECONNECT_SUCCESS_HANDLER.push(handler);
+  public static addReconnectSuccessHandler(key: string, handler: () => void) {
+    WsManager.RECONNECT_SUCCESS_HANDLER.set(key, handler);
   }
 
-  public static clearReconnectSuccessHandler() {
-    WsManager.RECONNECT_SUCCESS_HANDLER = [];
+  public static removeReconnectSuccessHandler(key: string) {
+    WsManager.RECONNECT_SUCCESS_HANDLER.delete(key);
   }
   public static addPingHandler(handler: () => void) {
     WsManager.PING_HANDLER.push(handler);
@@ -202,6 +202,9 @@ class WsManager {
     }
     if (null !== WsManager.fd) {
       //连接成功，取消重连机制
+      //连接成功
+      Logger.log('websocket重连成功！');
+      WsManager.RECONNECT_SUCCESS_HANDLER.forEach(handler => handler());
       clearInterval(WsManager.fd);
       WsManager.fd = null;
     }

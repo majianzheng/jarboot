@@ -291,4 +291,11 @@ export default {
   AUTH_EXPIRED: '{time} 已过期',
   TIME_REMAIN: '{time} 剩余： {remain}',
   NO_EXPIRE: '无限期',
+
+  // 升级
+  UPGRADE: '升级',
+  INSTALL_PACKAGE: '安装包',
+  PACKAGE_FROM_URL: '从外部链接下载',
+  PACKAGE_FROM_LOCAL: '从本地上传',
+  UPGRADE_TIPS: '软件正在升级中，请稍后......',
 };

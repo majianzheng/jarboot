@@ -4,7 +4,7 @@ if not exist "%JAVA_HOME%\bin\javaw.exe" echo Please set the JAVA_HOME variable 
 set "JAVA=%JAVA_HOME%\bin\java.exe"
 
 setlocal enabledelayedexpansion
-chcp 65001
+chcp 65001 >nul
 set JARBOOT_HOME=%~dp0
 set JARBOOT_HOME=%JARBOOT_HOME:~0,-13%
 

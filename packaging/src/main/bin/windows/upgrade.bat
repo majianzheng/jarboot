@@ -45,6 +45,8 @@ if not exist "!installDir!" (
     exit /b 1
 )
 
+echo Install directory: !installDir!
+
 @rem 步骤1: 提示是否继续（将关闭系统）
 if "!autoConfirm!"=="false" (
     echo 警告：升级将关闭系统，是否继续 [Y/N]
@@ -158,4 +160,6 @@ if "!startSystem!"=="true" (
 )
 
 echo 升级执行完毕
-pause
+if "!autoConfirm!"=="false" (
+    pause
+)

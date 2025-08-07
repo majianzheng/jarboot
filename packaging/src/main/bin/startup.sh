@@ -68,6 +68,9 @@ JAVA_OPT="${JAVA_OPT} -jar ${JAR_FILE}"
 if [ ! -d "${JARBOOT_HOME}/logs" ]; then
   mkdir "${JARBOOT_HOME}/logs"
 fi
+if [ ! -d "${JARBOOT_HOME}/.cache" ]; then
+  mkdir -p "${JARBOOT_HOME}/.cache"
+fi
 
 echo "jarboot will start......"
 

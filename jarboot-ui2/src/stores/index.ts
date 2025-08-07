@@ -48,6 +48,7 @@ export const useBasicStore = defineStore({
     menus: [] as MenuItem[],
     subNameMap: new Map(),
     latestWeak: Date.now(),
+    upgradeLoading: false,
     mobileDevice: CommonUtils.isMobileDevice(),
   }),
   actions: {

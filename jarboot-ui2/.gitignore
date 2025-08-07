@@ -28,3 +28,4 @@ coverage
 *.sw?
 package-lock.json
 *.lock
+components.d.ts

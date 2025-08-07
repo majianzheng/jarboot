@@ -311,7 +311,7 @@ onMounted(() => {
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
   pubsub.submit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
-  WsManager.addReconnectSuccessHandler(onReconnect);
+  WsManager.addReconnectSuccessHandler('service', onReconnect);
   WsManager.addPingHandler(onReconnect);
 });
 onUnmounted(() => {
@@ -320,7 +320,7 @@ onUnmounted(() => {
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.STATUS_CHANGE, onStatusChange);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.ONLINE_DEBUG_EVENT, onStatusChange);
   pubsub.unSubmit(PUB_TOPIC.ROOT, PUB_TOPIC.NOT_TRUSTED, onNotTrusted);
-  WsManager.clearReconnectSuccessHandler();
+  WsManager.removeReconnectSuccessHandler('service');
   WsManager.clearPingHandler();
 });
 </script>

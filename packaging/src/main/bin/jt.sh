@@ -43,6 +43,9 @@ export JAVA="$JAVA_HOME/bin/java"
 export JARBOOT_HOME=$(cd `dirname $0`/../; pwd)
 
 cd "${JARBOOT_HOME}"
+if [ ! -d "${JARBOOT_HOME}/.cache" ]; then
+  mkdir -p "${JARBOOT_HOME}/.cache"
+fi
 
 CLASS_PATH="components/jarboot-tools.jar"
 VM_OPT="-Xms50m -Xmx100m -XX:+UseG1GC -XX:MaxGCPauseMillis=5000 -Djava.io.tmpdir=.cache"

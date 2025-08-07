@@ -15,3 +15,4 @@ __unconfig_vite.config.ts
 docker/data/jarboot1/derby_data
 docker/data/jarboot2/derby_data
 logs
+components.d.ts

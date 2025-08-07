@@ -41,6 +41,8 @@ if [ ! -d "$installDir" ]; then
   exit 1
 fi
 
+echo "Install directory $installDir}"
+
 # 步骤1: 提示是否继续（将关闭系统）
 if [ "$autoConfirm" = false ]; then
   echo "警告：升级将关闭系统，是否继续？(Y/N)"

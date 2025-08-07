@@ -60,6 +60,17 @@ public class AgentManager {
     }
 
     /**
+     * 是否所有进程都退出
+     * @return 是否所有进程都退出
+     */
+    public boolean isAllShutdown() {
+        if (clientMap.isEmpty()) {
+            return true;
+        }
+        return clientMap.values().stream().allMatch(client -> ClientState.OFFLINE.equals(client.getState()));
+    }
+
+    /**
      * 进程上线
      * @param userDir 用户目录
      * @param serviceName 服务名

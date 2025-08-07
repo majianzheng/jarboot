@@ -45,7 +45,9 @@ export JAVA="$JAVA_HOME/bin/java"
 export JARBOOT_HOME=$(cd `dirname $0`/../; pwd)
 
 cd "${JARBOOT_HOME}"
-
+if [ ! -d "${JARBOOT_HOME}/.cache" ]; then
+  mkdir -p "${JARBOOT_HOME}/.cache"
+fi
 TOOL_JAR="components/jarboot-tools.jar io.github.majianzheng.jarboot.tools.shell.Shutdown"
 DAEMON_VM="-Xms50m -Xmx100m -XX:+UseG1GC -XX:MaxGCPauseMillis=5000 -Djava.io.tmpdir=.cache"
 

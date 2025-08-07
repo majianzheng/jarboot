@@ -2,7 +2,7 @@
 
 if not exist "%JAVA_HOME%\bin\javaw.exe" echo Please set the JAVA_HOME variable in your environment, We need java(x64)! jdk8 or later is better! & EXIT /B 1
 set "JAVA=%JAVA_HOME%\bin\java.exe"
-chcp 65001
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 set JARBOOT_HOME=%~dp0
