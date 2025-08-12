@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.tools.shell;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.tools.common.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -15,11 +16,12 @@ import java.util.List;
  * 生成默认的集群key
  * @author mazheng
  */
+@Slf4j
 public class GenClusterSecretKey {
     public static void main(String[] args) throws IOException {
         String home = Utils.getJarbootHome();
         if (StringUtils.isEmpty(home)) {
-            AnsiLog.error("JARBOOT_HOME is not set!");
+            log.error("JARBOOT_HOME is not set!");
             return;
         }
         String key = StringUtils.randomString(64);

@@ -164,6 +164,7 @@ export default {
   SYS_VER: 'System version',
   CLI_DOWNLOAD: 'Client tools download',
   CLUSTER_MODE: 'Cluster mode',
+  STANDALONE: 'Standalone mode',
   CUR_HOST: 'Current host',
   MACHINE_CODE: 'Machine code',
   AUDIT_LOG: 'Audit log',
@@ -291,4 +292,19 @@ export default {
   AUTH_EXPIRED: '{time} expired',
   TIME_REMAIN: '{time} remain: {remain}',
   NO_EXPIRE: 'No expired time',
+
+  RECONNECTING: 'reconnecting...',
+  // 升级
+  UPGRADE: 'Upgrade',
+  UPGRADE_OR_RESET: 'Upgrade/Reset',
+  INSTALL_PACKAGE: 'Install package',
+  PACKAGE_FROM_URL: 'From url',
+  PACKAGE_FROM_LOCAL: 'From local',
+  UPGRADE_TIPS: 'Now is upgrading or resetting, please wait......',
+  UPGRADE_SUCCESS: 'Upgrade/Reset success!',
+  UPGRADE_SUCCESS_PREFIX_TIP: 'Upgrade/Reset success! After ',
+  UPGRADE_SUCCESS_SUBFIX_TIP: ' second will be refresh',
+  LATEST_VER_DOWNLOAD: 'Latest version download',
+  SELECT_UPGRADE_PACKAGE: 'Please select install package',
+  INPUT_UPGRADE_PACKAGE_URL: 'Please input install package download URL',
 };

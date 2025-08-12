@@ -1,24 +1,32 @@
 package io.github.majianzheng.jarboot.service.impl;
 
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
 import io.github.majianzheng.jarboot.common.pojo.UpgradeProgress;
-import io.github.majianzheng.jarboot.common.utils.JsonUtils;
-import io.github.majianzheng.jarboot.common.utils.OSUtils;
-import io.github.majianzheng.jarboot.common.utils.ZipUtils;
+import io.github.majianzheng.jarboot.common.utils.*;
+import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.service.UpgradeService;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 升级服务
@@ -27,18 +35,36 @@ import java.util.List;
 @Slf4j
 @Service
 public class UpgradeServiceImpl implements UpgradeService {
-    // 0 文件解压缩 1 文件检验 2 开始升级 -1 升级失败
-    private static final int STEP_FILE_INIT = 0;
-    private static final int STEP_FILE_CHECK = 1;
-    private static final int STEP_START_UPGRADE = 2;
-    private static final int STEP_UPGRADE_FAILED = -1;
+    private final AtomicBoolean upgrading = new AtomicBoolean(false);
+    @Resource
+    private ServerRuntimeService serverRuntimeService;
+
     @Override
     public void upgrade(String url) {
-        checkAllShutdown();
+        if (!upgrading.compareAndSet(false, true)) {
+            throw new JarbootException("正在升级中，请稍后...");
+        }
+        File instFile = installPackage();
+        if (instFile.exists()) {
+            FileUtils.deleteQuietly(instFile);
+        }
+        updateProgress("正在下载安装包...", CommonConst.STEP_FILE_INIT);
+        try (OutputStream os = FileUtils.newOutputStream(instFile, false)) {
+            HttpUtils.get(url, os, null);
+            updateProgress("安装包下载完成", CommonConst.STEP_FILE_INIT);
+        } catch (Exception e) {
+            updateProgress(e.getMessage(), CommonConst.STEP_UPGRADE_FAILED);
+            upgrading.set(false);
+            throw new JarbootException(e);
+        }
+        doUpgrade(instFile);
     }
 
     @Override
     public void upgrade(String file, InputStream is) {
+        if (!upgrading.compareAndSet(false, true)) {
+            throw new JarbootException("正在升级中，请稍后...");
+        }
         File instFile = installPackage();
         if (instFile.exists()) {
             FileUtils.deleteQuietly(instFile);
@@ -46,36 +72,51 @@ public class UpgradeServiceImpl implements UpgradeService {
         try {
             FileUtils.copyInputStreamToFile(is, instFile);
         } catch (Exception e) {
+            upgrading.set(false);
             throw new JarbootException(e);
         }
         doUpgrade(instFile);
     }
 
+    private void checkEnv() {
+        ServerRuntimeInfo info = serverRuntimeService.getServerRuntimeInfo();
+        if (Boolean.TRUE.equals(info.getInDocker())) {
+            throw new JarbootException("当前服务运行在docker中，请使用docker compose升级");
+        }
+    }
+
     private void checkAllShutdown() {
         if (!AgentManager.getInstance().isAllShutdown()) {
-            updateProgress("请先停止所有服务", STEP_UPGRADE_FAILED);
+            updateProgress("请先停止所有服务", CommonConst.STEP_UPGRADE_FAILED);
             throw new JarbootException("请先停止所有服务");
         }
     }
 
     private void doUpgrade(File installPackage) {
         File dir = getUploadCacheDir();
-        updateProgress("开始执行升级...", STEP_FILE_INIT);
-        checkAllShutdown();
         try {
+            updateProgress("开始执行升级...", CommonConst.STEP_FILE_INIT);
+            checkAllShutdown();
+            checkEnv();
             File distDir = FileUtils.getFile(dir, "jarboot");
             if (distDir.exists()) {
                 FileUtils.deleteQuietly(distDir);
             }
             ZipUtils.unZip(installPackage, dir);
-            updateProgress("开始检验安装包...", STEP_FILE_CHECK);
+            updateProgress("开始检验安装包...", CommonConst.STEP_FILE_CHECK);
             checkBinDir(distDir);
-
-            updateProgress("开始升级...", STEP_START_UPGRADE);
+            checkComponent(distDir);
+            checkDir(FileUtils.getFile(distDir, "conf"));
+            checkDir(FileUtils.getFile(distDir, "fe"));
+            checkDir(FileUtils.getFile(distDir, "plugins"));
+            checkDir(FileUtils.getFile(distDir, "workspace"));
+            updateProgress("开始升级...", CommonConst.STEP_START_UPGRADE);
             startUpgradeScript(distDir);
         } catch (Exception e) {
             log.error("升级失败: {}", e.getMessage(), e);
-            updateProgress(e.getMessage(), STEP_UPGRADE_FAILED);
+            updateProgress(e.getMessage(), CommonConst.STEP_UPGRADE_FAILED);
+        } finally {
+            upgrading.set(false);
         }
     }
 
@@ -85,7 +126,9 @@ public class UpgradeServiceImpl implements UpgradeService {
         List<String> cmd;
         if (OSUtils.isWindows()) {
             workDir = FileUtils.getFile(distDir, "bin", "windows");
-            cmd = Arrays.asList("cmd", "/c", "start", "/min", "upgrade.bat", "-d", home, "-y");
+            String jdkPath = SettingUtils.getJdkPath();
+            String javaw = FileUtils.getFile(jdkPath, "bin", "javaw.exe").getAbsolutePath();
+            cmd = Arrays.asList(javaw, "WinUpgradeSilent", workDir.getAbsolutePath(), home);
         } else {
             workDir = FileUtils.getFile(distDir, "bin");
             String command = String.format(
@@ -94,9 +137,9 @@ public class UpgradeServiceImpl implements UpgradeService {
             );
             cmd = Arrays.asList("bash", "-c", command);
         }
-        updateProgress("开始执行升级脚本，系统将会关闭！", STEP_START_UPGRADE);
+        updateProgress("开始执行升级脚本，系统将会关闭！", CommonConst.STEP_START_UPGRADE);
         new ProcessBuilder(cmd).directory(workDir).start();
-        updateProgress("正在执行升级脚本，系统将关闭，请稍后...", STEP_START_UPGRADE);
+        updateProgress("正在执行升级脚本，系统将关闭，请稍后...", CommonConst.STEP_START_UPGRADE);
     }
 
     private void checkBinDir(File distDir) {
@@ -108,31 +151,62 @@ public class UpgradeServiceImpl implements UpgradeService {
             throw new JarbootException("bin目录不是目录");
         }
         if (OSUtils.isWindows()) {
-            String[] scriptFiles = new String[]{"startup.cmd", "shutdown.cmd", "shutdown-all.cmd", "status.cmd", "upgrade.bat"};
+            String[] scriptFiles = new String[]{"startup.cmd", "shutdown.cmd", "shutdown-all.cmd", "status.cmd", "upgrade.bat", "WinUpgradeSilent.class"};
             for (String scriptFile : scriptFiles) {
-                File script = FileUtils.getFile(binDir, "windows", scriptFile);
-                if (!script.exists()) {
-                    throw new JarbootException("安装包缺少" + scriptFile);
-                }
-                if (!script.isFile()) {
-                    throw new JarbootException(scriptFile + "不是文件");
-                }
+                checkFile(FileUtils.getFile(binDir, "windows", scriptFile));
             }
         } else {
             String[] scriptFiles = new String[]{"startup.sh", "shutdown.sh", "shutdown-all.sh", "status.sh", "upgrade.sh"};
             for (String scriptFile : scriptFiles) {
-                File script = FileUtils.getFile(binDir, scriptFile);
-                if (!script.exists()) {
-                    throw new JarbootException("安装包缺少" + scriptFile);
-                }
-                if (!script.isFile()) {
-                    throw new JarbootException(scriptFile + "不是文件");
-                }
+                checkFile(FileUtils.getFile(binDir, scriptFile));
             }
         }
     }
 
-    private void updateProgress(String msg, int action) {
+    private void checkComponent(File distDir) {
+        File componentDir = FileUtils.getFile(distDir, CommonConst.COMPONENTS_NAME);
+        checkDir(componentDir);
+        checkFile(FileUtils.getFile(componentDir, "jarboot-server.jar"));
+        checkFile(FileUtils.getFile(componentDir, "jarboot-agent.jar"));
+        checkFile(FileUtils.getFile(componentDir, "jarboot-spy.jar"));
+        final String[] parseFiles = new String[]{"jarboot-core.jar", "jarboot-tools.jar"};
+        Set<String> dependencies = new HashSet<>(16);
+        for (String fileName : parseFiles) {
+            File file = FileUtils.getFile(SettingUtils.getHomePath(), CommonConst.COMPONENTS_NAME, fileName);
+            checkFile(file);
+            Set<String> paths = CommonUtils.getJarDependencies(file);
+            if (!CollectionUtils.isEmpty(paths)) {
+                dependencies.addAll(paths);
+            }
+        }
+        for (String path : dependencies) {
+            if (path.endsWith(CommonConst.JAR_EXT)) {
+                File libFile = FileUtils.getFile(SettingUtils.getHomePath(), CommonConst.COMPONENTS_NAME, path);
+                checkFile(libFile);
+            }
+        }
+    }
+
+    private void checkFile(File file) {
+        if (!file.exists()) {
+            throw new JarbootException("安装包缺少" + file.getName());
+        }
+        if (!file.isFile()) {
+            throw new JarbootException(file.getName() + "不是文件");
+        }
+    }
+
+    private void checkDir(File file) {
+        if (!file.exists()) {
+            throw new JarbootException("安装包缺少" + file.getName());
+        }
+        if (!file.isDirectory()) {
+            throw new JarbootException(file.getName() + "不是文件夹");
+        }
+    }
+
+    @Override
+    public void updateProgress(String msg, int action) {
         UpgradeProgress progress = new UpgradeProgress();
         progress.setAction(action);
         progress.setMsg(msg);

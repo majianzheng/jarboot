@@ -6,6 +6,13 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "5263030",
+      "name": "升级",
+      "font_class": "upgrade",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
       "icon_id": "41799382",
       "name": "icon_openapi",
       "font_class": "openapi",

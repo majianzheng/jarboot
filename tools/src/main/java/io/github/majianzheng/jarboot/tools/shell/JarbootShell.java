@@ -5,6 +5,7 @@ import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.*;
 import io.github.majianzheng.jarboot.common.utils.*;
 import io.github.majianzheng.jarboot.tools.common.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 /**
  * @author majianzheng
  */
+@Slf4j
 public class JarbootShell {
     private static final String PID_ARG = "pid";
     private static final String HOST_ARG = "host";
@@ -155,8 +157,8 @@ public class JarbootShell {
             JarbootShell jarboot = new JarbootShell(args);
             jarboot.run();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
-            AnsiLog.error(e);
         }
     }
 
@@ -182,7 +184,7 @@ public class JarbootShell {
                 AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(runtimeInfo.getVersion()));
             }
         } catch (Exception e) {
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
             AnsiLog.error("Check Jarboot server {} failed! Please input running Jarboot server host.", host);
             return;
         }
@@ -248,8 +250,8 @@ public class JarbootShell {
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
-            AnsiLog.error(e);
         } finally {
             FileUtils.deleteQuietly(getCmdFile());
             AnsiLog.info("Start process finished.");
@@ -385,8 +387,7 @@ public class JarbootShell {
         } catch (NumberFormatException e) {
             AnsiLog.println("Please input an integer to select pid.");
         } catch (Exception e) {
-            AnsiLog.error(e.getMessage());
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
         }
     }
 

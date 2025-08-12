@@ -2,6 +2,7 @@ package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
@@ -9,6 +10,7 @@ import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,9 +23,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.Session;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 
 /**
@@ -248,6 +254,49 @@ public class CommonUtils {
 
     public static String getHomeEnv() {
         return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
+    }
+
+    public static Set<String> getJarDependencies(File file) {
+        Set<String> dependencies = new HashSet<>(16);
+        String[] paths = CommonUtils.parseJarDependence(file);
+        if (paths.length > 0) {
+            dependencies.addAll(Arrays.asList(paths));
+        }
+        return dependencies;
+    }
+
+    private static String[] parseJarDependence(File file) {
+        final String resource = "META-INF/MANIFEST.MF";
+        try (JarFile jarFile = new JarFile(file)){
+            ZipEntry entry = jarFile.getEntry(resource);
+            if (null == entry) {
+                return new String[0];
+            }
+            StringBuilder pathStr = new StringBuilder();
+            boolean started = false;
+            try(InputStream is = jarFile.getInputStream(entry)) {
+                List<String> lines = IOUtils.readLines(is, StandardCharsets.UTF_8);
+                final String beginPrefix = "Class-Path: ";
+                final String endPrefix = "Main-Class:";
+                for (String line : lines) {
+                    if (line.startsWith(beginPrefix)) {
+                        pathStr.append(line.substring(beginPrefix.length()));
+                        started = true;
+                    } else if (line.startsWith(endPrefix)) {
+                        break;
+                    } else {
+                        if (started && line.startsWith(StringUtils.SPACE)) {
+                            pathStr.append(line.substring(1));
+                        }
+                    }
+                }
+            }
+
+            return pathStr.toString().split(StringUtils.SPACE);
+
+        } catch (IOException e) {
+            throw new JarbootException("Load jar file failed!", e);
+        }
     }
 
     private CommonUtils() {}

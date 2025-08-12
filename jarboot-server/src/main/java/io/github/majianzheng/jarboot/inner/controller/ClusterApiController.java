@@ -4,9 +4,11 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
+import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.cluster.ClusterEventMessage;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
@@ -14,6 +16,7 @@ import io.github.majianzheng.jarboot.monitor.MonitorService;
 import io.github.majianzheng.jarboot.monitor.vo.Server;
 import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
+import io.github.majianzheng.jarboot.service.UpgradeService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
@@ -51,6 +54,8 @@ public class ClusterApiController {
     private FileService fileService;
     @Resource
     MonitorService monitorService;
+    @Resource
+    private UpgradeService upgradeService;
 
     @GetMapping("/group")
     public ServiceInstance getServiceGroup() {
@@ -233,5 +238,48 @@ public class ClusterApiController {
     @GetMapping("/monitor/server")
     public Server getServerInfo() {
         return monitorService.getServerInfo();
+    }
+
+    /**
+     * 上传安装包升级
+     * @param file 文件
+     * @return 执行结果
+     */
+    @PostMapping("/upgrade/upload")
+    public ResponseSimple upgradeByPackage(
+            @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            // 上传服务文件
+            upgradeService.upgrade(file.getOriginalFilename(), is);
+        }
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 从url下载安装包升级
+     * @param url 下载的url
+     * @return 执行结果
+     */
+    @PostMapping("/upgrade/url")
+    public ResponseSimple upgradeByUrl(
+            @RequestParam(value = "url", required = false) String url) {
+        upgradeService.upgrade(url);
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 检查是否具备升级条件
+     * @return 执行结果
+     */
+    @GetMapping("/upgrade/check")
+    public ResponseVo<Boolean> upgradeCheck() {
+        if (AgentManager.getInstance().isAllShutdown()) {
+            return HttpResponseUtils.error("有服务正在运行中");
+        }
+        ServerRuntimeInfo info = serverRuntimeService.getServerRuntimeInfo();
+        if (Boolean.TRUE.equals(info.getInDocker())) {
+            return HttpResponseUtils.error("当前服务运行在docker中，请使用docker-compose升级");
+        }
+        return HttpResponseUtils.success();
     }
 }

@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
@@ -19,29 +20,37 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.nio.channels.FileLock;
 import java.time.Duration;
+import java.util.Properties;
 
 /**
  * check file is all exist and environment is jdk.
  * @author majianzheng
  */
 public class AppEnvironment implements SpringApplicationRunListener {
+    private static final Logger logger = LoggerFactory.getLogger(AppEnvironment.class);
     private String homePath;
-    private FileLock lock;
+    private final FileLock lock;
 
     public AppEnvironment(SpringApplication app, String[] args) {
-        // ignore
+        // 进程单实例加锁
+        this.lock = CacheDirHelper.singleInstanceTryLock();
+        if (null == this.lock) {
+            AnsiLog.error("Jarboot server is already started!");
+            System.exit(-1);
+        }
+        PidFileHelper.writeServerPid();
     }
     @Override
     public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
-        final Logger logger = LoggerFactory.getLogger(AppEnvironment.class);
         //初始化工作目录
         homePath = environment.getProperty(CommonConst.JARBOOT_HOME);
         if (null == homePath || homePath.isEmpty()) {
             homePath = System.getenv(CommonConst.JARBOOT_HOME);
             if (null == homePath) {
-                logger.error("获取JARBOOT_HOME失败！");
+                AnsiLog.error("获取JARBOOT_HOME失败！");
                 System.exit(-1);
             }
         }
@@ -64,14 +73,9 @@ public class AppEnvironment implements SpringApplicationRunListener {
             checkEnvironment();
             //初始化cache目录
             CacheDirHelper.init();
-            // 进程单实例加锁
-            this.lock = CacheDirHelper.singleInstanceTryLock();
-            if (null == this.lock) {
-                throw new JarbootRunException("Jarboot server is already started!");
-            }
-            FileUtils.deleteQuietly(CacheDirHelper.getServerPidFile());
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            AnsiLog.error(e);
+            FileUtils.deleteQuietly(CacheDirHelper.getServerPidFile());
             System.exit(-1);
         }
     }
@@ -82,15 +86,27 @@ public class AppEnvironment implements SpringApplicationRunListener {
         SettingUtils.init(context, homePath);
         TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
         taskWatchService.init();
-        PidFileHelper.writeServerPid();
         // 集群配置初始化
         ClusterClientManager.getInstance().init();
+        saveInfo();
+    }
+
+    private static void saveInfo() {
+        String host = SettingUtils.getLocalhost();
+        String serverPid = PidFileHelper.getServerPid();
+        Properties properties = new Properties();
+        properties.setProperty(CommonConst.HOST_KEY, host);
+        properties.setProperty("pid", serverPid);
+        try (OutputStream os = FileUtils.newOutputStream(CacheDirHelper.getServerInfoFile(), false)) {
+            properties.store(os, "Jarboot server info file created by auto.");
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
     public void failed(ConfigurableApplicationContext context, Throwable exception) {
         if (null != this.lock) {
-            final Logger logger = LoggerFactory.getLogger(AppEnvironment.class);
             try {
                 this.lock.release();
             } catch (Exception e) {

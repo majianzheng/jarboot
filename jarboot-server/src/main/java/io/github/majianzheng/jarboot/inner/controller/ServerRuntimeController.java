@@ -7,9 +7,11 @@ import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.ZipUtils;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -94,45 +96,11 @@ public class ServerRuntimeController {
         final String[] parseFiles = new String[]{"jarboot-core.jar", "jarboot-tools.jar"};
         for (String fileName : parseFiles) {
             File file = FileUtils.getFile(SettingUtils.getHomePath(), CommonConst.COMPONENTS_NAME, fileName);
-            String[] paths = getJarDependenceFiles(file);
-            if (paths.length > 0) {
-                dependencies.addAll(Arrays.asList(paths));
+            Set<String> paths = CommonUtils.getJarDependencies(file);
+            if (!CollectionUtils.isEmpty(paths)) {
+                dependencies.addAll(paths);
             }
         }
         return dependencies;
-    }
-
-    private String[] getJarDependenceFiles(File file) {
-        final String resource = "META-INF/MANIFEST.MF";
-        try (JarFile jarFile = new JarFile(file)){
-            ZipEntry entry = jarFile.getEntry(resource);
-            if (null == entry) {
-                return new String[0];
-            }
-            StringBuilder pathStr = new StringBuilder();
-            boolean started = false;
-            try(InputStream is = jarFile.getInputStream(entry)) {
-                List<String> lines = IOUtils.readLines(is, StandardCharsets.UTF_8);
-                final String beginPrefix = "Class-Path: ";
-                final String endPrefix = "Main-Class:";
-                for (String line : lines) {
-                    if (line.startsWith(beginPrefix)) {
-                        pathStr.append(line.substring(beginPrefix.length()));
-                        started = true;
-                    } else if (line.startsWith(endPrefix)) {
-                        break;
-                    } else {
-                        if (started && line.startsWith(StringUtils.SPACE)) {
-                            pathStr.append(line.substring(1));
-                        }
-                    }
-                }
-            }
-
-            return pathStr.toString().split(StringUtils.SPACE);
-
-        } catch (IOException e) {
-            throw new JarbootException("Load jar file failed!", e);
-        }
     }
 }

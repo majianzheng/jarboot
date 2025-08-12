@@ -5,6 +5,7 @@ import { PROTOCOL_SPLIT } from '@/common/CommonConst';
 import { ElMessage } from 'element-plus';
 import type { FuncCode } from '@/common/EventConst';
 import type { MsgData, MsgReq } from '@/types';
+import CommonUtils from '@/common/CommonUtils';
 
 enum NotifyType {
   /** 提示 */
@@ -30,6 +31,7 @@ let msg: any = null;
 class WsManager {
   /** 重连成功事件 */
   public static readonly RECONNECTED_EVENT = -1;
+  public static upgrading = false;
   /** 事件处理回调 */
   private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
   /** 全局Loading事件 */
@@ -235,7 +237,8 @@ class WsManager {
     if (null !== WsManager.fd || WebSocket.OPEN === state || WebSocket.CONNECTING === state) {
       return;
     }
-    msg = ElMessage({ message: 'reconnecting...', duration: 0, icon: 'IconLoading' });
+    const info = WsManager.upgrading ? 'UPGRADE_TIPS' : 'RECONNECTING';
+    msg = ElMessage({ message: CommonUtils.translate(info), duration: 0, icon: 'IconLoading' });
     WsManager.fd = setInterval(() => {
       if (null === WsManager.fd) {
         //已经进入连onOpen

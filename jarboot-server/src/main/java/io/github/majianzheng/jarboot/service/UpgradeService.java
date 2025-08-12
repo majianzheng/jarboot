@@ -19,4 +19,11 @@ public interface UpgradeService {
      * @param is 文件流
      */
     void upgrade(String file, InputStream is);
+
+    /**
+     * 更新进度
+     * @param msg 消息
+     * @param action 动作
+     */
+    void updateProgress(String msg, int action);
 }

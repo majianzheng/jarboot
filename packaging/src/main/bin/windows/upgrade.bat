@@ -104,6 +104,11 @@ if exist "%sourceDir%\bin" (
     xcopy "%sourceDir%\bin" "!installDir!\bin" /E /I /H /Y >nul
 )
 
+@rem 拷贝script目录
+if exist "%sourceDir%\script" (
+    xcopy "%sourceDir%\script" "!installDir!\script" /E /I /H /Y >nul
+)
+
 @rem 拷贝conf、data、script、workspace目录（如果安装目录中不存在则拷贝，若存在则忽略）
 if exist "%sourceDir%\conf" (
     if not exist "!installDir!\conf" (
@@ -117,16 +122,18 @@ if exist "%sourceDir%\data" (
     )
 )
 
-if exist "%sourceDir%\script" (
-    if not exist "!installDir!\script" (
-        xcopy "%sourceDir%\script" "!installDir!\script" /E /I /H /Y >nul
-    )
-)
-
 if exist "%sourceDir%\workspace" (
     if not exist "!installDir!\workspace" (
         xcopy "%sourceDir%\workspace" "!installDir!\workspace" /E /I /H /Y >nul
     )
+)
+
+@rem 拷贝说明文档README.md和README_CN.md
+if exist "%sourceDir%\README.md" (
+    copy "%sourceDir%\README.md" "!installDir!\README.md" >nul
+)
+if exist "%sourceDir%\README_CN.md" (
+    copy "%sourceDir%\README_CN.md" "!installDir!\README_CN.md" >nul
 )
 
 @rem 步骤4 提示升级完成，询问是否启动系统

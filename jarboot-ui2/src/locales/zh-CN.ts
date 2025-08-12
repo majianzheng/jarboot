@@ -164,6 +164,7 @@ export default {
   SYS_VER: '系统版本',
   CLI_DOWNLOAD: '命令行工具下载',
   CLUSTER_MODE: '集群模式',
+  STANDALONE: '单机模式',
   CUR_HOST: '当前主机',
   MACHINE_CODE: '机器码',
   AUDIT_LOG: '日志记录',
@@ -292,10 +293,18 @@ export default {
   TIME_REMAIN: '{time} 剩余： {remain}',
   NO_EXPIRE: '无限期',
 
+  RECONNECTING: '正在重连...',
   // 升级
   UPGRADE: '升级',
+  UPGRADE_OR_RESET: '升级/重装',
   INSTALL_PACKAGE: '安装包',
   PACKAGE_FROM_URL: '从外部链接下载',
   PACKAGE_FROM_LOCAL: '从本地上传',
-  UPGRADE_TIPS: '软件正在升级中，请稍后......',
+  UPGRADE_TIPS: '软件正在升级/重装中，请稍后......',
+  UPGRADE_SUCCESS: '升级/重装成功！',
+  UPGRADE_SUCCESS_PREFIX_TIP: '升级/重装成功！将会在',
+  UPGRADE_SUCCESS_SUBFIX_TIP: '秒后刷新',
+  LATEST_VER_DOWNLOAD: '最新版下载',
+  SELECT_UPGRADE_PACKAGE: '请选择升级包',
+  INPUT_UPGRADE_PACKAGE_URL: '请输入升级包URL',
 };

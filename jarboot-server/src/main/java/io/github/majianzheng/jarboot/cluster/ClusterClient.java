@@ -212,6 +212,31 @@ public class ClusterClient {
         return null;
     }
 
+    public boolean upgradeCheck() {
+        String url = formatUrl("/upgrade/check");
+        JsonNode resp = HttpUtils.get(url, wrapToken());
+        try {
+            checkResponse(resp);
+            return true;
+        } catch (Exception e) {
+            // ignore
+            return false;
+        }
+    }
+
+    public void upgradeByPackage(InputStream is, String filename) {
+        String url = formatUrl("/upgrade/upload");
+        HttpUtils.upload(url, is, filename, null, wrapToken());
+    }
+
+    public void upgradeByUrl(String url) {
+        String url2 = formatUrl("/upgrade/url");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("url", url);
+        JsonNode node = HttpUtils.post(url2, params, wrapToken());
+        checkResponse(node);
+    }
+
     private String wrapFileParam(String path, String content, String url) {
         Map<String, String> params = new HashMap<>(2);
         params.put("path", path);

@@ -71,17 +71,13 @@ public class CacheDirHelper {
         try {
             FileChannel fileChannel =  getSingleInstanceLockFileChannel(SERVER_LOCK);
             if (null == fileChannel) {
-                throw new JarbootRunException("单例锁访问失败！");
+                AnsiLog.error("单例锁访问失败！");
+                return null;
             }
-            FileLock lock = fileChannel.tryLock();
-            if (null == lock) {
-                throw new JarbootRunException("当前已有实例在运行中！");
-            }
-            return lock;
+            return fileChannel.tryLock();
         } catch (Exception e) {
-            AnsiLog.error("单例进程尝试访问文件锁失败: {}", e.getMessage());
-            AnsiLog.error(e);
-            throw new JarbootRunException("单实例加锁失败！");
+            AnsiLog.error("单例进程尝试访问文件锁失败", e);
+            return null;
         }
     }
 
@@ -93,8 +89,7 @@ public class CacheDirHelper {
             }
             return fileChannel.lock();
         } catch (Exception e) {
-            AnsiLog.error("单例进程访问文件锁失败: {}", e.getMessage());
-            AnsiLog.error(e);
+            AnsiLog.error("单例进程访问文件锁失败: ", e);
         }
         return null;
     }
@@ -103,17 +98,13 @@ public class CacheDirHelper {
         try {
             FileChannel fileChannel =  getSingleInstanceLockFileChannel("daemon.lock");
             if (null == fileChannel) {
-                throw new JarbootRunException("单例锁访问失败！");
+                AnsiLog.error("守护进程单例锁访问失败！");
+                return null;
             }
-            FileLock lock = fileChannel.tryLock();
-            if (null == lock) {
-                throw new JarbootRunException("当前已有实例在运行中！");
-            }
-            return lock;
+            return fileChannel.tryLock();
         } catch (Exception e) {
-            AnsiLog.error("守护进程访问文件锁失败: {}", e.getMessage());
-            AnsiLog.error(e);
-            throw new JarbootRunException("单实例加锁失败！");
+            AnsiLog.error("守护进程访问文件锁失败:", e);
+            return null;
         }
     }
 
@@ -153,6 +144,11 @@ public class CacheDirHelper {
         return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "jarboot.pid");
     }
 
+    public static File getServerInfoFile() {
+        return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "jarboot_server.inf");
+    }
+
+
     public static File getDaemonPidFile() {
         return FileUtils.getFile(getJarbootHome(), CACHE_DIR, "daemon.pid");
     }
@@ -184,7 +180,7 @@ public class CacheDirHelper {
         // jansi-2.4.1-d7b98e381885acbe-jansi
         List<File> oldFiles = new ArrayList<>();
         final long timeBefore = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000L;
-        HashSet<String> skipFile  = new HashSet<>(Arrays.asList("bash_temp", "catalina_home", MONITOR_RECORD_DIR, "pid", "secretKey16"));
+        HashSet<String> skipFile  = new HashSet<>(Arrays.asList("jarboot_server.inf", "bash_temp", "catalina_home", MONITOR_RECORD_DIR, "pid", "secretKey16"));
         for (File file : allFiles) {
             String name = file.getName();
             if (skipFile.contains(name) || name.endsWith(".pid") || name.endsWith(".lock") || name.startsWith("pty4j")) {
@@ -254,8 +250,7 @@ public class CacheDirHelper {
                     return null;
                 }
             } catch (Exception e) {
-                AnsiLog.error("创建单例进程文件锁失败: {}", e.getMessage());
-                AnsiLog.error(e);
+                AnsiLog.error("创建单例进程文件锁失败:", e);
                 return null;
             }
         }
@@ -263,8 +258,7 @@ public class CacheDirHelper {
             RandomAccessFile raf = new RandomAccessFile(lockFile, "rw");
             return raf.getChannel();
         } catch (Exception e) {
-            AnsiLog.error("单例进程访问文件锁失败: {}", e.getMessage());
-            AnsiLog.error(e);
+            AnsiLog.error("单例进程访问文件锁失败:", e);
         }
         return null;
     }

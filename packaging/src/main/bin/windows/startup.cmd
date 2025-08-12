@@ -37,5 +37,5 @@ start "" %DAEMON_CMD%
 echo Jarboot daemon started.
 echo Start Jarboot success.
 
-echo You can check %JARBOOT_HOME%/logs/jarboot.log
+echo You can check %JARBOOT_HOME%\logs\jarboot.log
 pause

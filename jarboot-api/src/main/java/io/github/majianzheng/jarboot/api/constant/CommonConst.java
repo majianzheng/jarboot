@@ -94,5 +94,10 @@ public class CommonConst {
 
     public static final long SESSION_EXPIRED_TIME = 300000L;
 
+    public static final int STEP_FILE_INIT = 0;
+    public static final int STEP_FILE_CHECK = 1;
+    public static final int STEP_START_UPGRADE = 2;
+    public static final int STEP_UPGRADE_FAILED = -1;
+
     private CommonConst(){}
 }

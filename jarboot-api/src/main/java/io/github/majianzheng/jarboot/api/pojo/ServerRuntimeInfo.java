@@ -1,8 +1,11 @@
 package io.github.majianzheng.jarboot.api.pojo;
 
+import lombok.ToString;
+
 /**
  * @author mazheng
  */
+@ToString
 public class ServerRuntimeInfo {
     private String machineCode;
     private String host;

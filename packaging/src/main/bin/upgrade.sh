@@ -94,6 +94,11 @@ if [ -d "$sourceDir/bin" ]; then
   cp -rf "$sourceDir/bin" "$installDir/"
 fi
 
+# 拷贝script目录
+if [ -d "$sourceDir/script" ]; then
+  cp -rf "$sourceDir/script" "$installDir/"
+fi
+
 # 拷贝conf、data、script、workspace目录（如果安装目录中不存在则拷贝，若存在则忽略）
 if [ -d "$sourceDir/conf" ] && [ ! -d "$installDir/conf" ]; then
   cp -rf "$sourceDir/conf" "$installDir/"
@@ -103,12 +108,16 @@ if [ -d "$sourceDir/data" ] && [ ! -d "$installDir/data" ]; then
   cp -rf "$sourceDir/data" "$installDir/"
 fi
 
-if [ -d "$sourceDir/script" ] && [ ! -d "$installDir/script" ]; then
-  cp -rf "$sourceDir/script" "$installDir/"
-fi
-
 if [ -d "$sourceDir/workspace" ] && [ ! -d "$installDir/workspace" ]; then
   cp -rf "$sourceDir/workspace" "$installDir/"
+fi
+
+# 拷贝说明文档README.md和README_CN.md
+if [ -f "$sourceDir/README.md" ]; then
+  cp -f "$sourceDir/README.md" "$installDir/"
+fi
+if [ -f "$sourceDir/README_CN.md" ]; then
+  cp -f "$sourceDir/README_CN.md" "$installDir/"
 fi
 
 # 步骤4: 提示升级完成，询问是否启动系统
