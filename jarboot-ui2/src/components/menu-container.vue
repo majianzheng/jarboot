@@ -4,7 +4,7 @@
       <el-menu :default-active="data.key" class="menu-vertical" @select="doSelect" :collapse-transition="true">
         <el-menu-item :class="{ 'is-active': data.key === conf.name }" :index="conf.name" v-for="(conf, i) in subMenus" :key="i">
           <icon-pro :icon="conf.icon"></icon-pro>
-          <template #title>{{ $t(conf.code) }}</template>
+          <template #title v-if="!basic.mobileDevice">{{ $t(conf.code) }}</template>
         </el-menu-item>
       </el-menu>
     </div>

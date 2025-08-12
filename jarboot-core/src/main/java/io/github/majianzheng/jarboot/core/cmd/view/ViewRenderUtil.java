@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static io.github.majianzheng.jarboot.text.ui.Element.label;
-import static io.github.majianzheng.jarboot.text.ui.Element.row;
 import static java.lang.String.format;
 
 
@@ -23,7 +22,7 @@ import static java.lang.String.format;
  * @author majianzheng
  * 以下代码基于开源项目Arthas适配修改
  */
-@SuppressWarnings({"squid:S1319", "squid:S2386", "PMD.UndefineMagicConstantRule"})
+@SuppressWarnings({"squid:S1319", "java:S3776", "squid:S2386", "PMD.UndefineMagicConstantRule"})
 public class ViewRenderUtil {
     /**
      * Render key-value table
@@ -236,19 +235,6 @@ public class ViewRenderUtil {
         tableBuilder.append("</tbody>");
         tableBuilder.append("</table>");
         return tableBuilder.toString();
-    }
-
-    private static StringBuilder whitePrint(StringBuilder sb, int width, String text) {
-        int margin = (width - text.length()) / 2;
-        for (int i = 0; i < margin; ++i) {
-            sb.append(' ');
-        }
-        sb.append(text);
-        int right = margin < 0 ? 0 : (width - margin - text.length());
-        for (int i = 0; i < right; ++i) {
-            sb.append(' ');
-        }
-        return sb;
     }
 
     private static String formatTimeMillsToSeconds(long timeMills) {

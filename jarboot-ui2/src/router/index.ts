@@ -36,7 +36,7 @@ router.beforeEach(async (to, _from, next) => {
     next();
     return;
   }
-  const user = (await OAuthService.getCurrentUser()) as any;
+  const user = await OAuthService.getCurrentUser();
   if (StringUtil.isEmpty(user?.username)) {
     next({ name: PAGE_LOGIN, force: true });
     return;

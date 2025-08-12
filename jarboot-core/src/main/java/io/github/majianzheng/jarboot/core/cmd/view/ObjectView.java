@@ -100,7 +100,7 @@ public class ObjectView implements View {
         ASCII_MAP.put((byte) 127, "DEL");
     }
 
-    @SuppressWarnings({"squid:S1192", "java:S3011", "java:S3776", "squid:S3012", "squid:S1181", "RedundantClassCall"})
+    @SuppressWarnings({"squid:S1192", "java:S3011", "java:S3776", "java:S6541", "squid:S3012", "squid:S1181", "RedundantClassCall"})
     private void renderObject(Object obj, int deep, int expand, final StringBuilder buf) throws ObjectTooLargeException {
 
         if (null == obj) {

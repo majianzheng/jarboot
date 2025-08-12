@@ -44,5 +44,3 @@ onMounted(getList);
     </el-table-column>
   </table-pro>
 </template>
-
-<style scoped lang="less"></style>

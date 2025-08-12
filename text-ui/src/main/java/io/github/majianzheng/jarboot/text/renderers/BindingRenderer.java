@@ -52,7 +52,7 @@ public class BindingRenderer extends Renderer<BindingRenderer.BindingData> {
 
        row.add(binding.name);
 
-      if (binding.verbose) {
+      if (Boolean.TRUE.equals(binding.verbose)) {
         row.add(new LabelElement(binding.type));
         if (header.getSize() == 1) {
           header.add("CLASS");
@@ -77,7 +77,7 @@ public class BindingRenderer extends Renderer<BindingRenderer.BindingData> {
       this.name = name;
       this.type = type;
       this.instance = instance;
-      this.verbose = (verbose != null ? verbose : false);
+      this.verbose = (verbose != null && verbose);
     }
   }
 

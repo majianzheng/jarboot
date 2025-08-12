@@ -2,6 +2,9 @@ import {
   FILE_MGR,
   PAGE_COMMON,
   PAGE_JVM,
+  PAGE_MONITOR,
+  PAGE_OPEN_API,
+  PAGE_PREFERENCES,
   PAGE_PRIVILEGE,
   PAGE_ROLE,
   PAGE_SERVICE,
@@ -21,6 +24,7 @@ export default [
       keepAlive: true,
       module: 'SERVICES_MGR',
       code: 'SERVICES_MGR',
+      icon: 'HomeFilled',
     },
   },
   {
@@ -31,6 +35,7 @@ export default [
       keepAlive: true,
       module: 'ONLINE_DEBUG',
       code: 'ONLINE_DEBUG',
+      icon: 'icon-debug',
     },
   },
   {
@@ -42,8 +47,20 @@ export default [
       menu: true,
       module: 'TOOLS',
       code: 'TOOLS',
+      icon: 'icon-terminal',
     },
     children: [
+      {
+        path: '/monitor',
+        name: PAGE_MONITOR,
+        component: () => import('@/views/tools/monitor.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'TOOLS',
+          code: 'MONITOR',
+          icon: 'icon-monitor',
+        },
+      },
       {
         path: 'file-manager',
         name: FILE_MGR,
@@ -77,8 +94,20 @@ export default [
       menu: true,
       module: 'SETTING',
       code: 'SETTING',
+      icon: 'Setting',
     },
     children: [
+      {
+        path: 'preference',
+        name: PAGE_PREFERENCES,
+        component: () => import('@/views/setting/preferences-config.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'SETTING',
+          icon: 'icon-preferences',
+          code: 'PREFERENCES_CONFIG',
+        },
+      },
       {
         path: 'common',
         name: PAGE_COMMON,
@@ -124,6 +153,17 @@ export default [
         },
       },
       {
+        path: 'open-api',
+        name: PAGE_OPEN_API,
+        component: () => import('@/views/setting/open-api.vue'),
+        meta: {
+          keepAlive: true,
+          module: 'SETTING',
+          icon: 'icon-openapi',
+          code: 'OPEN_API',
+        },
+      },
+      {
         path: 'trusted-hosts',
         name: PAGE_TRUST_HOSTS,
         component: () => import('@/views/setting/trusted-hosts.vue'),
@@ -132,6 +172,16 @@ export default [
           module: 'SETTING',
           icon: 'Memo',
           code: 'TRUSTED_HOSTS',
+        },
+      },
+      {
+        path: 'audit',
+        name: 'audit',
+        component: () => import('@/views/setting/audit-log.vue'),
+        meta: {
+          module: 'SETTING',
+          icon: 'Notebook',
+          code: 'AUDIT_LOG',
         },
       },
     ],

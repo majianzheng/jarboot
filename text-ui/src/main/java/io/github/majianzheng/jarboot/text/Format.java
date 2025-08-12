@@ -36,7 +36,7 @@ public abstract class Format {
     protected Text() {
     }
     @Override
-    public void begin(Appendable to) throws IOException {
+    public void begin(Appendable to) throws IOException {// default implementation ignored
     }
     @Override
     public void write(CharSequence s, Appendable to) throws IOException {
@@ -51,13 +51,13 @@ public abstract class Format {
     }
 
     @Override
-    public void write(Style style, Appendable to) throws IOException {
+    public void write(Style style, Appendable to) throws IOException {// default implementation ignored
     }
     @Override
-    public void cls(Appendable to) throws IOException {
+    public void cls(Appendable to) throws IOException {// default implementation ignored
     }
     @Override
-    public void end(Appendable to) throws IOException {
+    public void end(Appendable to) throws IOException {// default implementation ignored
     }
   }
 
@@ -65,7 +65,7 @@ public abstract class Format {
     protected Ansi() {
     }
     @Override
-    public void begin(Appendable to) throws IOException {
+    public void begin(Appendable to) throws IOException {// default implementation ignored
     }
     @Override
     public void write(CharSequence s, Appendable to) throws IOException {
@@ -82,10 +82,10 @@ public abstract class Format {
       style.writeAnsiTo(to);
     }
     @Override
-    public void cls(Appendable to) throws IOException {
+    public void cls(Appendable to) throws IOException {// default implementation ignored
     }
     @Override
-    public void end(Appendable to) throws IOException {
+    public void end(Appendable to) throws IOException {// default implementation ignored
     }
   }
 
@@ -127,10 +127,10 @@ public abstract class Format {
       }
     }
     @Override
-    public void write(Style style, Appendable to) throws IOException {
+    public void write(Style style, Appendable to) throws IOException {// default implementation ignored
     }
     @Override
-    public void cls(Appendable to) throws IOException {
+    public void cls(Appendable to) throws IOException {// default implementation ignored
     }
     @Override
     public void end(Appendable to) throws IOException {

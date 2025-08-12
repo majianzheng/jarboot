@@ -5,8 +5,8 @@ import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
 import io.github.majianzheng.jarboot.common.notify.AbstractEventRegistry;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
-import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import io.github.majianzheng.jarboot.config.WsConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executor;
 /**
  * @author majianzheng
  */
-@ServerEndpoint("/jarboot/event/ws")
+@ServerEndpoint(value = "/jarboot/event/ws", configurator = WsConfigurator.class)
 @Component
 public class JarbootEventServer implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(JarbootEventServer.class);
@@ -79,11 +80,13 @@ public class JarbootEventServer implements AbstractEventRegistry {
         if (null == clientSubs || clientSubs.isEmpty()) {
             return;
         }
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            byte[] body = JsonUtils.toJsonBytes(event);
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
+             ByteArrayOutputStream bao = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bao)) {
             stream.write(topic.getBytes(StandardCharsets.UTF_8));
             stream.write(SPLIT);
-            stream.write(body);
+            oos.writeObject(event);
+            bao.writeTo(stream);
             byte[] buf = stream.toByteArray();
             clientSubs.forEach(session -> NotifyReactor
                     .getInstance()

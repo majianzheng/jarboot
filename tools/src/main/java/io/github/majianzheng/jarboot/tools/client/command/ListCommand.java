@@ -1,11 +1,11 @@
 package io.github.majianzheng.jarboot.tools.client.command;
 
-import io.github.majianzheng.jarboot.api.cmd.annotation.Argument;
 import io.github.majianzheng.jarboot.api.cmd.annotation.Description;
 import io.github.majianzheng.jarboot.api.cmd.annotation.Name;
 import io.github.majianzheng.jarboot.api.cmd.annotation.Summary;
-import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.text.util.RenderUtil;
 
 import java.util.ArrayList;
@@ -17,64 +17,45 @@ import java.util.List;
  * @author majianzheng
  */
 @Name("list")
-@Summary("Display service or java process info.")
+@Summary("Display service info.")
 @Description("Example:\n" +
-        "  list service\n" +
-        "  list process\n" +
-        "  list s\n" +
-        "  list p\n")
+        "  list\n")
 public class ListCommand extends AbstractClientCommand {
-
-    private String option;
-    @Argument(argName = "option", index = 0, required = false)
-    @Description("list type, input service or process")
-    public void setOption(String option) {
-        this.option = option;
-    }
     @Override
     public void run() {
-        final String service = "service";
-        final String process = "process";
-        final String s = "s";
-        final String p = "p";
-        if (service.equalsIgnoreCase(option) || s.equalsIgnoreCase(option)) {
-            echoServices();
-        } else if (process.equalsIgnoreCase(option) || p.equalsIgnoreCase(option)) {
-            echoProcess();
-        } else {
-            printHelp();
-        }
-    }
-
-    private void echoProcess() {
-        List<JvmProcess> process = this.client.getJvmProcesses();
-        List<String> header = Arrays.asList("PID", "NAME", "STATUS", "HOST");
-        List<List<String>> rows = new ArrayList<>();
-        process.forEach(service ->  rows.add(Arrays.asList(
-                service.getPid(),
-                service.getName(),
-                withDefault(service.getStatus()),
-                withDefault(service.getHostName(), service.getHost()))));
-        String out = RenderUtil.renderTable(header, rows, terminal.getWidth(), null);
-        print(out);
+        echoServices();
     }
 
     private void echoServices() {
-        List<ServiceInstance> list = this.client.getServiceList();
+        List<ServiceInstance> list = this.client.getServiceGroup();
         List<String> header = Arrays.asList("SID", "NAME", "GROUP", "STATUS", "HOST");
         List<List<String>> rows = new ArrayList<>();
-        list.forEach(service -> rows.add(Arrays.asList(
-                    service.getSid(),
-                    service.getName(),
-                    withDefault(service.getGroup()),
-                    withDefault(service.getStatus()),
-                    withDefault(service.getHostName(), service.getHost()))));
+        wrapperList(list, rows);
         String out = RenderUtil.renderTable(header, rows, terminal.getWidth(), null);
-        print(out);
+        println(out);
+    }
+
+    private void wrapperList(List<ServiceInstance> list, List<List<String>> rows) {
+        list.forEach(service -> {
+            if (CommonConst.NODE_ROOT == service.getNodeType() || CommonConst.NODE_GROUP == service.getNodeType()) {
+                wrapperList(service.getChildren(), rows);
+            } else {
+                String host = service.getHost();
+                if (StringUtils.isNotEmpty(service.getHostName())) {
+                    host = String.format("%s(%s)", service.getHostName(), service.getHost());
+                }
+                rows.add(Arrays.asList(
+                        service.getSid(),
+                        service.getName(),
+                        withDefault(service.getGroup()),
+                        withDefault(service.getStatus()),
+                        withDefault(host)));
+            }
+        });
     }
 
     @Override
-    public void cancel() {
+    public void cancel() { // default implementation ignored
 
     }
 }

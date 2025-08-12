@@ -1,8 +1,10 @@
 package io.github.majianzheng.jarboot.common;
 
-import java.io.BufferedReader;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,12 +45,9 @@ public class ExecNativeCmd {
         } catch (SecurityException | IOException e) {
             return new ArrayList<>(0);
         }
-        ArrayList<String> sa = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))){
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sa.add(line);
-            }
+        List<String> sa = new ArrayList<>();
+        try (InputStream is = p.getInputStream()){
+            sa = IOUtils.readLines(is, StandardCharsets.UTF_8);
             p.waitFor();
         } catch (IOException e) {
             return new ArrayList<>(0);

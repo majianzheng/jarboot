@@ -6,3 +6,6 @@ spring:
         - file:jarboot-server/target/smart-doc/
         - classpath:/resources/
         - classpath:/static/
+server:
+  tomcat:
+    basedir: packaging/target/jarboot-bin/jarboot/.cache/catalina_home

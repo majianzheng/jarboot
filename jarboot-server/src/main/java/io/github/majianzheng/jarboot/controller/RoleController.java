@@ -1,14 +1,16 @@
 package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
+import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.PagedList;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.entity.RoleInfo;
 import io.github.majianzheng.jarboot.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -17,8 +19,9 @@ import java.util.List;
  */
 @RequestMapping(value = CommonConst.ROLE_CONTEXT)
 @RestController
+@PrivilegeCheck(value = "ROLE_MGR")
 public class RoleController {
-    @Autowired
+    @Resource
     private RoleService roleService;
 
     /**
@@ -28,7 +31,7 @@ public class RoleController {
      * @return 执行结果
      */
     @PutMapping
-    @ResponseBody
+    @EnableAuditLog("添加角色")
     public ResponseVo<String> addRole(String role, String name) {
         roleService.addRole(role, name);
         return HttpResponseUtils.success();
@@ -41,7 +44,7 @@ public class RoleController {
      * @return 执行结果
      */
     @PutMapping("/name")
-    @ResponseBody
+    @EnableAuditLog("设置角色名")
     public ResponseVo<String> setRoleName(String role, String name) {
         roleService.setRoleName(role, name);
         return HttpResponseUtils.success();
@@ -53,7 +56,6 @@ public class RoleController {
      * @return 角色列表
      */
     @GetMapping("/search")
-    @ResponseBody
     public ResponseVo<List<String>> searchRoles(@RequestParam String role) {
         return HttpResponseUtils.success(roleService.findRolesLikeRoleName(role));
     }
@@ -64,7 +66,7 @@ public class RoleController {
      * @return 执行结果
      */
     @DeleteMapping
-    @ResponseBody
+    @EnableAuditLog("删除角色")
     public ResponseVo<String> deleteRole(@RequestParam String role) {
         roleService.deleteRole(role);
         return HttpResponseUtils.success();
@@ -79,7 +81,6 @@ public class RoleController {
      * @return 角色信息列表
      */
     @GetMapping(value="/getRoles")
-    @ResponseBody
     public ResponseVo<PagedList<RoleInfo>> getRoles(String role, String name, Integer pageNo, Integer pageSize) {
         return HttpResponseUtils.success(roleService.getRoles(role, name, pageNo, pageSize));
     }
@@ -89,7 +90,6 @@ public class RoleController {
      * @return 角色名列表
      */
     @GetMapping(value="/getRoleList")
-    @ResponseBody
     public ResponseVo<List<RoleInfo>> getRoleList() {
         return HttpResponseUtils.success(roleService.getRoleList());
     }

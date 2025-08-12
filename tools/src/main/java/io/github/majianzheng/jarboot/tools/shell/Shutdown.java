@@ -6,6 +6,7 @@ import io.github.majianzheng.jarboot.common.PidFileHelper;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
@@ -13,10 +14,11 @@ import java.util.Map;
  * 终止服务
  * @author mazheng
  */
+@Slf4j
 public class Shutdown {
     public static void main(String[] args) {
-        if (StringUtils.isEmpty(System.getProperty(CommonConst.JARBOOT_HOME))) {
-            AnsiLog.error("JARBOOT_HOME is not set!");
+        if (StringUtils.isEmpty(System.getenv(CommonConst.JARBOOT_HOME))) {
+            log.error("JARBOOT_HOME is not set!");
             return;
         }
         // 先终止守护服务

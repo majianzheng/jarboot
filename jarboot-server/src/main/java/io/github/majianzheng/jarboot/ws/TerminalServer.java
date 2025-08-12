@@ -1,6 +1,7 @@
 package io.github.majianzheng.jarboot.ws;
 
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
+import io.github.majianzheng.jarboot.config.WsConfigurator;
 import io.github.majianzheng.jarboot.terminal.TerminalProcess;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
@@ -17,8 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author mazheng
  */
-@ServerEndpoint("/jarboot/main/terminal/ws")
+@ServerEndpoint(value = "/jarboot/main/terminal/ws", configurator = WsConfigurator.class)
 @RestController
+@SuppressWarnings({"java:S1181"})
 public class TerminalServer {
     private static final Logger logger = LoggerFactory.getLogger(TerminalServer.class);
     private static final Map<String, SessionProxy> SESSION_PROXY_MAP = new ConcurrentHashMap<>(16);

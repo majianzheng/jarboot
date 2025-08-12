@@ -1,11 +1,11 @@
 import Logger from '@/common/Logger';
 import StringUtil from '@/common/StringUtil';
 import { MSG_EVENT } from '@/common/EventConst';
-import { ACCESS_CLUSTER_HOST, PROTOCOL_SPLIT } from '@/common/CommonConst';
-import CommonUtils from '@/common/CommonUtils';
+import { PROTOCOL_SPLIT } from '@/common/CommonConst';
 import { ElMessage } from 'element-plus';
 import type { FuncCode } from '@/common/EventConst';
 import type { MsgData, MsgReq } from '@/types';
+import CommonUtils from '@/common/CommonUtils';
 
 enum NotifyType {
   /** 提示 */
@@ -31,6 +31,7 @@ let msg: any = null;
 class WsManager {
   /** 重连成功事件 */
   public static readonly RECONNECTED_EVENT = -1;
+  public static upgrading = false;
   /** 事件处理回调 */
   private static readonly HANDLERS = new Map<number, (data: MsgData) => void>();
   /** 全局Loading事件 */
@@ -39,7 +40,8 @@ class WsManager {
   private static websocket: WebSocket | null = null;
   /** 重连setInterval的句柄 */
   private static fd: any = null;
-  private static RECONNECT_SUCCESS_HANDLER: (() => void)[] = [];
+  private static RECONNECT_SUCCESS_HANDLER = new Map<string, () => void>();
+  private static PING_HANDLER: (() => void)[] = [];
 
   /**
    * 添加消息处理
@@ -52,14 +54,20 @@ class WsManager {
     }
   }
 
-  public static addReconnectSuccessHandler(handler: () => void) {
-    WsManager.RECONNECT_SUCCESS_HANDLER.push(handler);
+  public static addReconnectSuccessHandler(key: string, handler: () => void) {
+    WsManager.RECONNECT_SUCCESS_HANDLER.set(key, handler);
   }
 
-  public static clearReconnectSuccessHandler() {
-    WsManager.RECONNECT_SUCCESS_HANDLER = [];
+  public static removeReconnectSuccessHandler(key: string) {
+    WsManager.RECONNECT_SUCCESS_HANDLER.delete(key);
+  }
+  public static addPingHandler(handler: () => void) {
+    WsManager.PING_HANDLER.push(handler);
   }
 
+  public static clearPingHandler() {
+    WsManager.PING_HANDLER = [];
+  }
   /**
    * 清理所有消息处理句柄
    */
@@ -116,14 +124,10 @@ class WsManager {
         return;
       }
     }
-    const token = `${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-    let url = import.meta.env.DEV
-      ? `ws://${window.location.hostname}:9899/jarboot/main/service/ws?${token}`
-      : `ws://${window.location.host}/jarboot/main/service/ws?${token}`;
-    const host = CommonUtils.getCurrentHost();
-    if (host) {
-      url += `&${ACCESS_CLUSTER_HOST}=${host}`;
-    }
+    const protocol = 'https:' === window.location.protocol ? 'wss' : 'ws';
+    const url = import.meta.env.DEV
+      ? `${protocol}://${window.location.hostname}:9899/jarboot/main/service/ws`
+      : `${protocol}://${window.location.host}/jarboot/main/service/ws`;
     WsManager.websocket = new WebSocket(url);
     WsManager.websocket.onmessage = WsManager.onMessage;
     WsManager.websocket.onopen = WsManager.onOpen;
@@ -145,13 +149,11 @@ class WsManager {
     const key = hasSplit ? body : body.substring(0, index);
     const handle = WsManager.LOADING_MAP.get(key);
     WsManager.LOADING_MAP.delete(key);
-    if (hasSplit) {
-      handle && handle.close();
-    } else {
-      handle && handle.close();
+    handle && handle.close();
+    if (!hasSplit) {
       const duration = 0;
       const message = body.substring(index + 1);
-      WsManager.LOADING_MAP.set(key, ElMessage({ message, icon: 'Loading', key, duration }));
+      WsManager.LOADING_MAP.set(key, ElMessage({ message, icon: 'IconLoading', key, duration }));
     }
   };
 
@@ -202,6 +204,9 @@ class WsManager {
     }
     if (null !== WsManager.fd) {
       //连接成功，取消重连机制
+      //连接成功
+      Logger.log('websocket重连成功！');
+      WsManager.RECONNECT_SUCCESS_HANDLER.forEach(handler => handler());
       clearInterval(WsManager.fd);
       WsManager.fd = null;
     }
@@ -219,25 +224,28 @@ class WsManager {
     WsManager.reconnect();
   };
 
-  private static ping = () => {
+  public static readonly ping = () => {
     if (WsManager.websocket && WebSocket.OPEN === WsManager.websocket.readyState) {
       WsManager.websocket.send('ping');
-      setTimeout(WsManager.ping, 300000);
+      WsManager.PING_HANDLER.forEach(handler => handler());
+      setTimeout(WsManager.ping, 50000);
     }
   };
 
-  private static reconnect() {
-    if (null !== WsManager.fd) {
+  public static reconnect() {
+    const state = WsManager.websocket?.readyState;
+    if (null !== WsManager.fd || WebSocket.OPEN === state || WebSocket.CONNECTING === state) {
       return;
     }
-    msg = ElMessage({ message: 'reconnecting...', duration: 0, icon: 'Loading' });
+    const info = WsManager.upgrading ? 'UPGRADE_TIPS' : 'RECONNECTING';
+    msg = ElMessage({ message: CommonUtils.translate(info), duration: 0, icon: 'IconLoading' });
     WsManager.fd = setInterval(() => {
       if (null === WsManager.fd) {
         //已经进入连onOpen
         return;
       }
       if (WebSocket.CONNECTING === WsManager.websocket?.readyState) {
-        //正在连接，下一周期再次查看
+        //正在连接，下一 周期再次查看
         return;
       }
       if (WebSocket.OPEN === WsManager.websocket?.readyState) {

@@ -18,6 +18,7 @@ import io.github.majianzheng.jarboot.core.stream.ResultStreamDistributor;
 import io.github.majianzheng.jarboot.core.utils.InstrumentationUtils;
 import io.github.majianzheng.jarboot.core.utils.LogUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,9 @@ public class JarbootBootstrap {
             //初始化日志模块
             LogUtils.init(jarbootHome, serverName);
 
+            // 初始化catalina.home，tomcat等默认缓存路径
+            initSysProp(jarbootHome);
+
             //2.环境初始化
             EnvironmentContext.init(jarbootHome, clientData, inst);
 
@@ -68,6 +72,28 @@ public class JarbootBootstrap {
         this.initClient();
         //fix: attach本地进程时未初始化而不显示控制台输出的问题，初始化标准输出流
         initStdStream(isPremain);
+    }
+
+    private static void initSysProp(String jarbootHome) {
+        String catalineHome = FileUtils.getFile(jarbootHome, ".cache", "catalina_home").getAbsolutePath();
+        System.setProperty("catalina.home", catalineHome);
+        System.setProperty("catalina.base", catalineHome);
+        System.setProperty("server.tomcat.basedir", catalineHome);
+        //提高启动速度；彩色日志启动
+        System.setProperty("spring.output.ansi.enabled", "always");
+        final String tempDirProp = "java.io.tmpdir";
+        if (StringUtils.isEmpty(System.getProperty(tempDirProp))) {
+            File tmp = FileUtils.getFile(jarbootHome, ".cache");
+            if (!tmp.exists() && !tmp.mkdirs()) {
+                LogUtils.getLogger().error("Create tmp dir failed: {}", tmp.getAbsolutePath());
+            }
+            String tmpDir = tmp.getAbsolutePath();
+            System.setProperty(tempDirProp, tmpDir);
+        }
+        final String fileEncoding = "file.encoding";
+        if (StringUtils.isEmpty(System.getProperty(fileEncoding))) {
+            System.setProperty(fileEncoding, "UTF-8");
+        }
     }
 
     public void initClient() {

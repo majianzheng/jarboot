@@ -18,7 +18,7 @@
               width: `${state.containerBoxData.width}px`,
               height: `${state.containerBoxData.height}px`,
             }">
-            <img ref="$img" :src="state.imgURL" alt="image" />
+            <img ref="$img" :src="state.imgURL" alt="user" />
             <div class="img-mask"></div>
             <div
               class="select-box"

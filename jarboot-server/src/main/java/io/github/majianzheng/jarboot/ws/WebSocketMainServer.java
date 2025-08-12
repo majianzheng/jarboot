@@ -4,6 +4,7 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.config.WsConfigurator;
 import io.github.majianzheng.jarboot.dao.UserDao;
 import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.notify.DefaultPublisher;
@@ -26,8 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 向浏览器推送消息
  * @author majianzheng
  */
-@ServerEndpoint(CommonConst.MAIN_WS_CONTEXT)
+@ServerEndpoint(value = CommonConst.MAIN_WS_CONTEXT, configurator = WsConfigurator.class)
 @RestController
+@SuppressWarnings({"java:S2696"})
 public class WebSocketMainServer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketMainServer.class);
     private static final ConcurrentHashMap<String, SessionOperator> SESSIONS = new ConcurrentHashMap<>(32);
@@ -138,7 +140,9 @@ public class WebSocketMainServer {
             public void onEvent(BroadcastMessageEvent event) {
                 if (event.getSessionIds().isEmpty()) {
                     SESSIONS.values().forEach(operator -> operator.newMessage(event));
-                    ClusterClientManager.getInstance().notifyToOtherClusterFront(event);
+                    FromOtherClusterServerMessageEvent messageEvent = new FromOtherClusterServerMessageEvent();
+                    messageEvent.setMessage(event.message());
+                    ClusterClientManager.getInstance().notifyToOtherCluster(messageEvent);
                     return;
                 }
                 // 定点广播
@@ -180,7 +184,7 @@ public class WebSocketMainServer {
             }
             return;
         }
-        ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+        ClusterClientManager.getInstance().notifyToOtherCluster(host, new FromOtherClusterServerMessageEvent(event.getSid(), sessionId, event.message()));
     }
 
     private static void broadToDirect(BroadcastMessageEvent event, String sessionId) {
@@ -196,7 +200,7 @@ public class WebSocketMainServer {
                 }
                 return;
             }
-            ClusterClientManager.getInstance().notifyToOtherClusterFront(host, event, sessionId);
+            ClusterClientManager.getInstance().notifyToOtherCluster(host, new FromOtherClusterServerMessageEvent(event.getSid(), sessionId, event.message()));
         } else {
             SessionOperator operator = SESSIONS.getOrDefault(sessionId, null);
             if (null != operator) {

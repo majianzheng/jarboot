@@ -10,13 +10,17 @@
 
   <fileSets>
     <fileSet>
-      <directory>bin</directory>
+      <directory>src/main/bin</directory>
       <outputDirectory>bin</outputDirectory>
       <fileMode>0755</fileMode>
     </fileSet>
     <fileSet>
-      <directory>script</directory>
+      <directory>src/main/script</directory>
       <outputDirectory>script</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/data</directory>
+      <outputDirectory>data</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>../jarboot-ui2/dist</directory>
@@ -65,7 +69,7 @@
       <destName>plugins/agent/shell-plugin.jar</destName>
     </file>
     <file>
-      <source>conf/cluster.conf</source>
+      <source>src/main/conf/cluster.conf</source>
       <destName>conf/cluster.conf</destName>
     </file>
     <file>

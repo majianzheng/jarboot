@@ -6,6 +6,76 @@
   "description": "jarboot ui icon project",
   "glyphs": [
     {
+      "icon_id": "5263030",
+      "name": "升级",
+      "font_class": "upgrade",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "41799382",
+      "name": "icon_openapi",
+      "font_class": "openapi",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "5657738",
+      "name": "脚本语言",
+      "font_class": "script",
+      "unicode": "e7e3",
+      "unicode_decimal": 59363
+    },
+    {
+      "icon_id": "4579846",
+      "name": "enter",
+      "font_class": "enter",
+      "unicode": "e94f",
+      "unicode_decimal": 59727
+    },
+    {
+      "icon_id": "1361523",
+      "name": "内存",
+      "font_class": "memory",
+      "unicode": "e68e",
+      "unicode_decimal": 59022
+    },
+    {
+      "icon_id": "2269861",
+      "name": "服务器",
+      "font_class": "server",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "9241769",
+      "name": "硬盘",
+      "font_class": "disk",
+      "unicode": "e82d",
+      "unicode_decimal": 59437
+    },
+    {
+      "icon_id": "39097161",
+      "name": "cpu",
+      "font_class": "cpu",
+      "unicode": "e77d",
+      "unicode_decimal": 59261
+    },
+    {
+      "icon_id": "35069316",
+      "name": "资源监控",
+      "font_class": "monitor",
+      "unicode": "e6f8",
+      "unicode_decimal": 59128
+    },
+    {
+      "icon_id": "39030515",
+      "name": "偏好设置",
+      "font_class": "preferences",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
       "icon_id": "1444787",
       "name": "json",
       "font_class": "json",

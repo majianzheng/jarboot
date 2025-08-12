@@ -97,7 +97,7 @@ export default class ClusterManager {
     const form: Map<string, string> = new Map<string, string>();
     if (!file) {
       Logger.error('file is null.', file);
-      return Promise.reject('file is null');
+      return Promise.reject(new Error('file is null'));
     }
     if (clusterHost) {
       form.set('clusterHost', clusterHost);

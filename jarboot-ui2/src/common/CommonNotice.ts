@@ -17,7 +17,7 @@ export default class CommonNotice {
     }
     ElNotification({
       title: msg,
-      message: description || '',
+      message: description ?? '',
       type: 'success',
     });
   }
@@ -27,7 +27,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static info(msg: string | any, description: any = '') {
+  static info(msg: any, description: any = '') {
     ElNotification({
       title: msg,
       message: description,
@@ -40,7 +40,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static error = (msg: string | any, description: any = '') => {
+  static error = (msg: any, description: any = '') => {
     ElNotification({
       title: msg,
       message: description,
@@ -53,7 +53,7 @@ export default class CommonNotice {
    * @param msg 消息
    * @param description 描述
    */
-  static warn = (msg: string | any, description: any = '') => {
+  static warn = (msg: any, description: any = '') => {
     ElNotification({
       title: msg,
       message: description,

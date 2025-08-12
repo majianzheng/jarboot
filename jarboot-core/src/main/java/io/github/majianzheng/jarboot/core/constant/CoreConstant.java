@@ -6,6 +6,7 @@ package io.github.majianzheng.jarboot.core.constant;
  */
 public class CoreConstant {
     public static final String START_DETERMINE_TIME_KEY = "start.determine.time";
+    public static final String MAX_WAIT_STARTED_TIME_KEY = "start.wait.time";
     /** ig: -Djarboot.stdout.file=start.out */
     public static final String STD_OUT_FILE = "jarboot.stdout.file";
     /** jarboot.stdout.file.always=true则一直记录，否则进程启动成功后停止记录 */

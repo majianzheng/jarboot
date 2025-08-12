@@ -1,4 +1,10 @@
 // import dark theme
+/* 改变主题色变量 */
+$--color-primary: teal;
+
+/* 改变 icon 字体路径变量，必需 */
+$--font-path: '~element-ui/lib/theme-chalk/fonts';
+
 @use "element-plus/theme-chalk/src/dark/css-vars.scss" as *;
 
 :root {
@@ -6,16 +12,20 @@
   --toolbar-bg-color: #f5f5f5;
   --side-bg-color: #ffffff;
   --tool-button-hover-color: #d4d4d4;
+  --tool-button-active-color: #d4d4d4;
   --panel-header-bg-color: #eaeaea87;
   --board-panel-body-color: #ffffff;
+  --bottom-nav-color: #2f2d31;
 }
 :root.dark {
   --color-hight: #fff;
   --toolbar-bg-color: #4e4e4e;
   --side-bg-color: #212121;
   --tool-button-hover-color: #717171;
+  --tool-button-active-color: #d4d4d4;
   --panel-header-bg-color: #2f2d3191;
   --board-panel-body-color: rgba(41,52,65,1);
+  --bottom-nav-color: #f5f5f5;
 }
 
 .el-tabs--card>.el-tabs__header {

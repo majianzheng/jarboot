@@ -23,6 +23,7 @@ import java.util.Iterator;
 
 /**
  * A line oriented renderer.
+ * @author majianzheng
  */
 public abstract class LineRenderer {
 

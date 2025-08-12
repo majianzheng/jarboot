@@ -15,7 +15,6 @@ import io.github.majianzheng.jarboot.event.ServiceStartedEvent;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +25,7 @@ import java.util.Objects;
  * @author majianzheng
  */
 @RequestMapping(value = CommonConst.AGENT_CLIENT_CONTEXT)
-@Controller
+@RestController
 public class AgentClientController {
 
     /**
@@ -37,7 +36,6 @@ public class AgentClientController {
      * @return 处理结果
      */
     @PostMapping(value="/response")
-    @ResponseBody
     public ResponseSimple onResponse(
             @RequestParam(required = false) String userDir,
             @RequestParam String serviceName,
@@ -57,7 +55,6 @@ public class AgentClientController {
      * @return 处理结果
      */
     @GetMapping(value="/setStarted")
-    @ResponseBody
     public ResponseSimple setStarted(@RequestParam String userDir, @RequestParam String serviceName, @RequestParam String sid) {
         NotifyReactor
                 .getInstance()
@@ -71,7 +68,6 @@ public class AgentClientController {
      * @return Agent客户端信息
      */
     @PostMapping(value="/agentClient")
-    @ResponseBody
     public AgentClient getAgentClientInfo(HttpServletRequest request, @RequestBody String code) {
         final int limit = 3;
         String[] array = code.split(CommonConst.COMMA_SPLIT, limit);

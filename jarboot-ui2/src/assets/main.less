@@ -6,21 +6,15 @@
 body {
   margin: 0;
 }
-@media (hover: hover) {
-  a:hover {
-  }
+
+.el-button:focus-visible {
+  outline: none !important;
 }
-
-@media (min-width: 1024px) {
-  body {
-  }
-
-  #app {
-  }
+:focus-visible {
+  outline: none !important;
 }
 .__container-wrapper {
   position: fixed;
-  height: 100vh;
 }
 @side-width: 320px;
 @tree-icon-size: 1.18em;
@@ -89,6 +83,12 @@ body {
   user-select: none;
 }
 
+.mobile-drawer {
+  z-index: 1;
+  height: calc(100vh - 105px);
+  top: 60px;
+}
+
 //全局滚动条样式
 *::-webkit-scrollbar {
   /*滚动条整体样式*/
@@ -111,6 +111,17 @@ body {
 .ui-spin {
   animation: span-frame1 3s infinite linear;
 }
+
+/* 确保终端容器和子元素允许文本选择 */
+.xterm, .xterm-viewport, .xterm-screen {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+/* 禁用鼠标事件的拦截（如存在） */
+.xterm-viewport {
+  pointer-events: auto !important;
+}
+
 
 @keyframes span-frame1
 {

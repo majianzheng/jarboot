@@ -9,6 +9,7 @@ import io.github.majianzheng.jarboot.text.util.RenderUtil;
 
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,7 +58,7 @@ public class JvmView implements ResultView<JvmModel> {
             row.add(item.getValue().toString());
             rows.add(row);
         });
-        sb.append(RenderUtil.renderTable(null , rows, session.getCol(), BorderStyle.DASHED));
+        sb.append(RenderUtil.renderTable(Collections.singletonList(title), rows, session.getCol(), BorderStyle.DASHED));
     }
 
     private void renderGarbageCollectors(StringBuilder sb, List<JvmModel.GarbageCollectorItem> list) {

@@ -8,6 +8,8 @@ public class AuthConst {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
+    public static final String TOKEN_COOKIE_NAME = "jt_token";
+    public static final String CLUSTER_COOKIE_NAME = "jt_cluster";
     public static final String ACCESS_TOKEN = "accessToken";
     public static final String CLUSTER_TOKEN = "clusterToken";
 

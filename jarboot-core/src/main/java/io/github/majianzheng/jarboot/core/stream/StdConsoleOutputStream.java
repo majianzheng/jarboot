@@ -1,7 +1,6 @@
 package io.github.majianzheng.jarboot.core.stream;
 
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 标准输出流实现类
@@ -16,16 +15,12 @@ public class StdConsoleOutputStream extends OutputStream {
     private static final int  ANSI_CHECK_THRESHOLD = (FLUSH_THRESHOLD  + MIN_PRINT_UNIT * 62);
     /** buffer起始的无效索引 */
     private static final int NO_BUFFER_OFFSET = -1;
-    /** 退格键 */
-    private static final byte BACKSPACE = '\b';
     /** ANSI控制符 */
     private static final String ANSI_BEGIN = "\003[";
     /** IO 字符缓存 */
     private final byte[] buffer = new byte[FLUSH_THRESHOLD + MIN_PRINT_UNIT * 64];
     /** buffer当前索引位置 */
     private int offset = NO_BUFFER_OFFSET;
-    /** 退格的计数值 */
-    private final AtomicInteger backspaceNum = new AtomicInteger(0);
     /** 文本处理接口 */
     private StdPrintHandler printHandler;
     /** IO 唤醒接口 */

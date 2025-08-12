@@ -1,10 +1,11 @@
 package io.github.majianzheng.jarboot.security;
 
+import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
-import io.github.majianzheng.jarboot.constant.AuthConst;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -28,11 +29,11 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        String jwt = resolveToken(request);
+        String jwt = CommonUtils.getToken(request);
         
         if (!StringUtils.isBlank(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                String accessClusterHost = getAccessClusterHost(request);
+                String accessClusterHost = CommonUtils.getAccessClusterHost(request);
                 if (ClusterClientManager.getInstance().clusterAuth(jwt, accessClusterHost)) {
                     chain.doFilter(request, response);
                     return;
@@ -46,9 +47,13 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             }
             chain.doFilter(request, response);
         } else {
-            if (ClusterClientManager.getInstance().authClusterToken(request)) {
+            if (request.getRequestURI().startsWith(CommonConst.CLUSTER_CONTEXT) && ClusterClientManager.getInstance().authClusterToken(request)) {
                 chain.doFilter(request, response);
                 return;
+            }
+            if (!"/".equals(request.getRequestURI())) {
+                logger.info(String.format("当前未登录，方法：%s，url: %s，query: %s，remoteIp：%s",
+                        request.getMethod(), request.getRequestURL(), request.getQueryString(), request.getRemoteAddr()));
             }
             handleError(response, "未登录");
         }
@@ -59,31 +64,5 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         response.setContentType("application/json");
         response.getOutputStream().write(JsonUtils.toJsonBytes(new ResponseSimple(HttpServletResponse.SC_UNAUTHORIZED, msg)));
         response.getOutputStream().flush();
-    }
-
-    /**
-     * Get token from header.
-     */
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
-        if (!StringUtils.isBlank(bearerToken)) {
-            if (bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
-                return bearerToken.substring(AuthConst.TOKEN_PREFIX.length());
-            }
-            return bearerToken;
-        }
-        String jwt = request.getParameter(AuthConst.ACCESS_TOKEN);
-        if (!StringUtils.isBlank(jwt)) {
-            return jwt;
-        }
-        return null;
-    }
-
-    private String getAccessClusterHost(HttpServletRequest request) {
-        String accessClusterHost = request.getHeader(AuthConst.ACCESS_CLUSTER_HOST);
-        if (StringUtils.isEmpty(accessClusterHost)) {
-            accessClusterHost = request.getParameter(AuthConst.ACCESS_CLUSTER_HOST);
-        }
-        return accessClusterHost;
     }
 }

@@ -10,6 +10,7 @@ import java.util.*;
 /**
  * @author majianzheng
  */
+@SuppressWarnings({"java:S1874"})
 public class StringUtilsTest {
     @Rule public final ExpectedException thrown = ExpectedException.none();
 

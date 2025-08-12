@@ -4,7 +4,6 @@ import { round } from 'lodash';
 import type { UploadFileInfo } from '@/types';
 import StringUtil from '@/common/StringUtil';
 import { computed } from 'vue';
-import CommonUtils from '@/common/CommonUtils';
 
 const uploadStore = useUploadStore();
 function toggleVisible() {
@@ -18,18 +17,18 @@ function calcPercent(row: UploadFileInfo) {
 }
 
 function uploadSize(row: UploadFileInfo) {
-  const append = row.uploadSize >= row.totalSize ? CommonUtils.translate('FINISHED') : CommonUtils.translate('TRANSMITTING');
   return `${StringUtil.formatBytes(row.uploadSize).fileSize} / ${StringUtil.formatBytes(row.totalSize).fileSize} `;
 }
 
 function pauseOrResume(row: UploadFileInfo) {
+  const key = `${row.clusterHost || 'localhost'}://${row.dstPath}`;
   if (row.pause) {
-    uploadStore.resume(row.dstPath);
+    uploadStore.resume(key);
   } else {
-    uploadStore.pause(row.dstPath);
+    uploadStore.pause(key);
   }
 }
-const uploadingCount = computed(() => uploadStore.uploadFiles.filter(row => row.uploadSize < row.totalSize).length);
+const uploadingCount = computed(() => uploadStore.uploadFiles.filter(row => (row?.uploadSize || 0) < (row?.totalSize || 0)).length);
 </script>
 
 <template>
@@ -45,7 +44,7 @@ const uploadingCount = computed(() => uploadStore.uploadFiles.filter(row => row.
           <el-table-column property="filename" width="160" :label="$t('FILE_NAME')" show-overflow-tooltip />
           <el-table-column :label="$t('SIZE')">
             <template #default="{ row }">
-              <span>{{ uploadSize(row) }}({{row.uploadSize >= row.totalSize ? $t('FINISHED') : $t('TRANSMITTING')}})</span>
+              <span>{{ uploadSize(row) }}({{ row.uploadSize >= row.totalSize ? $t('FINISHED') : $t('TRANSMITTING') }})</span>
             </template>
           </el-table-column>
           <el-table-column width="260" property="uploadSize" :label="$t('STATUS')">

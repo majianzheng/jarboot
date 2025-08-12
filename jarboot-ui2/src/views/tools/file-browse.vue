@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useBasicStore, useUserStore } from '@/stores';
-import { onMounted, reactive } from 'vue';
+import { onMounted, reactive, watch } from 'vue';
 import type { FileNode } from '@/types';
 import { canEdit } from '@/components/editor/LangUtils';
 import FileService from '@/services/FileService';
 import ClusterManager from '@/services/ClusterManager';
 import { ElMessageBox } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
+import { debounce } from 'lodash';
+import { useI18n } from 'vue-i18n';
 
 interface FileContent extends FileNode {
   clusterHost: string;
@@ -15,13 +17,14 @@ interface FileContent extends FileNode {
   modified: boolean;
   path: string;
 }
-
+const { locale } = useI18n();
 const basicStore = useBasicStore();
 const userStore = useUserStore();
 
 const state = reactive({
   files: [] as FileContent[],
   sideWidth: 380,
+  totalWidth: basicStore.innerWidth - 180,
   collapsed: false,
   active: '',
   loading: false,
@@ -29,7 +32,9 @@ const state = reactive({
   clusterHosts: [] as { host: string; name: string }[],
 });
 
-async function editTab(key: string, action: 'remove' | 'add') {
+watch(() => [basicStore.innerHeight, basicStore.innerWidth, locale.value], debounce(resize, 500, { maxWait: 1000 }));
+
+async function editTab(key: any, action: 'remove' | 'add') {
   if ('remove' === action) {
     const index = state.files.findIndex(item => item.key === key);
     if (index < 0) {
@@ -72,12 +77,6 @@ async function handleSelect(file: FileNode, path: string, clusterHost: string) {
   state.active = file.key;
 }
 
-function getTabWidth() {
-  if (state.collapsed) {
-    return basicStore.innerWidth - 85;
-  }
-  return basicStore.innerWidth - state.sideWidth - 85;
-}
 function onChange(file: FileContent) {
   file.modified = true;
 }
@@ -88,7 +87,16 @@ async function onSave(file: FileContent) {
     file.modified = false;
   }
 }
+function resize() {
+  const contentEle = document.querySelector('div.menu-side');
+  if (contentEle) {
+    state.totalWidth = basicStore.innerWidth - contentEle.clientWidth - 30;
+  } else {
+    state.totalWidth = basicStore.innerWidth - 180;
+  }
+}
 onMounted(async () => {
+  resize();
   state.clusterHosts = await ClusterManager.getOnlineClusterHosts();
 });
 </script>
@@ -98,8 +106,9 @@ onMounted(async () => {
     <two-sides-pro
       :show-header="false"
       v-model:collapsed="state.collapsed"
-      :body-height="basicStore.innerHeight - 56 + 'px'"
-      :left-width="state.sideWidth + 'px'">
+      :body-height="basicStore.innerHeight - 80"
+      :total-width="state.totalWidth"
+      :left-width="state.sideWidth">
       <template #left-content>
         <file-manager
           :with-root="true"
@@ -128,8 +137,7 @@ onMounted(async () => {
           v-model="state.active"
           type="card"
           editable
-          :style="{ width: getTabWidth() + 'px' }"
-          @tab-change="name => (state.active = name)"
+          @tab-change="name => (state.active = name as string)"
           @edit="editTab">
           <el-tab-pane v-for="item in state.files" :key="item.key" :label="item.name" :name="item.key">
             <template #label>
@@ -137,7 +145,7 @@ onMounted(async () => {
                 <el-tooltip :content="$t('SAVE')" v-if="item.modified">
                   <el-button link @click.stop="() => onSave(item)">
                     <template #icon>
-                      <el-icon><EditPen /></el-icon>
+                      <icon-pro icon="EditPen"></icon-pro>
                     </template>
                   </el-button>
                 </el-tooltip>
@@ -147,7 +155,7 @@ onMounted(async () => {
             <file-editor
               v-model="item.content"
               :name="item.name"
-              :height="basicStore.innerHeight - 90"
+              :height="basicStore.innerHeight - 112"
               @save="() => onSave(item)"
               @change="() => onChange(item)"></file-editor>
           </el-tab-pane>

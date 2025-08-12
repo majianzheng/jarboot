@@ -7,6 +7,8 @@ import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -23,6 +25,7 @@ import java.util.*;
  */
 @Service
 public class FileServiceImpl implements FileService {
+    private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
     @Resource
     private FileUploadProgressDao fileUploadProgressDao;
 
@@ -51,6 +54,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void deleteFile(String file) {
         check(file);
+        logger.info("删除文件：{}", file);
         try {
             FileUtils.forceDelete(FileUtils.getFile(SettingUtils.getWorkspace(), file));
         } catch (IOException e) {
@@ -61,6 +65,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void uploadFile(String file, InputStream is) {
         check(file);
+        logger.info("上传文件：{}", file);
         try (OutputStream os = FileUtils.openOutputStream(FileUtils.getFile(SettingUtils.getWorkspace(), file))) {
             IOUtils.copy(is, os);
         } catch (Exception e) {
@@ -71,6 +76,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void download(String file, OutputStream os) {
         check(file);
+        logger.info("下载文件：{}", file);
         try (InputStream is = FileUtils.openInputStream(FileUtils.getFile(SettingUtils.getWorkspace(), file))) {
             IOUtils.copy(is, os);
         } catch (Exception e) {
@@ -81,6 +87,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public String writeFile(String file, String content) {
         check(file);
+        logger.info("写入文件：{}", file);
         File file1 = FileUtils.getFile(SettingUtils.getWorkspace(), file);
         try {
             FileUtils.writeStringToFile(file1, content, StandardCharsets.UTF_8);
@@ -96,6 +103,7 @@ public class FileServiceImpl implements FileService {
         if (file1.exists()) {
             throw new JarbootException(file + "已存在！");
         }
+        logger.info("新建文件：{}", file);
         this.writeFile(file, content);
         return genNodeKey(file1);
     }
@@ -107,6 +115,7 @@ public class FileServiceImpl implements FileService {
         if (file1.exists()) {
             throw new JarbootException(file + "已存在！");
         }
+        logger.info("新建目录：{}", file);
         try {
             FileUtils.forceMkdir(file1);
         } catch (Exception e) {

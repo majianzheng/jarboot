@@ -6,7 +6,7 @@ package io.github.majianzheng.jarboot.cluster;
 
 public enum ClusterEventName {
     /** 推送前端 */
-    NOTIFY_TO_FRONT,
+    NOTIFY_TO_CLUSTER,
     /** 方法执行 */
     EXEC_FUNC,
     /** 启动服务 */

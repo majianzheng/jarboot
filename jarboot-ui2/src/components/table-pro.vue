@@ -84,7 +84,7 @@
       <div style="flex: auto"></div>
       <el-pagination
         background
-        small="small"
+        size="small"
         v-model:current-page="state.page"
         v-model:page-size="state.limit"
         :total="state.totalCount"

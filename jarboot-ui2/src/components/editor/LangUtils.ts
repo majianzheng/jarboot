@@ -144,6 +144,11 @@ export const parseModeByFilename = (filename: string) => {
   return 'text/plain';
 };
 
+function isTextFile(filename: string): boolean {
+  const ext = ['.cmd', '.bat', '.ps1', '.csv', '.tsv', '.dat'];
+  return ext.some(e => filename.endsWith(e));
+}
+
 export function canEdit(filename: string): boolean {
   let info = CodeMirror?.findModeByFileName(filename);
   if (!info) {
@@ -151,6 +156,9 @@ export function canEdit(filename: string): boolean {
     if (index > 0) {
       const ext = filename.substring(index + 1);
       info = CodeMirror?.findModeByExtension(ext);
+      if (!info && isTextFile(filename)) {
+        return true;
+      }
     }
   }
   return !!info;

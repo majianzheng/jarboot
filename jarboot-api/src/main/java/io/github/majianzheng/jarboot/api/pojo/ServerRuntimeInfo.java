@@ -1,8 +1,11 @@
 package io.github.majianzheng.jarboot.api.pojo;
 
+import lombok.ToString;
+
 /**
  * @author mazheng
  */
+@ToString
 public class ServerRuntimeInfo {
     private String machineCode;
     private String host;
@@ -10,6 +13,9 @@ public class ServerRuntimeInfo {
     private String version;
     private String workspace;
     private Boolean inDocker;
+    private Boolean dev;
+    private String jdk;
+    private String os;
 
     public String getMachineCode() {
         return machineCode;
@@ -57,5 +63,29 @@ public class ServerRuntimeInfo {
 
     public void setInDocker(Boolean inDocker) {
         this.inDocker = inDocker;
+    }
+
+    public Boolean getDev() {
+        return dev;
+    }
+
+    public void setDev(Boolean dev) {
+        this.dev = dev;
+    }
+
+    public String getJdk() {
+        return jdk;
+    }
+
+    public void setJdk(String jdk) {
+        this.jdk = jdk;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
     }
 }

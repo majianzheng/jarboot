@@ -83,7 +83,7 @@ public class ClassEnhancer implements ClassFileTransformer {
         affect.setListenerId(listener.id());
     }
 
-    @SuppressWarnings({"squid:S1181", "java:S3776", "squid:S1141", "squid:S1168", "squid:S135", "java:S1066", "PointlessBooleanExpression"})
+    @SuppressWarnings({"squid:S1181", "java:S3776", "java:S6541", "squid:S1141", "squid:S1168", "squid:S135", "java:S1066", "PointlessBooleanExpression"})
     @Override
     public byte[] transform(final ClassLoader inClassLoader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {

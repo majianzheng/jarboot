@@ -2,16 +2,17 @@ package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.*;
+import io.github.majianzheng.jarboot.audit.ServiceInstanceFormat;
 import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientProxy;
-import io.github.majianzheng.jarboot.cluster.ClusterServerState;
+import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
+import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,17 +30,17 @@ import java.util.List;
  */
 @RequestMapping(value = CommonConst.CLUSTER_MGR_CONTEXT)
 @RestController
+@PrivilegeCheck(value = {"SERVICES_MGR", "ONLINE_DEBUG"})
 public class ClusterManagerController {
     @Resource
     private ClusterClientProxy clusterClientProxy;
-    @Autowired
+    @Resource
     private ServerRuntimeService serverRuntimeService;
     /**
      * 获取存活的集群
      * @return 集群列表
      */
     @GetMapping("onlineClusterHosts")
-    @ResponseBody
     public ResponseVo<List<HostInfo>> getOnlineClusterHosts() {
         List<HostInfo> hosts = new ArrayList<>();
         ClusterClientManager.getInstance().getHosts().forEach((k, v) -> {
@@ -59,7 +60,6 @@ public class ClusterManagerController {
      * @return 服务列表
      */
     @GetMapping("services")
-    @ResponseBody
     public ResponseVo<List<ServiceInstance>> getServiceGroup() {
         return HttpResponseUtils.success(clusterClientProxy.getServiceGroup());
     }
@@ -69,7 +69,6 @@ public class ClusterManagerController {
      * @return 服务列表
      */
     @GetMapping("jvmGroups")
-    @ResponseBody
     public ResponseVo<List<JvmProcess>> getJvmGroup() {
         return HttpResponseUtils.success(clusterClientProxy.getJvmGroup());
     }
@@ -77,10 +76,10 @@ public class ClusterManagerController {
     /**
      * 启动服务
      * @param services 服务实例
-     * @return
+     * @return 执行结果
      */
     @PostMapping("startServices")
-    @ResponseBody
+    @EnableAuditLog(value = "启动服务", argsFormat = ServiceInstanceFormat.class)
     public ResponseSimple startService(@RequestBody List<ServiceInstance> services) {
         clusterClientProxy.startService(services);
         return HttpResponseUtils.success();
@@ -89,10 +88,10 @@ public class ClusterManagerController {
     /**
      * 停止服务
      * @param services 服务实例
-     * @return
+     * @return 执行结果
      */
     @PostMapping("stopServices")
-    @ResponseBody
+    @EnableAuditLog(value = "停止服务", argsFormat = ServiceInstanceFormat.class)
     public ResponseSimple stopService(@RequestBody List<ServiceInstance> services) {
         clusterClientProxy.stopService(services);
         return HttpResponseUtils.success();
@@ -101,10 +100,10 @@ public class ClusterManagerController {
     /**
      * 重启服务
      * @param services 服务实例
-     * @return
+     * @return 执行结果
      */
     @PostMapping("restartServices")
-    @ResponseBody
+    @EnableAuditLog(value = "重启服务", argsFormat = ServiceInstanceFormat.class)
     public ResponseSimple restartService(@RequestBody List<ServiceInstance> services) {
         clusterClientProxy.restartService(services);
         return HttpResponseUtils.success();
@@ -114,10 +113,10 @@ public class ClusterManagerController {
      * attach
      * @param host host
      * @param pid pid
-     * @return
+     * @return 执行结果
      */
     @PostMapping("attach")
-    @ResponseBody
+    @EnableAuditLog("attach进程")
     public ResponseSimple attach(String host, String pid) {
         clusterClientProxy.attach(host, pid);
         return HttpResponseUtils.success();
@@ -126,10 +125,10 @@ public class ClusterManagerController {
     /**
      * 删除服务
      * @param instances 实例
-     * @return
+     * @return 执行结果
      */
     @PostMapping("deleteService")
-    @ResponseBody
+    @EnableAuditLog(value = "删除服务", argsFormat = ServiceInstanceFormat.class)
     public ResponseSimple deleteService(@RequestBody List<ServiceInstance> instances) {
         if (null != instances) {
             instances.forEach(instance -> clusterClientProxy.deleteService(instance));
@@ -143,7 +142,6 @@ public class ClusterManagerController {
      * @return 服务配置
      */
     @PostMapping("serviceSetting")
-    @ResponseBody
     public ResponseVo<ServiceSetting> getServiceSetting(@RequestBody ServiceInstance instance) {
         return HttpResponseUtils.success(clusterClientProxy.getServiceSetting(instance));
     }
@@ -154,7 +152,7 @@ public class ClusterManagerController {
      * @return 服务配置
      */
     @PostMapping("saveServiceSetting")
-    @ResponseBody
+    @EnableAuditLog(value = "保存服务配置", argsFormat = ServiceInstanceFormat.class)
     public ResponseVo<ServiceSetting> saveServiceSetting(@RequestBody ServiceSetting setting) {
         clusterClientProxy.saveServiceSetting(setting);
         return HttpResponseUtils.success();
@@ -168,10 +166,11 @@ public class ClusterManagerController {
      * @param response Servlet response
      * @throws IOException IO 异常
      */
-    @GetMapping(value="/exportService")
+    @GetMapping(value="/exportService/{name}.zip")
+    @EnableAuditLog("导出服务")
     public void exportService(
             @RequestParam(required = false) String clusterHost,
-            @RequestParam String name,
+            @PathVariable String name,
             HttpServletResponse response) throws IOException {
         CommonUtils.setDownloadHeader(response, name + ".zip");
         try (OutputStream os = response.getOutputStream()) {
@@ -191,8 +190,10 @@ public class ClusterManagerController {
      * @return 执行结果
      */
     @PostMapping("/importService")
-    @ResponseBody
-    public ResponseVo<String> importService(@RequestParam(required = false) String clusterHost, @RequestParam("file") MultipartFile file) {
+    @EnableAuditLog("导入服务")
+    public ResponseVo<String> importService(
+            @RequestParam(required = false) String clusterHost,
+            @RequestParam("file") MultipartFile file) {
         try (InputStream is = file.getInputStream()) {
             if (CommonUtils.needProxy(clusterHost)) {
                 ClusterClient client = ClusterClientManager.getInstance().getClient(clusterHost);
@@ -212,8 +213,11 @@ public class ClusterManagerController {
      * @param file base64编码的文件全路径名
      * @param response Servlet response
      */
-    @GetMapping(value="/download/{file}")
-    public void download(@RequestParam(required = false) String clusterHost, @PathVariable("file") String file, HttpServletResponse response) throws IOException {
+    @GetMapping(value="/download")
+    @EnableAuditLog("从服务器下载文件")
+    public void download(
+            @RequestParam(name = "clusterHost", required = false) String clusterHost,
+            @RequestParam(name = "file") String file, HttpServletResponse response) throws IOException {
         CommonUtils.setDownloadHeader(response, null);
         try (OutputStream os = response.getOutputStream()) {
             if (CommonUtils.needProxy(clusterHost)) {
@@ -222,35 +226,6 @@ public class ClusterManagerController {
             } else {
                 serverRuntimeService.downloadAnyFile(file, os);
             }
-        }
-    }
-
-    public static class HostInfo {
-        private String host;
-        private String name;
-        private ClusterServerState state;
-        public String getHost() {
-            return host;
-        }
-
-        public void setHost(String host) {
-            this.host = host;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public ClusterServerState getState() {
-            return state;
-        }
-
-        public void setState(ClusterServerState state) {
-            this.state = state;
         }
     }
 }

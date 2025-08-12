@@ -17,6 +17,7 @@ import java.util.Locale;
 @Name("sh")
 @Summary("Execute shell")
 @Description("Example:\n sh xxx.sh\n sh xxx.bat\n sh echo Hello\n sh ls -a")
+@SuppressWarnings({"java:S1874"})
 public class ShCommandProcessor implements CommandProcessor {
     private static final boolean IS_WINDOWS;
     private Process process;

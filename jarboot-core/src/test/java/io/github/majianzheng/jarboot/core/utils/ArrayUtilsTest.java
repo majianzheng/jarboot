@@ -8,6 +8,7 @@ import org.junit.rules.ExpectedException;
 /**
  * @author majianzheng
  */
+@SuppressWarnings({"java:S1874"})
 public class ArrayUtilsTest {
 
     @Rule

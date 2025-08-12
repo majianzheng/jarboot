@@ -14,7 +14,7 @@ public class AgentResponseEvent implements JarbootEvent {
     private final String serviceName;
     private final String sid;
     private final CommandResponse response;
-    private final Session session;
+    private final transient Session session;
 
     public AgentResponseEvent(String userDir, String serviceName, String sid, CommandResponse response, Session session) {
         this.userDir = StringUtils.isEmpty(userDir) ? "default" : userDir;

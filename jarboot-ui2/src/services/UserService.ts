@@ -27,9 +27,9 @@ export default class UserService {
   ) {
     const form: FormData = new FormData();
     form.append('username', username);
-    form.append('fullName', fullName || '');
-    form.append('roles', roles || '');
-    form.append('userDir', userDir || '');
+    form.append('fullName', fullName ?? '');
+    form.append('roles', roles ?? '');
+    form.append('userDir', userDir ?? '');
     avatar && form.append('avatar', avatar);
     return Request.post<ResponseVo>(urlBase + '/update', form);
   }
@@ -58,5 +58,13 @@ export default class UserService {
 
   public static getUserDirs() {
     return Request.get<string[]>(`${urlBase}/userDirs`, {});
+  }
+
+  public static getTokens(username: string, pageNo: number, pageSize: number) {
+    return Request.get(`${urlBase}/open-api-token`, { username, pageNo, pageSize });
+  }
+
+  public static removeToken(id: number) {
+    return Request.delete(`${urlBase}/open-api-token`, { id });
   }
 }

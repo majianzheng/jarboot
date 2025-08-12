@@ -1,11 +1,12 @@
 package io.github.majianzheng.jarboot.cluster;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.github.majianzheng.jarboot.api.constant.ClusterServerState;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.api.event.ClusterEvent;
 import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
-import io.github.majianzheng.jarboot.event.FromOtherClusterServerMessageEvent;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.HttpUtils;
@@ -13,6 +14,7 @@ import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.github.majianzheng.jarboot.event.FuncReceivedEvent;
+import io.github.majianzheng.jarboot.monitor.vo.Server;
 import io.github.majianzheng.jarboot.security.JwtTokenManager;
 import io.github.majianzheng.jarboot.service.impl.ServiceManagerImpl;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
@@ -200,6 +202,41 @@ public class ClusterClient {
         HttpUtils.get(url, os, wrapToken());
     }
 
+    public Server getServerInfo() {
+        String url = formatUrl("/monitor/server");
+        try {
+            return HttpUtils.getObj(url, Server.class, wrapToken());
+        } catch (Exception e) {
+            logger.error("Get server info error: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public boolean upgradeCheck() {
+        String url = formatUrl("/upgrade/check");
+        JsonNode resp = HttpUtils.get(url, wrapToken());
+        try {
+            checkResponse(resp);
+            return true;
+        } catch (Exception e) {
+            // ignore
+            return false;
+        }
+    }
+
+    public void upgradeByPackage(InputStream is, String filename) {
+        String url = formatUrl("/upgrade/upload");
+        HttpUtils.upload(url, is, filename, null, wrapToken());
+    }
+
+    public void upgradeByUrl(String url) {
+        String url2 = formatUrl("/upgrade/url");
+        Map<String, String> params = new HashMap<>(2);
+        params.put("url", url);
+        JsonNode node = HttpUtils.post(url2, params, wrapToken());
+        checkResponse(node);
+    }
+
     private String wrapFileParam(String path, String content, String url) {
         Map<String, String> params = new HashMap<>(2);
         params.put("path", path);
@@ -285,13 +322,15 @@ public class ClusterClient {
             throw new JarbootException("cluster is not enabled, self host is empty!");
         }
         String msgUrl = StringUtils.EMPTY;
+        Map<String, String> token = getInnerUserToken();
         try {
             msgUrl = formatHandleMsgUrl();
-            ResponseSimple resp = HttpUtils.postObj(msgUrl, message, ResponseSimple.class, getInnerUserToken());
+            ResponseSimple resp = HttpUtils.postObj(msgUrl, message, ResponseSimple.class, token);
             if (!resp.getSuccess()) {
                 logger.error(resp.getMsg());
             }
         } catch (Exception e) {
+            logger.error("发送消息失败，token: {}", token.get(AuthConst.CLUSTER_TOKEN));
             logger.error("name: {}, body: {}, msgUrl: {}, error:{}", message.getName(), message.getBody(), msgUrl, e.getMessage(), e);
         }
     }
@@ -313,8 +352,8 @@ public class ClusterClient {
         ClusterEventName eventName = ClusterEventName.valueOf(eventMessage.getName());
         String resp = StringUtils.EMPTY;
         switch (eventName) {
-            case NOTIFY_TO_FRONT:
-                handleNotifyToFront(eventMessage);
+            case NOTIFY_TO_CLUSTER:
+                handleNotifyToCluster(eventMessage);
                 break;
             case EXEC_FUNC:
                 execFunc(eventMessage);
@@ -403,10 +442,14 @@ public class ClusterClient {
         NotifyReactor.getInstance().publishEvent(event);
     }
 
-    private static void handleNotifyToFront(ClusterEventMessage eventMessage) {
-        FromOtherClusterServerMessageEvent event = JsonUtils
-                .readValue(eventMessage.getBody(), FromOtherClusterServerMessageEvent.class);
-        NotifyReactor.getInstance().publishEvent(event);
+    private static void handleNotifyToCluster(ClusterEventMessage eventMessage) {
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new ByteArrayInputStream(java.util.Base64.getDecoder().decode(eventMessage.getBody().getBytes(StandardCharsets.UTF_8))))) {
+            ClusterEvent event = (ClusterEvent) ois.readObject();
+            NotifyReactor.getInstance().publishEvent(event);
+        } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
+        }
     }
 
     private String formatUrl(String api) {

@@ -162,7 +162,7 @@ const submitForm = async () => {
     if (props.resetPassword) {
       await UserService.updateUserPassword(props.username, modifyUserForm.password, modifyUserForm.oldPassword);
     } else {
-      await UserService.updateUser(props.username, state.form.fullName, null, null, state.form.avatar);
+      await UserService.updateUser(props.username, state.form.fullName, state.form.roles.join(','), state.form.userDir, state.form.avatar);
       if (state.form.avatar) {
         userStore.avatar = state.form.avatar;
       }
@@ -195,5 +195,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped></style>

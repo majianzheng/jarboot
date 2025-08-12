@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { STATUS_ATTACHED, STATUS_SCHEDULING, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
-import type { ServiceInstance, TreeNode } from '@/types';
+import type { ServiceInstance, TreeNode, ServerSetting } from '@/types';
 import { useBasicStore, useServiceStore } from '@/stores';
 import { ElMessageBox } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
@@ -8,7 +8,7 @@ import { WsManager } from '@/common/WsManager';
 import { FuncCode } from '@/common/EventConst';
 import { computed, reactive } from 'vue';
 import ClusterManager from '@/services/ClusterManager';
-import { ServerSetting } from '@/types';
+
 const props = defineProps<{
   isService: boolean;
   data: ServiceInstance;

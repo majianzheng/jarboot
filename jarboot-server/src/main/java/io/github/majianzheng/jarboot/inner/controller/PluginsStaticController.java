@@ -3,13 +3,12 @@ package io.github.majianzheng.jarboot.inner.controller;
 import io.github.majianzheng.jarboot.service.PluginsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,7 +21,7 @@ import java.io.OutputStream;
 @Controller
 public class PluginsStaticController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    @Autowired
+    @Resource
     private PluginsService pluginsService;
 
     /**
@@ -30,10 +29,9 @@ public class PluginsStaticController {
      * @param type 类型
      * @param plugin 插件
      * @param file 文件
-     * @param response
+     * @param response 响应
      */
     @GetMapping("/page/{type}/{plugin}/{file}")
-    @ResponseBody
     public void page(@PathVariable("type") String type,
                      @PathVariable("plugin") String plugin,
                      @PathVariable("file") String file,

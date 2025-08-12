@@ -58,17 +58,30 @@ Edge >=88
 ## Install or build
 ### Download the zip package to install or using docker.
 - <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
-- 🐳 Docker Hub: <https://registry.hub.docker.com/r/mazheng0908/jarboot>
 
 Use <code>docker</code>
 ```bash
 # Docker image build
 mvn clean install -P prod
-sh build/docker-push.sh
+sh docker/docker_image_build.sh
 
 # Start container
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
+#### 使用`docker compose`配置：
+```shell
+# build package
+mvn clean install -P prod
+# build docker image
+sh docker/docker_image_build.sh
+
+pushd docker
+# start docker compose
+docker-compose -f docker-compose.yml up -d
+popd 
+```
+- cluster mode：[docker-compose.yml](docker/docker-compose.yml)
+- standalone mode：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
 
 ### Code build method
 Ignore this when using zip package or <code>docker</code>.
@@ -385,9 +398,8 @@ We used JetBrains tools for developing and building.
 - QQ群已满，微信群二维码会过期，大家关注下抖音吧，关注后加入抖音的粉丝群
 - 抖音号：1077242754
 
-![抖音](https://gitee.com/majz0908/jarboot/raw/develop/doc/douyin.jpg)
-![QQ group](https://gitee.com/majz0908/jarboot/raw/develop/doc/qq-group.png)
-
+![抖音](https://gitee.com/majz0908/jarboot/raw/develop/doc/douyin.png)
+![投喂](https://gitee.com/majz0908/jarboot/raw/develop/doc/touwei.png)
 
 ## 仓库镜像
 

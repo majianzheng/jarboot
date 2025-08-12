@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { useBasicStore, useUserStore } from '@/stores';
 import RoleService from '@/services/RoleService';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import type { Privilege, RoleInfo } from '@/types';
 import routesConfig from '@/router/routes-config';
 import PrivilegeService from '@/services/PrivilegeService';
 import { DEFAULT_PRIVILEGE, SYS_ROLE } from '@/common/CommonConst';
+import { debounce } from 'lodash';
+import { useI18n } from 'vue-i18n';
 
+const { locale } = useI18n();
 const basicStore = useBasicStore();
 const userStore = useUserStore();
 const tableRef = ref();
+
 const state = reactive({
   currentRow: {} as RoleInfo,
   data: [] as any[],
+  totalWidth: basicStore.innerWidth - 180,
 });
+watch(() => [basicStore.innerHeight, basicStore.innerWidth, locale.value], debounce(resize, 500, { maxWait: 1000 }));
 
 function getList(params: any) {
   return RoleService.getRoles(params.role, params.name, params.page, params.limit);
@@ -51,7 +57,14 @@ function parseTree(config: any[], privilegeMap: any): any[] {
       };
     });
 }
-
+function resize() {
+  const contentEle = document.querySelector('div.menu-side');
+  if (contentEle) {
+    state.totalWidth = basicStore.innerWidth - contentEle.clientWidth - 30;
+  } else {
+    state.totalWidth = basicStore.innerWidth - 180;
+  }
+}
 async function treeData() {
   if (!state?.currentRow?.role) {
     return [];
@@ -59,9 +72,7 @@ async function treeData() {
   const privilegeList: Privilege[] = (await PrivilegeService.getPrivilegeByRole(state.currentRow.role)) || [];
   const privilegeMap = { ...DEFAULT_PRIVILEGE } as any;
   privilegeList.forEach(privilege => (privilegeMap[privilege.authCode] = privilege.permission));
-  const data = parseTree(routesConfig, privilegeMap);
-  console.info('>>>>', data, routesConfig, privilegeList, privilegeMap);
-  state.data = data;
+  state.data = parseTree(routesConfig, privilegeMap);
 }
 async function changePermission(row: any, value: boolean) {
   if (SYS_ROLE === row.role) {
@@ -79,10 +90,15 @@ async function changePermission(row: any, value: boolean) {
     row.permission = !value;
   }
 }
+onMounted(resize);
 </script>
 
 <template>
-  <two-sides-pro :body-height="basicStore.innerHeight - 120 + 'px'" :left-title="$t('ROLE')" :right-title="$t('PRIVILEGE_CONF') + rightTitle()">
+  <two-sides-pro
+    :body-height="basicStore.innerHeight - 120"
+    :total-width="state.totalWidth"
+    :left-title="$t('ROLE')"
+    :right-title="$t('PRIVILEGE_CONF') + rightTitle()">
     <template #left-tools>
       <el-button link type="primary" icon="Refresh" @click="reload">{{ $t('REFRESH_BTN') }}</el-button>
     </template>
@@ -115,5 +131,3 @@ async function changePermission(row: any, value: boolean) {
     </template>
   </two-sides-pro>
 </template>
-
-<style scoped lang="less"></style>

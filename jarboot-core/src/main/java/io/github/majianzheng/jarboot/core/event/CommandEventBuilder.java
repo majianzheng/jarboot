@@ -26,7 +26,7 @@ public class CommandEventBuilder {
     }
 
     public static class CommandEvent implements JarbootEvent {
-        protected AbstractCommand command;
+        protected transient AbstractCommand command;
         private CommandEvent(AbstractCommand command) {
             this.command = command;
         }

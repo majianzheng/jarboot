@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
  * 客户端命令执行器
  * @author majianzheng
  */
-@SuppressWarnings({"PMD.ServiceOrDaoClassShouldEndWithImplRule", "java:S2274"})
+@SuppressWarnings({"PMD.ServiceOrDaoClassShouldEndWithImplRule", "java:S2274", "java:S2446", "java:S2445"})
 @ClientEndpoint
 public class CommandExecutor implements CommandExecutorService, MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
     private static final int EXEC_CMD = 0;
     private static final int CANCEL = 1;
-    private static final int WAIT_TIME = 15;
+    private static final long WAIT_TIME = 15;
 
     Session client;
     private final ClientProxy proxy;
@@ -296,7 +296,8 @@ public class CommandExecutor implements CommandExecutorService, MessageListener 
         if (-1 != index) {
             token = token.substring(index + 1);
         }
-        final String url = new ApiStringBuilder(CommonConst.WS + host, CommonConst.MAIN_WS_CONTEXT)
+        String wsBaseUrl = ClientProxy.genWsBaseUrl(host);
+        final String url = new ApiStringBuilder(wsBaseUrl, CommonConst.MAIN_WS_CONTEXT)
                 .add("accessToken", token)
                 .build();
         Session client = ClientProxy.connectToServer(listener, url);

@@ -23,6 +23,7 @@ export default defineConfig({
     proxy: {
       '/api': host,
       '/jarboot/plugins': host,
+      '/jarboot/preferences': host,
     },
   },
   css: {

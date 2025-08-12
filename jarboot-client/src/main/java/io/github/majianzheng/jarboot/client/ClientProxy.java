@@ -12,20 +12,18 @@ import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.common.notify.AbstractEventRegistry;
 import io.github.majianzheng.jarboot.common.utils.HttpUtils;
-import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
-import org.apache.tomcat.websocket.WsWebSocketContainer;
+import org.apache.tomcat.websocket.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -35,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * 客户端请求代理
  * @author majianzheng
  */
-@SuppressWarnings({"unused", "java:S3740", "unchecked", "rawtypes"})
+@SuppressWarnings({"unused", "java:S3740", "java:S3398", "unchecked", "rawtypes"})
 public class ClientProxy implements AbstractEventRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientProxy.class);
     private static final Map<String, WsClient> SOCKETS = new ConcurrentHashMap<>(16);
@@ -47,14 +45,14 @@ public class ClientProxy implements AbstractEventRegistry {
     private final String host;
     private final boolean authorization;
     private String tokenKey;
-    private final String version;
+    private final ServerRuntimeInfo runtimeInfo;
 
-    private ClientProxy(String host, String username, String password, String version) {
-        this.baseUrl = CommonConst.HTTP + host;
+    private ClientProxy(String host, String username, String password, ServerRuntimeInfo runtimeInfo) {
+        this.baseUrl = host.startsWith("http") ? host : (CommonConst.HTTP + host);
         this.host = host;
         this.username = username;
         this.password = password;
-        this.version = version;
+        this.runtimeInfo = runtimeInfo;
         if (null == username) {
             this.authorization = false;
         } else {
@@ -63,8 +61,8 @@ public class ClientProxy implements AbstractEventRegistry {
         }
     }
 
-    private ClientProxy(String host, String version) {
-        this(host, null, null, version);
+    private ClientProxy(String host, ServerRuntimeInfo runtimeInfo) {
+        this(host, null, null, runtimeInfo);
     }
 
     public String getHost() {
@@ -72,7 +70,10 @@ public class ClientProxy implements AbstractEventRegistry {
     }
 
     public String getVersion() {
-        return this.version;
+        return this.runtimeInfo.getVersion();
+    }
+    public ServerRuntimeInfo getRuntimeInfo() {
+        return this.runtimeInfo;
     }
 
     public static Session connectToServer(Object obj, String url) {
@@ -108,8 +109,8 @@ public class ClientProxy implements AbstractEventRegistry {
     @ClientEndpoint
     public static class WsClient {
         private Session session;
-        private String host;
-        private String username;
+        private final String host;
+        private final String username;
         private CountDownLatch latch;
 
         public boolean send(byte[] data) {
@@ -137,7 +138,7 @@ public class ClientProxy implements AbstractEventRegistry {
             }
         }
         @OnOpen
-        public void onOpen() {
+        public void onOpen(Session session, EndpointConfig config) {
             CountDownLatch temp = this.latch;
             if (null != temp) {
                 temp.countDown();
@@ -149,7 +150,7 @@ public class ClientProxy implements AbstractEventRegistry {
         }
 
         @OnClose
-        public void onClosed() {
+        public void onClose(Session session, CloseReason closeReason) {
             SOCKETS.remove(host);
             NotifyReactor
                     .getInstance()
@@ -157,14 +158,15 @@ public class ClientProxy implements AbstractEventRegistry {
         }
 
         @OnError
-        public void onFailure(Throwable t) {
+        public void onError(Session session, Throwable t) {
             logger.error("连接异常：{}", t.getMessage(), t);
-            onClosed();
+            onClose(session, new CloseReason(CloseReason.CloseCodes.PROTOCOL_ERROR, t.getMessage()));
         }
         public WsClient(String host, String username, String accessToken) {
             this.host = host;
             this.username = username;
-            final String url = CommonConst.WS + host + CommonConst.EVENT_WS_CONTEXT + "?accessToken=" + accessToken;
+            String baseWs = genWsBaseUrl(host);
+            final String url = baseWs + CommonConst.EVENT_WS_CONTEXT + "?accessToken=" + accessToken;
             latch = new CountDownLatch(1);
             try {
                 final int maxWait = 5;
@@ -180,6 +182,24 @@ public class ClientProxy implements AbstractEventRegistry {
                 latch = null;
             }
         }
+    }
+
+    public static String genWsBaseUrl(String host) {
+        String baseWs;
+        if (host.startsWith(CommonConst.HTTPS)) {
+            baseWs = host.replace(CommonConst.HTTPS, CommonConst.WS);
+            int index = baseWs.indexOf(':');
+            if (index < 0) {
+                baseWs = baseWs + ":443";
+            }
+        } else if (host.startsWith(CommonConst.HTTP)) {
+            baseWs = host.replace(CommonConst.HTTP, CommonConst.WS);
+        } else if (host.startsWith(CommonConst.WS)) {
+            baseWs = host;
+        } else {
+            baseWs = CommonConst.WS + host;
+        }
+        return baseWs;
     }
 
     /**
@@ -202,6 +222,10 @@ public class ClientProxy implements AbstractEventRegistry {
         String token = getToken();
         HashMap<String, String> header = new HashMap<>(8);
         header.put("Authorization", token);
+        if (StringUtils.isNotEmpty(runtimeInfo.getHost())) {
+            // 集群模式
+            header.put("Access-Cluster-Host", runtimeInfo.getHost());
+        }
         header.put("Accept", "*/*");
         header.put("Content-Type", "application/json;charset=UTF-8");
         return header;
@@ -244,7 +268,6 @@ public class ClientProxy implements AbstractEventRegistry {
                 if (v.isEmpty()) {
                     v = null;
                     if (SUBS.size() <= 1) {
-                        logger.debug("topics will be zero shutdown client.");
                         //当前没有任何订阅销毁WebSocket
                         this.shutdownWebSocket();
                     }
@@ -274,11 +297,9 @@ public class ClientProxy implements AbstractEventRegistry {
             return;
         }
         final String topic =  new String(bytes, 0, i1, StandardCharsets.UTF_8);
-        final int index = topic.indexOf(StringUtils.SLASH);
-        final String className = -1 == index ? topic : topic.substring(0, index);
-        try {
-            Class<? extends JarbootEvent> cls = (Class<? extends JarbootEvent>) Class.forName(className);
-            JarbootEvent event = JsonUtils.readValue(new String(bytes, i1 + 1, bytes.length - i1 - 1, StandardCharsets.UTF_8), cls);
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new ByteArrayInputStream(bytes, i1 + 1, bytes.length - i1 - 1))){
+            JarbootEvent event  = (JarbootEvent) ois.readObject();
             handler(topic, event);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -327,22 +348,55 @@ public class ClientProxy implements AbstractEventRegistry {
          * @return 客户端代理 {@link ClientProxy}
          */
         public static ClientProxy createClientProxy(final String host, final String user, final String password) {
-            final String baseUrl = CommonConst.HTTP + host;
+            final String baseUrl = host.startsWith("http") ? host : (CommonConst.HTTP + host);
             String accessToken = createToken(createKey(host, user), baseUrl, user, password);
             if (null == accessToken) {
                 throw new JarbootRunException("create token failed.");
             }
-            String version = getVersion(baseUrl);
-            if (StringUtils.isEmpty(version)) {
+            ServerRuntimeInfo runtimeInfo = getRuntimeInfo(baseUrl);
+            if (null == runtimeInfo || StringUtils.isEmpty(runtimeInfo.getVersion())) {
                 throw new JarbootRunException("Get jarboot server version failed.");
             }
             return CLIENTS.compute(host, (k, v) -> {
                 if (null == v) {
                     v = new HashMap<>(4);
                 }
-                v.computeIfAbsent(user, k1 -> new ClientProxy(host, user, password, version));
+                v.computeIfAbsent(user, k1 -> new ClientProxy(host, user, password, runtimeInfo));
                 return v;
             }).get(user);
+        }
+
+        /**
+         * 创建客户端代理
+         * @param host jarboot服务地址
+         * @param token jarboot token
+         * @return 客户端代理 {@link ClientProxy}
+         */
+        public static ClientProxy createClientProxy(final String host, final String token) {
+            final String baseUrl = host.startsWith("http") ? host : (CommonConst.HTTP + host);
+            String temp = StringUtils.EMPTY;
+            try {
+                HashMap<String, String> header = new HashMap<>(4);
+                header.put("Authorization", String.format("Bearer %s", token));
+                JsonNode result = HttpUtils.get(baseUrl + CommonConst.AUTH_CONTEXT + "getCurrentUser", header);
+                temp = result.get("data").get("username").asText();
+            } catch (Exception e) {
+                throw new JarbootRunException("Login jarboot server failed.", e);
+            }
+            final String username = temp;
+            Factory.AUTH_TOKENS.put(createKey(host, username), token);
+
+            ServerRuntimeInfo runtimeInfo = getRuntimeInfo(baseUrl);
+            if (null == runtimeInfo || StringUtils.isEmpty(runtimeInfo.getVersion())) {
+                throw new JarbootRunException("Get jarboot server version failed.");
+            }
+            return CLIENTS.compute(host, (k, v) -> {
+                if (null == v) {
+                    v = new HashMap<>(4);
+                }
+                v.computeIfAbsent(username, k1 -> new ClientProxy(host, username, null, runtimeInfo));
+                return v;
+            }).get(username);
         }
 
         /**
@@ -351,14 +405,14 @@ public class ClientProxy implements AbstractEventRegistry {
          * @return 客户端代理 {@link ClientProxy}
          */
         public static ClientProxy createClientProxy(final String host) {
-            final String baseUrl = CommonConst.HTTP + host;
-            String version = getVersion(baseUrl);
-            if (StringUtils.isEmpty(version)) {
+            final String baseUrl = host.startsWith("http") ? host :  (CommonConst.HTTP + host);
+            ServerRuntimeInfo runtimeInfo = getRuntimeInfo(baseUrl);
+            if (null == runtimeInfo || StringUtils.isEmpty(runtimeInfo.getVersion())) {
                 throw new JarbootRunException("Get jarboot server version failed.");
             }
             HashMap<String, ClientProxy> map = CLIENTS.computeIfAbsent(host, k -> {
                 HashMap<String, ClientProxy> userClientMap = new HashMap<>(4);
-                userClientMap.put(StringUtils.EMPTY, new ClientProxy(host, version));
+                userClientMap.put(StringUtils.EMPTY, new ClientProxy(host, runtimeInfo));
                 return userClientMap;
             });
             return map.values().iterator().next();
@@ -418,7 +472,7 @@ public class ClientProxy implements AbstractEventRegistry {
             formData.put(ClientConst.PASSWORD_PARAM, password);
 
             long current = System.currentTimeMillis();
-            final String api = baseUrl + CommonConst.AUTH_CONTEXT + "/openApiToken";
+            final String api = baseUrl + CommonConst.AUTH_CONTEXT + "/login";
             JsonNode jsonNode = HttpUtils.post(api, formData, null);
             if (null == jsonNode) {
                 throw new JarbootRunException("Request token failed!" + user);
@@ -431,7 +485,7 @@ public class ClientProxy implements AbstractEventRegistry {
                         msg, user, password);
                 throw new JarbootRunException(resultMsg);
             }
-            String token = jsonNode.get(ClientConst.RESULT_KEY).asText();
+            String token = jsonNode.get(ClientConst.RESULT_KEY).get("accessToken").asText();
             if (StringUtils.isEmpty(token)) {
                 throw new JarbootRunException("Request token is empty!");
             }
@@ -439,13 +493,13 @@ public class ClientProxy implements AbstractEventRegistry {
         }
 
         /**
-         * 获取Jarboot服务版本
+         * 获取Jarboot运行时信息
          * @param baseUrl Jarboot服务基址
-         * @return 版本
+         * @return 运行时信息
          */
-        private static String getVersion(String baseUrl) {
+        private static ServerRuntimeInfo getRuntimeInfo(String baseUrl) {
             final String api = baseUrl + CommonConst.SERVER_RUNTIME_CONTEXT;
-            return HttpUtils.getObj(api, ServerRuntimeInfo.class, null).getVersion();
+            return HttpUtils.getObj(api, ServerRuntimeInfo.class, null);
         }
 
         static String createKey(String host, String username) {

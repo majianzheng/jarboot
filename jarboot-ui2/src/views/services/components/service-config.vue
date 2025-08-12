@@ -14,6 +14,7 @@ const props = defineProps<{
   showEdit: boolean;
   clusterHost?: string;
 }>();
+
 const defaultSetting: ServerSetting = {
   host: '',
   name: '',
@@ -47,7 +48,7 @@ const rowTools = {
 const rules = reactive<FormRules>({
   name: [
     { required: true, trigger: 'blur' },
-    { min: 1, max: 16, trigger: 'blur' },
+    { min: 1, max: 32, trigger: 'blur' },
   ],
   applicationType: [{ required: true, message: '不可为空', trigger: 'blur' }],
 });
@@ -109,7 +110,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-drawer destroy-on-close size="50%" :title="state.isNew ? $t('CREATE') : $t('MODIFY')" @close="onCloseEdit" v-model="state.showEdit">
+  <el-drawer
+    destroy-on-close
+    :size="basic.mobileDevice ? '100%' : '50%'"
+    :title="state.isNew ? $t('CREATE') : $t('MODIFY')"
+    @close="onCloseEdit"
+    v-model="state.showEdit">
     <el-form ref="configRef" size="small" :rules="rules" :model="state.form" label-width="auto" label-position="right" status-icon>
       <el-form-item :label="$t('NAME')" prop="name">
         <el-input v-model="state.form.name" auto-complete="off" auto-correct="off" auto-capitalize="off"></el-input>
@@ -119,8 +125,8 @@ onMounted(() => {
       </el-form-item>
       <el-form-item :label="$t('APP_TYPE')" prop="applicationType">
         <el-radio-group v-model="state.form.applicationType">
-          <el-radio label="java">Java</el-radio>
-          <el-radio label="shell">Shell</el-radio>
+          <el-radio value="java">Java</el-radio>
+          <el-radio value="shell">Shell</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item :label="$t('COMMAND_LABEL')" prop="command">
@@ -166,9 +172,9 @@ onMounted(() => {
       </el-form-item>
       <el-form-item :label="$t('SCHEDULE_TYPE')" prop="daemon">
         <el-radio-group v-model="state.form.scheduleType">
-          <el-radio label="once">{{ $t('SCHEDULE_ONCE') }}</el-radio>
-          <el-radio label="long-times">{{ $t('SCHEDULE_LONE_TIME') }}</el-radio>
-          <el-radio label="cron">{{ $t('SCHEDULE_CRON') }}</el-radio>
+          <el-radio value="once">{{ $t('SCHEDULE_ONCE') }}</el-radio>
+          <el-radio value="long-times">{{ $t('SCHEDULE_LONE_TIME') }}</el-radio>
+          <el-radio value="cron">{{ $t('SCHEDULE_CRON') }}</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
@@ -191,14 +197,18 @@ onMounted(() => {
           :cluster-host="state.form.host"
           :row-tools="rowTools"></file-manager>
       </el-form-item>
+      <el-form-item v-if="basic.mobileDevice">
+        <div style="display: flex; justify-content: center; width: 100%">
+          <el-button size="small" @click="state.showEdit = false">{{ $t('CANCEL') }}</el-button>
+          <el-button size="small" type="primary" @click="saveConfig">{{ $t('SAVE') }}</el-button>
+        </div>
+      </el-form-item>
     </el-form>
     <template #footer>
-      <div style="flex: auto">
-        <el-button size="small" @click="showEdit = false">{{ $t('CANCEL') }}</el-button>
+      <div style="flex: auto" v-if="!basic.mobileDevice">
+        <el-button size="small" @click="state.showEdit = false">{{ $t('CANCEL') }}</el-button>
         <el-button size="small" type="primary" @click="saveConfig">{{ $t('SAVE') }}</el-button>
       </div>
     </template>
   </el-drawer>
 </template>
-
-<style scoped lang="less"></style>

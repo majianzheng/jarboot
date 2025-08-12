@@ -2,7 +2,7 @@
   <div>
     <canvas class="bg-canvas" ref="bgRef"></canvas>
     <div class="login-top-header">
-      <img alt="Jarboot logo" class="logo" src="@/assets/logo.png" />
+      <img alt="Jarboot logo" class="logo" :src="logoUrl" />
       <div class="header-right">
         <div class="header-tools">
           <div class="menu-button">
@@ -20,7 +20,40 @@
         </div>
       </div>
     </div>
-    <div class="login-form">
+    <div v-if="basic.mobileDevice" class="login-form">
+      <div class="internal-sys-tip">
+        <div>{{ $t('INTERNAL_SYS_TIP') }}</div>
+        <div>{{ $t('INTERNAL_SYS_TIP1') }}</div>
+      </div>
+      <el-form ref="loginFormRef" :model="loginForm" status-icon :rules="rules" label-width="0" size="large">
+        <el-form-item label="" prop="username">
+          <el-input
+            v-model="loginForm.username"
+            prefix-icon="User"
+            :placeholder="$t('USER_NAME')"
+            @keydown.enter="submitForm(loginFormRef)"
+            clearable
+            autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="" prop="password">
+          <el-input
+            v-model="loginForm.password"
+            prefix-icon="Lock"
+            :placeholder="$t('PASSWORD')"
+            @keydown.enter="submitForm(loginFormRef)"
+            clearable
+            show-password
+            type="password"
+            autocomplete="off" />
+        </el-form-item>
+        <el-form-item>
+          <el-button :loading="loading" class="login-button" type="primary" @click="submitForm(loginFormRef)">
+            {{ $t('LOGIN') }}
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div v-else class="login-form">
       <div class="login-header">{{ $t('LOGIN') }}</div>
       <div class="internal-sys-tip">
         <div>{{ $t('INTERNAL_SYS_TIP') }}</div>
@@ -61,21 +94,23 @@
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import type { FormInstance } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
-import { useUserStore } from '@/stores';
-import { DOCS_URL } from '@/common/CommonConst';
+import { useBasicStore, useUserStore } from '@/stores';
+import { BG_URL, DOCS_URL, LOGO_URL } from '@/common/CommonConst';
 
 const loginFormRef = ref<FormInstance>();
 const bgRef = ref();
+const basic = useBasicStore();
 
 const loginForm = reactive({
   username: '',
   password: '',
 });
+const logoUrl = LOGO_URL;
 
 const userStore = useUserStore();
 const rules = reactive({
-  password: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
-  username: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
+  username: [{ required: true, message: CommonUtils.translate('INPUT_USERNAME'), trigger: 'blur' }],
+  password: [{ required: true, message: CommonUtils.translate('INPUT_PASSWORD'), trigger: 'blur' }],
 });
 const loading = ref(false);
 let bgAni = null as any;
@@ -93,7 +128,31 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 };
 const openDoc = () => window.open(DOCS_URL);
 
-onMounted(() => {
+function drawImage(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    let flag = true;
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(true);
+      flag = false;
+    };
+    img.onerror = () => {
+      console.log('error load image!');
+      resolve(false);
+      flag = false;
+    };
+    setTimeout(() => {
+      if (flag) {
+        console.info('load image timeout');
+        reject('load image timeout');
+      }
+    }, 15000);
+    img.src = BG_URL;
+  });
+}
+
+onMounted(async () => {
   const canvas = bgRef.value;
   const ctx = canvas.getContext('2d');
 
@@ -101,6 +160,11 @@ onMounted(() => {
   canvas.width = window.innerWidth;
   window.document.body.style.overflow = 'hidden';
 
+  const hasImage = await drawImage(ctx, canvas);
+  if (hasImage) {
+    console.log('load image success!');
+    return;
+  }
   const texts = '0123456789ABCDE'.split('');
 
   const fontSize = 14;
@@ -132,7 +196,7 @@ onMounted(() => {
     }
   }
 
-  bgAni = setInterval(draw, 50);
+  bgAni = setInterval(draw, 200);
 });
 onUnmounted(() => bgAni && clearInterval(bgAni));
 </script>
@@ -196,6 +260,14 @@ body {
   }
   .login-button {
     width: 100%;
+  }
+}
+@media screen and (max-width: 850px) {
+  .login-form {
+    width: 80%;
+    position: absolute;
+    right: 10%;
+    top: 20%;
   }
 }
 </style>

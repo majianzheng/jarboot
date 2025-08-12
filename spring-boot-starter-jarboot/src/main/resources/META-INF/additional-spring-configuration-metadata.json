@@ -3,7 +3,6 @@
     {
       "name": "spring.jarboot.server-addr",
       "type": "java.lang.String",
-      "defaultValue": "127.0.0.1:9899",
       "description": "Jarboot server address."
     },
     {
@@ -15,7 +14,6 @@
     {
       "name": "spring.jarboot.password",
       "type": "java.lang.String",
-      "defaultValue": "jarboot",
       "description": "Jarboot server password."
     },
     {

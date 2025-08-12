@@ -13,9 +13,9 @@ public class JarbootConfigProperties {
      */
     public static final String PREFIX = "spring.jarboot";
 
-    private String serverAddr = "127.0.0.1:9899";
+    private String serverAddr;
     private String username = "jarboot";
-    private String password = "jarboot";
+    private String password;
     private boolean enabled = true;
 
     public String getServerAddr() {

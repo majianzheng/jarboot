@@ -183,7 +183,12 @@ class StringUtil {
       return '';
     }
   }
-
+  public static formatRowTime(_row: any, _column: any, value: any, _index: number): string {
+    if (!value) {
+      return '-';
+    }
+    return StringUtil.timeFormat(value) as string;
+  }
   public static formatBytes(sizeBytes: number) {
     let memoryUnits = [
       {

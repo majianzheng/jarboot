@@ -1,12 +1,13 @@
 import { ACCESS_CLUSTER_HOST, TOKEN_KEY } from './CommonConst';
 import { getCurrentInstance } from 'vue';
 import type { I18n, Locale } from 'vue-i18n';
+import type { RouteLocationNormalized } from 'vue-router';
+import { PAGE_LOGIN } from '@/common/route-name-constants';
 
 /**
  * @author majianzheng
  */
 export default class CommonUtils {
-  private static readonly HOME_PREFIX = '/jarboot/';
   private static readonly TOKEN_PREFIX = 'Bearer ';
   public static readonly ACCESS_TOKEN = 'accessToken';
   private static t: any;
@@ -15,22 +16,12 @@ export default class CommonUtils {
     CommonUtils.i18n = i18n;
   }
 
-  public static translate(s: string, ...args: any[]) {
+  public static translate(s: string, args?: any) {
     if (!CommonUtils.t) {
       CommonUtils.t = getCurrentInstance()?.appContext.config.globalProperties.$t;
     }
-    let msg = CommonUtils.t(s);
-    //{size}
-    if (!args?.length) {
-      return msg;
-    }
-    args.forEach((arg: any) => {
-      for (const key in arg) {
-        const reg = `{${key}}`;
-        msg = msg.replaceAll(reg, arg[key]);
-      }
-    });
-    return msg;
+
+    return CommonUtils.t(s, args);
   }
 
   public static mergeLocaleMessage(locale: Locale, message: any) {
@@ -45,21 +36,8 @@ export default class CommonUtils {
     return token;
   }
 
-  public static storeToken(token: string) {
-    if (0 !== token.indexOf(CommonUtils.TOKEN_PREFIX)) {
-      token = CommonUtils.TOKEN_PREFIX + token;
-    }
-    localStorage.setItem(TOKEN_KEY, token);
-  }
-
-  public static storeCurrentHost(host: string) {
-    if (host) {
-      localStorage.setItem(ACCESS_CLUSTER_HOST, host);
-    }
-  }
-
   public static getCurrentHost() {
-    return localStorage.getItem(ACCESS_CLUSTER_HOST) || '';
+    return localStorage.getItem(ACCESS_CLUSTER_HOST) ?? '';
   }
 
   public static deleteToken() {
@@ -77,29 +55,58 @@ export default class CommonUtils {
     return token;
   }
 
+  public static parseRedirectQuery(to: RouteLocationNormalized): any {
+    const query = {} as any;
+    if (to.name !== PAGE_LOGIN) {
+      // 登录成功后跳转回原登录前的界面
+      query['redirect'] = to.name;
+      if (to.query) {
+        query['redirectQuery'] = JSON.stringify(to.query);
+      }
+      if (to.params) {
+        query['redirectParams'] = JSON.stringify(to.params);
+      }
+    }
+    return query;
+  }
+
+  public static copyString(str: string) {
+    const input = document.createElement('textarea');
+    input.value = str;
+    document.body.append(input);
+    input.focus();
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+  }
   public static exportServer(name: string, clusterHost: string): void {
     const a = document.createElement('a');
-    const token = CommonUtils.getRawToken();
-    const host = CommonUtils.getCurrentHost();
-    let url = `/api/jarboot/cluster/manager/exportService?name=${name}&${CommonUtils.ACCESS_TOKEN}=${token}&clusterHost=${clusterHost}`;
-    if (host) {
-      url += `&${ACCESS_CLUSTER_HOST}=${host}`;
+    let url = `/api/jarboot/cluster/manager/exportService/${name}.zip`;
+    if (clusterHost) {
+      url = `${url}?clusterHost=${clusterHost}`;
     }
     a.href = url;
+    a.download = `${name}.zip`;
     a.click();
     a.remove();
+  }
+
+  public static isMobileDevice() {
+    const userAgentInfo = navigator.userAgent;
+    const agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
+
+    for (const element of agents) {
+      if (userAgentInfo.indexOf(element) > 0) {
+        return true;
+      }
+    }
+    return window.screen.width < 850;
   }
 
   public static download(url: string, filename: string, method = 'GET', body: any = '', callback?: (result: boolean, msg?: string) => void) {
     const xhr = new XMLHttpRequest();
     //GET请求,请求路径url,async(是否异步)
     xhr.open(method, url, true);
-    //设置请求头参数
-    xhr.setRequestHeader('Authorization', CommonUtils.getToken());
-    const host = CommonUtils.getCurrentHost();
-    if (host) {
-      xhr.setRequestHeader(ACCESS_CLUSTER_HOST, host);
-    }
     //设置响应类型为 blob
     xhr.responseType = 'blob';
     //关键部分

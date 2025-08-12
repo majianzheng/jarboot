@@ -87,6 +87,7 @@ export type ServerSetting = {
 export type GlobalSetting = {
   workspace: string;
   defaultVmOptions: string;
+  jdkPath: string;
   servicesAutoStart: boolean;
   maxStartTime: number;
   maxExitTime: number;
@@ -161,16 +162,22 @@ export type ServerRuntimeInfo = {
   workspace: string;
   masterHost: string;
   inDocker: boolean;
+  dev: boolean;
+  os: string;
+  jdk: string;
+  machineCode: string;
 };
 export type UploadFileInfo = {
   id: string;
   filename: string;
+  clusterHost: string;
   md5: string;
   dstPath: string;
   totalSize: number;
   pause: boolean;
   uploadSize: number;
   errorMsg?: string;
+  event?: string;
 };
 export type MenuItem = {
   name: string;

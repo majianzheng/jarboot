@@ -4,14 +4,16 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.SystemSetting;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
+import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.Set;
 
@@ -22,7 +24,7 @@ import java.util.Set;
 @RequestMapping(value = CommonConst.SETTING_CONTEXT)
 @RestController
 public class SettingController {
-    @Autowired
+    @Resource
     private SettingService settingService;
 
     /**
@@ -31,7 +33,6 @@ public class SettingController {
      * @return 服务配置
      */
     @GetMapping(value="/serviceSetting")
-    @ResponseBody
     public ResponseVo<ServiceSetting> getServerSetting(String serviceName) {
         ServiceSetting results = settingService.getServiceSetting(serviceName);
         return HttpResponseUtils.success(results);
@@ -42,7 +43,8 @@ public class SettingController {
      * @param setting 服务配置
      */
     @PostMapping(value="/serviceSetting")
-    @ResponseBody
+    @PrivilegeCheck("SERVICES_MGR")
+    @EnableAuditLog("修改服务配置")
     public ResponseSimple submitServerSetting(@RequestBody ServiceSetting setting) {
         settingService.submitServiceSetting(setting);
         return HttpResponseUtils.success();
@@ -53,7 +55,6 @@ public class SettingController {
      * @return 全局配置
      */
     @GetMapping(value="/globalSetting")
-    @ResponseBody
     public ResponseVo<SystemSetting> getGlobalSetting() {
         SystemSetting results = settingService.getSystemSetting();
         return HttpResponseUtils.success(results);
@@ -65,7 +66,7 @@ public class SettingController {
      * @return 提交结果
      */
     @PostMapping(value="/globalSetting")
-    @ResponseBody
+    @EnableAuditLog("修改系统设置")
     public ResponseSimple submitGlobalSetting(@RequestBody SystemSetting setting) {
         settingService.saveSetting(setting);
         return HttpResponseUtils.success();
@@ -78,7 +79,6 @@ public class SettingController {
      * @return vm配置
      */
     @GetMapping(value="/vmoptions")
-    @ResponseBody
     public ResponseVo<String> getVmOptions(String serviceName, String file) {
         String results = settingService.getVmOptions(serviceName, file);
         return HttpResponseUtils.success(results);
@@ -92,7 +92,8 @@ public class SettingController {
      * @return 执行结果
      */
     @PostMapping(value="/vmoptions")
-    @ResponseBody
+    @PrivilegeCheck("SERVICES_MGR")
+    @EnableAuditLog("保存服务的JVM配置")
     public ResponseSimple saveVmOptions(String serviceName, String file, String content) {
         settingService.saveVmOptions(serviceName, file, content);
         return HttpResponseUtils.success();
@@ -101,12 +102,12 @@ public class SettingController {
     /**
      * 增加信任主机
      * @param host 主机
-     * @return
-     * @throws IOException
+     * @return 结果
      */
     @PostMapping(value="/trustedHost")
-    @ResponseBody
-    public ResponseSimple addTrustedHost(String host) throws IOException {
+    @PrivilegeCheck("TRUSTED_HOSTS")
+    @EnableAuditLog("添加白名单")
+    public ResponseSimple addTrustedHost(String host) {
         SettingUtils.addTrustedHost(host);
         AgentManager.getInstance().addTrustedHost(host);
         return HttpResponseUtils.success();
@@ -115,11 +116,12 @@ public class SettingController {
     /**
      * 移除信任主机
      * @param host 主机
-     * @return
-     * @throws IOException
+     * @return 结果
+     * @throws IOException 删除文件异常
      */
     @DeleteMapping(value="/trustedHost")
-    @ResponseBody
+    @PrivilegeCheck("TRUSTED_HOSTS")
+    @EnableAuditLog("删除白名单")
     public ResponseSimple removeTrustedHost(String host) throws IOException {
         SettingUtils.removeTrustedHost(host);
         return HttpResponseUtils.success();
@@ -130,7 +132,6 @@ public class SettingController {
      * @return 信任主机列表
      */
     @GetMapping(value="/trustedHost")
-    @ResponseBody
     public ResponseVo<Set<String>> getTrustedHosts() {
         return HttpResponseUtils.success(SettingUtils.getTrustedHosts());
     }

@@ -15,10 +15,10 @@ public interface FileUploadProgressDao extends JpaRepository<FileUploadProgress,
     /**
      * 根据dstPath获取上传进度
      * @param clusterHost 集群机器
-     * @param dstPath 目的路径
+     * @param absolutePath 目的路径
      * @return 进度
      */
-    FileUploadProgress getFileUploadProgressByClusterHostAndDstPath(String clusterHost, String dstPath);
+    FileUploadProgress getByClusterHostAndAbsolutePath(String clusterHost, String absolutePath);
 
     /**
      * 删除已完成的上传项

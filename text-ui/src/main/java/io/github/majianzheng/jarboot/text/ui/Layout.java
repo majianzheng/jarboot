@@ -187,11 +187,10 @@ public abstract class Layout {
           ret[index] -= delta;
         } else {
           int foo = actualLengths[index];
-          if (spaced) {
-            if (index > 0) {
+          if (spaced && index > 0) {
               foo++;
             }
-          }
+
           totalLength -= foo;
           ret[index] = 0;
           index--;

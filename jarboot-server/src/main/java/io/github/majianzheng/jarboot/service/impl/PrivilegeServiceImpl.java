@@ -7,11 +7,10 @@ import io.github.majianzheng.jarboot.dao.PrivilegeDao;
 import io.github.majianzheng.jarboot.dao.RoleDao;
 import io.github.majianzheng.jarboot.entity.Privilege;
 import io.github.majianzheng.jarboot.service.PrivilegeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +21,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PrivilegeServiceImpl implements PrivilegeService {
-    @Autowired
+    @Resource
     private PrivilegeDao privilegeDao;
-    @Autowired
+    @Resource
     private RoleDao roleDao;
     @Override
     public List<Privilege> getPrivilegeByRole(String roles) {

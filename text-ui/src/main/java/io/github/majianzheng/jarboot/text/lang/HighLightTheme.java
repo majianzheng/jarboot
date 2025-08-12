@@ -26,28 +26,27 @@ import java.util.Map;
  */
 public class HighLightTheme {
 
-    Map<Integer, Style> styleMap = new HashMap<Integer, Style>();
+    Map<Integer, Style> styleMap = new HashMap<>();
 
     static Map<String, Integer> tokenTypeMap;
 
-    static final String defaulConfigPath = "com/taobao/text/ui/themes/default.xml";
+    static final String defaulConfigPath = "io/github/majianzheng/jarboot/text/ui/themes/default.xml";
 
     private static volatile HighLightTheme defaultTheme = null;
 
     static {
-        tokenTypeMap = new HashMap<String, Integer>();
+        tokenTypeMap = new HashMap<>();
         // 获取当前支持的所有的token type
         Field[] declaredFields = TokenTypes.class.getDeclaredFields();
         for (Field field : declaredFields) {
-            if (Modifier.isStatic(field.getModifiers())) {
-                if (field.getType().equals(int.class) && Modifier.isStatic(field.getModifiers())) {
+            if (Modifier.isStatic(field.getModifiers()) && field.getType().equals(int.class) && Modifier.isStatic(field.getModifiers())) {
                     try {
                         tokenTypeMap.put(field.getName(), field.getInt(null));
                     } catch (Exception e) {
                         // ignore
                     }
                 }
-            }
+
         }
     }
 

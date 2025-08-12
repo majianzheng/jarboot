@@ -1,31 +1,38 @@
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from 'vue-router';
-import { DOCS_URL } from '@/common/CommonConst';
-import { useBasicStore, useUserStore } from '@/stores';
+import { LOGO_URL } from '@/common/CommonConst';
+import { useBasicStore, useServiceStore, useUserStore } from '@/stores';
 import { onMounted, reactive } from 'vue';
 import { WsManager } from '@/common/WsManager';
 import { pubsub } from '@/views/services/ServerPubsubImpl';
 import type { MenuItem } from '@/types';
 import routesConfig from '@/router/routes-config';
 import StringUtil from '@/common/StringUtil';
+import OAuthService from '@/services/OAuthService';
+import { PAGE_JVM, PAGE_SERVICE } from '@/common/route-name-constants';
+import { defer } from 'lodash';
 
 const state = reactive({
   dialog: false,
   resetPassword: false,
+  logoUrl: LOGO_URL,
 });
 
-const openDoc = () => window.open(DOCS_URL);
 const user = useUserStore();
 const route = useRoute();
 const router = useRouter();
 const basic = useBasicStore();
+const service = useServiceStore();
 
 router.afterEach(to => {
   const name = to.name;
   const menu = basic.subNameMap.get(name);
   if (menu) {
     menu.subName = name;
+    menu.params = to.params;
+    menu.query = to.query;
   }
+  defer(reload);
 });
 
 function checkPermission(config: any): boolean {
@@ -80,12 +87,55 @@ function createMenuData(config: any) {
   return menu;
 }
 
+async function reload() {
+  if (PAGE_SERVICE === route.name) {
+    await service.reload();
+    return;
+  }
+  if (PAGE_JVM === route.name) {
+    await service.reloadJvmList();
+  }
+}
+
+async function visibilitychange() {
+  if (basic.upgradeLoading) {
+    console.info('系统升级中，忽略检验');
+    return;
+  }
+  if (document.visibilityState === 'visible') {
+    // 这里可以执行唤醒后的操作
+    try {
+      const curUser = await OAuthService.getCurrentUser();
+      if (StringUtil.isEmpty(curUser?.username)) {
+        // 登录认证过期
+        location.reload();
+        return;
+      }
+      user.setCurrentUser(curUser);
+    } catch (err) {
+      console.error(err);
+      location.reload();
+      return;
+    }
+    const curTimestamp = Date.now();
+    if (curTimestamp - basic.latestWeak > 10000) {
+      await reload();
+    }
+    basic.latestWeak = curTimestamp;
+    WsManager.initWebsocket();
+    WsManager.ping();
+  } else {
+    basic.latestWeak = Date.now();
+  }
+}
+
 const welcome = () => {
   console.log(`%c▅▇█▓▒(’ω’)▒▓█▇▅▂`, 'color: magenta');
   console.log(`%c(灬°ω°灬) `, 'color:magenta');
   console.log(`%c（づ￣3￣）づ╭❤～`, 'color:red');
   WsManager.initWebsocket();
   pubsub.init();
+  document.onvisibilitychange = visibilitychange;
 };
 
 const isActive = (menu: MenuItem): boolean => {
@@ -97,7 +147,7 @@ const isActive = (menu: MenuItem): boolean => {
 
 const goTo = (menu: any) => {
   if (route.name !== menu.name && !isActive(menu)) {
-    router.push({ name: menu.subName || menu.name });
+    router.push({ name: menu.subName || menu.name, params: menu.params, query: menu.query });
   }
 };
 
@@ -127,8 +177,8 @@ onMounted(() => {
 <template>
   <main>
     <header>
-      <img alt="Jarboot logo" class="logo" src="@/assets/logo.png" />
-      <div class="wrapper">
+      <img alt="Jarboot logo" class="logo" :class="{ mobile: basic.mobileDevice }" :src="state.logoUrl" />
+      <div class="wrapper" v-if="!basic.mobileDevice">
         <nav>
           <a v-for="(menu, i) in basic.menus" :key="i" :class="{ 'router-link-exact-active': isActive(menu) }" @click="goTo(menu)">{{
             $t(menu.module as string)
@@ -145,9 +195,6 @@ onMounted(() => {
             <jarboot-version></jarboot-version>
           </div>
           <div class="menu-button">
-            <el-button size="small" link @click="openDoc">{{ $t('MENU_DOCS') }}</el-button>
-          </div>
-          <div class="menu-button">
             <theme-switch></theme-switch>
           </div>
           <div class="menu-button">
@@ -162,7 +209,7 @@ onMounted(() => {
                 <svg-icon v-else icon="icon-panda" style="width: 26px; height: 26px" />
               </el-avatar>
               <div class="user-name">
-                <span>{{ user.fullName || user.username }}</span>
+                <span v-if="!basic.mobileDevice">{{ user.fullName || user.username }}</span>
                 <icon-pro icon="ArrowDown" class="el-icon--right"></icon-pro>
               </div>
             </div>
@@ -185,6 +232,9 @@ onMounted(() => {
       </transition>
       <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
     </router-view>
+    <div v-if="basic.mobileDevice">
+      <bottom-nav></bottom-nav>
+    </div>
     <modify-user-dialog v-model:visible="state.dialog" :reset-password="state.resetPassword" :username="user.username"></modify-user-dialog>
   </main>
 </template>
@@ -193,9 +243,13 @@ header {
   display: flex;
   height: 50px;
   border-bottom: 1px solid var(--el-border-color);
+  z-index: 1000;
   .logo {
     height: 38px;
     margin: 6px 15px;
+    &.mobile {
+      margin: 6px 0 6px 5px;
+    }
   }
   nav {
     font-size: 16px;

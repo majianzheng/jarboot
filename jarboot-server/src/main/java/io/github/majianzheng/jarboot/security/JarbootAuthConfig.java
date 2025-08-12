@@ -30,8 +30,8 @@ import java.util.stream.Stream;
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity
+@SuppressWarnings({"java:S6830"})
 public class JarbootAuthConfig {
-    private static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/jarboot/auth/**";
 
     @Bean
     public CorsFilter corsFilter() {
@@ -48,10 +48,11 @@ public class JarbootAuthConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring().requestMatchers(
-                Stream.of( "/**/*.png", "/**/*.ico", "/**/*.html", "/**/*.js", "/**/*.css", "/**/*.md", "/**/*.map", "/**/*.svg", "/**/*.woff2")
+                Stream.of( "/**/*.png", "/**/*.ico", "/**/*.html", "/**/*.js", "/**/*.css", "/**/*.md", "/**/*.map", "/**/*.svg", "/**/*.woff2", "/jarboot/preferences/productName")
                         .map(this::createStaticMatcher).toArray(RequestMatcher[]::new)
         ).requestMatchers(
-                new AntPathRequestMatcher(TOKEN_BASED_AUTH_ENTRY_POINT),
+                new AntPathRequestMatcher("/api/jarboot/auth/login"),
+                new AntPathRequestMatcher("/api/jarboot/auth/openApiToken"),
                 new AntPathRequestMatcher("/**/public/**"),
                 new AntPathRequestMatcher("/", HttpMethod.GET.name()),
                 new AntPathRequestMatcher("/error"));

@@ -112,7 +112,7 @@ const emit = defineEmits<{
   (e: 'execute', value: string, cols: number, rows: number): void;
   (e: 'cancel'): void;
 }>();
-const height = computed(() => basic.innerHeight - 110);
+const height = computed(() => basic.innerHeight - 115);
 const middleTitle = computed(() => {
   if (state.view) {
     if ('jad' === state.view) {
@@ -158,7 +158,6 @@ function onCommand(cmd: string) {
 
 const onCmdEnd = (msg?: string) => {
   state.executing = null;
-  // term.options.disableStdin = false;
   pubsub.publish(props.sid, CONSOLE_TOPIC.FINISH_LOADING, msg);
   msg && term.writeln(msg);
   term.prompt();
@@ -169,7 +168,6 @@ const clearDisplay = () => {
 
 const doExecCommand = () => {
   const cmd = state.command;
-  // term.options.disableStdin = !!cmd;
   if (StringUtil.isEmpty(cmd)) {
     return;
   }
@@ -219,7 +217,6 @@ const renderView = (resultData: any) => {
   state.data = resultData;
   state.view = cmd;
   state.executing = cmd;
-  //term.options.disableStdin = !!cmd;
 };
 
 const onExecQuickCmd = (cmd: string) => {
@@ -253,7 +250,6 @@ onUnmounted(() => {
 .super-panel {
   position: absolute;
   margin-top: 3px;
-  height: 100%;
   width: 100%;
   .super-panel-header {
     height: 24px;
@@ -296,7 +292,6 @@ onUnmounted(() => {
   .terminal-view {
     display: flex;
     flex-direction: column;
-    border: var(--el-border);
     border-top: none;
     .command-input {
       background: @console-background;

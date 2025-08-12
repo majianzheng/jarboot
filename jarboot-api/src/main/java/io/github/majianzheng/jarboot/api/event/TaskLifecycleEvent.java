@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * @author majianzheng
  */
-public class TaskLifecycleEvent implements JarbootEvent {
+public class TaskLifecycleEvent extends ClusterEvent {
     private ServiceSetting setting;
     private String status;
     private TaskLifecycle lifecycle;

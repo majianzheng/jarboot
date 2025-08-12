@@ -12,7 +12,7 @@ public class JarbootClassLoader extends URLClassLoader {
     private static final String API_PREFIX = "io.github.majianzheng.jarboot.api.";
 
     public JarbootClassLoader(URL[] urls) {
-        super(urls, ClassLoader.getSystemClassLoader().getParent());
+        super(urls, Thread.currentThread().getContextClassLoader());
     }
 
     @Override
@@ -27,7 +27,7 @@ public class JarbootClassLoader extends URLClassLoader {
         if (name.startsWith(API_PREFIX)) {
             return ClassLoader.getSystemClassLoader().loadClass(name);
         }
-        if (name.startsWith(SUN_PREFIX) || name.startsWith(JAVA_PREFIX)) {
+        if (name.startsWith(SUN_PREFIX) || name.startsWith(JAVA_PREFIX) || name.startsWith("javax.")) {
             return super.loadClass(name, resolve);
         }
         try {

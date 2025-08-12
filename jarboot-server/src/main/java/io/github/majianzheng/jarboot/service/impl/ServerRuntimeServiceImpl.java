@@ -23,12 +23,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * @author mazheng
@@ -38,6 +41,8 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
     @Value("${docker:false}")
     private boolean isInDocker;
     private UserService userService;
+    @Resource
+    private ApplicationContext context;
 
     @Autowired
     public void setUserService(UserService userService) {
@@ -53,6 +58,14 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
         info.setVersion(VersionUtils.version);
         info.setHost(ClusterClientManager.getInstance().getSelfHost());
         info.setWorkspace(AesUtils.encrypt(SettingUtils.getWorkspace()));
+        final String profile = "dev";
+        info.setDev(Arrays.asList(context.getEnvironment().getActiveProfiles()).contains(profile));
+        String osName = System.getProperty("os.name");
+        String arch = System.getProperty("os.arch");
+        info.setOs(String.format("%s (%s)", osName, arch));
+        String vmName = System.getProperty("java.vm.name");
+        String vmVer = System.getProperty("java.vm.version");
+        info.setJdk(String.format("%s (VERSION: %s)", vmName, vmVer));
         return info;
     }
 

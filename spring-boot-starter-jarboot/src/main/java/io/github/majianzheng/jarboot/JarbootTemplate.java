@@ -1,15 +1,9 @@
 package io.github.majianzheng.jarboot;
 
-import io.github.majianzheng.jarboot.api.constant.TaskLifecycle;
-import io.github.majianzheng.jarboot.api.event.Subscriber;
-import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
-import io.github.majianzheng.jarboot.api.pojo.SystemSetting;
-import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
-import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
-import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.client.ClientProxy;
+import io.github.majianzheng.jarboot.client.ClusterOperator;
 import io.github.majianzheng.jarboot.client.ServiceManagerClient;
 import io.github.majianzheng.jarboot.client.SettingClient;
 import io.github.majianzheng.jarboot.client.command.CommandExecutorFactory;
@@ -17,8 +11,8 @@ import io.github.majianzheng.jarboot.client.command.CommandExecutorService;
 import io.github.majianzheng.jarboot.client.command.CommandResult;
 import io.github.majianzheng.jarboot.client.command.NotifyCallback;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import lombok.Getter;
 
-import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -26,8 +20,12 @@ import java.util.concurrent.Future;
  * @author majianzheng
  */
 public class JarbootTemplate implements JarbootOperator {
+    @Getter
     private final ServiceManager serviceManager;
+    @Getter
     private final SettingService settingService;
+    @Getter
+    private final ClusterOperator clusterOperator;
     private final JarbootConfigProperties properties;
     private ClientProxy clientProxy;
     private CommandExecutorService executor;
@@ -37,43 +35,28 @@ public class JarbootTemplate implements JarbootOperator {
         this.buildProxy();
         settingService = new SettingClient(this.clientProxy);
         serviceManager = new ServiceManagerClient(this.clientProxy);
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public SettingService getSettingService() {
-        return settingService;
+        clusterOperator = new ClusterOperator(this.clientProxy);
     }
 
     private synchronized void buildProxy() {
         if (null == clientProxy) {
             String addr = properties.getServerAddr();
             if (StringUtils.isEmpty(addr)) {
+                addr = System.getenv("JARBOOT_HOST");
+            }
+            if (StringUtils.isEmpty(addr)) {
                 addr = "127.0.0.1:9899";
+            }
+            String pwd = properties.getPassword();
+            if (StringUtils.isEmpty(pwd)) {
+                pwd = "jarboot";
             }
             clientProxy = ClientProxy.Factory
                     .createClientProxy(
                             addr,
                             properties.getUsername(),
-                            properties.getPassword());
+                            pwd);
         }
-    }
-
-    @Override
-    public String getServiceIdByName(String service) {
-        return serviceManager.getService(service).getSid();
-    }
-
-    @Override
-    public ServiceInstance getService(String serviceName) {
-        return serviceManager.getService(serviceName);
-    }
-
-    @Override
-    public List<JvmProcess> getJvmProcesses() {
-        return serviceManager.getJvmProcesses();
     }
 
     @Override
@@ -84,26 +67,6 @@ public class JarbootTemplate implements JarbootOperator {
     @Override
     public void forceCancel(String serviceId) {
         executorInstance().forceCancel(serviceId);
-    }
-
-    @Override
-    public ServiceSetting getServiceSetting(String serviceName) {
-        return settingService.getServiceSetting(serviceName);
-    }
-
-    @Override
-    public SystemSetting getGlobalSetting() {
-        return settingService.getSystemSetting();
-    }
-
-    @Override
-    public void registerTaskLifecycleSubscriber(String serviceName, TaskLifecycle lifecycle, Subscriber<TaskLifecycleEvent> subscriber) {
-        serviceManager.registerSubscriber(serviceName, lifecycle, subscriber);
-    }
-
-    @Override
-    public void deregisterTaskLifecycleSubscriber(String serviceName, TaskLifecycle lifecycle, Subscriber<TaskLifecycleEvent> subscriber) {
-        serviceManager.deregisterSubscriber(serviceName, lifecycle, subscriber);
     }
 
     public CommandExecutorService executorInstance() {

@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * WebSocket client factory for create socket client.
  * @author majianzheng
  */
-@SuppressWarnings("squid:S3077")
+@SuppressWarnings({"squid:S3077", "java:S1181"})
 @ClientEndpoint
 public class WsClientFactory implements Subscriber<HeartbeatEvent> {
     private static final Logger logger = LogUtils.getLogger();
@@ -127,10 +127,12 @@ public class WsClientFactory implements Subscriber<HeartbeatEvent> {
         if (null == temp) {
             return;
         }
-        try {
-            temp.getBasicRemote().sendBinary(ByteBuffer.wrap(data));
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        synchronized (temp) {
+            try {
+                temp.getBasicRemote().sendBinary(ByteBuffer.wrap(data));
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         }
     }
 

@@ -17,15 +17,18 @@ import java.util.jar.JarFile;
 /**
  * @author majianzheng
  */
-@SuppressWarnings({"squid:S1118", "squid:S106", "squid:S1181", "squid:3077", "squid:S2093", "squid:S899"})
+@SuppressWarnings({"all"})
 public class JarbootAgent {
     private static final String JARBOOT_CORE_JAR = "jarboot-core.jar";
     private static final String JARBOOT_CLASS = "io.github.majianzheng.jarboot.core.server.JarbootBootstrap";
     private static final String GET_INSTANCE = "getInstance";
 
     private static PrintStream ps = null;
-    private static final String CURRENT_DIR = getCurrentDir();
+    private static final String CURRENT_DIR;
     private static ClassLoader jarbootClassLoader = null;
+    static {
+        CURRENT_DIR = getCurrentDir();
+    }
 
     public static void premain(String args, Instrumentation inst) {
         callMain(args, inst, true);
@@ -47,7 +50,10 @@ public class JarbootAgent {
                 System.out.println("create jarboot agent log failed.");
             }
             ps = new PrintStream(new FileOutputStream(log, false));
-            main(args, inst, isPremain);
+            Thread thread = new Thread(() -> main(args, inst, isPremain));
+            thread.setName("jarboot-agent-main");
+            thread.start();
+            thread.join();
         } catch (Throwable e) {
             e.printStackTrace(null == ps ? System.out : ps);
         } finally {
@@ -117,15 +123,15 @@ public class JarbootAgent {
 
         ps.println("jarboot Agent start...");
 
-        CodeSource codeSource = JarbootAgent.class.getProtectionDomain().getCodeSource();
         File coreJarFile;
+        String componentDir = CURRENT_DIR + File.separator + CommonConst.COMPONENTS_NAME;
         try {
-            coreJarFile = new File(CURRENT_DIR + File.separator + CommonConst.COMPONENTS_NAME, JARBOOT_CORE_JAR);
+            coreJarFile = new File(componentDir, JARBOOT_CORE_JAR);
             if (!coreJarFile.exists()) {
-                ps.println("Can not find jarboot-core jar file." + coreJarFile.getPath());
+                ps.println("Can not find jarboot-core.jar file." + componentDir);
             }
         } catch (Throwable e) {
-            ps.println("Can not find jar file from" + codeSource.getLocation());
+            ps.println("Can not find jar file from " + componentDir);
             e.printStackTrace(ps);
             return;
         }
@@ -139,14 +145,16 @@ public class JarbootAgent {
             URL[] urls = getClassLoaderUrls(coreJarFile);
             //构造自定义的类加载器
             ClassLoader classLoader = getClassLoader(urls);
+
             bind(classLoader, inst, args, isPremain);
+
             //初始化成功
             ps.println("jarboot Agent ready.");
         } catch (Throwable e) {
             e.printStackTrace(ps);
         }
     }
-    
+
     private static URL[] getClassLoaderUrls(File coreFile) {
         URL[] urls = new URL[1];
         try {
@@ -156,8 +164,9 @@ public class JarbootAgent {
         }
         return urls;
     }
-    
+
     private static void initAgentPlugins(Instrumentation inst) {
+        ps.println("init agent plugins");
         File agentPluginsDir = new File(CURRENT_DIR + File.separator + "plugins", "agent");
         File[] jarFiles = agentPluginsDir.listFiles(file -> file.getName().endsWith(".jar"));
         if (null != jarFiles && jarFiles.length > 0) {
@@ -182,7 +191,11 @@ public class JarbootAgent {
 
     private static String getCurrentDir() {
         //分别尝试从系统属性和环境变量中获取
-        String homePath = System.getProperty(CommonConst.JARBOOT_HOME, System.getenv(CommonConst.JARBOOT_HOME));
+        String homePath = System.getenv(CommonConst.JARBOOT_HOME);
+        if (null == homePath || homePath.isEmpty()) {
+            homePath = System.getProperty(CommonConst.JARBOOT_HOME);
+        }
+
         if (null != homePath && !homePath.isEmpty()) {
             if (null == System.getProperty(CommonConst.JARBOOT_HOME, null)) {
                 //将环境变量中的设置

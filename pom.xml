@@ -37,31 +37,31 @@
 		<module>jarboot-api</module>
 		<module>jarboot-common</module>
 		<module>text-ui</module>
+		<module>jarboot-client</module>
+		<module>spring-boot-starter-jarboot</module>
 		<module>jarboot-spy</module>
 		<module>jarboot-core</module>
 	    <module>jarboot-agent</module>
 		<module>jarboot-server</module>
-		<module>spring-boot-starter-jarboot</module>
 		<module>plugins/shell-plugin</module>
 		<module>demo-server</module>
 		<module>tools</module>
 		<module>packaging</module>
-		<module>jarboot-client</module>
     </modules>
 	<properties>
-		<revision>3.1.0</revision>
+		<revision>3.3.0</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<!-- Exclude all generated code -->
 		<sonar.jacoco.itReportPath>${project.basedir}/../test/target/jacoco-it.exec</sonar.jacoco.itReportPath>
 		<sonar.exclusions>file:**/generated-sources/**,**/test/**</sonar.exclusions>
 
 		<!-- dependency version -->
-		<spring.version>2.7.10</spring.version>
+		<spring.version>2.7.18</spring.version>
 		<bytekit.version>0.0.5</bytekit.version>
-		<commons-io.version>2.11.0</commons-io.version>
+		<commons-io.version>2.18.0</commons-io.version>
 		<jjwt.version>0.11.2</jjwt.version>
 		<cfr.version>0.151</cfr.version>
 		<olgn.version>3.1.19</olgn.version>
@@ -70,6 +70,12 @@
 		<rsyntaxtextarea.version>3.3.1</rsyntaxtextarea.version>
 		<commons-logging.version>1.2</commons-logging.version>
 		<jline.version>3.25.1</jline.version>
+		<jansi.version>2.4.1</jansi.version>
+		<progressbar.version>0.10.0</progressbar.version>
+		<juniversalchardet.version>1.0.3</juniversalchardet.version>
+		<logback.version>1.4.14</logback.version>
+		<tomcat.version>11.0.0-m17</tomcat.version>
+		<oshi-core.version>6.6.5</oshi-core.version>
 
 		<!-- plugin version -->
 		<maven-resources-version>2.6</maven-resources-version>
@@ -80,14 +86,14 @@
 		<dependency-mediator-maven-plugin.version>1.0.2</dependency-mediator-maven-plugin.version>
 		<maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
 		<maven-pmd-plugin.version>3.8</maven-pmd-plugin.version>
 		<cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
-		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-		<maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version>
-		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-		<findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+		<maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+		<central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
+		<findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<smart-doc-maven-plugin.version>2.6.7</smart-doc-maven-plugin.version>
 		<maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
@@ -206,6 +212,16 @@
 				<groupId>org.jetbrains.pty4j</groupId>
 				<artifactId>pty4j</artifactId>
 				<version>${pty4j.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>net.java.dev.jna</groupId>
+						<artifactId>jna</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>net.java.dev.jna</groupId>
+						<artifactId>jna-platform</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
@@ -221,6 +237,26 @@
 				<groupId>org.jline</groupId>
 				<artifactId>jline</artifactId>
 				<version>${jline.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.fusesource.jansi</groupId>
+				<artifactId>jansi</artifactId>
+				<version>${jansi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.googlecode.juniversalchardet</groupId>
+				<artifactId>juniversalchardet</artifactId>
+				<version>${juniversalchardet.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>me.tongfei</groupId>
+				<artifactId>progressbar</artifactId>
+				<version>${progressbar.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.oshi</groupId>
+				<artifactId>oshi-core</artifactId>
+				<version>${oshi-core.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -240,6 +276,11 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -262,8 +303,8 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-version}</version>
 					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
 						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
@@ -415,88 +456,12 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>${maven-pmd-plugin.version}</version>
-				<configuration>
-					<rulesets>
-						<ruleset>rulesets/java/ali-comment.xml</ruleset>
-						<ruleset>rulesets/java/ali-concurrent.xml</ruleset>
-						<ruleset>rulesets/java/ali-constant.xml</ruleset>
-						<ruleset>rulesets/java/ali-exception.xml</ruleset>
-						<ruleset>rulesets/java/ali-flowcontrol.xml</ruleset>
-						<ruleset>rulesets/java/ali-naming.xml</ruleset>
-						<ruleset>rulesets/java/ali-oop.xml</ruleset>
-						<ruleset>rulesets/java/ali-orm.xml</ruleset>
-						<ruleset>rulesets/java/ali-other.xml</ruleset>
-						<ruleset>rulesets/java/ali-set.xml</ruleset>
-					</rulesets>
-					<printFailingErrors>true</printFailingErrors>
-					<excludes>
-						<exclude>**/core/cmd/**/*.java</exclude>
-						<exclude>**/jarboot/agent/*.java</exclude>
-						<exclude>**/java/jarboot/*.java</exclude>
-						<exclude>**/jarboot/text/**/*.java</exclude>
-					</excludes>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>com.alibaba.p3c</groupId>
-						<artifactId>p3c-pmd</artifactId>
-						<version>${p3c-pmd.version}</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>${cobertura-maven-plugin.version}</version>
-				<configuration>
-					<formats>
-						<format>html</format>
-						<format>xml</format>
-					</formats>
-					<check />
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>report</id>
-						<goals>
-							<goal>report-aggregate</goal>
-						</goals>
-						<phase>verify</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>${findbugs-maven-plugin.version}</version>
-			</plugin>
-			<plugin>
-				<groupId>org.sonarsource.scanner.maven</groupId>
-				<artifactId>sonar-maven-plugin</artifactId>
-				<version>${sonar-maven-plugin.version}</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -546,20 +511,100 @@
 			<properties>
 				<env>prod</env>
 			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>cobertura-maven-plugin</artifactId>
+						<version>${cobertura-maven-plugin.version}</version>
+						<configuration>
+							<formats>
+								<format>html</format>
+								<format>xml</format>
+							</formats>
+							<check />
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco-maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>report</id>
+								<goals>
+									<goal>report-aggregate</goal>
+								</goals>
+								<phase>verify</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>findbugs-maven-plugin</artifactId>
+						<version>${findbugs-maven-plugin.version}</version>
+					</plugin>
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<version>${sonar-maven-plugin.version}</version>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-pmd-plugin</artifactId>
+						<version>${maven-pmd-plugin.version}</version>
+						<configuration>
+							<rulesets>
+								<ruleset>rulesets/java/ali-comment.xml</ruleset>
+								<ruleset>rulesets/java/ali-concurrent.xml</ruleset>
+								<ruleset>rulesets/java/ali-constant.xml</ruleset>
+								<ruleset>rulesets/java/ali-exception.xml</ruleset>
+								<ruleset>rulesets/java/ali-flowcontrol.xml</ruleset>
+								<ruleset>rulesets/java/ali-naming.xml</ruleset>
+								<ruleset>rulesets/java/ali-oop.xml</ruleset>
+								<ruleset>rulesets/java/ali-orm.xml</ruleset>
+								<ruleset>rulesets/java/ali-other.xml</ruleset>
+								<ruleset>rulesets/java/ali-set.xml</ruleset>
+							</rulesets>
+							<printFailingErrors>true</printFailingErrors>
+							<excludes>
+								<exclude>**/core/cmd/**/*.java</exclude>
+								<exclude>**/jarboot/agent/*.java</exclude>
+								<exclude>**/java/jarboot/*.java</exclude>
+								<exclude>**/jarboot/text/**/*.java</exclude>
+							</excludes>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>com.alibaba.p3c</groupId>
+								<artifactId>p3c-pmd</artifactId>
+								<version>${p3c-pmd.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>release</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>${nexus-staging-maven-plugin.version}</version>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${central-publishing-maven-plugin.version}</version>
 						<extensions>true</extensions>
 						<configuration>
-							<serverId>ossrh</serverId>
-							<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+							<!-- 这里的publishingServerId是在settings.xml中配置的server认证信息 -->
+							<publishingServerId>central</publishingServerId>
+
 						</configuration>
 					</plugin>
 					<plugin>
@@ -607,16 +652,6 @@
 			</build>
 		</profile>
 	</profiles>
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 	<repositories>
 		<repository>
 			<id>maven-ali</id>

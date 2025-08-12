@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
  */
 @ConditionalOnProperty(name = "spring.jarboot.enabled", matchIfMissing = true)
 @EnableConfigurationProperties({ JarbootConfigProperties.class })
+@SuppressWarnings({"java:S6830"})
 public class JarbootAutoConfiguration {
     @Bean
     @ConditionalOnClass(name = Constants.AGENT_CLASS)

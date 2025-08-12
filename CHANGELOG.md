@@ -1,3 +1,94 @@
+## 3.3.0（8，2025）
+修复已知的bug，修复已知的bug，推出docker compose部署策略，文件上传websocket服务（/jarboot/upload/ws）传入参数格式修改（json字符串base64 url编码）
+### 新特性
+- 启动时支持通过环境变量初始化账号（JARBOOT_USER）和密码（JARBOOT_DEFAULT_PWD）
+- 可通过-Dstart.wait.time=30000指定最大的启动等待时间
+- client-cli支持通过token登录，可通过环境变量或-token参数传入
+- 新增docker compose集群及单节点的配置文件示例
+- 新增软件升级脚本，可一键升级jarboot，执行`bin/upgrade.sh`或`bin/windows/upgrade.bat`
+### bug修复
+- 打印日志太多时异常掉线问题，The remote endpoint was in state \[BINARY_FULL_WRITING\] which is an invalid state for called method
+- 集群模式下文件上传到另一节点时，服务名为中文时上传文件失败问题
+- 修复使用docker compose集群模式下节点认证失败问题
+
+## 3.2.0（5，2025）
+鉴于部分功能的需要，运行环境升级，需JDK17或更高版本的JDK
+### 新特性
+- Shell类型服务功能升级，修复脚本中启动的程序无法关闭的问题，关闭进程时会关闭其关联的所有子进程
+- 新增OpenAPI界面，可创建token以便为第三方应用接入，支持自定义授权时间
+- 终端界面支持搜索，点击右上角搜索按钮或Ctrl+F开启搜索界面
+- 终端界面光标支持左右移动，输入、退格、删除键支持
+- 终端界面支持鼠标选择字符串复制、粘贴功能
+- 终端界面支持中文宽字符输入及光标左右移动
+- 登录界面，支持自定义背景图，在【设置】>【偏好设置】中可配置登录背景
+### bug修复
+- 终端界面在Windows环境下无法使用鼠标选中字符的问题
+- 修复服务配置点取消无响应bug
+- maven-jar-plugin插件打包的springboot打包的项目用java应用类型启动报错，No auto configuration classes found
+- 用户头像更新报错bug
+- 集群模式下定时任务区分节点
+
+
+## 3.1.5（3，2025）
+spring-boot做web服务时会在临时目录产生缓存，长期使用时会产生大量缓存文件这是springboot做web的通病，本次更新将所有jarboot管理的web服务的缓存垃圾统一管理，并定时清理。
+### 新特性
+- 服务器资源监控
+- 使用spring-boot做web的服务所产生的缓存垃圾由jarboot统一管理
+- 定时清理垃圾缓存，防止服务产生的垃圾过多导致的问题
+- Cookie过期重新登录默认返回登出前的页面
+- 服务异常退出时增加审计日志
+### bug修复
+- /tmp目录中产生大量临时文件问题
+- 集群模式下websocket鉴权bug
+- springboot自定义打包下启动报No auto configuration classes found...的问题
+- chrome下服务导出bug，以及部分国际化问题
+- 修复服务配置点取消无响应bug
+
+## 3.1.4（11，2024）
+### 新特性
+- client-cli service命令新增status选型，支持查看指定服务的状态
+- 敏感操作记录日志文件
+### bug修复
+- /tmp目录中产生大量临时文件问题
+- 集群模式下websocket鉴权bug
+
+
+## 3.1.3（11，2024）
+client-cli新增deploy命令，支持操作系统内置命令；新增操作日志
+### 新特性
+- client-cli新增deploy命令
+- client-cli支持操作系统内置命令
+- 升级spring-boot版本修复部分安全告警
+- 新增操作日志，启停服务、修改配置均会记录到操作日志
+- API接口权限校验增强
+- token存放到cookie
+### bug修复
+- 偏好设置，系统名称设置中文后重启后乱码
+- 集群模式时client-cli部分功能异常问题
+
+## 3.1.2（8，2024）
+紧急bug修复
+### 新特性
+- 终端支持复制粘贴快捷键
+### bug修复
+- heapdump无法下载问题
+- 长时间未唤醒时状态不一致及消息不及时问题
+- 修复安装路径中存在中文时启动失败问题
+- 修复安装路径中存在空格时无法正常启动的问题
+
+## 3.1.1（8，2024）
+新增命令行工具修复新发现得bug，以及前端界面优化
+### 新特性
+- 新增命令行工具脚本client-cli.sh
+- 完善命令行工具脚本client-cli.sh，新增help、info等命令，支持传入命令执行
+- 新增偏好设置，可自定义系统的LOGO，ICON和标题
+- 将原先的版本显示和文档合并为帮助，帮助对话框cd显示系统信息、使用手册、API等，并提供命令行工具下载
+- 文件上传进度条更加精确
+### bug修复
+- 集群模式文件无法上传的bug
+- 文件管理无法删除文件的bug
+- 启动shell类型的服务时，不能有效的关闭进程的问题
+
 ## 3.1.0（5，2024）
 新增命令行工具修复新发现得bug，以及前端界面优化
 ### 新特性

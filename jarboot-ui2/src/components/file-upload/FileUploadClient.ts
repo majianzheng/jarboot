@@ -1,10 +1,8 @@
-import SparkMD5 from 'spark-md5';
-import CommonUtils from '@/common/CommonUtils';
-import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 import type { UploadFileInfo } from '@/types';
 import CommonNotice from '@/common/CommonNotice';
 import { defer } from 'lodash';
-import { ElLoading } from 'element-plus';
+import Logger from '@/common/Logger';
+import { Base64 } from '@/common/Base64';
 
 const UPLOAD_CHUNK_SIZE = 4000;
 
@@ -21,14 +19,13 @@ export default class FileUploadClient {
   private readonly speed: number;
   private readonly sendCountOnce: number = 2622;
   private readonly baseDir: string = '';
-  private md5: string = '';
   private websocket: WebSocket | null = null;
   private paused: boolean = false;
   private progressHandlers: ((event: UploadFileInfo) => void)[] = [];
   private finishedHandlers: ((event: UploadFileInfo) => void)[] = [];
   private lastUploadProgress: UploadFileInfo | null = null;
   private startTime: number = 0;
-  private importService: string = '';
+  private uploadMode: string = '';
 
   /**
    * 文件上传客户端构造函数
@@ -37,17 +34,26 @@ export default class FileUploadClient {
    * 1、workspace不为空，则为 workspace / path / file.webkitRelativePath
    * 2、workspace为空，则为 JARBOOT_HOME / path / file.webkitRelativePath
    * @param file 上传的文件
+   * @param uploadMode 模式 home、service、 workspace
    * @param baseDir 工作空间
    * @param path 上传路径
    * @param clusterHost 集群机器
    * @param speed 速度限制，单位MB
    */
-  public constructor(file: File, baseDir: string, path: string, clusterHost: string, speed: number = 10) {
+  public constructor(
+    file: File,
+    uploadMode: 'home' | 'service' | 'workspace' | '',
+    baseDir: string,
+    path: string,
+    clusterHost: string,
+    speed: number = 10
+  ) {
     this.file = file;
     this.filename = file.name;
     this.relativePath = file.webkitRelativePath;
     this.totalSize = file.size;
     this.clusterHost = clusterHost || '';
+    this.uploadMode = uploadMode;
     this.baseDir = baseDir;
     this.dstPath = path + '/' + (file.webkitRelativePath || file.name);
     if (!speed || speed <= 0) {
@@ -58,10 +64,6 @@ export default class FileUploadClient {
     this.sendCountOnce = Math.ceil((this.speed * 1024 * 1024) / UPLOAD_CHUNK_SIZE);
   }
 
-  public setImportService(s: string) {
-    this.importService = s;
-  }
-
   public addUploadEventHandler(callback: (event: UploadFileInfo) => void) {
     this.progressHandlers.push(callback);
   }
@@ -70,55 +72,49 @@ export default class FileUploadClient {
     this.finishedHandlers.push(callback);
   }
 
-  public getDstPath() {
-    return this.dstPath;
+  public getKey() {
+    return `${this.clusterHost || 'localhost'}://${this.dstPath}`;
   }
 
   /**
    * 开始上传
    */
   public async upload() {
-    if (!this.md5) {
-      const loading = ElLoading.service({ fullscreen: true, text: this.filename + ' 加载中...' });
-      this.md5 = await this.getFileMd5(this.file);
-      loading.close();
-    }
     // 开始上传
+    const params = {
+      filename: this.filename,
+      totalSize: this.totalSize,
+      dstPath: this.dstPath,
+      uploadMode: this.uploadMode,
+      baseDir: this.baseDir,
+      clusterHost: this.clusterHost,
+      sendCountOnce: this.sendCountOnce,
+      relativePath: this.relativePath,
+    } as any;
     if (null == this.websocket) {
-      let query = `md5=${this.md5}&filename=${encodeURIComponent(this.filename)}`;
-      query += `&totalSize=${this.totalSize}&dstPath=${encodeURIComponent(this.dstPath)}`;
-      const clusterHost = CommonUtils.getCurrentHost();
-      if (this.relativePath) {
-        query += `&relativePath=${encodeURIComponent(this.relativePath)}`;
-      }
-      if (this.clusterHost) {
-        query += `&clusterHost=${this.clusterHost}`;
-      }
-      if (this.baseDir) {
-        query += `&baseDir=${encodeURIComponent(this.baseDir)}`;
-      }
-      if (clusterHost) {
-        query += `&${ACCESS_CLUSTER_HOST}=${clusterHost}`;
-      }
-      if (this.importService) {
-        query += `&importService=${this.importService}`;
-      }
-      query += `&${CommonUtils.ACCESS_TOKEN}=${CommonUtils.getRawToken()}`;
-      const url = `ws://${this.getDefaultHost()}/jarboot/upload/ws?${query}`;
+      const query = 'params=' + Base64.base64UrlEncode(JSON.stringify(params));
+      const protocol = 'https:' === window.location.protocol ? 'wss' : 'ws';
+      const url = `${protocol}://${this.getDefaultHost()}/jarboot/upload/ws?${query}`;
 
-      console.info('file upload connect to ' + url);
+      Logger.log('文件上传，开始连接:' + url);
       this.websocket = new WebSocket(url);
-      this.websocket.onopen = () => console.info(`文件上传 open url:${url}`);
+      this.websocket.onopen = () => Logger.log(`连接成功，等待文件上传！`);
       this.websocket.onmessage = (event: MessageEvent) => this.handleMessage(event);
-      this.websocket.onerror = error => console.error(error);
-      this.websocket.onclose = event => console.info(event);
+      this.websocket.onerror = error => {
+        this.websocket = null;
+        Logger.error(error);
+      };
+      this.websocket.onclose = event => {
+        this.websocket = null;
+        Logger.log('文件上传服务，连接关闭！', event);
+      };
       this.startTime = Date.now();
     }
     if (this.paused) {
       this.paused = false;
       if (this.lastUploadProgress) {
         this.lastUploadProgress.pause = false;
-        this.triggerProgressChange();
+        this.triggerProgressChange(this.lastUploadProgress);
       }
       this.sendFile();
     }
@@ -134,7 +130,7 @@ export default class FileUploadClient {
     this.paused = true;
     if (this.lastUploadProgress) {
       this.lastUploadProgress.pause = true;
-      this.triggerProgressChange();
+      this.triggerProgressChange(this.lastUploadProgress);
     }
   }
 
@@ -159,9 +155,7 @@ export default class FileUploadClient {
         return;
       }
       this.lastUploadProgress.uploadSize = updateSize;
-      this.triggerProgressChange();
     }
-    defer(() => this.sendFile());
   }
 
   private getDefaultHost() {
@@ -169,65 +163,37 @@ export default class FileUploadClient {
   }
 
   private handleMessage(event: MessageEvent) {
-    this.lastUploadProgress = JSON.parse(event.data) as UploadFileInfo;
-    this.triggerProgressChange();
-    if (this.lastUploadProgress.errorMsg) {
-      CommonNotice.warn('文件传输异常：' + this.lastUploadProgress.errorMsg);
+    const lastUploadProgress = JSON.parse(event.data) as UploadFileInfo;
+    lastUploadProgress.pause = this.paused;
+    if (!this.lastUploadProgress) {
+      this.lastUploadProgress = lastUploadProgress;
+      // 开始发送数据
+      defer(() => this.sendFile());
+    } else if (lastUploadProgress.event === 'send') {
+      defer(() => this.sendFile());
+    }
+    this.triggerProgressChange(lastUploadProgress);
+    if (lastUploadProgress.errorMsg) {
+      CommonNotice.warn('文件传输异常：' + lastUploadProgress.errorMsg);
+      Logger.error(lastUploadProgress.errorMsg);
       this.paused = true;
       return;
     }
-    if (this.paused) {
-      return;
-    }
-    if (this.lastUploadProgress.uploadSize >= this.lastUploadProgress.totalSize) {
+    if (lastUploadProgress.uploadSize >= lastUploadProgress.totalSize) {
+      this.lastUploadProgress = lastUploadProgress;
       this.finished();
-      return;
     }
-    // 发送下一段数据
-    this.sendFile();
   }
 
-  private triggerProgressChange() {
-    this.progressHandlers.forEach(callback => callback(this.lastUploadProgress as UploadFileInfo));
+  private triggerProgressChange(lastUploadProgress: UploadFileInfo) {
+    this.progressHandlers.forEach(callback => callback(lastUploadProgress));
   }
 
   private finished() {
     this.finishedHandlers.forEach(callback => callback(this.lastUploadProgress as UploadFileInfo));
     const costTime = Date.now() - this.startTime;
-    console.info(`传输完成，耗时：${costTime / 1000} 秒`);
+    Logger.log(`传输完成，耗时：${costTime / 1000} 秒`);
     this.websocket?.close();
     this.websocket = null;
-  }
-
-  getFileMd5(file: File): Promise<string> {
-    const fileReader = new FileReader();
-    const chunkSize1 = 102400;
-    const chunks = Math.ceil(file.size / chunkSize1);
-    let currentChunk = 0;
-    const spark = new SparkMD5();
-    return new Promise(resolve => {
-      fileReader.onload = function (e) {
-        if (!e.target?.result) {
-          return;
-        }
-        spark.appendBinary(e.target.result as string);
-        currentChunk++;
-        if (currentChunk < chunks) {
-          loadNext();
-        } else {
-          resolve(spark.end());
-        }
-      };
-      fileReader.onerror = () => {
-        console.log('文件读取失败，无法上传该文件');
-      };
-
-      function loadNext() {
-        const start = currentChunk * chunkSize1;
-        const end = start + chunkSize1 >= file.size ? file.size : start + chunkSize1;
-        fileReader.readAsBinaryString(file.slice(start, end));
-      }
-      loadNext();
-    });
   }
 }

@@ -3,6 +3,7 @@ package io.github.majianzheng.jarboot.task;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.notify.AbstractEventRegistry;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
@@ -12,7 +13,7 @@ import io.github.majianzheng.jarboot.utils.TaskUtils;
  */
 public class TaskStatusChangeSubscriber implements Subscriber<TaskLifecycleEvent> {
     /** Event registry */
-    private AbstractEventRegistry eventRegistry;
+    private final AbstractEventRegistry eventRegistry;
 
     public TaskStatusChangeSubscriber(AbstractEventRegistry eventRegistry) {
         this.eventRegistry = eventRegistry;
@@ -30,6 +31,10 @@ public class TaskStatusChangeSubscriber implements Subscriber<TaskLifecycleEvent
             final String topic = eventRegistry
                     .createTopic(TaskLifecycleEvent.class, event.getSetting().getName(), event.getLifecycle().name());
             eventRegistry.receiveEvent(topic, event);
+            eventRegistry.receiveEvent(TaskLifecycleEvent.class.getName(), event);
+            if (event.canNotify()) {
+                ClusterClientManager.getInstance().notifyToOtherCluster(event);
+            }
         });
     }
 

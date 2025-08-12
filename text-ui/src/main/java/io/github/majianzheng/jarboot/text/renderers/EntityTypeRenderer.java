@@ -50,7 +50,7 @@ public class EntityTypeRenderer extends Renderer<EntityTypeRenderer.EntityTypeDa
       EntityTypeData entityTypeData = stream.next();
 
       if (!entityTypeData.verbose) {
-        if (table.getRows().size() == 0) {
+        if (table.getRows().isEmpty()) {
           RowElement header = new RowElement(true);
           header.add("NAME", "TYPE");
           table.add(header);
@@ -70,7 +70,7 @@ public class EntityTypeRenderer extends Renderer<EntityTypeRenderer.EntityTypeDa
         mapping.add("Mapping : " + entityTypeData.mapping);
         table.add(mapping);
 
-        if (entityTypeData.attributes.size() > 0) {
+        if (!entityTypeData.attributes.isEmpty()) {
           RowElement attributesLabel = new RowElement();
           attributesLabel.add("Attributes : ");
           table.add(attributesLabel);
@@ -117,7 +117,7 @@ public class EntityTypeRenderer extends Renderer<EntityTypeRenderer.EntityTypeDa
       this.type = type;
       this.mapping = mapping;
       this.verbose = verbose;
-      this.attributes = new ArrayList<AttributeData>();
+      this.attributes = new ArrayList<>();
     }
 
     public void add(AttributeData d) {
@@ -136,8 +136,8 @@ public class EntityTypeRenderer extends Renderer<EntityTypeRenderer.EntityTypeDa
     public AttributeData(String name, String type, Boolean association, Boolean collection, String mapping) {
       this.name = name;
       this.type = type;
-      this.association = (association != null ? association : false);
-      this.collection = (collection != null ? collection : false);
+      this.association = (association != null && association);
+      this.collection = (collection != null && collection);
       this.mapping = mapping;
     }
     

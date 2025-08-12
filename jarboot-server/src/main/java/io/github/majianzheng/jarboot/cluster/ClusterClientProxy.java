@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.cluster;
 
+import io.github.majianzheng.jarboot.api.constant.ClusterServerState;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -7,13 +8,11 @@ import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
-import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -29,9 +28,9 @@ import java.util.stream.Collectors;
 public class ClusterClientProxy {
     private static final Logger logger = LoggerFactory.getLogger(ClusterClientProxy.class);
 
-    @Autowired
+    @Resource
     private ServiceManager serviceManager;
-    @Autowired
+    @Resource
     private SettingService settingService;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
@@ -256,6 +255,7 @@ public class ClusterClientProxy {
         s.forEach(setting ->
                 executorService.execute(() -> {
                     try {
+                        logger.info("启动服务：{}", JsonUtils.toJsonString(setting));
                         this.startSingleService(setting);
                     } finally {
                         countDownLatch.countDown();
@@ -277,6 +277,7 @@ public class ClusterClientProxy {
         s.forEach(server ->
                 executorService.execute(() -> {
                     try {
+                        logger.info("停止服务：{}", JsonUtils.toJsonString(server));
                         this.stopSingleService(server);
                     } finally {
                         countDownLatch.countDown();

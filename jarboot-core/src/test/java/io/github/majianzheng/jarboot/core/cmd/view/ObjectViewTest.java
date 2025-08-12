@@ -8,6 +8,7 @@ import java.util.*;
 /**
  * @author majianzheng
  */
+@SuppressWarnings({"java:S1068"})
 public class ObjectViewTest {
 
     @Test

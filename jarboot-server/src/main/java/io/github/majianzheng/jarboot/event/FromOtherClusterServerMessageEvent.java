@@ -1,14 +1,21 @@
 package io.github.majianzheng.jarboot.event;
 
-import io.github.majianzheng.jarboot.api.event.JarbootEvent;
+import io.github.majianzheng.jarboot.api.event.ClusterEvent;
 
 /**
  * @author mazheng
  */
-public class FromOtherClusterServerMessageEvent implements JarbootEvent {
+public class FromOtherClusterServerMessageEvent extends ClusterEvent {
     private String sid;
     private String sessionId;
     private String message;
+    public FromOtherClusterServerMessageEvent(String sid, String sessionId, String message) {
+        this.sid = sid;
+        this.sessionId = sessionId;
+        this.message = message;
+    }
+    public FromOtherClusterServerMessageEvent() {
+    }
 
     public String getSid() {
         return sid;

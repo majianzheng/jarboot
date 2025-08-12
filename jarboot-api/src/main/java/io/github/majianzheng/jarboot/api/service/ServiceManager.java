@@ -90,21 +90,23 @@ public interface ServiceManager {
 
     /**
      * 注册事件处理
+     * @param host 服务所在主机
      * @param serviceName 服务名称
      * @param lifecycle 任务生命周期 {@link TaskLifecycle}
      * @param subscriber 任务处理 {@link Subscriber}
      */
-    void registerSubscriber(String serviceName,
+    void registerSubscriber(String host, String serviceName,
                             TaskLifecycle lifecycle,
                             Subscriber<TaskLifecycleEvent> subscriber);
 
     /**
      * 反注册事件处理
+     * @param host 服务所在主机
      * @param serviceName 服务名称
      * @param lifecycle 任务生命周期 {@link TaskLifecycle}
      * @param subscriber 任务处理 {@link Subscriber}
      */
-    void deregisterSubscriber(String serviceName,
+    void deregisterSubscriber(String host, String serviceName,
                               TaskLifecycle lifecycle,
                               Subscriber<TaskLifecycleEvent> subscriber);
 }

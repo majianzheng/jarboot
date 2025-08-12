@@ -47,6 +47,6 @@ public interface AbstractEventRegistry {
      * @return 主题
      */
     default String createTopic(Class<?> cls) {
-        return cls.getCanonicalName();
+        return cls.getName();
     }
 }

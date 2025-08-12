@@ -33,4 +33,10 @@ public class NetworkUtilsTest {
         List<String> list = NetworkUtils.getLocalAddr();
         Assert.assertFalse(list.isEmpty());
     }
+
+    @Test
+    public void testFindProcessByListenPort() {
+        int count = NetworkUtils.findProcessByListenPort(9899);
+        Assert.assertTrue(count > -2);
+    }
 }

@@ -3,15 +3,16 @@ package io.github.majianzheng.jarboot.controller;
 import io.github.majianzheng.jarboot.api.pojo.FileNode;
 import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.util.List;
 @RequestMapping(value = "/api/jarboot/file-manager")
 @RestController
 public class FileController {
-    @Autowired
+    @Resource
     private FileService fileService;
 
     /**
@@ -37,7 +38,7 @@ public class FileController {
      * @return 执行结果
      */
     @PostMapping("file")
-    @ResponseBody
+    @EnableAuditLog("上传文件")
     public ResponseSimple upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String clusterHost,
@@ -57,10 +58,11 @@ public class FileController {
      * 下载文件
      * @param path 文件
      * @param clusterHost 集群host
-     * @param response
-     * @throws IOException
+     * @param response 响应
+     * @throws IOException IO异常
      */
     @PostMapping("file/download")
+    @EnableAuditLog("下载文件")
     public void download(
             @RequestParam("path") String path,
             @RequestParam(required = false) String clusterHost,
@@ -119,9 +121,10 @@ public class FileController {
      * 删除文件
      * @param clusterHost 集群host
      * @param path 文件相对于工作目录的路径
-     * @return
+     * @return 执行结果
      */
-    @PostMapping("file/delete")
+    @DeleteMapping("file/delete")
+    @EnableAuditLog("删除文件")
     public ResponseVo<String> deleteFile(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path) {
@@ -139,9 +142,10 @@ public class FileController {
      * @param clusterHost 集群host
      * @param path 文件相对于工作目录的路径
      * @param content 文件内容
-     * @return
+     * @return 执行结果
      */
     @PostMapping("text")
+    @EnableAuditLog("写文件")
     public ResponseVo<String> writeFile(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path,
@@ -159,9 +163,10 @@ public class FileController {
      * @param clusterHost 集群host
      * @param path 文件相对于工作目录的路径
      * @param content 文件内容
-     * @return
+     * @return 执行结果
      */
     @PostMapping("text/create")
+    @EnableAuditLog("创建文本文件")
     public ResponseVo<String> newFile(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String path,
@@ -178,9 +183,10 @@ public class FileController {
      * 创建文件夹
      * @param clusterHost 集群host
      * @param file 文件相对于工作目录的路径
-     * @return
+     * @return 执行结果
      */
     @PostMapping("directory")
+    @EnableAuditLog("创建文件夹")
     public ResponseVo<String> addDirectory(
             @RequestParam(required = false) String clusterHost,
             @RequestParam("path") String file) {

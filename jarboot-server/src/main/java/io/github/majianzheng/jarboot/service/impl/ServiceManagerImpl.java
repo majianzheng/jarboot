@@ -18,6 +18,8 @@ import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
 import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
+import io.github.majianzheng.jarboot.dao.AuditLogDao;
+import io.github.majianzheng.jarboot.entity.AuditLog;
 import io.github.majianzheng.jarboot.task.AttachStatus;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -26,7 +28,6 @@ import io.github.majianzheng.jarboot.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -48,12 +49,14 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private static final String STARTED_MSG = "\033[96;1m%s\033[0m started cost \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m";
     private static final String STOPPED_MSG = "\033[96;1m%s\033[0m stopped cost \033[91;1m%.3f\033[0m second.";
 
-    @Autowired
+    @Resource
     private TaskRunCache taskRunCache;
-    @Autowired
+    @Resource
     private AbstractEventRegistry eventRegistry;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
+    @Resource
+    private AuditLogDao auditLogDao;
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -319,14 +322,19 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     /**
      * 注册事件处理
      *
+     * @param host        主机名
      * @param serviceName 服务名称
      * @param lifecycle   任务生命周期 {@link TaskLifecycle}
      * @param subscriber  任务处理 {@link Subscriber}
      */
     @Override
-    public void registerSubscriber(String serviceName,
+    public void registerSubscriber(String host,
+                                   String serviceName,
                                    TaskLifecycle lifecycle,
                                    Subscriber<TaskLifecycleEvent> subscriber) {
+        if (StringUtils.isNotEmpty(host)) {
+            serviceName = serviceName + "@" + host;
+        }
         final String topic = eventRegistry.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         eventRegistry.registerSubscriber(topic, subscriber);
     }
@@ -334,14 +342,19 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     /**
      * 反注册事件处理
      *
+     * @param host        主机名
      * @param serviceName 服务名称
      * @param lifecycle   任务生命周期 {@link TaskLifecycle}
      * @param subscriber  任务处理 {@link Subscriber}
      */
     @Override
-    public void deregisterSubscriber(String serviceName,
+    public void deregisterSubscriber(String host,
+                                     String serviceName,
                                      TaskLifecycle lifecycle,
                                      Subscriber<TaskLifecycleEvent> subscriber) {
+        if (StringUtils.isNotEmpty(host)) {
+            serviceName = serviceName + "@" + host;
+        }
         final String topic = eventRegistry.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         eventRegistry.deregisterSubscriber(topic, subscriber);
     }
@@ -457,6 +470,12 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             return;
         }
         String sid = setting.getSid();
+        try {
+            // 休眠片刻
+            TimeUnit.MILLISECONDS.sleep(120);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         //检查是否处于中间状态
         if (event.isStopping() || taskRunCache.isStopping(sid)) {
             //处于停止中状态，此时不做干预，守护只针对正在运行的进程
@@ -473,7 +492,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     }
 
     private void postHandleOfflineEvent(ServiceSetting setting) {
-        String serviceName = setting.getName();
+        String temp = setting.getName();
+        if (StringUtils.isNotEmpty(setting.getHost())) {
+            temp = temp + "@" + setting.getHost();
+        }
+        final String serviceName = temp;
         if (taskRunCache.isStarting(setting.getSid())) {
             MessageUtils.warn(String.format("服务%s启动失败！", serviceName));
             return;
@@ -481,15 +504,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
         NotifyReactor.getInstance().publishEvent(lifecycleEvent);
-        boolean temp = false;
+        boolean isDeamon = false;
         if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
             if (Boolean.TRUE.equals(setting.getDaemon())) {
-                temp = true;
+                isDeamon = true;
             } else {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, currentTimeFormat()));
             }
+            saveAuditLog("服务异常退出", serviceName);
         }
-        final boolean daemon = temp;
+
+        final boolean daemon = isDeamon;
         executorService.execute(() -> {
             if (StringUtils.isNotEmpty(SettingUtils.getSystemSetting().getAfterServerOfflineExec())) {
                 TaskUtils.execServiceOfflineShell(setting);
@@ -498,8 +523,20 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             if (daemon) {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, currentTimeFormat()));
                 this.startSingleService(setting);
+                saveAuditLog("服务守护启动", serviceName);
             }
         });
+    }
+
+    private void saveAuditLog(String operation, String arg) {
+        AuditLog sysLog = new AuditLog();
+        sysLog.setCreateTime(System.currentTimeMillis());
+        //注解上的描述
+        sysLog.setOperation(operation);
+        sysLog.setMethod("SYS");
+        sysLog.setArgument(arg);
+        sysLog.setUsername("system");
+        auditLogDao.save(sysLog);
     }
 
     private static String currentTimeFormat() {

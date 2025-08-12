@@ -4,19 +4,21 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.*;
 import io.github.majianzheng.jarboot.common.utils.*;
+import io.github.majianzheng.jarboot.tools.common.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 
 /**
  * @author majianzheng
  */
+@Slf4j
 public class JarbootShell {
     private static final String PID_ARG = "pid";
     private static final String HOST_ARG = "host";
@@ -65,42 +67,39 @@ public class JarbootShell {
     }
 
     private void initArgs() {
-        if (null == this.args || this.args.length <= 0) {
+        if (null == this.args || this.args.length == 0) {
             return;
         }
         HashSet<String> optionHash = new HashSet<>();
-        for (String arg : this.args) {
 
+        for (String arg : this.args) {
+            if (null != this.command) {
+                setField(arg);
+                continue;
+            }
             switch (arg) {
-                case "-pid":
-                case "--pid":
+                case "-pid", "--pid":
                     verifyField(PID_ARG, optionHash);
                     break;
-                case "-h":
-                case "-host":
-                case "--host":
+                case "-h", "-host", "--host":
                     verifyField(HOST_ARG, optionHash);
                     break;
-                case "-sync":
-                case "--sync":
+                case "-sync", "--sync":
                     verifyField(CMD_ARG, optionHash);
                     this.sync = true;
                     command = new ArrayList<>();
                     break;
-                case "-async":
-                case "--async":
+                case "-async", "--async":
                     verifyField(CMD_ARG, optionHash);
                     command = new ArrayList<>();
                     break;
-                case "-c":
-                case "--command":
+                case "-c", "--command":
                     verifyField(CMD_ARG, optionHash);
                     this.shell = true;
                     this.sync = true;
                     command = new ArrayList<>();
                     break;
-                case "-help":
-                case "--help":
+                case "-help", "--help":
                     this.help = true;
                     break;
                 default:
@@ -150,22 +149,7 @@ public class JarbootShell {
     }
 
     private void initJarbootHome() {
-        jarbootHome = System.getenv(CommonConst.JARBOOT_HOME);
-        if (StringUtils.isEmpty(jarbootHome)) {
-            jarbootHome = System.getProperty(CommonConst.JARBOOT_HOME);
-        }
-        if (StringUtils.isEmpty(jarbootHome)) {
-            CodeSource codeSource = JarbootShell.class.getProtectionDomain().getCodeSource();
-            try {
-                File agentJarFile = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                jarbootHome = agentJarFile.getParentFile().getParentFile().getPath();
-            } catch (Exception e) {
-                throw new JarbootException("Get current path failed!" + e.getMessage(), e);
-            }
-        }
-        if (StringUtils.containsWhitespace(jarbootHome)) {
-            throw new JarbootException(CommonConst.JARBOOT_HOME + " path has white space ` `");
-        }
+        jarbootHome = Utils.getJarbootHome();
     }
 
     public static void main(String[] args) {
@@ -173,8 +157,8 @@ public class JarbootShell {
             JarbootShell jarboot = new JarbootShell(args);
             jarboot.run();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
-            AnsiLog.error(e);
         }
     }
 
@@ -200,7 +184,7 @@ public class JarbootShell {
                 AnsiLog.println("Jarboot server version: {}", AnsiLog.cyan(runtimeInfo.getVersion()));
             }
         } catch (Exception e) {
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
             AnsiLog.error("Check Jarboot server {} failed! Please input running Jarboot server host.", host);
             return;
         }
@@ -242,28 +226,9 @@ public class JarbootShell {
 
     private void doCommand() {
         AnsiLog.info("starting: {}", String.join(" ", command));
-        //处理
-        ArrayList<String> list = new ArrayList<>();
-        if (!Boolean.TRUE.equals(this.shell)) {
-            list.add(CommonConst.JAVA_CMD);
-            list.add(String.format("-D%s=%s", CommonConst.JARBOOT_HOME, jarbootHome));
-            list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
-            list.add("-noverify");
-            list.add("-Dspring.output.ansi.enabled=always");
-            list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
-        }
-        list.addAll(command);
-        final String a = OSUtils.isWindows() ? "cmd" : "sh";
-        final String cmdFileName = String.format(".shell%s%08x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
-        File cmdFile = FileUtils.getFile(CacheDirHelper.getTempBashDir(), cmdFileName);
         try {
-            FileUtils.writeStringToFile(cmdFile, String.join(StringUtils.SPACE, list), StandardCharsets.UTF_8);
-            if (!cmdFile.setExecutable(true)) {
-                AnsiLog.error("set executable failed.");
-            }
-            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFile.getAbsolutePath()) : Arrays.asList("sh", cmdFile.getAbsolutePath());
-            Process process = new ProcessBuilder().command(cmd).start();
-            final Thread hook = JarbootThreadFactory.createThreadFactory("jarboot-hook").newThread(() -> exitHook(process, cmdFile));
+            Process process = createExecProcess();
+            final Thread hook = JarbootThreadFactory.createThreadFactory("jarboot-hook").newThread(() -> exitHook(process));
             Runtime.getRuntime().addShutdownHook(hook);
             if (Boolean.TRUE.equals(this.sync)) {
                 if (!Boolean.TRUE.equals(this.shell)) {
@@ -285,25 +250,99 @@ public class JarbootShell {
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             AnsiLog.error(AnsiLog.red("{}"), e.getMessage());
-            AnsiLog.error(e);
         } finally {
-            FileUtils.deleteQuietly(cmdFile);
+            FileUtils.deleteQuietly(getCmdFile());
             AnsiLog.info("Start process finished.");
         }
     }
 
-    private static void exitHook(Process process, File cmdFile) {
+    private Process createExecProcess() {
+        String workHome = System.getenv("WORK_HOME");
+        if (StringUtils.isEmpty(workHome)) {
+            workHome = System.getProperty("user.dir");
+        }
+        try {
+            StringBuilder sb = new StringBuilder();
+            if (OSUtils.isWindows()) {
+                sb.append("@echo off").append(StringUtils.LINE_BREAK);
+                sb.append("set \"JARBOOT_HOME=").append(jarbootHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("set \"WORK_HOME=").append(workHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("cd \"").append("%WORK_HOME%").append('"').append(StringUtils.LINE_BREAK);
+            } else {
+                sb.append("export JARBOOT_HOME=\"").append(jarbootHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("export WORK_HOME=\"").append(workHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("cd \"").append("$WORK_HOME").append('"').append(StringUtils.LINE_BREAK);
+            }
+            sb.append(String.join(StringUtils.SPACE, getCmdStrings())).append(StringUtils.LINE_BREAK);
+            File cmdFile = getCmdFile();
+            FileUtils.writeStringToFile(cmdFile, sb.toString(), OSUtils.isWindows() ? "GBK" : "UTF-8");
+            if (!cmdFile.setExecutable(true)) {
+                AnsiLog.error("set executable failed.");
+            }
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(cmdFile.getAbsolutePath()) : Arrays.asList("bash", cmdFile.getAbsolutePath());
+            return new ProcessBuilder()
+                    .directory(cmdFile.getParentFile())
+                    .command(cmd)
+                    .start();
+        } catch (Exception e) {
+            throw new JarbootException(e);
+        }
+    }
+
+    private ArrayList<String> getCmdStrings() {
+        ArrayList<String> list = new ArrayList<>();
+        if (!Boolean.TRUE.equals(this.shell)) {
+            list.add(CommonConst.JAVA_CMD);
+            list.add(String.format("-D%s=%s", CommonConst.REMOTE_PROP, host));
+            list.add("-noverify");
+            list.add(String.format("-javaagent:%s", getJarbootAgentPath()));
+        }
+        list.addAll(command);
+        return list;
+    }
+
+    private static File getCmdFile() {
+        final String a = OSUtils.isWindows() ? "cmd" : "sh";
+        final String cmdFileName = String.format(".shell%s%08x.%s", StringUtils.randomString(6), System.currentTimeMillis(), a);
+        return FileUtils.getFile(CacheDirHelper.getTempBashDir(), cmdFileName);
+    }
+
+    private static void exitHook(Process process) {
         if (null != process) {
+            try {
+                killChildren(process.children());
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
             try {
                 process.destroyForcibly();
             } catch (Exception e) {
                 // ignore
             }
         }
+        File cmdFile = getCmdFile();
         if (null != cmdFile && cmdFile.exists()) {
             FileUtils.deleteQuietly(cmdFile);
         }
+    }
+    private static void killChildren(Stream<ProcessHandle> children) {
+        if (null == children) {
+            return;
+        }
+        children.forEach(child -> {
+            try {
+                killChildren(child.children());
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+            try {
+                child.destroyForcibly();
+            } catch (Exception e) {
+                AnsiLog.error(e);
+            }
+        });
     }
 
     private void selectAttach() {
@@ -348,18 +387,39 @@ public class JarbootShell {
         } catch (NumberFormatException e) {
             AnsiLog.println("Please input an integer to select pid.");
         } catch (Exception e) {
-            AnsiLog.error(e.getMessage());
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
         }
     }
 
     private String getJarbootAgentPath() {
-        File agentJar = FileUtils.getFile(jarbootHome, CommonConst.COMPONENTS_NAME, CommonConst.AGENT_JAR_NAME);
-        if (agentJar.exists()) {
-            return agentJar.getPath();
-        } else {
-            throw new JarbootException(CommonConst.AGENT_JAR_NAME + " not exist!");
+        File userAgentJarFile = getUserAgentJarFile();
+        String agentPath = userAgentJarFile.getAbsolutePath();
+        File agentJarFile = FileUtils.getFile(jarbootHome, CommonConst.COMPONENTS_NAME, CommonConst.AGENT_JAR_NAME);
+        if (!userAgentJarFile.exists()) {
+            // agent jar不存在，则从jar包中拷贝
+            try {
+                if (!userAgentJarFile.getParentFile().exists()) {
+                    FileUtils.forceMkdir(userAgentJarFile.getParentFile());
+                }
+                FileUtils.copyFile(agentJarFile, userAgentJarFile);
+                agentPath = userAgentJarFile.getAbsolutePath();
+            } catch (Exception e) {
+                AnsiLog.error("Copy agent jar error!", e);
+                agentPath = agentJarFile.getAbsolutePath();
+            }
         }
+        return agentPath;
+    }
+
+    private static File getUserAgentJarFile() {
+        String base = "/tmp";
+        if (OSUtils.isWindows()) {
+            base = System.getenv("ProgramData");
+            if (StringUtils.isEmpty(base)) {
+                base = "C:\\ProgramData";
+            }
+        }
+        return FileUtils.getFile(base, "jarboot", CommonConst.AGENT_JAR_NAME);
     }
 
     private void printHomePage() {

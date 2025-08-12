@@ -1,50 +1,59 @@
 package io.github.majianzheng.jarboot.tools.daemon;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
-import io.github.majianzheng.jarboot.common.AnsiLog;
+import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
+import io.github.majianzheng.jarboot.common.utils.HttpUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
+import io.github.majianzheng.jarboot.tools.common.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileLock;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 进程守护
  * @author mazheng
  */
+@Slf4j
 public class ServerDaemon {
     public static void main(String[] args) {
-        String home = System.getProperty(CommonConst.JARBOOT_HOME);
+        String home = Utils.getJarbootHome();
         if (StringUtils.isEmpty(home)) {
-            AnsiLog.error("JARBOOT_HOME is not set!");
+            log.error("JARBOOT_HOME is not set!");
             return;
         }
-        AnsiLog.info("启动Jarboot守护进程...");
+        log.info("启动Jarboot守护进程...");
+        PidFileHelper.writeDaemonPid();
         try (FileLock daemonLock = CacheDirHelper.singleDaemonTryLock()) {
             if (null == daemonLock) {
-                AnsiLog.error("守护进程(PID: {})已在运行中!", PidFileHelper.getDaemonPid());
+                log.error("守护进程(PID: {})已在运行中!", PidFileHelper.getDaemonPid());
                 return;
             }
-            daemon();
+            daemon(daemonLock);
         } catch (Exception e) {
-            AnsiLog.error(e);
-            return;
+            log.error(e.getMessage(), e);
+            FileUtils.deleteQuietly(CacheDirHelper.getDaemonPidFile());
         }
-        startup(home);
     }
 
-    private static void daemon() {
+    private static void daemon(FileLock daemonLock) {
         if (OSUtils.isWindows()) {
             // 初始化托盘
-            AnsiLog.info("Windows 托盘应用初始化...");
+            log.info("Windows 托盘应用初始化...");
         }
         // 等待启动
-        final int maxWaitSec = 30;
+        final int maxWaitSec = 60;
         boolean prepared = false;
         for (int i = 0; i < maxWaitSec; ++i) {
             prepared = isPrepared();
@@ -58,41 +67,59 @@ public class ServerDaemon {
             }
         }
         if (!prepared) {
-            AnsiLog.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec);
+            log.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec);
             return;
         }
-        PidFileHelper.writeDaemonPid();
+        long preparedTime = System.currentTimeMillis();
         // 开始监听
         try (FileLock lock = CacheDirHelper.singleInstanceLock()) {
-            if (lock != null) {
-                lock.release();
-            }
+            process(lock, daemonLock, preparedTime);
         } catch (Exception e) {
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
         }
+    }
+
+    private static void process(FileLock lock, FileLock daemonLock, long preparedTime) throws IOException {
+        if (null == lock) {
+            log.error("单例进程加锁失败！");
+            return;
+        }
+
+        final long maxWaitTime = 5 * 60 * 1000L;
+        if (System.currentTimeMillis() - preparedTime < maxWaitTime) {
+            log.error("Jarboot服务启动失败，守护退出！");
+            return;
+        }
+        lock.release();
+        daemonLock.release();
+        startup(Utils.getJarbootHome());
     }
 
     private static void startup(String home) {
         // 启动startup.sh
         String [] cmd = OSUtils.isWindows() ? new String[]{"bin/windows/startup.cmd"} : new String[]{"sh", "bin/startup.sh"};
         try {
-            Runtime.getRuntime().exec(cmd, null, FileUtils.getFile(home)).waitFor();
+            Process process = Runtime.getRuntime().exec(cmd, null, FileUtils.getFile(home));
+            if (OSUtils.isWindows()) {
+                process.getOutputStream().write('\r');
+                process.getOutputStream().flush();
+            }
+            process.waitFor(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            AnsiLog.error(e);
+            log.error(e.getMessage(), e);
         }
     }
 
     private static boolean isPrepared() {
-        boolean prepared = false;
         Map<String, String> vms = VMUtils.getInstance().listVM();
         String pid = PidFileHelper.getServerPid();
-        if (vms.containsKey(pid)) {
-            // 已经加锁并运行
-            prepared = true;
-            AnsiLog.info("检测到Jarboot服务(PID: {})启动中...", pid);
+        if (!vms.containsKey(pid)) {
+            log.info("检测到Jarboot服务(PID: {})启动中...", pid);
+            return false;
         }
-        return prepared;
+        log.info("Jarboot服务(PID: {})已启动，准备就绪...", pid);
+        return Utils.isStarted();
     }
 }

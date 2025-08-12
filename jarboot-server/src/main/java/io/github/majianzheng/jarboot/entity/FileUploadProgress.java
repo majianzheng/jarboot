@@ -9,19 +9,21 @@ import javax.persistence.UniqueConstraint;
  * 文件上传进度表
  * @author mazheng
  */
-@Table(name = FileUploadProgress.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"dstPath"})})
+@Table(name = FileUploadProgress.TABLE_NAME, uniqueConstraints = {@UniqueConstraint(columnNames = {"clusterHost", "absolutePath"})})
 @Entity
 public class FileUploadProgress extends AbstractBaseEntity {
     public static final String TABLE_NAME = "jarboot_file_upload_progress";
     private String clusterHost;
     private String filename;
     private String dstPath;
+    private String absolutePath;
     private String relativePath;
-    private String md5;
     private Long totalSize;
     private Long uploadSize;
     @Transient
     private String errorMsg;
+    @Transient
+    private String event;
 
     public String getClusterHost() {
         return clusterHost;
@@ -55,14 +57,6 @@ public class FileUploadProgress extends AbstractBaseEntity {
         this.relativePath = relativePath;
     }
 
-    public String getMd5() {
-        return md5;
-    }
-
-    public void setMd5(String md5) {
-        this.md5 = md5;
-    }
-
     public Long getTotalSize() {
         return totalSize;
     }
@@ -85,5 +79,21 @@ public class FileUploadProgress extends AbstractBaseEntity {
 
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
+    public void setAbsolutePath(String absolutePath) {
+        this.absolutePath = absolutePath;
     }
 }

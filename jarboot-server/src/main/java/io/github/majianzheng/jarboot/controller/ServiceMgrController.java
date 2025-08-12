@@ -5,15 +5,16 @@ import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
 import io.github.majianzheng.jarboot.api.pojo.ServiceInstance;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
+import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
+import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.pojo.ResultCodeConst;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -23,9 +24,10 @@ import java.util.List;
  * @author majianzheng
  */
 @RequestMapping(value = CommonConst.SERVICE_MGR_CONTEXT)
-@Controller
+@RestController
+@PrivilegeCheck(value = {"SERVICES_MGR", "ONLINE_DEBUG"})
 public class ServiceMgrController {
-    @Autowired
+    @Resource
     private ServiceManager serviceManager;
 
     /**
@@ -33,7 +35,6 @@ public class ServiceMgrController {
      * @return 服务列表
      */
     @GetMapping
-    @ResponseBody
     public ResponseVo<List<ServiceInstance>> getServiceList() {
         List<ServiceInstance> results = serviceManager.getServiceList();
         return HttpResponseUtils.success(results);
@@ -41,20 +42,18 @@ public class ServiceMgrController {
 
     /**
      * 获取服务组列表
-     * @return
+     * @return 服务组
      */
     @GetMapping("/groups")
-    @ResponseBody
     public ResponseVo<ServiceInstance> getServiceGroup() {
         return HttpResponseUtils.success(serviceManager.getServiceGroup());
     }
 
     /**
      * 获取JVM组列表
-     * @return
+     * @return JVM组
      */
     @GetMapping("/jvmGroups")
-    @ResponseBody
     public ResponseVo<JvmProcess> getJvmGroup() {
         return HttpResponseUtils.success(serviceManager.getJvmGroup());
     }
@@ -65,7 +64,7 @@ public class ServiceMgrController {
      * @return 执行结果
      */
     @PostMapping(value="/startService")
-    @ResponseBody
+    @EnableAuditLog("启动服务")
     public ResponseSimple startServer(@RequestBody List<String> services) {
         serviceManager.startService(services);
         return HttpResponseUtils.success();
@@ -77,7 +76,7 @@ public class ServiceMgrController {
      * @return 执行结果
      */
     @PostMapping(value="/stopService")
-    @ResponseBody
+    @EnableAuditLog("停止服务")
     public ResponseSimple stopServer(@RequestBody List<String> services) {
         serviceManager.stopService(services);
         return HttpResponseUtils.success();
@@ -89,7 +88,7 @@ public class ServiceMgrController {
      * @return 执行结果
      */
     @PostMapping(value="/restartService")
-    @ResponseBody
+    @EnableAuditLog("重启服务")
     public ResponseSimple restartServer(@RequestBody List<String> services) {
         serviceManager.restartService(services);
         return HttpResponseUtils.success();
@@ -98,10 +97,10 @@ public class ServiceMgrController {
     /**
      * 启动单个服务
      * @param setting 服务配置
-     * @return
+     * @return 结果
      */
     @PostMapping(value="/startSingleService")
-    @ResponseBody
+    @EnableAuditLog("启动单个服务")
     public ResponseSimple startSingleService(@RequestBody ServiceSetting setting) {
         serviceManager.startSingleService(setting);
         return HttpResponseUtils.success();
@@ -110,10 +109,10 @@ public class ServiceMgrController {
     /**
      * 停止单个服务
      * @param setting 服务配置
-     * @return
+     * @return 结果
      */
     @PostMapping(value="/stopSingleService")
-    @ResponseBody
+    @EnableAuditLog("停止单个服务")
     public ResponseSimple stopSingleService(@RequestBody ServiceSetting setting) {
         serviceManager.stopSingleService(setting);
         return HttpResponseUtils.success();
@@ -125,7 +124,6 @@ public class ServiceMgrController {
      * @return 编码后的数据
      */
     @GetMapping(value="/base64Encoder")
-    @ResponseBody
     public ResponseVo<String> base64Encoder(String data) {
         if (StringUtils.isEmpty(data)) {
             return new ResponseVo<>(ResultCodeConst.EMPTY_PARAM, "参数为空");
@@ -139,7 +137,6 @@ public class ServiceMgrController {
      * @return 进程列表
      */
     @GetMapping(value="/jvmProcesses")
-    @ResponseBody
     public ResponseVo<List<JvmProcess>> getJvmProcesses() {
         List<JvmProcess> results = serviceManager.getJvmProcesses();
         return HttpResponseUtils.success(results);
@@ -151,7 +148,7 @@ public class ServiceMgrController {
      * @return 执行结果
      */
     @GetMapping(value="/attach")
-    @ResponseBody
+    @EnableAuditLog("attach进程")
     public ResponseSimple attach(String pid) {
         serviceManager.attach(pid);
         return HttpResponseUtils.success();
@@ -163,7 +160,7 @@ public class ServiceMgrController {
      * @return 执行结果
      */
     @DeleteMapping(value="/service")
-    @ResponseBody
+    @EnableAuditLog("删除服务")
     public ResponseSimple deleteServer(String serviceName) {
         serviceManager.deleteService(serviceName);
         return HttpResponseUtils.success();
@@ -175,7 +172,6 @@ public class ServiceMgrController {
      * @return 服务信息
      */
     @GetMapping(value="/service")
-    @ResponseBody
     public ResponseVo<ServiceInstance> getServer(String serviceName) {
         ServiceInstance result = serviceManager.getService(serviceName);
         return HttpResponseUtils.success(result);

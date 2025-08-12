@@ -7,11 +7,12 @@ import org.junit.rules.ExpectedException;
 import java.io.Serializable;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author majianzheng
  */
+@SuppressWarnings({"java:S1874", "java:S1186", "java:S1172"})
 public class TypeRenderUtilsTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -48,7 +49,7 @@ public class TypeRenderUtilsTest {
     @Test
     public void testDrawParametersForMethodThrowsException() throws NoSuchMethodException {
         thrown.expect(NoSuchMethodException.class);
-        String result = TypeRenderUtils.drawParameters(TestClass.class.getMethod("method"));
+        TypeRenderUtils.drawParameters(TestClass.class.getMethod("method"));
     }
 
     @Test
@@ -65,7 +66,7 @@ public class TypeRenderUtilsTest {
     @Test
     public void testDrawParametersForConstructorThrowsException() throws NoSuchMethodException {
         thrown.expect(NoSuchMethodException.class);
-        String result = TypeRenderUtils.drawParameters(TestClass.class.getConstructor());
+        TypeRenderUtils.drawParameters(TestClass.class.getConstructor());
     }
 
     @Test

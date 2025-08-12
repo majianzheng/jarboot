@@ -8,3 +8,6 @@ spring:
 logging:
   file:
     name: ${JARBOOT_HOME}/logs/jarboot.log
+server:
+  tomcat:
+    basedir: ${JARBOOT_HOME}/.cache/catalina_home

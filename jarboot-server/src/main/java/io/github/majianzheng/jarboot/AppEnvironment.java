@@ -6,12 +6,13 @@ import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
-import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.service.TaskWatchService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
@@ -19,19 +20,28 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.nio.channels.FileLock;
 import java.time.Duration;
+import java.util.Properties;
 
 /**
  * check file is all exist and environment is jdk.
  * @author majianzheng
  */
 public class AppEnvironment implements SpringApplicationRunListener {
+    private static final Logger logger = LoggerFactory.getLogger(AppEnvironment.class);
     private String homePath;
-    private FileLock lock;
+    private final FileLock lock;
 
     public AppEnvironment(SpringApplication app, String[] args) {
-        // ignore
+        // 进程单实例加锁
+        this.lock = CacheDirHelper.singleInstanceTryLock();
+        if (null == this.lock) {
+            AnsiLog.error("Jarboot server is already started!");
+            System.exit(-1);
+        }
+        PidFileHelper.writeServerPid();
     }
     @Override
     public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
@@ -46,15 +56,11 @@ public class AppEnvironment implements SpringApplicationRunListener {
         }
 
         homePath = FileUtils.getFile(homePath).getAbsolutePath();
-        //检查安装路径是否存在空格
-        if (StringUtils.containsWhitespace(homePath)) {
-            AnsiLog.error("Jarboot所在目录的全路径中存在空格！");
-            System.exit(-1);
-        }
-
-        if (null == System.getProperty(CommonConst.JARBOOT_HOME, null)) {
-            System.setProperty(CommonConst.JARBOOT_HOME, homePath);
-        }
+        String cache = homePath + File.separator + ".cache";
+        System.setProperty("pty4j.tmpdir", cache);
+        System.setProperty("java.io.tmpdir", cache);
+        System.setProperty("java.tmp.dir", cache);
+        System.setProperty(CommonConst.JARBOOT_HOME, homePath);
         final String ver = "v" + VersionUtils.version;
         System.setProperty("application.version", ver);
         //derby数据库驱动的日志文件位置
@@ -67,11 +73,9 @@ public class AppEnvironment implements SpringApplicationRunListener {
             checkEnvironment();
             //初始化cache目录
             CacheDirHelper.init();
-            // 进程单实例加锁
-            this.lock = CacheDirHelper.singleInstanceTryLock();
-            PidFileHelper.writeServerPid();
         } catch (Exception e) {
             AnsiLog.error(e);
+            FileUtils.deleteQuietly(CacheDirHelper.getServerPidFile());
             System.exit(-1);
         }
     }
@@ -84,6 +88,20 @@ public class AppEnvironment implements SpringApplicationRunListener {
         taskWatchService.init();
         // 集群配置初始化
         ClusterClientManager.getInstance().init();
+        saveInfo();
+    }
+
+    private static void saveInfo() {
+        String host = SettingUtils.getLocalhost();
+        String serverPid = PidFileHelper.getServerPid();
+        Properties properties = new Properties();
+        properties.setProperty(CommonConst.HOST_KEY, host);
+        properties.setProperty("pid", serverPid);
+        try (OutputStream os = FileUtils.newOutputStream(CacheDirHelper.getServerInfoFile(), false)) {
+            properties.store(os, "Jarboot server info file created by auto.");
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -92,7 +110,7 @@ public class AppEnvironment implements SpringApplicationRunListener {
             try {
                 this.lock.release();
             } catch (Exception e) {
-                AnsiLog.error(e);
+                logger.error(e.getMessage(), e);
             }
         }
     }

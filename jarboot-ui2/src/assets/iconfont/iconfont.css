@@ -1,9 +1,9 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3820706 */
-  src: url('iconfont.woff2?t=1695366869637') format('woff2'),
-       url('iconfont.woff?t=1695366869637') format('woff'),
-       url('iconfont.ttf?t=1695366869637') format('truetype'),
-       url('iconfont.svg?t=1695366869637#iconfont') format('svg');
+  src: url('iconfont.woff2?t=1754876159553') format('woff2'),
+       url('iconfont.woff?t=1754876159553') format('woff'),
+       url('iconfont.ttf?t=1754876159553') format('truetype'),
+       url('iconfont.svg?t=1754876159553#iconfont') format('svg');
 }
 
 .iconfont {
@@ -11,6 +11,46 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-upgrade:before {
+  content: "\e600";
+}
+
+.icon-openapi:before {
+  content: "\e61e";
+}
+
+.icon-script:before {
+  content: "\e7e3";
+}
+
+.icon-enter:before {
+  content: "\e94f";
+}
+
+.icon-memory:before {
+  content: "\e68e";
+}
+
+.icon-server:before {
+  content: "\e60e";
+}
+
+.icon-disk:before {
+  content: "\e82d";
+}
+
+.icon-cpu:before {
+  content: "\e77d";
+}
+
+.icon-monitor:before {
+  content: "\e6f8";
+}
+
+.icon-preferences:before {
+  content: "\e65b";
 }
 
 .icon-json:before {

@@ -1,6 +1,6 @@
 <template>
   <div class="flex two-sides-container" ref="containerRef">
-    <div :style="{ width: leftWidth, display: state.collapsed ? 'none' : 'block' }">
+    <div :style="{ width: leftWidth + 'px', display: state.collapsed ? 'none' : 'block' }">
       <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
@@ -9,18 +9,18 @@
             <slot name="left-tools"></slot>
           </div>
         </template>
-        <div :style="{ height: bodyHeight }" style="overflow: auto">
+        <div :style="{ height: bodyHeight + 'px' }" style="overflow: auto">
           <slot name="left-content"></slot>
         </div>
       </el-card>
     </div>
     <div style="width: 0">
       <div class="_collapse_box" :style="getStyle()" @click="collapse">
-        <el-icon v-if="state.collapsed"><CaretRight /></el-icon>
-        <el-icon v-else><CaretLeft /></el-icon>
+        <icon-pro v-if="state.collapsed" icon="CaretRight"></icon-pro>
+        <icon-pro v-else icon="CaretLeft"></icon-pro>
       </div>
     </div>
-    <div style="flex: auto" :style="{ width: `calc(${state.totalWidth}px - ${leftWidth})` }">
+    <div style="flex: auto" :style="{ width: `${totalWidth - leftWidth}px` }">
       <el-card :body-style="{ padding: 0 } as any">
         <template #header v-if="showHeader">
           <div class="flex header">
@@ -29,7 +29,7 @@
             <slot name="right-tools"></slot>
           </div>
         </template>
-        <div :style="{ height: bodyHeight }" style="overflow: auto">
+        <div :style="{ height: bodyHeight + 'px' }" style="overflow: auto">
           <slot name="right-content"></slot>
         </div>
       </el-card>
@@ -41,8 +41,9 @@
 import { onMounted, reactive, watch, ref } from 'vue';
 
 const props = defineProps({
-  bodyHeight: { type: String, default: '100px' },
-  leftWidth: { type: String, default: '300px' },
+  bodyHeight: { type: Number, default: 100 },
+  leftWidth: { type: Number, default: 300 },
+  totalWidth: { type: Number, default: 1000 },
   leftTitle: { type: String, default: '左侧标题' },
   rightTitle: { type: String, default: '右侧侧标题' },
   collapsed: { type: Boolean, default: false },
@@ -53,7 +54,6 @@ const emit = defineEmits<{
 }>();
 const state = reactive({
   collapsed: false,
-  totalWidth: 0 as any,
 });
 const containerRef = ref<HTMLDivElement>();
 
@@ -76,7 +76,6 @@ function collapse() {
 
 onMounted(() => {
   state.collapsed = props.collapsed;
-  state.totalWidth = containerRef.value?.getBoundingClientRect().width;
 });
 </script>
 

@@ -37,7 +37,7 @@ public class ElementRenderer extends Renderer<Element> {
     if (stream.hasNext()) {
       Element element = stream.next();
       if (stream.hasNext()) {
-        LinkedList<LineRenderer> renderers = new LinkedList<LineRenderer>();
+        LinkedList<LineRenderer> renderers = new LinkedList<>();
         renderers.add(element.renderer());
         while (stream.hasNext()) {
           element = stream.next();

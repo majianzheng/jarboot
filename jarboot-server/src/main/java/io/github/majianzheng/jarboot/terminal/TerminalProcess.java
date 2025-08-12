@@ -45,7 +45,7 @@ public class TerminalProcess {
         }
         operator.newMessage(BannerUtils.colorBanner());
         try {
-            String[] cmd = { "/bin/sh", "-l" };
+            String[] cmd = { "/bin/bash", "-l" };
             if (OSUtils.isWindows()) {
                 cmd = new String[]{"cmd"};
             }

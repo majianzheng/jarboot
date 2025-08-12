@@ -17,6 +17,7 @@ import java.util.Base64;
  * AES的加密和解密
  * @author majianzheng
  */
+@SuppressWarnings({"java:S5542"})
 public class AesUtils {
     /** 密钥 (需要前端和后端保持一致) */
     private static final String KEY;

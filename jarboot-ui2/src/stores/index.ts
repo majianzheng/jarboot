@@ -31,6 +31,7 @@ import FileUploadClient from '@/components/file-upload/FileUploadClient';
 export const useBasicStore = defineStore({
   id: 'basic',
   state: () => ({
+    productName: 'Jarboot',
     version: '',
     uuid: '',
     host: '',
@@ -38,18 +39,37 @@ export const useBasicStore = defineStore({
     clusterInitialized: false,
     inDocker: false,
     masterHost: '',
-    innerHeight: window.innerHeight,
+    os: '',
+    jdk: '',
+    dev: false,
+    machineCode: '',
+    innerHeight: window.innerHeight - 52,
     innerWidth: window.innerWidth,
     menus: [] as MenuItem[],
     subNameMap: new Map(),
+    latestWeak: Date.now(),
+    upgradeLoading: false,
+    mobileDevice: CommonUtils.isMobileDevice(),
   }),
   actions: {
     async update() {
-      this.$patch({ innerHeight: window.innerHeight, innerWidth: window.innerWidth });
+      const mobileDevice = CommonUtils.isMobileDevice();
+      let innerHeight = window.innerHeight;
+      if (mobileDevice) {
+        innerHeight = innerHeight - 52;
+      }
+      this.$patch({ innerHeight, innerWidth: innerWidth, mobileDevice });
     },
     async init() {
+      await this.update();
       const info = await Request.get<ServerRuntimeInfo>(`/api/jarboot/public/serverRuntime`, {});
-      this.$patch({ ...info });
+      const productName = await Request.get<string>('/jarboot/preferences/productName', {});
+      document.title = productName;
+      const icon = document.head.querySelector('link[rel="icon"]');
+      if (icon) {
+        icon.setAttribute('href', `/jarboot/preferences/image/favicon.ico`);
+      }
+      this.$patch({ productName, ...info });
     },
     setMenus(menus: MenuItem[]) {
       this.$patch({ menus });
@@ -68,11 +88,11 @@ export const useUserStore = defineStore({
     roles: '',
     userDir: '',
     avatar: null as string | null,
-    privileges: null as any | null,
+    privileges: null as any,
   }),
 
   actions: {
-    logout() {
+    async logout() {
       this.$patch({
         username: '',
         fullName: '',
@@ -80,13 +100,27 @@ export const useUserStore = defineStore({
         userDir: '',
       });
       CommonUtils.deleteToken();
+      await OAuthService.logout();
       return router.push({ name: PAGE_LOGIN });
     },
     async login(username: string, password: string) {
       const user: any = await OAuthService.login(username, password);
-      CommonUtils.storeToken(user.accessToken);
-      CommonUtils.storeCurrentHost(user.host);
       this.$patch({ ...user });
+      const name = router.currentRoute?.value?.query['redirect'] as string;
+      if (name) {
+        const paramsStr = router.currentRoute.value.query['redirectParams'] as string;
+        let params = {};
+        if (paramsStr) {
+          params = JSON.parse(paramsStr);
+        }
+        const queryStr = router.currentRoute.value.query['redirectQuery'] as string;
+        let query = {};
+        if (queryStr) {
+          query = JSON.parse(queryStr);
+        }
+        await router.push({ name, params, query });
+        return;
+      }
       await router.push('/');
     },
     setCurrentUser(user: any) {
@@ -265,24 +299,24 @@ export const useUploadStore = defineStore({
     },
     async upload(
       file: File,
+      uploadMode: 'home' | 'service' | 'workspace' | '',
       baseDir: string,
       path: string,
       clusterHost: string,
-      finishCallback?: (info: UploadFileInfo) => void,
-      importServer?: string
+      finishCallback?: (info: UploadFileInfo) => void
     ) {
-      let client = new FileUploadClient(file, baseDir, path, clusterHost);
+      let client = new FileUploadClient(file, uploadMode, baseDir, path, clusterHost);
       if (finishCallback) {
         client.addFinishedEventHandler(finishCallback);
       }
-      client.setImportService(importServer || '');
-      if (this.clients.has(client.getDstPath())) {
-        client = this.clients.get(client.getDstPath()) as FileUploadClient;
+      if (this.clients.has(client.getKey())) {
+        client = this.clients.get(client.getKey()) as FileUploadClient;
         await client.upload();
         return;
       }
       client.addUploadEventHandler(info => this.update(info));
-      this.clients.set(client.getDstPath(), client);
+      client.addFinishedEventHandler(() => this.clients.delete(client.getKey()));
+      this.clients.set(client.getKey(), client);
       await client.upload();
     },
     pause(dstPath: string) {

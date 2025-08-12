@@ -14,6 +14,7 @@ import io.github.majianzheng.jarboot.service.UserService;
 import io.jsonwebtoken.io.Encoders;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -26,7 +27,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 /**
  * @author majianzheng
@@ -38,6 +41,7 @@ public class SettingUtils {
     private static final SystemSetting GLOBAL_SETTING = new SystemSetting();
     /** Jarboot配置文件名字 */
     private static final String BOOT_PROPERTIES = "boot.json";
+    private static final String PRODUCT_NAME = "product-name";
     /** 工作空间属性key */
     private static final String ROOT_DIR_KEY = "jarboot.services.workspace";
     private static final String DEFAULT_JDK_PATH = "jarboot.jdk.path";
@@ -48,6 +52,7 @@ public class SettingUtils {
     private static final String AFTER_OFFLINE_EXEC = "jarboot.after-server-error-offline";
     private static final String FILE_SHAKE_TIME = "jarboot.file-shake-time";
     private static final String SERVICES_AUTO_START = "jarboot.services.enable-auto-start-after-start";
+    private static String productName;
     /** 默认的工作空间路径 */
     private static String defaultWorkspace;
     /** Jarboot配置文件路径 */
@@ -55,12 +60,11 @@ public class SettingUtils {
     /** Jarboot的bin文件夹路径 */
     private static String componentsDir;
     /** Jarboot的日志路径 */
-    private static String logDir;
+    private static String logDir = "logs";
     /** jarboot-agent.jar文件的路径 */
     private static String agentJar;
     private static String toolsJar;
-    /** file encoding选项 */
-    private static final String FILE_ENCODING_OPTION = "-Dfile.encoding=";
+
     /** 本地地址 */
     private static String localHost = "127.0.0.1:9899";
     private static int port = 9899;
@@ -143,6 +147,23 @@ public class SettingUtils {
             logger.error("文件不存在 {}", toolsJar);
             System.exit(-1);
         }
+        checkVersionAndCopy();
+    }
+
+    private static void checkVersionAndCopy() {
+        File jarFile = FileUtils.getFile(agentJar);
+        File userAgentJarFile = getUserAgentJarFile();
+        if (userAgentJarFile.exists()) {
+            String userAgentVer = getAgentJarVersion(userAgentJarFile);
+            String agentVer = getAgentJarVersion(jarFile);
+            if (userAgentJarFile.lastModified() != jarFile.lastModified() || !Objects.equals(userAgentVer, agentVer)) {
+                try {
+                    FileUtils.copyFile(jarFile, userAgentJarFile);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        }
     }
 
     /**
@@ -179,6 +200,30 @@ public class SettingUtils {
             } catch (Exception e) {
                 // ignore
             }
+        }
+        final String defaultName = "Jarboot";
+        productName = properties.getProperty(PRODUCT_NAME, defaultName);
+        if (StringUtils.isEmpty(productName)) {
+            productName = defaultName;
+        }
+    }
+
+    public static String getProductName() {
+        return productName;
+    }
+
+    public static void setProductName(String productName) {
+        if (StringUtils.isEmpty(productName)) {
+            return;
+        }
+        HashMap<String, String> props = new HashMap<>(8);
+        props.put(PRODUCT_NAME, productName);
+        try {
+            File file = FileUtils.getFile(jarbootConf);
+            PropertyFileUtils.writeProperty(file, props);
+            SettingUtils.productName = productName;
+        } catch (Exception e) {
+            logger.error("Update product name error.", e);
         }
     }
 
@@ -255,7 +300,11 @@ public class SettingUtils {
             }
         }
         if (StringUtils.isNotEmpty(setting.getJdkPath())) {
-            File javaCmd = FileUtils.getFile(setting.getJdkPath(), CommonConst.BIN_NAME, CommonConst.JAVA_CMD);
+            String cmd = CommonConst.JAVA_CMD;
+            if (OSUtils.isWindows()) {
+                cmd = cmd + CommonConst.EXE_EXT;
+            }
+            File javaCmd = FileUtils.getFile(setting.getJdkPath(), CommonConst.BIN_NAME, cmd);
             if (!javaCmd.exists()) {
                 throw new JarbootException(ResultCodeConst.NOT_EXIST, String.format("%s不存在！", javaCmd.getAbsolutePath()));
             }
@@ -348,15 +397,61 @@ public class SettingUtils {
      * @return 参数
      */
     public static String getAgentStartOption(String userDir, String serviceName, String sid) {
+        File userAgentJarFile = getUserAgentJarFile();
+        String agentPath = userAgentJarFile.getAbsolutePath();
+        if (!userAgentJarFile.exists()) {
+            // agent jar不存在，则从jar包中拷贝
+            File agentJarFile = FileUtils.getFile(agentJar);
+            try {
+                if (!userAgentJarFile.getParentFile().exists()) {
+                    FileUtils.forceMkdir(userAgentJarFile.getParentFile());
+                }
+                FileUtils.copyFile(agentJarFile, userAgentJarFile);
+            } catch (Exception e) {
+                logger.error("Copy agent jar error!", e);
+                agentPath = String.join(
+                        File.separator,
+                        CommonUtils.getHomeEnv(), CommonConst.COMPONENTS_NAME, CommonConst.AGENT_JAR_NAME);
+            }
+        }
         return new StringBuilder("-javaagent:")
-                .append(CommonUtils.getHomeEnv())
-                .append(File.separator)
-                .append(CommonConst.COMPONENTS_NAME)
-                .append(File.separator)
-                .append(CommonConst.AGENT_JAR_NAME)
+                .append(agentPath)
                 .append('=')
                 .append(getAgentArgs(userDir, serviceName, sid))
                 .toString();
+    }
+
+    private static File getUserAgentJarFile() {
+        String base = "/tmp";
+        if (OSUtils.isWindows()) {
+            base = System.getenv("ProgramData");
+            if (StringUtils.isEmpty(base)) {
+                base = "C:\\ProgramData";
+            }
+        }
+        return FileUtils.getFile(base, "jarboot", CommonConst.AGENT_JAR_NAME);
+    }
+
+    private static String getAgentJarVersion(File agentJarFile) {
+        final String resource = "META-INF/MANIFEST.MF";
+        try (JarFile jarFile = new JarFile(agentJarFile)){
+            ZipEntry entry = jarFile.getEntry(resource);
+            if (null == entry) {
+                return null;
+            }
+            try(InputStream is = jarFile.getInputStream(entry)) {
+                List<String> lines = IOUtils.readLines(is, StandardCharsets.UTF_8);
+                final String beginPrefix = "Implementation-Version: ";
+                for (String line : lines) {
+                    if (line.startsWith(beginPrefix)) {
+                        return line.substring(beginPrefix.length());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Read agent jar version error!{}", e.getMessage(), e);
+        }
+        return StringUtils.EMPTY;
     }
 
     public static String getAgentJar() {
@@ -364,7 +459,7 @@ public class SettingUtils {
     }
 
     private static String getAgentArgs(String userDir, String serviceName, String sid) {
-        final String args = new StringBuilder(64)
+        final String args = new StringBuilder()
                 .append(port)
                 .append(StringUtils.CR)
                 .append(serviceName)
@@ -400,12 +495,12 @@ public class SettingUtils {
     public static String getJarPath(String servicePath) {
         File dir = FileUtils.getFile(servicePath);
         if (!dir.isDirectory() || !dir.exists()) {
-            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包路径");
+            throw new JarbootException(String.format("未找到服务%s的可执行jar包路径", dir.getName()));
         }
         Collection<File> jarList = FileUtils.listFiles(dir, new String[]{CommonConst.JAR_FILE_EXT}, false);
         if (CollectionUtils.isEmpty(jarList)) {
             logger.error("在{}未找到{}服务的jar包", servicePath, dir.getPath());
-            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包");
+            throw new JarbootException(String.format("未找到服务%s的可执行jar包", dir.getName()));
         }
         if (jarList.size() > 1) {
             String msg = String.format("在服务%s目录找到了多个jar文件，请配置启动命令！", dir.getName());
@@ -415,7 +510,7 @@ public class SettingUtils {
             File jarFile = jarList.iterator().next();
             return jarFile.getAbsolutePath().replace(SettingUtils.getHomePath(), CommonUtils.getHomeEnv());
         } else {
-            throw new JarbootException("未找到服务" + dir.getName() + "的可执行jar包");
+            throw new JarbootException(String.format("未找到服务%s的可执行jar包", dir.getName()));
         }
     }
 
@@ -489,9 +584,6 @@ public class SettingUtils {
         }
         if (StringUtils.isBlank(vm)) {
             vm = SettingUtils.getDefaultJvmArg().trim();
-        }
-        if (!vm.contains(FILE_ENCODING_OPTION)) {
-            vm += (StringUtils.SPACE + FILE_ENCODING_OPTION + StandardCharsets.UTF_8);
         }
         return vm.trim();
     }
@@ -571,6 +663,12 @@ public class SettingUtils {
         String jdkPath = GLOBAL_SETTING.getJdkPath();
         if (StringUtils.isEmpty(jdkPath)) {
             jdkPath = System.getProperty("java.home");
+        }
+        if (StringUtils.isEmpty(jdkPath)) {
+            jdkPath = System.getenv("JAVA_HOME");
+        }
+        if (StringUtils.isEmpty(jdkPath)) {
+            return StringUtils.EMPTY;
         }
         return FilenameUtils.separatorsToUnix(jdkPath);
     }

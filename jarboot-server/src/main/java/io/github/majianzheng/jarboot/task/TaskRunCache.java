@@ -20,8 +20,8 @@ import org.apache.commons.io.FileUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -38,23 +38,32 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class TaskRunCache {
     private final Logger logger = LoggerFactory.getLogger(TaskRunCache.class);
-    /** 需要排除的工作空间里的目录 */
+    /**
+     * 需要排除的工作空间里的目录
+     */
     @Value("${jarboot.services.exclude-dirs:bin,lib,conf,plugins,plugin}")
     private String excludeDirs;
-    @Autowired
+    @Resource
     private AbstractEventRegistry eventRegistry;
     @Resource
     private Scheduler scheduler;
 
-    /** 需要排除的工作空间里的目录 */
+    /**
+     * 需要排除的工作空间里的目录
+     */
     private final HashSet<String> excludeDirSet = new HashSet<>(16);
-    /** 正在启动中的服务 */
+    /**
+     * 正在启动中的服务
+     */
     private final ConcurrentHashMap<String, Long> startingCache = new ConcurrentHashMap<>(16);
-    /** 正在停止中的服务 */
+    /**
+     * 正在停止中的服务
+     */
     private final ConcurrentHashMap<String, Long> stoppingCache = new ConcurrentHashMap<>(16);
 
     /**
      * 获取服务名称列表
+     *
      * @return 服务名称列表
      */
     public List<String> getServiceNameList(String username) {
@@ -70,6 +79,7 @@ public class TaskRunCache {
 
     /**
      * 获取服务目录列表
+     *
      * @return 服务目录
      */
     public File[] getServiceDirs(String userDir) {
@@ -122,6 +132,7 @@ public class TaskRunCache {
 
     /**
      * 获取服务列表
+     *
      * @param userDir 用户目录
      * @return 服务列表
      */
@@ -140,6 +151,7 @@ public class TaskRunCache {
 
     /**
      * 获取服务组
+     *
      * @param userDir 用户目录
      * @return 服务组
      */
@@ -224,10 +236,16 @@ public class TaskRunCache {
         if (StringUtils.isEmpty(setting.getCron())) {
             throw new JarbootException("cron配置为空");
         }
+        String host = ClusterClientManager.getInstance().getSelfHost();
+        if (StringUtils.isEmpty(host)) {
+            host = SettingUtils.getLocalhost();
+        }
         JobDetail job = JobBuilder.newJob(TaskJob.class)
                 .usingJobData(CommonConst.USER_DIR, setting.getUserDir())
                 .usingJobData(CommonConst.SERVICE_NAME_PARAM, setting.getName())
                 .usingJobData(CommonConst.SID_PARAM, setting.getSid())
+                .usingJobData(CommonConst.HOST_KEY, host)
+                .usingJobData(CommonConst.UUID_KEY, SettingUtils.getUuid())
                 .withIdentity(setting.getSid())
                 .withDescription(setting.getName())
                 .storeDurably()
@@ -317,10 +335,36 @@ public class TaskRunCache {
         }
     }
 
+
+    @Scheduled(cron = "0 0 0/1 * * ?")
+    public void clean() {
+        logger.info("Auto clean cache start...");
+        cleanPidFiles();
+        CacheDirHelper.clean();
+        final String[] dumps = new String[]{"classdump", "dump"};
+        for (String dump : dumps) {
+            File dumpDir = FileUtils.getFile(SettingUtils.getLogDir(), dump);
+            if (dumpDir.exists() && FileUtils.deleteQuietly(dumpDir)) {
+                logger.info("Clean dump dir:{}", dumpDir.getAbsolutePath());
+            }
+        }
+        File[] files = FileUtils.getFile(SettingUtils.getLogDir()).listFiles();
+        if (null != files) {
+            final long time = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L;
+            for (File file : files) {
+                // 删除7天以前的日志文件
+                if (file.isFile() && file.lastModified() < time && FileUtils.deleteQuietly(file)) {
+                    logger.info("Clean log file:{}", file.getAbsolutePath());
+                }
+            }
+        }
+        logger.info("Auto clean cache finished.");
+    }
+
     @PostConstruct
     public void init() {
-        //清理无效的pid文件
-        this.cleanPidFiles();
+        //清理缓存文件
+        clean();
 
         if (StringUtils.isBlank(excludeDirs)) {
             return;

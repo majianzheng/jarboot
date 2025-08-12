@@ -32,6 +32,7 @@ public class CommonConst {
     public static final String HTTP = "http://";
     public static final String HTTPS = "https://";
     public static final String WS = "ws://";
+    public static final String WSS = "wss://";
     /** 心跳ping */
     public static final String PING = "ping";
 
@@ -57,6 +58,8 @@ public class CommonConst {
     public static final String SID_PARAM = "sid";
 
     public static final String USER_DIR = "userDir";
+    public static final String HOST_KEY = "host";
+    public static final String UUID_KEY = "uuid";
 
     /** Task status */
     public static final String STARTING = "STARTING";
@@ -88,6 +91,13 @@ public class CommonConst {
     public static final String POST_EXCEPTION_TASK_SUFFIX = "后置脚本启动";
 
     public static final String DOCKER = "docker";
+
+    public static final long SESSION_EXPIRED_TIME = 300000L;
+
+    public static final int STEP_FILE_INIT = 0;
+    public static final int STEP_FILE_CHECK = 1;
+    public static final int STEP_START_UPGRADE = 2;
+    public static final int STEP_UPGRADE_FAILED = -1;
 
     private CommonConst(){}
 }

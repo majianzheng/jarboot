@@ -61,14 +61,10 @@ export default class FileService {
   /**
    * 删除文件
    * @param path
+   * @param clusterHost
    */
   public static deleteFile(path: string, clusterHost?: string) {
-    const form = new FormData();
-    form.append('path', path);
-    if (clusterHost) {
-      form.append('clusterHost', clusterHost);
-    }
-    return Request.post<string>(`${urlBase}/file/delete`, form);
+    return Request.delete<string>(`${urlBase}/file/delete?path=${path}&clusterHost=${clusterHost ?? ''}`, {});
   }
 
   /**

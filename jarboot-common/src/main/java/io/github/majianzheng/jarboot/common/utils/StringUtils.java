@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author majianzheng
  */
-@SuppressWarnings("PMD.AbstractClassShouldStartWithAbstractNamingRule")
+@SuppressWarnings("all")
 public abstract class StringUtils {
     public static final String SPACE = " ";
     public static final String EMPTY = "";
@@ -18,6 +18,7 @@ public abstract class StringUtils {
     public static final String CR = "\r";
     public static final String SLASH = "/";
     public static final String NULL_STR = "null";
+    public static final String LINE_BREAK = System.getProperty("line.separator", StringUtils.LF);
     private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**
@@ -575,10 +576,10 @@ public abstract class StringUtils {
     }
 
     public static Properties splitArrayElementsIntoProperties(String[] array, String delimiter, String charsToDelete) {
+        Properties result = new Properties();
         if(null == array || 0 == array.length) {
             return null;
         } else {
-            Properties result = new Properties();
             String[] var4 = array;
             int var5 = array.length;
 
@@ -959,5 +960,20 @@ public abstract class StringUtils {
             return null;
         }
         return text.substring(pos + after.length());
+    }
+
+    /**
+     * Returns the string with ellipsis if it is longer than targetLength
+     *
+     * @param str           the string
+     * @param targetLength  the target length
+     * @return the string with ellipsis
+     */
+    public static String ellipsis(String str, int targetLength) {
+        String result = str;
+        if (str.length() > targetLength) {
+            result = str.substring(0, targetLength - 2) + "...";
+        }
+        return result;
     }
 }

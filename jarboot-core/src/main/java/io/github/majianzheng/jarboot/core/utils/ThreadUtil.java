@@ -16,7 +16,7 @@ import java.util.Map;
  * 以下代码来自开源项目Arthas
  * @author majianzheng
  */
-@SuppressWarnings({"java:S3014", "java:S1192", "java:S1181", "java:S1444", "java:S1104"})
+@SuppressWarnings({"java:S3014", "java:S1192", "java:S6541", "java:S1874", "java:S1181", "java:S1444", "java:S1104"})
 public class ThreadUtil {
 
     private static final BlockingLockInfo EMPTY_INFO = new BlockingLockInfo();
@@ -114,25 +114,19 @@ public class ThreadUtil {
             LockInfo lockInfo = info.getLockInfo();
             if (lockInfo != null) {
                 // the current thread is blocked waiting on some condition
-                if (blockCountPerLock.get(lockInfo.getIdentityHashCode()) == null) {
-                    blockCountPerLock.put(lockInfo.getIdentityHashCode(), 0);
-                }
-                int blockedCount = blockCountPerLock.get(lockInfo.getIdentityHashCode());
+                blockCountPerLock.putIfAbsent(lockInfo.getIdentityHashCode(), 0);
+                int blockedCount = blockCountPerLock.getOrDefault(lockInfo.getIdentityHashCode(), 0);
                 blockCountPerLock.put(lockInfo.getIdentityHashCode(), blockedCount + 1);
             }
 
             for (MonitorInfo monitorInfo: info.getLockedMonitors()) {
                 // the object monitor currently held by this thread
-                if (ownerThreadPerLock.get(monitorInfo.getIdentityHashCode()) == null) {
-                    ownerThreadPerLock.put(monitorInfo.getIdentityHashCode(), info);
-                }
+                ownerThreadPerLock.putIfAbsent(monitorInfo.getIdentityHashCode(), info);
             }
 
             for (LockInfo lockedSync: info.getLockedSynchronizers()) {
                 // the ownable synchronizer currently held by this thread
-                if (ownerThreadPerLock.get(lockedSync.getIdentityHashCode()) == null) {
-                    ownerThreadPerLock.put(lockedSync.getIdentityHashCode(), info);
-                }
+                ownerThreadPerLock.putIfAbsent(lockedSync.getIdentityHashCode(), info);
             }
         }
 

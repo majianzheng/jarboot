@@ -121,5 +121,3 @@ watch(() => [props.name, props.mode], init);
 
 onMounted(init);
 </script>
-
-<style scoped></style>

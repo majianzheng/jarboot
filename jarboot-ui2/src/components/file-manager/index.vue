@@ -9,7 +9,7 @@ import StringUtil from '@/common/StringUtil';
 import type { FileNode } from '@/types';
 import type Node from 'element-plus/es/components/tree/src/model/node';
 import FileRow from '@/components/file-manager/file-row.vue';
-import { useBasicStore, useUploadStore } from '@/stores';
+import { useUploadStore } from '@/stores';
 
 const props = defineProps<{
   baseDir: string;
@@ -46,7 +46,6 @@ const emit = defineEmits<{
 }>();
 
 const uploadStore = useUploadStore();
-const basicStore = useBasicStore();
 
 const state = reactive({
   loading: false,
@@ -225,7 +224,7 @@ function upload(node: Node) {
     }
     const file = input.files[0];
     const clusterHost = props.clusterHost || '';
-    await uploadStore.upload(file, basicStore.workspace, path, clusterHost, fileInfo => uploadFinished(node, fileInfo.filename));
+    await uploadStore.upload(file, 'workspace', '', path, clusterHost, fileInfo => uploadFinished(node, fileInfo.filename));
   };
   input.dispatchEvent(new MouseEvent('click'));
   input.remove();

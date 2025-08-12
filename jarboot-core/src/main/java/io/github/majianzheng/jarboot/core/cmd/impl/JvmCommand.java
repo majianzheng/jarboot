@@ -18,6 +18,7 @@ import java.util.*;
 @Name("jvm")
 @Summary("Display the target JVM information")
 @Description(CoreConstant.WIKI + CoreConstant.WIKI_HOME + "jvm")
+@SuppressWarnings({"java:S1874"})
 public class JvmCommand extends AbstractCommand {
     private final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
     private final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();

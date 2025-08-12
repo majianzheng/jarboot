@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n';
 const { locale } = useI18n();
 
 type CronInputProp = {
-  modelValue: string;
+  modelValue: string | null | undefined;
 };
 
 const props = defineProps<CronInputProp>();

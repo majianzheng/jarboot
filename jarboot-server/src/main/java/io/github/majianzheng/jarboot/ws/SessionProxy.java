@@ -1,10 +1,8 @@
 package io.github.majianzheng.jarboot.ws;
 
-import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.constant.AuthConst;
-import io.github.majianzheng.jarboot.utils.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +24,8 @@ public class SessionProxy {
         URI clientUri = client.getRequestURI();
         int index = targetClusterHost.indexOf(':');
         String host = targetClusterHost.substring(0, index);
-        String accessClusterHost = CommonUtils.getSessionParam(AuthConst.ACCESS_CLUSTER_HOST, client);
         String query = clientUri.getQuery();
-        if (StringUtils.isEmpty(accessClusterHost)) {
-            query += String.format("&%s=%s", AuthConst.ACCESS_CLUSTER_HOST, ClusterClientManager.getInstance().getSelfHost());
-        }
+        query = parseQuery(client, query);
         int port = Integer.parseInt(targetClusterHost.substring(index + 1));
         try {
             URI uri = new URI(clientUri.getScheme(),
@@ -41,8 +36,22 @@ public class SessionProxy {
                     clientUri.getFragment());
             targetSession = client.getContainer().connectToServer(this, uri);
         } catch (Exception e) {
-            throw new JarbootException(e);
+            throw new JarbootException(String.format("连接[%s]失败，msg: %s", e.getMessage(), targetClusterHost), e);
         }
+    }
+
+    private String parseQuery(Session session, String query) {
+        // 从Session的UserProperties中获取Cookie
+        String accessClusterHost = (String) session.getUserProperties().get(AuthConst.ACCESS_CLUSTER_HOST);
+        String token = (String) session.getUserProperties().get(AuthConst.ACCESS_TOKEN);
+        final String prefix = StringUtils.isEmpty(query) ? StringUtils.EMPTY : "&";
+        if (StringUtils.isNotEmpty(token) && !query.contains(AuthConst.ACCESS_TOKEN)) {
+            query += (prefix + AuthConst.ACCESS_TOKEN + "=" + token);
+        }
+        if (StringUtils.isNotEmpty(accessClusterHost) && !query.contains(AuthConst.ACCESS_CLUSTER_HOST)) {
+            query += (prefix + AuthConst.ACCESS_CLUSTER_HOST + "=" + accessClusterHost);
+        }
+        return query;
     }
 
     public void proxyOnText(String message) {
@@ -65,7 +74,7 @@ public class SessionProxy {
         try {
             targetSession.close();
         } catch (Exception e) {
-            // ignore
+            logger.warn(e.getMessage(), e);
         }
     }
 

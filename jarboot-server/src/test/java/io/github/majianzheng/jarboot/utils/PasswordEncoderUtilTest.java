@@ -2,6 +2,8 @@ package io.github.majianzheng.jarboot.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
 
 /**
  * @author majianzheng

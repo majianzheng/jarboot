@@ -27,11 +27,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -46,11 +46,11 @@ import java.util.stream.Collectors;
 @Component
 public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<ServiceFileChangeEvent> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    @Autowired
+    @Resource
     private TaskRunCache taskRunCache;
-    @Autowired
+    @Resource
     private ServiceManagerImpl serverMgrService;
-    @Autowired
+    @Resource
     private UserDao userDao;
     @Value("${jarboot.file-update-exclude:^[\\s\\S]*\\.(log[\\s\\S]*|pdf|png|jpeg|jpg|docx|doc|xls|xlsx|ppt|pjpg|md|txt|dat|ctrl|lck|lock)$}")
     private String fileUpdateExclude;

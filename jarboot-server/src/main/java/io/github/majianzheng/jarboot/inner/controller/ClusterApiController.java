@@ -4,22 +4,27 @@ import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.*;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
 import io.github.majianzheng.jarboot.api.service.SettingService;
+import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClient;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.cluster.ClusterEventMessage;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.pojo.ResponseVo;
 import io.github.majianzheng.jarboot.common.utils.HttpResponseUtils;
+import io.github.majianzheng.jarboot.monitor.MonitorService;
+import io.github.majianzheng.jarboot.monitor.vo.Server;
 import io.github.majianzheng.jarboot.service.FileService;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
+import io.github.majianzheng.jarboot.service.UpgradeService;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
@@ -37,58 +42,55 @@ import java.util.List;
 @RestController
 @PreAuthorize("hasRole('CLUSTER')")
 public class ClusterApiController {
-    @Autowired
+    @Resource
     private TaskRunCache taskRunCache;
-    @Autowired
+    @Resource
     private ServiceManager serviceManager;
-    @Autowired
+    @Resource
     private ServerRuntimeService serverRuntimeService;
-    @Autowired
+    @Resource
     private SettingService settingService;
-    @Autowired
+    @Resource
     private FileService fileService;
+    @Resource
+    MonitorService monitorService;
+    @Resource
+    private UpgradeService upgradeService;
 
     @GetMapping("/group")
-    @ResponseBody
     public ServiceInstance getServiceGroup() {
         return taskRunCache.getServiceGroup(SettingUtils.getCurrentUserDir());
     }
 
     @GetMapping("/jvmGroup")
-    @ResponseBody
     public JvmProcess getJvmGroup() {
         return serviceManager.getJvmGroup();
     }
 
     @GetMapping("/serviceSetting")
-    @ResponseBody
     public ServiceSetting getServiceSetting(String serviceName) {
         return settingService.getServiceSetting(serviceName);
     }
 
     @PostMapping("/serviceSetting")
-    @ResponseBody
     public ResponseSimple saveServiceSetting(@RequestBody ServiceSetting setting) {
         settingService.submitServiceSetting(setting);
         return HttpResponseUtils.success();
     }
 
     @DeleteMapping("/service")
-    @ResponseBody
     public ResponseSimple deleteService(String serviceName) {
         serviceManager.deleteService(serviceName);
         return HttpResponseUtils.success();
     }
 
     @GetMapping("/attach")
-    @ResponseBody
     public ResponseSimple attach(String pid) {
         serviceManager.attach(pid);
         return HttpResponseUtils.success();
     }
 
     @PostMapping("/handleMessage/{host}")
-    @ResponseBody
     public ResponseSimple handleMessage(@RequestBody ClusterEventMessage eventMessage, @PathVariable("host") String host) {
         ClusterClient client = ClusterClientManager.getInstance().getClient(host);
         if (null == client) {
@@ -99,7 +101,6 @@ public class ClusterApiController {
     }
 
     @PostMapping("file")
-    @ResponseBody
     public ResponseSimple upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("path") String path) throws IOException {
@@ -152,7 +153,7 @@ public class ClusterApiController {
      * @param path 文件相对于工作目录的路径
      * @return
      */
-    @PostMapping("file/delete")
+    @DeleteMapping("file/delete")
     public ResponseVo<String> deleteFile(@RequestParam("path") String path) {
         fileService.deleteFile(path);
         return HttpResponseUtils.success();
@@ -212,7 +213,6 @@ public class ClusterApiController {
      * @return 执行结果
      */
     @PostMapping("/importService")
-    @ResponseBody
     public ResponseVo<String> importService(@RequestParam("file") MultipartFile file) {
         try (InputStream is = file.getInputStream()) {
             serverRuntimeService.importService(file.getOriginalFilename(), is);
@@ -233,5 +233,53 @@ public class ClusterApiController {
         try (OutputStream os = response.getOutputStream()) {
             serverRuntimeService.downloadAnyFile(file, os);
         }
+    }
+
+    @GetMapping("/monitor/server")
+    public Server getServerInfo() {
+        return monitorService.getServerInfo();
+    }
+
+    /**
+     * 上传安装包升级
+     * @param file 文件
+     * @return 执行结果
+     */
+    @PostMapping("/upgrade/upload")
+    public ResponseSimple upgradeByPackage(
+            @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            // 上传服务文件
+            upgradeService.upgrade(file.getOriginalFilename(), is);
+        }
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 从url下载安装包升级
+     * @param url 下载的url
+     * @return 执行结果
+     */
+    @PostMapping("/upgrade/url")
+    public ResponseSimple upgradeByUrl(
+            @RequestParam(value = "url", required = false) String url) {
+        upgradeService.upgrade(url);
+        return HttpResponseUtils.success();
+    }
+
+    /**
+     * 检查是否具备升级条件
+     * @return 执行结果
+     */
+    @GetMapping("/upgrade/check")
+    public ResponseVo<Boolean> upgradeCheck() {
+        if (AgentManager.getInstance().isAllShutdown()) {
+            return HttpResponseUtils.error("有服务正在运行中");
+        }
+        ServerRuntimeInfo info = serverRuntimeService.getServerRuntimeInfo();
+        if (Boolean.TRUE.equals(info.getInDocker())) {
+            return HttpResponseUtils.error("当前服务运行在docker中，请使用docker-compose升级");
+        }
+        return HttpResponseUtils.success();
     }
 }

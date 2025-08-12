@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basicStore.innerHeight - 180">
+    <table-pro ref="tableRef" :data-source="getList" :search-config="searchConfig" :height="basic.innerHeight - 180">
       <template v-slot:right-extra>
         <el-button type="primary" @click="createUser">{{ $t('CREATE') }}</el-button>
       </template>
@@ -15,7 +15,13 @@
         </template>
       </el-table-column>
     </table-pro>
-    <el-drawer :title="state.isNew ? $t('CREATE_USER') : $t('MODIFY_USER')" v-model="state.drawer" destroy-on-close @closed="reset">
+    <el-drawer
+      :title="state.isNew ? $t('CREATE_USER') : $t('MODIFY_USER')"
+      v-model="state.drawer"
+      destroy-on-close
+      :size="basic.mobileDevice ? '100%' : '30%'"
+      :z-index="1"
+      @closed="reset">
       <el-form :model="state.form" label-width="auto" :rules="rules" ref="configRef">
         <el-form-item prop="avatar" label="头像">
           <template #label>
@@ -97,8 +103,8 @@ const searchConfig = computed(
     ] as SearchConfig[]
 );
 
-const basicStore = useBasicStore();
-const userStore = useUserStore();
+const basic = useBasicStore();
+const user = useUserStore();
 
 const resetForm = {
   avatar: '',
@@ -213,20 +219,20 @@ async function save() {
       );
     } else {
       await UserService.updateUser(state.form.username, fullName, state.form.roles.join(','), state.form.userDir, state.form.avatar);
-      if (userStore.username === state.form.username) {
+      if (user.username === state.form.username) {
         if (state.form.avatar) {
-          userStore.avatar = state.form.avatar;
+          user.avatar = state.form.avatar;
         }
         if (state.form.fullName) {
-          userStore.fullName = state.form.fullName;
+          user.fullName = state.form.fullName;
         }
       }
     }
     state.drawer = false;
     tableRef.value.refresh();
     // 是否当前用户
-    if (userStore.username === state.form.username) {
-      userStore.fullName = fullName;
+    if (user.username === state.form.username) {
+      user.fullName = fullName;
     }
     CommonNotice.success();
   } finally {

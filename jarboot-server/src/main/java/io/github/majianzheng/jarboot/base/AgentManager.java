@@ -49,7 +49,7 @@ public class AgentManager {
     /** 当前默认的日志Appender */
     private ch.qos.logback.core.OutputStreamAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender = null;
     /** 激活的窗口sid -> sessionId */
-    private final Map<String, Set<String>> activeWindow = new ConcurrentHashMap<>(16);
+    private final Map<String, Map<String, Long>> activeWindow = new ConcurrentHashMap<>(16);
 
     /**
      * 单例获取
@@ -57,6 +57,17 @@ public class AgentManager {
      */
     public static AgentManager getInstance() {
         return AgentManagerHolder.INSTANCE;
+    }
+
+    /**
+     * 是否所有进程都退出
+     * @return 是否所有进程都退出
+     */
+    public boolean isAllShutdown() {
+        if (clientMap.isEmpty()) {
+            return true;
+        }
+        return clientMap.values().stream().allMatch(client -> ClientState.OFFLINE.equals(client.getState()));
     }
 
     /**
@@ -84,7 +95,7 @@ public class AgentManager {
             client.setSetting(setting);
             ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
             NotifyReactor.getInstance().publishEvent(event);
-            boolean needNotifyStatus = (null == latch && ClientState.OFFLINE.equals(client.getState()));
+            boolean needNotifyStatus = ClientState.OFFLINE.equals(client.getState());
             if (needNotifyStatus && !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
                 MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
             }
@@ -108,13 +119,17 @@ public class AgentManager {
     }
 
     private void syncActiveWindow(String sid) {
-        Set<String> activeSession = activeWindow.get(sid);
-        if (null == activeSession || activeSession.isEmpty()) {
-            sendInternalCommand(sid, "window", StringUtils.EMPTY);
-            return;
+        try {
+            Set<String> sessionIdSet = getActiveWindow(sid);
+            if (sessionIdSet.isEmpty()) {
+                sendInternalCommand(sid, "window", StringUtils.EMPTY);
+                return;
+            }
+            String sessions = String.join(",", sessionIdSet);
+            windowActive(sid, sessions, true);
+        } catch (Exception e) {
+            logger.error("Sync active window error!", e);
         }
-        String sessions = String.join(",", activeSession);
-        windowActive(sid, sessions, true);
     }
 
     /**
@@ -210,8 +225,11 @@ public class AgentManager {
         }
         String pid = TaskUtils.getPid(sid);
         if (StringUtils.isEmpty(pid)) {
-            logger.info("进程({})已经退出", sid);
-            return true;
+            if (client.getState().equals(ClientState.OFFLINE)) {
+                logger.info("进程({})已经退出", sid);
+                return true;
+            }
+            pid = client.getPid();
         }
         int maxExitTime = SettingUtils.getSystemSetting().getMaxExitTime();
         synchronized (client) {
@@ -519,16 +537,36 @@ public class AgentManager {
         }
     }
 
+    private Set<String> getActiveWindow(String sid) {
+        Map<String, Long> sessionIds = activeWindow.get(sid);
+        // 删除过期的会话
+        long currentTime = System.currentTimeMillis();
+        Set<String> sessionIdSet = new HashSet<>(16);
+        if (null == sessionIds) {
+            return sessionIdSet;
+        }
+        Set<String> waitRemoved = new HashSet<>(16);
+        sessionIds.forEach((sessionId, time) -> {
+            if ((currentTime - time) < CommonConst.SESSION_EXPIRED_TIME) {
+                sessionIdSet.add(sessionId);
+            } else {
+                waitRemoved.add(sessionId);
+            }
+        });
+        waitRemoved.forEach(sessionIds::remove);
+        return sessionIdSet;
+    }
+
     private void doHeartbeat(String userDir, String serviceName, String sid, Session session) {
         if (null == session) {
             return;
         }
-        Set<String> sessionIds = activeWindow.get(sid);
+        Set<String> sessionIdSet = getActiveWindow(sid);
         AgentOperator client = clientMap.getOrDefault(sid, null);
         if (null == client) {
             String path = SettingUtils.getServicePath(userDir, serviceName);
             if (!Objects.equals(SettingUtils.createSid(path), sid) && serviceName.endsWith(CommonConst.POST_EXCEPTION_TASK_SUFFIX)) {
-                new AgentOperator(userDir, serviceName, sid, session).heartbeat(sessionIds);
+                new AgentOperator(userDir, serviceName, sid, session).heartbeat(sessionIdSet);
                 AnsiLog.debug("异常离线脚本执行，心跳探测");
                 return;
             }
@@ -538,10 +576,10 @@ public class AgentManager {
             AnsiLog.debug("reconnected by heartbeat {}, {}", serviceName, sid);
             client = clientMap.getOrDefault(sid, null);
             if (null != client) {
-                client.heartbeat(sessionIds);
+                client.heartbeat(sessionIdSet);
             }
         } else {
-            client.heartbeat(sessionIds);
+            client.heartbeat(sessionIdSet);
         }
     }
 
@@ -600,7 +638,7 @@ public class AgentManager {
     }
 
     private static class AgentManagerHolder {
-        static final AgentManager INSTANCE = new AgentManager();
+        private static final AgentManager INSTANCE = new AgentManager();
     }
 
     private void onFuncReceivedEvent(FuncReceivedEvent event) {
@@ -646,10 +684,10 @@ public class AgentManager {
     private void changeWindowState(String sid, String sessionId, boolean active) {
         activeWindow.compute(sid, (k, v) -> {
             if (null == v) {
-                v = new HashSet<>(16);
+                v = new HashMap<>(16);
             }
             if (active) {
-                v.add(sessionId);
+                v.put(sessionId, System.currentTimeMillis());
             } else {
                 v.remove(sessionId);
             }

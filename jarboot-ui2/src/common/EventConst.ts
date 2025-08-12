@@ -9,6 +9,7 @@ export enum MSG_EVENT {
   WORKSPACE_CHANGE, //工作空间变更
   JVM_PROCESS_CHANGE, //java进程变化事件
   GLOBAL_LOADING, //全局Loading提示
+  UPGRADE_PROGRESS, //升级进度
 }
 export enum FuncCode {
   CMD_FUNC,

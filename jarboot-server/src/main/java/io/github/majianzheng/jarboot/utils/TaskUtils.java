@@ -14,10 +14,8 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 操作系统任务进程相关工具方法
@@ -29,17 +27,12 @@ public class TaskUtils {
 
     /** 任务调度线程池 */
     private static final ScheduledExecutorService TASK_EXECUTOR;
-    /** 是否使用nohup启动服务 */
-    private static final boolean USE_NOHUP;
 
     static {
         //根据CPU核心数计算线程池CoreSize，最小为4，防止为1时造成阻塞
         int coreSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
         TASK_EXECUTOR = Executors.newScheduledThreadPool(coreSize,
                 JarbootThreadFactory.createThreadFactory("jarboot-task-pool"));
-        USE_NOHUP = (!Boolean.getBoolean(CommonConst.DOCKER) &&
-                (OSUtils.isLinux() || OSUtils.isMac()) &&
-                FileUtils.getFile("/usr/bin/nohup").exists());
     }
 
     /**
@@ -81,18 +74,17 @@ public class TaskUtils {
 
         cmdBuilder
                 .append(StringUtils.SPACE)
-                //忽略字节码校验，提高启动速度；彩色日志启动
-                .append("-noverify -Dspring.output.ansi.enabled=always")
-                .append(StringUtils.SPACE)
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(setting.getUserDir(), setting.getName(), sid))
                 .append(StringUtils.SPACE);
         if (CommonConst.SHELL_TYPE.equals(setting.getApplicationType())) {
-            cmdBuilder.append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ");
             cmdBuilder
+                    .append("-Xms50m -Xmx150m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ")
                     .append("-jar")
                     .append(StringUtils.SPACE)
+                    .append('"')
                     .append(getShellJar())
+                    .append('"')
                     .append(StringUtils.SPACE)
                     .append("-c")
                     .append(StringUtils.SPACE)
@@ -105,7 +97,8 @@ public class TaskUtils {
             }
             if (StringUtils.isBlank(setting.getCommand())) {
                 //获取启动的jar文件
-                cmdBuilder.append(CommonConst.ARG_JAR).append(SettingUtils.getJarPath(serverPath));
+                cmdBuilder.append(CommonConst.ARG_JAR)
+                        .append('"').append(SettingUtils.getJarPath(serverPath)).append('"');
             } else {
                 cmdBuilder.append(setting.getCommand());
             }
@@ -120,18 +113,51 @@ public class TaskUtils {
         // 工作目录
         String workHome = getServiceWorkHome(setting);
         String javaCmd = OSUtils.isWindows() ? "\"%JAVA_CMD%\"" : "\"${JAVA_CMD}\"";
-        if (USE_NOHUP) {
-            javaCmd = "nohup " + javaCmd;
-        }
         cmdBuilder.insert(0, javaCmd);
         String cmd = cmdBuilder.toString();
         String jdkPath = getJdkPath(setting, serverPath);
+        File bashFile = getStartBashFile(sid, serverPath);
+        initServiceEnv(setting, bashFile);
         AgentManager.getInstance()
                 .waitServiceStarted(
                         setting,
                         // 启动、等待启动完成，最长2分钟（可配置）
                         SettingUtils.getSystemSetting().getMaxStartTime(),
-                        () -> startTask(cmd, setting.getEnv(), workHome, getStartBashFile(sid, serverPath), jdkPath));
+                        () -> startTask(cmd, setting.getEnv(), workHome, bashFile, jdkPath));
+    }
+
+    private static void initServiceEnv(ServiceSetting setting, File bashFile) {
+        StringBuilder sb = new StringBuilder();
+        String catalinaHome = String.join(File.separator, SettingUtils.getHomePath(), ".cache", "catalina_home");
+        if (OSUtils.isWindows()) {
+            sb.append("@echo off").append(StringUtils.LINE_BREAK)
+                    .append("setlocal enabledelayedexpansion").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK)
+                    .append("set \"SID=").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"SERVICE_NAME=").append(setting.getName()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"USER_DIR=").append(setting.getUserDir()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"SERVICE_APP_TYPE=").append(setting.getApplicationType()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"SERVICE_PRIORITY=").append(setting.getPriority()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"SERVICE_DAEMON=").append(setting.getDaemon()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"CATALINA_BASE=").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"CATALINA_HOME=").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
+                    .append("set \"SERVICE_SCH_TYPE=").append(setting.getScheduleType()).append('"').append(StringUtils.LINE_BREAK);
+        } else {
+            sb.append("#!/bin/bash").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK)
+                    .append("export SID=\"").append(setting.getSid()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export SERVICE_NAME=\"").append(setting.getName()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export USER_DIR=\"").append(setting.getUserDir()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export SERVICE_APP_TYPE=\"").append(setting.getApplicationType()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export SERVICE_PRIORITY=\"").append(setting.getPriority()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export SERVICE_DAEMON=\"").append(setting.getDaemon()).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export CATALINA_BASE=\"").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export CATALINA_HOME=\"").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
+                    .append("export SERVICE_SCH_TYPE=\"").append(setting.getScheduleType()).append('"').append(StringUtils.LINE_BREAK);
+        }
+        try {
+            FileUtils.writeStringToFile(bashFile, sb.toString(), OSUtils.isWindows() ? "GBK" : "UTF-8");
+        } catch (Exception e) {
+            logger.error("init service env error.", e);
+        }
     }
 
     private static void displayCommand(ServiceSetting setting, StringBuilder cmdBuilder, String sid) {
@@ -183,18 +209,17 @@ public class TaskUtils {
 
     public static void execServiceOfflineShell(ServiceSetting setting) {
         String javaCmd = OSUtils.isWindows() ? "\"%JAVA_CMD%\" " : "\"${JAVA_CMD}\" ";
-        if (USE_NOHUP) {
-            javaCmd = "nohup " + javaCmd;
-        }
         String name = setting.getName() + CommonConst.POST_EXCEPTION_TASK_SUFFIX;
         StringBuilder cmdBuilder = new StringBuilder(javaCmd)
-                .append("-Xms5m -Xmx15m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ")
+                .append("-Xms50m -Xmx150m -XX:+UseG1GC -XX:MaxGCPauseMillis=500 ")
                 // Java agent
                 .append(SettingUtils.getAgentStartOption(setting.getUserDir(), name, setting.getSid()))
                 .append(StringUtils.SPACE)
                 .append("-jar")
                 .append(StringUtils.SPACE)
+                .append('"')
                 .append(getShellJar())
+                .append('"')
                 .append(StringUtils.SPACE)
                 .append("-c")
                 .append(StringUtils.SPACE)
@@ -202,16 +227,9 @@ public class TaskUtils {
         String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
         File bashFile = getStartBashFile(setting.getSid(), serverPath);
         String jdkPath = SettingUtils.getJdkPath();
-        Map<String, String> env = new HashMap<>(4);
-        env.put("SERVICE_NAME", setting.getName());
-        env.put("USER_DIR", setting.getUserDir());
-        env.put("SID", setting.getSid());
-        String envStr = env.entrySet()
-                .stream()
-                .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining(","));
         try {
-            startTask(cmdBuilder.toString(), envStr, serverPath, bashFile, jdkPath).waitFor();
+            initServiceEnv(setting, bashFile);
+            startTask(cmdBuilder.toString(), setting.getEnv(), serverPath, bashFile, jdkPath).waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -312,47 +330,66 @@ public class TaskUtils {
         StringBuilder sb = new StringBuilder();
         try {
             initRunningEnv(jdkPath, sb);
-            String[] envs = parseEnv(environment);
-            if (null != envs) {
-                for (String env : envs) {
-                    if (OSUtils.isWindows()) {
-                        sb.append("set ").append(env).append('\n');
-                    } else {
-                        sb.append("export ").append(env).append('\n');
-                    }
-                }
-            }
+            initEnv(environment, workHome, sb);
             if (OSUtils.isWindows()) {
-                sb.append("\nstart \"\" ").append(command).append("\ntimeout /t 1 > NUL\necho started!\n");
+                sb.append(StringUtils.LINE_BREAK)
+                        .append("start \"\" ").append(command).append(StringUtils.LINE_BREAK)
+                        .append("timeout /t 1 > NUL").append(StringUtils.LINE_BREAK)
+                        .append("echo started!").append(StringUtils.LINE_BREAK);
             } else {
-                sb.append('\n').append(command).append(" >/dev/null &\nsleep 1\necho started!\n");
+                sb.append(StringUtils.LINE_BREAK)
+                        .append(command).append(" >/dev/null &").append(StringUtils.LINE_BREAK)
+                        .append("sleep 1").append(StringUtils.LINE_BREAK)
+                        .append("echo started!").append(StringUtils.LINE_BREAK);
             }
-            FileUtils.writeStringToFile(bashFile, sb.toString(), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(bashFile, sb.toString(), OSUtils.isWindows() ? "GBK" : "UTF-8", true);
             if (!bashFile.setExecutable(true)) {
                 logger.error("set executable failed.");
             }
             String bash = bashFile.getAbsolutePath();
-            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(bash) : Arrays.asList("sh", bash);
+            List<String> cmd = OSUtils.isWindows() ? Collections.singletonList(bash) : Arrays.asList("bash", bash);
             return new ProcessBuilder(cmd).directory(toCurrentDir(workHome)).start();
         } catch (Exception e) {
             throw new JarbootException(e.getMessage(), e);
         }
     }
 
+    private static void initEnv(String environment, String workHome, StringBuilder sb) {
+        String[] envs = parseEnv(environment);
+        if (null != envs) {
+            for (String env : envs) {
+                if (OSUtils.isWindows()) {
+                    sb.append("set ").append(env).append(StringUtils.LINE_BREAK);
+                } else {
+                    sb.append("export ").append(env).append(StringUtils.LINE_BREAK);
+                }
+            }
+        }
+        if (StringUtils.isNotEmpty(workHome)) {
+            if (OSUtils.isWindows()) {
+                sb.append("set \"WORK_HOME=").append(workHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("cd \"").append("%WORK_HOME%").append('"').append(StringUtils.LINE_BREAK);
+            } else {
+                sb.append("export WORK_HOME=\"").append(workHome).append('"').append(StringUtils.LINE_BREAK)
+                        .append("cd \"").append("$WORK_HOME").append('"').append(StringUtils.LINE_BREAK);
+            }
+        }
+    }
+
     private static void initRunningEnv(String jdkPath, StringBuilder sb) {
         if (StringUtils.isEmpty(jdkPath)) {
             if (OSUtils.isWindows()) {
-                sb.append("set \"JAVA_CMD=javaw\"\n\n");
+                sb.append("set \"JAVA_CMD=javaw\"").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK);
             } else {
-                sb.append("export JAVA_CMD=\"java\"\n\n");
+                sb.append("export JAVA_CMD=\"java\"").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK);
             }
         } else {
             if (OSUtils.isWindows()) {
-                sb.append("set \"JAVA_HOME=").append(jdkPath).append("\"\n");
-                sb.append("set \"JAVA_CMD=%JAVA_HOME%/bin/javaw.exe\"\n\n");
+                sb.append("set \"JAVA_HOME=").append(jdkPath).append('"').append(StringUtils.LINE_BREAK);
+                sb.append("set \"JAVA_CMD=%JAVA_HOME%/bin/javaw.exe\"").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK);
             } else {
-                sb.append("export JAVA_HOME=\"").append(jdkPath).append("\"\n");
-                sb.append("export JAVA_CMD=\"${JAVA_HOME}/bin/java\"\n\n");
+                sb.append("export JAVA_HOME=\"").append(jdkPath).append('"').append(StringUtils.LINE_BREAK);
+                sb.append("export JAVA_CMD=\"${JAVA_HOME}/bin/java\"").append(StringUtils.LINE_BREAK).append(StringUtils.LINE_BREAK);
             }
         }
         String selfHost = ClusterClientManager.getInstance().getSelfHost();
@@ -363,17 +400,17 @@ public class TaskUtils {
             host = selfHost;
         }
         if (OSUtils.isWindows()) {
-            sb.append("set \"JARBOOT_HOME=").append(SettingUtils.getHomePath()).append("\"\n");
-            sb.append("set \"MACHINE_CODE=").append(CommonUtils.getMachineCode()).append("\"\n");
-            sb.append("set \"SERVER_UUID=").append(SettingUtils.getUuid()).append("\"\n");
-            sb.append("set \"JARBOOT_WORKSPACE=").append(SettingUtils.getWorkspace()).append("\"\n");
-            sb.append("set \"JARBOOT_HOST=").append(host).append("\"\n");
+            sb.append("set \"JARBOOT_HOME=").append(SettingUtils.getHomePath()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("set \"MACHINE_CODE=").append(CommonUtils.getMachineCode()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("set \"SERVER_UUID=").append(SettingUtils.getUuid()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("set \"JARBOOT_WORKSPACE=").append(SettingUtils.getWorkspace()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("set \"JARBOOT_HOST=").append(host).append('"').append(StringUtils.LINE_BREAK);
         } else {
-            sb.append("export JARBOOT_HOME=\"").append(SettingUtils.getHomePath()).append("\"\n");
-            sb.append("export MACHINE_CODE=\"").append(CommonUtils.getMachineCode()).append("\"\n");
-            sb.append("export SERVER_UUID=\"").append(SettingUtils.getUuid()).append("\"\n");
-            sb.append("export JARBOOT_WORKSPACE=\"").append(SettingUtils.getWorkspace()).append("\"\n");
-            sb.append("export JARBOOT_HOST=\"").append(host).append("\"\n");
+            sb.append("export JARBOOT_HOME=\"").append(SettingUtils.getHomePath()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("export MACHINE_CODE=\"").append(CommonUtils.getMachineCode()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("export SERVER_UUID=\"").append(SettingUtils.getUuid()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("export JARBOOT_WORKSPACE=\"").append(SettingUtils.getWorkspace()).append('"').append(StringUtils.LINE_BREAK);
+            sb.append("export JARBOOT_HOST=\"").append(host).append('"').append(StringUtils.LINE_BREAK);
         }
     }
 

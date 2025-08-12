@@ -2,9 +2,9 @@ import axios from 'axios';
 import CommonUtils from './CommonUtils';
 import router from '../router';
 import CommonNotice from '@/common/CommonNotice';
-import { ACCESS_CLUSTER_HOST } from '@/common/CommonConst';
 import Logger from '@/common/Logger';
 import type { AxiosProgressEvent } from 'axios';
+import { PAGE_LOGIN } from '@/common/route-name-constants';
 
 const http = axios.create({
   baseURL: '',
@@ -47,7 +47,7 @@ export default class Request {
       form.append('file', file);
     } else {
       Logger.error('file is null.', file);
-      return Promise.reject('file is null');
+      return Promise.reject(new Error('file is null'));
     }
     if (params) {
       params.forEach((value, key) => form.append(key, value));
@@ -73,13 +73,18 @@ export default class Request {
     return http.delete<any, T>(url, params);
   }
 
+  private static async gotoLogin() {
+    CommonUtils.deleteToken();
+    const query = CommonUtils.parseRedirectQuery(router.currentRoute.value);
+    return router.push({ name: PAGE_LOGIN, query }).then(() => console.info('未登陆，跳转到登陆界面...'));
+  }
+
   public static init() {
     http.interceptors.response.use(
       response => {
         if (401 === response?.status) {
           //没有授权，跳转到登录界面
-          CommonUtils.deleteToken();
-          return router.push({ path: '/login' }).then(() => console.info('未登陆，跳转到登陆界面...'));
+          return Request.gotoLogin();
         }
         let data = response.data;
         if (typeof data == 'string' && (data.startsWith('{') || data.startsWith('['))) {
@@ -98,8 +103,7 @@ export default class Request {
         const resultCode = data.code ?? 0;
         if (resultCode === 401) {
           CommonNotice.warn(data.msg || '请登录！');
-          CommonUtils.deleteToken();
-          return router.push({ name: 'login' });
+          return Request.gotoLogin();
         }
         if (resultCode != 0) {
           CommonNotice.error(data.msg || '请求服务器失败');
@@ -116,8 +120,7 @@ export default class Request {
         console.error(msg, error);
         if (401 === error.response?.status) {
           //没有授权，跳转到登录界面
-          CommonUtils.deleteToken();
-          return router.push({ name: 'login' }).then(() => console.info('未登陆，跳转到登陆界面...'));
+          return Request.gotoLogin();
         }
         CommonNotice.error('请求服务器失败');
         return Promise.reject(error);
@@ -126,16 +129,6 @@ export default class Request {
 
     // 请求拦截器，塞入token以便鉴权
     http.interceptors.request.use(request => {
-      const token = CommonUtils.getToken();
-      if (request.headers) {
-        if (token.length) {
-          request.headers['Authorization'] = token;
-        }
-        const host = CommonUtils.getCurrentHost();
-        if (host) {
-          request.headers[ACCESS_CLUSTER_HOST] = host;
-        }
-      }
       return request;
     });
   }

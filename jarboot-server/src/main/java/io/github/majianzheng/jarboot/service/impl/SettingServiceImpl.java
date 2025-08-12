@@ -20,9 +20,9 @@ import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ import java.util.*;
  */
 @Service
 public class SettingServiceImpl implements SettingService {
-    @Autowired
+    @Resource
     private TaskRunCache taskRunCache;
 
     @Override

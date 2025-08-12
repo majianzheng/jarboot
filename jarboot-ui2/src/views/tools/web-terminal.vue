@@ -6,7 +6,7 @@
       type="card"
       editable
       :style="{ width: state.width + 'px' }"
-      @tab-change="name => (state.active = name)"
+      @tab-change="name => (state.active = name as number)"
       @edit="editTab">
       <el-tab-pane v-for="(term, i) in state.terms" :key="i" :label="term.name" :name="i">
         <terminal
@@ -39,7 +39,9 @@ import { debounce } from 'lodash';
 import CommonNotice from '@/common/CommonNotice';
 import ClusterManager from '@/services/ClusterManager';
 import type { TabPaneName } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 
+const { locale } = useI18n();
 const basicStore = useBasicStore();
 
 interface TermOptions {
@@ -50,8 +52,8 @@ interface TermOptions {
 }
 
 const state = reactive({
-  width: basicStore.innerWidth - 80,
-  height: basicStore.innerHeight - 90,
+  width: basicStore.innerWidth - 180,
+  height: basicStore.innerHeight - 115,
   terms: [] as TermOptions[],
   clusterHosts: [] as { host: string; name: string }[],
   selectHost: '',
@@ -59,7 +61,7 @@ const state = reactive({
   dialog: false,
 });
 
-watch(() => [basicStore.innerHeight, basicStore.innerWidth], debounce(resize, 1500, { maxWait: 3000 }));
+watch(() => [basicStore.innerHeight, basicStore.innerWidth, locale.value], debounce(resize, 500, { maxWait: 1000 }));
 watch(
   () => state.active,
   newValue => {
@@ -92,6 +94,7 @@ function connectTo(host: string) {
 }
 
 function editTab(name: TabPaneName | undefined, action: 'remove' | 'add') {
+  resize();
   if ('remove' === action) {
     let index = name as number;
     const active = index + 1 >= state.terms.length ? index - 1 : index;
@@ -116,12 +119,16 @@ function onDisconnected(opt: TermOptions) {
 }
 
 function resize() {
-  state.width = basicStore.innerWidth - 80;
-  state.height = basicStore.innerHeight - 90;
+  const contentEle = document.querySelector('div.menu-side');
+  if (contentEle) {
+    state.width = basicStore.innerWidth - contentEle.clientWidth - 30;
+  } else {
+    state.width = basicStore.innerWidth - 180;
+  }
+  state.height = basicStore.innerHeight - 115;
 }
 onMounted(async () => {
+  resize();
   state.clusterHosts = await ClusterManager.getOnlineClusterHosts();
 });
 </script>
-
-<style scoped></style>

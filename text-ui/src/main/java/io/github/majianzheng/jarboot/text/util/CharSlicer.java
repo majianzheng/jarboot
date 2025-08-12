@@ -134,9 +134,9 @@ public class CharSlicer {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        Pair<Integer, Integer> next = this.next;
+        Pair<Integer, Integer> theNext = this.next;
         this.next = null;
-        return next;
+        return theNext;
       }
     };
   }

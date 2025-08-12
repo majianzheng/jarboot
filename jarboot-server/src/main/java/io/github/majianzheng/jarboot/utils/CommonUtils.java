@@ -2,25 +2,41 @@ package io.github.majianzheng.jarboot.utils;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.utils.NetworkUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
+import io.github.majianzheng.jarboot.constant.AuthConst;
 import io.jsonwebtoken.lang.Collections;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.CollectionUtils;
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.Session;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.jar.JarFile;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 
 /**
  * 工具类
  * @author mazheng
  */
+@Slf4j
 public class CommonUtils {
     /**
      * 获取用户真实IP地址，不使用request.getRemoteAddr();的原因是有可能用户使用了代理软件方式避免真实IP地址,
@@ -64,6 +80,9 @@ public class CommonUtils {
         if (!ClusterClientManager.getInstance().isEnabled() || StringUtils.isEmpty(clusterHost)) {
             return false;
         }
+        if (Objects.equals(SettingUtils.getLocalhost(), clusterHost)) {
+            return false;
+        }
         return !Objects.equals(ClusterClientManager.getInstance().getSelfHost(), clusterHost);
     }
 
@@ -99,38 +118,59 @@ public class CommonUtils {
     }
 
     public static String getMachineCode() {
-        String dockerHostName = System.getenv("HOSTNAME");
-        if (Boolean.getBoolean(CommonConst.DOCKER) && StringUtils.isNotEmpty(dockerHostName)) {
-            // 当前处于docker环境，使用docker的容器ID作为机器码
-            return dockerHostName;
+        SystemInfo systemInfo = new SystemInfo();
+        HardwareAbstractionLayer hal = systemInfo.getHardware();
+        final String unknown = "unknown";
+        String code = hal.getComputerSystem().getSerialNumber();
+        if (unknown.equals(code)) {
+            code = getFromUuidFile();
         }
+        return code;
+    }
+
+    private static String getFromUuidFile() {
         List<String> addrList = NetworkUtils.getMacAddrList();
-        if (addrList.isEmpty()) {
-            return StringUtils.EMPTY;
-        }
+        boolean useRandomUuid = useRandomUuid(addrList);
         File uuidFile = FileUtils.getFile(SettingUtils.getHomePath(), "data", ".uuid");
+        String code = StringUtils.EMPTY;
+        String content = StringUtils.EMPTY;
         if (uuidFile.exists()) {
             try {
-                String content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
-                int index = content.indexOf('-');
-                if (index > 0) {
-                    String code = content.substring(0, index);
-                    for (String addr : addrList) {
-                        String hash = String.format("%08x", addr.hashCode());
-                        if (code.contains(hash)) {
-                            return code;
-                        }
-                    }
-                }
+                content = FileUtils.readFileToString(uuidFile, StandardCharsets.UTF_8);
             } catch (Exception e) {
                 // ignore
             }
         }
-        return genMachineCodeByMacAddr(addrList);
+        int index = content.indexOf('-');
+        if (index > 0) {
+            code = content.substring(0, index);
+            if (useRandomUuid) {
+                return code;
+            }
+            for (String addr : addrList) {
+                String hash = String.format("%08x", addr.hashCode());
+                if (code.contains(hash)) {
+                    break;
+                }
+            }
+        }
+
+        if (StringUtils.isEmpty(code)) {
+            if (useRandomUuid) {
+                code = String.format("%08x", UUID.randomUUID().hashCode());
+            } else {
+                code = genMachineCodeByMacAddr(addrList);
+            }
+        }
+        return code;
     }
 
-    public static String getHomeEnv() {
-        return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
+    private static boolean useRandomUuid(List<String> addrList) {
+        boolean isDocker = (Boolean.getBoolean(CommonConst.DOCKER) && StringUtils.isNotEmpty(System.getenv("HOSTNAME")));
+        if (isDocker) {
+            return true;
+        }
+        return CollectionUtils.isEmpty(addrList);
     }
 
     private static String genMachineCodeByMacAddr(List<String> addrList) {
@@ -143,6 +183,120 @@ public class CommonUtils {
             return String.format("%08x%08x%08x", code1.hashCode(), code2.hashCode(), code3.hashCode());
         }
         return String.format("%08x%08x", code1.hashCode(), code2.hashCode());
+    }
+
+    public static String getToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (AuthConst.TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    if (token.startsWith(AuthConst.TOKEN_PREFIX)) {
+                        token = token.substring(AuthConst.TOKEN_PREFIX.length());
+                    }
+                    return token;
+                }
+            }
+        }
+        String bearerToken = request.getHeader(AuthConst.AUTHORIZATION_HEADER);
+        if (!StringUtils.isBlank(bearerToken)) {
+            if (bearerToken.startsWith(AuthConst.TOKEN_PREFIX)) {
+                return bearerToken.substring(AuthConst.TOKEN_PREFIX.length());
+            }
+            return bearerToken;
+        }
+        String jwt = request.getParameter(AuthConst.ACCESS_TOKEN);
+        if (!StringUtils.isBlank(jwt)) {
+            return jwt;
+        }
+        return null;
+    }
+
+    public static String getAccessClusterHost(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (AuthConst.CLUSTER_COOKIE_NAME.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        String accessClusterHost = request.getHeader(AuthConst.ACCESS_CLUSTER_HOST);
+        if (StringUtils.isEmpty(accessClusterHost)) {
+            accessClusterHost = request.getParameter(AuthConst.ACCESS_CLUSTER_HOST);
+        }
+        return accessClusterHost;
+    }
+
+    /**
+     * 获取当前登录的用户名
+     * @return 用户名
+     */
+    public static String getLoginUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (null == authentication) {
+            return StringUtils.EMPTY;
+        }
+        return authentication.getName();
+    }
+
+    /**
+     * 获取当前登录的角色
+     * @return 角色列表
+     */
+    public static Set<String> getLoginRoles() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (null == authentication) {
+            return new HashSet<>();
+        }
+        return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+    }
+
+    public static String getHomeEnv() {
+        return OSUtils.isWindows() ? "%JARBOOT_HOME%" : "$JARBOOT_HOME";
+    }
+
+    public static Set<String> getJarDependencies(File file) {
+        Set<String> dependencies = new HashSet<>(16);
+        String[] paths = CommonUtils.parseJarDependence(file);
+        if (paths.length > 0) {
+            dependencies.addAll(Arrays.asList(paths));
+        }
+        return dependencies;
+    }
+
+    private static String[] parseJarDependence(File file) {
+        final String resource = "META-INF/MANIFEST.MF";
+        try (JarFile jarFile = new JarFile(file)){
+            ZipEntry entry = jarFile.getEntry(resource);
+            if (null == entry) {
+                return new String[0];
+            }
+            StringBuilder pathStr = new StringBuilder();
+            boolean started = false;
+            try(InputStream is = jarFile.getInputStream(entry)) {
+                List<String> lines = IOUtils.readLines(is, StandardCharsets.UTF_8);
+                final String beginPrefix = "Class-Path: ";
+                final String endPrefix = "Main-Class:";
+                for (String line : lines) {
+                    if (line.startsWith(beginPrefix)) {
+                        pathStr.append(line.substring(beginPrefix.length()));
+                        started = true;
+                    } else if (line.startsWith(endPrefix)) {
+                        break;
+                    } else {
+                        if (started && line.startsWith(StringUtils.SPACE)) {
+                            pathStr.append(line.substring(1));
+                        }
+                    }
+                }
+            }
+
+            return pathStr.toString().split(StringUtils.SPACE);
+
+        } catch (IOException e) {
+            throw new JarbootException("Load jar file failed!", e);
+        }
     }
 
     private CommonUtils() {}

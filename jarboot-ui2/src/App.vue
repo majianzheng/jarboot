@@ -38,5 +38,3 @@ onUnmounted(() => {
     <router-view></router-view>
   </el-config-provider>
 </template>
-
-<style lang="less" scoped></style>

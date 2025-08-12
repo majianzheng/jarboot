@@ -13,6 +13,7 @@ import io.github.majianzheng.jarboot.common.utils.ApiStringBuilder;
 import io.github.majianzheng.jarboot.client.utlis.ClientConst;
 import io.github.majianzheng.jarboot.client.utlis.ResponseUtils;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
+import io.github.majianzheng.jarboot.common.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,15 +51,7 @@ public class ServiceManagerClient implements ServiceManager {
     @Override
     public List<ServiceInstance> getServiceList() {
         JsonNode response = this.clientProxy.get(CommonConst.SERVICE_MGR_CONTEXT);
-        JsonNode result = ResponseUtils.parseResult(response, CommonConst.SERVICE_MGR_CONTEXT);
-        List<ServiceInstance> list = new ArrayList<>();
-        final int size = result.size();
-        for (int i = 0; i < size; ++i) {
-            JsonNode node = result.get(i);
-            ServiceInstance serviceInstance = JsonUtils.treeToValue(node, ServiceInstance.class);
-            list.add(serviceInstance);
-        }
-        return list;
+        return ResponseUtils.getListResult(response, ServiceInstance.class);
     }
 
     @Override
@@ -150,14 +143,19 @@ public class ServiceManagerClient implements ServiceManager {
     /**
      * 注册事件处理
      *
+     * @param host        服务地址
      * @param serviceName 服务名称
      * @param lifecycle   任务生命周期 {@link TaskLifecycle}
      * @param subscriber  任务处理 {@link Subscriber}
      */
     @Override
-    public void registerSubscriber(String serviceName,
+    public void registerSubscriber(String host,
+                                   String serviceName,
                                    TaskLifecycle lifecycle,
                                    Subscriber<TaskLifecycleEvent> subscriber) {
+        if (StringUtils.isNotEmpty(host)) {
+            serviceName = serviceName + "@" + host;
+        }
         final String topic = this.clientProxy.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         this.clientProxy.registerSubscriber(topic, subscriber);
     }
@@ -165,14 +163,19 @@ public class ServiceManagerClient implements ServiceManager {
     /**
      * 反注册事件处理
      *
+     * @param host        服务地址
      * @param serviceName 服务名称
      * @param lifecycle   任务生命周期 {@link TaskLifecycle}
      * @param subscriber  任务处理 {@link Subscriber}
      */
     @Override
-    public void deregisterSubscriber(String serviceName,
+    public void deregisterSubscriber(String host,
+                                     String serviceName,
                                      TaskLifecycle lifecycle,
                                      Subscriber<TaskLifecycleEvent> subscriber) {
+        if (StringUtils.isNotEmpty(host)) {
+            serviceName = serviceName + "@" + host;
+        }
         final String topic = this.clientProxy.createTopic(TaskLifecycleEvent.class, serviceName, lifecycle.name());
         this.clientProxy.deregisterSubscriber(topic, subscriber);
     }

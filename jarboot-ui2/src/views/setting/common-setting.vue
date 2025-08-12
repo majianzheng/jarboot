@@ -50,6 +50,7 @@ import { onMounted, reactive } from 'vue';
 import SettingService from '@/services/SettingService';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
+import type { GlobalSetting } from '@/types';
 
 const rules = {};
 let state = reactive({
@@ -63,7 +64,7 @@ let state = reactive({
     maxExitTime: 30000,
     afterServerOfflineExec: '',
     fileChangeShakeTime: 5,
-  },
+  } as GlobalSetting,
 });
 
 async function save() {
@@ -85,7 +86,7 @@ onMounted(fetchSetting);
 
 <style lang="less" scoped>
 .sys-setting-main {
-  padding: 0 30px;
+  padding: 0 15%;
   height: calc(100vh - 76px);
   overflow: auto;
   .__setting_footer {

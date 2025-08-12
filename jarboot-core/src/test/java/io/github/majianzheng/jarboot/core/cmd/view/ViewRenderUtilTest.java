@@ -34,20 +34,4 @@ public class ViewRenderUtilTest {
                 "Affect(class count: 3 , method count: 2) cost in 100 ms, listenerId: 4\n" +
                 "Enhance error! exception: io.github.majianzheng.jarboot.common.JarbootException: test\n", str);
     }
-
-    @Test
-    public void test() {
-        java.util.List<String> headers = new ArrayList<>();
-        List<List<String>> rows = new ArrayList<>();
-        String title = "bvbv";
-        headers.add("header1");
-        headers.add("header2");
-        headers.add("header3");
-        List<String> row1 = new ArrayList<>();
-        row1.add("col11");
-        row1.add("col12");
-        row1.add("col13");
-        rows.add(row1);
-        System.out.println(ViewRenderUtil.renderTable(headers, rows, 80));
-    }
 }
