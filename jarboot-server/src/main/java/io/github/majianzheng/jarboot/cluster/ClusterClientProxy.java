@@ -8,6 +8,7 @@ import io.github.majianzheng.jarboot.api.service.SettingService;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
 import io.github.majianzheng.jarboot.common.utils.JsonUtils;
+import io.github.majianzheng.jarboot.service.UpgradeService;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
@@ -34,6 +35,8 @@ public class ClusterClientProxy {
     private SettingService settingService;
     @Resource(name = "taskExecutorService")
     private ExecutorService executorService;
+    @Resource
+    private UpgradeService upgradeService;
 
     public List<ServiceInstance> getServiceGroup() {
         List<ServiceInstance> groups = new ArrayList<>();
@@ -93,6 +96,9 @@ public class ClusterClientProxy {
     }
 
     public void startService(List<ServiceInstance> services) {
+        if (upgradeService.isUpgrading()) {
+            throw new JarbootException("系统正在升级中，请稍后再试！");
+        }
         List<ServiceSetting> settingList = services
                 .stream()
                 .map(this::getServiceSetting)
@@ -109,6 +115,9 @@ public class ClusterClientProxy {
     }
 
     public void restartService(List<ServiceInstance> services) {
+        if (upgradeService.isUpgrading()) {
+            throw new JarbootException("系统正在升级中，请稍后再试！");
+        }
         List<ServiceSetting> settingList = services
                 .stream()
                 .map(this::getServiceSetting)
@@ -122,6 +131,9 @@ public class ClusterClientProxy {
     }
 
     public void attach(String host, String pid) {
+        if (upgradeService.isUpgrading()) {
+            throw new JarbootException("系统正在升级中，请稍后再试！");
+        }
         if (CommonUtils.needProxy(host)) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(host);
             client.attach(pid);
@@ -144,6 +156,9 @@ public class ClusterClientProxy {
      * @param setting 服务配置
      */
     public void startSingleService(ServiceSetting setting) {
+        if (upgradeService.isUpgrading()) {
+            throw new JarbootException("系统正在升级中，请稍后再试！");
+        }
         if (CommonUtils.needProxy(setting.getHost())) {
             ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
             final int maxWait = SettingUtils.getSystemSetting().getMaxStartTime() + 1500;

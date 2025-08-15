@@ -134,8 +134,13 @@ export default {
   SCHEDULE_TYPE: 'Schedule type',
   SCHEDULE_ONCE: 'once',
   SCHEDULE_LONE_TIME: 'long times',
-  SCHEDULE_CRON: 'cron',
+  SCHEDULE_CRON: 'task cron',
+  RESTART_CRON: 'restart schedule',
   COMMAND_EXAMPLE: 'Example:  1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
+  AUTO_START: 'Auto start',
+  AUTO_START_OPT1: 'Follow system configuration',
+  AUTO_START_OPT2: 'Automatically start',
+  AUTO_START_OPT3: 'Do not start automatically',
 
   //插件
   UPLOAD_TITLE: 'Upload plugin',

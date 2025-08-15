@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FileNode, ServerSetting, ServiceInstance } from '@/types';
 import { onMounted, reactive, ref, watch } from 'vue';
-import { ElForm, FormRules } from 'element-plus';
+import { ElForm, type FormRules } from 'element-plus';
 import ClusterManager from '@/services/ClusterManager';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
@@ -36,6 +36,7 @@ const defaultSetting: ServerSetting = {
   workDirectory: '',
   workspace: '',
   serviceDir: null as unknown as FileNode,
+  autoStart: -1 as boolean | number,
 };
 const rowTools = {
   download: true,
@@ -68,6 +69,9 @@ watch(
     state.showEdit = props.showEdit;
     state.isNew = props.isNew;
     state.form = props.setting;
+    if (state.form.autoStart === null) {
+      state.form.autoStart = -1;
+    }
   }
 );
 async function saveConfig() {
@@ -77,7 +81,11 @@ async function saveConfig() {
   if (!state.form.host) {
     state.form.host = (props.clusterHost || basic.host) as string;
   }
-  await ClusterManager.saveServerSetting({ ...state.form });
+  const form = { ...state.form };
+  if (form.autoStart === -1) {
+    form.autoStart = null;
+  }
+  await ClusterManager.saveServerSetting(form);
   state.showEdit = false;
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
 }
@@ -89,11 +97,18 @@ async function saveAndInit() {
   if (!state.form.host) {
     state.form.host = (props.clusterHost || basic.host) as string;
   }
-  await ClusterManager.saveServerSetting({ ...state.form });
+  const form = { ...state.form };
+  if (form.autoStart === -1) {
+    form.autoStart = null;
+  }
+  await ClusterManager.saveServerSetting(form);
   state.isNew = false;
   // 获取当前选中的节点host
   const inst = { host: state.form.host, name: state.form.name } as ServiceInstance;
   state.form = await ClusterManager.getServerSetting(inst);
+  if (state.form.autoStart === null) {
+    state.form.autoStart = -1;
+  }
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
 }
 
@@ -104,6 +119,9 @@ const onCloseEdit = () => {
 
 onMounted(() => {
   state.form = props.setting;
+  if (state.form.autoStart === null) {
+    state.form.autoStart = -1;
+  }
   state.isNew = props.isNew;
   state.showEdit = props.showEdit;
 });
@@ -167,6 +185,13 @@ onMounted(() => {
           auto-capitalize="off"
           v-model="state.form.env"></el-input>
       </el-form-item>
+      <el-form-item :label="$t('AUTO_START')" prop="autoStart">
+        <el-radio-group v-model="state.form.autoStart">
+          <el-radio :value="-1">{{ $t('AUTO_START_OPT1') }}</el-radio>
+          <el-radio :value="false">{{ $t('AUTO_START_OPT3') }}</el-radio>
+          <el-radio :value="true">{{ $t('AUTO_START_OPT2') }}</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item :label="$t('PRIORITY_LABEL')" prop="priority">
         <el-input-number :min="1" :max="9999" v-model="state.form.priority"></el-input-number>
       </el-form-item>
@@ -175,16 +200,20 @@ onMounted(() => {
           <el-radio value="once">{{ $t('SCHEDULE_ONCE') }}</el-radio>
           <el-radio value="long-times">{{ $t('SCHEDULE_LONE_TIME') }}</el-radio>
           <el-radio value="cron">{{ $t('SCHEDULE_CRON') }}</el-radio>
+          <el-radio value="restart-cron">{{ $t('RESTART_CRON') }}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
+      <el-form-item v-show="'cron' === state.form.scheduleType" :label="$t('SCHEDULE_CRON')" prop="cron">
+        <cron-input v-model="state.form.cron"></cron-input>
+      </el-form-item>
+      <el-form-item v-show="'restart-cron' === state.form.scheduleType" :label="$t('RESTART_CRON')" prop="cron">
+        <cron-input v-model="state.form.cron"></cron-input>
+      </el-form-item>
+      <el-form-item v-show="'once' !== state.form.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
         <el-switch v-model="state.form.daemon"></el-switch>
       </el-form-item>
-      <el-form-item v-show="'long-times' === state.form.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="fileUpdateWatch">
+      <el-form-item v-show="'once' !== state.form.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="fileUpdateWatch">
         <el-switch v-model="state.form.fileUpdateWatch"></el-switch>
-      </el-form-item>
-      <el-form-item v-show="'cron' === state.form.scheduleType" :label="'cron'" prop="cron">
-        <cron-input v-model="state.form.cron"></cron-input>
       </el-form-item>
       <el-form-item :label="$t('FILE')">
         <el-empty v-if="state.isNew" style="width: 100%" :description="$t('SAVE_CONFIG_AND_ENABLE_FILE')">

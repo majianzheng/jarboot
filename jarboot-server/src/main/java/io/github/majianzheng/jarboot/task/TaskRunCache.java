@@ -230,7 +230,7 @@ public class TaskRunCache {
         if (isScheduling(setting.getSid())) {
             throw new JarbootException("定时任务" + setting.getName() + "正在计划中");
         }
-        if (!SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+        if (!SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) && !SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
             throw new JarbootException(setting.getName() + "非定时任务类型");
         }
         if (StringUtils.isEmpty(setting.getCron())) {

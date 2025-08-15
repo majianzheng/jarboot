@@ -80,6 +80,7 @@ public class Utils {
         }
         AnsiLog.println("Jarboot version：{}", runtimeInfo.getVersion());
         AnsiLog.println("OS: {}", runtimeInfo.getOs() + (Boolean.TRUE.equals(runtimeInfo.getInDocker()) ? " Docker" : ""));
+        AnsiLog.println("Pid: {}", runtimeInfo.getPid());
         return true;
     }
 

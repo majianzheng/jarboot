@@ -66,6 +66,7 @@ public class ServerRuntimeServiceImpl implements ServerRuntimeService {
         String vmName = System.getProperty("java.vm.name");
         String vmVer = System.getProperty("java.vm.version");
         info.setJdk(String.format("%s (VERSION: %s)", vmName, vmVer));
+        info.setPid(String.valueOf(ProcessHandle.current().pid()));
         return info;
     }
 

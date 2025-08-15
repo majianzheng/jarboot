@@ -60,6 +60,7 @@ public class CommonConst {
     public static final String USER_DIR = "userDir";
     public static final String HOST_KEY = "host";
     public static final String UUID_KEY = "uuid";
+    public static final String SCHEDULE_TYPE = "scheduleType";
 
     /** Task status */
     public static final String STARTING = "STARTING";

@@ -16,6 +16,7 @@ public class ServerRuntimeInfo {
     private Boolean dev;
     private String jdk;
     private String os;
+    private String pid;
 
     public String getMachineCode() {
         return machineCode;
@@ -87,5 +88,13 @@ public class ServerRuntimeInfo {
 
     public void setOs(String os) {
         this.os = os;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }

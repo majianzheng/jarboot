@@ -1,8 +1,11 @@
 package io.github.majianzheng.jarboot.controller;
 
 
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
 import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
+import io.github.majianzheng.jarboot.common.pojo.ResponseSimple;
+import io.github.majianzheng.jarboot.common.utils.JsonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -38,8 +41,17 @@ public class PreferencesController {
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Expires", "0");
-        try (InputStream is = FileUtils.openInputStream(imageFile); OutputStream os = response.getOutputStream()) {
-            IOUtils.copy(is, os);
+        if (imageFile.exists()) {
+            try (InputStream is = FileUtils.openInputStream(imageFile); OutputStream os = response.getOutputStream()) {
+                IOUtils.copy(is, os);
+            }
+            return;
+        }
+        response.setContentType("application/json");
+        try (OutputStream os = response.getOutputStream()) {
+            ResponseSimple responseSimple = new ResponseSimple("文件不存在");
+            os.write(JsonUtils.toJsonBytes(responseSimple));
+            os.flush();
         }
     }
 
@@ -57,6 +69,9 @@ public class PreferencesController {
             @PathVariable("fileName") String fileName,
             @RequestParam("file") MultipartFile file) throws IOException {
         File imageFile = getImageFile(fileName);
+        if (!imageFile.exists()) {
+            throw new JarbootException("文件不存在");
+        }
         try (InputStream is = file.getInputStream(); OutputStream os = FileUtils.openOutputStream(imageFile)) {
             IOUtils.copy(is, os);
         }

@@ -2,14 +2,18 @@
 修复已知的bug，修复已知的bug，推出docker compose部署策略，文件上传websocket服务（/jarboot/upload/ws）传入参数格式修改（json字符串base64 url编码）
 ### 新特性
 - 启动时支持通过环境变量初始化账号（JARBOOT_USER）和密码（JARBOOT_DEFAULT_PWD）
+- 服务配置新增是否自动启动配置项，配置自启动时在jarboot启动后会自动启动该服务
 - 可通过-Dstart.wait.time=30000指定最大的启动等待时间
 - client-cli支持通过token登录，可通过环境变量或-token参数传入
 - 新增docker compose集群及单节点的配置文件示例
-- 新增软件升级脚本，可一键升级jarboot，执行`bin/upgrade.sh`或`bin/windows/upgrade.bat`
+- 新增软件升级脚本，可通过脚本一键升级jarboot，执行`bin/upgrade.sh`或`bin/windows/upgrade.bat`
+- 新增软件升级功能，可在界面上点击升级，选择安装包或安装包下载连接，可一键升级
+- 新增定时重启服务配置，可使用CRON表达式配置重启计划
 ### bug修复
 - 打印日志太多时异常掉线问题，The remote endpoint was in state \[BINARY_FULL_WRITING\] which is an invalid state for called method
 - 集群模式下文件上传到另一节点时，服务名为中文时上传文件失败问题
 - 修复使用docker compose集群模式下节点认证失败问题
+- 断开重连时新增cookie校验功能，校验失败则退出登录
 
 ## 3.2.0（5，2025）
 鉴于部分功能的需要，运行环境升级，需JDK17或更高版本的JDK

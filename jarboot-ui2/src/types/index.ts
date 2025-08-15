@@ -83,6 +83,7 @@ export type ServerSetting = {
   workDirectory: string;
   workspace: string;
   serviceDir: FileNode;
+  autoStart: boolean | number | null;
 };
 export type GlobalSetting = {
   workspace: string;

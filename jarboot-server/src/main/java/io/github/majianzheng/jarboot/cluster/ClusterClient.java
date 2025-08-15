@@ -17,6 +17,7 @@ import io.github.majianzheng.jarboot.event.FuncReceivedEvent;
 import io.github.majianzheng.jarboot.monitor.vo.Server;
 import io.github.majianzheng.jarboot.security.JwtTokenManager;
 import io.github.majianzheng.jarboot.service.impl.ServiceManagerImpl;
+import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import io.github.majianzheng.jarboot.utils.TaskUtils;
 import org.apache.commons.codec.binary.Base64;
@@ -463,7 +464,7 @@ public class ClusterClient {
         return url;
     }
     private Map<String, String> wrapToken() {
-        String token = ClusterClientManager.getInstance().getClusterToken(SettingUtils.getCurrentLoginUsername());
+        String token = ClusterClientManager.getInstance().getClusterToken(CommonUtils.getLoginUsername());
         Map<String, String> header = new HashMap<>(2);
         header.put(AuthConst.CLUSTER_TOKEN, token);
         if (StringUtils.isNotEmpty(ClusterClientManager.getInstance().getSelfHost())) {

@@ -135,7 +135,12 @@ export default {
   SCHEDULE_ONCE: '单次执行',
   SCHEDULE_LONE_TIME: '长期运行',
   SCHEDULE_CRON: '定时任务',
+  RESTART_CRON: '定时重启',
   COMMAND_EXAMPLE: '示例： 1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
+  AUTO_START: '自启动',
+  AUTO_START_OPT1: '跟随系统配置',
+  AUTO_START_OPT2: '自动启动',
+  AUTO_START_OPT3: '不自动启动',
 
   //插件
   UPLOAD_TITLE: '上传',

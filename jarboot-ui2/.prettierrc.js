@@ -9,4 +9,5 @@ module.exports = {
   embeddedLanguageFormatting: 'auto',
   singleAttributePerLine: false,
   proseWrap: 'never',
+  endOfLine: 'auto',
 };

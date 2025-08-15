@@ -96,7 +96,7 @@ public class AgentManager {
             ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
             NotifyReactor.getInstance().publishEvent(event);
             boolean needNotifyStatus = ClientState.OFFLINE.equals(client.getState());
-            if (needNotifyStatus && !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+            if (needNotifyStatus && !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) && !SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
                 MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
             }
         } else {
@@ -169,7 +169,7 @@ public class AgentManager {
                     NotifyReactor.getInstance().publishEvent(event);
                 }
                 client.setState(ClientState.OFFLINE);
-                if (null == setting || !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                if (null == setting || !(SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType()))) {
                     MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
                 }
             }

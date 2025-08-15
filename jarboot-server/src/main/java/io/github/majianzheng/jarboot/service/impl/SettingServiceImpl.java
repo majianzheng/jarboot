@@ -20,6 +20,7 @@ import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
+import org.quartz.CronExpression;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -104,16 +105,22 @@ public class SettingServiceImpl implements SettingService {
         if (CommonConst.SHELL_TYPE.equals(type) && StringUtils.isEmpty(setting.getCommand())) {
             throw new JarbootRunException("启动命令不可为空！");
         }
+        checkScheduleType(setting);
+    }
+
+    private void checkScheduleType(ServiceSetting setting) {
         if (!SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) &&
                 !SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) &&
-                !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) &&
+                !SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
             throw new JarbootRunException("执行计划类型错误！");
         }
-        if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+        if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
             // 周期执行
             if (StringUtils.isEmpty(setting.getCron())) {
                 throw new JarbootRunException("cron配置为空！");
             }
+            validateCronExpression(setting.getCron());
             if (taskRunCache.isScheduling(setting.getSid())) {
                 MessageUtils.warn("服务" + setting.getName() + "正在计划中，重启后生效当前配置！");
             }
@@ -122,6 +129,14 @@ public class SettingServiceImpl implements SettingService {
                 taskRunCache.removeScheduleTask(setting);
                 MessageUtils.info("服务" + setting.getName() + "已移除定时任务计划");
             }
+        }
+    }
+
+    private void validateCronExpression(String cron) {
+        try {
+            new CronExpression(cron);
+        } catch (Exception e) {
+            throw new JarbootRunException("Cron表达式格式错误: " + e.getMessage());
         }
     }
 

@@ -32,6 +32,7 @@ public class PidFileHelper {
                 FileUtils.forceMkdir(dir);
             }
             FileUtils.writeStringToFile(pidFile, PID, StandardCharsets.UTF_8);
+            pidFile.deleteOnExit();
         } catch (IOException e) {
             //ignore
         }

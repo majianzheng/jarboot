@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 import type { FuncCode } from '@/common/EventConst';
 import type { MsgData, MsgReq } from '@/types';
 import CommonUtils from '@/common/CommonUtils';
+import Request from '@/common/Request';
 
 enum NotifyType {
   /** 提示 */
@@ -256,6 +257,7 @@ class WsManager {
         WsManager.fd = null;
         return;
       }
+      Request.get<any>(`/api/jarboot/auth/getCurrentUser`, {}).then(data => console.info(data));
       WsManager.initWebsocket();
     }, 15000);
   }

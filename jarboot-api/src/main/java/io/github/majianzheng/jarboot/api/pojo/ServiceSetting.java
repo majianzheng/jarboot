@@ -1,6 +1,9 @@
 package io.github.majianzheng.jarboot.api.pojo;
 
 import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
+import lombok.Data;
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -8,6 +11,8 @@ import java.util.Objects;
  * 服务的运行配置
  * @author majianzheng
  */
+@Data
+@ToString
 public class ServiceSetting implements Serializable {
     /** 所属集群实例 */
     private String host;
@@ -96,6 +101,11 @@ public class ServiceSetting implements Serializable {
     /** 周期执行计划，cron表达式 */
     private String cron;
 
+    /**
+     * 是否自动启动，null时根据全局配置
+     */
+    private Boolean autoStart;
+
     public ServiceSetting() {
         //默认设定
         this(SettingPropConst.DEFAULT_VM_FILE, 1, "", true, true);
@@ -114,177 +124,6 @@ public class ServiceSetting implements Serializable {
         this.daemon = daemon;
         this.fileUpdateWatch = fileUpdateWatch;
         this.applicationType = "java";
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
-    public String getSid() {
-        return sid;
-    }
-
-    public void setSid(String sid) {
-        this.sid = sid;
-    }
-
-    public Long getLastModified() {
-        return lastModified;
-    }
-
-    public void setLastModified(Long lastModified) {
-        this.lastModified = lastModified;
-    }
-
-    public String getCommand() {
-        return command;
-    }
-    
-    public void setCommand(String command) {
-        this.command = command;
-    }
-
-    public String getVm() {
-        return vm;
-    }
-
-    public void setVm(String vm) {
-        this.vm = vm;
-    }
-
-    public String getVmContent() {
-        return vmContent;
-    }
-
-    public void setVmContent(String vmContent) {
-        this.vmContent = vmContent;
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
-    }
-
-    public String getArgs() {
-        return args;
-    }
-
-    public void setArgs(String args) {
-        this.args = args;
-    }
-
-    public String getWorkDirectory() {
-        return workDirectory;
-    }
-
-    public void setWorkDirectory(String workDirectory) {
-        this.workDirectory = workDirectory;
-    }
-
-    public String getJdkPath() {
-        return jdkPath;
-    }
-
-    public void setJdkPath(String jdkPath) {
-        this.jdkPath = jdkPath;
-    }
-
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
-    }
-
-    public Boolean getDaemon() {
-        return daemon;
-    }
-
-    public void setDaemon(Boolean daemon) {
-        this.daemon = daemon;
-    }
-
-    public Boolean getFileUpdateWatch() {
-        return fileUpdateWatch;
-    }
-
-    public void setFileUpdateWatch(Boolean fileUpdateWatch) {
-        this.fileUpdateWatch = fileUpdateWatch;
-    }
-
-    public String getApplicationType() {
-        return applicationType;
-    }
-
-    public void setApplicationType(String applicationType) {
-        this.applicationType = applicationType;
-    }
-
-    public String getScheduleType() {
-        return scheduleType;
-    }
-
-    public void setScheduleType(String scheduleType) {
-        this.scheduleType = scheduleType;
-    }
-
-    public String getUserDir() {
-        return userDir;
-    }
-
-    public void setUserDir(String userDir) {
-        this.userDir = userDir;
-    }
-
-    public String getCron() {
-        return cron;
-    }
-
-    public void setCron(String cron) {
-        this.cron = cron;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    @Override
-    public String toString() {
-        return "ServiceSetting{" +
-                "name='" + name + '\'' +
-                ", group='" + group + '\'' +
-                ", sid='" + sid + '\'' +
-                ", lastModified=" + lastModified +
-                ", command='" + command + '\'' +
-                ", vm='" + vm + '\'' +
-                ", priority=" + priority +
-                ", args='" + args + '\'' +
-                ", workDirectory='" + workDirectory + '\'' +
-                ", jdkPath='" + jdkPath + '\'' +
-                ", env='" + env + '\'' +
-                ", daemon=" + daemon +
-                ", fileUpdateWatch=" + fileUpdateWatch +
-                '}';
     }
 
     @Override

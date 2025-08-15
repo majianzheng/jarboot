@@ -56,26 +56,27 @@ Edge >=88
 
 ## 安装或编译构建
 ### 下载压缩包文件的方式安装，或者使用<code>Docker</code>
-- <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
+#### 1. 安装包下载：<a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
 
-使用<code>Docker</code>
+#### 2. 使用<code>Docker</code>
 ```bash
-# Docker镜像构建
+# Docker镜像构建，jdk17+，maven，nodejs16+
 mvn clean install -P prod
-sh build/docker_image_build.sh
+# 构建docker镜像
+sh docker/docker_image_build.sh
 
 # 启动容器
 sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
 
-#### 使用`docker compose`配置：
+#### 3. 使用`docker compose`配置：
 ```shell
-# 构建jarboot包
+# 构建jarboot包，jdk17+，maven，nodejs16+
 mvn clean install -P prod
 # 构建docker镜像
-sh build/docker_image_build.sh
+sh docker/docker_image_build.sh
 
-pushd build
+pushd docker
 # 启动 docker compose
 docker-compose -f docker-compose.yml up -d
 popd 
@@ -379,11 +380,6 @@ jarboot$ sysprop user.home
 
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) 部分命令在<code>Arthas</code>源码的基础上二次开发。
-
-## 致谢
-我们使用Jetbrains tools开发和构建项目.
-
-![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
 
 ## 联系
 - 邮箱: 282295811@qq.com
