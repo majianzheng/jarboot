@@ -5,6 +5,7 @@ package io.github.majianzheng.jarboot.api.constant;
  */
 public class SettingPropConst {
     public static final String DEFAULT_VM_FILE = "boot.vmoptions";
+    public static final String ENV_FILE = ".env";
     public static final int DEFAULT_PRIORITY = 1;
 
     public static final String COMMENT_PREFIX = "#";

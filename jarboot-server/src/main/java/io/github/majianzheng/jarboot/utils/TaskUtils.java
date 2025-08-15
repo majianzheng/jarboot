@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.utils;
 
+import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
@@ -13,6 +14,8 @@ import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -355,8 +358,9 @@ public class TaskUtils {
     }
 
     private static void initEnv(String environment, String workHome, StringBuilder sb) {
-        String[] envs = parseEnv(environment);
-        if (null != envs) {
+        List<String> envs = parseEnv(environment);
+        parseFromEnvFile(workHome, envs);
+        if (!CollectionUtils.isEmpty(envs)) {
             for (String env : envs) {
                 if (OSUtils.isWindows()) {
                     sb.append("set ").append(env).append(StringUtils.LINE_BREAK);
@@ -465,14 +469,32 @@ public class TaskUtils {
         return dir;
     }
 
-    private static String[] parseEnv(String environment) {
+    private static List<String> parseEnv(String environment) {
         String[] en;
         if (StringUtils.isBlank(environment)) {
-            en = null;
+            return new ArrayList<>();
         } else {
             en = environment.split(CommonConst.COMMA_SPLIT);
         }
-        return en;
+        return List.of(en);
+    }
+
+    private static void parseFromEnvFile(String workDir, List<String> envs) {
+        File envFile = new File(workDir, SettingPropConst.ENV_FILE);
+        if (envFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(envFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.startsWith(SettingPropConst.COMMENT_PREFIX) || !line.contains("=")) {
+                        continue;
+                    }
+                    envs.add(line);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 
     private TaskUtils(){}
