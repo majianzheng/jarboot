@@ -70,7 +70,7 @@ export type ServerSetting = {
   scheduleType: string;
   cron: string;
   daemon: boolean;
-  env: string;
+  envs?: string[];
   group: string;
   fileUpdateWatch: boolean;
   jdkPath: string;

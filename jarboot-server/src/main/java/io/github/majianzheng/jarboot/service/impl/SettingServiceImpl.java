@@ -115,7 +115,7 @@ public class SettingServiceImpl implements SettingService {
                 !SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
             throw new JarbootRunException("执行计划类型错误！");
         }
-        if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+        if (setting.checkIsCron()) {
             // 周期执行
             if (StringUtils.isEmpty(setting.getCron())) {
                 throw new JarbootRunException("cron配置为空！");
@@ -220,15 +220,10 @@ public class SettingServiceImpl implements SettingService {
             checkFileExist(javaFile, path);
         }
 
-        String env = setting.getEnv();
-        if (PropertyFileUtils.checkEnvironmentVar(env)) {
-            if (null == env) {
-                env = StringUtils.EMPTY;
-            }
-            setting.setEnv(env);
-        } else {
+        List<String> envs = setting.getEnvs();
+        if (!PropertyFileUtils.checkEnvironmentVar(envs)) {
             throw new JarbootException(ResultCodeConst.VALIDATE_FAILED,
-                    String.format("环境变量配置错误(%s)！", setting.getEnv()));
+                    String.format("环境变量配置错误(%s)！", setting.getEnvs()));
         }
     }
 

@@ -117,12 +117,24 @@ public class UpgradeServiceImpl implements UpgradeService {
             }
             ZipUtils.unZip(installPackage, dir);
             updateProgress("开始检验安装包...", CommonConst.STEP_FILE_CHECK);
+            updateProgress("检验脚本工具...", CommonConst.STEP_FILE_CHECK);
             checkBinDir(distDir);
+            updateProgress("检验脚本工具完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验组件库...", CommonConst.STEP_FILE_CHECK);
             checkComponent(distDir);
+            updateProgress("校验组件库完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验系统配置...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "conf"));
+            updateProgress("校验系统配置完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验资源文件...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "fe"));
+            updateProgress("校验资源文件完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("检验插件库...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "plugins"));
+            updateProgress("检验插件库完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验工作空间...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "workspace"));
+            updateProgress("校验工作空间完成。", CommonConst.STEP_FILE_CHECK);
             updateProgress("开始升级...", CommonConst.STEP_START_UPGRADE);
             backgroundStart(distDir);
         } catch (Exception e) {
@@ -162,9 +174,9 @@ public class UpgradeServiceImpl implements UpgradeService {
             );
             cmd = Arrays.asList("bash", "-c", command);
         }
-        updateProgress("开始执行升级脚本，系统将会关闭！", CommonConst.STEP_START_UPGRADE);
+        updateProgress("即将开始执行升级脚本，系统将会关闭！", CommonConst.STEP_START_UPGRADE);
         new ProcessBuilder(cmd).directory(workDir).start();
-        updateProgress("正在执行升级脚本，系统将关闭，请稍后...", CommonConst.STEP_START_UPGRADE);
+        updateProgress("正在执行升级脚本，系统即将关闭，请稍后...", CommonConst.STEP_START_UPGRADE);
     }
 
     private void checkBinDir(File distDir) {

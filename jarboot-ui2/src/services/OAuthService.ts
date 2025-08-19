@@ -35,18 +35,4 @@ export default class OAuthService {
   public static logout() {
     return Request.post<any>(`${urlBase}/logout`, {});
   }
-
-  public static createOpenApiToken(username?: string, password?: string, expire?: number) {
-    const form: FormData = new FormData();
-    if (username && username.length > 0) {
-      form.append('username', username);
-    }
-    if (password && password.length > 0) {
-      form.append('password', password);
-    }
-    if (expire && expire > 0) {
-      form.append('expireTimestamp', expire + '');
-    }
-    return Request.post<any>(`${urlBase}/openApiToken`, form);
-  }
 }

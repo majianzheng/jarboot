@@ -60,6 +60,20 @@ export default class UserService {
     return Request.get<string[]>(`${urlBase}/userDirs`, {});
   }
 
+  public static createOpenApiToken(username?: string, password?: string, expire?: number) {
+    const form: FormData = new FormData();
+    if (username && username.length > 0) {
+      form.append('username', username);
+    }
+    if (password && password.length > 0) {
+      form.append('password', password);
+    }
+    if (expire && expire > 0) {
+      form.append('expireTimestamp', expire + '');
+    }
+    return Request.post<any>(`${urlBase}/open-api-token`, form);
+  }
+
   public static getTokens(username: string, pageNo: number, pageSize: number) {
     return Request.get(`${urlBase}/open-api-token`, { username, pageNo, pageSize });
   }

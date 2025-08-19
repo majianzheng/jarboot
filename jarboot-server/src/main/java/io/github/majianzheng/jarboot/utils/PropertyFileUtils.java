@@ -57,14 +57,13 @@ public class PropertyFileUtils {
 
     /**
      * 检查环境变量配置
-     * @param env 环境变量
+     * @param envs 环境变量
      * @return 是否合法
      */
-    public static boolean checkEnvironmentVar(String env) {
-        if (StringUtils.isEmpty(env)) {
+    public static boolean checkEnvironmentVar(List<String> envs) {
+        if (CollectionUtils.isEmpty(envs)) {
             return true;
         }
-        String[] envs = env.split(CommonConst.COMMA_SPLIT);
         for (String en : envs) {
             //只能包含一个等号，且等号不能在边界
             int first = en.indexOf(CommonConst.EQUAL_CHAR);
@@ -144,9 +143,9 @@ public class PropertyFileUtils {
             setting.setScheduleType(SettingPropConst.SCHEDULE_ONCE);
         }
         //环境变量
-        String env = setting.getEnv();
-        if (checkEnvironmentVar(env) && StringUtils.isNotEmpty(env)) {
-            setting.setEnv(env);
+        List<String> env = setting.getEnvs();
+        if (checkEnvironmentVar(env)) {
+            setting.setEnvs(env);
         }
         if (null == setting.getPriority()) {
             setting.setPriority(SettingPropConst.DEFAULT_PRIORITY);

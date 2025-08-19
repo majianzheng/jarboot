@@ -228,6 +228,8 @@ function getApiUrl(): string {
 function clearForm() {
   state.upgradeForm.url = '';
   state.upgradeForm.file = [];
+  state.processInfo = [];
+  state.process = {} as UpgradeProgress;
 }
 
 function formatVerTitle() {

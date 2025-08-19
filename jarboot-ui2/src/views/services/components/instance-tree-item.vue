@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { STATUS_ATTACHED, STATUS_SCHEDULING, STATUS_STARTED, STATUS_STARTING, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
+import {
+  SCHEDULE_TASK_RUNNING,
+  STATUS_ATTACHED,
+  STATUS_SCHEDULING,
+  STATUS_STARTED,
+  STATUS_STARTING,
+  STATUS_STOPPED,
+  STATUS_STOPPING,
+} from '@/common/CommonConst';
 import type { ServiceInstance, TreeNode, ServerSetting } from '@/types';
 import { useBasicStore, useServiceStore } from '@/stores';
 import { ElMessageBox } from 'element-plus';
@@ -55,6 +63,9 @@ function getStatusIcon() {
       return { icon: 'Loading', className: 'status-stopping ui-spin' };
     }
     if (STATUS_SCHEDULING === props.data.status) {
+      return { icon: 'Timer', className: 'status-schedule ui-blink' };
+    }
+    if (SCHEDULE_TASK_RUNNING === props.data.status) {
       return { icon: 'Timer', className: 'status-running ui-blink' };
     }
     if (STATUS_STARTING === props.data.status) {
@@ -189,6 +200,9 @@ function onDbClick() {
   }
   .status-running {
     color: var(--el-color-success);
+  }
+  .status-schedule {
+    color: var(--el-color-warning);
   }
   .status-stopped {
     color: var(--el-color-info);

@@ -6,6 +6,7 @@ import ClusterManager from '@/services/ClusterManager';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 import { useBasicStore, useUserStore } from '@/stores';
+import EnvDialog from '@/views/services/components/env-dialog.vue';
 
 const props = defineProps<{
   setting: ServerSetting;
@@ -25,7 +26,7 @@ const defaultSetting: ServerSetting = {
   cron: '',
   command: '',
   daemon: false,
-  env: '',
+  envs: [],
   fileUpdateWatch: false,
   jdkPath: '',
   lastModified: 0,
@@ -60,6 +61,7 @@ const state = reactive({
   isNew: false,
   showEdit: false,
   showVmEdit: false,
+  envDialog: false,
 });
 const configRef = ref<InstanceType<typeof ElForm>>();
 
@@ -156,6 +158,12 @@ onMounted(() => {
           "></el-input>
       </el-form-item>
       <el-form-item v-show="'java' === state.form.applicationType" :label="$t('VM_OPT_LABEL')" prop="vm">
+        <template #label>
+          <span>{{ $t('VM_OPT_LABEL') }}</span>
+          <el-tooltip :content="$t('VM_OPT_TIP')" effect="light">
+            <icon-pro icon="InfoFilled"></icon-pro>
+          </el-tooltip>
+        </template>
         <el-input v-model="state.form.vm" spell-check="false">
           <template #append>
             <span>
@@ -172,35 +180,85 @@ onMounted(() => {
         <el-input placeholder="Main arguments" auto-complete="off" auto-correct="off" auto-capitalize="off" v-model="state.form.args"></el-input>
       </el-form-item>
       <el-form-item v-show="'java' === state.form.applicationType" label="JDK" prop="jdkPath">
-        <el-input placeholder="JDK home path" v-model="state.form.jdkPath"></el-input>
+        <el-input placeholder="JDK home path, need JDK17+" v-model="state.form.jdkPath"></el-input>
       </el-form-item>
       <el-form-item :label="$t('WORK_HOME_LABEL')" prop="workDirectory">
+        <template #label>
+          <span>{{ $t('WORK_HOME_LABEL') }}</span>
+          <el-tooltip :content="$t('WORK_DIR_TIP')" effect="light">
+            <icon-pro icon="InfoFilled"></icon-pro>
+          </el-tooltip>
+        </template>
         <el-input placeholder="work directory" v-model="state.form.workDirectory"></el-input>
       </el-form-item>
-      <el-form-item :label="$t('ENV_LABEL')" prop="env">
+      <el-form-item :label="$t('ENV_LABEL')" prop="envs">
+        <template #label>
+          <span>{{ $t('ENV_LABEL') }}</span>
+          <el-tooltip :content="$t('ENV_TIP')" effect="light">
+            <icon-pro icon="InfoFilled"></icon-pro>
+          </el-tooltip>
+        </template>
         <el-input
-          placeholder="eg: ENV1=val1,ENV2=val2"
+          placeholder="support .env file, eg: ENV1=val1,ENV2=val2"
           auto-complete="off"
           auto-correct="off"
           auto-capitalize="off"
-          v-model="state.form.env"></el-input>
+          readonly
+          :model-value="state.form.envs?.join(',')">
+          <template #append>
+            <el-button link @click.stop="state.envDialog = true">{{ $t('MODIFY') }}</el-button>
+          </template>
+        </el-input>
       </el-form-item>
       <el-form-item :label="$t('AUTO_START')" prop="autoStart">
         <el-radio-group v-model="state.form.autoStart">
-          <el-radio :value="-1">{{ $t('AUTO_START_OPT1') }}</el-radio>
+          <el-radio :value="-1">
+            {{ $t('AUTO_START_OPT1') }}
+            <el-tooltip
+              :content="'☛ 【' + $t('SETTING') + '】 > 【' + $t('SYSTEM_SETTING') + '】 > 【' + $t('AUTO_START_AFTER_INIT') + '】'"
+              effect="light">
+              <icon-pro icon="InfoFilled"></icon-pro>
+            </el-tooltip>
+          </el-radio>
           <el-radio :value="false">{{ $t('AUTO_START_OPT3') }}</el-radio>
           <el-radio :value="true">{{ $t('AUTO_START_OPT2') }}</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item :label="$t('PRIORITY_LABEL')" prop="priority">
+        <template #label>
+          <span>{{ $t('PRIORITY_LABEL') }}</span>
+          <el-tooltip :content="$t('PRIORITY_TIP')" effect="light">
+            <icon-pro icon="InfoFilled"></icon-pro>
+          </el-tooltip>
+        </template>
         <el-input-number :min="1" :max="9999" v-model="state.form.priority"></el-input-number>
       </el-form-item>
       <el-form-item :label="$t('SCHEDULE_TYPE')" prop="daemon">
         <el-radio-group v-model="state.form.scheduleType">
-          <el-radio value="once">{{ $t('SCHEDULE_ONCE') }}</el-radio>
-          <el-radio value="long-times">{{ $t('SCHEDULE_LONE_TIME') }}</el-radio>
-          <el-radio value="cron">{{ $t('SCHEDULE_CRON') }}</el-radio>
-          <el-radio value="restart-cron">{{ $t('RESTART_CRON') }}</el-radio>
+          <el-radio value="once">
+            {{ $t('SCHEDULE_ONCE') }}
+            <el-tooltip :content="$t('ONCE_TIP')" effect="light">
+              <icon-pro icon="InfoFilled"></icon-pro>
+            </el-tooltip>
+          </el-radio>
+          <el-radio value="long-times">
+            {{ $t('SCHEDULE_LONE_TIME') }}
+            <el-tooltip :content="$t('LONG_TIME_TIP')" effect="light">
+              <icon-pro icon="InfoFilled"></icon-pro>
+            </el-tooltip>
+          </el-radio>
+          <el-radio value="cron">
+            {{ $t('SCHEDULE_CRON') }}
+            <el-tooltip :content="$t('CRON_TIP')" effect="light">
+              <icon-pro icon="InfoFilled"></icon-pro>
+            </el-tooltip>
+          </el-radio>
+          <el-radio value="restart-cron">
+            {{ $t('RESTART_CRON') }}
+            <el-tooltip :content="$t('RESTART_CRON_TIP')" effect="light">
+              <icon-pro icon="InfoFilled"></icon-pro>
+            </el-tooltip>
+          </el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item v-show="'cron' === state.form.scheduleType" :label="$t('SCHEDULE_CRON')" prop="cron">
@@ -209,13 +267,19 @@ onMounted(() => {
       <el-form-item v-show="'restart-cron' === state.form.scheduleType" :label="$t('RESTART_CRON')" prop="cron">
         <cron-input v-model="state.form.cron"></cron-input>
       </el-form-item>
-      <el-form-item v-show="'once' !== state.form.scheduleType" :label="$t('DAEMON_LABEL')" prop="daemon">
+      <el-form-item
+        v-show="'long-times' === state.form.scheduleType || 'restart-cron' === state.form.scheduleType"
+        :label="$t('DAEMON_LABEL')"
+        prop="daemon">
         <el-switch v-model="state.form.daemon"></el-switch>
       </el-form-item>
-      <el-form-item v-show="'once' !== state.form.scheduleType" :label="$t('JAR_UPDATE_WATCH_LABEL')" prop="fileUpdateWatch">
+      <el-form-item
+        v-show="'long-times' === state.form.scheduleType || 'restart-cron' === state.form.scheduleType"
+        :label="$t('JAR_UPDATE_WATCH_LABEL')"
+        prop="fileUpdateWatch">
         <el-switch v-model="state.form.fileUpdateWatch"></el-switch>
       </el-form-item>
-      <el-form-item :label="$t('FILE')">
+      <el-form-item :label="$t('SERVICE_DIR')">
         <el-empty v-if="state.isNew" style="width: 100%" :description="$t('SAVE_CONFIG_AND_ENABLE_FILE')">
           <el-button type="primary" @click="saveAndInit">{{ $t('SAVE') }}</el-button>
         </el-empty>
@@ -240,4 +304,11 @@ onMounted(() => {
       </div>
     </template>
   </el-drawer>
+  <env-dialog v-model:env-dialog="state.envDialog" v-model:envs="state.form.envs"></env-dialog>
 </template>
+
+<style scoped lang="less">
+.env-security-btn {
+  color: var(--el-color-warning);
+}
+</style>

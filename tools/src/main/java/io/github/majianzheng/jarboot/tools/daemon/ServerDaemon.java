@@ -47,6 +47,7 @@ public class ServerDaemon {
         }
         // 等待启动
         final int maxWaitSec = 60;
+        final int onceWait = 3;
         boolean prepared = false;
         for (int i = 0; i < maxWaitSec; ++i) {
             prepared = isPrepared();
@@ -54,13 +55,13 @@ public class ServerDaemon {
                 break;
             }
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(onceWait);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
         if (!prepared) {
-            log.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec);
+            log.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec*onceWait);
             return;
         }
         long preparedTime = System.currentTimeMillis();

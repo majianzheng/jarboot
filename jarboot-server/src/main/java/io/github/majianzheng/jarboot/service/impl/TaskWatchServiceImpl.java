@@ -173,7 +173,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             MessageUtils.info(msg);
             TaskUtils.getTaskExecutor().execute(() -> list.forEach(setting -> {
                 if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
-                    TaskUtils.killService(setting.getSid());
+                    serverMgrService.stopSingleService(setting);
                     TaskUtils.startService(setting);
                 } else {
                     serverMgrService.stopSingleService(setting);

@@ -104,14 +104,15 @@ public class TaskRunCache {
         String sid = SettingUtils.createSid(path);
         instance.setSid(sid);
         instance.setGroup(this.getGroup(userDir, instance.getName(), path));
-
+        boolean online = AgentManager.getInstance().isOnline(sid);
+        instance.setOnline(online);
         if (this.isStarting(sid)) {
             instance.setStatus(CommonConst.STARTING);
         } else if (this.isStopping(sid)) {
             instance.setStatus(CommonConst.STOPPING);
         } else if (isScheduling(sid)) {
-            instance.setStatus(CommonConst.SCHEDULING);
-        } else if (AgentManager.getInstance().isOnline(sid)) {
+            instance.setStatus(online ? CommonConst.SCHEDULE_TASK_RUNNING : CommonConst.SCHEDULING);
+        } else if (online) {
             instance.setStatus(CommonConst.RUNNING);
         } else {
             instance.setStatus(CommonConst.STOPPED);

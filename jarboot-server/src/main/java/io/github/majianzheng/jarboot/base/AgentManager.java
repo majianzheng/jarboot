@@ -1,6 +1,5 @@
 package io.github.majianzheng.jarboot.base;
 
-import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.api.event.JarbootEvent;
 import io.github.majianzheng.jarboot.api.event.Subscriber;
 import io.github.majianzheng.jarboot.api.pojo.JvmProcess;
@@ -95,9 +94,13 @@ public class AgentManager {
             client.setSetting(setting);
             ServiceOnlineEvent event = new ServiceOnlineEvent(setting);
             NotifyReactor.getInstance().publishEvent(event);
-            boolean needNotifyStatus = ClientState.OFFLINE.equals(client.getState());
-            if (needNotifyStatus && !SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) && !SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
-                MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
+            if (setting.checkIsCron()) {
+                MessageUtils.upgradeStatus(sid, CommonConst.SCHEDULE_TASK_RUNNING);
+            } else {
+                boolean needNotifyStatus = ClientState.OFFLINE.equals(client.getState());
+                if (needNotifyStatus) {
+                    MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
+                }
             }
         } else {
             //非受管理的本地进程，通知前端Attach成功
@@ -155,6 +158,7 @@ public class AgentManager {
         MessageUtils.console(sid, msg);
         synchronized (client) {
             boolean stopping = ClientState.EXITING.equals(client.getState());
+            boolean starting = ClientState.STARTING.equals(client.getState());
             //发送了退出执行，唤醒killClient或waitServerStarted线程
             try {
                 client.notifyAll();
@@ -165,11 +169,12 @@ public class AgentManager {
                 //此时属于异常退出，发布异常退出事件，通知任务守护服务
                 ServiceSetting setting = client.getSetting();
                 if (null != setting) {
-                    ServiceOfflineEvent event = new ServiceOfflineEvent(setting, stopping);
+                    ServiceOfflineEvent event = new ServiceOfflineEvent(setting, stopping, starting);
                     NotifyReactor.getInstance().publishEvent(event);
+                    MessageUtils.upgradeStatus(sid, setting.checkIsCron() ? CommonConst.SCHEDULING : CommonConst.STOPPED);
                 }
                 client.setState(ClientState.OFFLINE);
-                if (null == setting || !(SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType()))) {
+                if (null == setting) {
                     MessageUtils.upgradeStatus(sid, CommonConst.STOPPED);
                 }
             }

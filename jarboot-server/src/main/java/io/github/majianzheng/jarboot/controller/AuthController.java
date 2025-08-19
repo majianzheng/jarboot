@@ -44,8 +44,6 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
     @Resource
     private UserService userService;
-    @Resource
-    private OpenApiService openApiService;
 
     @Value("${jarboot.token.expire.seconds:7776000}")
     private long expireSeconds;
@@ -131,27 +129,6 @@ public class AuthController {
             response.addCookie(cookie);
         }
         return HttpResponseUtils.success("退出成功");
-    }
-
-    /**
-     * 创建Open Api的访问Token
-     * @param username 用户
-     * @param password 密码
-     * @param expireTimestamp 过期时间戳
-     * @return token
-     */
-    @PostMapping(value="/openApiToken")
-    @EnableAuditLog("创建OpenApi访问Token")
-    public ResponseVo<String> createOpenApiToken(String username, String password, Long expireTimestamp) {
-        try {
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
-                    password);
-            authenticationManager.authenticate(authenticationToken);
-        } catch (Exception e) {
-            throw new JarbootException(e.getMessage(), e);
-        }
-        String token = openApiService.createOpenApiToken(username, expireTimestamp);
-        return HttpResponseUtils.success(token);
     }
 
     private String resolveTokenFromUser(String userName, String rawPassword) {

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -81,7 +83,7 @@ public class ServiceSetting implements Serializable {
     /**
      * 环境变量
      */
-    private String env;
+    private List<String> envs = new ArrayList<>();
     
     /**
      * 是否启用守护，启用后，若服务异常退出则自动启动
@@ -126,6 +128,10 @@ public class ServiceSetting implements Serializable {
         this.applicationType = "java";
     }
 
+    public boolean checkIsCron() {
+        return (SettingPropConst.SCHEDULE_CRON.equals(this.scheduleType) || SettingPropConst.RESTART_CRON.equals(this.scheduleType));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -135,7 +141,7 @@ public class ServiceSetting implements Serializable {
             return false;
         }
         ServiceSetting setting = (ServiceSetting) o;
-        return name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(env, setting.env) && Objects.equals(daemon, setting.daemon) && Objects.equals(fileUpdateWatch, setting.fileUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
+        return name.equals(setting.name) && Objects.equals(userDir, setting.userDir) && Objects.equals(group, setting.group) && sid.equals(setting.sid) && Objects.equals(command, setting.command) && Objects.equals(vm, setting.vm) && Objects.equals(vmContent, setting.vmContent) && Objects.equals(priority, setting.priority) && Objects.equals(args, setting.args) && Objects.equals(workDirectory, setting.workDirectory) && Objects.equals(jdkPath, setting.jdkPath) && Objects.equals(envs, setting.envs) && Objects.equals(daemon, setting.daemon) && Objects.equals(fileUpdateWatch, setting.fileUpdateWatch) && Objects.equals(applicationType, setting.applicationType) && Objects.equals(scheduleType, setting.scheduleType);
     }
 
     @Override

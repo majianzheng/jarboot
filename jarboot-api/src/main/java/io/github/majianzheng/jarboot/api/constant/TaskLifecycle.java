@@ -23,4 +23,6 @@ public enum TaskLifecycle {
     FINISHED,
     /** 计划中 */
     SCHEDULING,
+    /** 计划任务运行中 */
+    SCHEDULE_TASK_RUNNING,
 }
