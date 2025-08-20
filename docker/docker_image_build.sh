@@ -8,5 +8,5 @@ VERSION=3.0.0
 
 docker rmi ${NAME}:latest
 
-docker build --rm -t ${NAME}:latest -f $projectDir/build/Dockerfile $projectDir/packaging/target/jarboot-bin/  \
+docker build --rm -t ${NAME}:latest -f $projectDir/docker/Dockerfile $projectDir/packaging/target/jarboot-bin/  \
 --build-arg VERSION=$VERSION

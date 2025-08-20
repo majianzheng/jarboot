@@ -70,7 +70,7 @@ if exist "!shutdownScript!" (
 )
 
 @rem 等待一段时间确保系统完全关闭
-timeout /t 3 /nobreak >nul
+timeout /t 5 /nobreak >nul
 
 @rem 步骤2 删除安装目录下的components、fe目录
 echo 正在删除旧文件...
@@ -168,5 +168,7 @@ if "!startSystem!"=="true" (
 
 echo 升级执行完毕
 if "!autoConfirm!"=="false" (
+    echo 执行完毕，按任意键退出...
     pause
 )
+echo 执行完成，退出...

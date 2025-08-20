@@ -25,6 +25,7 @@ import io.github.majianzheng.jarboot.event.ServiceOfflineEvent;
 import io.github.majianzheng.jarboot.event.ServiceOnlineEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.derby.vti.IFastPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,11 +97,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         cleanRecordFiles();
 
         // 是否自动启动服务
-        if (Boolean.TRUE.equals(SettingUtils.getSystemSetting().getServicesAutoStart())) {
-            threadFactory
-                    .newThread(this::autoStartServices)
-                    .start();
-        }
+        threadFactory.newThread(this::autoStartServices).start();
         //启动后置脚本
         if (StringUtils.isNotEmpty(afterStartExec)) {
             final String bashFileExt = OSUtils.isWindows() ? "cmd" : "sh";
@@ -114,7 +111,7 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
 
     @Override
     public void registerServiceChangeMonitor(ServiceSetting setting) {
-        if (!SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType()) || !Boolean.TRUE.equals(setting.getFileUpdateWatch())) {
+        if (SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) || !Boolean.TRUE.equals(setting.getFileUpdateWatch())) {
             return;
         }
         final Path servicePath = Paths.get(SettingUtils.getWorkspace(), setting.getUserDir(), setting.getName());
@@ -175,8 +172,13 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
             final String msg = "监控到工作空间文件更新，开始重启相关服务...";
             MessageUtils.info(msg);
             TaskUtils.getTaskExecutor().execute(() -> list.forEach(setting -> {
-                serverMgrService.stopSingleService(setting);
-                serverMgrService.startSingleService(setting);
+                if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) || SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+                    serverMgrService.stopSingleService(setting);
+                    TaskUtils.startService(setting);
+                } else {
+                    serverMgrService.stopSingleService(setting);
+                    serverMgrService.startSingleService(setting);
+                }
             }));
         }
     }
@@ -413,15 +415,32 @@ public class TaskWatchServiceImpl implements TaskWatchService, Subscriber<Servic
         for (File userDir : files) {
             String name = userDir.getName();
             if (userDao.existsByUserDir(name)) {
-                List<ServiceInstance> serviceList = taskRunCache.getServiceList(name);
-                List<String> services = serviceList.stream().map(ServiceInstance::getName).collect(Collectors.toList());
-                logger.info("开始自动启动服务目录{}, 服务数量：{}", name, services.size());
-                serverMgrService.startService0(name, services);
-                logger.info("自动启动服务目录{}完成！", name);
-            } else {
-                logger.warn("工作空间下，该目录（{}）没有任何用户关联", name);
+                doAutoStartInUserDir(name);
             }
         }
+    }
+
+    private void doAutoStartInUserDir(String name) {
+        List<ServiceInstance> serviceList = taskRunCache.getServiceList(name);
+        List<String> services = serviceList.stream().map(ServiceInstance::getName).collect(Collectors.toList());
+        final Queue<ServiceSetting> priorityQueue = PropertyFileUtils.parseStartPriority(name, services);
+        ArrayList<ServiceSetting> taskList = new ArrayList<>();
+        ServiceSetting setting;
+        Boolean systemAuto = SettingUtils.getSystemSetting().getServicesAutoStart();
+        while (null != (setting = priorityQueue.poll())) {
+            if ((null == setting.getAutoStart() && Boolean.TRUE.equals(systemAuto)) || Boolean.TRUE.equals(setting.getAutoStart())) {
+                taskList.add(setting);
+                ServiceSetting next = priorityQueue.peek();
+                if (null != next && !next.getPriority().equals(setting.getPriority())) {
+                    //同一级别的全部取出
+                    serverMgrService.startServiceGroup(taskList);
+                    //开始指定下一级的启动组，此时上一级的已经全部启动完成，清空组
+                    taskList.clear();
+                }
+            }
+        }
+        //最后一组的启动
+        serverMgrService.startServiceGroup(taskList);
     }
 
     private void cleanRecordFiles() {

@@ -56,6 +56,7 @@ export default {
   STARTING: 'Starting',
   STOPPING: 'Stopping',
   SCHEDULING: 'Scheduling',
+  SCHEDULE_TASK_RUNNING: 'Schedule task running',
   ATTACHED: 'Attached',
   NOT_ATTACHED: 'Not attached',
   // 主机状态
@@ -134,8 +135,32 @@ export default {
   SCHEDULE_TYPE: 'Schedule type',
   SCHEDULE_ONCE: 'once',
   SCHEDULE_LONE_TIME: 'long times',
-  SCHEDULE_CRON: 'cron',
+  SCHEDULE_CRON: 'task cron',
+  RESTART_CRON: 'restart schedule',
   COMMAND_EXAMPLE: 'Example:  1) -jar xx.jar    2) MainClassName    3) -cp xx.jar *.*.MainClass mainMethod    4) -classpath **.jar *.*ClassName',
+  AUTO_START: 'Auto start',
+  AUTO_START_OPT1: 'Follow system configuration',
+  AUTO_START_OPT2: 'Automatically start',
+  AUTO_START_OPT3: 'Do not start automatically',
+  ENV_TIP: 'Auto load .env file in "Working directory" when starting, merged current setting.',
+  ENVIRONMENT_VARIABLES: 'Environment Variables',
+  ENV_KEY: 'Key',
+  ENV_VALUE: 'Value',
+  NEW_ENV_VARIABLE: 'New Environment Variable',
+  EDIT_ENV_VARIABLE: 'Edit Environment Variable',
+  CONFIRM: 'Confirm',
+  PRIORITY_TIP:
+    'Mostly used for inter service dependencies, it will be started in descending order of priority during startup. The order of stopping is reversed, and a group with the same priority will start in parallel',
+  ONCE_TIP:
+    'Once started, the program will exit promptly after completing its tasks without running for an extended period, like some small scripts.',
+  LONG_TIME_TIP: 'The program needs to run continuously, such as a web service.',
+  CRON_TIP: 'Mini programs and scripts that are executed regularly, not those that run for a long time.',
+  RESTART_CRON_TIP:
+    'Long term running tasks (such as web services) that require periodic restarts will first stop and then restart the service.',
+  WORK_DIR_TIP:
+    'When left empty, the default is the service directory. Please note that if another directory is configured instead of the service directory, the .env file will be loaded from the working directory, rather than the service directory.',
+  SERVICE_DIR: 'Service Directory',
+  VM_OPT_TIP: 'VM parameter file, default to the "boot.vmoptions" file in the service directory, can be changed to other files',
 
   //插件
   UPLOAD_TITLE: 'Upload plugin',

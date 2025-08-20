@@ -8,6 +8,12 @@ import java.io.InputStream;
  */
 public interface UpgradeService {
     /**
+     * 是否正在升级
+     * @return 是否正在升级
+     */
+    boolean isUpgrading();
+
+    /**
      * 升级
      * @param url 升级文件URL
      */
@@ -17,8 +23,9 @@ public interface UpgradeService {
      * 升级
      * @param file 文件名
      * @param is 文件流
+     * @param callback 文件存储完成后的回调
      */
-    void upgrade(String file, InputStream is);
+    void upgrade(String file, InputStream is, UpgradeStoreFileCallback callback);
 
     /**
      * 更新进度

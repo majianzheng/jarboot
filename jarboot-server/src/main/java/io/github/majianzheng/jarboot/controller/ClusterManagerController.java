@@ -152,7 +152,7 @@ public class ClusterManagerController {
      * @return 服务配置
      */
     @PostMapping("saveServiceSetting")
-    @EnableAuditLog(value = "保存服务配置", argsFormat = ServiceInstanceFormat.class)
+    @EnableAuditLog(value = "保存服务配置")
     public ResponseVo<ServiceSetting> saveServiceSetting(@RequestBody ServiceSetting setting) {
         clusterClientProxy.saveServiceSetting(setting);
         return HttpResponseUtils.success();

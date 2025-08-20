@@ -70,7 +70,7 @@ export type ServerSetting = {
   scheduleType: string;
   cron: string;
   daemon: boolean;
-  env: string;
+  envs?: string[];
   group: string;
   fileUpdateWatch: boolean;
   jdkPath: string;
@@ -83,6 +83,7 @@ export type ServerSetting = {
   workDirectory: string;
   workspace: string;
   serviceDir: FileNode;
+  autoStart: boolean | number | null | undefined;
 };
 export type GlobalSetting = {
   workspace: string;

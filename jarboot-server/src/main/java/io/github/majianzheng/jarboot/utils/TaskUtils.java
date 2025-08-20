@@ -1,5 +1,6 @@
 package io.github.majianzheng.jarboot.utils;
 
+import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.JarbootException;
@@ -13,6 +14,8 @@ import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -123,7 +126,7 @@ public class TaskUtils {
                         setting,
                         // 启动、等待启动完成，最长2分钟（可配置）
                         SettingUtils.getSystemSetting().getMaxStartTime(),
-                        () -> startTask(cmd, setting.getEnv(), workHome, bashFile, jdkPath));
+                        () -> startTask(cmd, setting.getEnvs(), workHome, bashFile, jdkPath));
     }
 
     private static void initServiceEnv(ServiceSetting setting, File bashFile) {
@@ -153,6 +156,10 @@ public class TaskUtils {
                     .append("export CATALINA_HOME=\"").append(catalinaHome).append('"').append(StringUtils.LINE_BREAK)
                     .append("export SERVICE_SCH_TYPE=\"").append(setting.getScheduleType()).append('"').append(StringUtils.LINE_BREAK);
         }
+        sb.append(StringUtils.LINE_BREAK);
+        List<String> bootEnvs = SecurityEnvUtils.getEnv(bashFile.getParent());
+        appendEnvStr(sb, bootEnvs);
+        sb.append(StringUtils.LINE_BREAK);
         try {
             FileUtils.writeStringToFile(bashFile, sb.toString(), OSUtils.isWindows() ? "GBK" : "UTF-8");
         } catch (Exception e) {
@@ -229,7 +236,7 @@ public class TaskUtils {
         String jdkPath = SettingUtils.getJdkPath();
         try {
             initServiceEnv(setting, bashFile);
-            startTask(cmdBuilder.toString(), setting.getEnv(), serverPath, bashFile, jdkPath).waitFor();
+            startTask(cmdBuilder.toString(), setting.getEnvs(), serverPath, bashFile, jdkPath).waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -326,7 +333,7 @@ public class TaskUtils {
      * @param bashFile 临时生成的bash可执行文件
      * @param jdkPath jdk路径
      */
-    public static Process startTask(String command, String environment, String workHome, File bashFile, String jdkPath) {
+    public static Process startTask(String command, List<String> environment, String workHome, File bashFile, String jdkPath) {
         StringBuilder sb = new StringBuilder();
         try {
             initRunningEnv(jdkPath, sb);
@@ -354,17 +361,12 @@ public class TaskUtils {
         }
     }
 
-    private static void initEnv(String environment, String workHome, StringBuilder sb) {
-        String[] envs = parseEnv(environment);
-        if (null != envs) {
-            for (String env : envs) {
-                if (OSUtils.isWindows()) {
-                    sb.append("set ").append(env).append(StringUtils.LINE_BREAK);
-                } else {
-                    sb.append("export ").append(env).append(StringUtils.LINE_BREAK);
-                }
-            }
+    private static void initEnv(List<String> envs, String workHome, StringBuilder sb) {
+        List<String> envsList = parseFromEnvFile(workHome);
+        if (!CollectionUtils.isEmpty(envs)) {
+            envsList.addAll(envs);
         }
+        appendEnvStr(sb, envsList);
         if (StringUtils.isNotEmpty(workHome)) {
             if (OSUtils.isWindows()) {
                 sb.append("set \"WORK_HOME=").append(workHome).append('"').append(StringUtils.LINE_BREAK)
@@ -374,6 +376,29 @@ public class TaskUtils {
                         .append("cd \"").append("$WORK_HOME").append('"').append(StringUtils.LINE_BREAK);
             }
         }
+    }
+
+    private static void appendEnvStr(StringBuilder sb, List<String> envsList) {
+        if (CollectionUtils.isEmpty(envsList)) {
+            return;
+        }
+        for (String env : envsList) {
+            if (isQuoted(env)) {
+                if (env.length() < 5 || !env.contains("=")) {
+                    continue;
+                }
+                env = env.substring(1, env.length() - 1);
+            }
+            if (OSUtils.isWindows()) {
+                sb.append("set \"").append(env).append('"').append(StringUtils.LINE_BREAK);
+            } else {
+                sb.append("export ").append(env).append(StringUtils.LINE_BREAK);
+            }
+        }
+    }
+
+    private static boolean isQuoted(String env) {
+        return env.startsWith("\"") && env.endsWith("\"");
     }
 
     private static void initRunningEnv(String jdkPath, StringBuilder sb) {
@@ -465,14 +490,24 @@ public class TaskUtils {
         return dir;
     }
 
-    private static String[] parseEnv(String environment) {
-        String[] en;
-        if (StringUtils.isBlank(environment)) {
-            en = null;
-        } else {
-            en = environment.split(CommonConst.COMMA_SPLIT);
+    private static List<String> parseFromEnvFile(String workDir) {
+        List<String> envs = new ArrayList<>();
+        File envFile = new File(workDir, SettingPropConst.ENV_FILE);
+        if (envFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(envFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.startsWith(SettingPropConst.COMMENT_PREFIX) || !line.contains("=")) {
+                        continue;
+                    }
+                    envs.add(line);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         }
-        return en;
+        return envs;
     }
 
     private TaskUtils(){}

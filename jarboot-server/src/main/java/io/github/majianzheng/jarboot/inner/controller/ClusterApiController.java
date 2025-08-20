@@ -250,7 +250,7 @@ public class ClusterApiController {
             @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
         try (InputStream is = file.getInputStream()) {
             // 上传服务文件
-            upgradeService.upgrade(file.getOriginalFilename(), is);
+            upgradeService.upgrade(file.getOriginalFilename(), is, null);
         }
         return HttpResponseUtils.success();
     }
@@ -273,7 +273,7 @@ public class ClusterApiController {
      */
     @GetMapping("/upgrade/check")
     public ResponseVo<Boolean> upgradeCheck() {
-        if (AgentManager.getInstance().isAllShutdown()) {
+        if (!AgentManager.getInstance().isAllShutdown()) {
             return HttpResponseUtils.error("有服务正在运行中");
         }
         ServerRuntimeInfo info = serverRuntimeService.getServerRuntimeInfo();

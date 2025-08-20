@@ -2,10 +2,12 @@ package io.github.majianzheng.jarboot;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.exception.JarbootRunException;
+import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.AnsiLog;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
+import io.github.majianzheng.jarboot.common.utils.HttpUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import io.github.majianzheng.jarboot.common.utils.VersionUtils;
 import io.github.majianzheng.jarboot.service.TaskWatchService;
@@ -19,10 +21,11 @@ import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import java.io.File;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.channels.FileLock;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -32,17 +35,9 @@ import java.util.Properties;
 public class AppEnvironment implements SpringApplicationRunListener {
     private static final Logger logger = LoggerFactory.getLogger(AppEnvironment.class);
     private String homePath;
-    private final FileLock lock;
+    private FileLock lock;
 
-    public AppEnvironment(SpringApplication app, String[] args) {
-        // 进程单实例加锁
-        this.lock = CacheDirHelper.singleInstanceTryLock();
-        if (null == this.lock) {
-            AnsiLog.error("Jarboot server is already started!");
-            System.exit(-1);
-        }
-        PidFileHelper.writeServerPid();
-    }
+    public AppEnvironment(SpringApplication app, String[] args) {}
     @Override
     public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
         //初始化工作目录
@@ -67,6 +62,17 @@ public class AppEnvironment implements SpringApplicationRunListener {
         final String derbyLog = homePath + File.separator + "logs" + File.separator + "derby.log";
         System.setProperty("derby.stream.error.file", derbyLog);
         System.setProperty("user.dir", homePath);
+        // 进程单实例加锁
+        this.lock = CacheDirHelper.singleInstanceTryLock();
+        if (null == this.lock) {
+            AnsiLog.error("Jarboot server is already started!");
+            System.exit(-1);
+        }
+        if (checkPid(environment)) {
+            AnsiLog.error("Jarboot server{} is already started!", PidFileHelper.getServerPid());
+            System.exit(-1);
+        }
+        PidFileHelper.writeServerPid();
         //环境初始化
         try {
             // 环境检查
@@ -75,13 +81,13 @@ public class AppEnvironment implements SpringApplicationRunListener {
             CacheDirHelper.init();
         } catch (Exception e) {
             AnsiLog.error(e);
-            FileUtils.deleteQuietly(CacheDirHelper.getServerPidFile());
             System.exit(-1);
         }
     }
 
     @Override
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
+        CacheDirHelper.getServerPidFile().deleteOnExit();
         // 初始化配置
         SettingUtils.init(context, homePath);
         TaskWatchService taskWatchService = context.getBean(TaskWatchService.class);
@@ -137,6 +143,23 @@ public class AppEnvironment implements SpringApplicationRunListener {
         }
         if (!file.isFile()) {
             throw new JarbootRunException(String.format("检查环境错误，%s不是文件类型。", fileName));
+        }
+    }
+
+    private boolean checkPid(ConfigurableEnvironment environment) {
+        String serverPid = PidFileHelper.getServerPid();
+        Map<String, String> vms = VMUtils.getInstance().listVM();
+        if (vms.containsKey(serverPid)) {
+            int port = environment.getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
+            String localHost = "http://127.0.0.1:" + port;
+            String url = localHost + CommonConst.SERVER_RUNTIME_CONTEXT;
+            ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class, null);
+            if (null == runtimeInfo) {
+                return false;
+            }
+            return Objects.equals(runtimeInfo.getPid(), serverPid);
+        } else {
+            return false;
         }
     }
 }

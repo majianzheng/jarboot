@@ -65,7 +65,7 @@ else
 fi
 
 # 等待一段时间确保系统完全关闭
-sleep 3
+sleep 5
 
 # 步骤2: 删除安装目录下的components、fe目录
 echo "正在删除旧文件..."

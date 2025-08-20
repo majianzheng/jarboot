@@ -1,10 +1,7 @@
 package io.github.majianzheng.jarboot.tools.daemon;
 
-import io.github.majianzheng.jarboot.api.constant.CommonConst;
-import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.PidFileHelper;
-import io.github.majianzheng.jarboot.common.utils.HttpUtils;
 import io.github.majianzheng.jarboot.common.utils.OSUtils;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
@@ -12,13 +9,9 @@ import io.github.majianzheng.jarboot.tools.common.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.FileLock;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,16 +27,16 @@ public class ServerDaemon {
             return;
         }
         log.info("启动Jarboot守护进程...");
-        PidFileHelper.writeDaemonPid();
         try (FileLock daemonLock = CacheDirHelper.singleDaemonTryLock()) {
             if (null == daemonLock) {
                 log.error("守护进程(PID: {})已在运行中!", PidFileHelper.getDaemonPid());
                 return;
             }
+            PidFileHelper.writeDaemonPid();
+            CacheDirHelper.getDaemonPidFile().deleteOnExit();
             daemon(daemonLock);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            FileUtils.deleteQuietly(CacheDirHelper.getDaemonPidFile());
         }
     }
 
@@ -54,6 +47,7 @@ public class ServerDaemon {
         }
         // 等待启动
         final int maxWaitSec = 60;
+        final int onceWait = 3;
         boolean prepared = false;
         for (int i = 0; i < maxWaitSec; ++i) {
             prepared = isPrepared();
@@ -61,13 +55,13 @@ public class ServerDaemon {
                 break;
             }
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(onceWait);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
         if (!prepared) {
-            log.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec);
+            log.error("守护进程等待{}秒后仍未检测到Jarboot服务启动，守护退出！", maxWaitSec*onceWait);
             return;
         }
         long preparedTime = System.currentTimeMillis();

@@ -12,6 +12,15 @@ public abstract class BaseInstanceNode {
     protected String name;
     protected String sid;
     protected String status;
+    protected Boolean online;
+
+    public Boolean getOnline() {
+        return online;
+    }
+
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
 
     public String getHost() {
         return host;

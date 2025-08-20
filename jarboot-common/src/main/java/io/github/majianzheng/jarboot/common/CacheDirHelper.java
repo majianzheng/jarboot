@@ -76,7 +76,8 @@ public class CacheDirHelper {
             }
             return fileChannel.tryLock();
         } catch (Exception e) {
-            AnsiLog.error("单例进程尝试访问文件锁失败", e);
+            AnsiLog.error("单例进程尝试访问文件锁失败");
+            AnsiLog.error(e);
             return null;
         }
     }
@@ -89,7 +90,8 @@ public class CacheDirHelper {
             }
             return fileChannel.lock();
         } catch (Exception e) {
-            AnsiLog.error("单例进程访问文件锁失败: ", e);
+            AnsiLog.error("单例进程访问文件锁失败");
+            AnsiLog.error(e);
         }
         return null;
     }
@@ -103,7 +105,8 @@ public class CacheDirHelper {
             }
             return fileChannel.tryLock();
         } catch (Exception e) {
-            AnsiLog.error("守护进程访问文件锁失败:", e);
+            AnsiLog.error("守护进程访问文件锁失败");
+            AnsiLog.error(e);
             return null;
         }
     }
@@ -250,7 +253,8 @@ public class CacheDirHelper {
                     return null;
                 }
             } catch (Exception e) {
-                AnsiLog.error("创建单例进程文件锁失败:", e);
+                AnsiLog.error("创建单例进程文件锁失败");
+                AnsiLog.error(e);
                 return null;
             }
         }
@@ -258,7 +262,8 @@ public class CacheDirHelper {
             RandomAccessFile raf = new RandomAccessFile(lockFile, "rw");
             return raf.getChannel();
         } catch (Exception e) {
-            AnsiLog.error("单例进程访问文件锁失败:", e);
+            AnsiLog.error("单例进程访问文件锁失败");
+            AnsiLog.error(e);
         }
         return null;
     }

@@ -70,19 +70,19 @@
           </el-form-item>
         </template>
         <template v-else>
-          <el-form-item :label="$t('INSTALL_PACKAGE')">
+          <el-form-item :label="$t('INSTALL_PACKAGE')" v-if="!store.upgradeLoading">
             <el-radio-group v-model="state.upgradeForm.upgradePackage" :disabled="store.upgradeLoading">
               <el-radio :label="$t('PACKAGE_FROM_URL')" :value="0"></el-radio>
               <el-radio :label="$t('PACKAGE_FROM_LOCAL')" :value="1"></el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item v-if="state.upgradeForm.upgradePackage === 0" :label="$t('PACKAGE_FROM_URL')">
+          <el-form-item v-if="!store.upgradeLoading && state.upgradeForm.upgradePackage === 0" :label="$t('PACKAGE_FROM_URL')">
             <el-input
               v-model="state.upgradeForm.url"
               placeholder="https:// ... /jarboot/releases/ ......  /jarboot-bin-v*.*.*.zip"
               :disabled="store.upgradeLoading"></el-input>
           </el-form-item>
-          <el-form-item v-if="state.upgradeForm.upgradePackage === 1" :label="$t('PACKAGE_FROM_LOCAL')">
+          <el-form-item v-if="!store.upgradeLoading && state.upgradeForm.upgradePackage === 1" :label="$t('PACKAGE_FROM_LOCAL')">
             <el-upload
               drag
               ref="uploadRef"
@@ -118,7 +118,9 @@
             <el-text type="warning">{{ $t('UPGRADE_TIPS') }}</el-text>
           </el-form-item>
           <el-form-item v-if="(state.process?.action ?? -1) >= 0">
-            <el-text type="info">{{ formatAction() }} : {{ state.process.msg }}</el-text>
+            <div style="height: 180px; overflow: auto; width: 100%" ref="infoRef">
+              <div type="info" v-for="(info, i) in state.processInfo" :key="i">{{ info }}</div>
+            </div>
           </el-form-item>
         </template>
       </el-form>
@@ -163,7 +165,7 @@
 
 <script setup lang="ts">
 import { useBasicStore } from '@/stores';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { DOCS_URL } from '@/common/CommonConst';
 import type { UploadInstance, UploadUserFile } from 'element-plus';
 import CommonNotice from '@/common/CommonNotice';
@@ -174,6 +176,7 @@ import CommonUtils from '@/common/CommonUtils';
 import Request from '@/common/Request';
 
 type UpgradeProgress = {
+  host: string;
   action: number;
   msg: string;
 };
@@ -189,9 +192,11 @@ const state = reactive({
     file: [] as UploadUserFile[],
   },
   process: {} as UpgradeProgress,
+  processInfo: [] as string[],
   upgradeSuccessDialog: false,
   reloadTime: Date.now(),
 });
+const infoRef = ref<HTMLDivElement>();
 
 const dockerUpgradeHelp = `# git clone https://gitee.com/majz0908/jarboot.git #  from gitee clone
 # git clone https://github.com/majianzheng/jarboot.git  # from github
@@ -223,6 +228,8 @@ function getApiUrl(): string {
 function clearForm() {
   state.upgradeForm.url = '';
   state.upgradeForm.file = [];
+  state.processInfo = [];
+  state.process = {} as UpgradeProgress;
 }
 
 function formatVerTitle() {
@@ -256,6 +263,12 @@ function upgrade() {
 function upgradeProgress(data: MsgData) {
   const progress = JSON.parse(data.body) as UpgradeProgress;
   state.process = progress;
+  state.processInfo.push(`${formatAction()}: ${progress.msg}`);
+  nextTick(() => {
+    if (infoRef.value) {
+      infoRef.value.scrollTop = infoRef.value.scrollHeight;
+    }
+  });
   if (progress.action < 0) {
     console.error('升级失败:', progress.msg);
     store.upgradeLoading = false;
@@ -273,16 +286,23 @@ function upgradeProgress(data: MsgData) {
 
 function formatAction() {
   // 0 文件解压缩 1 文件检验 2 开始升级 -1 升级失败
+  let act = '';
   switch (state.process.action) {
     case 0:
-      return '初始化安装包';
+      act = '初始化安装包';
+      break;
     case 1:
-      return '文件检验';
+      act = '文件检验';
+      break;
     case 2:
-      return '开始升级';
+      act = '开始升级';
+      break;
     default:
-      return '升级失败';
+      act = '升级失败';
+      break;
   }
+  let node = state.process.host ? `[${state.process.host}] ` : '';
+  return node + act;
 }
 
 async function reconnectHandler() {

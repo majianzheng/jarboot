@@ -20,6 +20,7 @@ import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.common.utils.VMUtils;
 import io.github.majianzheng.jarboot.dao.AuditLogDao;
 import io.github.majianzheng.jarboot.entity.AuditLog;
+import io.github.majianzheng.jarboot.service.UpgradeService;
 import io.github.majianzheng.jarboot.task.AttachStatus;
 import io.github.majianzheng.jarboot.task.TaskRunCache;
 import io.github.majianzheng.jarboot.api.service.ServiceManager;
@@ -57,6 +58,8 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     private ExecutorService executorService;
     @Resource
     private AuditLogDao auditLogDao;
+    @Resource
+    private UpgradeService upgradeService;
 
     @Override
     public List<ServiceInstance> getServiceList() {
@@ -102,6 +105,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         if (CollectionUtils.isEmpty(serviceNames)) {
             return;
         }
+        if (upgradeService.isUpgrading()) {
+            logger.warn("无法启动服务，系统正在升级中，请稍后再试！");
+            return;
+        }
         String userDir = SettingUtils.getCurrentUserDir();
         //在线程池中执行，防止前端请求阻塞超时
         TaskUtils.getTaskExecutor().execute(() -> this.startService0(userDir, serviceNames));
@@ -130,7 +137,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
      * 同一级别的一起启动
      * @param s 同级服务列表
      */
-    private void startServiceGroup(List<ServiceSetting> s) {
+    void startServiceGroup(List<ServiceSetting> s) {
         if (CollectionUtils.isEmpty(s)) {
             return;
         }
@@ -160,21 +167,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void startSingleService(ServiceSetting setting) {
         String server = setting.getName();
         String sid = setting.getSid();
-        // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
-        if (this.taskRunCache.isStopping(sid)) {
-            MessageUtils.info("服务" + server + "正在停止");
-            return;
-        }
-        if (AgentManager.getInstance().isOnline(sid)) {
-            //已经启动
-            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
-            MessageUtils.info("服务" + server + "已经是启动状态");
-            return;
-        }
-        if (!this.taskRunCache.addStarting(sid)) {
-            MessageUtils.info("服务" + server + "正在启动中");
-            return;
-        }
+        if (startPreCheck(server, sid)) return;
         try {
             //设定启动中，并发送前端让其转圈圈
             NotifyReactor
@@ -185,6 +178,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //开始启动进程
             if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
                 taskRunCache.addScheduleTask(setting);
+            } else if (SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+                TaskUtils.startService(setting);
+                taskRunCache.addScheduleTask(setting);
             } else {
                 TaskUtils.startService(setting);
             }
@@ -194,9 +190,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //服务是否启动成功
             if (AgentManager.getInstance().isOnline(sid)) {
                 MessageUtils.console(sid, String.format(STARTED_MSG, server, costTime));
+                TaskLifecycle lifecycle = SettingPropConst.RESTART_CRON.equals(setting.getScheduleType()) ? TaskLifecycle.SCHEDULE_TASK_RUNNING : TaskLifecycle.AFTER_STARTED;
                 NotifyReactor
                         .getInstance()
-                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.AFTER_STARTED));
+                        .publishEvent(new TaskLifecycleEvent(setting, lifecycle));
             } else {
                 //启动失败
                 if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
@@ -204,7 +201,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
                             .getInstance()
                             .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.START_FAILED));
                     MessageUtils.error("启动服务" + server + "失败！");
-                } else if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+                } else if (setting.checkIsCron()) {
                     NotifyReactor
                             .getInstance()
                             .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.SCHEDULING));
@@ -228,6 +225,29 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             this.taskRunCache.removeStarting(sid);
             TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
         }
+    }
+
+    private boolean startPreCheck(String server, String sid) {
+        if (upgradeService.isUpgrading()) {
+            MessageUtils.info("服务" + server + "无法启动，当前系统正在升级！");
+            return true;
+        }
+        // 已经处于启动中或停止中时不允许执行开始，但是开始中时应当可以执行停止，用于异常情况下强制停止
+        if (this.taskRunCache.isStopping(sid)) {
+            MessageUtils.info("服务" + server + "正在停止");
+            return true;
+        }
+        if (AgentManager.getInstance().isOnline(sid)) {
+            //已经启动
+            MessageUtils.upgradeStatus(sid, CommonConst.RUNNING);
+            MessageUtils.info("服务" + server + "已经是启动状态");
+            return true;
+        }
+        if (!this.taskRunCache.addStarting(sid)) {
+            MessageUtils.info("服务" + server + "正在启动中");
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -277,6 +297,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
     public void attach(String pid) {
         if (StringUtils.isEmpty(pid)) {
             throw new JarbootException("pid is empty!");
+        }
+        if (upgradeService.isUpgrading()) {
+            logger.warn("无法attach，系统正在升级中，请稍后再试！");
+            return;
         }
         String sid = CommonUtils.createJvmSid(pid);
         Object vm = null;
@@ -416,7 +440,7 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //记录开始时间
             long startTime = System.currentTimeMillis();
             TaskUtils.killService(sid);
-            if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+            if (setting.checkIsCron()) {
                 taskRunCache.removeScheduleTask(setting);
                 MessageUtils.info("服务" + server + "已移除定时任务计划");
             }
@@ -452,6 +476,10 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
      */
     @Override
     public void restartService(List<String> serviceNames) {
+        if (upgradeService.isUpgrading()) {
+            logger.warn("当前无法重启服务，系统正在升级中，请稍后再试！");
+            return;
+        }
         String userDir = SettingUtils.getCurrentUserDir();
         //获取终止的顺序
         TaskUtils.getTaskExecutor().execute(() -> {
@@ -467,6 +495,9 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
         ServiceSetting setting = event.getSetting();
         if (null == setting) {
             logger.debug("service offline event, service setting is null!");
+            return;
+        }
+        if (upgradeService.isUpgrading()) {
             return;
         }
         String sid = setting.getSid();
@@ -488,6 +519,12 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             TaskUtils.getTaskExecutor().schedule(() -> tryReAttach(setting), 5, TimeUnit.SECONDS);
             return;
         }
+        if (event.isStarting()) {
+            if (SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+                MessageUtils.warn(String.format("服务%s启动失败！", setting.getName()));
+            }
+            return;
+        }
         postHandleOfflineEvent(setting);
     }
 
@@ -501,20 +538,17 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             MessageUtils.warn(String.format("服务%s启动失败！", serviceName));
             return;
         }
-        TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
 
-        NotifyReactor.getInstance().publishEvent(lifecycleEvent);
-        boolean isDeamon = false;
-        if (SettingPropConst.SCHEDULE_LONE.equals(setting.getScheduleType())) {
-            if (Boolean.TRUE.equals(setting.getDaemon())) {
-                isDeamon = true;
-            } else {
-                MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, currentTimeFormat()));
-            }
-            saveAuditLog("服务异常退出", serviceName);
+        if (SettingPropConst.SCHEDULE_ONCE.equals(setting.getScheduleType()) || SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType())) {
+            MessageUtils.info(String.format("服务%s于%s执行完成！", serviceName, currentTimeFormat()));
+            return;
         }
+        TaskLifecycleEvent lifecycleEvent = new TaskLifecycleEvent(setting, TaskLifecycle.EXCEPTION_OFFLINE);
+        NotifyReactor.getInstance().publishEvent(lifecycleEvent);
 
-        final boolean daemon = isDeamon;
+        MessageUtils.warn(String.format("服务%s于%s异常退出，请检查服务状态！", serviceName, currentTimeFormat()));
+        saveAuditLog("服务异常退出", serviceName);
+        final boolean daemon = Boolean.TRUE.equals(setting.getDaemon());
         executorService.execute(() -> {
             if (StringUtils.isNotEmpty(SettingUtils.getSystemSetting().getAfterServerOfflineExec())) {
                 TaskUtils.execServiceOfflineShell(setting);
@@ -522,7 +556,11 @@ public class ServiceManagerImpl implements ServiceManager, Subscriber<ServiceOff
             //启动
             if (daemon) {
                 MessageUtils.warn(String.format("服务%s于%s异常退出，即将启动守护启动！", serviceName, currentTimeFormat()));
-                this.startSingleService(setting);
+                if (setting.checkIsCron()) {
+                    TaskUtils.startService(setting);
+                } else {
+                    this.startSingleService(setting);
+                }
                 saveAuditLog("服务守护启动", serviceName);
             }
         });

@@ -299,7 +299,6 @@ function deleteChar() {
       // 调整光标位置
       term.write(`\x1b[${calcTextWidth(text)}D`);
     }
-    console.info('>>>', text.length, index, command);
   }
 }
 
@@ -334,7 +333,6 @@ function handleInput(term: Terminal, e: string) {
       command = append;
     }
     termOption.curseIndex += e.length;
-    console.info('command:', command, termOption.curseIndex);
   }
 }
 
@@ -487,12 +485,10 @@ function runTerminal() {
         if (term._core.buffer.x > 2) {
           term.write('\x1b[D');
           termOption.curseIndex--;
-          console.info('isWideChar ', isWideChar(command[termOption.curseIndex]), command[termOption.curseIndex]);
           if (isWideChar(command[termOption.curseIndex])) {
             term.write('\x1b[D');
           }
         }
-        console.info('curse index', term._core.buffer.x - 3, termOption.curseIndex);
         return false;
       }
       if ('ArrowRight' === event.code) {
@@ -503,7 +499,6 @@ function runTerminal() {
           }
           termOption.curseIndex++;
         }
-        console.info('curse index', term._core.buffer.x - 3, termOption.curseIndex);
         return false;
       }
     }

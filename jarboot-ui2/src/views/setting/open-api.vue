@@ -72,7 +72,6 @@ import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { useBasicStore } from '@/stores';
 import UserService from '@/services/UserService';
-import OAuthService from '@/services/OAuthService';
 import StringUtil from '@/common/StringUtil';
 
 const searchConfig: SearchConfig[] = [
@@ -183,7 +182,7 @@ async function save() {
   }
   state.loading = true;
   try {
-    await OAuthService.createOpenApiToken(state.form.username, state.form.password, state.form.expireTimestamp);
+    await UserService.createOpenApiToken(state.form.username, state.form.password, state.form.expireTimestamp);
     state.drawer = false;
     tableRef.value.refresh();
     CommonNotice.success();

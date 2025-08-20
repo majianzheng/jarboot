@@ -1,9 +1,13 @@
 package io.github.majianzheng.jarboot.task;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
+import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
+import io.github.majianzheng.jarboot.api.constant.TaskLifecycle;
+import io.github.majianzheng.jarboot.api.event.TaskLifecycleEvent;
 import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 import io.github.majianzheng.jarboot.base.AgentManager;
 import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
+import io.github.majianzheng.jarboot.common.notify.NotifyReactor;
 import io.github.majianzheng.jarboot.common.utils.StringUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.PropertyFileUtils;
@@ -39,13 +43,13 @@ public class TaskJob extends QuartzJobBean {
     }
 
     private void startTask(String sid, String userDir, String name) {
-        if (AgentManager.getInstance().exist(sid)) {
+        MessageUtils.console(sid, "定时任务触发，开始执行...");
+        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, name);
+        if (SettingPropConst.SCHEDULE_CRON.equals(setting.getScheduleType()) && AgentManager.getInstance().exist(sid)) {
             MessageUtils.info(name + "正在运行中或启动中，定时任务跳过！");
             MessageUtils.console(sid, "正在运行中或启动中，无需再次执行！");
             return;
         }
-        MessageUtils.console(sid, "定时任务触发，开始执行...");
-        ServiceSetting setting = PropertyFileUtils.getServiceSetting(userDir, name);
         try {
             if (null != STARTING_MAP.putIfAbsent(sid, setting)) {
                 MessageUtils.info(name + "正在启动中，定时任务跳过！");
@@ -54,9 +58,17 @@ public class TaskJob extends QuartzJobBean {
             }
             //记录开始时间
             long startTime = System.currentTimeMillis();
-            TaskUtils.startService(setting);
+            if (SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+                stopService(setting);
+            }
+            boolean ok = startService(setting);
             double costTime = (System.currentTimeMillis() - startTime)/1000.0f;
-            String msg = String.format("定时任务\033[96;1m%s\033[0m 启动耗时 \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m", name, costTime);
+            String msg;
+            if (ok) {
+                msg = String.format("定时任务\033[96;1m%s\033[0m 启动耗时 \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m", name, costTime);
+            } else {
+                msg = String.format("定时任务\033[96;1m%s\033[0m 启动启动失败，耗时 \033[91;1m%.3f\033[0m second.\033[5m✨\033[0m", name, costTime);
+            }
             MessageUtils.console(sid, msg);
         } catch (Exception e) {
             MessageUtils.console(sid, "启动失败：" + e.getMessage());
@@ -65,5 +77,50 @@ public class TaskJob extends QuartzJobBean {
             STARTING_MAP.remove(sid);
             TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
         }
+    }
+
+    private void stopService(ServiceSetting setting) {
+        final String sid = setting.getSid();
+        TaskRunCache taskRunCache = SettingUtils.getContext().getBean(TaskRunCache.class);
+        try {
+            if (!taskRunCache.addStopping(sid)) {
+                MessageUtils.info("服务" + setting.getName() + "正在停止中");
+                return;
+            }
+            TaskUtils.killService(sid);
+        } finally {
+            taskRunCache.removeStopping(sid);
+            TaskUtils.cleanBashFile(SettingUtils.getServicePath(setting.getUserDir(), setting.getName()));
+        }
+    }
+
+    private boolean startService(ServiceSetting setting) {
+        final String sid = setting.getSid();
+        TaskRunCache taskRunCache = SettingUtils.getContext().getBean(TaskRunCache.class);
+        try {
+            if (!taskRunCache.addStarting(sid)) {
+                MessageUtils.info("服务" + setting.getName() + "正在启动中");
+                return true;
+            }
+            NotifyReactor
+                    .getInstance()
+                    .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.PRE_START));
+            TaskUtils.startService(setting);
+            if (AgentManager.getInstance().isOnline(sid)) {
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.SCHEDULE_TASK_RUNNING));
+            } else {
+                NotifyReactor
+                        .getInstance()
+                        .publishEvent(new TaskLifecycleEvent(setting, TaskLifecycle.SCHEDULING));
+                if (SettingPropConst.RESTART_CRON.equals(setting.getScheduleType())) {
+                    return false;
+                }
+            }
+        } finally {
+            taskRunCache.removeStarting(sid);
+        }
+        return true;
     }
 }

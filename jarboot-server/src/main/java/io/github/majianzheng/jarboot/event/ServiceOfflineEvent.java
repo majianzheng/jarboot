@@ -9,9 +9,11 @@ import io.github.majianzheng.jarboot.api.pojo.ServiceSetting;
 public class ServiceOfflineEvent implements JarbootEvent {
     private ServiceSetting setting;
     private final boolean stopping;
-    public ServiceOfflineEvent(ServiceSetting setting, boolean stopping) {
+    private final boolean starting;
+    public ServiceOfflineEvent(ServiceSetting setting, boolean stopping, boolean starting) {
         this.setting = setting;
         this.stopping = stopping;
+        this.starting = starting;
     }
 
     public ServiceSetting getSetting() {
@@ -24,5 +26,8 @@ public class ServiceOfflineEvent implements JarbootEvent {
 
     public boolean isStopping() {
         return stopping;
+    }
+    public boolean isStarting() {
+        return starting;
     }
 }

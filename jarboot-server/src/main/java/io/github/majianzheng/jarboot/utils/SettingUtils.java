@@ -514,11 +514,6 @@ public class SettingUtils {
         }
     }
 
-    public static String getCurrentLoginUsername() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getName();
-    }
-
     /**
      * 获取服务工作路径
      * @param serviceName 服务名
@@ -539,7 +534,7 @@ public class SettingUtils {
     }
 
     public static User getCurrentLoginUser() {
-        return userService.findUserByUsername(getCurrentLoginUsername());
+        return userService.findUserByUsername(CommonUtils.getLoginUsername());
     }
 
     /**

@@ -3,16 +3,19 @@ package io.github.majianzheng.jarboot.service.impl;
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.api.pojo.ServerRuntimeInfo;
 import io.github.majianzheng.jarboot.base.AgentManager;
+import io.github.majianzheng.jarboot.cluster.ClusterClientManager;
 import io.github.majianzheng.jarboot.common.CacheDirHelper;
 import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.notify.FrontEndNotifyEventType;
 import io.github.majianzheng.jarboot.common.pojo.UpgradeProgress;
 import io.github.majianzheng.jarboot.common.utils.*;
+import io.github.majianzheng.jarboot.service.UpgradeStoreFileCallback;
 import io.github.majianzheng.jarboot.service.ServerRuntimeService;
 import io.github.majianzheng.jarboot.service.UpgradeService;
 import io.github.majianzheng.jarboot.utils.CommonUtils;
 import io.github.majianzheng.jarboot.utils.MessageUtils;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
+import io.github.majianzheng.jarboot.utils.TaskUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
@@ -20,12 +23,14 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -38,6 +43,11 @@ public class UpgradeServiceImpl implements UpgradeService {
     private final AtomicBoolean upgrading = new AtomicBoolean(false);
     @Resource
     private ServerRuntimeService serverRuntimeService;
+
+    @Override
+    public boolean isUpgrading() {
+        return upgrading.get();
+    }
 
     @Override
     public void upgrade(String url) {
@@ -61,7 +71,7 @@ public class UpgradeServiceImpl implements UpgradeService {
     }
 
     @Override
-    public void upgrade(String file, InputStream is) {
+    public void upgrade(String file, InputStream is, UpgradeStoreFileCallback callback) {
         if (!upgrading.compareAndSet(false, true)) {
             throw new JarbootException("正在升级中，请稍后...");
         }
@@ -71,6 +81,9 @@ public class UpgradeServiceImpl implements UpgradeService {
         }
         try {
             FileUtils.copyInputStreamToFile(is, instFile);
+            if (callback != null) {
+                callback.run(instFile);
+            }
         } catch (Exception e) {
             upgrading.set(false);
             throw new JarbootException(e);
@@ -104,23 +117,46 @@ public class UpgradeServiceImpl implements UpgradeService {
             }
             ZipUtils.unZip(installPackage, dir);
             updateProgress("开始检验安装包...", CommonConst.STEP_FILE_CHECK);
+            updateProgress("检验脚本工具...", CommonConst.STEP_FILE_CHECK);
             checkBinDir(distDir);
+            updateProgress("检验脚本工具完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验组件库...", CommonConst.STEP_FILE_CHECK);
             checkComponent(distDir);
+            updateProgress("校验组件库完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验系统配置...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "conf"));
+            updateProgress("校验系统配置完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验资源文件...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "fe"));
+            updateProgress("校验资源文件完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("检验插件库...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "plugins"));
+            updateProgress("检验插件库完成。", CommonConst.STEP_FILE_CHECK);
+            updateProgress("校验工作空间...", CommonConst.STEP_FILE_CHECK);
             checkDir(FileUtils.getFile(distDir, "workspace"));
+            updateProgress("校验工作空间完成。", CommonConst.STEP_FILE_CHECK);
             updateProgress("开始升级...", CommonConst.STEP_START_UPGRADE);
-            startUpgradeScript(distDir);
+            backgroundStart(distDir);
         } catch (Exception e) {
+            upgrading.set(false);
             log.error("升级失败: {}", e.getMessage(), e);
             updateProgress(e.getMessage(), CommonConst.STEP_UPGRADE_FAILED);
-        } finally {
-            upgrading.set(false);
         }
     }
 
-    private void startUpgradeScript(File distDir) throws Exception {
+    private void backgroundStart(File distDir) {
+        TaskUtils.getTaskExecutor().schedule(() -> {
+            try {
+                startUpgradeScript(distDir);
+            } catch (Exception e) {
+                upgrading.compareAndSet(true, false);
+                log.error("升级失败", e);
+                updateProgress("升级失败" + e.getMessage(), CommonConst.STEP_UPGRADE_FAILED);
+            }
+        }, 3, TimeUnit.SECONDS);
+    }
+
+    private void startUpgradeScript(File distDir) throws IOException {
         String home = SettingUtils.getHomePath();
         File workDir;
         List<String> cmd;
@@ -132,14 +168,15 @@ public class UpgradeServiceImpl implements UpgradeService {
         } else {
             workDir = FileUtils.getFile(distDir, "bin");
             String command = String.format(
-                    "nohup bash upgrade.sh -d '%s' -y >/dev/null 2>&1 &",
-                    home.replace("'", "'\"'\"'") // 转义单引号
+                    "nohup bash upgrade.sh -d '%s' -y >\"%s/logs/upgrade.log\" 2>&1 &",
+                    home.replace("'", "'\"'\"'"), // 转义单引号
+                    home
             );
             cmd = Arrays.asList("bash", "-c", command);
         }
-        updateProgress("开始执行升级脚本，系统将会关闭！", CommonConst.STEP_START_UPGRADE);
+        updateProgress("即将开始执行升级脚本，系统将会关闭！", CommonConst.STEP_START_UPGRADE);
         new ProcessBuilder(cmd).directory(workDir).start();
-        updateProgress("正在执行升级脚本，系统将关闭，请稍后...", CommonConst.STEP_START_UPGRADE);
+        updateProgress("正在执行升级脚本，系统即将关闭，请稍后...", CommonConst.STEP_START_UPGRADE);
     }
 
     private void checkBinDir(File distDir) {
@@ -210,6 +247,7 @@ public class UpgradeServiceImpl implements UpgradeService {
         UpgradeProgress progress = new UpgradeProgress();
         progress.setAction(action);
         progress.setMsg(msg);
+        progress.setHost(ClusterClientManager.getInstance().getSelfHost());
         MessageUtils.globalEvent(JsonUtils.toJsonString(progress), FrontEndNotifyEventType.UPGRADE_PROGRESS);
     }
 

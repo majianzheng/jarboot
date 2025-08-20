@@ -180,9 +180,10 @@ onMounted(() => {
       <img alt="Jarboot logo" class="logo" :class="{ mobile: basic.mobileDevice }" :src="state.logoUrl" />
       <div class="wrapper" v-if="!basic.mobileDevice">
         <nav>
-          <a v-for="(menu, i) in basic.menus" :key="i" :class="{ 'router-link-exact-active': isActive(menu) }" @click="goTo(menu)">{{
-            $t(menu.module as string)
-          }}</a>
+          <a v-for="(menu, i) in basic.menus" :key="i" :class="{ 'router-link-exact-active': isActive(menu) }" @click="goTo(menu)">
+            <icon-pro v-if="menu.icon" :icon="menu.icon"></icon-pro>
+            {{ $t(menu.module as string) }}
+          </a>
         </nav>
       </div>
       <div style="flex: auto"></div>

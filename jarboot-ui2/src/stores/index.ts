@@ -12,6 +12,7 @@ import {
   DEFAULT_PRIVILEGE,
   EXITED,
   NOT_TRUSTED,
+  SCHEDULE_TASK_RUNNING,
   STATUS_ATTACHED,
   STATUS_NOT_ATTACHED,
   STATUS_SCHEDULING,
@@ -217,6 +218,11 @@ export const useServiceStore = defineStore({
           case STATUS_SCHEDULING:
             service.status = status;
             Logger.log(`${name} 定时任务计划中`);
+            pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
+            break;
+          case SCHEDULE_TASK_RUNNING:
+            service.status = status;
+            Logger.log(`${name} 定时任务已执行`);
             pubsub.publish(sid, CONSOLE_TOPIC.FINISH_LOADING);
             break;
           case STATUS_STARTED:

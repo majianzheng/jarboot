@@ -60,6 +60,7 @@ public class CommonConst {
     public static final String USER_DIR = "userDir";
     public static final String HOST_KEY = "host";
     public static final String UUID_KEY = "uuid";
+    public static final String SCHEDULE_TYPE = "scheduleType";
 
     /** Task status */
     public static final String STARTING = "STARTING";
@@ -69,6 +70,7 @@ public class CommonConst {
     public static final String SCHEDULING = "SCHEDULING";
     public static final String ATTACHED = "ATTACHED";
     public static final String NOT_ATTACHED = "NOT_ATTACHED";
+    public static final String SCHEDULE_TASK_RUNNING = "SCHEDULE_TASK_RUNNING";
     /**
      * 等待目标进程优雅退出的最大时间，毫秒
      */

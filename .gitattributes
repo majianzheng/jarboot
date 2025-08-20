@@ -1,0 +1,32 @@
+# 设置默认处理方式为自动
+* text=auto
+
+# 明确指定文本文件使用LF（除了脚本文件）
+*.java text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Windows脚本文件使用CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Linux/Unix脚本文件使用LF
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# 二进制文件不进行转换
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.jar binary
+*.zip binary
+*.png binary
+*.jpg binary

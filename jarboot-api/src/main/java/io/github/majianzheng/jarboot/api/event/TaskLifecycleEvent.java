@@ -33,7 +33,9 @@ public class TaskLifecycleEvent extends ClusterEvent {
             this.status = CommonConst.RUNNING;
         } else if (Objects.equals(TaskLifecycle.SCHEDULING, lifecycle)) {
             this.status = CommonConst.SCHEDULING;
-        } else {
+        } else if (Objects.equals(TaskLifecycle.SCHEDULE_TASK_RUNNING, lifecycle)) {
+            this.status = CommonConst.SCHEDULE_TASK_RUNNING;
+        }  else {
             this.status = CommonConst.STOPPED;
         }
     }

@@ -56,32 +56,38 @@ Safari >=14
 Edge >=88
 
 ## Install or build
-### Download the zip package to install or using docker.
-- <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">Download from Github</a>
+### Download the zip package to install or using `Docker`.
+#### 1. Install package download: <a href="https://github.com/majianzheng/jarboot/releases" target="_blank">从Github下载</a>
 
-Use <code>docker</code>
+#### 2. Select <code>Docker</code>
 ```bash
-# Docker image build
-mvn clean install -P prod
-sh docker/docker_image_build.sh
-
-# Start container
-sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
-```
-#### 使用`docker compose`配置：
-```shell
-# build package
+# build jarboot package, need jdk17+ maven nodejs16+
 mvn clean install -P prod
 # build docker image
 sh docker/docker_image_build.sh
 
-pushd docker
-# start docker compose
-docker-compose -f docker-compose.yml up -d
-popd 
+# start docker container
+sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 ```
-- cluster mode：[docker-compose.yml](docker/docker-compose.yml)
-- standalone mode：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
+
+#### 3. Select `docker compose` setting：
+```shell
+
+# build jarboot package, need jdk17+ maven nodejs16+
+mvn clean install -P prod
+# build docker image
+cd docker
+# shutdown first when running
+docker compose down
+
+sh docker_image_build.sh
+
+# start docker compose
+bash init_docker_dir.sh
+docker compose -f docker-compose.yml up -d
+```
+- 集群模式：[docker-compose.yml](docker/docker-compose.yml)
+- 单机模式：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
 
 ### Code build method
 Ignore this when using zip package or <code>docker</code>.
@@ -388,10 +394,6 @@ jarboot$ sysprop user.home
 * [bytekit](https://github.com/alibaba/bytekit) Java Bytecode Kit.
 * [Arthas](https://github.com/alibaba/arthas) Some command is developed on the source of <code>Arthas</code>.
 
-## Thanks
-We used JetBrains tools for developing and building.
-
-![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
 ## Contact
 - Mail: 282295811@qq.com
 - QQ group: 663881845

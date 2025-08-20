@@ -2,6 +2,7 @@ package io.github.majianzheng.jarboot.controller;
 
 import io.github.majianzheng.jarboot.api.constant.CommonConst;
 import io.github.majianzheng.jarboot.audit.UpdateUserFormat;
+import io.github.majianzheng.jarboot.common.JarbootException;
 import io.github.majianzheng.jarboot.common.annotation.EnableAuditLog;
 import io.github.majianzheng.jarboot.common.annotation.PrivilegeCheck;
 import io.github.majianzheng.jarboot.common.pojo.PagedList;
@@ -18,6 +19,8 @@ import io.github.majianzheng.jarboot.service.OpenApiService;
 import io.github.majianzheng.jarboot.service.UserService;
 import io.github.majianzheng.jarboot.utils.SettingUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +46,9 @@ public class UserController {
     private JwtTokenManager jwtTokenManager;
     @Resource
     private OpenApiService openApiService;
+    @Resource
+    private AuthenticationManager authenticationManager;
+
     /**
      * 创建用户
      * @param username 用户名
@@ -171,6 +177,27 @@ public class UserController {
     @GetMapping(value="/avatar")
     public ResponseVo<String> getAvatar(String username) {
         return HttpResponseUtils.success(userService.getAvatar(username));
+    }
+
+    /**
+     * 创建Open Api的访问Token
+     * @param username 用户
+     * @param password 密码
+     * @param expireTimestamp 过期时间戳
+     * @return token
+     */
+    @PostMapping(value="/open-api-token")
+    @EnableAuditLog("创建OpenApi访问Token")
+    public ResponseVo<String> createOpenApiToken(String username, String password, Long expireTimestamp) {
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
+                    password);
+            authenticationManager.authenticate(authenticationToken);
+        } catch (Exception e) {
+            throw new JarbootException(e.getMessage(), e);
+        }
+        String token = openApiService.createOpenApiToken(username, expireTimestamp);
+        return HttpResponseUtils.success(token);
     }
 
     /**

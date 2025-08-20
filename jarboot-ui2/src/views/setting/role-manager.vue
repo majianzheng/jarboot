@@ -48,7 +48,7 @@
 import RoleService from '@/services/RoleService';
 import { computed, reactive, ref } from 'vue';
 import type { SearchConfig } from '@/types';
-import { ElForm, ElMessageBox, FormRules } from 'element-plus';
+import { ElForm, ElMessageBox, type FormRules } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
 import { useBasicStore } from '@/stores';

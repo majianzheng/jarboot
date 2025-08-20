@@ -172,6 +172,13 @@
 							<configFile>src/main/resources/smart-doc.json</configFile>
 						</configuration>
 					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-deploy-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -187,6 +194,13 @@
 							<projectName>Jarboot API文档(调试)</projectName>
 							<!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
 							<configFile>src/main/resources/smart-doc-dev.json</configFile>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-deploy-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
 						</configuration>
 					</plugin>
 				</plugins>
