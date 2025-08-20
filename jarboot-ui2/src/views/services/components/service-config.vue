@@ -71,7 +71,7 @@ watch(
     state.showEdit = props.showEdit;
     state.isNew = props.isNew;
     state.form = props.setting;
-    if (state.form.autoStart === null) {
+    if (state.form.autoStart === null || state.form.autoStart === undefined) {
       state.form.autoStart = -1;
     }
   }
@@ -108,7 +108,7 @@ async function saveAndInit() {
   // 获取当前选中的节点host
   const inst = { host: state.form.host, name: state.form.name } as ServiceInstance;
   state.form = await ClusterManager.getServerSetting(inst);
-  if (state.form.autoStart === null) {
+  if (state.form.autoStart === null || form.autoStart === undefined) {
     state.form.autoStart = -1;
   }
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
@@ -121,7 +121,7 @@ const onCloseEdit = () => {
 
 onMounted(() => {
   state.form = props.setting;
-  if (state.form.autoStart === null) {
+  if (state.form.autoStart === null || state.form.autoStart === undefined) {
     state.form.autoStart = -1;
   }
   state.isNew = props.isNew;

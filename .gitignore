@@ -12,7 +12,9 @@ dependency-reduced-pom.xml
 lib
 __unconfig_vite.config.ts
 .uuid
-docker/data/jarboot1/derby_data
-docker/data/jarboot2/derby_data
+docker/data/jarboot1
+docker/data/jarboot2
+docker/workspace1
+docker/workspace2
 logs
 components.d.ts

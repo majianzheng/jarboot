@@ -74,12 +74,15 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 # 构建jarboot包，jdk17+，maven，nodejs16+
 mvn clean install -P prod
 # 构建docker镜像
-sh docker/docker_image_build.sh
+cd docker
+# 若在运行中，先关闭
+docker compose down
 
-pushd docker
+sh docker_image_build.sh
+
 # 启动 docker compose
-docker-compose -f docker-compose.yml up -d
-popd 
+bash init_docker_dir.sh
+docker compose -f docker-compose.yml up -d
 ```
 - 集群模式：[docker-compose.yml](docker/docker-compose.yml)
 - 单机模式：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)

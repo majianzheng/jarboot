@@ -72,15 +72,19 @@ sudo docker run -itd --name jarboot -p 9899:9899 mazheng0908/jarboot
 
 #### 3. Select `docker compose` setting：
 ```shell
+
 # build jarboot package, need jdk17+ maven nodejs16+
 mvn clean install -P prod
 # build docker image
-sh docker/docker_image_build.sh
+cd docker
+# shutdown first when running
+docker compose down
 
-pushd docker
+sh docker_image_build.sh
+
 # start docker compose
-docker-compose -f docker-compose.yml up -d
-popd 
+bash init_docker_dir.sh
+docker compose -f docker-compose.yml up -d
 ```
 - 集群模式：[docker-compose.yml](docker/docker-compose.yml)
 - 单机模式：[docker-compose-standalone.yml](docker/docker-compose-standalone.yml)
