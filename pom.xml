@@ -39,14 +39,6 @@
 		<module>text-ui</module>
 		<module>jarboot-client</module>
 		<module>spring-boot-starter-jarboot</module>
-		<module>jarboot-spy</module>
-		<module>jarboot-core</module>
-	    <module>jarboot-agent</module>
-		<module>jarboot-server</module>
-		<module>plugins/shell-plugin</module>
-		<module>demo-server</module>
-		<module>tools</module>
-		<module>packaging</module>
     </modules>
 	<properties>
 		<revision>3.3.0</revision>
@@ -498,6 +490,15 @@
 		<profile>
 			<!-- 本地开发环境 -->
 			<id>dev</id>
+			<modules>
+				<module>jarboot-spy</module>
+				<module>jarboot-core</module>
+				<module>jarboot-agent</module>
+				<module>jarboot-server</module>
+				<module>plugins/shell-plugin</module>
+				<module>demo-server</module>
+				<module>tools</module>
+			</modules>
 			<properties>
 				<env>dev</env>
 			</properties>
@@ -508,6 +509,16 @@
 		</profile>
 		<profile>
 			<id>prod</id>
+			<modules>
+				<module>jarboot-spy</module>
+				<module>jarboot-core</module>
+				<module>jarboot-agent</module>
+				<module>jarboot-server</module>
+				<module>plugins/shell-plugin</module>
+				<module>demo-server</module>
+				<module>tools</module>
+				<module>packaging</module>
+			</modules>
 			<properties>
 				<env>prod</env>
 			</properties>

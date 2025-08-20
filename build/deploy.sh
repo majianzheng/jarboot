@@ -4,4 +4,4 @@
 projectDir=$(cd `dirname $0`/../; pwd)
 source $projectDir/build/common.sh || exit
 
-mvn clean deploy -P release
+mvn clean deploy -P release -pl jarboot-api,jarboot-common,text-ui,jarboot-client,spring-boot-starter-jarboot
