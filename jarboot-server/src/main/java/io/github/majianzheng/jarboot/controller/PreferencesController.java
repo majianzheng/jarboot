@@ -69,9 +69,6 @@ public class PreferencesController {
             @PathVariable("fileName") String fileName,
             @RequestParam("file") MultipartFile file) throws IOException {
         File imageFile = getImageFile(fileName);
-        if (!imageFile.exists()) {
-            throw new JarbootException("文件不存在");
-        }
         try (InputStream is = file.getInputStream(); OutputStream os = FileUtils.openOutputStream(imageFile)) {
             IOUtils.copy(is, os);
         }
