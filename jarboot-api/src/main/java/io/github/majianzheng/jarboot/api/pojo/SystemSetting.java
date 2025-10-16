@@ -1,11 +1,14 @@
 package io.github.majianzheng.jarboot.api.pojo;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author majianzheng
  */
 public class SystemSetting implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private String workspace;
     private String jdkPath;
     private String defaultVmOptions;

@@ -4,6 +4,7 @@ import io.github.majianzheng.jarboot.api.constant.SettingPropConst;
 import lombok.Data;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,8 @@ import java.util.Objects;
 @Data
 @ToString
 public class ServiceSetting implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     /** 所属集群实例 */
     private String host;
     /**
