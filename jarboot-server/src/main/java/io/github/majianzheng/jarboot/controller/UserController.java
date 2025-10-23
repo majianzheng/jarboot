@@ -221,8 +221,8 @@ public class UserController {
      * @param id OpenApiToken id
      * @return 执行结果
      */
-    @DeleteMapping(value="/open-api-token")
-    public ResponseSimple deleteOpenApiToken(@RequestParam(name = "id") Long id) {
+    @DeleteMapping(value="/open-api-token/{id}")
+    public ResponseSimple deleteOpenApiToken(@PathVariable(name = "id") Long id) {
         openApiService.deleteOpenApiToken(id);
         return HttpResponseUtils.success();
     }

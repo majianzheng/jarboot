@@ -377,8 +377,8 @@ public class ClientProxy implements AbstractEventRegistry {
             String temp = StringUtils.EMPTY;
             try {
                 HashMap<String, String> header = new HashMap<>(4);
-                header.put("Authorization", String.format("Bearer %s", token));
-                JsonNode result = HttpUtils.get(baseUrl + CommonConst.AUTH_CONTEXT + "getCurrentUser", header);
+                header.put("Authorization", token);
+                JsonNode result = HttpUtils.get(baseUrl + CommonConst.AUTH_CONTEXT + "/getCurrentUser", header);
                 temp = result.get("data").get("username").asText();
             } catch (Exception e) {
                 throw new JarbootRunException("Login jarboot server failed.", e);

@@ -281,7 +281,10 @@ public class HttpUtils {
         // and allow all hosts verifier.
         SSL_CONNECTION_SOCKET_FACTORY = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
         SSL_CONTEXT = sslContext;
-        HTTP_CLIENT = HttpClients.custom().setSSLSocketFactory(SSL_CONNECTION_SOCKET_FACTORY).build();
+        HTTP_CLIENT = HttpClients.custom()
+                .disableCookieManagement()
+                .setSSLSocketFactory(SSL_CONNECTION_SOCKET_FACTORY)
+                .build();
     }
 
     private HttpUtils() {}

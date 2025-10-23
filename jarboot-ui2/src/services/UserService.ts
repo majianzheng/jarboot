@@ -79,6 +79,6 @@ export default class UserService {
   }
 
   public static removeToken(id: number) {
-    return Request.delete(`${urlBase}/open-api-token`, { id });
+    return Request.delete(`${urlBase}/open-api-token/${id}`, {});
   }
 }

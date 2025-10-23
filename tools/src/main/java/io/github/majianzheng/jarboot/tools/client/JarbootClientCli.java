@@ -34,6 +34,8 @@ import java.util.List;
 @SuppressWarnings({"java:S106", "java:S135"})
 public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
     private static final String TOKEN_ENV = "JARBOOT_TOKEN";
+    private static final String USER_ENV = "JARBOOT_USER";
+    private static final String PWD_ENV = "JARBOOT_PWD";
     String host;
     String username;
     String password;
@@ -93,6 +95,12 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
         if (StringUtils.isEmpty(clientCli.token)) {
             clientCli.token = System.getenv(TOKEN_ENV);
         }
+        if (StringUtils.isEmpty(clientCli.username)) {
+            clientCli.username = System.getenv(USER_ENV);
+        }
+        if (StringUtils.isEmpty(clientCli.password)) {
+            clientCli.password = System.getenv(PWD_ENV);
+        }
         //登录
         clientCli.login();
         //开始执行
@@ -114,16 +122,6 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
                 .terminal(terminal)
                 .option(LineReader.Option.ERASE_LINE_ON_FINISH, OSUtils.isWindows())
                 .build();
-
-        if (StringUtils.isEmpty(username)) {
-            username = lineReader.readLine("username:");
-        }
-        if (StringUtils.isEmpty(password)) {
-            password = lineReader.readLine("password:");
-            if (StringUtils.isEmpty(password)) {
-                password = lineReader.readLine("password:");
-            }
-        }
         //登录认证
         if (StringUtils.isNotEmpty(token)) {
             try {
@@ -135,9 +133,27 @@ public class JarbootClientCli implements Subscriber<TaskLifecycleEvent> {
                 System.exit(1);
             }
         } else {
-            proxy = ClientProxy
-                    .Factory
-                    .createClientProxy(host, username, password);
+            if (StringUtils.isEmpty(username)) {
+                username = lineReader.readLine("username:");
+            }
+            if (StringUtils.isEmpty(password)) {
+                password = lineReader.readLine("password:");
+                if (StringUtils.isEmpty(password)) {
+                    password = lineReader.readLine("password:");
+                }
+            }
+            if (StringUtils.isEmpty(password)) {
+                AnsiLog.error("Password is empty.");
+                System.exit(1);
+            }
+            try {
+                proxy = ClientProxy
+                        .Factory
+                        .createClientProxy(host, username, password);
+            } catch (Exception e) {
+                AnsiLog.error("Login failed, please check your username or password.");
+                System.exit(1);
+            }
         }
         runtimeInfo = proxy.getRuntimeInfo();
         AnsiLog.println("Login success, jarboot server version: {}, cluster:{}",
