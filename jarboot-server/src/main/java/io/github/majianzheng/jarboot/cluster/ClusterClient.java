@@ -114,6 +114,11 @@ public class ClusterClient {
         }
     }
 
+    public String getVmOptions(String serviceName, String file) {
+        String url = formatUrl(String.format("/vmOptions?serviceName=%s&file=%s", serviceName, file));
+        return HttpUtils.getString(url, wrapToken());
+    }
+
     public void deleteService(String serviceName) {
         String url = formatUrl("/service?serviceName=" + serviceName);
         checkResponse(HttpUtils.delete(url, wrapToken()));

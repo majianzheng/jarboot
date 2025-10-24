@@ -158,6 +158,17 @@ public class ClusterManagerController {
         return HttpResponseUtils.success();
     }
 
+    /**
+     * 获取VM参数
+     * @param setting 服务配置
+     * @return VM参数
+     */
+    @PostMapping("getVmOptions")
+    @EnableAuditLog(value = "保存服务配置")
+    public ResponseVo<String> getVmOptions(@RequestBody ServiceSetting setting) {
+        return HttpResponseUtils.success(clusterClientProxy.getVmOptions(setting));
+    }
+
 
     /**
      * 导出服务

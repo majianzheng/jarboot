@@ -214,6 +214,18 @@ public class ClusterClientProxy {
         }
     }
 
+    public String getVmOptions(ServiceSetting setting) {
+        if (CommonUtils.needProxy(setting.getHost())) {
+            ClusterClient client = ClusterClientManager.getInstance().getClient(setting.getHost());
+            if (null == client) {
+                throw new JarbootException("集群实例不存在，host:"  + setting.getHost());
+            }
+            return client.getVmOptions(setting.getName(), setting.getVm());
+        } else {
+            return settingService.getVmOptions(setting.getName(), setting.getVm());
+        }
+    }
+
     private void initDefaultNode(BaseInstanceNode node, ClusterClient client) {
         node.setNodeType(CommonConst.NODE_ROOT);
         node.setHost(client.getHost());

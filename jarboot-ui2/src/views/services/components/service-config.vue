@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { FileNode, ServerSetting, ServiceInstance } from '@/types';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { ElForm, type FormRules } from 'element-plus';
 import ClusterManager from '@/services/ClusterManager';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
 import { useBasicStore, useUserStore } from '@/stores';
 import EnvDialog from '@/views/services/components/env-dialog.vue';
+import { debounce } from 'lodash';
 
 const props = defineProps<{
   setting: ServerSetting;
@@ -114,6 +115,22 @@ async function saveAndInit() {
   CommonNotice.success(CommonUtils.translate('SUCCESS'));
 }
 
+async function onVmPathChange() {
+  if (!state.form.host) {
+    state.form.host = (props.clusterHost || basic.host) as string;
+  }
+  const form = { ...state.form };
+  const vmContent = await ClusterManager.getVmOptions(form);
+  if (vmContent !== state.form.vmContent) {
+    state.form.vmContent = vmContent;
+    if (state.showVmEdit) {
+      state.showVmEdit = false;
+      await nextTick(() => (state.showVmEdit = true));
+    }
+  }
+}
+const onVmChange = debounce(onVmPathChange, 500, { maxWait: 1000 });
+
 const onCloseEdit = () => {
   state.form = { ...defaultSetting };
   state.showVmEdit = false;
@@ -164,7 +181,7 @@ onMounted(() => {
             <icon-pro icon="InfoFilled"></icon-pro>
           </el-tooltip>
         </template>
-        <el-input v-model="state.form.vm" spell-check="false">
+        <el-input v-model="state.form.vm" spell-check="false" @change="onVmChange" @keydown="onVmChange" @input="onVmChange">
           <template #append>
             <span>
               <el-button v-if="state.showVmEdit" @click.stop="state.showVmEdit = false">{{ $t('CLOSE') }}</el-button>

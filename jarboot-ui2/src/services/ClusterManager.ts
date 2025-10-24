@@ -93,6 +93,15 @@ export default class ClusterManager {
     return Request.post<string>(`${urlBase}/saveServiceSetting`, setting);
   }
 
+  /**
+   * 获取VM参数
+   * @param setting 服务配置
+   * @returns {Promise<string>}
+   */
+  public static getVmOptions(setting: ServerSetting): Promise<string> {
+    return Request.post<string>(`${urlBase}/getVmOptions`, setting);
+  }
+
   public static importService(file: File, clusterHost?: string) {
     const form: Map<string, string> = new Map<string, string>();
     if (!file) {

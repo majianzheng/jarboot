@@ -78,6 +78,11 @@ public class ClusterApiController {
         return HttpResponseUtils.success();
     }
 
+    @GetMapping("/vmOptions")
+    public String getServiceSetting(String serviceName, String file) {
+        return settingService.getVmOptions(serviceName, file);
+    }
+
     @DeleteMapping("/service")
     public ResponseSimple deleteService(String serviceName) {
         serviceManager.deleteService(serviceName);
