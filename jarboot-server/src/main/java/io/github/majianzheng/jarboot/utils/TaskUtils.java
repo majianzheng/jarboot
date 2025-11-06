@@ -74,7 +74,7 @@ public class TaskUtils {
         String sid = setting.getSid();
         String serverPath = SettingUtils.getServicePath(setting.getUserDir(), setting.getName());
         StringBuilder cmdBuilder = new StringBuilder();
-
+        prepareRunEvn(sid);
         cmdBuilder
                 .append(StringUtils.SPACE)
                 // Java agent
@@ -268,6 +268,7 @@ public class TaskUtils {
         }
         Object vm = null;
         try {
+            prepareRunEvn(sid);
             vm = VMUtils.getInstance().attachVM(pid);
             VMUtils.getInstance().loadAgentToVM(vm, SettingUtils.getAgentJar(), SettingUtils.getLocalhost());
         } catch (Exception e) {
@@ -508,6 +509,10 @@ public class TaskUtils {
             }
         }
         return envs;
+    }
+
+    private static void prepareRunEvn(String sid) {
+
     }
 
     private TaskUtils(){}

@@ -183,7 +183,7 @@ public class CacheDirHelper {
         // jansi-2.4.1-d7b98e381885acbe-jansi
         List<File> oldFiles = new ArrayList<>();
         final long timeBefore = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000L;
-        HashSet<String> skipFile  = new HashSet<>(Arrays.asList("jarboot_server.inf", "bash_temp", "catalina_home", MONITOR_RECORD_DIR, "pid", "secretKey16"));
+        HashSet<String> skipFile  = new HashSet<>(Arrays.asList("jarboot_server.inf", "bash_temp", "catalina_home", MONITOR_RECORD_DIR, "pid", "secretKey16", "rt"));
         for (File file : allFiles) {
             String name = file.getName();
             if (skipFile.contains(name) || name.endsWith(".pid") || name.endsWith(".lock") || name.startsWith("pty4j")) {

@@ -25,7 +25,6 @@ import io.github.majianzheng.jarboot.event.ServiceOfflineEvent;
 import io.github.majianzheng.jarboot.event.ServiceOnlineEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.derby.vti.IFastPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

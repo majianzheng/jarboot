@@ -33,3 +33,14 @@ spring:
       pool-name: jarboot_db_pool
   quartz:
     job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO
+            instanceName: jarboot_scheduler
+          jobStore:
+            isClustered: true
+            clusterCheckinInterval: 20000
