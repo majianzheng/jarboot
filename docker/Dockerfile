@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk
+FROM anolis-registry.cn-zhangjiakou.cr.aliyuncs.com/openanolis/openjdk:17-8.6
 
 # 设置时区为东八区 (上海)
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \

@@ -4,7 +4,7 @@
 projectDir=$(cd `dirname $0`/../; pwd)
 
 NAME=jarboot
-VERSION=3.0.0
+VERSION=3.3.0
 
 docker rmi ${NAME}:latest
 

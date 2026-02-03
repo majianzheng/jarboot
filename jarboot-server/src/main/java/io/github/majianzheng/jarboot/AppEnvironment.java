@@ -153,11 +153,16 @@ public class AppEnvironment implements SpringApplicationRunListener {
             int port = environment.getProperty(CommonConst.PORT_KEY, int.class, CommonConst.DEFAULT_PORT);
             String localHost = "http://127.0.0.1:" + port;
             String url = localHost + CommonConst.SERVER_RUNTIME_CONTEXT;
-            ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class, null);
-            if (null == runtimeInfo) {
+            try {
+                ServerRuntimeInfo runtimeInfo = HttpUtils.getObj(url, ServerRuntimeInfo.class, null);
+                if (null == runtimeInfo) {
+                    return false;
+                }
+                return Objects.equals(runtimeInfo.getPid(), serverPid);
+            } catch (Exception e) {
+                AnsiLog.error(e);
                 return false;
             }
-            return Objects.equals(runtimeInfo.getPid(), serverPid);
         } else {
             return false;
         }
