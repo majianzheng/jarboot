@@ -228,8 +228,10 @@ public class DeployCommand extends AbstractClientCommand {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            finishOne();
         } catch (Exception e) {
             AnsiLog.error(e);
+            finishOne();
         } finally {
             lock.unlock();
         }
@@ -296,12 +298,14 @@ public class DeployCommand extends AbstractClientCommand {
     @OnClose
     public void onClosed(Session session) {
         updateProgress();
+        finishOne();
     }
 
     @OnError
     public void onFailure(Throwable t) {
         updateProgress();
         AnsiLog.error(t);
+        finishOne();
     }
 
     private synchronized void updateProgress() {
