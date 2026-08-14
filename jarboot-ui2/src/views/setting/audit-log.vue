@@ -26,8 +26,8 @@ function getList(params: any) {
   return Request.get(`/api/jarboot/auditLog`, params);
 }
 
-function formatTime(row: any) {
-  return StringUtil.timeFormat(row.createTime);
+function formatTime(row: any, _column: any, _cellValue: any, _index: number) {
+  return String(StringUtil.timeFormat(row.createTime));
 }
 </script>
 

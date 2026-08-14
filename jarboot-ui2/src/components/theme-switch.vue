@@ -40,12 +40,16 @@ const toggleDark = useToggle(isDark);
   border: 1px solid var(--el-border-color);
   background: var(--el-fill-color);
   box-sizing: border-box;
-  transition: border-color 0.25s var(--el-transition-duration), background-color var(--el-transition-duration-fast);
+  transition:
+    border-color 0.25s var(--el-transition-duration),
+    background-color var(--el-transition-duration-fast);
   .theme-icon {
     padding: 1px;
     border: none;
     border-radius: 50%;
-    transition: color var(--el-transition-duration), opacity var(--el-transition-duration);
+    transition:
+      color var(--el-transition-duration),
+      opacity var(--el-transition-duration);
     &.light {
       background: var(--el-bg-color);
       color: var(--el-text-color-regular);

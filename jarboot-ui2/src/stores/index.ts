@@ -29,8 +29,7 @@ import Request from '@/common/Request';
 import { CONSOLE_TOPIC } from '@/types';
 import FileUploadClient from '@/components/file-upload/FileUploadClient';
 
-export const useBasicStore = defineStore({
-  id: 'basic',
+export const useBasicStore = defineStore('basic', {
   state: () => ({
     productName: 'Jarboot',
     version: '',
@@ -81,8 +80,7 @@ export const useBasicStore = defineStore({
   },
 });
 
-export const useUserStore = defineStore({
-  id: 'user',
+export const useUserStore = defineStore('user', {
   state: () => ({
     username: '',
     fullName: '',
@@ -144,8 +142,7 @@ export const useUserStore = defineStore({
   },
 });
 
-export const useServiceStore = defineStore({
-  id: 'services',
+export const useServiceStore = defineStore('services', {
   state: () => ({
     loading: true,
     search: '',
@@ -283,8 +280,7 @@ export const useServiceStore = defineStore({
   },
 });
 
-export const useUploadStore = defineStore({
-  id: 'upload-file',
+export const useUploadStore = defineStore('upload-file', {
   state: () => ({
     uploadFiles: [] as UploadFileInfo[],
     clients: new Map<string, FileUploadClient>(),

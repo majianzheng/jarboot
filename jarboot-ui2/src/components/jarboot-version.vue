@@ -285,8 +285,8 @@ function upgradeProgress(data: MsgData) {
 }
 
 function formatAction() {
-  // 0 文件解压缩 1 文件检验 2 开始升级 -1 升级失败
-  let act = '';
+  // 0 文件解压�?1 文件检�?2 开始升�?-1 升级失败
+  let act: string;
   switch (state.process.action) {
     case 0:
       act = '初始化安装包';
@@ -301,7 +301,7 @@ function formatAction() {
       act = '升级失败';
       break;
   }
-  let node = state.process.host ? `[${state.process.host}] ` : '';
+  const node = state.process.host ? `[${state.process.host}] ` : '';
   return node + act;
 }
 

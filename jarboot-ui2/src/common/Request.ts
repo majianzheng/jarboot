@@ -93,7 +93,7 @@ export default class Request {
             if (temp) {
               data = temp;
             }
-          } catch (error) {
+          } catch {
             //
           }
         }

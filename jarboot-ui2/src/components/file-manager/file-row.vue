@@ -56,7 +56,7 @@ function showProgress(data: FileNode) {
               <span>
                 {{ data.name }}
                 <span v-if="showProgress(data)">
-                  <el-progress :percentage="data.progress" :stroke-width="16" class="upload-progress" striped striped-flow text-inside />
+                  <el-progress :percentage="data.progress || 0" :stroke-width="16" class="upload-progress" striped striped-flow text-inside />
                 </span>
               </span>
               <template #content>

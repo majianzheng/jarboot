@@ -96,7 +96,7 @@ function connectTo(host: string) {
 function editTab(name: TabPaneName | undefined, action: 'remove' | 'add') {
   resize();
   if ('remove' === action) {
-    let index = name as number;
+    const index = name as number;
     const active = index + 1 >= state.terms.length ? index - 1 : index;
     state.terms.splice(index, 1);
     state.active = active;

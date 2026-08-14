@@ -1,0 +1,17 @@
+[Unit]
+Description=Jarboot Service
+After=network.target
+
+[Service]
+Type=forking
+User=root
+ExecStart=bash bin/startup.sh
+ExecStop=bash bin/shutdown.sh
+Restart=always
+RestartSec=10
+KillMode=process
+WorkingDirectory=/opt/jarboot
+Environment="JARBOOT_HOME=/opt/jarboot"
+
+[Install]
+WantedBy=multi-user.target

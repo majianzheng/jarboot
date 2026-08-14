@@ -31,7 +31,7 @@
             v-model="state.form.username"
             prefix-icon="User"
             :placeholder="$t('USER_NAME')"
-            @keydown.enter="submitForm(loginFormRef)"
+            @keydown.enter="save"
             clearable
             autocomplete="off" />
         </el-form-item>
@@ -40,7 +40,7 @@
             v-model="state.form.password"
             prefix-icon="Lock"
             :placeholder="$t('PASSWORD')"
-            @keydown.enter="submitForm(loginFormRef)"
+            @keydown.enter="save"
             clearable
             show-password
             type="password"
@@ -127,7 +127,7 @@ function formatExpire(row: any): string {
   if (!row.expireTime) {
     return CommonUtils.translate('NO_EXPIRE');
   }
-  let str = StringUtil.timeFormat(row.expireTime);
+  const str = StringUtil.timeFormat(row.expireTime);
   if (isExpired(row.expireTime)) {
     return CommonUtils.translate('AUTH_EXPIRED', { time: str });
   }

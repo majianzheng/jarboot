@@ -26,7 +26,7 @@ export class Base64 {
   public static encodeUnicodeToBase64(str: string) {
     const encoder = new TextEncoder();
     const byteArray = encoder.encode(str);
-    return btoa(String.fromCharCode.apply(null, byteArray));
+    return btoa(String.fromCharCode(...byteArray));
   }
 
   public static decodeBase64ToUnicode(base64Str: string) {

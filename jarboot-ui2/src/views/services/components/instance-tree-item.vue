@@ -30,7 +30,7 @@ const emit = defineEmits<{
   (e: 'row-click', data: ServiceInstance, node: TreeNode, event: PointerEvent): void;
   (e: 'edit', setting: ServerSetting, instance: ServiceInstance): void;
   (e: 'cancel'): void;
-  (e: 'select', selected: boolean, data: ServiceInstance): void;
+  (e: 'select', selected: boolean | string | number, data: ServiceInstance): void;
 }>();
 
 const state = reactive({
@@ -133,7 +133,7 @@ async function onEdit() {
   }
   serviceStore.attach(props.data.host, props.data.pid);
 }
-function onSelect(value: boolean) {
+function onSelect(value: boolean | string | number) {
   emit('select', value, props.data);
 }
 function notOnline() {

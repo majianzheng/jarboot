@@ -443,7 +443,7 @@ export default defineComponent({
       text: computed(() => Language[state.language || 'zh-CN']),
       secondsText: computed(() => {
         let seconds = '';
-        let cronEvery = state.second.cronEvery;
+        const cronEvery = state.second.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             seconds = '*';
@@ -465,7 +465,7 @@ export default defineComponent({
       }),
       minutesText: computed(() => {
         let minutes = '';
-        let cronEvery = state.minute.cronEvery;
+        const cronEvery = state.minute.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             minutes = '*';
@@ -487,7 +487,7 @@ export default defineComponent({
       }),
       hoursText: computed(() => {
         let hours = '';
-        let cronEvery = state.hour.cronEvery;
+        const cronEvery = state.hour.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             hours = '*';
@@ -509,7 +509,7 @@ export default defineComponent({
       }),
       daysText: computed(() => {
         let days = '';
-        let cronEvery = state.day.cronEvery;
+        const cronEvery = state.day.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             break;
@@ -547,7 +547,7 @@ export default defineComponent({
       }),
       weeksText: computed(() => {
         let weeks = '';
-        let cronEvery = state.day.cronEvery;
+        const cronEvery = state.day.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
           case '3':
@@ -578,7 +578,7 @@ export default defineComponent({
       }),
       monthsText: computed(() => {
         let months = '';
-        let cronEvery = state.month.cronEvery;
+        const cronEvery = state.month.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             months = '*';
@@ -600,7 +600,7 @@ export default defineComponent({
       }),
       yearsText: computed(() => {
         let years = '';
-        let cronEvery = state.year.cronEvery;
+        const cronEvery = state.year.cronEvery;
         switch (cronEvery.toString()) {
           case '1':
             years = '*';
@@ -638,7 +638,7 @@ export default defineComponent({
       close();
     };
     const rest = data => {
-      for (let i in data) {
+      for (const i in data) {
         if (data[i] instanceof Object) {
           this.rest(data[i]);
         } else {

@@ -1,4 +1,6 @@
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
@@ -11,12 +13,13 @@ import Unocss from 'unocss/vite';
 import { presetAttributify, presetIcons, presetUno, transformerDirectives, transformerVariantGroup } from 'unocss';
 
 const host = 'http://localhost:9899';
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/jarboot/',
   resolve: {
     alias: {
-      '@': path.join(__dirname, './src'),
+      '@': path.join(rootDir, './src'),
     },
   },
   server: {
@@ -31,6 +34,22 @@ export default defineConfig({
       scss: { api: 'modern-compiler', silenceDeprecations: ['legacy-js-api'] },
     },
   },
+  optimizeDeps: {
+    include: [
+      'element-plus/es',
+      '@vueuse/core',
+      'echarts',
+      'codemirror',
+      '@xterm/xterm',
+      '@xterm/addon-attach',
+      '@xterm/addon-canvas',
+      '@xterm/addon-fit',
+      '@xterm/addon-search',
+      '@xterm/addon-serialize',
+      '@xterm/addon-unicode11',
+      '@xterm/addon-web-links',
+    ],
+  },
   plugins: [
     vue(),
     vueJsx(),
@@ -40,7 +59,7 @@ export default defineConfig({
       include: [/\.vue$/, /\.vue\?vue/, /\.ts$/, /\.md$/],
       resolvers: [
         ElementPlusResolver({
-          importStyle: 'sass',
+          importStyle: false,
         }),
       ],
       dts: 'src/components.d.ts',
@@ -58,9 +77,16 @@ export default defineConfig({
       transformers: [transformerDirectives(), transformerVariantGroup()],
     }),
     createSvgIconsPlugin({
-      iconDirs: [path.resolve(process.cwd(), 'src/assets')],
+      iconDirs: [path.resolve(rootDir, 'src/assets')],
       symbolId: 'icon-[dir]-[name]',
       customDomId: '__svg__icons__dom__',
     }),
   ],
+  test: {
+    server: {
+      deps: {
+        inline: ['element-plus'],
+      },
+    },
+  },
 });

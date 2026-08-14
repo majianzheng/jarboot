@@ -82,12 +82,7 @@ const onChange = (value: string) => {
 };
 
 function onKey(event: KeyboardEvent) {
-  let ctl = false;
-  if (window.navigator.userAgent.includes('Mac OS')) {
-    ctl = event.metaKey;
-  } else {
-    ctl = event.ctrlKey;
-  }
+  const ctl = window.navigator.userAgent.includes('Mac OS') ? event.metaKey : event.ctrlKey;
   if (ctl) {
     if ('KeyF' === event.code) {
       // 搜索

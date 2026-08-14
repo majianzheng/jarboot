@@ -100,7 +100,7 @@ const onFinishLoading = (str?: string) => {
     finishHandle = null;
     try {
       consoleRef.value.removeChild(loading);
-    } catch (error) {
+    } catch {
       //ignore
     }
     isStartLoading = false;
@@ -118,7 +118,7 @@ const onConsole = (line: string | undefined) => {
   }
 };
 const onBackspace = (num: string) => {
-  let backspaceNum = parseInt(num);
+  const backspaceNum = parseInt(num);
   if (!Number.isInteger(backspaceNum)) {
     return;
   }
@@ -236,7 +236,7 @@ const handleStdPrint = (event: ConsoleEvent) => {
 
   //换行处理算法，解析字符串中的换行符，替换为p标签，行未结束为p标签，行结束标识为br
   while (-1 !== index) {
-    let last = getLastLine() as HTMLElement;
+    const last = getLastLine() as HTMLElement;
     //1、截断一行；2、去掉左右尖括号"<>"；3、Ansi编译
     const left = ansiCompile(rawText(text.substring(0, index)));
     if (last) {
@@ -264,7 +264,7 @@ const handleStdPrint = (event: ConsoleEvent) => {
 };
 const updateStdPrint = (text: string) => {
   text = ansiCompile(rawText(text));
-  let last = getLastLine() as HTMLElement;
+  const last = getLastLine() as HTMLElement;
   if (last) {
     if ('BR' === last.nodeName) {
       last.replaceWith(createNewLine(text));
@@ -289,12 +289,12 @@ const createNewLine = (content: string) => {
  * @private
  */
 const handleBackspace = (event: ConsoleEvent) => {
-  let last = getLastLine() as HTMLElement;
+  const last = getLastLine() as HTMLElement;
   //backspace操作只会作用于最后一行，因此只认p标签
   if (!last || 'P' !== last.nodeName) {
     return;
   }
-  let backspaceNum = event.backspaceNum as number;
+  const backspaceNum = event.backspaceNum as number;
   if (backspaceNum > 0) {
     const len = last.innerText.length - backspaceNum;
     if (len > 0) {
@@ -313,7 +313,7 @@ const handleBackspace = (event: ConsoleEvent) => {
  */
 const removeDeleted = (line: HTMLElement, len: number) => {
   let html = '';
-  let nodes = line.childNodes;
+  const nodes = line.childNodes;
   for (let i = 0; i < nodes.length; ++i) {
     const node = nodes[i];
     const isText = '#text' === node.nodeName;
@@ -695,9 +695,9 @@ onMounted(() => {
   finishHandle = null;
   eventQueue = [];
   //初始化loading
-  let three1 = document.createElement('div');
-  let three2 = document.createElement('div');
-  let three3 = document.createElement('div');
+  const three1 = document.createElement('div');
+  const three2 = document.createElement('div');
+  const three3 = document.createElement('div');
   three1.setAttribute('class', 'three1');
   three2.setAttribute('class', 'three2');
   three3.setAttribute('class', 'three3');

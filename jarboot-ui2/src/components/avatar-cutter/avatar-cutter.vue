@@ -129,7 +129,7 @@ onUnmounted(() => {
 // 获取图片宽高
 function getImgSize(url: string) {
   return new Promise(resolve => {
-    let $img = document.createElement('img');
+    const $img = document.createElement('img');
     $img.src = url;
     $img.style.opacity = '0';
     $img.addEventListener('error', () => {
@@ -321,7 +321,7 @@ function doStretch(selectData: any, containerBoxData: any, moveX: number, moveY:
   )[`doStretch${getWord(getCamelCase(selectData.direction))}`];
 
   doStretchFun('preDo');
-  let overflowLength = getOverflowLength();
+  const overflowLength = getOverflowLength();
   if (overflowLength > 0) {
     doStretchFun('reset');
   }

@@ -2,7 +2,7 @@
   <el-space class="bottom-nav" :size="0" fill :fill-ratio="100 / basic.menus.length">
     <div v-for="(item, i) in basic.menus" :key="i">
       <div class="menu-btn" :class="{ 'nav-btn-active': isActive(item) }" @click="goTo(item)">
-        <div><icon-pro :icon="item.icon" :size="22"></icon-pro></div>
+        <div><icon-pro :icon="item.icon || ''" :size="22"></icon-pro></div>
         <div class="menu-title">{{ $t(item.module as string) }}</div>
       </div>
     </div>

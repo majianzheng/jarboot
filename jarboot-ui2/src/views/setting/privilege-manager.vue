@@ -86,7 +86,7 @@ async function changePermission(row: any, value: boolean) {
       userStore.privileges = { ...DEFAULT_PRIVILEGE } as any;
       await userStore.fetchPrivilege();
     }
-  } catch (error) {
+  } catch {
     row.permission = !value;
   }
 }

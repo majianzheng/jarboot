@@ -48,7 +48,7 @@
             v-show="serviceState.activated.sid === s.sid"
             :cluster-host="s.host"
             :cluster-host-name="s.hostName"
-            :sid="(s.sid as string)"
+            :sid="s.sid as string"
             :status="s.status"
             @close="closeServiceTerminal(s)"
             @execute="(cmd, cols, rows) => doCommand(s, cmd, cols, rows)"
@@ -108,7 +108,8 @@ const defaultSetting: ServerSetting = {
   cron: '',
   command: '',
   daemon: false,
-  env: '',
+  envs: [],
+  autoStart: -1,
   fileUpdateWatch: false,
   jdkPath: '',
   lastModified: 0,
@@ -165,7 +166,7 @@ watch(
   (value: string) => treeRef.value?.filter(value)
 );
 
-function filterService(value: string, data: ServiceInstance) {
+function filterService(value: string, data: any) {
   if (!value) {
     return true;
   }
@@ -225,7 +226,7 @@ function currentChange(data: ServiceInstance, node: any, event: PointerEvent) {
   }
 }
 
-function onSelectClick(checked: boolean, data: ServiceInstance) {
+function onSelectClick(checked: boolean | string | number, data: ServiceInstance) {
   let currentNodes = serviceState.currentNode?.length ? [...serviceState.currentNode] : [];
   const index = currentNodes.findIndex(item => item.sid === data.sid);
   if (checked) {

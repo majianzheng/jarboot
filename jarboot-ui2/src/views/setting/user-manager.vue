@@ -78,7 +78,7 @@
 <script lang="ts" setup>
 import UserService from '@/services/UserService';
 import { computed, onMounted, reactive, ref } from 'vue';
-import type { SearchConfig, RoleInfo, SysUser } from '@/types';
+import type { SearchConfig, RoleInfo } from '@/types';
 import { ElForm, ElMessageBox, type FormRules } from 'element-plus';
 import CommonUtils from '@/common/CommonUtils';
 import CommonNotice from '@/common/CommonNotice';
@@ -161,9 +161,9 @@ function uploadAvatar(avatar: string) {
   state.showCutter = false;
 }
 
-function formatRoles(_row: any, _col: string, cellValue: string) {
+function formatRoles(_row: any, _col: any, cellValue: any, _index: number) {
   const roles = cellValue.split(',');
-  return roles.map(role => `${state.roleMap[role] || role}`).join(',');
+  return roles.map((role: string) => `${state.roleMap[role] || role}`).join(',');
 }
 
 function queryUserDirs(query: string, cb: any) {
@@ -182,11 +182,11 @@ async function createUser() {
   state.drawer = true;
 }
 
-function modifyPassword(row: SysUser) {
+function modifyPassword(row: any) {
   state.modifyUsername = row.username;
   state.dialog = true;
 }
-async function updateUser(row: SysUser) {
+async function updateUser(row: any) {
   state.isNew = false;
   await getRoleList();
   state.form = { ...row, rePassword: '', password: '', roles: row.roles.split(',') };
@@ -240,7 +240,7 @@ async function save() {
   }
 }
 async function getRoleList() {
-  let roleList = await RoleService.getRoleList();
+  const roleList = await RoleService.getRoleList();
   const roleMap = {} as any;
   roleList.forEach(r => (roleMap[r.role] = r.name));
   state.roleList = roleList.filter(r => SYS_ROLE !== r.role);

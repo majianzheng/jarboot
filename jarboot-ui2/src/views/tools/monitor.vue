@@ -14,7 +14,7 @@ const state = reactive({
   autoRefresh: true,
   refreshInterval: 5,
   clusterHosts: [] as { host: string; name: string }[],
-  server: {},
+  server: {} as any,
   CPU: [] as any[],
   mem: [] as any[],
 });
@@ -130,7 +130,7 @@ function formatRunTime(time: number, s: string, m: string, h: string, d: string)
     min = min % 60;
     return `${floor(hour)}${h}${floor(min)}${m}${floor(sec)}${s}`;
   }
-  let day = hour / 24;
+  const day = hour / 24;
   hour = hour % 24;
   min = min % 60;
   sec = sec % 60;

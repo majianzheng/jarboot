@@ -66,7 +66,7 @@ import StringUtil from '@/common/StringUtil';
 import { useBasicStore } from '@/stores';
 import CommonNotice from '@/common/CommonNotice';
 import CommonUtils from '@/common/CommonUtils';
-import type { Terminal } from 'xterm';
+import type { Terminal } from '@xterm/xterm';
 import { EXITED, STATUS_STOPPED, STATUS_STOPPING } from '@/common/CommonConst';
 
 /**

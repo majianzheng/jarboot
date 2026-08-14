@@ -122,8 +122,8 @@ function toggleWholeWord() {
   state.searchOpt.wholeWord = !state.searchOpt.wholeWord;
   findNext();
 }
-function toggleOpt(evt: KeyboardEvent) {
-  if (!evt.altKey) {
+function toggleOpt(evt: Event | KeyboardEvent) {
+  if (!(evt instanceof KeyboardEvent) || !evt.altKey) {
     return;
   }
   switch (evt.code) {
@@ -643,7 +643,7 @@ onUnmounted(() => {
           @keydown="toggleOpt"
           clearable />
       </div>
-      <div class="search-btn" @click="search">
+      <div class="search-btn" @click="findNext">
         <div
           class="search-opt-tool"
           :title="$t('CASE_SENSITIVE')"

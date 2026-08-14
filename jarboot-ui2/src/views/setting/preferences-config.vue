@@ -129,7 +129,7 @@ watch(
     if (newIcon?.length <= 0) {
       return;
     }
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (res: ProgressEvent<FileReader>) => {
       formData.iconUrl = (res?.target?.result as string) || FAVICON_URL;
     };
@@ -142,7 +142,7 @@ watch(
     if (logoFile?.length <= 0) {
       return;
     }
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (res: ProgressEvent<FileReader>) => {
       formData.logoUrl = (res?.target?.result as string) || LOGO_URL;
     };
@@ -155,7 +155,7 @@ watch(
     if (bgFile?.length <= 0) {
       return;
     }
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (res: ProgressEvent<FileReader>) => {
       formData.bgUrl = (res?.target?.result as string) || BG_URL;
     };
@@ -201,7 +201,7 @@ const LOGO_KEY = 'logo';
 const ICON_KEY = 'icon';
 const BG_KEY = 'bg';
 
-let uploadSuccessMap = new Map<string, boolean>();
+const uploadSuccessMap = new Map<string, boolean>();
 function uploadLogoSuccess() {
   uploadLogoClear();
   uploadSuccessMap.set(LOGO_KEY, true);

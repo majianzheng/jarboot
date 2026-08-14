@@ -228,7 +228,7 @@ onMounted(() => {
         </el-input>
       </el-form-item>
       <el-form-item :label="$t('AUTO_START')" prop="autoStart">
-        <el-radio-group v-model="state.form.autoStart">
+        <el-radio-group v-model="state.form.autoStart as number | boolean | undefined">
           <el-radio :value="-1">
             {{ $t('AUTO_START_OPT1') }}
             <el-tooltip

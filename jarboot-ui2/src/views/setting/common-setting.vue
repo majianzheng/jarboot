@@ -53,7 +53,7 @@ import CommonUtils from '@/common/CommonUtils';
 import type { GlobalSetting } from '@/types';
 
 const rules = {};
-let state = reactive({
+const state = reactive({
   loading: false,
   form: {
     workspace: '',

@@ -177,7 +177,7 @@ const submitForm = async () => {
 };
 
 async function getRoleList() {
-  let roleList = await RoleService.getRoleList();
+  const roleList = await RoleService.getRoleList();
   const roleMap = {} as any;
   roleList.map(r => (roleMap[r.role] = r.name));
   state.roleList = roleList.filter(r => SYS_ROLE !== r.role);

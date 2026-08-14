@@ -216,7 +216,7 @@ const creatData = (date: Date, value: number) => {
   };
 };
 const createOption = (title: string, series: any[], subtext: string = '', unit: string = '') => {
-  let isDark = checkIsDark();
+  const isDark = checkIsDark();
   (series || []).forEach(item => {
     if (!item.type) {
       item.type = 'line';
@@ -295,8 +295,8 @@ const updateThreadChart = (his: any[]) => {
   const states = ['RUNNABLE'];
   const afterFixData = getAfterFixData(his);
   his.forEach((item: any) => {
-    let timestamp = item.runtimeInfo.timestamp;
-    let date = new Date(timestamp);
+    const timestamp = item.runtimeInfo.timestamp;
+    const date = new Date(timestamp);
     states.forEach(s => {
       const count = (item.threads || []).filter((thread: any) => s === thread.state).length;
       map[s].data.push(creatData(date, count));
@@ -330,8 +330,8 @@ const updateHeapChart = (history: any[]) => {
   const afterFixData = getAfterFixData(history);
   const type = 'heap' === state.memType ? state.heapOption : state.noHeapOption;
   history.forEach((item: any) => {
-    let timestamp = item.runtimeInfo.timestamp;
-    let date = new Date(timestamp);
+    const timestamp = item.runtimeInfo.timestamp;
+    const date = new Date(timestamp);
     const h = ((item?.memoryInfo as any)[state.memType] || []).find((i: any) => type === i.name);
     if (h) {
       submitted.data.push(creatData(date, round(h.total / MB_NUM, PRECISION)));
@@ -360,8 +360,8 @@ const updateCpuChart = (history: any[]) => {
   };
   const afterFixData = getAfterFixData(history);
   history.forEach((item: any) => {
-    let timestamp = item.runtimeInfo.timestamp;
-    let date = new Date(timestamp);
+    const timestamp = item.runtimeInfo.timestamp;
+    const date = new Date(timestamp);
     let c = 0;
     (item.threads || []).forEach((thread: any) => {
       c += thread.cpu;
@@ -382,7 +382,7 @@ const updateCpuChart = (history: any[]) => {
 };
 
 function updateMemChart() {
-  let isDark = checkIsDark();
+  const isDark = checkIsDark();
   const heap = (props.data.memoryInfo[state.memoryType] || []) as any[];
   const total = round(Math.max(heap[0].used / MB_NUM, 0), PRECISION);
   let index = 0;

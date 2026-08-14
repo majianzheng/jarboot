@@ -131,7 +131,7 @@ const emit = defineEmits<{
 const route = useRoute();
 const router = useRouter();
 
-const tableRef = ref<InstanceType<typeof ElTable>>();
+const tableRef = ref<any>();
 
 const state = reactive({
   name: '',
@@ -207,7 +207,7 @@ const updateDataList = () => {
     state.data = props.dataSource as [];
     state.totalCount = props.totalCount;
   } else if ('function' === typeof props.dataSource) {
-    const func = props.dataSource as Function;
+    const func = props.dataSource as (params: any) => Promise<any>;
     const page = state.page - 1;
     const limit = state.limit;
     const query = { ...route.query, page, limit };

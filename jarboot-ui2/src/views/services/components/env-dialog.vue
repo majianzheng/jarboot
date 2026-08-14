@@ -71,10 +71,6 @@ const emit = defineEmits<{
   (e: 'update:envs', value: string[]): void;
 }>();
 
-const state = reactive({
-  activeName: '1',
-});
-
 watch(
   () => props.envs,
   newVal => {
@@ -178,7 +174,7 @@ function saveEnvVariables() {
 }
 
 // 表格行点击事件
-function handleEnvRowClick(row: any, column: any, event: any) {
+function handleEnvRowClick(row: any, _column: any, _event: any) {
   const index = envVariables.value.findIndex(env => env === row);
   selectedEnv.value = index;
 }

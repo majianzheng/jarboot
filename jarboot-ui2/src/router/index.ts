@@ -31,15 +31,13 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, _from) => {
   if (PAGE_LOGIN === to.name) {
-    next();
-    return;
+    return true;
   }
   const user = await OAuthService.getCurrentUser();
   if (StringUtil.isEmpty(user?.username)) {
-    next({ name: PAGE_LOGIN, force: true });
-    return;
+    return { name: PAGE_LOGIN, force: true };
   }
   const userStore = useUserStore();
   userStore.setCurrentUser(user);
@@ -47,23 +45,21 @@ router.beforeEach(async (to, _from, next) => {
     await userStore.fetchAvatar();
   }
   if ('/' === to.path) {
-    next();
-    return;
+    return true;
   }
   if ('jarboot' === userStore.username) {
     // jarboot用户无需校验
-    next();
-    return;
+    return true;
   }
   const code = to?.meta?.code as string;
   if (code) {
     if (!userStore.privileges[code]) {
       // 无权限
       CommonNotice.warn('无权限');
-      return;
+      return false;
     }
   }
-  next();
+  return true;
 });
 
 export default router;

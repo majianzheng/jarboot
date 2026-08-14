@@ -37,7 +37,7 @@ const togglePopover = (bol: boolean) => {
 watch(
   () => props.modelValue,
   newValue => {
-    state.cron = newValue;
+    state.cron = newValue ?? '';
   }
 );
 onMounted(() => {

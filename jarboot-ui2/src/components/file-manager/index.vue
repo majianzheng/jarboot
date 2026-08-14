@@ -64,7 +64,7 @@ async function reload() {
       state.data[0].name = props.clusterHostName || props.clusterHost;
     }
     emit('after-load', { ...state.data }, props.clusterHost || '');
-  } catch (e) {
+  } catch {
     if (props.showClusterHostInRoot && props.withRoot && props.clusterHost) {
       state.data[0].name = `${props.clusterHostName} (${CommonUtils.translate('OFFLINE')})`;
     }
@@ -93,7 +93,7 @@ const loadNode = (node: Node, resolve: (data: Tree[]) => void) => {
 };
 
 function getSelectNode(node: Node): Node {
-  let nodeData = treeRef.value?.getCurrentNode() as FileNode;
+  const nodeData = treeRef.value?.getCurrentNode() as FileNode;
   if (nodeData) {
     node = treeRef.value?.getNode(nodeData) as Node;
   }
@@ -136,7 +136,9 @@ async function addFolder(node: Node) {
   const nodeData = node.data as FileNode;
   if (!nodeData.directory) {
     // 选择的为文件时
-    node = node.parent;
+    if (node.parent) {
+      node = node.parent;
+    }
   }
   const name = await ElMessageBox.prompt(CommonUtils.translate('NAME'), CommonUtils.translate('ADD_FOLDER'));
   if (StringUtil.isEmpty(name.value)) {
@@ -155,7 +157,9 @@ async function addFile(node: Node) {
   const nodeData = node.data as FileNode;
   if (!nodeData.directory) {
     // 选择的为文件时
-    node = node.parent;
+    if (node.parent) {
+      node = node.parent;
+    }
   }
   const name = await ElMessageBox.prompt(CommonUtils.translate('NAME'), CommonUtils.translate('ADD_FILE'));
   if (StringUtil.isEmpty(name.value)) {
@@ -234,7 +238,7 @@ function uploadFinished(node: Node, filename: string) {
   const data = node.data as FileNode;
   const found = data.children?.find(c => c.name === filename);
   if (!found) {
-    let dirs = [node.data.name];
+    const dirs = [node.data.name];
     let parent = node.parent;
     let rootKey = node.data.key;
     while (parent?.data?.name) {
@@ -244,7 +248,7 @@ function uploadFinished(node: Node, filename: string) {
     }
     dirs.pop();
     reload().then(() => {
-      let currentNode = treeRef.value?.getNode(rootKey) as Node;
+      const currentNode = treeRef.value?.getNode(rootKey) as Node;
       expandFind(currentNode, dirs, filename);
     });
     CommonNotice.success(`${CommonUtils.translate('UPLOAD_TITLE')} ${filename} ${CommonUtils.translate('SUCCESS')}`);
@@ -269,7 +273,7 @@ function expandFind(node: Node, dirs: string[], filename: string) {
   });
 }
 
-function filterService(value: any, data: FileNode) {
+function filterService(value: any, data: any) {
   if (!value) {
     return true;
   }

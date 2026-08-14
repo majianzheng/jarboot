@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useUploadStore } from '@/stores';
 import { round } from 'lodash';
-import type { UploadFileInfo } from '@/types';
 import StringUtil from '@/common/StringUtil';
 import { computed } from 'vue';
 
@@ -9,18 +8,18 @@ const uploadStore = useUploadStore();
 function toggleVisible() {
   uploadStore.visible = !uploadStore.visible;
 }
-function calcPercent(row: UploadFileInfo) {
+function calcPercent(row: any) {
   if (!row?.totalSize || !row?.uploadSize) {
     return 0;
   }
   return round((100 * row.uploadSize) / row.totalSize, 2) || 0;
 }
 
-function uploadSize(row: UploadFileInfo) {
+function uploadSize(row: any) {
   return `${StringUtil.formatBytes(row.uploadSize).fileSize} / ${StringUtil.formatBytes(row.totalSize).fileSize} `;
 }
 
-function pauseOrResume(row: UploadFileInfo) {
+function pauseOrResume(row: any) {
   const key = `${row.clusterHost || 'localhost'}://${row.dstPath}`;
   if (row.pause) {
     uploadStore.resume(key);
